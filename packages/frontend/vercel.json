@@ -1,0 +1,86 @@
+{
+  "version": 2,
+  "name": "pollarbase-ai-platform",
+  "alias": ["pollarbase.vercel.app"],
+  "regions": ["iad1", "sfo1"],
+  "framework": "nextjs",
+  "buildCommand": "pnpm build",
+  "outputDirectory": ".next",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "devCommand": "pnpm dev",
+  "nodeVersion": "18.x",
+  "functions": {
+    "app/**": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    },
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        }
+      ]
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/backend/(.*)",
+      "destination": "$BACKEND_API_URL/api/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  },
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_APP_ENV": "@app_env",
+      "NEXT_PUBLIC_API_URL": "@api_url",
+      "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+      "BACKEND_API_URL": "@backend_api_url",
+      "DATABASE_URL": "@database_url"
+    }
+  },
+  "preview": {
+    "env": {
+      "NEXT_PUBLIC_APP_ENV": "@preview_app_env",
+      "NEXT_PUBLIC_API_URL": "@preview_api_url",
+      "NEXT_PUBLIC_SUPABASE_URL": "@preview_supabase_url",
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@preview_supabase_anon_key",
+      "BACKEND_API_URL": "@preview_backend_api_url",
+      "DATABASE_URL": "@preview_database_url"
+    }
+  }
+} 

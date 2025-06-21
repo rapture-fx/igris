@@ -1,0 +1,100 @@
+# Core FastAPI and web framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Database and ORM
+sqlalchemy==2.0.23
+alembic==1.12.1
+asyncpg==0.29.0
+
+# Authentication and Security
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-decouple==3.8
+cryptography==41.0.7
+# Enhanced Authentication Dependencies
+pyotp==2.9.0
+qrcode[pil]==7.4.2
+phonenumbers==8.13.27
+pycryptodome==3.19.0
+
+# Redis and Caching
+redis==5.0.1
+celery==5.3.4
+
+# AI and Data Processing
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.5.0
+scipy==1.11.4
+torch==2.3.1
+transformers==4.35.2
+openai==1.3.7
+
+# Data Analysis and Visualization
+plotly==5.18.0
+seaborn==0.13.0
+matplotlib==3.8.2
+
+# File Processing
+openpyxl==3.1.2
+xlrd==2.0.1
+python-magic==0.4.27
+aiofiles==23.2.1
+
+# Monitoring and Logging
+prometheus-client==0.19.0
+structlog==23.2.0
+psutil==5.9.6
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.1
+
+# Development
+black==23.11.0
+isort==5.12.0
+mypy==1.7.1
+
+# Environment and Configuration
+python-dotenv==1.0.0
+pydantic-settings==2.1.0
+
+# HTTP and External APIs
+aiohttp==3.9.1
+requests==2.31.0
+
+# Background Jobs
+rq==1.15.1
+
+# File Storage
+boto3==1.34.0
+google-cloud-storage==2.10.0
+azure-storage-blob==12.19.0
+
+# Webhooks and Notifications
+slack-sdk==3.26.1
+twilio==8.10.3
+
+# Email
+fastapi-mail==1.4.1
+
+# Image Processing
+Pillow==10.1.0
+
+# PDF Processing
+PyPDF2==3.0.1
+
+# Stripe for Payments
+stripe==7.7.0
+
+# Other Utilities
+torchvision==0.18.1
+torchaudio==2.3.1
+
+# Security middleware dependencies
+cryptography>=41.0.0
+redis>=4.6.0
+bleach>=6.0.0

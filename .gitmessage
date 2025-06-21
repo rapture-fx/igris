@@ -1,0 +1,30 @@
+# Pollarbase AI-powered data analysis platform - Commit Message Template
+# 
+# Format: <type>(<scope>): <subject>
+#
+# Type:
+# feat:     New feature
+# fix:      Bug fix
+# docs:     Documentation changes
+# style:    Code style changes (formatting, etc)
+# refactor: Code refactoring
+# test:     Adding or updating tests
+# chore:    Maintenance tasks
+# perf:     Performance improvements
+# ci:       CI/CD changes
+# build:    Build system changes
+#
+# Scope (optional):
+# frontend, backend, api, ui, ml, docs, config
+#
+# Examples:
+# feat(ml): add automated data labeling with confidence scoring
+# fix(api): resolve CORS issue in upload endpoint
+# docs: update README with new installation instructions
+# refactor(frontend): extract data visualization logic to custom hooks
+#
+# Body (optional): Explain what and why, not how
+# 
+# Footer (optional): Reference issues and breaking changes
+# Closes #123
+# BREAKING CHANGE: API endpoint /v1/analyze now requires authentication 
