@@ -705,26 +705,112 @@ class AutoLabeler:
             return np.ones_like(predictions) * 0.8
     
     def suggest_manual_review(self, prediction_results: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Suggest items that need manual review"""
-        if prediction_results['status'] != 'success':
-            return []
+        """Suggest samples that need manual review based on prediction uncertainty"""
+        review_suggestions = []
         
-        low_confidence_items = [
-            item for item in prediction_results['predictions']
-            if item['needs_review']
-        ]
+        predictions = prediction_results.get('predictions', [])
+        probabilities = prediction_results.get('probabilities', [])
+        
+        for i, (pred, prob) in enumerate(zip(predictions, probabilities)):
+            confidence = np.max(prob) if isinstance(prob, np.ndarray) else prob
+            
+            if confidence < 0.7:  # Low confidence threshold
+                review_suggestions.append({
+                    'index': i,
+                    'predicted_label': pred,
+                    'confidence': float(confidence),
+                    'reason': 'low_confidence',
+                    'priority': 'high' if confidence < 0.5 else 'medium'
+                })
         
         # Sort by confidence (lowest first)
-        low_confidence_items.sort(key=lambda x: x['confidence'])
+        review_suggestions.sort(key=lambda x: x['confidence'])
         
-        suggestions = []
-        for item in low_confidence_items[:20]:  # Limit to top 20 for manual review
-            suggestions.append({
-                'index': item['index'],
-                'predicted_label': item['predicted_label'],
-                'confidence': item['confidence'],
-                'reason': f"Low confidence score ({item['confidence']:.2f})",
-                'priority': 'high' if item['confidence'] < 0.5 else 'medium'
-            })
+        return review_suggestions
+    
+    def export_for_framework_training(
+        self,
+        data: pd.DataFrame,
+        predictions: np.ndarray,
+        confidence_scores: np.ndarray,
+        framework: str = "pytorch"
+    ) -> Dict[str, Any]:
+        """
+        Export labeled data for training in different ML frameworks
+        """
+        # Filter high-confidence predictions for training
+        high_conf_mask = confidence_scores > 0.8
+        training_data = data[high_conf_mask].copy()
+        training_labels = predictions[high_conf_mask]
         
-        return suggestions 
+        if framework.lower() == "pytorch":
+            return self._export_pytorch_format(training_data, training_labels)
+        elif framework.lower() == "tensorflow":
+            return self._export_tensorflow_format(training_data, training_labels)
+        elif framework.lower() == "sklearn":
+            return self._export_sklearn_format(training_data, training_labels)
+        else:
+            raise ValueError(f"Unsupported framework: {framework}")
+    
+    def _export_pytorch_format(self, data: pd.DataFrame, labels: np.ndarray) -> Dict[str, Any]:
+        """Export data in PyTorch format"""
+        try:
+            import torch
+            from torch.utils.data import TensorDataset, DataLoader
+            
+            # Convert data to tensors
+            X = torch.FloatTensor(data.values)
+            y = torch.LongTensor(labels)
+            
+            # Create dataset and dataloader
+            dataset = TensorDataset(X, y)
+            dataloader = DataLoader(dataset, batch_size=32, shuffle=True)
+            
+            return {
+                'dataset': dataset,
+                'dataloader': dataloader,
+                'num_samples': len(data),
+                'num_features': data.shape[1],
+                'num_classes': len(np.unique(labels))
+            }
+        except ImportError:
+            return {'error': 'PyTorch not available'}
+    
+    def _export_tensorflow_format(self, data: pd.DataFrame, labels: np.ndarray) -> Dict[str, Any]:
+        """Export data in TensorFlow format"""
+        try:
+            import tensorflow as tf
+            
+            # Create tf.data.Dataset
+            dataset = tf.data.Dataset.from_tensor_slices((
+                data.values.astype(np.float32),
+                labels.astype(np.int32)
+            ))
+            dataset = dataset.batch(32).shuffle(1000)
+            
+            return {
+                'dataset': dataset,
+                'num_samples': len(data),
+                'num_features': data.shape[1],
+                'num_classes': len(np.unique(labels))
+            }
+        except ImportError:
+            return {'error': 'TensorFlow not available'}
+    
+    def _export_sklearn_format(self, data: pd.DataFrame, labels: np.ndarray) -> Dict[str, Any]:
+        """Export data in scikit-learn format"""
+        from sklearn.model_selection import train_test_split
+        
+        X_train, X_test, y_train, y_test = train_test_split(
+            data.values, labels, test_size=0.2, random_state=42
+        )
+        
+        return {
+            'X_train': X_train,
+            'X_test': X_test,
+            'y_train': y_train,
+            'y_test': y_test,
+            'num_samples': len(data),
+            'num_features': data.shape[1],
+            'num_classes': len(np.unique(labels))
+        } 

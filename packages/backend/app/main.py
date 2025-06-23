@@ -1112,6 +1112,13 @@ app.include_router(integrations_router, prefix="/api/v1/integrations", tags=["in
 app.include_router(partner_router, prefix="/api/v1/partner", tags=["partner"])
 app.include_router(data_processing_router, prefix="/api/v1/processing", tags=["data-processing"])
 
+# AI Framework Integration and Advanced Auto-Labeling (Scale AI competitive features)
+try:
+    from app.api.v1.ai_framework_endpoints import router as ai_framework_router
+    app.include_router(ai_framework_router, prefix="/api/v1/ai-frameworks", tags=["ai-frameworks"])
+except ImportError as e:
+    logger.warning(f"AI Framework endpoints not available: {e}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
