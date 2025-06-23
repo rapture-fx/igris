@@ -29,7 +29,7 @@ class QualityInsight:
     recommended_action: str
     details: Dict[str, Any]
 
-class AIDataDetective:
+class AIDataIntelligenceProcessor:
     """
     Advanced AI-powered data analysis for quality analysis and cleaning
     """

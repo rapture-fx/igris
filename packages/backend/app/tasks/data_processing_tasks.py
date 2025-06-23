@@ -11,7 +11,7 @@ import pandas as pd
 
 from app.core.celery_app import celery_app
 from app.services.ai_engine import DataQualityAnalyzer, DataCleaner
-from app.services.ai_data_detective import AIDataDetective
+from app.services.ai_data_intelligence_processor import AIDataIntelligenceProcessor
 from app.services.file_processor import ProcessingJobManager
 from celery import current_task
 
@@ -238,7 +238,7 @@ def _process_file_streaming(job_id: str, file_path: str, options: Dict[str, Any]
             # Optional: Run AI analysis on first chunk if requested
             if options.get('run_ai_analysis', False) and chunk_idx == 0:
                 logger.info(f"[Job {job_id}] Running AI analysis on sample chunk")
-                detective = AIDataDetective()
+                detective = AIDataIntelligenceProcessor()
                 chunk_analysis = asyncio.run(detective.comprehensive_analysis(chunk, options))
                 processing_result['ai_analysis_summary'] = chunk_analysis
         

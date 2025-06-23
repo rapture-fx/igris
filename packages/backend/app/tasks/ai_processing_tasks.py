@@ -30,7 +30,7 @@ import os
 
 from app.core.celery_app import celery_app
 from app.services.ai_engine import DataQualityAnalyzer, DataCleaner, AutoLabeler
-from app.services.ai_data_detective import AIDataDetective
+from app.services.ai_data_intelligence_processor import AIDataIntelligenceProcessor
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +133,7 @@ def comprehensive_ai_analysis_task(self, job_id: str, file_path: str, options: D
         )
         
         # Initialize processors
-        detective = AIDataDetective()
+        detective = AIDataIntelligenceProcessor()
         processor = StreamingDataProcessor()
         
         # Check if file needs streaming processing
@@ -180,7 +180,7 @@ def comprehensive_ai_analysis_task(self, job_id: str, file_path: str, options: D
         
         raise
 
-def _process_large_file_streaming(job_id: str, file_path: str, detective: AIDataDetective, 
+def _process_large_file_streaming(job_id: str, file_path: str, detective: AIDataIntelligenceProcessor, 
                                  processor: StreamingDataProcessor, options: Dict[str, Any]) -> Dict[str, Any]:
     """Process large files using streaming approach"""
     
@@ -246,7 +246,7 @@ def _process_large_file_streaming(job_id: str, file_path: str, detective: AIData
     
     return aggregated_result
 
-def _process_small_file_standard(job_id: str, file_path: str, detective: AIDataDetective, 
+def _process_small_file_standard(job_id: str, file_path: str, detective: AIDataIntelligenceProcessor, 
                                 options: Dict[str, Any]) -> Dict[str, Any]:
     """Process small files using standard approach"""
     

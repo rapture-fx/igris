@@ -35,7 +35,7 @@ import logging
 from app.database.connection import get_db
 from app.database.models import User, DataInvestigation, ProcessingJob, JobStatus
 from app.core.api_config import settings
-from app.services.ai_data_detective import AIDataDetective
+from app.services.ai_data_intelligence_processor import AIDataIntelligenceProcessor
 from app.api.v1.auth_unified import get_current_user
 
 # Configure logging
@@ -95,7 +95,7 @@ class StreamingDataProcessor:
     def __init__(self):
         self.chunk_size = 10000
         self.max_memory_usage = 2 * 1024 * 1024 * 1024  # 2GB
-        self.ai_detective = AIDataDetective()
+        self.ai_processor = AIDataIntelligenceProcessor()
         
     async def process_file_stream(
         self, 
@@ -159,8 +159,8 @@ class StreamingDataProcessor:
         # Process in chunks
         for chunk_df in pd.read_csv(file_stream, chunksize=self.chunk_size):
             
-            # Process chunk with AI detective
-            chunk_analysis = await self.ai_detective.analyze_chunk(
+            # Process chunk with AI data intelligence processor
+            chunk_analysis = await self.ai_processor.analyze_chunk(
                 chunk_df, 
                 chunk_id=chunk_id,
                 options=options
@@ -213,7 +213,7 @@ class StreamingDataProcessor:
                     chunk_df = pd.DataFrame(chunk_data)
                     
                     # Process chunk
-                    chunk_analysis = await self.ai_detective.analyze_chunk(
+                    chunk_analysis = await self.ai_processor.analyze_chunk(
                         chunk_df, 
                         chunk_id=chunk_id,
                         options=options
@@ -240,7 +240,7 @@ class StreamingDataProcessor:
             else:
                 # Single object - convert to DataFrame
                 chunk_df = pd.json_normalize(data)
-                chunk_analysis = await self.ai_detective.analyze_chunk(
+                chunk_analysis = await self.ai_processor.analyze_chunk(
                     chunk_df, 
                     chunk_id=0,
                     options=options
@@ -286,7 +286,7 @@ class StreamingDataProcessor:
                     chunksize=self.chunk_size
                 ):
                     # Process chunk
-                    chunk_analysis = await self.ai_detective.analyze_chunk(
+                    chunk_analysis = await self.ai_processor.analyze_chunk(
                         chunk_df, 
                         chunk_id=chunk_id,
                         options={**options, 'sheet_name': sheet_name}
