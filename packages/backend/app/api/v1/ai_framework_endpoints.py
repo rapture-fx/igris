@@ -3,8 +3,8 @@ AI Framework Integration API Endpoints - Pollarbase
 ==================================================
 
 API endpoints for exporting data to different ML frameworks and
-advanced auto-labeling capabilities. These endpoints provide the
-core functionality to compete with Scale AI's data preparation services.
+advanced auto-labeling capabilities. These endpoints provide
+comprehensive data preparation services for enterprise AI/ML workflows.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, BackgroundTasks

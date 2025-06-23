@@ -4,8 +4,8 @@ Advanced Auto-Labeling Service - Pollarbase
 
 This service provides sophisticated automated labeling capabilities using
 machine learning, pattern recognition, and few-shot learning techniques.
-Designed to compete with Scale AI's human-in-the-loop labeling services
-by providing fully automated, high-confidence labeling at scale.
+Designed to provide fully automated, high-confidence labeling at scale
+for enterprise data preparation workflows.
 
 Key Features:
 - Few-shot learning for new labeling tasks

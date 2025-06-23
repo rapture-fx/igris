@@ -3,7 +3,7 @@ Test Suite for AI Framework Integration and Advanced Auto-Labeling
 ================================================================
 
 This test suite validates the enhanced AI capabilities that make Pollarbase
-competitive with Scale AI's data preparation services.
+a comprehensive data preparation platform for AI/ML workflows.
 
 Test Coverage:
 - AI Framework Integration (PyTorch, TensorFlow, HuggingFace, scikit-learn)
@@ -547,4 +547,4 @@ if __name__ == "__main__":
     print("   • Pattern-based labeling rules")
     print("   • Proper train/validation/test splits")
     print("   • Framework recommendations")
-    print("\n🎯 Pollarbase is now competitive with Scale AI's data preparation capabilities!") 
+    print("\n🎯 Pollarbase provides comprehensive AI-powered data preparation capabilities!") 
