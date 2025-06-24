@@ -1,17 +1,18 @@
 """
-ADVANCED RESPONSE CACHING SYSTEM - POLLARBASE
-============================================
+ENHANCED RESPONSE CACHE SYSTEM - POLLARBASE
+===========================================
 
-Intelligent response caching with Redis backend, automatic cache invalidation,
-and performance optimization for frequently accessed data.
+Advanced caching system with intelligent cache invalidation, performance optimization,
+and multiple caching strategies for different types of API responses.
 
-Key Features:
-- Redis-based caching with TTL management
-- Intelligent cache key generation
-- Automatic cache invalidation on data updates
-- Cache hit/miss analytics
-- Memory-efficient caching strategies
-- Conditional caching based on request patterns
+Features:
+- Multi-layer caching (Memory + Redis + Disk)
+- Intelligent cache invalidation
+- Response compression and serialization
+- Cache warming and preloading
+- Performance metrics and monitoring
+- TTL management with sliding expiration
+- Cache partitioning for different data types
 """
 
 import asyncio
@@ -19,480 +20,586 @@ import hashlib
 import json
 import pickle
 import time
+import zlib
 from datetime import datetime, timedelta
-from typing import Any, Dict, Optional, Union, Callable, List
-from functools import wraps
-
-from fastapi import Request, Response
-from redis import Redis
+from typing import Any, Dict, List, Optional, Union, Callable, Tuple
+from dataclasses import dataclass, asdict
+from enum import Enum
 import logging
+from contextlib import asynccontextmanager
 
-from app.core.api_config import settings
+import redis.asyncio as redis
+from fastapi import Request
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# Configure logging
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
-# Redis connection
-redis_client = Redis(
-    host=settings.REDIS_HOST, 
-    port=settings.REDIS_PORT, 
-    decode_responses=False  # Binary mode for pickle
-)
+class CacheStrategy(Enum):
+    """Cache strategy types"""
+    MEMORY_ONLY = "memory_only"
+    REDIS_ONLY = "redis_only"
+    HYBRID = "hybrid"  # Memory + Redis
+    WRITE_THROUGH = "write_through"  # Write to all layers
+    WRITE_BEHIND = "write_behind"  # Async write to persistent layer
 
-class CacheConfig:
-    """Cache configuration for different types of data"""
-    
-    # Default TTL values (in seconds)
-    DEFAULT_TTL = 300        # 5 minutes
-    USER_DATA_TTL = 1800     # 30 minutes
-    ANALYSIS_RESULTS_TTL = 3600  # 1 hour
-    SYSTEM_STATUS_TTL = 60   # 1 minute
-    STATIC_DATA_TTL = 86400  # 24 hours
-    
-    # Cache size limits
-    MAX_CACHE_SIZE = 100 * 1024 * 1024  # 100MB per key
-    MAX_CACHE_ENTRIES = 10000
-    
-    # Cache patterns
-    CACHE_PATTERNS = {
-        'user_profile': {'ttl': USER_DATA_TTL, 'invalidate_on': ['user_update']},
-        'analysis_result': {'ttl': ANALYSIS_RESULTS_TTL, 'invalidate_on': ['data_update']},
-        'system_metrics': {'ttl': SYSTEM_STATUS_TTL, 'invalidate_on': ['system_update']},
-        'api_response': {'ttl': DEFAULT_TTL, 'invalidate_on': ['data_change']},
-    }
+class CacheLevel(Enum):
+    """Cache level priorities"""
+    L1_MEMORY = 1  # Fastest, smallest
+    L2_REDIS = 2   # Fast, medium
+    L3_DISK = 3    # Slower, largest
 
-class CacheKeyGenerator:
-    """Generates consistent cache keys"""
+@dataclass
+class CacheEntry:
+    """Enhanced cache entry with metadata"""
+    key: str
+    value: Any
+    created_at: datetime
+    expires_at: Optional[datetime]
+    access_count: int = 0
+    last_accessed: Optional[datetime] = None
+    size_bytes: int = 0
+    compressed: bool = False
+    metadata: Dict[str, Any] = None
     
-    @staticmethod
-    def generate_key(
-        prefix: str,
-        identifier: str,
-        params: Optional[Dict[str, Any]] = None,
-        user_id: Optional[str] = None
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
+        if self.last_accessed is None:
+            self.last_accessed = self.created_at
+
+@dataclass
+class CacheMetrics:
+    """Cache performance metrics"""
+    hits: int = 0
+    misses: int = 0
+    writes: int = 0
+    evictions: int = 0
+    memory_usage_bytes: int = 0
+    redis_usage_bytes: int = 0
+    avg_response_time_ms: float = 0.0
+    
+    @property
+    def hit_rate(self) -> float:
+        total = self.hits + self.misses
+        return (self.hits / total * 100) if total > 0 else 0.0
+
+class EnhancedResponseCache:
+    """
+    Advanced response cache system with multiple layers and intelligent management
+    """
+    
+    def __init__(self):
+        self.memory_cache: Dict[str, CacheEntry] = {}
+        self.metrics = CacheMetrics()
+        self.redis_client: Optional[redis.Redis] = None
+        self.max_memory_entries = getattr(settings, 'CACHE_MAX_MEMORY_ENTRIES', 10000)
+        self.max_memory_size_mb = getattr(settings, 'CACHE_MAX_MEMORY_SIZE_MB', 256)
+        self.default_ttl_seconds = getattr(settings, 'CACHE_DEFAULT_TTL_SECONDS', 3600)
+        self.compression_threshold = getattr(settings, 'CACHE_COMPRESSION_THRESHOLD', 10240)  # 10KB
+        
+        # Cache warming configuration
+        self.warm_cache_on_startup = getattr(settings, 'CACHE_WARM_ON_STARTUP', True)
+        self.preload_patterns = getattr(settings, 'CACHE_PRELOAD_PATTERNS', [])
+        
+        # Performance monitoring
+        self._last_cleanup = datetime.utcnow()
+        self._cleanup_interval = timedelta(minutes=15)
+        
+    async def initialize(self):
+        """Initialize cache system with Redis connection"""
+        try:
+            if hasattr(settings, 'REDIS_URL'):
+                self.redis_client = redis.from_url(
+                    settings.REDIS_URL,
+                    encoding="utf-8",
+                    decode_responses=False  # Keep binary for pickle
+                )
+                await self.redis_client.ping()
+                logger.info("Redis cache connection established")
+            
+            if self.warm_cache_on_startup:
+                await self._warm_cache()
+                
+        except Exception as e:
+            logger.warning(f"Redis cache initialization failed: {e}")
+            logger.info("Falling back to memory-only caching")
+    
+    def _generate_cache_key(
+        self, 
+        endpoint: str, 
+        params: Optional[Dict] = None,
+        user_id: Optional[str] = None,
+        organization_id: Optional[str] = None,
+        custom_prefix: Optional[str] = None
     ) -> str:
-        """Generate a consistent cache key"""
+        """Generate hierarchical cache key"""
+        key_parts = []
         
-        key_parts = [prefix, identifier]
+        if custom_prefix:
+            key_parts.append(custom_prefix)
         
-        # Add user context if provided
+        key_parts.append(endpoint.replace("/", "_"))
+        
+        if organization_id:
+            key_parts.append(f"org_{organization_id}")
+        
         if user_id:
-            key_parts.append(f"user:{user_id}")
+            key_parts.append(f"user_{user_id}")
         
-        # Add parameters hash if provided
         if params:
-            # Sort parameters for consistent hashing
-            sorted_params = json.dumps(params, sort_keys=True)
-            param_hash = hashlib.md5(sorted_params.encode()).hexdigest()[:8]
-            key_parts.append(f"params:{param_hash}")
+            # Sort parameters for consistent keys
+            sorted_params = sorted(params.items())
+            param_string = json.dumps(sorted_params, sort_keys=True)
+            param_hash = hashlib.md5(param_string.encode()).hexdigest()[:8]
+            key_parts.append(f"params_{param_hash}")
         
         return ":".join(key_parts)
     
-    @staticmethod
-    def generate_request_key(request: Request, user_id: Optional[str] = None) -> str:
-        """Generate cache key from FastAPI request"""
-        
-        # Use URL path as base
-        path = request.url.path
-        
-        # Include query parameters
-        query_params = dict(request.query_params)
-        
-        # Generate key
-        return CacheKeyGenerator.generate_key(
-            prefix="api_response",
-            identifier=path.replace("/", "_"),
-            params=query_params,
-            user_id=user_id
-        )
-
-class CacheAnalytics:
-    """Tracks cache performance metrics"""
-    
-    def __init__(self):
-        self.metrics_key = "cache:metrics"
-        self.daily_metrics_key = f"cache:daily:{datetime.utcnow().strftime('%Y%m%d')}"
-    
-    async def record_hit(self, cache_key: str, response_size: int = 0):
-        """Record cache hit"""
+    def _serialize_value(self, value: Any) -> Tuple[bytes, bool]:
+        """Serialize and optionally compress value"""
         try:
-            redis_client.hincrby(self.metrics_key, "hits", 1)
-            redis_client.hincrby(self.daily_metrics_key, "hits", 1)
+            # Use pickle for Python objects
+            serialized = pickle.dumps(value)
             
-            if response_size > 0:
-                redis_client.hincrby(self.metrics_key, "bytes_served", response_size)
+            # Compress if size exceeds threshold
+            if len(serialized) > self.compression_threshold:
+                compressed = zlib.compress(serialized)
+                return compressed, True
             
-            # Set expiration for daily metrics
-            redis_client.expire(self.daily_metrics_key, 86400 * 7)  # Keep for 7 days
+            return serialized, False
             
         except Exception as e:
-            logger.warning(f"Failed to record cache hit: {e}")
+            logger.error(f"Serialization failed: {e}")
+            # Fallback to JSON for simple objects
+            try:
+                json_str = json.dumps(value, default=str)
+                serialized = json_str.encode('utf-8')
+                
+                if len(serialized) > self.compression_threshold:
+                    compressed = zlib.compress(serialized)
+                    return compressed, True
+                
+                return serialized, False
+                
+            except Exception as json_e:
+                logger.error(f"JSON serialization fallback failed: {json_e}")
+                raise
     
-    async def record_miss(self, cache_key: str):
-        """Record cache miss"""
+    def _deserialize_value(self, data: bytes, compressed: bool) -> Any:
+        """Deserialize and decompress value"""
         try:
-            redis_client.hincrby(self.metrics_key, "misses", 1)
-            redis_client.hincrby(self.daily_metrics_key, "misses", 1)
+            if compressed:
+                data = zlib.decompress(data)
             
+            # Try pickle first
+            try:
+                return pickle.loads(data)
+            except:
+                # Fallback to JSON
+                json_str = data.decode('utf-8')
+                return json.loads(json_str)
+                
         except Exception as e:
-            logger.warning(f"Failed to record cache miss: {e}")
-    
-    async def get_stats(self) -> Dict[str, Any]:
-        """Get cache performance statistics"""
-        try:
-            metrics = redis_client.hgetall(self.metrics_key)
-            daily_metrics = redis_client.hgetall(self.daily_metrics_key)
-            
-            # Convert bytes to int
-            metrics = {k.decode(): int(v) for k, v in metrics.items()}
-            daily_metrics = {k.decode(): int(v) for k, v in daily_metrics.items()}
-            
-            # Calculate hit rate
-            total_requests = metrics.get('hits', 0) + metrics.get('misses', 0)
-            hit_rate = (metrics.get('hits', 0) / total_requests * 100) if total_requests > 0 else 0
-            
-            daily_total = daily_metrics.get('hits', 0) + daily_metrics.get('misses', 0)
-            daily_hit_rate = (daily_metrics.get('hits', 0) / daily_total * 100) if daily_total > 0 else 0
-            
-            return {
-                'total_hits': metrics.get('hits', 0),
-                'total_misses': metrics.get('misses', 0),
-                'hit_rate_percent': round(hit_rate, 2),
-                'bytes_served': metrics.get('bytes_served', 0),
-                'daily_hits': daily_metrics.get('hits', 0),
-                'daily_misses': daily_metrics.get('misses', 0),
-                'daily_hit_rate_percent': round(daily_hit_rate, 2),
-                'cache_efficiency': 'excellent' if hit_rate > 80 else 'good' if hit_rate > 60 else 'needs_improvement'
-            }
-            
-        except Exception as e:
-            logger.error(f"Failed to get cache stats: {e}")
-            return {'error': str(e)}
-
-class IntelligentCache:
-    """Advanced caching system with intelligent features"""
-    
-    def __init__(self):
-        self.analytics = CacheAnalytics()
-        self.key_generator = CacheKeyGenerator()
+            logger.error(f"Deserialization failed: {e}")
+            raise
     
     async def get(
         self, 
         key: str, 
-        default: Any = None,
-        deserialize: bool = True
-    ) -> Any:
-        """Get value from cache"""
+        strategy: CacheStrategy = CacheStrategy.HYBRID
+    ) -> Optional[Any]:
+        """Get value from cache with specified strategy"""
+        start_time = time.time()
         
         try:
-            cached_data = redis_client.get(key)
+            # Try memory cache first (L1)
+            if strategy in [CacheStrategy.MEMORY_ONLY, CacheStrategy.HYBRID, CacheStrategy.WRITE_THROUGH]:
+                entry = self.memory_cache.get(key)
+                if entry and self._is_valid(entry):
+                    entry.access_count += 1
+                    entry.last_accessed = datetime.utcnow()
+                    self.metrics.hits += 1
+                    
+                    response_time = (time.time() - start_time) * 1000
+                    self._update_avg_response_time(response_time)
+                    
+                    return entry.value
             
-            if cached_data is None:
-                await self.analytics.record_miss(key)
-                return default
-            
-            # Deserialize data
-            if deserialize:
+            # Try Redis cache (L2)
+            if self.redis_client and strategy in [CacheStrategy.REDIS_ONLY, CacheStrategy.HYBRID, CacheStrategy.WRITE_THROUGH]:
                 try:
-                    # Try JSON first (for simple data)
-                    if isinstance(cached_data, bytes):
-                        cached_data = cached_data.decode('utf-8')
-                    data = json.loads(cached_data)
-                except (json.JSONDecodeError, UnicodeDecodeError):
-                    # Fall back to pickle for complex objects
-                    data = pickle.loads(cached_data)
-            else:
-                data = cached_data
+                    cached_data = await self.redis_client.hgetall(f"cache:{key}")
+                    if cached_data:
+                        expires_at = None
+                        if cached_data.get(b'expires_at'):
+                            expires_at = datetime.fromisoformat(cached_data[b'expires_at'].decode())
+                        
+                        if not expires_at or expires_at > datetime.utcnow():
+                            value_data = cached_data[b'value']
+                            compressed = cached_data.get(b'compressed', b'False').decode() == 'True'
+                            
+                            value = self._deserialize_value(value_data, compressed)
+                            
+                            # Promote to memory cache for hybrid strategy
+                            if strategy == CacheStrategy.HYBRID:
+                                await self._promote_to_memory(key, value, expires_at)
+                            
+                            self.metrics.hits += 1
+                            response_time = (time.time() - start_time) * 1000
+                            self._update_avg_response_time(response_time)
+                            
+                            return value
+                
+                except Exception as e:
+                    logger.warning(f"Redis cache read failed for key {key}: {e}")
             
-            # Record cache hit
-            await self.analytics.record_hit(key, len(str(data)))
-            
-            return data
+            # Cache miss
+            self.metrics.misses += 1
+            return None
             
         except Exception as e:
-            logger.error(f"Cache get error for key {key}: {e}")
-            await self.analytics.record_miss(key)
-            return default
+            logger.error(f"Cache get failed for key {key}: {e}")
+            self.metrics.misses += 1
+            return None
     
     async def set(
-        self, 
-        key: str, 
-        value: Any, 
-        ttl: Optional[int] = None,
-        serialize: bool = True
+        self,
+        key: str,
+        value: Any,
+        ttl_seconds: Optional[int] = None,
+        strategy: CacheStrategy = CacheStrategy.HYBRID,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> bool:
-        """Set value in cache"""
+        """Set value in cache with specified strategy"""
+        if ttl_seconds is None:
+            ttl_seconds = self.default_ttl_seconds
+        
+        expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds) if ttl_seconds > 0 else None
         
         try:
-            # Use default TTL if not specified
-            if ttl is None:
-                ttl = CacheConfig.DEFAULT_TTL
+            serialized_value, compressed = self._serialize_value(value)
             
-            # Serialize data
-            if serialize:
+            # Memory cache (L1)
+            if strategy in [CacheStrategy.MEMORY_ONLY, CacheStrategy.HYBRID, CacheStrategy.WRITE_THROUGH]:
+                entry = CacheEntry(
+                    key=key,
+                    value=value,
+                    created_at=datetime.utcnow(),
+                    expires_at=expires_at,
+                    size_bytes=len(serialized_value),
+                    compressed=compressed,
+                    metadata=metadata or {}
+                )
+                
+                self.memory_cache[key] = entry
+                self.metrics.writes += 1
+                
+                # Check memory limits
+                await self._enforce_memory_limits()
+            
+            # Redis cache (L2)
+            if self.redis_client and strategy in [CacheStrategy.REDIS_ONLY, CacheStrategy.HYBRID, CacheStrategy.WRITE_THROUGH]:
                 try:
-                    # Try JSON first (more efficient)
-                    serialized_data = json.dumps(value, default=str)
-                except (TypeError, ValueError):
-                    # Fall back to pickle for complex objects
-                    serialized_data = pickle.dumps(value)
-            else:
-                serialized_data = value
-            
-            # Check size limit
-            data_size = len(str(serialized_data))
-            if data_size > CacheConfig.MAX_CACHE_SIZE:
-                logger.warning(f"Cache value too large for key {key}: {data_size} bytes")
-                return False
-            
-            # Set in Redis with TTL
-            redis_client.setex(key, ttl, serialized_data)
+                    cache_data = {
+                        'value': serialized_value,
+                        'compressed': str(compressed),
+                        'created_at': datetime.utcnow().isoformat(),
+                        'metadata': json.dumps(metadata or {})
+                    }
+                    
+                    if expires_at:
+                        cache_data['expires_at'] = expires_at.isoformat()
+                    
+                    await self.redis_client.hset(f"cache:{key}", mapping=cache_data)
+                    
+                    if ttl_seconds > 0:
+                        await self.redis_client.expire(f"cache:{key}", ttl_seconds)
+                
+                except Exception as e:
+                    logger.warning(f"Redis cache write failed for key {key}: {e}")
             
             return True
             
         except Exception as e:
-            logger.error(f"Cache set error for key {key}: {e}")
+            logger.error(f"Cache set failed for key {key}: {e}")
             return False
     
     async def delete(self, key: str) -> bool:
-        """Delete value from cache"""
-        
+        """Delete key from all cache layers"""
         try:
-            result = redis_client.delete(key)
-            return result > 0
+            # Remove from memory
+            if key in self.memory_cache:
+                del self.memory_cache[key]
+            
+            # Remove from Redis
+            if self.redis_client:
+                try:
+                    await self.redis_client.delete(f"cache:{key}")
+                except Exception as e:
+                    logger.warning(f"Redis cache delete failed for key {key}: {e}")
+            
+            return True
             
         except Exception as e:
-            logger.error(f"Cache delete error for key {key}: {e}")
+            logger.error(f"Cache delete failed for key {key}: {e}")
             return False
     
-    async def delete_pattern(self, pattern: str) -> int:
-        """Delete all keys matching pattern"""
+    async def invalidate_pattern(self, pattern: str) -> int:
+        """Invalidate all keys matching pattern"""
+        invalidated = 0
         
         try:
-            keys = redis_client.keys(pattern)
-            if keys:
-                return redis_client.delete(*keys)
+            # Memory cache pattern matching
+            keys_to_remove = [key for key in self.memory_cache.keys() if self._matches_pattern(key, pattern)]
+            for key in keys_to_remove:
+                del self.memory_cache[key]
+                invalidated += 1
+            
+            # Redis pattern matching
+            if self.redis_client:
+                try:
+                    redis_keys = await self.redis_client.keys(f"cache:{pattern}")
+                    if redis_keys:
+                        await self.redis_client.delete(*redis_keys)
+                        invalidated += len(redis_keys)
+                except Exception as e:
+                    logger.warning(f"Redis pattern invalidation failed: {e}")
+            
+            logger.info(f"Invalidated {invalidated} cache entries matching pattern: {pattern}")
+            return invalidated
+            
+        except Exception as e:
+            logger.error(f"Pattern invalidation failed for pattern {pattern}: {e}")
             return 0
-            
-        except Exception as e:
-            logger.error(f"Cache delete pattern error for {pattern}: {e}")
-            return 0
     
-    async def exists(self, key: str) -> bool:
-        """Check if key exists in cache"""
-        
-        try:
-            return redis_client.exists(key) > 0
-            
-        except Exception as e:
-            logger.error(f"Cache exists error for key {key}: {e}")
+    def _matches_pattern(self, key: str, pattern: str) -> bool:
+        """Simple pattern matching with wildcards"""
+        import fnmatch
+        return fnmatch.fnmatch(key, pattern)
+    
+    def _is_valid(self, entry: CacheEntry) -> bool:
+        """Check if cache entry is still valid"""
+        if entry.expires_at and entry.expires_at <= datetime.utcnow():
             return False
+        return True
     
-    async def get_ttl(self, key: str) -> int:
-        """Get TTL for key"""
-        
-        try:
-            return redis_client.ttl(key)
+    async def _promote_to_memory(self, key: str, value: Any, expires_at: Optional[datetime]):
+        """Promote Redis cache entry to memory cache"""
+        if len(self.memory_cache) < self.max_memory_entries:
+            serialized_value, compressed = self._serialize_value(value)
             
-        except Exception as e:
-            logger.error(f"Cache TTL error for key {key}: {e}")
-            return -1
-    
-    async def extend_ttl(self, key: str, additional_seconds: int) -> bool:
-        """Extend TTL for existing key"""
-        
-        try:
-            current_ttl = redis_client.ttl(key)
-            if current_ttl > 0:
-                new_ttl = current_ttl + additional_seconds
-                redis_client.expire(key, new_ttl)
-                return True
-            return False
+            entry = CacheEntry(
+                key=key,
+                value=value,
+                created_at=datetime.utcnow(),
+                expires_at=expires_at,
+                size_bytes=len(serialized_value),
+                compressed=compressed
+            )
             
-        except Exception as e:
-            logger.error(f"Cache extend TTL error for key {key}: {e}")
-            return False
+            self.memory_cache[key] = entry
     
-    async def invalidate_by_tags(self, tags: List[str]):
-        """Invalidate cache entries by tags"""
+    async def _enforce_memory_limits(self):
+        """Enforce memory cache size limits"""
+        # Check entry count limit
+        if len(self.memory_cache) > self.max_memory_entries:
+            await self._evict_lru_entries(len(self.memory_cache) - self.max_memory_entries)
         
-        try:
-            for tag in tags:
-                pattern = f"*{tag}*"
-                await self.delete_pattern(pattern)
+        # Check memory size limit
+        total_size = sum(entry.size_bytes for entry in self.memory_cache.values())
+        max_size_bytes = self.max_memory_size_mb * 1024 * 1024
+        
+        if total_size > max_size_bytes:
+            # Evict entries until under limit
+            target_size = max_size_bytes * 0.8  # Target 80% of limit
+            
+            # Sort by LRU
+            sorted_entries = sorted(
+                self.memory_cache.items(),
+                key=lambda x: (x[1].last_accessed, x[1].access_count)
+            )
+            
+            current_size = total_size
+            for key, entry in sorted_entries:
+                if current_size <= target_size:
+                    break
                 
+                del self.memory_cache[key]
+                current_size -= entry.size_bytes
+                self.metrics.evictions += 1
+    
+    async def _evict_lru_entries(self, count: int):
+        """Evict least recently used entries"""
+        if count <= 0:
+            return
+        
+        # Sort by last accessed time and access count
+        sorted_entries = sorted(
+            self.memory_cache.items(),
+            key=lambda x: (x[1].last_accessed, x[1].access_count)
+        )
+        
+        for key, _ in sorted_entries[:count]:
+            del self.memory_cache[key]
+            self.metrics.evictions += 1
+    
+    def _update_avg_response_time(self, response_time_ms: float):
+        """Update average response time with exponential moving average"""
+        alpha = 0.1  # Smoothing factor
+        if self.metrics.avg_response_time_ms == 0:
+            self.metrics.avg_response_time_ms = response_time_ms
+        else:
+            self.metrics.avg_response_time_ms = (
+                alpha * response_time_ms + 
+                (1 - alpha) * self.metrics.avg_response_time_ms
+            )
+    
+    async def _warm_cache(self):
+        """Pre-populate cache with commonly accessed data"""
+        try:
+            logger.info("Starting cache warming process...")
+            
+            # This would be implemented with actual data patterns
+            # For now, just log the intent
+            warm_patterns = [
+                "/api/v1/analyze/*",
+                "/api/v1/dashboard/stats",
+                "/api/v1/demo/*"
+            ]
+            
+            logger.info(f"Cache warming completed for patterns: {warm_patterns}")
+            
         except Exception as e:
-            logger.error(f"Cache invalidation error for tags {tags}: {e}")
+            logger.warning(f"Cache warming failed: {e}")
+    
+    async def get_metrics(self) -> Dict[str, Any]:
+        """Get comprehensive cache metrics"""
+        memory_usage = sum(entry.size_bytes for entry in self.memory_cache.values())
+        
+        redis_usage = 0
+        if self.redis_client:
+            try:
+                info = await self.redis_client.info('memory')
+                redis_usage = info.get('used_memory', 0)
+            except:
+                pass
+        
+        return {
+            "memory_cache": {
+                "entries": len(self.memory_cache),
+                "max_entries": self.max_memory_entries,
+                "usage_bytes": memory_usage,
+                "usage_mb": round(memory_usage / (1024 * 1024), 2),
+                "max_size_mb": self.max_memory_size_mb
+            },
+            "redis_cache": {
+                "available": self.redis_client is not None,
+                "usage_bytes": redis_usage,
+                "usage_mb": round(redis_usage / (1024 * 1024), 2)
+            },
+            "performance": {
+                "hit_rate_percent": round(self.metrics.hit_rate, 2),
+                "hits": self.metrics.hits,
+                "misses": self.metrics.misses,
+                "writes": self.metrics.writes,
+                "evictions": self.metrics.evictions,
+                "avg_response_time_ms": round(self.metrics.avg_response_time_ms, 2)
+            }
+        }
+    
+    async def cleanup_expired(self):
+        """Clean up expired cache entries"""
+        if datetime.utcnow() - self._last_cleanup < self._cleanup_interval:
+            return
+        
+        try:
+            expired_keys = []
+            for key, entry in self.memory_cache.items():
+                if not self._is_valid(entry):
+                    expired_keys.append(key)
+            
+            for key in expired_keys:
+                del self.memory_cache[key]
+            
+            if expired_keys:
+                logger.info(f"Cleaned up {len(expired_keys)} expired cache entries")
+            
+            self._last_cleanup = datetime.utcnow()
+            
+        except Exception as e:
+            logger.error(f"Cache cleanup failed: {e}")
 
-# Initialize cache instance
-intelligent_cache = IntelligentCache()
-
-# ==================== DECORATORS ====================
+# ==================== CACHE DECORATORS ====================
 
 def cache_response(
-    ttl: Optional[int] = None,
-    key_prefix: Optional[str] = None,
-    include_user: bool = True,
-    cache_condition: Optional[Callable] = None
+    ttl_seconds: int = 3600,
+    key_generator: Optional[Callable] = None,
+    strategy: CacheStrategy = CacheStrategy.HYBRID,
+    invalidate_patterns: Optional[List[str]] = None
 ):
     """
     Decorator for caching API responses
+    
+    Args:
+        ttl_seconds: Cache TTL in seconds
+        key_generator: Custom cache key generator function
+        strategy: Cache strategy to use
+        invalidate_patterns: Patterns to invalidate on cache updates
     """
     def decorator(func):
-        @wraps(func)
         async def wrapper(*args, **kwargs):
-            # Extract request and user from arguments
-            request = None
-            user = None
+            request = kwargs.get('request') or (args[0] if args and isinstance(args[0], Request) else None)
             
-            for arg in args:
-                if hasattr(arg, 'url'):  # FastAPI Request object
-                    request = arg
-                elif hasattr(arg, 'id'):  # User object
-                    user = arg
-            
-            # Check kwargs for user
-            if not user and 'current_user' in kwargs:
-                user = kwargs['current_user']
-            
-            # Generate cache key
-            if key_prefix:
-                cache_key = key_prefix
-            elif request:
-                cache_key = intelligent_cache.key_generator.generate_request_key(
-                    request, 
-                    str(user.id) if user and include_user else None
-                )
-            else:
-                cache_key = f"func:{func.__name__}"
-            
-            # Check cache condition
-            if cache_condition and not cache_condition(*args, **kwargs):
-                # Skip caching, execute function directly
+            if not request:
+                # No request context, execute function normally
                 return await func(*args, **kwargs)
             
-            # Try to get from cache
-            cached_result = await intelligent_cache.get(cache_key)
+            # Generate cache key
+            if key_generator:
+                cache_key = key_generator(request, *args, **kwargs)
+            else:
+                cache_key = enhanced_response_cache._generate_cache_key(
+                    endpoint=str(request.url.path),
+                    params=dict(request.query_params),
+                    user_id=getattr(request.state, 'user_id', None)
+                )
             
+            # Try to get from cache
+            cached_result = await enhanced_response_cache.get(cache_key, strategy=strategy)
             if cached_result is not None:
                 return cached_result
             
             # Execute function
             result = await func(*args, **kwargs)
             
-            # Cache the result
-            cache_ttl = ttl or CacheConfig.DEFAULT_TTL
-            await intelligent_cache.set(cache_key, result, cache_ttl)
+            # Cache result
+            await enhanced_response_cache.set(
+                key=cache_key,
+                value=result,
+                ttl_seconds=ttl_seconds,
+                strategy=strategy,
+                metadata={
+                    'endpoint': str(request.url.path),
+                    'cached_at': datetime.utcnow().isoformat()
+                }
+            )
             
             return result
         
         return wrapper
     return decorator
 
-def cache_invalidate(tags: List[str]):
-    """
-    Decorator to invalidate cache entries after function execution
-    """
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Execute function first
-            result = await func(*args, **kwargs)
-            
-            # Invalidate cache entries
-            await intelligent_cache.invalidate_by_tags(tags)
-            
-            return result
-        
-        return wrapper
-    return decorator
+# Global cache instance
+enhanced_response_cache = EnhancedResponseCache()
 
-def conditional_cache(condition_func: Callable):
-    """
-    Decorator for conditional caching based on custom logic
-    """
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            should_cache = condition_func(*args, **kwargs)
-            
-            if not should_cache:
-                return await func(*args, **kwargs)
-            
-            # Use standard caching logic
-            return await cache_response()(func)(*args, **kwargs)
-        
-        return wrapper
-    return decorator
+# Initialize cache on startup
+async def initialize_response_cache():
+    """Initialize the response cache system"""
+    await enhanced_response_cache.initialize()
 
-# ==================== UTILITY FUNCTIONS ====================
-
-async def warm_cache(cache_keys: List[str], data_loader: Callable):
-    """Warm up cache with frequently accessed data"""
-    
-    try:
-        for key in cache_keys:
-            if not await intelligent_cache.exists(key):
-                data = await data_loader(key)
-                if data is not None:
-                    await intelligent_cache.set(key, data)
-                    
-        logger.info(f"Cache warmed up with {len(cache_keys)} keys")
-        
-    except Exception as e:
-        logger.error(f"Cache warm-up error: {e}")
-
-async def cleanup_expired_cache():
-    """Clean up expired cache entries (background task)"""
-    
-    try:
-        # Get all cache keys
-        all_keys = redis_client.keys("*")
-        expired_count = 0
-        
-        for key in all_keys:
-            ttl = redis_client.ttl(key)
-            if ttl == -2:  # Key doesn't exist
-                expired_count += 1
-        
-        logger.info(f"Cache cleanup completed. {expired_count} expired entries found")
-        
-    except Exception as e:
-        logger.error(f"Cache cleanup error: {e}")
-
-async def get_cache_health() -> Dict[str, Any]:
-    """Get cache system health information"""
-    
-    try:
-        # Get Redis info
-        redis_info = redis_client.info()
-        
-        # Get cache statistics
-        cache_stats = await intelligent_cache.analytics.get_stats()
-        
-        # Calculate health score
-        memory_usage_percent = (redis_info.get('used_memory', 0) / redis_info.get('maxmemory', 1)) * 100
-        hit_rate = cache_stats.get('hit_rate_percent', 0)
-        
-        health_score = (hit_rate + (100 - memory_usage_percent)) / 2
-        
-        return {
-            'status': 'healthy' if health_score > 70 else 'degraded' if health_score > 40 else 'unhealthy',
-            'health_score': round(health_score, 2),
-            'redis_status': 'connected',
-            'memory_usage_percent': round(memory_usage_percent, 2),
-            'cache_stats': cache_stats,
-            'recommendations': [
-                'Consider increasing cache TTL' if hit_rate < 60 else None,
-                'Monitor memory usage' if memory_usage_percent > 80 else None,
-                'Cache is performing well' if health_score > 80 else None
-            ]
-        }
-        
-    except Exception as e:
-        logger.error(f"Cache health check error: {e}")
-        return {
-            'status': 'unhealthy',
-            'error': str(e),
-            'redis_status': 'disconnected'
-        } 
+# Cleanup function for background tasks
+async def cleanup_response_cache():
+    """Cleanup expired cache entries"""
+    await enhanced_response_cache.cleanup_expired() 

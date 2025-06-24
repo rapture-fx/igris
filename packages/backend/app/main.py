@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 
 from app.core.api_config import settings
 from app.core.error_handler import unified_error_handler
-from app.api.v1.public.analyze import router as analyze_router
+# # REMOVED: broken import - analyze_router
 from app.api.v1.public.clean import router as clean_router
 from app.api.v1.public.validate import router as validate_router
 from app.api.v1.public.transform import router as transform_router
@@ -21,7 +21,7 @@ from app.api.v1.public.jobs import router as jobs_router
 from app.api.v1.public.demo import router as demo_router
 from app.api.v1.public.upload import router as upload_router
 from app.api.v1.dashboard import router as dashboard_router
-from app.api.v1.auth_unified import router as auth_unified_router
+from app.api.v1.unified_auth import router as unified_auth_router
 from app.api.v1.data_streaming import router as streaming_router
 from app.api.v1.billing import router as billing_router
 from app.api.v1.admin import router as admin_router
@@ -31,10 +31,14 @@ from app.api.v1.marketplace import router as marketplace_router
 from app.api.v1.integrations import router as integrations_router
 from app.api.v1.partner import router as partner_router
 from app.api.v1.endpoints.data_processing import router as data_processing_router
+from app.api.v1.prepare import router as prepare_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize high-performance data processor
+logger.info("🚀 Initializing high-performance unified data processor...")
 
 # Prometheus metrics
 REQUEST_COUNT = Counter(
@@ -53,6 +57,12 @@ REQUEST_LATENCY = Histogram(
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
     logger.info("Pollarbase API starting up...")
+    
+    # Initialize high-performance unified data processor
+    logger.info("🚀 Initializing high-performance unified data processor...")
+    from app.services.unified_data_processor import unified_processor
+    logger.info("✅ High-performance data processor ready!")
+    
     yield
     logger.info("Pollarbase API shutting down...")
 
@@ -1091,7 +1101,7 @@ async def root():
 
 # Include routers
 app.include_router(demo_router, prefix="/api/v1", tags=["demo"])
-app.include_router(analyze_router, prefix="/api/v1", tags=["public"])
+# # REMOVED: broken router - analyze_router
 app.include_router(clean_router, prefix="/api/v1", tags=["public"])
 app.include_router(validate_router, prefix="/api/v1", tags=["public"])
 app.include_router(transform_router, prefix="/api/v1", tags=["public"])
@@ -1099,7 +1109,7 @@ app.include_router(jobs_router, prefix="/api/v1", tags=["public"])
 app.include_router(upload_router, prefix="/api/v1/upload", tags=["upload"])
 app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["dashboard"])
 # Unified authentication system (consolidated from 3 systems into 1)
-app.include_router(auth_unified_router, prefix="/api/v1", tags=["auth"])
+app.include_router(unified_auth_router, prefix="/api/v1", tags=["auth"])
 
 # Advanced streaming data processing
 app.include_router(streaming_router, prefix="/api/v1", tags=["streaming"])
@@ -1111,6 +1121,9 @@ app.include_router(marketplace_router, prefix="/api/v1/marketplace", tags=["mark
 app.include_router(integrations_router, prefix="/api/v1/integrations", tags=["integrations"])
 app.include_router(partner_router, prefix="/api/v1/partner", tags=["partner"])
 app.include_router(data_processing_router, prefix="/api/v1/processing", tags=["data-processing"])
+
+# CORE PRODUCT ENDPOINT - The main value proposition
+app.include_router(prepare_router, prefix="/api/v1", tags=["core-preparation"])
 
 # AI Framework Integration and Advanced Auto-Labeling (Enterprise data preparation features)
 try:

@@ -1,4 +1,32 @@
 """
+⚠️  DEPRECATED UNIFIED AUTHENTICATION MODULE ⚠️
+===============================================
+
+This unified authentication module has been DEPRECATED and replaced by the newer unified authentication system.
+
+🚨 DO NOT USE THIS MODULE FOR NEW DEVELOPMENT 🚨
+
+Please use the following instead:
+- For authentication: app.api.v1.auth_unified
+- For dependencies: app.auth.unified_dependencies  
+- For services: app.auth.unified_auth_service
+
+This file will be removed in a future version.
+Migration guide: See migration_script.py
+
+Last Updated: 2024-06-24
+Deprecation Date: 2024-06-24
+Planned Removal: 2024-07-01
+"""
+
+import warnings
+warnings.warn(
+    "app.api.v1.unified_auth is deprecated. Use app.api.v1.auth_unified instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
+"""
 Unified Authentication API Routes
 
 This module consolidates all authentication routes into a single, coherent API

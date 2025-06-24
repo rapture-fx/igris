@@ -1,4 +1,32 @@
 """
+⚠️  DEPRECATED ENHANCED AUTHENTICATION MODULE ⚠️
+===============================================
+
+This enhanced authentication module has been DEPRECATED and replaced by the unified authentication system.
+
+🚨 DO NOT USE THIS MODULE FOR NEW DEVELOPMENT 🚨
+
+Please use the following instead:
+- For authentication: app.api.v1.auth_unified
+- For dependencies: app.auth.unified_dependencies  
+- For services: app.auth.unified_auth_service
+
+This file will be removed in a future version.
+Migration guide: See migration_script.py
+
+Last Updated: 2024-06-24
+Deprecation Date: 2024-06-24
+Planned Removal: 2024-07-01
+"""
+
+import warnings
+warnings.warn(
+    "app.api.v1.enhanced_auth is deprecated. Use app.api.v1.auth_unified instead.",
+    DeprecationWarning,
+    stacklevel=2
+)
+
+"""
 Enhanced Authentication API Routes
 
 This module extends the existing authentication API with enhanced security features
