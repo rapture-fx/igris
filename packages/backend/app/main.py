@@ -32,6 +32,7 @@ from app.api.v1.integrations import router as integrations_router
 from app.api.v1.partner import router as partner_router
 from app.api.v1.endpoints.data_processing import router as data_processing_router
 from app.api.v1.prepare import router as prepare_router
+from app.api.v1.semantic_insights import router as semantic_insights_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1124,6 +1125,9 @@ app.include_router(data_processing_router, prefix="/api/v1/processing", tags=["d
 
 # CORE PRODUCT ENDPOINT - The main value proposition
 app.include_router(prepare_router, prefix="/api/v1", tags=["core-preparation"])
+
+# SEMANTIC LAYER - Revenue Insights and Business Intelligence
+app.include_router(semantic_insights_router, prefix="/api/v1/insights", tags=["semantic-insights"])
 
 # AI Framework Integration and Advanced Auto-Labeling (Enterprise data preparation features)
 try:
