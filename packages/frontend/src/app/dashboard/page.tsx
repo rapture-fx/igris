@@ -1,6 +1,5 @@
-import Link from 'next/link'
-
-export default function DashboardPage() {
+export default function DashboardRedirectPage() {
+  // Redirect to the dashboard layout with the dashboard content
   return (
     <div className="space-y-6">
       {/* Page header */}
@@ -39,29 +38,29 @@ export default function DashboardPage() {
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Link 
+            <a 
               href="/dashboard/api-keys"
               className="text-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
             >
               <h4 className="font-medium">API Keys</h4>
               <p className="text-sm text-gray-500">Manage authentication</p>
-            </Link>
+            </a>
             
-            <Link 
+            <a 
               href="/dashboard/usage"
               className="text-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
             >
               <h4 className="font-medium">Usage</h4>
               <p className="text-sm text-gray-500">View billing & usage</p>
-            </Link>
+            </a>
             
-            <Link 
-              href="/dashboard/logs"
+            <a 
+              href="/dashboard/data-sources"
               className="text-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
             >
-              <h4 className="font-medium">Logs</h4>
-              <p className="text-sm text-gray-500">Debug API requests</p>
-            </Link>
+              <h4 className="font-medium">Data Sources</h4>
+              <p className="text-sm text-gray-500">Manage your data</p>
+            </a>
             
             <a 
               href="/docs"
