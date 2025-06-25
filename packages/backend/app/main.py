@@ -21,6 +21,7 @@ from app.api.v1.public.jobs import router as jobs_router
 from app.api.v1.public.demo import router as demo_router
 from app.api.v1.public.upload import router as upload_router
 from app.api.v1.dashboard import router as dashboard_router
+from app.api.v1.dashboard_stats import router as dashboard_stats_router
 from app.api.v1.unified_auth import router as unified_auth_router
 from app.api.v1.data_streaming import router as streaming_router
 from app.api.v1.billing import router as billing_router
@@ -32,7 +33,6 @@ from app.api.v1.integrations import router as integrations_router
 from app.api.v1.partner import router as partner_router
 from app.api.v1.endpoints.data_processing import router as data_processing_router
 from app.api.v1.prepare import router as prepare_router
-from app.api.v1.semantic_insights import router as semantic_insights_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1109,6 +1109,7 @@ app.include_router(transform_router, prefix="/api/v1", tags=["public"])
 app.include_router(jobs_router, prefix="/api/v1", tags=["public"])
 app.include_router(upload_router, prefix="/api/v1/upload", tags=["upload"])
 app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["dashboard"])
+app.include_router(dashboard_stats_router, prefix="/api/v1", tags=["dashboard-stats"])
 # Unified authentication system (consolidated from 3 systems into 1)
 app.include_router(unified_auth_router, prefix="/api/v1", tags=["auth"])
 
@@ -1125,9 +1126,6 @@ app.include_router(data_processing_router, prefix="/api/v1/processing", tags=["d
 
 # CORE PRODUCT ENDPOINT - The main value proposition
 app.include_router(prepare_router, prefix="/api/v1", tags=["core-preparation"])
-
-# SEMANTIC LAYER - Revenue Insights and Business Intelligence
-app.include_router(semantic_insights_router, prefix="/api/v1/insights", tags=["semantic-insights"])
 
 # AI Framework Integration and Advanced Auto-Labeling (Enterprise data preparation features)
 try:
