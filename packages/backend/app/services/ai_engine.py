@@ -1,4 +1,17 @@
 """
+
+# Conditional ML imports
+try:
+    import torch
+    import transformers
+    import sklearn
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    # Use ML service client for remote processing
+    from app.services.ml_service_client import ml_service
+
+
 Core AI Data Processing Engine for Pollarbase
 Handles data quality analysis, anomaly detection, and auto-labeling
 """

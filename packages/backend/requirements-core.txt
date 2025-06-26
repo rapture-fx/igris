@@ -1,7 +1,5 @@
-# Pollarbase Core Dependencies (Optimized)
-# For production API service deployment
-# ML dependencies moved to requirements-ml.txt
-# Dev dependencies moved to requirements-dev.txt
+# Pollarbase Core API Dependencies
+# Optimized for production deployment
 
 aiofiles==23.2.1
 aiohttp==3.9.1

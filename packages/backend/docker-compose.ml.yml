@@ -1,0 +1,213 @@
+version: '3.8'
+
+services:
+  # Core API Service (Optimized - 24 dependencies)
+  pollarbase-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+      args:
+        - REQUIREMENTS_FILE=requirements-core.txt
+    container_name: pollarbase-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://pollarbase:password@postgres:5432/pollarbase
+      - REDIS_URL=redis://redis:6379/0
+      - ML_SERVICE_URL=http://pollarbase-ml:8001
+      - USE_REMOTE_ML_SERVICE=true
+      - ENVIRONMENT=production
+    depends_on:
+      - postgres
+      - redis
+      - pollarbase-ml
+    volumes:
+      - ./uploads:/app/uploads
+      - ./logs:/app/logs
+    networks:
+      - pollarbase-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # ML Service (Heavy ML dependencies - separate service)
+  pollarbase-ml:
+    build:
+      context: .
+      dockerfile: Dockerfile.ml
+      args:
+        - REQUIREMENTS_FILE=requirements-ml.txt
+    container_name: pollarbase-ml
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://pollarbase:password@postgres:5432/pollarbase
+      - REDIS_URL=redis://redis:6379/1
+      - ENVIRONMENT=production
+      - TORCH_NUM_THREADS=4
+      - OMP_NUM_THREADS=4
+      - CUDA_VISIBLE_DEVICES=0
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./ml_models:/app/models
+      - ./ml_data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - pollarbase-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: pollarbase-postgres
+    environment:
+      - POSTGRES_DB=pollarbase
+      - POSTGRES_USER=pollarbase
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - pollarbase-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pollarbase -d pollarbase"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+
+  # Redis Cache & Session Store
+  redis:
+    image: redis:7-alpine
+    container_name: pollarbase-redis
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - pollarbase-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # NGINX Load Balancer & Reverse Proxy
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: pollarbase-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/ssl/certs
+      - ./logs/nginx:/var/log/nginx
+    depends_on:
+      - pollarbase-api
+      - pollarbase-ml
+    networks:
+      - pollarbase-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  # Monitoring & Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: pollarbase-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - pollarbase-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: pollarbase-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin123
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - pollarbase-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  pollarbase-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

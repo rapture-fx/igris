@@ -1,4 +1,17 @@
 """
+
+# Conditional ML imports
+try:
+    import torch
+    import transformers
+    import sklearn
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    # Use ML service client for remote processing
+    from app.services.ml_service_client import ml_service
+
+
 Advanced ML Engine for Custom Model Training and Predictive Analytics
 Provides enterprise-grade machine learning capabilities for Pollarbase
 """
