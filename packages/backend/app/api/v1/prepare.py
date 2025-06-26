@@ -320,7 +320,7 @@ async def run_benchmark(
         # Save to temporary file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as temp_file:
             test_file_path = temp_file.name
-            test_data.to_csv(temp_file_path, index=False)
+            test_data.to_csv(temp_file.name, index=False)
         
         benchmark_results = {}
         

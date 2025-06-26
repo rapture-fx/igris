@@ -26,7 +26,7 @@ warnings.warn(
     stacklevel=2
 )
 
-from fastapi import APIRouter, Depends, HTTPException, status, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
@@ -39,8 +39,10 @@ from app.database.connection import get_db
 from app.database.models import User, ApiKey, Organization, UserRole
 from app.auth.auth_service import auth_service
 from app.auth.dependencies import get_current_active_user, require_admin
+from app.auth.security import verify_password, get_password_hash, generate_api_key
+from app.services.usage_meter import track_api_usage
 
-router = APIRouter()
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 # Pydantic models
 class UserCreate(BaseModel):

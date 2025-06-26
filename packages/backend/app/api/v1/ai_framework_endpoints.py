@@ -29,7 +29,7 @@ from app.services.ai_framework_integration import (
 from app.services.advanced_auto_labeler import (
     AdvancedAutoLabeler, LabelingTask, FewShotExample, ConfidenceLevel
 )
-# from app.services.file_processor import FileProcessor
+from app.services.file_processor import DataProcessor as FileProcessor
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

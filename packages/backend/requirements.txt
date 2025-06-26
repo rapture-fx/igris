@@ -37,6 +37,12 @@ plotly==5.18.0
 seaborn==0.13.0
 matplotlib==3.8.2
 
+# Data Integration Dependencies (Phase 3)
+aiomysql==0.2.0
+motor==3.3.2
+kafka-python==2.0.2
+websockets==12.0
+
 # File Processing
 openpyxl==3.1.2
 xlrd==2.0.1

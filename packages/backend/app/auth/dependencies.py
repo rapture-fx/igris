@@ -1,132 +1,232 @@
-from fastapi import Depends, HTTPException, status, Security
+"""
+Unified Authentication Dependencies
+==================================
+
+This module provides FastAPI dependencies for authentication that replace
+all existing authentication dependency patterns in the codebase.
+
+Features:
+- Single dependency injection pattern
+- Consistent error handling
+- Security level enforcement
+- Request context extraction
+- Backward compatibility
+"""
+
+from typing import Optional, Dict, Any
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+
 from app.database.connection import get_db
-from app.database.models import User, ApiKey
-from app.auth.security import verify_token, verify_api_key
-from typing import Optional
-import logging
+from app.database.models import User
+from app.auth.unified_service import unified_auth_service
+from app.auth.unified_interface import SecurityLevel, AuthError
 
-logger = logging.getLogger(__name__)
+# Security scheme for JWT tokens
+security = HTTPBearer(auto_error=False)
 
-# Security schemes
-security = HTTPBearer()
-api_key_header = HTTPBearer()
+
+def get_client_info(request: Request) -> Dict[str, str]:
+    """Extract client information from request"""
+    return {
+        "ip_address": request.client.host if request.client else "unknown",
+        "user_agent": request.headers.get("user-agent", "unknown"),
+        "origin": request.headers.get("origin", "unknown"),
+        "referer": request.headers.get("referer", "unknown")
+    }
+
 
 async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Security(security),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> User:
-    """Get current authenticated user from JWT token"""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    """
+    Get current authenticated user from JWT token
     
+    This is the primary dependency for protected endpoints.
+    Raises HTTPException if authentication fails.
+    """
     if not credentials:
-        raise credentials_exception
-    
-    payload = verify_token(credentials.credentials)
-    if payload is None:
-        raise credentials_exception
-    
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise credentials_exception
-    
-    # Get user from database
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-    
-    if user is None:
-        raise credentials_exception
-    
-    if not user.is_active:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Inactive user"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+            headers={"WWW-Authenticate": "Bearer"},
         )
     
-    return user
+    try:
+        user = await unified_auth_service.get_current_user(db, credentials.credentials)
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authentication credentials",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        if not user.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Inactive user account"
+            )
+        
+        return user
+    
+    except AuthError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=e.message,
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Authentication service error"
+        )
+
 
 async def get_current_active_user(
     current_user: User = Depends(get_current_user)
 ) -> User:
-    """Get current active user"""
-    if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
+    """
+    Get current active user (alias for backward compatibility)
+    """
     return current_user
 
-async def get_current_user_from_api_key(
-    credentials: HTTPAuthorizationCredentials = Security(api_key_header),
+
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: AsyncSession = Depends(get_db)
-) -> User:
-    """Get current user from API key"""
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate API key",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+) -> Optional[User]:
+    """
+    Get current user if authenticated, None otherwise
     
+    This dependency is useful for endpoints that work with or without authentication.
+    Does not raise exceptions on authentication failure.
+    """
     if not credentials:
-        raise credentials_exception
+        return None
     
-    api_key = credentials.credentials
-    
-    # Find API key in database
-    result = await db.execute(
-        select(ApiKey).where(ApiKey.is_active == True)
-    )
-    api_keys = result.scalars().all()
-    
-    valid_api_key = None
-    for stored_key in api_keys:
-        if verify_api_key(api_key, stored_key.key_hash):
-            valid_api_key = stored_key
-            break
-    
-    if valid_api_key is None:
-        raise credentials_exception
-    
-    # Update last used timestamp
-    from datetime import datetime
-    valid_api_key.last_used = datetime.utcnow()
-    await db.commit()
-    
-    # Get the user
-    result = await db.execute(select(User).where(User.id == valid_api_key.user_id))
-    user = result.scalar_one_or_none()
-    
-    if user is None or not user.is_active:
-        raise credentials_exception
-    
-    return user
+    try:
+        return await unified_auth_service.get_current_user(db, credentials.credentials)
+    except Exception:
+        return None
 
-def require_role(required_role: str):
-    """Dependency factory for role-based access control"""
-    async def role_checker(current_user: User = Depends(get_current_active_user)):
-        if current_user.role.value != required_role and current_user.role.value != "admin":
+
+async def require_admin(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    Require admin role for the current user
+    """
+    if current_user.role.value != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required"
+        )
+    return current_user
+
+
+async def require_analyst_or_admin(
+    current_user: User = Depends(get_current_user)
+) -> User:
+    """
+    Require analyst or admin role for the current user
+    """
+    if current_user.role.value not in ["analyst", "admin"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Analyst or admin access required"
+        )
+    return current_user
+
+
+def require_security_level(required_level: SecurityLevel):
+    """
+    Create a dependency that requires a specific security level
+    
+    Usage:
+        @app.get("/secure-endpoint")
+        async def secure_endpoint(
+            user: User = Depends(require_security_level(SecurityLevel.HIGH))
+        ):
+            pass
+    """
+    async def security_dependency(
+        request: Request,
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+        db: AsyncSession = Depends(get_db)
+    ) -> User:
+        if not credentials:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not enough permissions"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required",
+                headers={"WWW-Authenticate": "Bearer"},
             )
-        return current_user
-    return role_checker
-
-def require_any_role(required_roles: list[str]):
-    """Dependency factory for multiple role access control"""
-    async def role_checker(current_user: User = Depends(get_current_active_user)):
-        if current_user.role.value not in required_roles and current_user.role.value != "admin":
+        
+        try:
+            result = await unified_auth_service.verify_token(
+                db, 
+                credentials.credentials, 
+                required_security_level=required_level
+            )
+            
+            if not result.success or not result.user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Invalid authentication credentials",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            
+            return result.user
+        
+        except AuthError as e:
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Not enough permissions"
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=e.message,
+                headers={"WWW-Authenticate": "Bearer"},
             )
-        return current_user
-    return role_checker
+    
+    return security_dependency
 
-# Convenience dependencies
-require_admin = require_role("admin")
-require_analyst = require_any_role(["admin", "analyst"])
-require_viewer = require_any_role(["admin", "analyst", "viewer"]) 
+
+async def get_api_key_user(
+    request: Request,
+    db: AsyncSession = Depends(get_db)
+) -> Optional[User]:
+    """
+    Get user from API key authentication
+    
+    Looks for API key in:
+    1. Authorization header (Bearer token)
+    2. X-API-Key header
+    3. api_key query parameter
+    """
+    api_key = None
+    
+    # Check Authorization header
+    auth_header = request.headers.get("Authorization")
+    if auth_header and auth_header.startswith("Bearer "):
+        api_key = auth_header[7:]
+    
+    # Check X-API-Key header
+    if not api_key:
+        api_key = request.headers.get("X-API-Key")
+    
+    # Check query parameter
+    if not api_key:
+        api_key = request.query_params.get("api_key")
+    
+    if not api_key:
+        return None
+    
+    try:
+        # This would use the API key authentication method
+        # Implementation depends on the API key storage mechanism
+        return None  # Placeholder - implement when API key auth is ready
+    except Exception:
+        return None
+
+
+# Backward compatibility aliases
+get_current_active_user_dep = get_current_user
+get_current_user_dep = get_current_user 
