@@ -1,66 +1,33 @@
 
 # Dependency Optimization Report
-Generated: 2025-06-26T13:37:02.758122
+Generated: 2025-06-26T20:03:03.667929
 
 ## Summary
-- **Original Dependencies**: 60 packages
+- **Original Dependencies**: 24 packages
 - **Target Dependencies**: 45 packages
 - **Final Dependencies**: 24 packages
-- **Reduction**: 36 packages (60.0%)
+- **Reduction**: 0 packages (0.0%)
 
 ## Size Impact
-- **Original Size**: 1880.0 MB
+- **Original Size**: 180.0 MB
 - **Optimized Size**: 130.0 MB
-- **Size Reduction**: 1750.0 MB (93.1%)
+- **Size Reduction**: 50.0 MB (27.8%)
 
 ## Optimization Actions
 
-### Removed Packages (26)
-- uvicorn[standard]
-- python-jose[cryptography]
-- passlib[bcrypt]
-- python-decouple
-- qrcode[pil]
-- phonenumbers
-- pycryptodome
-- openai
-- kafka-python
-- openpyxl
-- xlrd
-- python-magic
-- structlog
-- isort
-- requests
-- rq
-- google-cloud-storage
-- azure-storage-blob
-- slack-sdk
-- twilio
-- fastapi-mail
-- Pillow
-- PyPDF2
-- torchvision
-- torchaudio
-- bleach
+### Removed Packages (0)
 
-### Moved to ML Service (6)
-- scikit-learn
-- torch
-- transformers
-- plotly
-- seaborn
-- matplotlib
 
-### Moved to Development (4)
-- pytest
-- pytest-asyncio
-- black
-- mypy
+### Moved to ML Service (0)
+
+
+### Moved to Development (0)
+
 
 ## Files Created
 - `requirements-core.txt` - Core API dependencies (24 packages)
-- `requirements-ml.txt` - ML service dependencies (6 packages)
-- `requirements-dev.txt` - Development dependencies (4 packages)
+- `requirements-ml.txt` - ML service dependencies (0 packages)
+- `requirements-dev.txt` - Development dependencies (0 packages)
 - `app/services/ml_service_client.py` - ML service abstraction layer
 
 ## Next Steps

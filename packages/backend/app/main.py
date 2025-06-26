@@ -40,6 +40,17 @@ from app.api.v1.sample_data import router as sample_data_router
 from app.api.v1.advanced_ml import router as advanced_ml_router
 from app.api.v1.enterprise import router as enterprise_router
 
+# Import routers
+from .api.v1 import (
+    admin,
+    ai_framework_endpoints,
+    advanced_ml,
+    advanced_ai,  # New AI router
+    auth,
+    data_processing,
+    monitoring
+)
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -1152,6 +1163,15 @@ app.include_router(advanced_ml_router, tags=["Advanced ML"])
 
 logger.info("🏢 Loading Enterprise features...")
 app.include_router(enterprise_router, tags=["Enterprise"])
+
+# Include API routers
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
+app.include_router(data_processing.router, prefix="/api/v1/data", tags=["data-processing"])
+app.include_router(advanced_ml.router, prefix="/api/v1/ml", tags=["machine-learning"])
+app.include_router(advanced_ai.router, prefix="/api/v1/advanced-ai", tags=["advanced-ai"])  # New AI endpoints
+app.include_router(ai_framework_endpoints.router, prefix="/api/v1/ai", tags=["ai-framework"])
+app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
+app.include_router(monitoring.router, prefix="/api/v1/monitoring", tags=["monitoring"])
 
 if __name__ == "__main__":
     import uvicorn

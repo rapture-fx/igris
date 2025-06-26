@@ -1,6 +1,19 @@
 """
 
 # Conditional ML imports
+
+# Conditional ML imports
+try:
+    import torch
+    import transformers
+    import sklearn
+    ML_AVAILABLE = True
+except ImportError:
+    ML_AVAILABLE = False
+    # Use ML service client for remote processing
+    from app.services.ml_service_client import ml_service
+
+
 try:
     import torch
     import transformers
