@@ -319,14 +319,16 @@ const FinalCTA = () => {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
+    <>
       <Navigation />
-      <HeroSection />
-      <ProductShowcase />
-      <CustomerStories />
-      <MarketSection />
-      <FinalCTA />
+      <main className="min-h-screen bg-white">
+        <HeroSection />
+        <ProductShowcase />
+        <CustomerStories />
+        <MarketSection />
+        <FinalCTA />
+      </main>
       <Footer />
-    </div>
+    </>
   )
 }

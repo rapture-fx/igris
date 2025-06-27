@@ -6,6 +6,9 @@ import { FileUpload } from '@/components/upload/FileUpload'
 import { DataProcessingOverview } from '@/components/dashboard/data-processing-overview'
 import { DataQualityCharts } from '@/components/dashboard/data-quality-charts'
 import { Upload, Plus, Database, FileText, TrendingUp, Eye, Download, RefreshCw } from 'lucide-react'
+import { DataSourcesHeader } from '@/components/data-sources/data-sources-header'
+import { DataSourcesList } from '@/components/data-sources/data-sources-list'
+import DataIntegrationDashboard from '@/components/integration/data-integration-dashboard'
 
 interface Investigation {
   id: string
@@ -107,49 +110,36 @@ export default function DataSourcesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Data Sources</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Upload, process, and analyze your data with AI-powered intelligence
-          </p>
-        </div>
-        <button
-          onClick={() => setShowUpload(!showUpload)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-        >
-          <Plus className="w-4 h-4" />
-          {showUpload ? 'Hide Upload' : 'Upload Data'}
-        </button>
+      <div className="mb-8">
+        <DataSourcesHeader />
       </div>
 
       {/* Upload Section */}
-      {showUpload && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-medium text-gray-900">Upload New Data</h2>
-            <p className="text-sm text-gray-600">
-              Upload your data files for AI-powered analysis and insights
-            </p>
-          </div>
-          <FileUpload 
-            onUploadComplete={handleUploadComplete}
-            onUploadStart={() => console.log('Upload started')}
-          />
-        </div>
+      <div className="mb-8" data-tour="upload-area">
+        <FileUpload />
+      </div>
+
+      {/* Data Sources List */}
+      <div className="mb-8">
+        <DataSourcesList />
+      </div>
+
+      {/* Data Integration Dashboard */}
+      <div>
+        <DataIntegrationDashboard />
+      </div>
+
+      {/* Data Processing Overview */}
+      {investigations.length > 0 && (
+        <DataProcessingOverview />
       )}
 
-             {/* Data Processing Overview */}
-       {investigations.length > 0 && (
-         <DataProcessingOverview />
-       )}
+      {/* Selected Investigation Details */}
+      {selectedInvestigation && (
+        <DataQualityCharts investigationId={selectedInvestigation} />
+      )}
 
-       {/* Selected Investigation Details */}
-       {selectedInvestigation && (
-         <DataQualityCharts investigationId={selectedInvestigation} />
-       )}
-
-       {/* Investigation List */}
+      {/* Investigation List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200">
         <div className="px-6 py-4 border-b border-gray-200">
           <div className="flex items-center justify-between">

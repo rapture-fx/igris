@@ -104,6 +104,26 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Mercury Design System Colors
+        mercury: {
+          primary: '#1a365d',    // Deep blue
+          accent: '#3182ce',     // Bright blue
+          surface: '#ffffff',    // White surface
+          muted: '#f7fafc',      // Light gray background
+          text: '#2d3748',       // Dark gray text
+          'text-light': '#718096', // Light gray text
+        }
+      },
+      backgroundImage: {
+        'gradient-mercury-accent': 'linear-gradient(135deg, #3182ce 0%, #2b77cb 100%)',
+        'gradient-mercury-surface': 'linear-gradient(135deg, #ffffff 0%, #f7fafc 100%)',
+      },
+      boxShadow: {
+        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
+        'large': '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+      },
+      spacing: {
+        'container-mercury': '1200px',
       },
       borderRadius: {
         lg: "var(--radius)",

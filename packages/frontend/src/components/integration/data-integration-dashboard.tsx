@@ -18,8 +18,13 @@ import {
   Zap,
   Shield,
   Users,
-  Layers
+  Layers,
+  TrendingUp,
+  FileText,
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
 interface Connection {
   id: string;
@@ -38,11 +43,37 @@ interface IntegrationStat {
   color: string;
 }
 
+interface IntegrationStats {
+  total_investigations: number
+  successful_uploads: number
+  failed_uploads: number
+  average_processing_time: number
+  total_data_processed_gb: number
+  quality_score_average: number
+}
+
+interface ProcessingMetrics {
+  date: string
+  uploads: number
+  success_rate: number
+  avg_quality: number
+}
+
+interface DataTypeDistribution {
+  type: string
+  count: number
+  percentage: number
+  color: string
+}
+
 const DataIntegrationDashboard: React.FC = () => {
   const [connections, setConnections] = useState<Connection[]>([]);
   const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'connections' | 'streaming' | 'settings'>('overview');
   const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState<IntegrationStats | null>(null);
+  const [metrics, setMetrics] = useState<ProcessingMetrics[]>([]);
+  const [dataTypes, setDataTypes] = useState<DataTypeDistribution[]>([]);
 
   // Mock data - replace with real API calls
   const mockConnections: Connection[] = [
@@ -113,7 +144,54 @@ const DataIntegrationDashboard: React.FC = () => {
 
   useEffect(() => {
     setConnections(mockConnections);
+    fetchIntegrationData();
   }, []);
+
+  const fetchIntegrationData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      // In a real implementation, this would fetch from multiple endpoints
+      // For now, we'll generate realistic mock data
+      
+      // Mock integration stats
+      setStats({
+        total_investigations: 42,
+        successful_uploads: 38,
+        failed_uploads: 4,
+        average_processing_time: 45,
+        total_data_processed_gb: 12.4,
+        quality_score_average: 87.3
+      });
+
+      // Mock processing metrics over time
+      const mockMetrics: ProcessingMetrics[] = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return {
+          date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          uploads: Math.floor(Math.random() * 10) + 2,
+          success_rate: 90 + Math.random() * 10,
+          avg_quality: 80 + Math.random() * 20
+        };
+      });
+      setMetrics(mockMetrics);
+
+      // Mock data type distribution
+      setDataTypes([
+        { type: 'CSV', count: 18, percentage: 43, color: '#3B82F6' },
+        { type: 'Excel', count: 12, percentage: 29, color: '#10B981' },
+        { type: 'JSON', count: 8, percentage: 19, color: '#F59E0B' },
+        { type: 'Parquet', count: 4, percentage: 9, color: '#8B5CF6' }
+      ]);
+
+    } catch (error) {
+      console.error('Failed to fetch integration data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getStatusIcon = (status: Connection['status']) => {
     switch (status) {
@@ -152,6 +230,15 @@ const DataIntegrationDashboard: React.FC = () => {
     if (diffInHours < 24) return `${diffInHours}h ago`;
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays}d ago`;
+  };
+
+  const formatBytes = (bytes: number) => {
+    return `${bytes.toFixed(1)} GB`;
+  };
+
+  const formatTime = (seconds: number) => {
+    if (seconds < 60) return `${seconds}s`;
+    return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
   };
 
   const renderOverview = () => (
@@ -237,6 +324,25 @@ const DataIntegrationDashboard: React.FC = () => {
     </div>
   );
 
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="animate-pulse">
+          <div className="h-6 bg-gray-200 rounded w-1/3 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-20 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-64 bg-gray-200 rounded-lg"></div>
+            <div className="h-64 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -286,3 +392,5 @@ const DataIntegrationDashboard: React.FC = () => {
 };
 
 export default DataIntegrationDashboard;
+
+export { DataIntegrationDashboard }

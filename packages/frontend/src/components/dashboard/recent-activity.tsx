@@ -1,153 +1,195 @@
 'use client'
 
-import { Database, Brain, Workflow, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
-import { cn, getStatusColor } from '@/lib/utils'
+import { useState, useEffect } from 'react'
+import { FileText, Clock, CheckCircle2, AlertCircle, Upload, Brain, BarChart3, ArrowUpRight } from 'lucide-react'
+import Link from 'next/link'
 
-const activities = [
-  {
-    id: '1',
-    type: 'data_source',
-    title: 'New data source connected',
-    description: 'PostgreSQL database "production_db" successfully connected',
-    timestamp: '2024-01-15T10:30:00Z',
-    status: 'success',
-    icon: Database
-  },
-  {
-    id: '2',
-    type: 'workflow',
-    title: 'Workflow execution completed',
-    description: 'Daily Sales Data Pipeline processed 15,432 records',
-    timestamp: '2024-01-15T10:15:00Z',
-    status: 'success',
-    icon: Workflow
-  },
-  {
-    id: '3',
-    type: 'intelligence',
-    title: 'Anomaly detected',
-    description: 'Unusual pattern found in customer_orders table',
-    timestamp: '2024-01-15T09:45:00Z',
-    status: 'warning',
-    icon: AlertTriangle
-  },
-  {
-    id: '4',
-    type: 'workflow',
-    title: 'Workflow execution failed',
-    description: 'Inventory Sync Process failed due to connection timeout',
-    timestamp: '2024-01-15T09:30:00Z',
-    status: 'error',
-    icon: XCircle
-  },
-  {
-    id: '5',
-    type: 'intelligence',
-    title: 'Data profiling completed',
-    description: 'Quality assessment finished for users table (Score: 92%)',
-    timestamp: '2024-01-15T09:00:00Z',
-    status: 'success',
-    icon: Brain
-  },
-  {
-    id: '6',
-    type: 'data_source',
-    title: 'Data sync completed',
-    description: 'Synchronized 2,847 records from Salesforce CRM',
-    timestamp: '2024-01-15T08:30:00Z',
-    status: 'success',
-    icon: CheckCircle
+interface ActivityItem {
+  id: string
+  type: string
+  title: string
+  description: string
+  status: string
+  timestamp: string
+  user_email?: string
+}
+
+interface RecentActivityProps {
+  limit?: number
+  className?: string
+}
+
+export function RecentActivity({ limit = 10, className = '' }: RecentActivityProps) {
+  const [activities, setActivities] = useState<ActivityItem[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchRecentActivity()
+  }, [limit])
+
+  const fetchRecentActivity = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      const response = await fetch(`/api/proxy/dashboard/activity?limit=${limit}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setActivities(data)
+      } else {
+        // Fallback to empty array
+        setActivities([])
+      }
+    } catch (error) {
+      console.error('Failed to fetch recent activity:', error)
+      setActivities([])
+    } finally {
+      setLoading(false)
+    }
   }
-]
 
-const getActivityIcon = (activity: typeof activities[0]) => {
-  const IconComponent = activity.icon
-  const colorClass = activity.status === 'success' ? 'text-green-600' :
-                    activity.status === 'warning' ? 'text-yellow-600' :
-                    activity.status === 'error' ? 'text-red-600' :
-                    'text-blue-600'
-  
-  return <IconComponent className={cn('w-5 h-5', colorClass)} />
-}
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'file_upload':
+        return <Upload className="w-5 h-5 text-blue-500" />
+      case 'data_analysis':
+        return <BarChart3 className="w-5 h-5 text-green-500" />
+      case 'ai_processing':
+        return <Brain className="w-5 h-5 text-purple-500" />
+      case 'error':
+        return <AlertCircle className="w-5 h-5 text-red-500" />
+      default:
+        return <FileText className="w-5 h-5 text-gray-500" />
+    }
+  }
 
-const formatTimeAgo = (timestamp: string) => {
-  const now = new Date()
-  const time = new Date(timestamp)
-  const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60))
-  
-  if (diffInMinutes < 1) return 'Just now'
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`
-  
-  const diffInHours = Math.floor(diffInMinutes / 60)
-  if (diffInHours < 24) return `${diffInHours}h ago`
-  
-  const diffInDays = Math.floor(diffInHours / 24)
-  return `${diffInDays}d ago`
-}
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle2 className="w-4 h-4 text-green-500" />
+      case 'processing':
+        return <Clock className="w-4 h-4 text-blue-500 animate-spin" />
+      case 'failed':
+        return <AlertCircle className="w-4 h-4 text-red-500" />
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />
+    }
+  }
 
-export function RecentActivity() {
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
-        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-          View All
-        </button>
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-50 border-green-200'
+      case 'processing':
+        return 'bg-blue-50 border-blue-200'
+      case 'failed':
+        return 'bg-red-50 border-red-200'
+      default:
+        return 'bg-gray-50 border-gray-200'
+    }
+  }
+
+  const formatTimeAgo = (timestamp: string) => {
+    const now = new Date()
+    const time = new Date(timestamp)
+    const diffInMinutes = Math.floor((now.getTime() - time.getTime()) / (1000 * 60))
+
+    if (diffInMinutes < 1) return 'Just now'
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`
+    return `${Math.floor(diffInMinutes / 1440)}d ago`
+  }
+
+  if (loading) {
+    return (
+      <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${className}`}>
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+        </div>
+        <div className="p-6">
+          <div className="space-y-4">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse flex items-start space-x-3">
+                <div className="w-5 h-5 bg-gray-200 rounded"></div>
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+    )
+  }
 
-      <div className="flow-root">
-        <ul role="list" className="-mb-8">
-          {activities.map((activity, activityIdx) => (
-            <li key={activity.id}>
-              <div className="relative pb-8">
-                {activityIdx !== activities.length - 1 ? (
-                  <span
-                    className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
-                    aria-hidden="true"
-                  />
-                ) : null}
-                <div className="relative flex space-x-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100">
-                    {getActivityIcon(activity)}
+  return (
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${className}`}>
+      <div className="p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Activity</h3>
+          <Link 
+            href="/dashboard/data-sources" 
+            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+          >
+            View All
+            <ArrowUpRight className="w-4 h-4 ml-1" />
+          </Link>
+        </div>
+      </div>
+      
+      <div className="p-6">
+        {activities.length > 0 ? (
+          <div className="space-y-4">
+            {activities.map((activity) => (
+              <div 
+                key={activity.id} 
+                className={`p-4 border rounded-lg transition-all hover:shadow-sm ${getStatusColor(activity.status)}`}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {getActivityIcon(activity.type)}
                   </div>
-                  <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <h4 className="text-sm font-medium text-gray-900 truncate">
                         {activity.title}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {activity.description}
-                      </p>
+                      </h4>
+                      {getStatusIcon(activity.status)}
                     </div>
-                    <div className="whitespace-nowrap text-right text-sm text-gray-500">
-                      <time dateTime={activity.timestamp}>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {activity.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
                         {formatTimeAgo(activity.timestamp)}
-                      </time>
+                      </span>
+                      {activity.user_email && (
+                        <span className="text-xs text-gray-500">
+                          by {activity.user_email}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Activity summary */}
-      <div className="mt-6 pt-6 border-t border-gray-200">
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <div className="text-lg font-semibold text-green-600">4</div>
-            <div className="text-xs text-gray-500">Successful</div>
+            ))}
           </div>
-          <div>
-            <div className="text-lg font-semibold text-yellow-600">1</div>
-            <div className="text-xs text-gray-500">Warnings</div>
+        ) : (
+          <div className="text-center py-8">
+            <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+            <h4 className="text-lg font-medium text-gray-900 mb-2">No Recent Activity</h4>
+            <p className="text-gray-600 mb-4">Upload your first dataset to get started</p>
+            <Link
+              href="/dashboard/data-sources"
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Dataset
+            </Link>
           </div>
-          <div>
-            <div className="text-lg font-semibold text-red-600">1</div>
-            <div className="text-xs text-gray-500">Errors</div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   )

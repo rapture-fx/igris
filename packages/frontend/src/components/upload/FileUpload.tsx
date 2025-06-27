@@ -1,20 +1,22 @@
-'use client';
+"use client"
 
-import { useState, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Upload, X, FileText, CheckCircle, AlertCircle, Loader2, Info } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { Upload, FileText, CheckCircle, XCircle, AlertCircle, Loader2, X } from 'lucide-react'
+import { useFileUpload } from '@/hooks/useAPIData'
+import { config } from '@/lib/config'
 
 interface FileUploadProps {
   onUploadComplete?: (investigationId: string) => void
   onUploadStart?: () => void
-  maxFileSize?: number // in MB
+  maxFileSize?: number
   allowedTypes?: string[]
 }
 
-interface UploadedFile {
+interface FileWithStatus {
   file: File
-  preview: string
+  id: string
   status: 'pending' | 'uploading' | 'success' | 'error'
   progress: number
   investigationId?: string
@@ -24,21 +26,35 @@ interface UploadedFile {
 export function FileUpload({ 
   onUploadComplete, 
   onUploadStart,
-  maxFileSize = 100,
-  allowedTypes = ['csv', 'json', 'xlsx', 'xls', 'parquet', 'txt']
+  maxFileSize = config.upload.maxFileSize,
+  allowedTypes = config.upload.allowedExtensions
 }: FileUploadProps) {
-  const [files, setFiles] = useState<UploadedFile[]>([])
-  const [isUploading, setIsUploading] = useState(false)
   const router = useRouter()
+  const [files, setFiles] = useState<FileWithStatus[]>([])
+  const [showNameDialog, setShowNameDialog] = useState<number | null>(null)
+  const [uploadName, setUploadName] = useState('')
+  const [uploadDescription, setUploadDescription] = useState('')
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const { uploadFile, uploading } = useFileUpload()
+
+  const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
+    // Handle rejected files
+    if (rejectedFiles.length > 0) {
+      const errors = rejectedFiles.map(rejection => {
+        const error = rejection.errors[0]
+        return `${rejection.file.name}: ${error.message}`
+      })
+      alert(`Some files were rejected:\n${errors.join('\n')}`)
+    }
+
+    // Add accepted files
     const newFiles = acceptedFiles.map(file => ({
       file,
-      preview: URL.createObjectURL(file),
+      id: Math.random().toString(36).substr(2, 9),
       status: 'pending' as const,
       progress: 0
     }))
-    
+
     setFiles(prev => [...prev, ...newFiles])
   }, [])
 
@@ -49,23 +65,14 @@ export function FileUpload({
       'application/json': ['.json'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
       'application/vnd.ms-excel': ['.xls'],
-      'application/octet-stream': ['.parquet'],
+      'application/vnd.apache.parquet': ['.parquet'],
       'text/plain': ['.txt']
     },
-    maxSize: maxFileSize * 1024 * 1024,
+    maxSize: maxFileSize,
     multiple: true
   })
 
-  const removeFile = (index: number) => {
-    setFiles(prev => {
-      const newFiles = [...prev]
-      URL.revokeObjectURL(newFiles[index].preview)
-      newFiles.splice(index, 1)
-      return newFiles
-    })
-  }
-
-  const uploadFile = async (fileIndex: number, name?: string, description?: string) => {
+  const uploadFileWithDetails = async (fileIndex: number, name?: string, description?: string) => {
     const fileObj = files[fileIndex]
     if (!fileObj) return
 
@@ -73,27 +80,19 @@ export function FileUpload({
       i === fileIndex ? { ...f, status: 'uploading', progress: 0 } : f
     ))
 
+    onUploadStart?.()
+
     try {
-      const formData = new FormData()
-      formData.append('file', fileObj.file)
-      if (name) formData.append('name', name)
-      if (description) formData.append('description', description)
-
-      const token = localStorage.getItem('token')
-      const response = await fetch('/api/proxy/data/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        },
-        body: formData
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.detail || 'Upload failed')
-      }
-
-      const result = await response.json()
+      const result = await uploadFile(
+        fileObj.file, 
+        name, 
+        description,
+        (progress) => {
+          setFiles(prev => prev.map((f, i) => 
+            i === fileIndex ? { ...f, progress } : f
+          ))
+        }
+      )
 
       setFiles(prev => prev.map((f, i) => 
         i === fileIndex ? { 
@@ -112,7 +111,6 @@ export function FileUpload({
       }, 2000)
 
     } catch (error) {
-      console.error('Upload error:', error)
       setFiles(prev => prev.map((f, i) => 
         i === fileIndex ? { 
           ...f, 
@@ -124,21 +122,33 @@ export function FileUpload({
     }
   }
 
-  const uploadAllFiles = async () => {
-    if (isUploading) return
-    
-    setIsUploading(true)
-    onUploadStart?.()
+  const handleUpload = (fileIndex: number) => {
+    setShowNameDialog(fileIndex)
+  }
 
-    const pendingFiles = files
-      .map((file, index) => ({ file, index }))
-      .filter(({ file }) => file.status === 'pending')
-
-    for (const { index } of pendingFiles) {
-      await uploadFile(index)
+  const handleUploadWithName = () => {
+    if (showNameDialog !== null) {
+      uploadFileWithDetails(showNameDialog, uploadName, uploadDescription)
+      setShowNameDialog(null)
+      setUploadName('')
+      setUploadDescription('')
     }
+  }
 
-    setIsUploading(false)
+  const removeFile = (fileIndex: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== fileIndex))
+  }
+
+  const getFileIcon = (file: File) => {
+    const extension = file.name.split('.').pop()?.toLowerCase()
+    switch (extension) {
+      case 'csv': return '📊'
+      case 'json': return '📋'
+      case 'xlsx':
+      case 'xls': return '📈'
+      case 'parquet': return '🗂️'
+      default: return '📄'
+    }
   }
 
   const formatFileSize = (bytes: number) => {
@@ -149,242 +159,169 @@ export function FileUpload({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
   }
 
-  const getFileIcon = (fileName: string) => {
-    const extension = fileName.split('.').pop()?.toLowerCase()
-    switch (extension) {
-      case 'csv':
-        return '📊'
-      case 'json':
-        return '📋'
-      case 'xlsx':
-      case 'xls':
-        return '📈'
-      case 'parquet':
-        return '🗃️'
-      case 'txt':
-        return '📄'
-      default:
-        return '📁'
-    }
-  }
-
-  const hasSuccessfulUploads = files.some(f => f.status === 'success')
-  const hasPendingFiles = files.some(f => f.status === 'pending')
-  const hasErrors = files.some(f => f.status === 'error')
-
   return (
-    <div className="space-y-6">
-      {/* Drop Zone */}
+    <div className="w-full">
+      {/* Dropzone */}
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-          isDragActive 
-            ? 'border-blue-500 bg-blue-50' 
+        className={`
+          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors
+          ${isDragActive 
+            ? 'border-blue-400 bg-blue-50' 
             : 'border-gray-300 hover:border-gray-400'
-        }`}
+          }
+        `}
       >
         <input {...getInputProps()} />
         <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-        
-        {isDragActive ? (
-          <div>
-            <p className="text-lg font-medium text-blue-600">Drop files here...</p>
-            <p className="text-sm text-blue-500">Ready to process your data!</p>
-          </div>
-        ) : (
-          <div>
-            <p className="text-lg font-medium text-gray-900">
-              Drag & drop your data files here
-            </p>
-            <p className="text-sm text-gray-500 mb-4">
-              or click to browse files
-            </p>
-            <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              Choose Files
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* File Format Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-start">
-          <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
-          <div>
-            <h4 className="text-sm font-medium text-blue-900 mb-1">Supported Formats</h4>
-            <p className="text-sm text-blue-700">
-              CSV, JSON, Excel (.xlsx, .xls), Parquet, Text files up to {maxFileSize}MB
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Files are processed with AI-powered data intelligence for instant insights
-            </p>
-          </div>
-        </div>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          {isDragActive ? 'Drop files here' : 'Upload your data files'}
+        </h3>
+        <p className="text-gray-500 mb-4">
+          Drag and drop files here, or click to select files
+        </p>
+        <p className="text-sm text-gray-400">
+          Supports CSV, JSON, Excel, Parquet files up to {formatFileSize(maxFileSize)}
+        </p>
       </div>
 
       {/* File List */}
       {files.length > 0 && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-medium text-gray-900">
-              Files ({files.length})
-            </h3>
-            {hasPendingFiles && (
-              <button
-                onClick={uploadAllFiles}
-                disabled={isUploading}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isUploading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4" />
-                    Process All Files
-                  </>
-                )}
-              </button>
-            )}
-          </div>
-
-          <div className="grid gap-3">
-            {files.map((fileObj, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 rounded-lg p-4 bg-white"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="text-2xl">{getFileIcon(fileObj.file.name)}</div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {fileObj.file.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatFileSize(fileObj.file.size)}
-                      </p>
-                    </div>
+        <div className="mt-6 space-y-3">
+          <h4 className="text-lg font-medium text-gray-900">Files to Upload</h4>
+          {files.map((fileObj, index) => (
+            <div key={fileObj.id} className="bg-white border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl">{getFileIcon(fileObj.file)}</span>
+                  <div>
+                    <p className="font-medium text-gray-900">{fileObj.file.name}</p>
+                    <p className="text-sm text-gray-500">{formatFileSize(fileObj.file.size)}</p>
                   </div>
-
-                  {/* Status */}
-                  <div className="flex items-center space-x-2">
-                    {fileObj.status === 'pending' && (
+                </div>
+                <div className="flex items-center space-x-3">
+                  {fileObj.status === 'pending' && (
+                    <>
                       <button
-                        onClick={() => uploadFile(index)}
-                        className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        onClick={() => handleUpload(index)}
+                        disabled={uploading}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         Upload
                       </button>
-                    )}
-                    
-                    {fileObj.status === 'uploading' && (
-                      <div className="flex items-center text-blue-600">
-                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                        <span className="text-sm">Processing...</span>
-                      </div>
-                    )}
-                    
-                    {fileObj.status === 'success' && (
-                      <div className="flex items-center text-green-600">
-                        <CheckCircle className="w-4 h-4 mr-2" />
-                        <span className="text-sm">Complete</span>
-                      </div>
-                    )}
-                    
-                    {fileObj.status === 'error' && (
-                      <div className="flex items-center text-red-600">
-                        <AlertCircle className="w-4 h-4 mr-2" />
-                        <span className="text-sm">Failed</span>
-                      </div>
-                    )}
-
-                    {fileObj.status !== 'uploading' && (
                       <button
                         onClick={() => removeFile(index)}
-                        className="text-gray-400 hover:text-gray-600"
+                        className="p-2 text-gray-400 hover:text-red-500"
                       >
                         <X className="w-4 h-4" />
                       </button>
-                    )}
+                    </>
+                  )}
+                  {fileObj.status === 'uploading' && (
+                    <div className="flex items-center space-x-2">
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-500" />
+                      <span className="text-sm text-gray-600">{fileObj.progress}%</span>
+                    </div>
+                  )}
+                  {fileObj.status === 'success' && (
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                  )}
+                  {fileObj.status === 'error' && (
+                    <XCircle className="w-5 h-5 text-red-500" />
+                  )}
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              {fileObj.status === 'uploading' && (
+                <div className="mt-3">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${fileObj.progress}%` }}
+                    />
                   </div>
                 </div>
+              )}
 
-                {/* Progress Bar */}
-                {fileObj.status === 'uploading' && (
-                  <div className="mt-3">
-                    <div className="bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${fileObj.progress}%` }}
-                      />
-                    </div>
+              {/* Error Message */}
+              {fileObj.status === 'error' && fileObj.error && (
+                <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                  <div className="flex items-center">
+                    <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
+                    <span className="text-sm text-red-700">{fileObj.error}</span>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* Error Message */}
-                {fileObj.status === 'error' && fileObj.error && (
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                    {fileObj.error}
+              {/* Success Message */}
+              {fileObj.status === 'success' && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                  <div className="flex items-center">
+                    <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
+                    <span className="text-sm text-green-700">
+                      Upload successful! Redirecting to results...
+                    </span>
                   </div>
-                )}
-
-                {/* Success Actions */}
-                {fileObj.status === 'success' && fileObj.investigationId && (
-                  <div className="mt-3 flex items-center justify-between bg-green-50 border border-green-200 rounded-lg p-3">
-                    <div className="flex items-center text-green-700">
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      <span className="text-sm font-medium">Processing complete!</span>
-                    </div>
-                    <button
-                      onClick={() => router.push(`/dashboard/data-sources?investigation=${fileObj.investigationId}`)}
-                      className="text-green-700 hover:text-green-800 text-sm font-medium"
-                    >
-                      View Results →
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Success Summary */}
-      {hasSuccessfulUploads && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <CheckCircle className="w-5 h-5 text-green-600 mr-3" />
-            <div>
-              <h4 className="text-sm font-medium text-green-900">
-                Files processed successfully!
-              </h4>
-              <p className="text-sm text-green-700">
-                Your data has been analyzed and insights are ready. Check the results in your dashboard.
-              </p>
+                </div>
+              )}
             </div>
-          </div>
+          ))}
         </div>
       )}
 
-      {/* Error Summary */}
-      {hasErrors && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
-            <div>
-              <h4 className="text-sm font-medium text-red-900">
-                Some files failed to process
-              </h4>
-              <p className="text-sm text-red-700">
-                Please check the error messages above and try uploading again.
-              </p>
+      {/* Name Dialog */}
+      {showNameDialog !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-lg font-medium text-gray-900 mb-4">
+              Upload Details
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Investigation Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={uploadName}
+                  onChange={(e) => setUploadName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Enter a name for this investigation"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={uploadDescription}
+                  onChange={(e) => setUploadDescription(e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Describe what this data contains"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                onClick={() => setShowNameDialog(null)}
+                className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleUploadWithName}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                Upload
+              </button>
             </div>
           </div>
         </div>
       )}
     </div>
   )
-} 
+}
+
+export default FileUpload 

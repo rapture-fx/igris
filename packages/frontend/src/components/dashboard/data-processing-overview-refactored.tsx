@@ -32,7 +32,7 @@ interface QuickInsights {
 
 // ==================== COMPONENT ====================
 
-export function DataProcessingOverview() {
+export function DataProcessingOverviewRefactored() {
   const [selectedInvestigationId, setSelectedInvestigationId] = useState<string | null>(null)
 
   // Use custom hooks instead of manual state management
@@ -362,4 +362,4 @@ function InsightsDisplay({ insights, investigation }: InsightsDisplayProps) {
   )
 }
 
-export default DataProcessingOverview 
+export default DataProcessingOverviewRefactored 

@@ -172,6 +172,38 @@ export function DataQualityCharts({ investigationId }: DataQualityChartsProps) {
     }
   }
 
+  const qualityData = metrics ? [
+    { name: 'Completeness', value: metrics.completeness, color: getQualityColor(metrics.completeness) },
+    { name: 'Validity', value: metrics.validity, color: getQualityColor(metrics.validity) },
+    { name: 'Consistency', value: metrics.consistency, color: getQualityColor(metrics.consistency) },
+    { name: 'Accuracy', value: metrics.accuracy, color: getQualityColor(metrics.accuracy) },
+    { name: 'Uniqueness', value: metrics.uniqueness, color: getQualityColor(metrics.uniqueness) }
+  ] : []
+
+  const pieData = qualityData.map(item => ({
+    name: item.name,
+    value: item.value,
+    color: item.color
+  }))
+
+  const exportToCSV = () => {
+    if (!metrics || !preview) return
+    
+    const csvData = [
+      ['Metric', 'Score'],
+      ...qualityData.map(item => [item.name, item.value])
+    ]
+    
+    const csvContent = csvData.map(row => row.join(',')).join('\n')
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `data-quality-report-${investigationId}.csv`
+    a.click()
+    window.URL.revokeObjectURL(url)
+  }
+
   if (loading) {
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -188,175 +220,179 @@ export function DataQualityCharts({ investigationId }: DataQualityChartsProps) {
     )
   }
 
-  const qualityData = metrics ? [
-    { name: 'Completeness', value: metrics.completeness, color: getQualityColor(metrics.completeness) },
-    { name: 'Validity', value: metrics.validity, color: getQualityColor(metrics.validity) },
-    { name: 'Consistency', value: metrics.consistency, color: getQualityColor(metrics.consistency) },
-    { name: 'Accuracy', value: metrics.accuracy, color: getQualityColor(metrics.accuracy) },
-    { name: 'Uniqueness', value: metrics.uniqueness, color: getQualityColor(metrics.uniqueness) }
-  ] : []
-
-  const pieData = qualityData.map(item => ({
-    name: item.name,
-    value: item.value,
-    fill: item.color
-  }))
-
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header with tabs */}
-      <div className="border-b border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-gray-900">Data Quality Analysis</h3>
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">Data Quality Analysis</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              Comprehensive quality metrics and insights
+            </p>
+          </div>
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-              <Filter className="w-4 h-4" />
-            </button>
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
-              <Download className="w-4 h-4" />
+            <button
+              onClick={exportToCSV}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Export
             </button>
           </div>
         </div>
-        
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+      </div>
+
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8 px-6">
           {[
-            { key: 'metrics', label: 'Quality Metrics' },
-            { key: 'preview', label: 'Data Preview' },
-            { key: 'trends', label: 'Quality Trends' },
-            { key: 'insights', label: 'AI Insights' }
-          ].map((tab) => (
+            { id: 'metrics', label: 'Quality Metrics', icon: BarChart },
+            { id: 'preview', label: 'Data Preview', icon: Eye },
+            { id: 'trends', label: 'Quality Trends', icon: TrendingUp },
+            { id: 'insights', label: 'AI Insights', icon: Info }
+          ].map(tab => (
             <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key as any)}
-              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                activeTab === tab.key
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`${
+                activeTab === tab.id
+                  ? 'border-indigo-500 text-indigo-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
             >
+              <tab.icon className="w-4 h-4 mr-2" />
               {tab.label}
             </button>
           ))}
-        </div>
+        </nav>
       </div>
 
-      {/* Tab content */}
+      {/* Tab Content */}
       <div className="p-6">
         {activeTab === 'metrics' && (
           <div className="space-y-6">
             {/* Overall Score */}
-            {metrics && (
-              <div className="text-center">
-                <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-br from-blue-50 to-blue-100 mb-4">
-                  <span className="text-3xl font-bold text-blue-600">
-                    {Math.round(metrics.overall_score)}
-                  </span>
-                </div>
-                <h4 className="text-lg font-semibold text-gray-900 mb-2">Overall Quality Score</h4>
-                <p className="text-gray-600">Based on 5 key quality dimensions</p>
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+                <span className="text-2xl font-bold">{Math.round(metrics?.overall_score || 0)}%</span>
               </div>
-            )}
+              <h4 className="mt-3 text-lg font-medium text-gray-900">Overall Quality Score</h4>
+              <p className="text-sm text-gray-500">Based on 5 quality dimensions</p>
+            </div>
 
-            {/* Quality Metrics Charts */}
+            {/* Quality Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Bar Chart */}
               <div>
-                <h5 className="text-lg font-medium text-gray-900 mb-4">Quality Dimensions</h5>
-                <ResponsiveContainer width="100%" height={300}>
+                <h5 className="text-sm font-medium text-gray-900 mb-4">Quality Breakdown</h5>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={qualityData}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip formatter={(value) => [`${value}%`, 'Score']} />
-                    <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                    <XAxis dataKey="name" fontSize={12} />
+                    <YAxis fontSize={12} />
+                    <Tooltip />
+                    <Bar dataKey="value" fill="#3b82f6" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
               {/* Pie Chart */}
               <div>
-                <h5 className="text-lg font-medium text-gray-900 mb-4">Quality Distribution</h5>
-                <ResponsiveContainer width="100%" height={300}>
+                <h5 className="text-sm font-medium text-gray-900 mb-4">Quality Distribution</h5>
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
                       cy="50%"
-                      innerRadius={60}
-                      outerRadius={120}
-                      paddingAngle={5}
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
                       dataKey="value"
                     >
                       {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                        <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value) => [`${value}%`, 'Score']} />
+                    <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+            </div>
+
+            {/* Quality Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {qualityData.map(item => (
+                <div key={item.name} className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <h6 className="text-sm font-medium text-gray-900">{item.name}</h6>
+                    <div 
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">{item.value}%</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {item.value >= 90 ? 'Excellent' : 
+                     item.value >= 80 ? 'Good' : 
+                     item.value >= 70 ? 'Fair' : 'Poor'}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         )}
 
         {activeTab === 'preview' && preview && (
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* Data Summary */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-blue-600">{preview.total_rows.toLocaleString()}</div>
-                <div className="text-sm text-blue-600">Total Records</div>
+                <h6 className="text-sm font-medium text-blue-900">Total Rows</h6>
+                <p className="text-2xl font-bold text-blue-600">{preview.total_rows.toLocaleString()}</p>
               </div>
               <div className="bg-green-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-green-600">{preview.columns.length}</div>
-                <div className="text-sm text-green-600">Data Columns</div>
+                <h6 className="text-sm font-medium text-green-900">Columns</h6>
+                <p className="text-2xl font-bold text-green-600">{preview.columns.length}</p>
               </div>
               <div className="bg-purple-50 rounded-lg p-4">
-                <div className="text-2xl font-bold text-purple-600">
-                  {Object.values(preview.data_types).filter(type => type === 'string').length}
-                </div>
-                <div className="text-sm text-purple-600">Text Fields</div>
+                <h6 className="text-sm font-medium text-purple-900">Data Types</h6>
+                <p className="text-2xl font-bold text-purple-600">
+                  {Object.keys(preview.data_types).length}
+                </p>
               </div>
             </div>
 
-            {/* Data Types */}
-            <div className="mb-6">
-              <h5 className="text-lg font-medium text-gray-900 mb-3">Data Types</h5>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(preview.data_types).map(([column, type]) => (
-                  <span
-                    key={column}
-                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700"
-                  >
-                    {column}: {type}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* Sample Data Table */}
+            {/* Data Table */}
             <div>
-              <h5 className="text-lg font-medium text-gray-900 mb-3">Sample Data</h5>
+              <h5 className="text-sm font-medium text-gray-900 mb-4">Sample Data (First 5 rows)</h5>
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      {preview.columns.map((column) => (
-                        <th
-                          key={column}
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          {column}
+                      {preview.columns.map(col => (
+                        <th key={col} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div>
+                            <span>{col}</span>
+                            <span className="block text-xs text-gray-400 normal-case">
+                              {preview.data_types[col]}
+                            </span>
+                          </div>
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {preview.sample_rows.map((row, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        {preview.columns.map((column) => (
-                          <td key={column} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {row[column] !== null ? String(row[column]) : (
+                      <tr key={index}>
+                        {preview.columns.map(col => (
+                          <td key={col} className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {row[col] === null || row[col] === undefined ? (
                               <span className="text-gray-400 italic">null</span>
+                            ) : (
+                              String(row[col])
                             )}
                           </td>
                         ))}
@@ -372,45 +408,33 @@ export function DataQualityCharts({ investigationId }: DataQualityChartsProps) {
         {activeTab === 'trends' && (
           <div className="space-y-6">
             <div>
-              <h5 className="text-lg font-medium text-gray-900 mb-4">Quality Score Trends</h5>
+              <h5 className="text-sm font-medium text-gray-900 mb-4">Quality Score Trend (Last 7 days)</h5>
               <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={trends}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis domain={[70, 100]} />
+                  <XAxis dataKey="date" fontSize={12} />
+                  <YAxis fontSize={12} />
                   <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="score"
-                    stroke="#3b82f6"
-                    fill="url(#colorScore)"
-                    strokeWidth={2}
+                  <Area 
+                    type="monotone" 
+                    dataKey="score" 
+                    stroke="#3b82f6" 
+                    fill="#3b82f6" 
+                    fillOpacity={0.1}
                   />
-                  <defs>
-                    <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
                 </AreaChart>
               </ResponsiveContainer>
             </div>
 
             <div>
-              <h5 className="text-lg font-medium text-gray-900 mb-4">Issues Detected</h5>
+              <h5 className="text-sm font-medium text-gray-900 mb-4">Issues Detected</h5>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={trends}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
+                  <XAxis dataKey="date" fontSize={12} />
+                  <YAxis fontSize={12} />
                   <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="issues"
-                    stroke="#ef4444"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                  />
+                  <Line type="monotone" dataKey="issues" stroke="#ef4444" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -418,267 +442,38 @@ export function DataQualityCharts({ investigationId }: DataQualityChartsProps) {
         )}
 
         {activeTab === 'insights' && (
-          <div className="space-y-4">
-            {insights.map((insight, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-lg border-l-4 ${
-                  insight.type === 'success'
-                    ? 'bg-green-50 border-green-400'
-                    : insight.type === 'warning'
-                    ? 'bg-yellow-50 border-yellow-400'
-                    : insight.type === 'error'
-                    ? 'bg-red-50 border-red-400'
-                    : 'bg-blue-50 border-blue-400'
-                }`}
-              >
-                <div className="flex items-start">
-                  <div className="flex-shrink-0">
-                    {getInsightIcon(insight.type)}
-                  </div>
-                  <div className="ml-3 flex-1">
-                    <div className="flex items-center justify-between">
-                      <h6 className="text-sm font-medium text-gray-900">{insight.title}</h6>
-                      {insight.count && (
-                        <span className="text-sm font-semibold text-gray-600">
-                          {insight.count}%
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
-                    {insight.recommendation && (
-                      <div className="mt-2 p-2 bg-white rounded border">
-                        <p className="text-xs text-gray-700">
-                          <strong>Recommendation:</strong> {insight.recommendation}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-    value: item.value,
-    fill: item.color
-  }))
-
-  return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-      {/* Header */}
-      <div className="px-6 py-4 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-gray-900">Data Quality Analysis</h3>
-          <div className="flex items-center space-x-2">
-            <button className="text-gray-600 hover:text-gray-900 p-1">
-              <Filter className="w-4 h-4" />
-            </button>
-            <button className="text-gray-600 hover:text-gray-900 p-1">
-              <Download className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex space-x-1 mt-4">
-          {[
-            { id: 'metrics', label: 'Quality Metrics' },
-            { id: 'preview', label: 'Data Preview' },
-            { id: 'trends', label: 'Quality Trends' },
-            { id: 'insights', label: 'Insights' }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="p-6">
-        {activeTab === 'metrics' && metrics && (
           <div className="space-y-6">
-            {/* Overall Score */}
-            <div className="text-center">
-              <div className="inline-flex items-center justify-center w-24 h-24 rounded-full border-8 border-gray-200 relative">
-                <div 
-                  className="absolute inset-0 rounded-full border-8 border-transparent"
-                  style={{
-                    borderTopColor: getQualityColor(metrics.overall_score),
-                    borderRightColor: getQualityColor(metrics.overall_score),
-                    borderBottomColor: metrics.overall_score > 50 ? getQualityColor(metrics.overall_score) : 'transparent',
-                    borderLeftColor: metrics.overall_score > 75 ? getQualityColor(metrics.overall_score) : 'transparent',
-                    transform: `rotate(${(metrics.overall_score / 100) * 360}deg)`
-                  }}
-                />
-                <div className="text-2xl font-bold text-gray-900">
-                  {Math.round(metrics.overall_score)}%
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 mt-2">Overall Quality Score</p>
-            </div>
-
-            {/* Quality Dimensions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Bar Chart */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-4">Quality Dimensions</h4>
-                <ResponsiveContainer width="100%" height={200}>
-                  <BarChart data={qualityData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" fontSize={12} />
-                    <YAxis fontSize={12} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill={(entry) => entry.color} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Pie Chart */}
-              <div>
-                <h4 className="text-sm font-medium text-gray-900 mb-4">Quality Distribution</h4>
-                <ResponsiveContainer width="100%" height={200}>
-                  <PieChart>
-                    <Pie
-                      data={pieData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={80}
-                      label={({ name, value }) => `${name}: ${value}%`}
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.fill} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'preview' && preview && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">Data Sample</h4>
-                <p className="text-xs text-gray-600">
-                  Showing 5 of {preview.total_rows.toLocaleString()} rows
-                </p>
-              </div>
-              <button className="flex items-center text-sm text-blue-600 hover:text-blue-700">
-                <Eye className="w-4 h-4 mr-1" />
-                View Full Dataset
-              </button>
-            </div>
-
-            {/* Data Table */}
-            <div className="overflow-x-auto border border-gray-200 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {preview.columns.map((column) => (
-                      <th
-                        key={column}
-                        className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      >
-                        <div className="flex flex-col">
-                          <span>{column}</span>
-                          <span className="normal-case text-gray-400">
-                            {preview.data_types[column]}
-                          </span>
-                        </div>
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {preview.sample_rows.map((row, index) => (
-                    <tr key={index} className="hover:bg-gray-50">
-                      {preview.columns.map((column) => (
-                        <td key={column} className="px-4 py-3 text-sm text-gray-900">
-                          {row[column] === null || row[column] === undefined ? (
-                            <span className="text-gray-400 italic">null</span>
-                          ) : (
-                            String(row[column])
+            <div>
+              <h5 className="text-sm font-medium text-gray-900 mb-4">AI-Generated Insights</h5>
+              <div className="space-y-4">
+                {insights.map((insight, index) => (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <div className="flex-shrink-0">
+                        {getInsightIcon(insight.type)}
+                      </div>
+                      <div className="ml-3 flex-1">
+                        <div className="flex items-center justify-between">
+                          <h6 className="text-sm font-medium text-gray-900">{insight.title}</h6>
+                          {insight.count && (
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              {insight.count}%
+                            </span>
                           )}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'trends' && (
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-900">Quality Score Over Time</h4>
-            <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={trends}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" fontSize={12} />
-                <YAxis fontSize={12} />
-                <Tooltip />
-                <Area
-                  type="monotone"
-                  dataKey="score"
-                  stroke="#3b82f6"
-                  fill="#3b82f6"
-                  fillOpacity={0.3}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {activeTab === 'insights' && (
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-900">Data Quality Insights</h4>
-            <div className="space-y-3">
-              {insights.map((insight, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start space-x-3">
-                    {getInsightIcon(insight.type)}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h5 className="text-sm font-medium text-gray-900">
-                          {insight.title}
-                        </h5>
-                        {insight.count && (
-                          <span className="text-sm text-gray-500">
-                            {insight.count}{insight.type === 'success' || insight.type === 'info' ? '%' : ' issues'}
-                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{insight.description}</p>
+                        {insight.recommendation && (
+                          <div className="mt-2 p-2 bg-blue-50 rounded border-l-4 border-blue-400">
+                            <p className="text-sm text-blue-700">
+                              <strong>Recommendation:</strong> {insight.recommendation}
+                            </p>
+                          </div>
                         )}
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {insight.description}
-                      </p>
-                      {insight.recommendation && (
-                        <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-700">
-                          <strong>Recommendation:</strong> {insight.recommendation}
-                        </div>
-                      )}
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         )}

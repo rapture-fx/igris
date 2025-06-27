@@ -149,7 +149,6 @@ export default function AdminDashboard() {
           is_verified: false,
           is_active: false,
           created_at: '2024-06-12T08:00:00Z',
-          last_login: null,
           login_attempts: 5,
           tenant_name: 'TestCorp'
         }

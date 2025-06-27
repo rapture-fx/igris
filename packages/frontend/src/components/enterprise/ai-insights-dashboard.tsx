@@ -69,8 +69,39 @@ export function AIInsightsDashboard({ investigationId }: AIInsightsDashboardProp
     }
   }
 
-  const loadIntelligentInsights = async (token: string) => {
+  const loadIntelligentInsights = async (token: string | null) => {
     try {
+      if (!token) {
+        // Use demo data when no token
+        setInsights([
+          {
+            category: 'Data Quality',
+            title: 'High Completeness Score: 94.2%',
+            description: 'Data shows excellent completeness across all fields with minimal missing values',
+            priority: 'high',
+            confidence: 0.92,
+            details: { completeness: 94.2, validity: 89.1, consistency: 91.5 }
+          },
+          {
+            category: 'Pattern Recognition',
+            title: 'Seasonal Trends Detected',
+            description: 'AI identified recurring seasonal patterns in your data with 87% confidence',
+            priority: 'medium',
+            confidence: 0.87,
+            details: { seasonality: 'quarterly', strength: 'moderate' }
+          },
+          {
+            category: 'Anomaly Detection',
+            title: '12 Statistical Outliers Found',
+            description: 'Machine learning detected unusual patterns that may require investigation',
+            priority: 'high',
+            confidence: 0.95,
+            details: { anomalies: 12, threshold: 0.05 }
+          }
+        ])
+        return
+      }
+
       const response = await fetch('/api/proxy/advanced-ai/intelligent-analysis', {
         method: 'POST',
         headers: {
@@ -120,7 +151,7 @@ export function AIInsightsDashboard({ investigationId }: AIInsightsDashboardProp
     }
   }
 
-  const loadPredictiveAnalytics = async (token: string) => {
+  const loadPredictiveAnalytics = async (token: string | null) => {
     try {
       // Mock predictive data for demo
       const mockPredictions: PredictiveData[] = Array.from({ length: 30 }, (_, i) => {
@@ -143,7 +174,7 @@ export function AIInsightsDashboard({ investigationId }: AIInsightsDashboardProp
     }
   }
 
-  const loadMonitoringData = async (token: string) => {
+  const loadMonitoringData = async (token: string | null) => {
     try {
       // Mock monitoring data
       setMonitoringAlerts([
@@ -182,7 +213,7 @@ export function AIInsightsDashboard({ investigationId }: AIInsightsDashboardProp
     try {
       // Simulate AI analysis
       await new Promise(resolve => setTimeout(resolve, 3000))
-      await loadIntelligentInsights(localStorage.getItem('token') || '')
+      await loadIntelligentInsights(localStorage.getItem('token'))
     } catch (error) {
       console.error('Analysis failed:', error)
     } finally {

@@ -1,160 +1,331 @@
 """
-Dashboard Statistics API - Pollarbase
-====================================
+Dashboard Statistics API
+========================
 
-Real-time dashboard statistics and metrics for the frontend dashboard.
-Replaces mock data with actual database queries.
+Provides real-time dashboard statistics and metrics for the Pollarbase platform.
 """
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text, func, and_
-from typing import Dict, List, Any, Optional
-from datetime import datetime, timedelta
+from sqlalchemy import select, func, and_
 from pydantic import BaseModel
+from typing import Dict, Any, List, Optional
+from datetime import datetime, timedelta
 import logging
 
 from app.database.connection import get_db
-from app.auth.unified_dependencies import get_current_user
-from app.database.models import User
+from app.database.models import User, DataInvestigation, ProcessingJob, JobStatus
+from app.auth.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
-router = APIRouter()
+router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
-# Response models
+# ==================== RESPONSE MODELS ====================
+
 class DashboardStats(BaseModel):
     data_sources: int
     total_records: int
     quality_score: float
-    active_workflows: int
-    anomalies_detected: int
-    last_profiled_at: Optional[str]
+    active_jobs: int
+    completed_jobs: int
+    failed_jobs: int
+    storage_used_mb: float
+    processing_time_saved_hours: float
 
-@router.get("/dashboard/stats", response_model=DashboardStats)
+class RecentActivity(BaseModel):
+    id: str
+    type: str
+    title: str
+    description: str
+    status: str
+    timestamp: datetime
+    user_email: Optional[str]
+
+class DataQualityMetrics(BaseModel):
+    overall_score: float
+    investigations_count: int
+    issues_count: int
+    excellent_count: int  # 90-100%
+    good_count: int       # 80-89%
+    fair_count: int       # 70-79%
+    poor_count: int       # <70%
+    trend_direction: str  # 'up', 'down', 'stable'
+
+class ProcessingJobStats(BaseModel):
+    job_id: str
+    investigation_name: str
+    status: str
+    progress_percentage: float
+    started_at: datetime
+    estimated_completion: Optional[datetime]
+
+# ==================== DASHBOARD ENDPOINTS ====================
+
+@router.get("/stats", response_model=DashboardStats)
 async def get_dashboard_stats(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get real-time dashboard statistics"""
+    """Get comprehensive dashboard statistics"""
     try:
-        # For now, return mock data since we don't have the actual tables set up
-        # In a real implementation, these would be actual database queries
-        
+        # Get total data sources (investigations)
+        data_sources_result = await db.execute(
+            select(func.count(DataInvestigation.id))
+            .where(DataInvestigation.created_by_id == current_user.id)
+        )
+        data_sources = data_sources_result.scalar() or 0
+
+        # Get total records processed (sum from all investigations)
+        total_records_result = await db.execute(
+            select(func.coalesce(func.sum(DataInvestigation.total_records), 0))
+            .where(DataInvestigation.created_by_id == current_user.id)
+        )
+        total_records = total_records_result.scalar() or 0
+
+        # Calculate average quality score
+        quality_result = await db.execute(
+            select(func.avg(DataInvestigation.quality_score))
+            .where(
+                and_(
+                    DataInvestigation.created_by_id == current_user.id,
+                    DataInvestigation.quality_score.is_not(None)
+                )
+            )
+        )
+        avg_quality = quality_result.scalar() or 0.0
+        quality_score = float(avg_quality * 100) if avg_quality else 0.0
+
+        # Get job counts
+        active_jobs_result = await db.execute(
+            select(func.count(DataInvestigation.id))
+            .where(
+                and_(
+                    DataInvestigation.created_by_id == current_user.id,
+                    DataInvestigation.status.in_([JobStatus.PROCESSING, JobStatus.PENDING])
+                )
+            )
+        )
+        active_jobs = active_jobs_result.scalar() or 0
+
+        completed_jobs_result = await db.execute(
+            select(func.count(DataInvestigation.id))
+            .where(
+                and_(
+                    DataInvestigation.created_by_id == current_user.id,
+                    DataInvestigation.status == JobStatus.COMPLETED
+                )
+            )
+        )
+        completed_jobs = completed_jobs_result.scalar() or 0
+
+        failed_jobs_result = await db.execute(
+            select(func.count(DataInvestigation.id))
+            .where(
+                and_(
+                    DataInvestigation.created_by_id == current_user.id,
+                    DataInvestigation.status == JobStatus.FAILED
+                )
+            )
+        )
+        failed_jobs = failed_jobs_result.scalar() or 0
+
+        # Calculate storage used (approximate)
+        storage_result = await db.execute(
+            select(func.coalesce(func.sum(DataInvestigation.file_size_bytes), 0))
+            .where(DataInvestigation.created_by_id == current_user.id)
+        )
+        storage_bytes = storage_result.scalar() or 0
+        storage_used_mb = float(storage_bytes / (1024 * 1024))
+
+        # Estimate processing time saved (rough calculation)
+        processing_time_saved_hours = float(data_sources * 2.5)  # Assume 2.5 hours saved per dataset
+
         return DashboardStats(
-            data_sources=5,
-            total_records=12543,
-            quality_score=87.5,
-            active_workflows=2,
-            anomalies_detected=3,
-            last_profiled_at=datetime.utcnow().isoformat()
+            data_sources=data_sources,
+            total_records=total_records,
+            quality_score=quality_score,
+            active_jobs=active_jobs,
+            completed_jobs=completed_jobs,
+            failed_jobs=failed_jobs,
+            storage_used_mb=storage_used_mb,
+            processing_time_saved_hours=processing_time_saved_hours
         )
 
     except Exception as e:
-        logger.error(f"Error getting dashboard stats: {e}")
-        # Return default stats if database query fails
-        return DashboardStats(
-            data_sources=0,
-            total_records=0,
-            quality_score=0.0,
-            active_workflows=0,
-            anomalies_detected=0,
-            last_profiled_at=None
+        logger.error(f"Failed to get dashboard stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve dashboard statistics"
         )
 
-@router.get("/dashboard/data-quality")
-async def get_data_quality_distribution(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """Get data quality distribution for pie chart"""
-    try:
-        # Mock data for now
-        return [
-            {"name": "Excellent", "value": 45, "color": "#10B981"},
-            {"name": "Good", "value": 30, "color": "#3B82F6"},
-            {"name": "Fair", "value": 20, "color": "#F59E0B"},
-            {"name": "Poor", "value": 5, "color": "#EF4444"},
-        ]
-
-    except Exception as e:
-        logger.error(f"Error getting data quality distribution: {e}")
-        return []
-
-@router.get("/dashboard/quality-trends")
-async def get_quality_trends(
-    period: str = "6months",
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
-):
-    """Get quality trends over time for bar chart"""
-    try:
-        # Mock data for now
-        return [
-            {"month": "Jan", "score": 82},
-            {"month": "Feb", "score": 85},
-            {"month": "Mar", "score": 83},
-            {"month": "Apr", "score": 87},
-            {"month": "May", "score": 89},
-            {"month": "Jun", "score": 87},
-        ]
-
-    except Exception as e:
-        logger.error(f"Error getting quality trends: {e}")
-        return []
-
-@router.get("/dashboard/activity")
+@router.get("/activity", response_model=List[RecentActivity])
 async def get_recent_activity(
     limit: int = 20,
-    offset: int = 0,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get recent system activity for the user"""
+    """Get recent activity for the user"""
     try:
-        # Mock data for now
-        return [
-            {
-                "id": "1",
-                "type": "file_upload",
-                "title": "File uploaded successfully",
-                "description": "Uploaded data.csv (2.5 MB)",
-                "status": "success",
-                "timestamp": datetime.utcnow().isoformat()
-            },
-            {
-                "id": "2",
-                "type": "data_analysis",
-                "title": "Data analysis completed",
-                "description": "Analyzed 10,000 records with 89% quality score",
-                "status": "success",
-                "timestamp": (datetime.utcnow() - timedelta(minutes=15)).isoformat()
-            }
-        ]
+        # Get recent investigations and their status changes
+        result = await db.execute(
+            select(DataInvestigation)
+            .where(DataInvestigation.created_by_id == current_user.id)
+            .order_by(DataInvestigation.updated_at.desc())
+            .limit(limit)
+        )
+        investigations = result.scalars().all()
+
+        activities = []
+        for inv in investigations:
+            activity_type = "file_upload"
+            title = f"Data Analysis: {inv.name}"
+            
+            if inv.status == JobStatus.COMPLETED:
+                activity_type = "data_analysis"
+                title = f"Completed: {inv.name}"
+                description = f"Quality score: {int(inv.quality_score * 100)}%" if inv.quality_score else "Analysis completed"
+            elif inv.status == JobStatus.PROCESSING:
+                activity_type = "ai_processing"
+                title = f"Processing: {inv.name}"
+                description = f"Progress: {int(inv.progress_percentage)}%"
+            elif inv.status == JobStatus.FAILED:
+                activity_type = "error"
+                title = f"Failed: {inv.name}"
+                description = "Processing failed - check logs"
+            else:
+                description = f"Uploaded {inv.data_source_config.get('filename', 'file')} for analysis"
+
+            activities.append(RecentActivity(
+                id=str(inv.id),
+                type=activity_type,
+                title=title,
+                description=description,
+                status=inv.status.value,
+                timestamp=inv.updated_at,
+                user_email=current_user.email
+            ))
+
+        return activities
 
     except Exception as e:
-        logger.error(f"Error getting recent activity: {e}")
-        return []
+        logger.error(f"Failed to get recent activity: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve recent activity"
+        )
 
-@router.get("/dashboard/active-jobs")
+@router.get("/data-quality", response_model=DataQualityMetrics)
+async def get_data_quality_metrics(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get data quality metrics and distribution"""
+    try:
+        # Get all investigations with quality scores
+        result = await db.execute(
+            select(DataInvestigation.quality_score)
+            .where(
+                and_(
+                    DataInvestigation.created_by_id == current_user.id,
+                    DataInvestigation.quality_score.is_not(None)
+                )
+            )
+        )
+        quality_scores = [float(score) * 100 for score in result.scalars().all()]
+
+        investigations_count = len(quality_scores)
+        
+        if investigations_count == 0:
+            return DataQualityMetrics(
+                overall_score=0.0,
+                investigations_count=0,
+                issues_count=0,
+                excellent_count=0,
+                good_count=0,
+                fair_count=0,
+                poor_count=0,
+                trend_direction='stable'
+            )
+
+        # Calculate overall score
+        overall_score = sum(quality_scores) / len(quality_scores)
+
+        # Count quality distribution
+        excellent_count = len([s for s in quality_scores if s >= 90])
+        good_count = len([s for s in quality_scores if 80 <= s < 90])
+        fair_count = len([s for s in quality_scores if 70 <= s < 80])
+        poor_count = len([s for s in quality_scores if s < 70])
+
+        # Issues count (fair + poor)
+        issues_count = fair_count + poor_count
+
+        # Simple trend calculation (could be improved with historical data)
+        trend_direction = 'stable'
+        if overall_score >= 85:
+            trend_direction = 'up'
+        elif overall_score < 75:
+            trend_direction = 'down'
+
+        return DataQualityMetrics(
+            overall_score=overall_score,
+            investigations_count=investigations_count,
+            issues_count=issues_count,
+            excellent_count=excellent_count,
+            good_count=good_count,
+            fair_count=fair_count,
+            poor_count=poor_count,
+            trend_direction=trend_direction
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to get data quality metrics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve data quality metrics"
+        )
+
+@router.get("/active-jobs", response_model=List[ProcessingJobStats])
 async def get_active_jobs(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
-    """Get currently active/running jobs"""
+    """Get currently active processing jobs"""
     try:
-        # Mock data for now
-        return [
-            {
-                "id": "1",
-                "name": "Data Processing Pipeline",
-                "status": "running",
-                "progress": 75,
-                "lastRun": datetime.utcnow().isoformat(),
-                "nextRun": None,
-                "duration": "5m"
-            }
-        ]
+        result = await db.execute(
+            select(DataInvestigation)
+            .where(
+                and_(
+                    DataInvestigation.created_by_id == current_user.id,
+                    DataInvestigation.status.in_([JobStatus.PROCESSING, JobStatus.PENDING])
+                )
+            )
+            .order_by(DataInvestigation.created_at.desc())
+        )
+        active_investigations = result.scalars().all()
+
+        jobs = []
+        for inv in active_investigations:
+            # Estimate completion time based on progress
+            estimated_completion = None
+            if inv.progress_percentage > 0 and inv.status == JobStatus.PROCESSING:
+                time_elapsed = datetime.utcnow() - inv.updated_at
+                time_remaining = time_elapsed * ((100 - inv.progress_percentage) / inv.progress_percentage)
+                estimated_completion = datetime.utcnow() + time_remaining
+
+            jobs.append(ProcessingJobStats(
+                job_id=str(inv.id),
+                investigation_name=inv.name,
+                status=inv.status.value,
+                progress_percentage=inv.progress_percentage,
+                started_at=inv.created_at,
+                estimated_completion=estimated_completion
+            ))
+
+        return jobs
 
     except Exception as e:
-        logger.error(f"Error getting active jobs: {e}")
-        return [] 
+        logger.error(f"Failed to get active jobs: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve active jobs"
+        ) 
