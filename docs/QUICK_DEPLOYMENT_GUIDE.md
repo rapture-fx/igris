@@ -68,19 +68,19 @@ cp environment.production.example environment.production
 ### **2. Start Production Stack**
 ```bash
 # Start all services
-docker-compose -f docker-compose.production.yml up -d
+docker-compose -f docker-compose.ml.yml up -d
 
 # Check status
-docker-compose -f docker-compose.production.yml ps
+docker-compose -f docker-compose.ml.yml ps
 
 # View logs
-docker-compose -f docker-compose.production.yml logs -f pollarbase-api
+docker-compose -f docker-compose.ml.yml logs -f pollarbase-api
 ```
 
 ### **3. Database Migration**
 ```bash
 # Run migrations on production
-docker-compose -f docker-compose.production.yml exec pollarbase-api alembic upgrade head
+docker-compose -f docker-compose.ml.yml exec pollarbase-api alembic upgrade head
 ```
 
 ### **4. Access Production Services**
@@ -94,7 +94,7 @@ docker-compose -f docker-compose.production.yml exec pollarbase-api alembic upgr
 
 ### **Database (PostgreSQL)**
 ```yaml
-# Default configuration in docker-compose.production.yml
+# Default configuration in docker-compose.ml.yml
 POSTGRES_DB: pollarbase_prod
 POSTGRES_USER: pollarbase
 POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -128,7 +128,7 @@ curl http://localhost:8000/health
 curl http://localhost:8000/api/v1/auth/status
 
 # Service status
-docker-compose -f docker-compose.production.yml ps
+docker-compose -f docker-compose.ml.yml ps
 ```
 
 ### **Monitoring Dashboard**
@@ -142,13 +142,13 @@ docker-compose -f docker-compose.production.yml ps
 ### **Log Monitoring**
 ```bash
 # Application logs
-docker-compose -f docker-compose.production.yml logs -f pollarbase-api
+docker-compose -f docker-compose.ml.yml logs -f pollarbase-api
 
 # All services
-docker-compose -f docker-compose.production.yml logs -f
+docker-compose -f docker-compose.ml.yml logs -f
 
 # Specific service
-docker-compose -f docker-compose.production.yml logs -f postgres
+docker-compose -f docker-compose.ml.yml logs -f postgres
 ```
 
 ---
@@ -247,10 +247,10 @@ curl -H "Authorization: Bearer $TOKEN" \
 #### **Database Connection Error**
 ```bash
 # Check database status
-docker-compose -f docker-compose.production.yml logs postgres
+docker-compose -f docker-compose.ml.yml logs postgres
 
 # Restart database
-docker-compose -f docker-compose.production.yml restart postgres
+docker-compose -f docker-compose.ml.yml restart postgres
 ```
 
 #### **Authentication Issues**
@@ -259,14 +259,14 @@ docker-compose -f docker-compose.production.yml restart postgres
 echo $JWT_SECRET_KEY
 
 # Verify user exists
-docker-compose -f docker-compose.production.yml exec postgres \
+docker-compose -f docker-compose.ml.yml exec postgres \
   psql -U pollarbase -d pollarbase_prod -c "SELECT * FROM users LIMIT 5;"
 ```
 
 #### **File Upload Issues**
 ```bash
 # Check upload directory permissions
-docker-compose -f docker-compose.production.yml exec pollarbase-api \
+docker-compose -f docker-compose.ml.yml exec pollarbase-api \
   ls -la /app/uploads
 
 # Check disk space
@@ -276,10 +276,10 @@ df -h
 #### **Background Job Issues**
 ```bash
 # Check Celery worker status
-docker-compose -f docker-compose.production.yml logs celery-worker
+docker-compose -f docker-compose.ml.yml logs celery-worker
 
 # Restart workers
-docker-compose -f docker-compose.production.yml restart celery-worker
+docker-compose -f docker-compose.ml.yml restart celery-worker
 ```
 
 ### **Performance Issues**
@@ -288,10 +288,10 @@ docker-compose -f docker-compose.production.yml restart celery-worker
 docker stats
 
 # Scale workers
-docker-compose -f docker-compose.production.yml up -d --scale celery-worker=4
+docker-compose -f docker-compose.ml.yml up -d --scale celery-worker=4
 
 # Monitor database performance
-docker-compose -f docker-compose.production.yml exec postgres \
+docker-compose -f docker-compose.ml.yml exec postgres \
   psql -U pollarbase -d pollarbase_prod -c "SELECT * FROM pg_stat_activity;"
 ```
 
@@ -302,10 +302,10 @@ docker-compose -f docker-compose.production.yml exec postgres \
 ### **Horizontal Scaling**
 ```bash
 # Scale API instances
-docker-compose -f docker-compose.production.yml up -d --scale pollarbase-api=3
+docker-compose -f docker-compose.ml.yml up -d --scale pollarbase-api=3
 
 # Scale Celery workers
-docker-compose -f docker-compose.production.yml up -d --scale celery-worker=6
+docker-compose -f docker-compose.ml.yml up -d --scale celery-worker=6
 ```
 
 ### **Database Optimization**
@@ -319,7 +319,7 @@ CREATE INDEX CONCURRENTLY idx_investigations_status ON data_investigations(statu
 ### **Redis Optimization**
 ```bash
 # Monitor Redis
-docker-compose -f docker-compose.production.yml exec redis redis-cli INFO memory
+docker-compose -f docker-compose.ml.yml exec redis redis-cli INFO memory
 
 # Configure persistence
 redis-server --appendonly yes --appendfsync everysec
@@ -332,11 +332,11 @@ redis-server --appendonly yes --appendfsync everysec
 ### **Database Backup**
 ```bash
 # Create backup
-docker-compose -f docker-compose.production.yml exec postgres \
+docker-compose -f docker-compose.ml.yml exec postgres \
   pg_dump -U pollarbase pollarbase_prod > backup_$(date +%Y%m%d).sql
 
 # Restore backup
-docker-compose -f docker-compose.production.yml exec -T postgres \
+docker-compose -f docker-compose.ml.yml exec -T postgres \
   psql -U pollarbase pollarbase_prod < backup_20241215.sql
 ```
 
@@ -346,7 +346,7 @@ docker-compose -f docker-compose.production.yml exec -T postgres \
 tar -czf uploads_backup_$(date +%Y%m%d).tar.gz ./uploads
 
 # Backup configuration
-tar -czf config_backup_$(date +%Y%m%d).tar.gz environment.production docker-compose.production.yml
+tar -czf config_backup_$(date +%Y%m%d).tar.gz environment.production docker-compose.ml.yml
 ```
 
 ---
@@ -386,7 +386,7 @@ tar -czf config_backup_$(date +%Y%m%d).tar.gz environment.production docker-comp
 
 ### **Configuration Files**
 - **Environment**: `environment.production`
-- **Docker**: `docker-compose.production.yml`
+- **Docker**: `docker-compose.ml.yml`
 - **Database**: `alembic.ini`
 
 ### **Monitoring**
