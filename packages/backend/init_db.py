@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from app.database.connection import Base
 from app.database.models import User, UserRole, Organization
-from app.auth.auth_service import auth_service
+from app.auth.unified_service import unified_auth_service as auth_service
 from app.core.config import settings
 import uuid
 from datetime import datetime

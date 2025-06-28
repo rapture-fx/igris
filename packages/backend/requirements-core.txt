@@ -25,3 +25,7 @@ scipy==1.11.4
 sqlalchemy==2.0.23
 stripe==7.7.0
 websockets==12.0
+PyYAML>=6.0
+# For advanced profiling; optional but recommended
+# ydata-profiling formerly pandas-profiling
+ydata-profiling>=4.6
