@@ -257,24 +257,10 @@ class UnifiedDataProcessor:
         """Standard processing mode - full analysis with good performance"""
         logger.info("⚡ Standard processing mode - balanced performance and analysis")
         
-        # Use the proven working processor logic but with async wrapper
-        try:
-            from app.services.working_data_processor import working_processor
-            
-            # Run in thread pool to avoid blocking
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                result = await asyncio.get_event_loop().run_in_executor(
-                    executor, working_processor.prepare_data, file_path, target_framework
-                )
-            
-            result['mode'] = 'standard'
-            return result
-            
-        except Exception as e:
-            logger.error(f"Standard processing failed: {e}")
-            # Fallback to basic processing
-            return await self._process_fast(file_path, target_framework, options)
+        # Standard mode uses the same logic as fast mode but loads full dataset
+        result = await self._process_fast(file_path, target_framework, options)
+        result['mode'] = 'standard'
+        return result
     
     async def _process_streaming(self, file_path: str, target_framework: str, options: Dict) -> Dict[str, Any]:
         """Streaming processing mode - memory-efficient for large files"""
