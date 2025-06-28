@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, memo } from 'react'
+import { useState } from 'react'
 import { 
   ArrowRight, 
   Book, 
@@ -8,688 +8,895 @@ import {
   Database, 
   Zap, 
   Shield, 
-  Users, 
-  CheckCircle, 
   Copy,
   Brain,
   Upload,
   BarChart3,
   Settings,
   Globe,
-  Video,
-  HelpCircle,
-  Star,
-  ChevronRight,
   Search,
-  Menu,
-  X,
-  Home
+  CheckCircle,
+  AlertCircle,
+  Key,
+  Clock,
+  Terminal,
+  Sparkles,
+  TrendingUp,
+  Layers,
+  Filter,
+  Download
 } from 'lucide-react'
-import SyntaxHighlighter from 'react-syntax-highlighter'
-import { tomorrow, github } from 'react-syntax-highlighter/dist/esm/styles/hljs'
-
 import { Footer } from '@/components/layout/Footer'
-
-// Memoized components for better performance
-const PollarbaseLogo = memo(function PollarbaseLogo({ size = 32 }: { size?: number }) {
-  return (
-    <div className="flex items-center justify-center">
-      <div className="w-8 h-8 bg-gradient-mercury-accent rounded-lg flex items-center justify-center">
-        <Brain className="w-5 h-5 text-white" />
-      </div>
-    </div>
-  )
-})
-
-const PythonLogo = memo(function PythonLogo({ size = 24 }: { size?: number }) {
-  return (
-    <div className="w-6 h-6 bg-gradient-to-br from-mercury-accent to-yellow-400 rounded-lg flex items-center justify-center">
-      <Code className="w-4 h-4 text-white" />
-    </div>
-  )
-})
-
-const JavaScriptLogo = memo(function JavaScriptLogo({ size = 24 }: { size?: number }) {
-  return (
-    <div className="w-6 h-6 bg-yellow-400 rounded-lg flex items-center justify-center">
-      <Code className="w-4 h-4 text-black" />
-    </div>
-  )
-})
 
 interface CodeExample {
   language: string
   title: string
   description: string
   code: string
+  response?: string
+}
+
+interface APIEndpoint {
+  method: string
+  path: string
+  description: string
+  parameters?: Array<{
+    name: string
+    type: string
+    required: boolean
+    description: string
+  }>
 }
 
 export default function DocumentationPage() {
   const [selectedSection, setSelectedSection] = useState('introduction')
   const [selectedLanguage, setSelectedLanguage] = useState('curl')
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Documentation structure
+  // Documentation sections
   const docsSections = [
     {
-      id: 'get-started',
-      category: 'GET STARTED',
+      id: 'getting-started',
+      title: 'Getting Started',
       items: [
-        { id: 'introduction', label: 'Overview', icon: <Book className="w-4 h-4" /> },
-        { id: 'quick-start', label: 'Quickstart', icon: <Zap className="w-4 h-4" /> },
+        { id: 'introduction', label: 'Introduction', icon: <Book className="w-4 h-4" /> },
+        { id: 'quickstart', label: 'Quickstart', icon: <Zap className="w-4 h-4" /> },
         { id: 'authentication', label: 'Authentication', icon: <Shield className="w-4 h-4" /> },
-        { id: 'playground', label: 'Playground', icon: <Video className="w-4 h-4" /> },
+        { id: 'errors', label: 'Error Handling', icon: <AlertCircle className="w-4 h-4" /> },
       ]
     },
     {
-      id: 'capabilities',
-      category: 'CAPABILITIES',
+      id: 'core-concepts',
+      title: 'Core Concepts',
       items: [
-        { id: 'data-upload', label: 'Data Upload', icon: <Upload className="w-4 h-4" /> },
-        { id: 'analysis', label: 'AI Analysis', icon: <Brain className="w-4 h-4" /> },
-        { id: 'cleaning', label: 'Data Cleaning', icon: <Zap className="w-4 h-4" /> },
-        { id: 'ml-models', label: 'ML Models', icon: <BarChart3 className="w-4 h-4" /> },
-        { id: 'export', label: 'Data Export', icon: <Database className="w-4 h-4" /> },
-        { id: 'validation', label: 'Data Validation', icon: <CheckCircle className="w-4 h-4" /> },
+        { id: 'data-processing', label: 'Data Processing', icon: <Brain className="w-4 h-4" /> },
+        { id: 'transformations', label: 'Transformations', icon: <Settings className="w-4 h-4" /> },
+        { id: 'quality-scoring', label: 'Quality Scoring', icon: <TrendingUp className="w-4 h-4" /> },
+        { id: 'anomaly-detection', label: 'Anomaly Detection', icon: <Filter className="w-4 h-4" /> },
       ]
     },
     {
-      id: 'developer-guides',
-      category: 'DEVELOPER GUIDES',
+      id: 'api-reference',
+      title: 'API Reference',
       items: [
-        { id: 'python-guide', label: 'Python SDK', icon: <PythonLogo size={16} /> },
-        { id: 'javascript-guide', label: 'JavaScript SDK', icon: <JavaScriptLogo size={16} /> },
+        { id: 'upload-api', label: 'Upload API', icon: <Upload className="w-4 h-4" /> },
+        { id: 'analysis-api', label: 'Analysis API', icon: <BarChart3 className="w-4 h-4" /> },
+        { id: 'transformation-api', label: 'Transformation API', icon: <Sparkles className="w-4 h-4" /> },
+        { id: 'export-api', label: 'Export API', icon: <Download className="w-4 h-4" /> },
+        { id: 'jobs-api', label: 'Jobs API', icon: <Clock className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: 'sdks-libraries',
+      title: 'SDKs & Libraries',
+      items: [
+        { id: 'python-sdk', label: 'Python SDK', icon: <Code className="w-4 h-4" /> },
+        { id: 'javascript-sdk', label: 'JavaScript SDK', icon: <Code className="w-4 h-4" /> },
         { id: 'rest-api', label: 'REST API', icon: <Globe className="w-4 h-4" /> },
         { id: 'webhooks', label: 'Webhooks', icon: <Settings className="w-4 h-4" /> },
-        { id: 'examples', label: 'Code Examples', icon: <Code className="w-4 h-4" /> },
       ]
     },
     {
-      id: 'best-practices',
-      category: 'BEST PRACTICES',
+      id: 'guides-tutorials',
+      title: 'Guides & Tutorials',
       items: [
-        { id: 'data-pipeline', label: 'Data Pipeline', icon: <Settings className="w-4 h-4" /> },
-        { id: 'performance', label: 'Performance', icon: <Zap className="w-4 h-4" /> },
-        { id: 'security', label: 'Security', icon: <Shield className="w-4 h-4" /> },
-        { id: 'monitoring', label: 'Monitoring', icon: <BarChart3 className="w-4 h-4" /> },
+        { id: 'complete-pipeline', label: 'Complete Pipeline', icon: <Layers className="w-4 h-4" /> },
+        { id: 'ml-integration', label: 'ML Integration', icon: <Brain className="w-4 h-4" /> },
+        { id: 'production-tips', label: 'Production Tips', icon: <CheckCircle className="w-4 h-4" /> },
+        { id: 'best-practices', label: 'Best Practices', icon: <CheckCircle className="w-4 h-4" /> },
       ]
     }
   ]
 
-  // Code examples for different sections
-  const codeExamples: Record<string, CodeExample[]> = {
-    'quick-start': [
+  // API endpoints
+  const apiEndpoints: Record<string, APIEndpoint[]> = {
+    'upload-api': [
       {
-        language: 'curl',
-        title: 'Get API Key',
-        description: 'Authenticate and retrieve your API key',
-        code: `curl -X POST "https://api.pollarbase.com/v1/auth/login" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "email": "user@company.com",
-    "password": "your-secure-password"
-  }'`
+        method: 'POST',
+        path: '/v1/data/upload',
+        description: 'Upload a dataset for processing',
+        parameters: [
+          { name: 'file', type: 'file', required: true, description: 'CSV, JSON, or Parquet file' },
+          { name: 'auto_analyze', type: 'boolean', required: false, description: 'Auto-run analysis' },
+          { name: 'encoding', type: 'string', required: false, description: 'File encoding (utf-8, latin-1)' }
+        ]
       },
       {
-        language: 'curl',
-        title: 'Upload Dataset',
-        description: 'Upload a CSV file for analysis',
-        code: `curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
-  -H "X-API-Key: sk-abc123..." \\
-  -F "file=@dataset.csv" \\
-  -F "auto_analyze=true"`
+        method: 'GET',
+        path: '/v1/data/datasets',
+        description: 'List all uploaded datasets',
+        parameters: [
+          { name: 'limit', type: 'integer', required: false, description: 'Number of results (max 100)' },
+          { name: 'offset', type: 'integer', required: false, description: 'Pagination offset' }
+        ]
       }
     ],
-    'python-guide': [
+    'analysis-api': [
+      {
+        method: 'POST',
+        path: '/v1/analysis/analyze',
+        description: 'Run AI analysis on a dataset',
+        parameters: [
+          { name: 'dataset_id', type: 'string', required: true, description: 'ID of uploaded dataset' },
+          { name: 'include_ml_insights', type: 'boolean', required: false, description: 'Include ML predictions' },
+          { name: 'detect_anomalies', type: 'boolean', required: false, description: 'Detect data anomalies' }
+        ]
+      },
+      {
+        method: 'GET',
+        path: '/v1/analysis/{analysis_id}',
+        description: 'Get analysis results',
+        parameters: [
+          { name: 'analysis_id', type: 'string', required: true, description: 'Analysis ID' }
+        ]
+      }
+    ],
+    'transformation-api': [
+      {
+        method: 'POST',
+        path: '/v1/transform/apply',
+        description: 'Apply transformations to a dataset',
+        parameters: [
+          { name: 'dataset_id', type: 'string', required: true, description: 'ID of dataset to transform' },
+          { name: 'transformations', type: 'array', required: true, description: 'List of transformation rules' },
+          { name: 'validate', type: 'boolean', required: false, description: 'Validate before applying' }
+        ]
+      }
+    ],
+    'export-api': [
+      {
+        method: 'POST',
+        path: '/v1/export/download',
+        description: 'Export processed data',
+        parameters: [
+          { name: 'dataset_id', type: 'string', required: true, description: 'ID of dataset to export' },
+          { name: 'format', type: 'string', required: true, description: 'Output format (csv, json, parquet)' },
+          { name: 'include_metadata', type: 'boolean', required: false, description: 'Include processing metadata' }
+        ]
+      }
+    ],
+    'jobs-api': [
+      {
+        method: 'GET',
+        path: '/v1/jobs/{job_id}',
+        description: 'Get job status and results',
+        parameters: [
+          { name: 'job_id', type: 'string', required: true, description: 'Job ID' }
+        ]
+      }
+    ]
+  }
+
+  // Code examples
+  const codeExamples: Record<string, CodeExample[]> = {
+    quickstart: [
+      {
+        language: 'curl',
+        title: 'Upload Your First Dataset',
+        description: 'Get started by uploading a CSV file',
+        code: `curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
+  -H "Authorization: Bearer sk-abc123..." \\
+  -H "Content-Type: multipart/form-data" \\
+  -F "file=@customer_data.csv" \\
+  -F "auto_analyze=true"`,
+        response: `{
+  "dataset_id": "ds_7Qj2mK8fN3xB",
+  "status": "processing",
+  "name": "customer_data.csv",
+  "size_bytes": 524288,
+  "rows": 10000,
+  "columns": 12,
+  "analysis_job_id": "job_3fD8kL1mP7nX"
+}`
+      },
       {
         language: 'python',
         title: 'Python Quick Start',
-        description: 'Complete workflow in Python',
+        description: 'Complete data processing pipeline',
         code: `import pollarbase
-from pathlib import Path
 
 # Initialize client
 client = pollarbase.Client(api_key="sk-abc123...")
 
-try:
-    # Upload and analyze
-    job = await client.upload_file(
-        Path("data.csv"), 
-        auto_analyze=True
-    )
+# Upload and analyze
+dataset = client.upload_file("data.csv", auto_analyze=True)
+print(f"Dataset ID: {dataset.id}")
+
+# Wait for analysis
+analysis = dataset.wait_for_analysis()
+print(f"Quality Score: {analysis.quality_score}/100")
+
+# Get cleaning suggestions
+suggestions = analysis.get_suggestions()
+for suggestion in suggestions:
+    print(f"• {suggestion.description}")
+
+# Apply transformations
+cleaned = dataset.apply_transformations([
+    pollarbase.RemoveDuplicates(),
+    pollarbase.FillMissing(strategy="mean"),
+    pollarbase.FixFormats()
+])
+
+# Export results
+cleaned.export("cleaned_data.csv")`,
+        response: `Dataset ID: ds_7Qj2mK8fN3xB
+Quality Score: 87/100
+• Remove 23 duplicate rows
+• Fill 156 missing values in 'age' column
+• Standardize date formats in 'created_at'
+• Fix email format issues in 'email' column
+Export completed: cleaned_data.csv`
+      },
+      {
+        language: 'javascript',
+        title: 'JavaScript/Node.js',
+        description: 'Client-side data processing',
+        code: `import Pollarbase from '@pollarbase/js';
+
+const client = new Pollarbase('sk-abc123...');
+
+async function processData() {
+  try {
+    // Upload file
+    const dataset = await client.upload({
+      file: fileInput.files[0],
+      autoAnalyze: true
+    });
     
-    # Get results
-    results = await job.get_results()
-    print(f"Quality Score: {results.quality_score}")
-    print(f"Issues Found: {len(results.issues)}")
+    // Get analysis results
+    const analysis = await dataset.waitForAnalysis();
+    console.log(\`Quality: \${analysis.qualityScore}%\`);
     
-    # Apply cleaning suggestions
-    cleaned_data = await job.apply_cleaning(
-        remove_duplicates=True,
-        fill_missing=True,
-        fix_formats=True
-    )
+    // Apply AI suggestions
+    const cleaned = await dataset.applySuggestions({
+      removeDuplicates: true,
+      fillMissing: 'smart',
+      fixFormats: true
+    });
     
-    # Export cleaned data
-    await cleaned_data.export("cleaned_data.csv")
+    // Download cleaned data
+    const blob = await cleaned.download('csv');
+    downloadFile(blob, 'cleaned_data.csv');
     
-except pollarbase.APIError as e:
-    print(f"Error: {e}")
-`
+  } catch (error) {
+    console.error('Processing failed:', error);
+  }
+}`
+      }
+    ],
+    authentication: [
+      {
+        language: 'curl',
+        title: 'API Key Authentication',
+        description: 'All API requests require authentication',
+        code: `# Include your API key in the Authorization header
+curl -H "Authorization: Bearer sk-abc123..." \\
+  https://api.pollarbase.com/v1/data/datasets`,
+        response: `{
+  "datasets": [
+    {
+      "id": "ds_7Qj2mK8fN3xB",
+      "name": "customer_data.csv",
+      "created_at": "2024-06-28T10:30:00Z",
+      "status": "processed"
+    }
+  ]
+}`
       },
       {
         language: 'python',
-        title: 'Advanced Analysis',
-        description: 'Custom analysis with ML models',
-        code: `# Advanced data analysis
-analysis = await client.analyze_data(
-    file_id="file_123",
+        title: 'SDK Authentication',
+        description: 'Set up authentication in Python SDK',
+        code: `import pollarbase
+import os
+
+# Option 1: Direct API key
+client = pollarbase.Client(api_key="sk-abc123...")
+
+# Option 2: Environment variable (recommended)
+os.environ['POLLARBASE_API_KEY'] = 'sk-abc123...'
+client = pollarbase.Client()  # Auto-detects from env
+
+# Option 3: Configuration file
+client = pollarbase.Client.from_config('~/.pollarbase/config.json')`
+      }
+    ],
+    'python-sdk': [
+      {
+        language: 'bash',
+        title: 'Installation',
+        description: 'Install the Python SDK',
+        code: `# Install via pip
+pip install pollarbase
+
+# Or with conda
+conda install -c pollarbase pollarbase
+
+# Development version
+pip install git+https://github.com/pollarbase/python-sdk.git`
+      },
+      {
+        language: 'python',
+        title: 'Complete Example',
+        description: 'End-to-end data processing workflow',
+        code: `import pollarbase
+import pandas as pd
+from pathlib import Path
+
+# Initialize
+client = pollarbase.Client()
+
+# Upload multiple files
+datasets = []
+for file_path in Path("data/").glob("*.csv"):
+    dataset = client.upload_file(file_path)
+    datasets.append(dataset)
+
+# Batch analysis
+analyses = client.analyze_batch(datasets, 
     include_ml_insights=True,
-    detect_anomalies=True,
-    predict_quality=True
+    detect_anomalies=True
 )
 
-# Get ML predictions
-predictions = analysis.ml_insights
-print(f"Predicted Quality: {predictions.quality_score}")
-print(f"Anomalies: {predictions.anomalies}")
-
-# Custom transformations
-transformations = [
-    {"type": "normalize", "columns": ["age", "income"]},
-    {"type": "encode", "columns": ["category"], "method": "onehot"},
-    {"type": "impute", "columns": ["rating"], "strategy": "mean"}
-]
-
-result = await client.transform_data(
-    file_id="file_123",
-    transformations=transformations
-)
-`
+# Process results
+for analysis in analyses:
+    print(f"Dataset: {analysis.dataset.name}")
+    print(f"Quality: {analysis.quality_score}%")
+    
+    if analysis.quality_score < 80:
+        # Auto-fix low quality data
+        cleaned = analysis.apply_auto_fixes()
+        cleaned.export(f"cleaned_{analysis.dataset.name}")
+    
+    # Extract insights
+    insights = analysis.ml_insights
+    print(f"Predicted trends: {insights.trends}")
+    print(f"Anomalies found: {len(insights.anomalies)}")
+    print("---")`
       }
     ],
-    'javascript-guide': [
+    errors: [
       {
-        language: 'javascript',
-        title: 'JavaScript SDK',
-        description: 'Using the JavaScript client',
-        code: `import { PollarbaseClient } from '@pollarbase/js-sdk';
-
-const client = new PollarbaseClient({
-  apiKey: 'sk-abc123...',
-      baseURL: 'https://api.pollarbase.com'
-});
-
-// Upload file
-const uploadResult = await client.files.upload({
-  file: fileInput.files[0],
-  autoAnalyze: true,
-  options: {
-    detectDuplicates: true,
-    validateFormats: true
+        language: 'json',
+        title: 'Error Response Format',
+        description: 'All errors return a consistent JSON structure',
+        code: `{
+  "error": {
+    "type": "validation_error",
+    "code": "INVALID_FILE_FORMAT",
+    "message": "Unsupported file format. Please upload CSV, JSON, or Parquet files.",
+    "details": {
+      "file_extension": ".xlsx",
+      "supported_formats": ["csv", "json", "parquet"]
+    },
+    "request_id": "req_7Qj2mK8fN3xB"
   }
-});
-
-// Monitor progress
-const job = await client.jobs.get(uploadResult.jobId);
-console.log('Progress:', job.progress);
-
-// Get analysis results
-if (job.status === 'completed') {
-  const analysis = await client.analysis.get(job.analysisId);
-  console.log('Quality Score:', analysis.qualityScore);
-  console.log('Issues:', analysis.issues);
-}
-`
-      }
-    ],
-    'rest-api': [
-      {
-        language: 'curl',
-        title: 'File Upload API',
-        description: 'Upload and analyze files via REST API',
-        code: `# Upload file
-curl -X POST "https://api.pollarbase.com/v1/files/upload" \\
-  -H "Authorization: Bearer sk-abc123..." \\
-  -H "Content-Type: multipart/form-data" \\
-  -F "file=@data.csv" \\
-  -F "options={\\\"autoAnalyze\\\": true}"
-
-# Response
-{
-  "fileId": "file_123abc",
-  "jobId": "job_456def", 
-  "status": "processing",
-  "estimatedTime": "2-5 minutes"
 }`
       },
       {
-        language: 'curl',
-        title: 'Get Analysis Results',
-        description: 'Retrieve analysis results',
-        code: `# Get job status
-curl -X GET "https://api.pollarbase.com/v1/jobs/job_456def" \\
-  -H "Authorization: Bearer sk-abc123..."
+        language: 'python',
+        title: 'Error Handling in Python',
+        description: 'Proper error handling with the Python SDK',
+        code: `import pollarbase
 
-# Response
-{
-  "jobId": "job_456def",
-  "status": "completed",
-  "progress": 100,
-  "results": {
-    "qualityScore": 0.87,
-    "totalRows": 10000,
-    "totalColumns": 15,
-    "issues": [
-      {
-        "type": "missing_values",
-        "column": "email", 
-        "count": 23,
-        "severity": "medium"
-      }
-    ]
-  }
-}`
+client = pollarbase.Client(api_key="sk-abc123...")
+
+try:
+    dataset = client.upload_file("data.csv")
+    analysis = dataset.analyze()
+    
+except pollarbase.ValidationError as e:
+    print(f"Validation failed: {e.message}")
+    print(f"Details: {e.details}")
+    
+except pollarbase.RateLimitError as e:
+    print(f"Rate limit exceeded. Retry after: {e.retry_after}s")
+    
+except pollarbase.APIError as e:
+    print(f"API error [{e.code}]: {e.message}")
+    print(f"Request ID: {e.request_id}")
+    
+except Exception as e:
+    print(f"Unexpected error: {e}")`
       }
     ]
   }
 
-  const handleCopyCode = (code: string, title: string) => {
-    navigator.clipboard.writeText(code)
+  const copyToClipboard = (text: string, title: string) => {
+    navigator.clipboard.writeText(text)
     setCopiedCode(title)
     setTimeout(() => setCopiedCode(null), 2000)
   }
 
-  const renderCodeExample = (example: CodeExample) => (
-    <div key={example.title} className="mb-8">
-      <div className="mb-4">
-        <h4 className="text-lg font-semibold text-gray-900 mb-2">{example.title}</h4>
-        <p className="text-gray-600">{example.description}</p>
-      </div>
-      <div className="relative">
-        <div className="absolute right-4 top-4 z-10">
-          <button
-            onClick={() => handleCopyCode(example.code, example.title)}
-            className="p-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-            title="Copy code"
-          >
-            {copiedCode === example.title ? (
-              <CheckCircle className="w-4 h-4 text-green-400" />
-            ) : (
-              <Copy className="w-4 h-4 text-gray-400" />
-            )}
-          </button>
+  const renderCodeBlock = (example: CodeExample) => (
+    <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700 mb-6">
+      <div className="flex items-center justify-between bg-gray-800 px-4 py-3 border-b border-gray-700">
+        <div className="flex items-center space-x-3">
+          <Terminal className="w-4 h-4 text-gray-400" />
+          <span className="text-sm font-medium text-gray-200">{example.title}</span>
+          <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">{example.language}</span>
         </div>
-        <SyntaxHighlighter
-          language={example.language}
-          style={tomorrow}
-          className="rounded-lg"
-          customStyle={{
-            padding: '1.5rem',
-            paddingRight: '4rem',
-            fontSize: '14px',
-            lineHeight: '1.5'
-          }}
+        <button
+          onClick={() => copyToClipboard(example.code, example.title)}
+          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
         >
-          {example.code}
-        </SyntaxHighlighter>
+          <Copy className="w-4 h-4" />
+          <span className="text-xs">{copiedCode === example.title ? 'Copied!' : 'Copy'}</span>
+        </button>
+      </div>
+      <div className="p-4">
+        <p className="text-sm text-gray-400 mb-3">{example.description}</p>
+        <pre className="text-sm text-gray-100 overflow-x-auto">
+          <code>{example.code}</code>
+        </pre>
+        {example.response && (
+          <div className="mt-4 pt-4 border-t border-gray-700">
+            <p className="text-xs text-gray-500 mb-2">Response:</p>
+            <pre className="text-sm text-green-400 overflow-x-auto">
+              <code>{example.response}</code>
+            </pre>
+          </div>
+        )}
       </div>
     </div>
   )
 
-  const renderSectionContent = () => {
+  const renderAPIEndpoint = (endpoint: APIEndpoint) => (
+    <div className="border border-gray-200 rounded-lg p-6 mb-6">
+      <div className="flex items-center space-x-3 mb-4">
+        <span className={`px-3 py-1 rounded text-xs font-mono font-bold ${
+          endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
+          endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
+          endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
+          'bg-red-100 text-red-700'
+        }`}>
+          {endpoint.method}
+        </span>
+        <code className="text-lg font-mono text-gray-800 bg-gray-50 px-3 py-1 rounded">{endpoint.path}</code>
+      </div>
+      <p className="text-gray-600 mb-6 text-lg">{endpoint.description}</p>
+      
+      {endpoint.parameters && endpoint.parameters.length > 0 && (
+        <div>
+          <h4 className="font-semibold text-gray-800 mb-4 text-lg">Parameters</h4>
+          <div className="bg-gray-50 rounded-lg p-4">
+            {endpoint.parameters.map((param, index) => (
+              <div key={index} className="flex items-start space-x-4 mb-4 last:mb-0 pb-4 last:pb-0 border-b border-gray-200 last:border-b-0">
+                <code className="text-sm bg-white px-3 py-2 rounded border font-mono text-blue-600 font-semibold">
+                  {param.name}
+                </code>
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3 mb-2">
+                    <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded">{param.type}</span>
+                    {param.required && (
+                      <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-medium">required</span>
+                    )}
+                  </div>
+                  <p className="text-gray-600">{param.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+
+  const renderContent = () => {
     switch (selectedSection) {
       case 'introduction':
         return (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-6">
-                Pollarbase Documentation
+          <div className="max-w-4xl">
+            <div className="mb-12">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+                Pollarbase API Documentation
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Welcome to Pollarbase - the AI-powered data intelligence platform 
-                that transforms chaotic data into AI-ready formats in seconds.
+              <p className="text-2xl text-gray-600 leading-relaxed mb-8">
+                The complete reference for Pollarbase's data processing API. 
+                <br />
+                <strong>Handle the schlep so you don't have to.</strong>
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-8 rounded-2xl">
-                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-6">
-                  <Zap className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Quick Start</h3>
-                <p className="text-gray-600 mb-6">
-                  Get up and running in minutes with our simple upload, analyze, and export workflow.
-                </p>
-                <button
-                  onClick={() => setSelectedSection('quick-start')}
-                  className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
-                >
-                  Get Started <ArrowRight className="ml-2 w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-8 rounded-2xl">
-                <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center mb-6">
-                  <Code className="w-6 h-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-4">API Reference</h3>
-                <p className="text-gray-600 mb-6">
-                  Comprehensive API documentation with examples in Python, JavaScript, and curl.
-                </p>
-                <button
-                  onClick={() => setSelectedSection('rest-api')}
-                  className="inline-flex items-center text-purple-600 hover:text-purple-700 font-medium"
-                >
-                  View API docs <ArrowRight className="ml-2 w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-gray-50 p-8 rounded-2xl">
-              <h3 className="text-2xl font-bold text-gray-900 mb-6">Key Features</h3>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Brain className="w-4 h-4 text-green-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">AI-Powered Analysis</h4>
-                    <p className="text-gray-600 text-sm">
-                      Automated data profiling, quality assessment, and anomaly detection with 87-95% confidence scores.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Zap className="w-4 h-4 text-blue-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Instant Cleaning</h4>
-                    <p className="text-gray-600 text-sm">
-                      Remove duplicates, handle missing values, detect outliers, and standardize formats automatically.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start space-x-4">
-                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Shield className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Enterprise Security</h4>
-                    <p className="text-gray-600 text-sm">
-                      SOC2 Type II compliant with end-to-end encryption, RBAC, and comprehensive audit logging.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-
-      case 'quick-start':
-        return (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-6">Quick Start Guide</h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Get started with Pollarbase AI in just a few minutes. Follow these simple steps to upload, analyze, and clean your data.
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-8 rounded-2xl mb-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Prerequisites</h3>
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Valid email address for account creation</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">Data files in CSV, JSON, Excel, or Parquet format</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                  <span className="text-gray-700">API key (get one from your dashboard)</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-6">
-              {codeExamples['quick-start']?.map(renderCodeExample)}
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 p-6 rounded-lg">
-              <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 bg-yellow-100 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-yellow-600 font-bold text-sm">!</span>
-                </div>
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8 mb-12">
+              <div className="flex items-start space-x-4">
+                <Sparkles className="w-8 h-8 text-blue-600 mt-1" />
                 <div>
-                  <h4 className="font-semibold text-yellow-800 mb-2">Rate Limits</h4>
-                  <p className="text-yellow-700 text-sm">
-                    Free tier: 10 uploads/month, 100MB max file size. 
-                    Pro tier: Unlimited uploads, 10GB max file size.
+                  <h3 className="text-xl font-bold text-blue-900 mb-3">What is Pollarbase?</h3>
+                  <p className="text-blue-800 leading-relaxed text-lg">
+                    Pollarbase is the <strong>Stripe for data</strong> - a comprehensive API platform that automatically 
+                    identifies data types, detects anomalies, suggests transformations, and outputs 
+                    ML-ready datasets. <strong>Spend 80% less time on data preparation.</strong>
                   </p>
                 </div>
               </div>
             </div>
+
+            <div className="grid md:grid-cols-2 gap-8 mb-16">
+              <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-yellow-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">Quick to Start</h3>
+                </div>
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                  Upload your data and get insights in seconds. No complex setup required.
+                </p>
+                <button 
+                   onClick={() => setSelectedSection('quickstart')}
+                   className="text-blue-600 hover:text-blue-700 font-semibold flex items-center text-lg">
+                  Get started <ArrowRight className="w-5 h-5 ml-2" />
+                </button>
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center space-x-4 mb-6">
+                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Brain className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900">AI-Powered</h3>
+                </div>
+                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                  Advanced ML models automatically detect patterns and suggest improvements.
+                </p>
+                <button 
+                   onClick={() => setSelectedSection('analysis-api')}
+                   className="text-blue-600 hover:text-blue-700 font-semibold flex items-center text-lg">
+                  Explore AI features <ArrowRight className="w-5 h-5 ml-2" />
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 rounded-xl p-10">
+              <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">Core Features</h3>
+              <div className="grid md:grid-cols-3 gap-8">
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="w-8 h-8 text-green-600" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-lg mb-3">Automatic Type Detection</h4>
+                  <p className="text-gray-600">Smart identification of data types and formats</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <TrendingUp className="w-8 h-8 text-blue-600" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-lg mb-3">Quality Scoring</h4>
+                  <p className="text-gray-600">Comprehensive quality metrics and insights</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-lg mb-3">Smart Transformations</h4>
+                  <p className="text-gray-600">AI-suggested data cleaning and formatting</p>
+                </div>
+              </div>
+            </div>
           </div>
         )
 
-      case 'python-guide':
+      case 'quickstart':
         return (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-6 flex items-center">
-                <PythonLogo size={40} />
-                <span className="ml-4">Python SDK</span>
-              </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                The official Python SDK for Pollarbase AI. Install with pip and start analyzing data in minutes.
+          <div className="max-w-5xl">
+            <div className="mb-12">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">Quickstart Guide</h1>
+              <p className="text-2xl text-gray-600">
+                Get up and running with Pollarbase in under 5 minutes.
               </p>
             </div>
 
-            <div className="bg-gray-900 text-gray-100 p-6 rounded-lg">
-              <h4 className="text-green-400 font-semibold mb-2">Installation</h4>
-              <SyntaxHighlighter language="bash" style={tomorrow} customStyle={{background: 'transparent', padding: 0}}>
-                {`pip install pollarbase-ai`}
-              </SyntaxHighlighter>
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-8 mb-12">
+              <div className="flex items-start space-x-4">
+                <Key className="w-8 h-8 text-yellow-600 mt-1" />
+                <div>
+                  <h3 className="text-xl font-bold text-yellow-900 mb-3">Get Your API Key</h3>
+                  <p className="text-yellow-800 mb-4 text-lg">
+                    First, sign up for a free account and get your API key from the dashboard.
+                  </p>
+                  <a href="/dashboard/api-keys" 
+                     className="inline-flex items-center px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-semibold">
+                    Get API Key <ArrowRight className="w-5 h-5 ml-2" />
+                  </a>
+                </div>
+              </div>
             </div>
 
-            <div className="space-y-6">
-              {codeExamples['python-guide']?.map(renderCodeExample)}
+            <div className="space-y-12">
+              <div>
+                <h2 className="text-3xl font-bold text-gray-900 mb-6">Step 1: Choose Your Language</h2>
+                <div className="flex space-x-4 mb-8">
+                  {['curl', 'python', 'javascript'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => setSelectedLanguage(lang)}
+                      className={`px-6 py-3 rounded-lg font-semibold transition-colors text-lg ${
+                        selectedLanguage === lang
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                      }`}
+                    >
+                      {lang === 'curl' ? 'cURL' : lang.charAt(0).toUpperCase() + lang.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                
+                {codeExamples.quickstart
+                  ?.filter(example => example.language === selectedLanguage)
+                  .map((example, index) => (
+                    <div key={index}>
+                      {renderCodeBlock(example)}
+                    </div>
+                  ))}
+              </div>
+
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-8">
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="w-8 h-8 text-green-600 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-bold text-green-900 mb-4">Next Steps</h3>
+                    <ul className="text-green-800 space-y-2 text-lg">
+                      <li>• Explore the <button onClick={() => setSelectedSection('python-sdk')} className="font-semibold underline hover:text-green-900">Python SDK</button> for advanced features</li>
+                      <li>• Learn about <button onClick={() => setSelectedSection('data-processing')} className="font-semibold underline hover:text-green-900">data processing concepts</button></li>
+                      <li>• Check out <button onClick={() => setSelectedSection('complete-pipeline')} className="font-semibold underline hover:text-green-900">complete pipeline examples</button></li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )
 
-      case 'javascript-guide':
+      case 'authentication':
         return (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-6 flex items-center">
-                <JavaScriptLogo size={40} />
-                <span className="ml-4">JavaScript SDK</span>
-              </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Official JavaScript/TypeScript SDK for browser and Node.js environments.
+          <div className="max-w-4xl">
+            <div className="mb-12">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">Authentication</h1>
+              <p className="text-2xl text-gray-600">
+                Secure your API requests with proper authentication.
               </p>
             </div>
 
-            <div className="bg-gray-900 text-gray-100 p-6 rounded-lg">
-              <h4 className="text-green-400 font-semibold mb-2">Installation</h4>
-              <SyntaxHighlighter language="bash" style={tomorrow} customStyle={{background: 'transparent', padding: 0}}>
-                {`npm install @pollarbase/js-sdk`}
-              </SyntaxHighlighter>
-            </div>
+            <div className="space-y-8">
+              {codeExamples.authentication?.map((example, index) => (
+                <div key={index}>
+                  {renderCodeBlock(example)}
+                </div>
+              ))}
 
-            <div className="space-y-6">
-              {codeExamples['javascript-guide']?.map(renderCodeExample)}
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-8">
+                <div className="flex items-start space-x-4">
+                  <Shield className="w-8 h-8 text-red-600 mt-1" />
+                  <div>
+                    <h3 className="text-xl font-bold text-red-900 mb-4">Security Best Practices</h3>
+                    <ul className="text-red-800 space-y-3 text-lg">
+                      <li>• Never expose API keys in client-side code</li>
+                      <li>• Use environment variables to store API keys</li>
+                      <li>• Rotate your API keys regularly</li>
+                      <li>• Use different keys for development and production</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )
 
-      case 'rest-api':
+      case 'errors':
         return (
-          <div className="space-y-8">
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900 mb-6 flex items-center">
-                <Globe className="w-10 h-10 text-blue-600 mr-4" />
-                REST API Reference
+          <div className="max-w-4xl">
+            <div className="mb-12">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">Error Handling</h1>
+              <p className="text-2xl text-gray-600">
+                Understand and handle API errors gracefully.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {codeExamples.errors?.map((example, index) => (
+                <div key={index}>
+                  {renderCodeBlock(example)}
+                </div>
+              ))}
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-8">
+                <h3 className="text-xl font-bold text-blue-900 mb-4">Common Error Codes</h3>
+                <div className="space-y-4">
+                  <div className="flex items-start space-x-4">
+                    <code className="bg-white px-3 py-2 rounded border text-sm font-mono text-red-600">400</code>
+                    <div>
+                      <h4 className="font-semibold text-blue-900">Bad Request</h4>
+                      <p className="text-blue-800">Invalid request parameters or malformed data</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <code className="bg-white px-3 py-2 rounded border text-sm font-mono text-red-600">401</code>
+                    <div>
+                      <h4 className="font-semibold text-blue-900">Unauthorized</h4>
+                      <p className="text-blue-800">Invalid or missing API key</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-4">
+                    <code className="bg-white px-3 py-2 rounded border text-sm font-mono text-red-600">429</code>
+                    <div>
+                      <h4 className="font-semibold text-blue-900">Rate Limited</h4>
+                      <p className="text-blue-800">Too many requests, please slow down</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'upload-api':
+      case 'analysis-api':
+      case 'transformation-api':
+      case 'export-api':
+      case 'jobs-api':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-12">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">
+                {selectedSection.split('-').map(word => 
+                  word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ')}
               </h1>
-              <p className="text-xl text-gray-600 mb-8">
-                Complete REST API reference with examples. Base URL: <code className="bg-gray-100 px-2 py-1 rounded">https://api.pollarbase.com/v1</code>
+              <p className="text-2xl text-gray-600">
+                Complete API reference for {selectedSection.replace('-', ' ')}.
               </p>
             </div>
 
-            <div className="space-y-6">
-              {codeExamples['rest-api']?.map(renderCodeExample)}
+            <div className="space-y-8">
+              {apiEndpoints[selectedSection]?.map((endpoint, index) => (
+                <div key={index}>
+                  {renderAPIEndpoint(endpoint)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      case 'python-sdk':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-12">
+              <h1 className="text-5xl font-bold text-gray-900 mb-6">Python SDK</h1>
+              <p className="text-2xl text-gray-600">
+                The most powerful way to use Pollarbase in Python applications.
+              </p>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-              <h4 className="font-semibold text-blue-800 mb-2">Authentication</h4>
-              <p className="text-blue-700 text-sm">
-                Include your API key in the Authorization header: <code>Authorization: Bearer sk-your-key-here</code>
-              </p>
+            <div className="space-y-8">
+              {codeExamples['python-sdk']?.map((example, index) => (
+                <div key={index}>
+                  {renderCodeBlock(example)}
+                </div>
+              ))}
             </div>
           </div>
         )
 
       default:
         return (
-          <div className="text-center py-16">
-            <HelpCircle className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Section Coming Soon</h3>
-            <p className="text-gray-600">This documentation section is being prepared.</p>
+          <div className="max-w-4xl">
+            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+              {selectedSection.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+              ).join(' ')}
+            </h1>
+            <p className="text-2xl text-gray-600 mb-12">
+              Documentation for this section is coming soon.
+            </p>
+            <div className="bg-gray-50 rounded-xl p-12 text-center">
+              <Book className="w-16 h-16 text-gray-400 mx-auto mb-6" />
+              <p className="text-gray-500 text-lg">
+                This section is currently being written. Check back soon!
+              </p>
+            </div>
           </div>
         )
     }
   }
 
-  const filteredSections = docsSections.map(section => ({
-    ...section,
-    items: section.items.filter(item => 
-      searchQuery === '' || 
-      item.label.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  })).filter(section => section.items.length > 0)
-
-      return (
-      <div className="min-h-screen bg-white">
-        {/* Header */}
-        <header className="px-6 lg:px-8 bg-white border-b border-gray-200">
-          <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
-            <div className="flex lg:flex-1">
-              <Link href="/" className="-m-1.5 p-1.5">
-                <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
-              </Link>
-            </div>
-            <div className="flex lg:flex-1 lg:justify-end gap-x-8">
-              <Link href="/pricing" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
-                Pricing
-              </Link>
-              <Link href="/auth/signin" className="text-sm font-semibold leading-6 text-gray-900">
-                Log in <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </div>
-          </nav>
-        </header>
-        
-        {/* Documentation Header */}
-      <header className="bg-mercury-primary text-white pt-20">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <div className="flex items-center justify-between">
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-20">
             <div className="flex items-center space-x-4">
-              <PollarbaseLogo size={32} />
-              <div>
-                <h1 className="text-3xl font-bold">Pollarbase Documentation</h1>
-                <p className="text-mercury-text-light mt-2">Everything you need to integrate AI-powered data processing</p>
-              </div>
+              <a href="/" className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+                <span className="text-lg text-gray-500 border-l border-gray-300 pl-4">Docs</span>
+              </a>
             </div>
             
-            <div className="hidden md:flex items-center space-x-6">
+            <div className="flex items-center space-x-6">
               <div className="relative">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search docs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-mercury-surface/10 text-white placeholder-gray-300 rounded-lg border border-mercury-accent/30 focus:border-mercury-accent focus:outline-none w-64"
+                  className="pl-12 pr-4 py-3 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
                 />
               </div>
-              <a
-                href="/"
-                className="inline-flex items-center px-4 py-2 bg-mercury-accent hover:bg-mercury-surface hover:text-mercury-primary rounded-lg font-medium transition-colors"
-              >
-                <Home className="w-4 h-4 mr-2" />
-                Back to App
+              <a href="/dashboard" 
+                 className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                Dashboard
               </a>
             </div>
-
-            <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2"
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
           </div>
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-6 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex">
           {/* Sidebar */}
-          <aside className={`w-64 flex-shrink-0 mr-8 ${mobileMenuOpen ? 'block' : 'hidden md:block'}`}>
-            <div className="sticky top-24">
-              <nav className="space-y-8">
-                {filteredSections.map((section) => (
-                  <div key={section.id}>
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
-                      {section.category}
-                    </h3>
-                    <div className="space-y-1">
-                      {section.items.map((item) => (
+          <aside className="w-80 shrink-0 py-12 pr-12 border-r border-gray-200">
+            <nav className="space-y-10">
+              {docsSections.map((section) => (
+                <div key={section.id}>
+                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">
+                    {section.title}
+                  </h3>
+                  <ul className="space-y-2">
+                    {section.items.map((item) => (
+                      <li key={item.id}>
                         <button
-                          key={item.id}
-                          onClick={() => {
-                            setSelectedSection(item.id)
-                            setMobileMenuOpen(false)
-                          }}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
+                          onClick={() => setSelectedSection(item.id)}
+                          className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors text-lg ${
                             selectedSection === item.id
-                              ? 'bg-mercury-muted text-mercury-primary font-medium'
-                              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                              ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600 font-semibold'
+                              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                           }`}
                         >
-                          <span className={selectedSection === item.id ? 'text-mercury-accent' : 'text-gray-400'}>
-                            {item.icon}
-                          </span>
+                          {item.icon}
                           <span>{item.label}</span>
-                          {selectedSection === item.id && (
-                            <ChevronRight className="w-4 h-4 ml-auto text-mercury-accent" />
-                          )}
                         </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </nav>
-            </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </nav>
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 min-w-0">
-            <div className="prose prose-lg max-w-none">
-              {renderSectionContent()}
-            </div>
+          <main className="flex-1 py-12 pl-12">
+            {renderContent()}
           </main>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   )
