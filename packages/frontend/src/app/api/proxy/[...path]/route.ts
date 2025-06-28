@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const BACKEND_API_URL = process.env.BACKEND_API_URL || 'http://localhost:8000/api/v1'
 
+// In-memory storage for demo (in real app, this would be a database)
+let investigations: any[] = [
+  {
+    id: 'inv_001',
+    name: 'Sample Customer Data',
+    description: 'Demo dataset for testing',
+    status: 'completed',
+    progress_percentage: 100,
+    quality_score: 0.94,
+    total_records: 15420,
+    file_size_bytes: 2400000,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
+    data_source_config: {
+      filename: 'sample_customers.csv',
+      file_type: 'csv'
+    }
+  },
+  {
+    id: 'inv_002', 
+    name: 'Sales Data Processing',
+    description: 'Q4 sales analysis',
+    status: 'processing',
+    progress_percentage: 73,
+    quality_score: null,
+    total_records: 8900,
+    file_size_bytes: 1200000,
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
+    updated_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    data_source_config: {
+      filename: 'sales_q4_2024.json', 
+      file_type: 'json'
+    }
+  }
+]
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { path: string[] } }
@@ -129,213 +165,375 @@ async function handleRequest(
 }
 
 // Enhanced mock responses for development
-function getMockResponse(path: string[], method: string, request?: NextRequest) {
+async function getMockResponse(path: string[], method: string, request?: NextRequest) {
   const pathStr = path.join('/')
   
-  // Simulate network delay
-  const delay = Math.random() * 300 + 100
+  // File upload endpoint
+  if (pathStr.includes('upload') && method === 'POST') {
+    // Simulate file processing
+    const investigationId = 'inv_' + Math.random().toString(36).substr(2, 9)
+    
+    try {
+      const formData = await request?.formData()
+      const file = formData?.get('file') as File
+      const name = formData?.get('name') as string || 'Untitled Dataset'
+      const description = formData?.get('description') as string || ''
+      
+      const newInvestigation = {
+        id: investigationId,
+        name: name,
+        description: description,
+        status: 'processing',
+        progress_percentage: 15,
+        quality_score: null,
+        total_records: Math.floor(Math.random() * 50000) + 1000,
+        file_size_bytes: file?.size || Math.floor(Math.random() * 5000000) + 100000,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        data_source_config: {
+          filename: file?.name || 'unknown.csv',
+          file_type: file?.name.split('.').pop() || 'csv'
+        }
+      }
+      
+      // Add to investigations
+      investigations.push(newInvestigation)
+      
+      // Simulate processing completion after 5 seconds
+      setTimeout(() => {
+        const index = investigations.findIndex(inv => inv.id === investigationId)
+        if (index !== -1) {
+          investigations[index] = {
+            ...investigations[index],
+            status: 'completed',
+            progress_percentage: 100,
+            quality_score: 0.85 + Math.random() * 0.15, // Random score between 85-100%
+            updated_at: new Date().toISOString()
+          }
+        }
+      }, 5000)
+      
+      return NextResponse.json({
+        status: 'success',
+        data: {
+          investigation_id: investigationId,
+          message: 'File uploaded successfully',
+          status: 'processing'
+        }
+      })
+    } catch (error) {
+      return NextResponse.json({
+        status: 'error',
+        message: 'Upload failed'
+      }, { status: 400 })
+    }
+  }
   
-  // Dashboard stats
+  // Dashboard stats (updated with real data and time-saved metrics)
   if (pathStr.includes('dashboard/stats') || pathStr.includes('dashboard') && method === 'GET') {
+    const completedInvestigations = investigations.filter(inv => inv.status === 'completed')
+    const processingInvestigations = investigations.filter(inv => inv.status === 'processing')
+    const totalRecords = investigations.reduce((sum, inv) => sum + (inv.total_records || 0), 0)
+    
+    // Calculate time savings (realistic estimates)
+    const hoursPerThousandRecords = 0.5 // 30 minutes per 1K records manually
+    const totalHoursSaved = Math.round((totalRecords / 1000) * hoursPerThousandRecords * 10) / 10
+    const weeklyHoursSaved = Math.min(totalHoursSaved, 40) // Cap at 40 hours per week
+    const monthlyCostSavings = Math.round(weeklyHoursSaved * 4 * 85) // $85/hour data analyst rate
+    
     return NextResponse.json({
       status: 'success',
       data: {
-        data_sources: 12,
-        total_records: 2847392,
-        quality_score: 94,
-        active_jobs: 5,
-        processing_jobs: 2,
-        completed_jobs: 156,
-        failed_jobs: 3
+        // Core metrics
+        data_sources: investigations.length,
+        total_records: totalRecords,
+        quality_score: completedInvestigations.length > 0 
+          ? Math.round(completedInvestigations.reduce((sum, inv) => sum + (inv.quality_score || 0), 0) / completedInvestigations.length * 100)
+          : 0,
+        active_jobs: processingInvestigations.length,
+        processing_jobs: processingInvestigations.length,
+        completed_jobs: completedInvestigations.length,
+        failed_jobs: 0,
+        
+        // Time savings metrics (Phase 2)
+        time_savings: {
+          hours_saved_weekly: weeklyHoursSaved,
+          hours_saved_total: totalHoursSaved,
+          cost_savings_monthly: monthlyCostSavings,
+          manual_steps_eliminated: Math.min(Math.round((totalRecords / 1000) * 12), 95), // Cap at 95%
+          issues_auto_fixed: Math.round(totalRecords * 0.0047), // ~0.47% error rate typical
+        },
+        
+        // Quality insights (Phase 2)
+        quality_insights: {
+          completeness: Math.round(92 + Math.random() * 6),
+          accuracy: Math.round(89 + Math.random() * 8),
+          consistency: Math.round(91 + Math.random() * 7),
+          timeliness: Math.round(88 + Math.random() * 9),
+          trends: {
+            weekly_improvement: 2.3,
+            quality_streak_days: 12
+          }
+        },
+        
+        // System health (Phase 2)
+        system_health: {
+          status: 'healthy',
+          processing_speed: '2.3s per 1K records',
+          uptime_percentage: 99.8,
+          storage_used_percentage: 73,
+          api_response_time: 45
+        }
       },
       timestamp: new Date().toISOString()
     })
   }
 
-  // Dashboard activity
+  // Data intelligence/investigations (now dynamic)
+  if (pathStr.includes('data/investigations')) {
+    return NextResponse.json(investigations)
+  }
+
+  // Dashboard activity (updated with upload activity)
   if (pathStr.includes('dashboard/activity') || pathStr.includes('activity')) {
+    const recentActivity = investigations
+      .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())
+      .slice(0, 5)
+      .map(inv => ({
+        id: inv.id,
+        type: inv.status === 'completed' ? 'file_processed' : 'file_upload',
+        title: inv.status === 'completed' ? 'Data Processing Complete' : 'File Upload Started',
+        description: `${inv.name} - ${inv.data_source_config?.filename} (${inv.total_records?.toLocaleString()} records)`,
+        status: inv.status,
+        timestamp: inv.updated_at,
+        user: 'You'
+      }))
+
     return NextResponse.json({
       status: 'success',
-      data: [
-        {
-          id: '1',
-          type: 'file_upload',
-          title: 'Customer Dataset Uploaded',
-          description: 'customer_data_2024.csv processed successfully (15,420 records)',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          user: 'John Doe'
-        },
-        {
-          id: '2',
-          type: 'ai_processing',
-          title: 'AI Model Training Started',
-          description: 'Customer segmentation model training in progress',
-          status: 'processing',
-          timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          user: 'Sarah Wilson'
-        },
-        {
-          id: '3',
-          type: 'data_quality',
-          title: 'Quality Check Completed',
-          description: 'Data quality score improved to 94% (+2%)',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          user: 'System'
-        },
-        {
-          id: '4',
-          type: 'integration',
-          title: 'Salesforce Sync',
-          description: 'Successfully synced 2,340 customer records',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-          user: 'API Connector'
-        },
-        {
-          id: '5',
-          type: 'alert',
-          title: 'Anomaly Detected',
-          description: 'Unusual pattern detected in transaction data',
-          status: 'warning',
-          timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-          user: 'AI Monitor'
-        }
-      ],
-      pagination: { page: 1, limit: 20, total: 5, totalPages: 1 },
+      data: recentActivity,
+      pagination: { page: 1, limit: 20, total: recentActivity.length, totalPages: 1 },
       timestamp: new Date().toISOString()
     })
   }
 
   // Dashboard jobs
   if (pathStr.includes('dashboard/jobs') || pathStr.includes('jobs')) {
+    const processingJobs = investigations
+      .filter(inv => inv.status === 'processing')
+      .map(inv => ({
+        id: inv.id,
+        name: inv.name,
+        type: 'data_processing',
+        status: 'running',
+        progress: inv.progress_percentage,
+        startedAt: inv.created_at,
+        estimatedCompletion: new Date(Date.now() + 1000 * 60 * 10).toISOString()
+      }))
+
     return NextResponse.json({
       status: 'success',
-      data: [
-        {
-          id: 'job_001',
-          name: 'Customer Segmentation Model',
-          type: 'ml_training',
-          status: 'running',
-          progress: 67,
-          startedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          estimatedCompletion: new Date(Date.now() + 1000 * 60 * 15).toISOString()
-        },
-        {
-          id: 'job_002',
-          name: 'Sales Data ETL',
-          type: 'data_processing',
-          status: 'running',
-          progress: 23,
-          startedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-          estimatedCompletion: new Date(Date.now() + 1000 * 60 * 35).toISOString()
-        }
-      ],
+      data: processingJobs,
       timestamp: new Date().toISOString()
     })
   }
 
-  // Data sources
+  // Default responses for other endpoints...
   if (pathStr.includes('data-ingestion/sources') || pathStr.includes('data/sources')) {
     if (method === 'GET') {
       return NextResponse.json({
         status: 'success',
         data: {
-          data: [
-            {
-              id: '1',
-              name: 'Production Database',
-              type: 'postgresql',
-              status: 'connected',
-              connectionConfig: { host: 'prod-db.example.com', port: 5432 },
-              createdAt: '2024-01-01T00:00:00Z',
-              updatedAt: '2024-01-15T10:30:00Z',
-              lastSyncAt: '2024-01-15T10:30:00Z',
-              recordCount: 1250000,
-              qualityScore: 96
-            },
-            {
-              id: '2',
-              name: 'Salesforce CRM',
-              type: 'api',
-              status: 'connected',
-              connectionConfig: { apiKey: '***' },
-              createdAt: '2024-01-02T00:00:00Z',
-              updatedAt: '2024-01-15T09:00:00Z',
-              lastSyncAt: '2024-01-15T09:00:00Z',
-              recordCount: 45000,
-              qualityScore: 91
-            },
-            {
-              id: '3',
-              name: 'Customer Files Upload',
-              type: 'file',
-              status: 'active',
-              createdAt: '2024-01-10T00:00:00Z',
-              updatedAt: '2024-01-15T14:20:00Z',
-              lastSyncAt: '2024-01-15T14:20:00Z',
-              recordCount: 156000,
-              qualityScore: 88
-            }
-          ],
-          pagination: { page: 1, limit: 10, total: 3, totalPages: 1 }
+          data: investigations.map(inv => ({
+            id: inv.id,
+            name: inv.name,
+            type: 'file',
+            status: inv.status === 'completed' ? 'connected' : 'processing',
+            createdAt: inv.created_at,
+            updatedAt: inv.updated_at,
+            lastSyncAt: inv.updated_at,
+            recordCount: inv.total_records,
+            qualityScore: inv.quality_score ? Math.round(inv.quality_score * 100) : null
+          })),
+          pagination: { page: 1, limit: 10, total: investigations.length, totalPages: 1 }
         },
         timestamp: new Date().toISOString()
       })
     }
   }
 
-  // Data intelligence/investigations
-  if (pathStr.includes('data/investigations')) {
+  // Quality metrics
+  if (pathStr.includes('quality') || pathStr.includes('dashboard/quality')) {
+    const completedInvestigations = investigations.filter(inv => inv.status === 'completed' && inv.quality_score)
+    const avgQuality = completedInvestigations.length > 0 
+      ? completedInvestigations.reduce((sum, inv) => sum + (inv.quality_score || 0), 0) / completedInvestigations.length * 100
+      : 94
+
     return NextResponse.json({
       status: 'success',
-      data: [
-        {
-          id: 'inv_001',
-          name: 'Customer Behavior Analysis',
-          status: 'completed',
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
-          completedAt: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
-          insights: 5,
-          score: 94
+      data: {
+        overall_score: Math.round(avgQuality),
+        completeness: Math.round(avgQuality + Math.random() * 4 - 2),
+        accuracy: Math.round(avgQuality + Math.random() * 4 - 2),
+        consistency: Math.round(avgQuality + Math.random() * 4 - 2),
+        validity: Math.round(avgQuality + Math.random() * 4 - 2),
+        trends: {
+          completeness: [88, 90, 92, 94, Math.round(avgQuality)],
+          accuracy: [85, 87, 89, 90, Math.round(avgQuality - 2)],
+          consistency: [90, 91, 93, 94, Math.round(avgQuality + 1)],
+          validity: [87, 89, 91, 92, Math.round(avgQuality - 1)]
         },
-        {
-          id: 'inv_002',
-          name: 'Sales Trend Investigation',
-          status: 'processing',
-          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 6).toISOString(),
-          progress: 73,
-          insights: 3,
-          score: 0
-        }
-      ],
-      pagination: { page: 1, limit: 10, total: 2, totalPages: 1 },
+        issues: [
+          { type: 'missing_values', count: Math.floor(Math.random() * 200), severity: 'medium' },
+          { type: 'duplicates', count: Math.floor(Math.random() * 50), severity: 'low' },
+          { type: 'outliers', count: Math.floor(Math.random() * 100), severity: 'high' }
+        ]
+      },
       timestamp: new Date().toISOString()
     })
   }
 
-  // Quality metrics
-  if (pathStr.includes('quality') || pathStr.includes('dashboard/quality')) {
+  // Smart recommendations (Phase 3)
+  if (pathStr.includes('dashboard/recommendations') || pathStr.includes('recommendations')) {
+    const totalRecords = investigations.reduce((sum, inv) => sum + (inv.total_records || 0), 0)
+    const completedInvestigations = investigations.filter(inv => inv.status === 'completed')
+    const processingInvestigations = investigations.filter(inv => inv.status === 'processing')
+    
+    const recommendations = []
+    
+    // Generate smart recommendations based on data state
+    if (processingInvestigations.length === 0 && completedInvestigations.length > 0) {
+      recommendations.push({
+        id: 'rec_001',
+        type: 'opportunity',
+        priority: 'high',
+        title: 'Ready for ML Modeling',
+        description: `Your ${completedInvestigations[0]?.name} dataset (${completedInvestigations[0]?.total_records?.toLocaleString()} records) has 94% quality - perfect for machine learning.`,
+        action: 'Start ML Pipeline',
+        category: 'ai_ready',
+        estimated_time_saved: '8 hours',
+        confidence: 92
+      })
+    }
+    
+    if (totalRecords > 10000) {
+      recommendations.push({
+        id: 'rec_002', 
+        type: 'optimization',
+        priority: 'medium',
+        title: 'Enable Auto-Quality Monitoring',
+        description: 'With 30K+ records, set up automated quality alerts to catch issues before they spread.',
+        action: 'Configure Alerts',
+        category: 'monitoring',
+        estimated_time_saved: '2 hours weekly',
+        confidence: 88
+      })
+    }
+    
+    if (investigations.length >= 2) {
+      recommendations.push({
+        id: 'rec_003',
+        type: 'integration', 
+        priority: 'medium',
+        title: 'Connect Data Sources',
+        description: 'Link your customer and sales datasets to unlock cross-dataset insights.',
+        action: 'Set Up Joins',
+        category: 'integration',
+        estimated_time_saved: '12 hours',
+        confidence: 85
+      })
+    }
+    
+    // Always include some actionable recommendations
+    recommendations.push({
+      id: 'rec_004',
+      type: 'maintenance',
+      priority: 'low', 
+      title: 'Schedule Weekly Quality Check',
+      description: 'Maintain your 92% quality score with automated weekly scans.',
+      action: 'Enable Auto-Scan',
+      category: 'maintenance',
+      estimated_time_saved: '1 hour weekly',
+      confidence: 95
+    })
+
     return NextResponse.json({
       status: 'success',
-      data: {
-        overall_score: 94,
-        completeness: 96,
-        accuracy: 92,
-        consistency: 95,
-        validity: 93,
-        trends: {
-          completeness: [88, 90, 92, 94, 96],
-          accuracy: [85, 87, 89, 90, 92],
-          consistency: [90, 91, 93, 94, 95],
-          validity: [87, 89, 91, 92, 93]
+      data: recommendations.slice(0, 4), // Show top 4 recommendations
+      metadata: {
+        total_recommendations: recommendations.length,
+        priority_breakdown: {
+          high: recommendations.filter(r => r.priority === 'high').length,
+          medium: recommendations.filter(r => r.priority === 'medium').length,
+          low: recommendations.filter(r => r.priority === 'low').length
+        }
+      },
+      timestamp: new Date().toISOString()
+    })
+  }
+
+  // Predictive alerts (Phase 4)
+  if (pathStr.includes('dashboard/alerts') || pathStr.includes('predictive-alerts')) {
+    const alerts = []
+    
+    const totalRecords = investigations.reduce((sum, inv) => sum + (inv.total_records || 0), 0)
+    const avgQuality = investigations.filter(inv => inv.quality_score).length > 0
+      ? investigations.reduce((sum, inv) => sum + (inv.quality_score || 0), 0) / investigations.filter(inv => inv.quality_score).length
+      : 0.94
+    
+    // Generate predictive alerts
+    if (avgQuality < 0.9) {
+      alerts.push({
+        id: 'alert_001',
+        type: 'quality_declining',
+        severity: 'warning',
+        title: 'Quality Score Trending Down',
+        description: `Quality dropped 3% this week. Predicted to reach 85% by next week without intervention.`,
+        prediction: 'Quality will degrade further',
+        confidence: 78,
+        suggested_action: 'Run comprehensive data audit',
+        impact: 'Medium - Could affect ML model accuracy'
+      })
+    }
+    
+    if (totalRecords > 25000) {
+      alerts.push({
+        id: 'alert_002',
+        type: 'performance_impact',
+        severity: 'info',
+        title: 'Processing Speed May Slow', 
+        description: 'Dataset size growing rapidly. Processing times may increase 40% within 2 weeks.',
+        prediction: 'Performance degradation likely',
+        confidence: 82,
+        suggested_action: 'Consider data archiving or optimization',
+        impact: 'Low - Manageable with current infrastructure'
+      })
+    }
+    
+    // System capacity alert
+    alerts.push({
+      id: 'alert_003',
+      type: 'system_capacity',
+      severity: 'info',
+      title: 'Storage Optimization Opportunity',
+      description: 'Storage at 73%. Predicted to reach 90% in 3 weeks at current growth rate.',
+      prediction: 'Storage will reach capacity',
+      confidence: 85,
+      suggested_action: 'Archive old datasets or upgrade storage',
+      impact: 'Low - Plenty of time to address'
+    })
+
+    return NextResponse.json({
+      status: 'success', 
+      data: alerts,
+      summary: {
+        total_alerts: alerts.length,
+        severity_breakdown: {
+          critical: alerts.filter(a => a.severity === 'critical').length,
+          warning: alerts.filter(a => a.severity === 'warning').length,
+          info: alerts.filter(a => a.severity === 'info').length
         },
-        issues: [
-          { type: 'missing_values', count: 145, severity: 'medium' },
-          { type: 'duplicates', count: 23, severity: 'low' },
-          { type: 'outliers', count: 67, severity: 'high' }
-        ]
+        avg_confidence: Math.round(alerts.reduce((sum, a) => sum + a.confidence, 0) / alerts.length)
       },
       timestamp: new Date().toISOString()
     })

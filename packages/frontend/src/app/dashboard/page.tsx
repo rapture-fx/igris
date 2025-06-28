@@ -2,377 +2,432 @@
 
 import { useState, useEffect } from 'react'
 import { 
+  Upload, 
   Database, 
-  TrendingUp, 
-  Activity, 
-  FileText, 
-  AlertCircle, 
-  CheckCircle2,
-  Clock,
-  Upload,
-  BarChart3,
-  Settings,
-  HelpCircle,
+  BarChart3, 
   Sparkles,
+  Plus,
   RefreshCw,
-  ListChecks,
-  Gauge
+  Clock,
+  CheckCircle2,
+  TrendingUp,
+  X,
+  DollarSign,
+  Zap,
+  AlertTriangle,
+  Target,
+  Brain,
+  Shield,
+  Gauge,
+  TrendingDown
 } from 'lucide-react'
 import Link from 'next/link'
-import { DataQualityOverview } from '@/components/dashboard/data-quality-overview'
-import { WorkflowStatus } from '@/components/dashboard/workflow-status'
-import { RecentActivity } from '@/components/dashboard/recent-activity'
-import { GuidedTour } from '@/components/onboarding/guided-tour'
-import { useDashboardData } from '@/hooks/useAPIData'
-import { DashboardCard } from '@/components/dashboard/dashboard-card'
-
-interface DashboardStats {
-  data_sources: number
-  total_records: number
-  quality_score: number
-  active_jobs: number
-  processing_jobs?: number
-  completed_jobs?: number
-  failed_jobs?: number
-}
-
-interface ActivityItem {
-  id: string
-  type: string
-  title: string
-  description: string
-  status: string
-  timestamp: string
-  user?: string
-}
-
-interface ActiveJob {
-  job_id: string
-  investigation_name: string
-  status: string
-  progress_percentage: number
-}
+import { FileUpload } from '@/components/upload/FileUpload'
 
 export default function DashboardPage() {
-  const [showTour, setShowTour] = useState(false)
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [recentActivity, setRecentActivity] = useState<ActivityItem[]>([])
-  const [activeJobs, setActiveJobs] = useState<any[]>([])
+  const [stats, setStats] = useState<any>(null)
+  const [recentActivity, setRecentActivity] = useState<any[]>([])
+  const [recommendations, setRecommendations] = useState<any[]>([])
+  const [alerts, setAlerts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [showUpload, setShowUpload] = useState(false)
 
-  // Use centralized data hook instead of manual state management
-  const { 
-    loading: apiLoading, 
-    error: apiError, 
-    refetchAll 
-  } = useDashboardData()
-
+  // Fetch live data from API with enhanced endpoints
   useEffect(() => {
-    // Check if user needs onboarding
-    const hasSeenTour = localStorage.getItem('pollarbase-tour-completed')
-    const hasData = localStorage.getItem('pollarbase-has-data')
-    
-    if (!hasSeenTour && !hasData) {
-      setShowTour(true)
+    const fetchData = async () => {
+      try {
+        const [statsRes, activityRes, recommendationsRes, alertsRes] = await Promise.all([
+          fetch('/api/proxy/dashboard/stats'),
+          fetch('/api/proxy/dashboard/activity'),
+          fetch('/api/proxy/dashboard/recommendations'),
+          fetch('/api/proxy/dashboard/alerts')
+        ])
+        
+        const statsData = await statsRes.json()
+        const activityData = await activityRes.json()
+        const recommendationsData = await recommendationsRes.json()
+        const alertsData = await alertsRes.json()
+        
+        setStats(statsData.data)
+        setRecentActivity(activityData.data || [])
+        setRecommendations(recommendationsData.data || [])
+        setAlerts(alertsData.data || [])
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [])
 
-  useEffect(() => {
-    // Simulate loading and set mock data
-    const timer = setTimeout(() => {
-      setStats({
-        data_sources: 12,
-        total_records: 2847392,
-        quality_score: 94,
-        active_jobs: 5,
-        processing_jobs: 2,
-        completed_jobs: 156,
-        failed_jobs: 3
-      })
-
-      setRecentActivity([
-        {
-          id: '1',
-          type: 'file_upload',
-          title: 'Customer Dataset Uploaded',
-          description: 'customer_data_2024.csv processed successfully (15,420 records)',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-          user: 'John Doe'
-        },
-        {
-          id: '2',
-          type: 'ai_processing',
-          title: 'AI Model Training Started',
-          description: 'Customer segmentation model training in progress',
-          status: 'processing',
-          timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          user: 'Sarah Wilson'
-        },
-        {
-          id: '3',
-          type: 'data_quality',
-          title: 'Quality Check Completed',
-          description: 'Data quality score improved to 94% (+2%)',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-          user: 'System'
-        },
-        {
-          id: '4',
-          type: 'integration',
-          title: 'Salesforce Sync',
-          description: 'Successfully synced 2,340 customer records',
-          status: 'completed',
-          timestamp: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
-          user: 'API Connector'
-        }
-      ])
-
-      setActiveJobs([
-        {
-          id: 'job_001',
-          name: 'Customer Segmentation Model',
-          type: 'ml_training',
-          status: 'running',
-          progress: 67,
-          startedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-          estimatedCompletion: new Date(Date.now() + 1000 * 60 * 15).toISOString()
-        },
-        {
-          id: 'job_002',
-          name: 'Sales Data ETL',
-          type: 'data_processing',
-          status: 'running',
-          progress: 23,
-          startedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-          estimatedCompletion: new Date(Date.now() + 1000 * 60 * 35).toISOString()
-        }
-      ])
-
-      setLoading(false)
-    }, 800) // Short loading time
-
-    return () => clearTimeout(timer)
+    fetchData()
+    
+    // Refresh every 10 seconds
+    const interval = setInterval(fetchData, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   const formatNumber = (num: number) => {
+    if (!num) return '0'
     if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num.toString()
+    return num.toLocaleString()
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed': return <CheckCircle2 className="w-4 h-4 text-green-500" />
-      case 'processing': return <Clock className="w-4 h-4 text-blue-500" />
-      case 'failed': return <AlertCircle className="w-4 h-4 text-red-500" />
-      default: return <FileText className="w-4 h-4 text-gray-500" />
-    }
+  const formatCurrency = (num: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(num)
   }
 
-  const getActivityIcon = (type: string) => {
-    switch (type) {
-      case 'file_upload': return '📁'
-      case 'data_analysis': return '🔍'
-      case 'ai_processing': return '🤖'
-      default: return '⚡'
-    }
+  const getTimeAgo = (timestamp: string) => {
+    const diff = Date.now() - new Date(timestamp).getTime()
+    const minutes = Math.floor(diff / 60000)
+    const hours = Math.floor(diff / 3600000)
+    const days = Math.floor(diff / 86400000)
+    
+    if (days > 0) return `${days}d ago`
+    if (hours > 0) return `${hours}h ago`
+    if (minutes > 0) return `${minutes}m ago`
+    return 'Just now'
   }
 
-  // Loading state with consistent layout
   if (loading) {
     return (
-      <div className="p-6 sm:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-64 mb-2"></div>
-            <div className="h-4 bg-gray-200 rounded w-96 mb-8"></div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="h-32 bg-gray-200 rounded-xl"></div>
-              <div className="h-32 bg-gray-200 rounded-xl"></div>
-              <div className="h-32 bg-gray-200 rounded-xl"></div>
-              <div className="h-32 bg-gray-200 rounded-xl"></div>
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="h-96 bg-gray-200 rounded-xl"></div>
-              <div className="h-96 bg-gray-200 rounded-xl"></div>
-            </div>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2">
+          <RefreshCw className="w-5 h-5 animate-spin" />
+          <span>Loading your data intelligence...</span>
         </div>
       </div>
     )
   }
 
-  // Error state with consistent layout
-  if (apiError) {
+  // Empty state for new users
+  if (!stats || stats.data_sources === 0) {
     return (
-      <div className="p-6 sm:p-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-            <div className="flex items-center">
-              <AlertCircle className="w-5 h-5 text-red-500 mr-2" />
-              <span className="text-red-700">Failed to load dashboard data</span>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="flex items-center justify-center min-h-screen p-6">
+          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Upload className="w-8 h-8 text-blue-600" />
             </div>
-            <button
-              onClick={refetchAll}
-              className="mt-4 px-4 py-2 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors flex items-center"
-            >
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Try Again
-            </button>
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">
+              Welcome to Pollarbase
+            </h1>
+            <p className="text-gray-600 mb-8">
+              Upload your first dataset to start handling the data schlep
+            </p>
+            
+            <div className="space-y-4">
+              <button
+                onClick={() => setShowUpload(true)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors flex items-center justify-center space-x-2"
+              >
+                <Plus className="w-5 h-5" />
+                <span>Upload Your First File</span>
+              </button>
+              
+              <Link href="/dashboard/data-sources" className="block">
+                <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors">
+                  Browse Sample Data
+                </button>
+              </Link>
+            </div>
           </div>
         </div>
+
+        {showUpload && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold">Upload Dataset</h2>
+                <button
+                  onClick={() => setShowUpload(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              <FileUpload 
+                onUploadComplete={() => {
+                  setShowUpload(false)
+                  window.location.reload()
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     )
   }
 
+  // Production Dashboard with all phases
   return (
-    <div className="p-6 sm:p-8">
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-              <p className="mt-2 text-gray-600">
-                Welcome to your Pollarbase AI Data Intelligence Platform
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={refetchAll}
-                className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Refresh</span>
-              </button>
-              <button
-                onClick={() => setShowTour(true)}
-                className="inline-flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <HelpCircle className="w-4 h-4" />
-                <span>Take Tour</span>
-              </button>
-              {(!stats || stats.data_sources === 0) && (
-                <Link
-                  href="/dashboard/data-sources"
-                  className="inline-flex items-center space-x-2 px-6 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                  data-tour="upload-cta"
-                >
-                  <Upload className="w-4 h-4" />
-                  <span>Upload First Dataset</span>
-                  <Sparkles className="w-4 h-4" />
-                </Link>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-7xl mx-auto">
+        {/* Header with Time Saved Highlight */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <div className="flex items-center space-x-4 mt-2">
+              <p className="text-gray-600">Your data intelligence overview</p>
+              {stats.time_savings && (
+                <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+                  🕒 {stats.time_savings.hours_saved_weekly}h saved this week
+                </div>
               )}
             </div>
           </div>
+          <button
+            onClick={() => setShowUpload(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Data</span>
+          </button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid auto-rows-fr gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          <DashboardCard className="p-6">
-            <div className="flex items-center justify-between h-full">
+        {/* Hero Metrics - Time Savings Focus */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Data Sources</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">{stats?.data_sources ?? '--'}</p>
+                <p className="text-green-100 text-sm font-medium">Time Saved Weekly</p>
+                <p className="text-3xl font-bold">{stats.time_savings?.hours_saved_weekly || 0}h</p>
+                <p className="text-green-100 text-xs mt-1">
+                  {formatCurrency(stats.time_savings?.cost_savings_monthly / 4 || 0)} value
+                </p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-50">
-                <Database className="h-6 w-6 text-blue-600" />
-              </div>
+              <Clock className="w-8 h-8 text-green-200" />
             </div>
-          </DashboardCard>
+          </div>
 
-          <DashboardCard className="p-6">
-            <div className="flex items-center justify-between h-full">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Records</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">{formatNumber(stats?.total_records ?? 0)}</p>
-              </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
-                <ListChecks className="h-6 w-6 text-green-600" />
-              </div>
-            </div>
-          </DashboardCard>
-
-          <DashboardCard className="p-6">
-            <div className="flex items-center justify-between h-full">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Quality Score</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">{stats?.quality_score ? Math.round(stats.quality_score) + '%' : '--'}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.quality_score}%</p>
+                <p className="text-xs text-green-600 mt-1">
+                  +{stats.quality_insights?.trends?.weekly_improvement || 2.3}% this week
+                </p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-50">
-                <Gauge className="h-6 w-6 text-yellow-600" />
-              </div>
+              <TrendingUp className="w-8 h-8 text-purple-500" />
             </div>
-          </DashboardCard>
+          </div>
 
-          <DashboardCard className="p-6">
-            <div className="flex items-center justify-between h-full">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Active Jobs</p>
-                <p className="mt-2 text-3xl font-semibold text-gray-900">{stats?.active_jobs ?? 0}</p>
+                <p className="text-sm font-medium text-gray-600">Total Records</p>
+                <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.total_records)}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.time_savings?.issues_auto_fixed || 0} issues auto-fixed
+                </p>
               </div>
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-50">
-                <Clock className="h-6 w-6 text-purple-600" />
-              </div>
+              <Database className="w-8 h-8 text-blue-500" />
             </div>
-          </DashboardCard>
+          </div>
+
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Data Sources</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.data_sources}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.active_jobs} processing
+                </p>
+              </div>
+              <Sparkles className="w-8 h-8 text-orange-500" />
+            </div>
+          </div>
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Data Quality Overview */}
-          <div className="lg:col-span-2">
-            <DataQualityOverview />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Left Column - Recent Activity */}
+          <div className="lg:col-span-5 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
+              <Link href="/dashboard/data-sources" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
+                View all →
+              </Link>
+            </div>
+            
+            <div className="space-y-4">
+              {recentActivity.length > 0 ? (
+                recentActivity.slice(0, 4).map((activity) => (
+                  <div key={activity.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
+                    <div className="flex-shrink-0 mt-1">
+                      {activity.status === 'completed' ? (
+                        <CheckCircle2 className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <Clock className="w-5 h-5 text-blue-500" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900">{activity.title}</p>
+                      <p className="text-sm text-gray-600 truncate">{activity.description}</p>
+                      <p className="text-xs text-gray-500 mt-1">{getTimeAgo(activity.timestamp)}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">No recent activity</p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6" data-tour="quick-actions">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+          {/* Center Column - Smart Recommendations */}
+          <div className="lg:col-span-4 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-2 mb-6">
+              <Brain className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-semibold text-gray-900">Smart Recommendations</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {recommendations.slice(0, 3).map((rec) => (
+                <div key={rec.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <h3 className="text-sm font-medium text-gray-900">{rec.title}</h3>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      rec.priority === 'high' ? 'bg-red-100 text-red-800' :
+                      rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {rec.priority}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-green-600">⏱️ Saves {rec.estimated_time_saved}</span>
+                    <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                      {rec.action} →
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right Column - System Health & Alerts */}
+          <div className="lg:col-span-3 space-y-6">
+            {/* System Health */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center space-x-2 mb-4">
+                <Gauge className="w-5 h-5 text-green-600" />
+                <h2 className="text-lg font-semibold text-gray-900">System Health</h2>
+              </div>
+              
               <div className="space-y-3">
-                <Link
-                  href="/dashboard/data-sources"
-                  className="flex items-center p-3 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <Upload className="w-4 h-4 mr-3 text-blue-500" />
-                  Upload New Dataset
-                </Link>
-                <Link
-                  href="/dashboard/api-keys"
-                  className="flex items-center p-3 text-sm text-gray-700 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <Settings className="w-4 h-4 mr-3 text-gray-500" />
-                  Manage API Keys
-                </Link>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Status</span>
+                  <span className="flex items-center text-sm">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    {stats.system_health?.status || 'Healthy'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Processing Speed</span>
+                  <span className="text-sm text-gray-900">{stats.system_health?.processing_speed}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Storage Used</span>
+                  <span className="text-sm text-gray-900">{stats.system_health?.storage_used_percentage}%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">Uptime</span>
+                  <span className="text-sm text-gray-900">{stats.system_health?.uptime_percentage}%</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Predictive Alerts */}
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center space-x-2 mb-4">
+                <AlertTriangle className="w-5 h-5 text-orange-600" />
+                <h2 className="text-lg font-semibold text-gray-900">Alerts</h2>
+              </div>
+              
+              <div className="space-y-3">
+                {alerts.slice(0, 3).map((alert) => (
+                  <div key={alert.id} className={`p-3 rounded-lg border ${
+                    alert.severity === 'warning' ? 'border-yellow-200 bg-yellow-50' :
+                    alert.severity === 'critical' ? 'border-red-200 bg-red-50' :
+                    'border-blue-200 bg-blue-50'
+                  }`}>
+                    <div className="flex items-start justify-between mb-1">
+                      <h3 className="text-sm font-medium text-gray-900">{alert.title}</h3>
+                      <span className="text-xs text-gray-500">{alert.confidence}%</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mb-2">{alert.description}</p>
+                    <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
+                      {alert.suggested_action} →
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Bottom Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Activity */}
-          <div data-tour="recent-activity">
-            <RecentActivity />
-          </div>
-
-          {/* Workflow Status */}
-          <div data-tour="workflow-status">
-            <WorkflowStatus />
+        {/* Quick Actions Bar */}
+        <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Link href="/dashboard/data-sources" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
+              <Database className="w-5 h-5 text-blue-600" />
+              <span className="text-sm font-medium">Data Sources</span>
+            </Link>
+            
+            <button
+              onClick={() => setShowUpload(true)}
+              className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
+            >
+              <Upload className="w-5 h-5 text-green-600" />
+              <span className="text-sm font-medium">Upload Data</span>
+            </button>
+            
+            <Link href="/dashboard/api-keys" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              <span className="text-sm font-medium">API Keys</span>
+            </Link>
+            
+            <Link href="/dashboard/usage" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors">
+              <BarChart3 className="w-5 h-5 text-orange-600" />
+              <span className="text-sm font-medium">Usage Stats</span>
+            </Link>
           </div>
         </div>
-
-        {/* Guided Tour */}
-        {showTour && (
-          <GuidedTour
-            isVisible={showTour}
-            onClose={() => setShowTour(false)}
-            onComplete={() => setShowTour(false)}
-          />
-        )}
       </div>
+
+      {/* Upload Modal */}
+      {showUpload && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold">Upload New Dataset</h2>
+              <button
+                onClick={() => setShowUpload(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <FileUpload 
+              onUploadComplete={() => {
+                setShowUpload(false)
+                window.location.reload()
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 } 
