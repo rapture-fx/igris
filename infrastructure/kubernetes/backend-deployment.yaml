@@ -11,6 +11,9 @@ spec:
       app: pollarbase-backend
   template:
     metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
       labels:
         app: pollarbase-backend
     spec:

@@ -57,4 +57,34 @@ module "rds" {
 
   vpc_security_group_ids = [module.vpc.default_security_group_id]
   subnet_ids             = module.vpc.public_subnets
+}
+
+module "s3" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "3.0.0"
+
+  bucket = "pollarbase-backups-${terraform.workspace}"
+  versioning = {
+    enabled = true
+  }
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        sse_algorithm = "AES256"
+      }
+    }
+  }
+}
+
+module "memorydb" {
+  source  = "terraform-aws-modules/memorydb/aws"
+  version = "1.1.0"
+
+  name                = "pollarbase-memorydb"
+  acl_name            = "open-access"
+  node_type           = "db.t4g.small"
+  num_shards          = 1
+  replicas_per_shard  = 1
+  security_group_ids  = [module.vpc.default_security_group_id]
+  subnet_ids          = module.vpc.private_subnets
 } 
