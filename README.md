@@ -72,15 +72,15 @@ The usual suspects:
 ### Quick Start
 
 **1. Clone this repo:**
-```bash
-git clone <repository-url>
+    ```bash
+    git clone <repository-url>
 cd pollarbase
-```
+    ```
 
 **2. Install everything:**
-```bash
-pnpm install
-```
+    ```bash
+    pnpm install
+    ```
 
 **3. Start the backend (the schlep handler):**
 ```bash

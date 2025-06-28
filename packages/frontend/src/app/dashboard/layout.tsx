@@ -40,7 +40,7 @@ export default function DashboardLayout({
         <Header />
         <main className="min-h-[calc(100vh-4rem)]">
           {/* Remove padding/container from layout - let pages handle their own spacing */}
-          {children}
+            {children}
         </main>
       </div>
       

@@ -134,8 +134,8 @@ const PricingPage = () => {
     }
   ]
 
-      return (
-      <div className="min-h-screen bg-white">
+  return (
+    <div className="min-h-screen bg-white">
         {/* Header */}
         <header className="px-6 lg:px-8 bg-white border-b border-gray-200">
           <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
@@ -154,8 +154,8 @@ const PricingPage = () => {
             </div>
           </nav>
         </header>
-        
-        {/* Hero Section */}
+      
+      {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 mb-6 font-apple">

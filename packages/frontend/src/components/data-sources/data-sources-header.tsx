@@ -49,10 +49,10 @@ export function DataSourcesHeader({ onFileUpload, onUploadClick }: DataSourcesHe
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Sources</p>
               <p className="text-2xl font-semibold text-gray-900">5</p>
-            </div>
+          </div>
           </div>
         </div>
-
+        
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-50">
@@ -61,10 +61,10 @@ export function DataSourcesHeader({ onFileUpload, onUploadClick }: DataSourcesHe
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Records</p>
               <p className="text-2xl font-semibold text-gray-900">125K</p>
-            </div>
+          </div>
           </div>
         </div>
-
+        
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center">
             <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-yellow-50">
@@ -73,7 +73,7 @@ export function DataSourcesHeader({ onFileUpload, onUploadClick }: DataSourcesHe
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Recent Uploads</p>
               <p className="text-2xl font-semibold text-gray-900">3</p>
-            </div>
+          </div>
           </div>
         </div>
       </div>

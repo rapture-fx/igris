@@ -151,7 +151,7 @@ export default function ApiKeysPage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <div>
+      <div>
             <h1 className="text-3xl font-bold text-gray-900">API Keys</h1>
             <p className="text-gray-600 mt-2">Manage your API keys for secure access to Pollarbase services</p>
           </div>
@@ -162,7 +162,7 @@ export default function ApiKeysPage() {
             <Plus className="w-4 h-4" />
             <span>Create API Key</span>
           </button>
-        </div>
+      </div>
 
         {/* Overview Stats */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
@@ -203,9 +203,9 @@ export default function ApiKeysPage() {
             <p className="text-gray-600 text-sm mt-1">Manage authentication keys for your applications</p>
           </div>
           
-          <div className="p-6">
+        <div className="p-6">
             {apiKeys.length === 0 ? (
-              <div className="text-center py-8">
+          <div className="text-center py-8">
                 <Key className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No API Keys</h3>
                 <p className="text-gray-500 mb-4">Create your first API key to start using the Pollarbase API</p>
@@ -260,7 +260,7 @@ export default function ApiKeysPage() {
                             className="text-gray-400 hover:text-gray-600"
                           >
                             <Copy className="w-4 h-4" />
-                          </button>
+            </button>
                         </div>
                       </div>
                     </div>

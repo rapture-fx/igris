@@ -58,6 +58,17 @@ export default function DocumentationPage() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
 
+  // Add scrollbar hiding styles
+  const scrollbarHideStyles = `
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+  `
+
   // Documentation sections
   const docsSections = [
     {
@@ -549,40 +560,49 @@ Invalid fields: ['file_type', 'encoding']`
   }
 
   const renderHighlightedCode = (code: string, language: string) => {
-    // Simple syntax highlighting without external libraries
+    // Enhanced syntax highlighting without external libraries
     const lines = code.split('\n')
     return lines.map((line, index) => {
       let highlightedLine = line
       
-      // Basic highlighting patterns
+      // Enhanced highlighting patterns with more colors
       if (language === 'bash' || language === 'curl') {
         highlightedLine = line
-          .replace(/(curl|npm|pip|cd|ls|mkdir)/g, '<span class="text-blue-400">$1</span>')
-          .replace(/(-[A-Za-z])/g, '<span class="text-yellow-400">$1</span>')
-          .replace(/(https?:\/\/[^\s]+)/g, '<span class="text-green-400">$1</span>')
-          .replace(/(".*?")/g, '<span class="text-orange-400">$1</span>')
+          .replace(/(curl|npm|pip|yarn|pnpm|cd|ls|mkdir|git|docker)/g, '<span class="text-cyan-400 font-semibold">$1</span>')
+          .replace(/(-[A-Za-z]+|--[A-Za-z-]+)/g, '<span class="text-yellow-300">$1</span>')
+          .replace(/(https?:\/\/[^\s]+)/g, '<span class="text-emerald-400">$1</span>')
+          .replace(/(".*?"|'.*?')/g, '<span class="text-orange-300">$1</span>')
+          .replace(/(\$[A-Za-z_][A-Za-z0-9_]*)/g, '<span class="text-violet-300">$1</span>')
+          .replace(/(#.*)/g, '<span class="text-slate-500 italic">$1</span>')
       } else if (language === 'python') {
         highlightedLine = line
-          .replace(/(import|from|def|class|if|else|elif|for|while|try|except|return|await|async)/g, '<span class="text-purple-400">$1</span>')
-          .replace(/(print|len|str|int|list|dict)/g, '<span class="text-blue-400">$1</span>')
-          .replace(/(".*?"|'.*?')/g, '<span class="text-green-400">$1</span>')
-          .replace(/(#.*)/g, '<span class="text-gray-500">$1</span>')
+          .replace(/(import|from|def|class|if|else|elif|for|while|try|except|return|await|async|with|as|pass|break|continue)/g, '<span class="text-pink-400 font-semibold">$1</span>')
+          .replace(/(print|len|str|int|list|dict|set|tuple|open|range|enumerate|zip)/g, '<span class="text-sky-400">$1</span>')
+          .replace(/(".*?"|'.*?'|f".*?"|f'.*?')/g, '<span class="text-emerald-300">$1</span>')
+          .replace(/(\d+\.?\d*)/g, '<span class="text-amber-300">$1</span>')
+          .replace(/(True|False|None)/g, '<span class="text-violet-400">$1</span>')
+          .replace(/(#.*)/g, '<span class="text-slate-500 italic">$1</span>')
+          .replace(/(@\w+)/g, '<span class="text-rose-400">$1</span>')
       } else if (language === 'javascript') {
         highlightedLine = line
-          .replace(/(const|let|var|function|async|await|import|export|if|else|for|while|try|catch|return)/g, '<span class="text-purple-400">$1</span>')
-          .replace(/(console|Array|Object|Promise|fetch)/g, '<span class="text-blue-400">$1</span>')
-          .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="text-green-400">$1</span>')
-          .replace(/(\/\/.*)/g, '<span class="text-gray-500">$1</span>')
+          .replace(/(const|let|var|function|async|await|import|export|if|else|for|while|try|catch|return|new|this|typeof|instanceof)/g, '<span class="text-pink-400 font-semibold">$1</span>')
+          .replace(/(console|Array|Object|Promise|fetch|JSON|Math|Date|Error)/g, '<span class="text-sky-400">$1</span>')
+          .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="text-emerald-300">$1</span>')
+          .replace(/(\d+\.?\d*)/g, '<span class="text-amber-300">$1</span>')
+          .replace(/(true|false|null|undefined)/g, '<span class="text-violet-400">$1</span>')
+          .replace(/(\/\/.*)/g, '<span class="text-slate-500 italic">$1</span>')
+          .replace(/(\/\*[\s\S]*?\*\/)/g, '<span class="text-slate-500 italic">$1</span>')
       } else if (language === 'json') {
         highlightedLine = line
-          .replace(/(".*?"):/g, '<span class="text-blue-400">$1</span>:')
-          .replace(/: (".*?")/g, ': <span class="text-green-400">$1</span>')
-          .replace(/: (\d+)/g, ': <span class="text-orange-400">$1</span>')
-          .replace(/: (true|false|null)/g, ': <span class="text-purple-400">$1</span>')
+          .replace(/(".*?"):/g, '<span class="text-cyan-400">$1</span>:')
+          .replace(/: (".*?")/g, ': <span class="text-emerald-300">$1</span>')
+          .replace(/: (\d+\.?\d*)/g, ': <span class="text-amber-300">$1</span>')
+          .replace(/: (true|false|null)/g, ': <span class="text-violet-400">$1</span>')
+          .replace(/([{}[\],])/g, '<span class="text-slate-300">$1</span>')
       }
       
       return (
-        <span key={index} className="block">
+        <span key={index} className="block leading-relaxed">
           <span dangerouslySetInnerHTML={{ __html: highlightedLine }} />
         </span>
       )
@@ -590,39 +610,43 @@ Invalid fields: ['file_type', 'encoding']`
   }
 
   const renderCodeBlock = (example: CodeExample) => (
-    <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-700 mb-6 shadow-lg">
-      <div className="flex items-center justify-between bg-gray-800 px-5 py-3 border-b border-gray-700">
-        <div className="flex items-center space-x-3">
+    <div className="bg-slate-950 rounded-lg overflow-hidden border border-slate-700 mb-4 shadow-md">
+      <div className="flex items-center justify-between bg-slate-900 px-3 py-2 border-b border-slate-700">
+        <div className="flex items-center space-x-2">
           <div className="flex space-x-1">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-      </div>
-          <Terminal className="w-4 h-4 text-gray-400" />
-          <span className="text-sm font-medium text-gray-200">{example.title}</span>
-          <span className="text-xs text-gray-400 bg-gray-700 px-2 py-1 rounded-md font-mono">{example.language}</span>
+            <div className="w-2 h-2 rounded-full bg-red-500"></div>
+            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+          </div>
+          <Terminal className="w-3 h-3 text-slate-400" />
+          <span className="text-xs font-medium text-slate-100">{example.title}</span>
+          <span className="text-xs text-slate-400 bg-slate-800 px-1.5 py-0.5 rounded text-xs">{example.language}</span>
         </div>
-          <button
+        <button
           onClick={() => copyToClipboard(example.code, example.title)}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors px-3 py-1 rounded-md hover:bg-gray-700"
+          className="flex items-center space-x-1 text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-slate-800"
         >
-          <Copy className="w-4 h-4" />
-          <span className="text-xs font-medium">{copiedCode === example.title ? 'Copied!' : 'Copy'}</span>
-          </button>
-        </div>
-      <div className="p-5">
-        <p className="text-sm text-gray-400 mb-4">{example.description}</p>
-        <pre className="text-sm leading-relaxed overflow-x-auto">
-          <code className="language-bash text-gray-100">{renderHighlightedCode(example.code, example.language)}</code>
+          <Copy className="w-3 h-3" />
+          <span className="text-xs">{copiedCode === example.title ? 'Copied!' : 'Copy'}</span>
+        </button>
+      </div>
+      <div className="p-3">
+        <p className="text-xs text-slate-400 mb-3">{example.description}</p>
+        <pre className="text-xs leading-relaxed overflow-x-hidden font-mono scrollbar-hide">
+          <code className="text-slate-100" style={{ fontFamily: 'SF Mono, -apple-system, BlinkMacSystemFont, Monaco, Consolas, monospace' }}>
+            {renderHighlightedCode(example.code, example.language)}
+          </code>
         </pre>
         {example.response && (
-          <div className="mt-5 pt-4 border-t border-gray-700">
-            <div className="flex items-center space-x-2 mb-3">
-              <div className="w-2 h-2 rounded-full bg-green-400"></div>
-              <p className="text-xs text-gray-400 font-medium">Response:</p>
+          <div className="mt-3 pt-3 border-t border-slate-700">
+            <div className="flex items-center space-x-1 mb-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400"></div>
+              <p className="text-xs text-slate-400 font-medium">Response:</p>
             </div>
-            <pre className="text-sm text-green-400 overflow-x-auto leading-relaxed">
-              <code>{example.response}</code>
+            <pre className="text-xs text-emerald-400 overflow-x-hidden leading-relaxed font-mono scrollbar-hide">
+              <code style={{ fontFamily: 'SF Mono, -apple-system, BlinkMacSystemFont, Monaco, Consolas, monospace' }}>
+                {example.response}
+              </code>
             </pre>
           </div>
         )}
@@ -652,7 +676,7 @@ Invalid fields: ['file_type', 'encoding']`
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
             title="Copy API path"
           >
-            📋
+            <Copy className="w-4 h-4" />
           </button>
         </div>
         
@@ -695,18 +719,18 @@ Invalid fields: ['file_type', 'encoding']`
     switch (selectedSection) {
       case 'introduction':
         return (
-          <div className="max-w-5xl">
-            <div className="mb-6">
-              <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
                 Pollarbase API Documentation
               </h1>
-              <p className="text-base text-gray-600 leading-relaxed mb-5">
+              <p className="text-sm text-gray-600 leading-relaxed mb-4">
                 The complete reference for Pollarbase's data processing API. 
                 <strong> Handle the schlep so you don't have to.</strong>
               </p>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 mb-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 mb-4">
               <div className="flex items-start space-x-4">
                 <Sparkles className="w-5 h-5 text-blue-600 mt-1" />
                 <div>
@@ -723,9 +747,7 @@ Invalid fields: ['file_type', 'encoding']`
             <div className="grid md:grid-cols-2 gap-6 mb-12">
               <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-yellow-600" />
-                  </div>
+                  <Zap className="w-5 h-5 text-yellow-600" />
                   <h3 className="text-base font-bold text-gray-900">Quick to Start</h3>
                 </div>
                 <p className="text-gray-600 mb-4 text-sm leading-relaxed">
@@ -740,9 +762,7 @@ Invalid fields: ['file_type', 'encoding']`
 
               <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Brain className="w-5 h-5 text-purple-600" />
-                  </div>
+                  <Brain className="w-5 h-5 text-purple-600" />
                   <h3 className="text-base font-bold text-gray-900">AI-Powered</h3>
                 </div>
                 <p className="text-gray-600 mb-4 text-sm leading-relaxed">
@@ -760,23 +780,17 @@ Invalid fields: ['file_type', 'encoding']`
               <h3 className="text-3xl font-bold text-gray-900 mb-8 text-center">Core Features</h3>
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle className="w-8 h-8 text-green-600" />
-                  </div>
+                  <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-4" />
                   <h4 className="font-bold text-gray-900 text-lg mb-3">Automatic Type Detection</h4>
                   <p className="text-gray-600">Smart identification of data types and formats</p>
-                  </div>
-                <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <TrendingUp className="w-8 h-8 text-blue-600" />
                 </div>
+                <div className="text-center">
+                  <TrendingUp className="w-8 h-8 text-blue-600 mx-auto mb-4" />
                   <h4 className="font-bold text-gray-900 text-lg mb-3">Quality Scoring</h4>
                   <p className="text-gray-600">Comprehensive quality metrics and insights</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <Sparkles className="w-8 h-8 text-purple-600" />
-                  </div>
+                  <Sparkles className="w-8 h-8 text-purple-600 mx-auto mb-4" />
                   <h4 className="font-bold text-gray-900 text-lg mb-3">Smart Transformations</h4>
                   <p className="text-gray-600">AI-suggested data cleaning and formatting</p>
                 </div>
@@ -787,13 +801,13 @@ Invalid fields: ['file_type', 'encoding']`
 
       case 'quickstart':
         return (
-          <div className="max-w-5xl">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Quickstart Guide</h1>
-              <p className="text-lg text-gray-600">
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Quickstart Guide</h1>
+              <p className="text-sm text-gray-600">
                 Get up and running with Pollarbase in under 5 minutes.
               </p>
-                  </div>
+            </div>
 
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-8 mb-12">
               <div className="flex items-start space-x-4">
@@ -858,10 +872,10 @@ Invalid fields: ['file_type', 'encoding']`
 
       case 'authentication':
         return (
-          <div className="max-w-5xl">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-4">Authentication</h1>
-              <p className="text-lg text-gray-600">
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Authentication</h1>
+              <p className="text-sm text-gray-600">
                 Secure your API requests with proper authentication.
               </p>
             </div>
@@ -2425,15 +2439,319 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
           </div>
         )
 
+      case 'data-processing':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Data Processing</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Understanding how Pollarbase processes and analyzes your data.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-blue-900 mb-3">Processing Pipeline</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <Upload className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                    <div className="text-sm font-medium text-blue-900">Upload</div>
+                    <div className="text-xs text-blue-700">File ingestion</div>
+                  </div>
+                  <div className="text-center">
+                    <Brain className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                    <div className="text-sm font-medium text-blue-900">Analyze</div>
+                    <div className="text-xs text-blue-700">AI analysis</div>
+                  </div>
+                  <div className="text-center">
+                    <Settings className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                    <div className="text-sm font-medium text-blue-900">Transform</div>
+                    <div className="text-xs text-blue-700">Data cleaning</div>
+                  </div>
+                  <div className="text-center">
+                    <Download className="w-6 h-6 text-blue-600 mx-auto mb-2" />
+                    <div className="text-sm font-medium text-blue-900">Export</div>
+                    <div className="text-xs text-blue-700">ML-ready data</div>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Process Dataset with Python',
+                description: 'Complete data processing workflow from upload to export',
+                code: `import pollarbase as pb
+
+# Initialize client
+client = pb.Client(api_key='your_api_key')
+
+# Upload and auto-process
+dataset = client.upload(
+    file_path='customer_data.csv',
+    auto_analyze=True,
+    auto_transform=True
+)
+
+print(f"Original quality: {dataset.original_quality}%")
+print(f"Final quality: {dataset.quality_score}%")
+
+# Get insights
+insights = dataset.get_insights()
+for insight in insights:
+    print(f"- {insight.type}: {insight.message}")
+
+# Export processed data
+clean_data = dataset.export(format='pandas')
+print(f"Shape: {clean_data.shape}")`,
+                response: `Original quality: 67%
+Final quality: 92%
+- Missing Values: Filled 1,247 missing values using ML imputation
+- Duplicates: Removed 89 duplicate records
+- Outliers: Detected and flagged 23 potential outliers
+- Types: Corrected 5 data type mismatches
+Shape: (10000, 15)`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'transformations':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Transformations</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                AI-powered data transformations to improve quality and prepare for ML.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Filter className="w-5 h-5 text-purple-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Data Cleaning</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Remove duplicates</li>
+                    <li>• Handle missing values</li>
+                    <li>• Fix formatting issues</li>
+                  </ul>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Sparkles className="w-5 h-5 text-purple-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Type Conversion</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Auto-detect data types</li>
+                    <li>• Convert formats</li>
+                    <li>• Standardize encoding</li>
+                  </ul>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <TrendingUp className="w-5 h-5 text-purple-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Enhancement</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Feature engineering</li>
+                    <li>• Normalize values</li>
+                    <li>• Create derived fields</li>
+                  </ul>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'javascript',
+                title: 'Apply Custom Transformations',
+                description: 'Define and apply custom transformation rules',
+                code: `const transformations = [
+  {
+    type: 'fill_missing',
+    columns: ['age', 'income'],
+    method: 'median'
+  },
+  {
+    type: 'remove_outliers',
+    columns: ['price'],
+    method: 'iqr',
+    threshold: 2.5
+  },
+  {
+    type: 'normalize',
+    columns: ['score'],
+    range: [0, 100]
+  }
+];
+
+const result = await client.transform({
+  dataset_id: 'ds_abc123',
+  transformations: transformations,
+  preview: true
+});
+
+console.log(\`Quality improvement: +\${result.quality_improvement}%\`);
+if (result.quality_improvement > 15) {
+  await client.applyTransformations(result.preview_id);
+}`,
+                response: `Quality improvement: +18%
+Transformations applied successfully`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'anomaly-detection':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Anomaly Detection</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Automatically detect outliers and anomalies in your data.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-orange-900 mb-3">Detection Methods</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-orange-900">Statistical</div>
+                    <div className="text-xs text-orange-700">Z-score, IQR</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-orange-900">ML-based</div>
+                    <div className="text-xs text-orange-700">Isolation Forest</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-orange-900">Pattern</div>
+                    <div className="text-xs text-orange-700">Clustering</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium text-orange-900">Time-series</div>
+                    <div className="text-xs text-orange-700">Seasonal</div>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Detect Anomalies',
+                description: 'Run anomaly detection on your dataset',
+                code: `# Detect anomalies with multiple methods
+anomalies = client.detect_anomalies(
+    dataset_id='ds_abc123',
+    methods=['statistical', 'ml', 'clustering'],
+    sensitivity=0.05,  # 5% threshold
+    columns=['price', 'quantity', 'score']
+)
+
+print(f"Found {len(anomalies)} anomalies")
+for anomaly in anomalies[:5]:
+    print(f"Row {anomaly.row_id}: {anomaly.reason}")
+    print(f"  Confidence: {anomaly.confidence:.2f}")
+    print(f"  Method: {anomaly.method}")
+
+# Auto-handle anomalies
+handled = client.handle_anomalies(
+    dataset_id='ds_abc123',
+    action='flag'  # or 'remove', 'cap', 'transform'
+)`,
+                response: `Found 23 anomalies
+Row 1247: Price value 99999 is 15.2x above normal range
+  Confidence: 0.94
+  Method: statistical
+Row 3891: Quantity -50 is impossible negative value
+  Confidence: 1.00
+  Method: business_rule
+Row 5632: Score 127 exceeds maximum possible value
+  Confidence: 0.87
+  Method: ml`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'python-sdk':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Python SDK</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                The most comprehensive way to integrate Pollarbase into Python applications.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {renderCodeBlock({
+                language: 'bash',
+                title: 'Installation',
+                description: 'Install the Python SDK via pip',
+                code: `# Install the latest version
+pip install pollarbase
+
+# Or install specific version
+pip install pollarbase==2.1.0
+
+# For development
+pip install pollarbase[dev]`
+              })}
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Complete Workflow Example',
+                description: 'End-to-end data processing with the Python SDK',
+                code: `import pollarbase as pb
+import pandas as pd
+
+# Initialize client
+client = pb.Client(
+    api_key=os.getenv('POLLARBASE_API_KEY'),
+    environment='production'
+)
+
+# Upload dataset
+dataset = client.upload(
+    file_path='sales_data.csv',
+    auto_analyze=True,
+    tags=['sales', 'quarterly']
+)
+
+# Wait for analysis
+dataset.wait_for_completion(timeout=300)
+
+# Get quality insights
+print(f"Quality Score: {dataset.quality_score}%")
+insights = dataset.get_insights()
+for insight in insights:
+    print(f"- {insight.message}")
+
+# Apply recommended transformations
+transformations = dataset.get_recommended_transformations()
+preview = dataset.preview_transformations(transformations)
+print(f"Expected improvement: +{preview.quality_improvement}%")
+
+if preview.quality_improvement > 10:
+    dataset.apply_transformations(transformations)
+
+# Export clean data
+clean_df = dataset.to_pandas()
+clean_df.to_csv('clean_sales_data.csv', index=False)`,
+                response: `Quality Score: 87%
+- Filled 342 missing values in revenue column
+- Removed 12 duplicate transactions
+- Standardized date formats across 3 columns
+- Detected 5 potential outliers in price column
+Expected improvement: +8%`
+              })}
+            </div>
+          </div>
+        )
+
       default:
         return (
-          <div className="max-w-5xl">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">
+          <div className="max-w-4xl">
+            <h1 className="text-xl font-bold text-gray-900 mb-3">
               {selectedSection.split('-').map(word => 
                 word.charAt(0).toUpperCase() + word.slice(1)
               ).join(' ')}
             </h1>
-            <p className="text-lg text-gray-600 mb-8">
+            <p className="text-sm text-gray-600 mb-6">
               Documentation for this section is coming soon.
             </p>
             <div className="bg-gray-50 rounded-lg p-8 text-center">
@@ -2449,10 +2767,13 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Custom styles for hiding scrollbars */}
+      <style dangerouslySetInnerHTML={{ __html: scrollbarHideStyles }} />
+      
       {/* Header */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20">
+        <div className="max-w-[1400px] mx-auto px-8 lg:px-12">
+          <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <a href="/" className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
@@ -2484,29 +2805,29 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
       </header>
 
       {/* Documentation Layout */}
-      <div className="w-full px-8 lg:px-12 py-8">
-        <div className="max-w-[1600px] mx-auto flex gap-12">
+      <div className="w-full px-8 lg:px-12 py-6">
+        <div className="max-w-[1400px] mx-auto flex gap-8">
           {/* Left Sidebar - Navigation */}
-          <aside className="w-80 shrink-0">
-            <nav className="sticky top-28 space-y-5">
+          <aside className="w-72 shrink-0">
+            <nav className="sticky top-28 space-y-4">
               {docsSections.map((section) => (
                 <div key={section.id}>
-                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
+                  <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
                     {section.title}
                   </h3>
-                  <ul className="space-y-1">
+                  <ul className="space-y-0.5">
                     {section.items.map((item) => (
                       <li key={item.id}>
                         <button
                           onClick={() => setSelectedSection(item.id)}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg transition-all duration-200 text-sm ${
+                          className={`w-full flex items-center space-x-2.5 px-2.5 py-1.5 text-left rounded-md transition-all duration-200 text-xs ${
                             selectedSection === item.id
-                              ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500 shadow-sm font-medium'
-                              : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                              ? 'bg-blue-50 text-blue-700 border-l-3 border-blue-500 shadow-sm font-medium'
+                              : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
                           }`}
                         >
-                          {item.icon}
-                          <span>{item.label}</span>
+                          <span className="flex-shrink-0">{item.icon}</span>
+                          <span className="truncate">{item.label}</span>
                         </button>
                       </li>
                     ))}
@@ -2517,64 +2838,108 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
           </aside>
 
           {/* Main Content - Centered and Wider */}
-          <main className="flex-1 min-w-0 max-w-5xl mx-auto px-4">
+          <main className="flex-1 min-w-0 max-w-4xl mx-auto px-3">
             {renderContent()}
           </main>
 
           {/* Right Sidebar - Table of Contents & Links */}
-          <aside className="w-80 shrink-0">
-            <div className="sticky top-28 space-y-5">
+          <aside className="w-72 shrink-0">
+            <div className="sticky top-28 space-y-4">
               {/* Table of Contents */}
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <List className="w-4 h-4" />
+              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <List className="w-3 h-3" />
                   On This Page
                 </h3>
                 <nav className="space-y-1">
                   {selectedSection === 'introduction' && (
                     <>
-                      <a href="#what-is-pollarbase" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">What is Pollarbase?</a>
-                      <a href="#getting-started" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Getting Started</a>
-                      <a href="#features" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Key Features</a>
+                      <a href="#what-is-pollarbase" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">What is Pollarbase?</a>
+                      <a href="#getting-started" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Getting Started</a>
+                      <a href="#features" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Key Features</a>
                     </>
                   )}
                   {selectedSection === 'quickstart' && (
                     <>
-                      <a href="#upload-dataset" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Upload Dataset</a>
-                      <a href="#python-workflow" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Python Workflow</a>
-                      <a href="#javascript-processing" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">JavaScript Processing</a>
+                      <a href="#upload-dataset" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Upload Dataset</a>
+                      <a href="#python-workflow" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Python Workflow</a>
+                      <a href="#javascript-processing" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">JavaScript Processing</a>
                     </>
                   )}
                   {(selectedSection.endsWith('-api') || selectedSection === 'authentication') && (
                     <>
-                      <a href="#endpoints" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">API Endpoints</a>
-                      <a href="#parameters" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Parameters</a>
-                      <a href="#examples" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Code Examples</a>
+                      <a href="#endpoints" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">API Endpoints</a>
+                      <a href="#parameters" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Parameters</a>
+                      <a href="#examples" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Code Examples</a>
                     </>
                   )}
                 </nav>
               </div>
 
-              {/* Quick Links */}
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <ExternalLink className="w-4 h-4" />
-                  Quick Links
+              {/* Recent Updates */}
+              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Sparkles className="w-3 h-3 text-blue-500" />
+                  What's New
                 </h3>
                 <div className="space-y-2">
-                  <a href="/dashboard" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group">
+                  <div className="text-xs">
+                    <div className="font-medium text-gray-900">v2.1.0 Released</div>
+                    <div className="text-gray-600">Enhanced ML models</div>
+                    <div className="text-gray-400">2 days ago</div>
+                  </div>
+                  <div className="text-xs">
+                    <div className="font-medium text-gray-900">New Python SDK</div>
+                    <div className="text-gray-600">Async support added</div>
+                    <div className="text-gray-400">1 week ago</div>
+                  </div>
+                  <div className="text-xs">
+                    <div className="font-medium text-gray-900">API Rate Limits</div>
+                    <div className="text-gray-600">Increased to 1000/min</div>
+                    <div className="text-gray-400">2 weeks ago</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Pro Tips */}
+              <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg border border-yellow-200 p-4">
+                <h3 className="text-sm font-bold text-yellow-900 mb-3 flex items-center gap-2">
+                  <Zap className="w-3 h-3" />
+                  Pro Tips
+                </h3>
+                <div className="space-y-2">
+                  <div className="text-xs text-yellow-800">
+                    💡 Use batch uploads for datasets over 100MB
+                  </div>
+                  <div className="text-xs text-yellow-800">
+                    ⚡ Enable auto-transforms to save 80% processing time
+                  </div>
+                  <div className="text-xs text-yellow-800">
+                    🎯 Set quality thresholds to ensure data standards
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Links */}
+              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <ExternalLink className="w-3 h-3" />
+                  Quick Links
+                </h3>
+                <div className="space-y-1">
+                  <a href="/dashboard" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group">
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>Go to Dashboard</span>
                   </a>
-                  <a href="https://github.com/pollarbase/python-sdk" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                  <a href="https://github.com/pollarbase/python-sdk" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>Python SDK</span>
                   </a>
-                  <a href="https://github.com/pollarbase/js-sdk" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                  <a href="https://github.com/pollarbase/js-sdk" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>JavaScript SDK</span>
                   </a>
-                  <a href="https://status.pollarbase.com" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                  <a href="https://status.pollarbase.com" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>API Status</span>
                   </a>
@@ -2582,47 +2947,45 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
               </div>
 
               {/* Support */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-5">
-                <h3 className="text-base font-bold text-blue-900 mb-3 flex items-center gap-2">
-                  <HelpCircle className="w-4 h-4" />
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200 p-4">
+                <h3 className="text-sm font-bold text-blue-900 mb-3 flex items-center gap-2">
+                  <HelpCircle className="w-3 h-3" />
                   Need Help?
                 </h3>
-                <p className="text-sm text-blue-800 mb-3 leading-relaxed">
+                <p className="text-xs text-blue-800 mb-3 leading-relaxed">
                   Get support from our team or connect with the community.
                 </p>
-                <div className="space-y-2">
-                  <a href="mailto:support@pollarbase.com" className="flex items-center space-x-2 text-sm text-blue-700 hover:text-blue-800 transition-colors">
-                    <span>📧</span>
+                <div className="space-y-1">
+                  <a href="mailto:support@pollarbase.com" className="flex items-center space-x-2 text-xs text-blue-700 hover:text-blue-800 transition-colors">
                     <span>Email Support</span>
                   </a>
-                  <a href="https://discord.gg/pollarbase" className="flex items-center space-x-2 text-sm text-blue-700 hover:text-blue-800 transition-colors" target="_blank">
-                    <span>💬</span>
+                  <a href="https://discord.gg/pollarbase" className="flex items-center space-x-2 text-xs text-blue-700 hover:text-blue-800 transition-colors" target="_blank">
                     <span>Discord Community</span>
                   </a>
                 </div>
               </div>
 
               {/* API Health */}
-              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
-                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-green-500" />
+              <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
+                <h3 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Activity className="w-3 h-3 text-green-500" />
                   API Status
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">API Health</span>
-                    <span className="flex items-center text-sm text-green-600">
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                    <span className="text-xs text-gray-600">API Health</span>
+                    <span className="flex items-center text-xs text-green-600">
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></div>
                       Operational
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Response Time</span>
-                    <span className="text-sm text-gray-900 font-medium">45ms</span>
+                    <span className="text-xs text-gray-600">Response Time</span>
+                    <span className="text-xs text-gray-900 font-medium">45ms</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-600">Uptime</span>
-                    <span className="text-sm text-gray-900 font-medium">99.9%</span>
+                    <span className="text-xs text-gray-600">Uptime</span>
+                    <span className="text-xs text-gray-900 font-medium">99.9%</span>
                   </div>
                 </div>
               </div>
@@ -2632,9 +2995,9 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
       </div>
       
       {/* Full-width Documentation Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16">
-        <div className="w-full px-6 lg:px-8 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+      <footer className="bg-white border-t border-gray-200 mt-12">
+        <div className="max-w-[1400px] mx-auto px-8 lg:px-12 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="col-span-1">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">

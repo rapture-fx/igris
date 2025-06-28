@@ -282,7 +282,7 @@ export function FileUpload({
             Selected Files ({files.length})
           </h4>
           <div className="space-y-2">
-            {files.map((fileObj, index) => (
+          {files.map((fileObj, index) => (
               <div
                 key={fileObj.id}
                 className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
@@ -298,12 +298,12 @@ export function FileUpload({
                     </p>
                   </div>
                 </div>
-                <button
-                  onClick={() => removeFile(index)}
+                      <button
+                        onClick={() => removeFile(index)}
                   className="text-gray-400 hover:text-red-500"
-                >
+                      >
                   <X className="h-4 w-4" />
-                </button>
+                      </button>
               </div>
             ))}
           </div>
@@ -317,14 +317,14 @@ export function FileUpload({
             <span className="text-sm font-medium text-gray-700">Uploading...</span>
             <span className="text-sm text-gray-500">{uploadProgress}%</span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
-            />
-          </div>
-        </div>
-      )}
+                    />
+                  </div>
+                </div>
+              )}
 
       {/* Upload Button */}
       {files.length > 0 && !uploading && (
@@ -342,8 +342,8 @@ export function FileUpload({
             <Upload className="h-4 w-4 mr-2" />
             Upload Files
           </button>
-        </div>
-      )}
+                </div>
+              )}
 
       {uploadProgress === 100 && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
