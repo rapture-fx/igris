@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, X, Zap, Shield, Users, Star, Clock, Database, Brain } from 'lucide-react'
-import MercuryNavigation from '@/components/layout/MercuryNavigation'
+
 import { Footer } from '@/components/layout/Footer'
 
 const PricingPage = () => {
@@ -134,11 +134,28 @@ const PricingPage = () => {
     }
   ]
 
-  return (
-    <div className="min-h-screen bg-white">
-      <MercuryNavigation />
-      
-      {/* Hero Section */}
+      return (
+      <div className="min-h-screen bg-white">
+        {/* Header */}
+        <header className="px-6 lg:px-8 bg-white border-b border-gray-200">
+          <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+            <div className="flex lg:flex-1">
+              <Link href="/" className="-m-1.5 p-1.5">
+                <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+              </Link>
+            </div>
+            <div className="flex lg:flex-1 lg:justify-end gap-x-8">
+              <Link href="/documentation" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
+                Documentation
+              </Link>
+              <Link href="/auth/signin" className="text-sm font-semibold leading-6 text-gray-900">
+                Log in <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </div>
+          </nav>
+        </header>
+        
+        {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-semibold text-gray-900 mb-6 font-apple">

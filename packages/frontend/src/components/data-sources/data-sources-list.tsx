@@ -98,10 +98,16 @@ export function DataSourcesList({ searchTerm, filterType }: DataSourcesListProps
 
       if (response.ok) {
         const data = await response.json()
-        setInvestigations(data)
+        // Ensure we always set an array
+        setInvestigations(Array.isArray(data) ? data : [])
+      } else {
+        // If response is not ok, set empty array
+        setInvestigations([])
       }
     } catch (error) {
       console.error('Failed to fetch investigations:', error)
+      // On error, set empty array
+      setInvestigations([])
     } finally {
       setLoading(false)
     }
@@ -144,7 +150,7 @@ export function DataSourcesList({ searchTerm, filterType }: DataSourcesListProps
     return num.toLocaleString()
   }
 
-  const filteredInvestigations = investigations.filter(inv => {
+  const filteredInvestigations = (investigations || []).filter(inv => {
     if (filter === 'all') return true
     return inv.status === filter
   })
@@ -199,10 +205,10 @@ export function DataSourcesList({ searchTerm, filterType }: DataSourcesListProps
         {/* Filter Tabs */}
         <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
           {[
-            { key: 'all', label: 'All', count: investigations.length },
-            { key: 'processing', label: 'Processing', count: investigations.filter(i => i.status === 'processing').length },
-            { key: 'completed', label: 'Completed', count: investigations.filter(i => i.status === 'completed').length },
-            { key: 'failed', label: 'Failed', count: investigations.filter(i => i.status === 'failed').length }
+            { key: 'all', label: 'All', count: (investigations || []).length },
+            { key: 'processing', label: 'Processing', count: (investigations || []).filter(i => i.status === 'processing').length },
+            { key: 'completed', label: 'Completed', count: (investigations || []).filter(i => i.status === 'completed').length },
+            { key: 'failed', label: 'Failed', count: (investigations || []).filter(i => i.status === 'failed').length }
           ].map((tab) => (
             <button
               key={tab.key}

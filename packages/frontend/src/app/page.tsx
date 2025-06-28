@@ -3,15 +3,11 @@
 import Link from 'next/link'
 import { ArrowRight, Database, Brain, Workflow, BarChart3, Shield, Zap, CheckCircle, Github, Star, Sparkles, Target, Users, TrendingUp, Clock } from 'lucide-react'
 import { memo, useEffect, useState } from 'react'
-import MercuryNavigation from '@/components/layout/MercuryNavigation'
-import { Footer } from '@/components/layout/Footer'
 import { ChevronRightIcon } from '@heroicons/react/20/solid'
 import { 
   DocumentTextIcon, 
   CpuChipIcon, 
   ShieldCheckIcon,
-  ArrowTrendingUpIcon,
-  CloudIcon,
   BoltIcon 
 } from '@heroicons/react/24/outline'
 
@@ -299,13 +295,172 @@ export default function Home() {
         </nav>
       </header>
 
-      <MercuryNavigation />
-      <HeroSection />
-      <ProductShowcase />
-      <CustomerStories />
-      <MarketSection />
-      <FinalCTA />
-      <Footer />
+      {/* Hero Section */}
+      <div className="mx-auto max-w-7xl px-6 pb-32 pt-16 sm:pt-20 lg:px-8 lg:pt-32">
+        <div className="mx-auto max-w-2xl text-center">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+            The Data <span className="text-blue-600">Schlep Handler</span>
+          </h1>
+          <p className="mt-6 text-lg leading-8 text-gray-600">
+            Stop wasting 80% of your time on data prep. We handle the schlep so you don't have to.
+          </p>
+          <p className="mt-4 text-base text-gray-500">
+            Throw us your worst CSV files, broken JSON, or whatever data nightmare you're dealing with. 
+            We'll clean it, validate it, and give you something actually useful.
+          </p>
+          <div className="mt-10 flex items-center justify-center gap-x-6">
+            <Link
+              href="/dashboard"
+              className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            >
+              Start Handling Schlep
+            </Link>
+            <Link href="/documentation" className="text-sm font-semibold leading-6 text-gray-900">
+              See how it works <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      {/* Problem Section */}
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-2xl lg:text-center">
+          <h2 className="text-base font-semibold leading-7 text-blue-600">Why Pollarbase?</h2>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            Because we're honest about what we do
+          </p>
+          <p className="mt-6 text-lg leading-8 text-gray-600">
+            We don't promise to "transform your business with AI." We promise to handle the boring, 
+            frustrating data work so you can focus on the stuff that actually matters.
+          </p>
+        </div>
+      </div>
+
+      {/* Comparison */}
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-16">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+          <div className="bg-red-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-red-900 mb-4">Other tools say:</h3>
+            <ul className="space-y-2 text-red-700">
+              <li>• "AI-powered intelligent data transformation platform"</li>
+              <li>• "Revolutionize your data strategy"</li>
+              <li>• "Next-generation analytics solution"</li>
+            </ul>
+            <p className="mt-4 text-sm text-red-600">
+              <strong>Require:</strong> Data engineers, complex pipelines, months of setup
+            </p>
+          </div>
+          <div className="bg-green-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-green-900 mb-4">We say:</h3>
+            <ul className="space-y-2 text-green-700">
+              <li>• "We fix your broken data so you don't have to"</li>
+              <li>• "Upload a file, wait a few minutes, get clean data"</li>
+              <li>• "We handle the schlep"</li>
+            </ul>
+            <p className="mt-4 text-sm text-green-600">
+              <strong>Require:</strong> Upload a file, wait a few minutes, get clean data
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Features */}
+      <div className="mx-auto max-w-7xl px-6 lg:px-8 mt-24">
+        <div className="mx-auto max-w-2xl lg:text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            Features That Actually Matter
+          </h2>
+        </div>
+        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
+            <div className="relative pl-16">
+              <dt className="text-base font-semibold leading-7 text-gray-900">
+                <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+                  <DocumentTextIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                Handles Broken Files
+              </dt>
+              <dd className="mt-2 text-base leading-7 text-gray-600">
+                CSV with mixed encodings? JSON with invalid syntax? We'll fix it.
+              </dd>
+            </div>
+            <div className="relative pl-16">
+              <dt className="text-base font-semibold leading-7 text-gray-900">
+                <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+                  <BoltIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                Real-time Processing
+              </dt>
+              <dd className="mt-2 text-base leading-7 text-gray-600">
+                See your data get cleaned as it happens, no waiting around.
+              </dd>
+            </div>
+            <div className="relative pl-16">
+              <dt className="text-base font-semibold leading-7 text-gray-900">
+                <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+                  <CpuChipIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                Simple APIs
+              </dt>
+              <dd className="mt-2 text-base leading-7 text-gray-600">
+                RESTful endpoints that make sense, documentation that doesn't suck.
+              </dd>
+            </div>
+            <div className="relative pl-16">
+              <dt className="text-base font-semibold leading-7 text-gray-900">
+                <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-blue-600">
+                  <ShieldCheckIcon className="h-6 w-6 text-white" aria-hidden="true" />
+                </div>
+                No Vendor Lock-in
+              </dt>
+              <dd className="mt-2 text-base leading-7 text-gray-600">
+                Export your data anytime, in any format. Your data is yours.
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+
+      {/* CTA Section */}
+      <div className="bg-blue-600 mt-24">
+        <div className="px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Ready to stop dealing with data prep?
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-blue-100">
+              Upload your worst data nightmare and watch us turn it into something useful.
+            </p>
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              <Link
+                href="/dashboard"
+                className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-blue-600 shadow-sm hover:bg-blue-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              >
+                Get started
+              </Link>
+              <Link href="/documentation" className="text-sm font-semibold leading-6 text-white">
+                Learn more <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <footer className="bg-gray-900">
+        <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
+          <div className="flex justify-center space-x-6 md:order-2">
+            <p className="text-xs leading-5 text-gray-400">
+              Pollarbase: We handle the schlep so you don't have to.
+            </p>
+          </div>
+          <div className="mt-8 md:order-1 md:mt-0">
+            <p className="text-center text-xs leading-5 text-gray-400">
+              &copy; 2024 Pollarbase. Finally, a data platform that admits data work is often boring.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

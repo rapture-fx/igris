@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { tomorrow, github } from 'react-syntax-highlighter/dist/esm/styles/hljs'
-import MercuryNavigation from '@/components/layout/MercuryNavigation'
+
 import { Footer } from '@/components/layout/Footer'
 
 // Memoized components for better performance
@@ -577,11 +577,28 @@ curl -X GET "https://api.pollarbase.com/v1/jobs/job_456def" \\
     )
   })).filter(section => section.items.length > 0)
 
-  return (
-    <div className="min-h-screen bg-white">
-      <MercuryNavigation />
-      
-      {/* Documentation Header */}
+      return (
+      <div className="min-h-screen bg-white">
+        {/* Header */}
+        <header className="px-6 lg:px-8 bg-white border-b border-gray-200">
+          <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+            <div className="flex lg:flex-1">
+              <Link href="/" className="-m-1.5 p-1.5">
+                <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+              </Link>
+            </div>
+            <div className="flex lg:flex-1 lg:justify-end gap-x-8">
+              <Link href="/pricing" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
+                Pricing
+              </Link>
+              <Link href="/auth/signin" className="text-sm font-semibold leading-6 text-gray-900">
+                Log in <span aria-hidden="true">&rarr;</span>
+              </Link>
+            </div>
+          </nav>
+        </header>
+        
+        {/* Documentation Header */}
       <header className="bg-mercury-primary text-white pt-20">
         <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="flex items-center justify-between">

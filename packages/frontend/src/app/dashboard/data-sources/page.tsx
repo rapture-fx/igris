@@ -51,10 +51,16 @@ export default function DataSourcesPage() {
 
       if (response.ok) {
         const data = await response.json()
-        setInvestigations(data)
+        // Ensure we always set an array
+        setInvestigations(Array.isArray(data) ? data : [])
+      } else {
+        // If response is not ok, set empty array
+        setInvestigations([])
       }
     } catch (error) {
       console.error('Failed to fetch investigations:', error)
+      // On error, set empty array
+      setInvestigations([])
     } finally {
       setLoading(false)
     }
@@ -169,7 +175,7 @@ export default function DataSourcesPage() {
         </div>
 
         {/* Data Processing Overview */}
-        {investigations.length > 0 && (
+        {(investigations || []).length > 0 && (
           <DataProcessingOverview />
         )}
 
@@ -185,12 +191,12 @@ export default function DataSourcesPage() {
               <h3 className="text-lg font-medium text-gray-900">Your Investigations</h3>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Database className="w-4 h-4" />
-                {investigations.length} {investigations.length === 1 ? 'investigation' : 'investigations'}
+                {(investigations || []).length} {(investigations || []).length === 1 ? 'investigation' : 'investigations'}
               </div>
             </div>
           </div>
 
-          {investigations.length === 0 ? (
+          {(investigations || []).length === 0 ? (
             <div className="p-6">
               <div className="text-center py-12">
                 <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
@@ -211,7 +217,7 @@ export default function DataSourcesPage() {
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
-              {investigations.map((investigation) => (
+              {(investigations || []).map((investigation) => (
                 <div 
                   key={investigation.id} 
                   className={`p-6 hover:bg-gray-50 transition-colors ${
@@ -300,14 +306,14 @@ export default function DataSourcesPage() {
         </div>
 
         {/* Quick Stats */}
-        {investigations.length > 0 && (
+        {(investigations || []).length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white border border-gray-200 rounded-lg p-4">
               <div className="flex items-center">
                 <Database className="w-8 h-8 text-blue-600 mr-3" />
                 <div>
                   <p className="text-sm font-medium text-gray-600">Total Investigations</p>
-                  <p className="text-2xl font-bold text-gray-900">{investigations.length}</p>
+                  <p className="text-2xl font-bold text-gray-900">{(investigations || []).length}</p>
                 </div>
               </div>
             </div>
@@ -318,7 +324,7 @@ export default function DataSourcesPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Processing</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {investigations.filter(i => i.status === 'running').length}
+                    {(investigations || []).filter(i => i.status === 'running').length}
                   </p>
                 </div>
               </div>
@@ -330,7 +336,7 @@ export default function DataSourcesPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Completed</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {investigations.filter(i => i.status === 'completed').length}
+                    {(investigations || []).filter(i => i.status === 'completed').length}
                   </p>
                 </div>
               </div>
@@ -342,12 +348,12 @@ export default function DataSourcesPage() {
                 <div>
                   <p className="text-sm font-medium text-gray-600">Avg Quality</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {investigations.filter(i => i.quality_score).length > 0 
+                    {(investigations || []).filter(i => i.quality_score).length > 0 
                       ? Math.round(
-                          investigations
+                          (investigations || [])
                             .filter(i => i.quality_score)
                             .reduce((sum, i) => sum + (i.quality_score || 0), 0) /
-                          investigations.filter(i => i.quality_score).length * 100
+                          (investigations || []).filter(i => i.quality_score).length * 100
                         )
                       : 0}%
                   </p>
