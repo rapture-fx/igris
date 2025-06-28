@@ -89,6 +89,7 @@ export default function DocumentationPage() {
         { id: 'transformations', label: 'Transformations', icon: <Settings className="w-4 h-4" /> },
         { id: 'quality-scoring', label: 'Quality Scoring', icon: <TrendingUp className="w-4 h-4" /> },
         { id: 'anomaly-detection', label: 'Anomaly Detection', icon: <Filter className="w-4 h-4" /> },
+        { id: 'data-formats', label: 'Supported Formats', icon: <Database className="w-4 h-4" /> },
       ]
     },
     {
@@ -100,6 +101,19 @@ export default function DocumentationPage() {
         { id: 'transformation-api', label: 'Transformation API', icon: <Sparkles className="w-4 h-4" /> },
         { id: 'export-api', label: 'Export API', icon: <Download className="w-4 h-4" /> },
         { id: 'jobs-api', label: 'Jobs API', icon: <Clock className="w-4 h-4" /> },
+        { id: 'pagination', label: 'Pagination', icon: <List className="w-4 h-4" /> },
+        { id: 'filtering', label: 'Filtering & Search', icon: <Search className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: 'development',
+      title: 'Development',
+      items: [
+        { id: 'rate-limits', label: 'Rate Limits', icon: <Clock className="w-4 h-4" /> },
+        { id: 'testing', label: 'Testing', icon: <CheckCircle className="w-4 h-4" /> },
+        { id: 'monitoring', label: 'Monitoring', icon: <Activity className="w-4 h-4" /> },
+        { id: 'performance', label: 'Performance', icon: <TrendingUp className="w-4 h-4" /> },
+        { id: 'troubleshooting', label: 'Troubleshooting', icon: <HelpCircle className="w-4 h-4" /> },
       ]
     },
     {
@@ -113,13 +127,22 @@ export default function DocumentationPage() {
       ]
     },
     {
+      id: 'production',
+      title: 'Production',
+      items: [
+        { id: 'security', label: 'Security', icon: <Shield className="w-4 h-4" /> },
+        { id: 'best-practices', label: 'Best Practices', icon: <CheckCircle className="w-4 h-4" /> },
+        { id: 'enterprise', label: 'Enterprise Features', icon: <Layers className="w-4 h-4" /> },
+        { id: 'billing', label: 'Billing & Usage', icon: <Key className="w-4 h-4" /> },
+      ]
+    },
+    {
       id: 'guides-tutorials',
       title: 'Guides & Tutorials',
       items: [
         { id: 'complete-pipeline', label: 'Complete Pipeline', icon: <Layers className="w-4 h-4" /> },
         { id: 'ml-integration', label: 'ML Integration', icon: <Brain className="w-4 h-4" /> },
-        { id: 'production-tips', label: 'Production Tips', icon: <CheckCircle className="w-4 h-4" /> },
-        { id: 'best-practices', label: 'Best Practices', icon: <CheckCircle className="w-4 h-4" /> },
+        { id: 'changelog', label: 'Changelog', icon: <Activity className="w-4 h-4" /> },
       ]
     }
   ]
@@ -802,38 +825,38 @@ Invalid fields: ['file_type', 'encoding']`
       case 'quickstart':
         return (
           <div className="max-w-4xl">
-            <div className="mb-6">
+            <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Quickstart Guide</h1>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 mb-4">
                 Get up and running with Pollarbase in under 5 minutes.
               </p>
             </div>
 
-            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-8 mb-12">
-              <div className="flex items-start space-x-4">
-                <Key className="w-8 h-8 text-yellow-600 mt-1" />
-                  <div>
-                  <h3 className="text-xl font-bold text-yellow-900 mb-3">Get Your API Key</h3>
-                  <p className="text-yellow-800 mb-4 text-lg">
+            <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start space-x-3">
+                <Key className="w-5 h-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <h3 className="text-base font-bold text-yellow-900 mb-2">Get Your API Key</h3>
+                  <p className="text-yellow-800 mb-3 text-sm">
                     First, sign up for a free account and get your API key from the dashboard.
                   </p>
                   <a href="/dashboard/api-keys" 
-                     className="inline-flex items-center px-6 py-3 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors font-semibold">
-                    Get API Key <ArrowRight className="w-5 h-5 ml-2" />
+                     className="inline-flex items-center px-4 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700 transition-colors text-sm font-semibold">
+                    Get API Key <ArrowRight className="w-4 h-4 ml-2" />
                   </a>
                 </div>
-                  </div>
-                </div>
+              </div>
+            </div>
 
-            <div className="space-y-12">
+            <div className="space-y-6">
               <div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-6">Step 1: Choose Your Language</h2>
-                <div className="flex space-x-4 mb-8">
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Step 1: Choose Your Language</h2>
+                <div className="flex space-x-3 mb-6">
                   {['curl', 'python', 'javascript'].map((lang) => (
                     <button
                       key={lang}
                       onClick={() => setSelectedLanguage(lang)}
-                      className={`px-6 py-3 rounded-lg font-semibold transition-colors text-lg ${
+                      className={`px-4 py-2 rounded-lg font-semibold transition-colors text-sm ${
                         selectedLanguage === lang
                           ? 'bg-blue-600 text-white'
                           : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -842,7 +865,7 @@ Invalid fields: ['file_type', 'encoding']`
                       {lang === 'curl' ? 'cURL' : lang.charAt(0).toUpperCase() + lang.slice(1)}
                     </button>
                   ))}
-                  </div>
+                </div>
                 
                 {codeExamples.quickstart
                   ?.filter(example => example.language === selectedLanguage)
@@ -853,12 +876,12 @@ Invalid fields: ['file_type', 'encoding']`
                   ))}
               </div>
 
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-8">
-                <div className="flex items-start space-x-4">
-                  <CheckCircle className="w-8 h-8 text-green-600 mt-1" />
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 mt-0.5" />
                   <div>
-                    <h3 className="text-xl font-bold text-green-900 mb-4">Next Steps</h3>
-                    <ul className="text-green-800 space-y-2 text-lg">
+                    <h3 className="text-base font-bold text-green-900 mb-3">Next Steps</h3>
+                    <ul className="text-green-800 space-y-1 text-sm">
                       <li>• Explore the <button onClick={() => setSelectedSection('python-sdk')} className="font-semibold underline hover:text-green-900">Python SDK</button> for advanced features</li>
                       <li>• Learn about <button onClick={() => setSelectedSection('data-processing')} className="font-semibold underline hover:text-green-900">data processing concepts</button></li>
                       <li>• Check out <button onClick={() => setSelectedSection('complete-pipeline')} className="font-semibold underline hover:text-green-900">complete pipeline examples</button></li>
@@ -2439,229 +2462,496 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
           </div>
         )
 
-      case 'data-processing':
+      case 'rate-limits':
         return (
           <div className="max-w-4xl">
             <div className="mb-4">
-              <h1 className="text-xl font-bold text-gray-900 mb-2">Data Processing</h1>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Rate Limits</h1>
               <p className="text-sm text-gray-600 mb-4">
-                Understanding how Pollarbase processes and analyzes your data.
+                Understanding API rate limits and how to handle them effectively.
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-5">
-                <h3 className="text-base font-semibold text-blue-900 mb-3">Processing Pipeline</h3>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-4">
+                <h3 className="text-base font-semibold text-orange-900 mb-3">Rate Limit Overview</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="text-center">
-                    <Upload className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                    <div className="text-sm font-medium text-blue-900">Upload</div>
-                    <div className="text-xs text-blue-700">File ingestion</div>
+                    <div className="text-lg font-bold text-orange-800">1,000</div>
+                    <div className="text-sm text-orange-700">Requests per minute</div>
+                    <div className="text-xs text-orange-600">Free & Pro tiers</div>
                   </div>
                   <div className="text-center">
-                    <Brain className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                    <div className="text-sm font-medium text-blue-900">Analyze</div>
-                    <div className="text-xs text-blue-700">AI analysis</div>
+                    <div className="text-lg font-bold text-orange-800">10,000</div>
+                    <div className="text-sm text-orange-700">Requests per minute</div>
+                    <div className="text-xs text-orange-600">Enterprise tier</div>
                   </div>
                   <div className="text-center">
-                    <Settings className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                    <div className="text-sm font-medium text-blue-900">Transform</div>
-                    <div className="text-xs text-blue-700">Data cleaning</div>
-                  </div>
-                  <div className="text-center">
-                    <Download className="w-6 h-6 text-blue-600 mx-auto mb-2" />
-                    <div className="text-sm font-medium text-blue-900">Export</div>
-                    <div className="text-xs text-blue-700">ML-ready data</div>
+                    <div className="text-lg font-bold text-orange-800">100MB</div>
+                    <div className="text-sm text-orange-700">Max file size</div>
+                    <div className="text-xs text-orange-600">Per upload</div>
                   </div>
                 </div>
               </div>
 
               {renderCodeBlock({
                 language: 'python',
-                title: 'Process Dataset with Python',
-                description: 'Complete data processing workflow from upload to export',
-                code: `import pollarbase as pb
+                title: 'Handle Rate Limits with Exponential Backoff',
+                description: 'Implement proper retry logic for rate-limited requests',
+                code: `import time
+import random
+from pollarbase import PollarbaseClient, RateLimitError
 
-# Initialize client
-client = pb.Client(api_key='your_api_key')
+def upload_with_retry(client, file_path, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            result = client.upload(file_path)
+            return result
+        except RateLimitError as e:
+            if attempt == max_retries - 1:
+                raise e
+            
+            # Exponential backoff with jitter
+            delay = (2 ** attempt) + random.uniform(0, 1)
+            print(f"Rate limited. Retrying in {delay:.1f}s...")
+            time.sleep(delay)
+    
+    raise Exception("Max retries exceeded")
 
-# Upload and auto-process
-dataset = client.upload(
-    file_path='customer_data.csv',
-    auto_analyze=True,
-    auto_transform=True
-)
-
-print(f"Original quality: {dataset.original_quality}%")
-print(f"Final quality: {dataset.quality_score}%")
-
-# Get insights
-insights = dataset.get_insights()
-for insight in insights:
-    print(f"- {insight.type}: {insight.message}")
-
-# Export processed data
-clean_data = dataset.export(format='pandas')
-print(f"Shape: {clean_data.shape}")`,
-                response: `Original quality: 67%
-Final quality: 92%
-- Missing Values: Filled 1,247 missing values using ML imputation
-- Duplicates: Removed 89 duplicate records
-- Outliers: Detected and flagged 23 potential outliers
-- Types: Corrected 5 data type mismatches
-Shape: (10000, 15)`
+# Usage
+client = PollarbaseClient(api_key="your_key")
+result = upload_with_retry(client, "large_dataset.csv")`,
+                response: `Rate limited. Retrying in 1.3s...
+Upload successful: dataset_id=ds_abc123`
               })}
             </div>
           </div>
         )
 
-      case 'transformations':
+      case 'data-formats':
         return (
           <div className="max-w-4xl">
             <div className="mb-4">
-              <h1 className="text-xl font-bold text-gray-900 mb-2">Transformations</h1>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Supported Data Formats</h1>
               <p className="text-sm text-gray-600 mb-4">
-                AI-powered data transformations to improve quality and prepare for ML.
+                File formats and data schemas supported by Pollarbase.
               </p>
             </div>
 
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="grid md:grid-cols-3 gap-4">
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <Filter className="w-5 h-5 text-purple-600 mb-2" />
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Data Cleaning</h4>
+                  <Database className="w-5 h-5 text-blue-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Structured Data</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Remove duplicates</li>
-                    <li>• Handle missing values</li>
-                    <li>• Fix formatting issues</li>
+                    <li>• CSV (UTF-8, Latin-1)</li>
+                    <li>• JSON (single/multi-line)</li>
+                    <li>• Parquet</li>
+                    <li>• Excel (.xlsx, .xls)</li>
+                    <li>• TSV (Tab-separated)</li>
                   </ul>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <Sparkles className="w-5 h-5 text-purple-600 mb-2" />
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Type Conversion</h4>
+                  <Code className="w-5 h-5 text-green-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Semi-Structured</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Auto-detect data types</li>
-                    <li>• Convert formats</li>
-                    <li>• Standardize encoding</li>
+                    <li>• JSON Lines (JSONL)</li>
+                    <li>• XML (basic support)</li>
+                    <li>• YAML</li>
+                    <li>• Nested JSON objects</li>
                   </ul>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
-                  <TrendingUp className="w-5 h-5 text-purple-600 mb-2" />
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Enhancement</h4>
+                  <Settings className="w-5 h-5 text-purple-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Constraints</h4>
                   <ul className="text-xs text-gray-600 space-y-1">
-                    <li>• Feature engineering</li>
-                    <li>• Normalize values</li>
-                    <li>• Create derived fields</li>
+                    <li>• Max 100MB per file</li>
+                    <li>• Max 10M rows</li>
+                    <li>• Max 1000 columns</li>
+                    <li>• UTF-8 or Latin-1 encoding</li>
                   </ul>
                 </div>
               </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Upload Different File Formats',
+                description: 'Examples of uploading various data formats',
+                code: `# CSV with custom options
+csv_result = client.upload(
+    file_path='data.csv',
+    encoding='utf-8',
+    delimiter=',',
+    has_header=True
+)
+
+# JSON with nested objects
+json_result = client.upload(
+    file_path='nested_data.json',
+    flatten_nested=True,
+    max_nesting_depth=3
+)
+
+# Excel with sheet selection
+excel_result = client.upload(
+    file_path='workbook.xlsx',
+    sheet_name='Sheet1',  # or sheet index: 0
+    skip_rows=1
+)
+
+# Parquet (most efficient)
+parquet_result = client.upload(
+    file_path='big_data.parquet',
+    auto_analyze=True
+)`,
+                response: `CSV uploaded: 45,231 rows, 12 columns
+JSON uploaded: 8,942 records, flattened to 18 columns  
+Excel uploaded: 12,045 rows from Sheet1
+Parquet uploaded: 1,234,567 rows (fastest format)`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'pagination':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Pagination</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Handle large result sets efficiently with cursor-based pagination.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Paginate Through Datasets',
+                description: 'Efficiently retrieve large lists of datasets',
+                code: `# Get first page
+response = client.datasets.list(limit=50)
+datasets = response.data
+next_cursor = response.next_cursor
+
+print(f"Retrieved {len(datasets)} datasets")
+
+# Get subsequent pages
+all_datasets = datasets.copy()
+while next_cursor:
+    response = client.datasets.list(
+        limit=50, 
+        cursor=next_cursor
+    )
+    all_datasets.extend(response.data)
+    next_cursor = response.next_cursor
+    
+    print(f"Total datasets so far: {len(all_datasets)}")
+
+print(f"Retrieved all {len(all_datasets)} datasets")`,
+                response: `Retrieved 50 datasets
+Total datasets so far: 100
+Total datasets so far: 150
+Retrieved all 147 datasets`
+              })}
 
               {renderCodeBlock({
                 language: 'javascript',
-                title: 'Apply Custom Transformations',
-                description: 'Define and apply custom transformation rules',
-                code: `const transformations = [
-  {
-    type: 'fill_missing',
-    columns: ['age', 'income'],
-    method: 'median'
-  },
-  {
-    type: 'remove_outliers',
-    columns: ['price'],
-    method: 'iqr',
-    threshold: 2.5
-  },
-  {
-    type: 'normalize',
-    columns: ['score'],
-    range: [0, 100]
+                title: 'Async Pagination with Generator',
+                description: 'Modern JavaScript pagination using async generators',
+                code: `// Async generator for pagination
+async function* paginateDatasets(client, limit = 50) {
+  let cursor = null;
+  
+  do {
+    const response = await client.datasets.list({
+      limit,
+      cursor
+    });
+    
+    for (const dataset of response.data) {
+      yield dataset;
+    }
+    
+    cursor = response.next_cursor;
+  } while (cursor);
+}
+
+// Usage
+const client = new PollarbaseClient(apiKey);
+
+for await (const dataset of paginateDatasets(client)) {
+  console.log(\`Dataset: \${dataset.name} - Quality: \${dataset.quality_score}%\`);
+  
+  // Process each dataset individually
+  if (dataset.quality_score < 80) {
+    await improveDatasetQuality(dataset.id);
   }
-];
-
-const result = await client.transform({
-  dataset_id: 'ds_abc123',
-  transformations: transformations,
-  preview: true
-});
-
-console.log(\`Quality improvement: +\${result.quality_improvement}%\`);
-if (result.quality_improvement > 15) {
-  await client.applyTransformations(result.preview_id);
 }`,
-                response: `Quality improvement: +18%
-Transformations applied successfully`
+                response: `Dataset: sales_2023.csv - Quality: 87%
+Dataset: customers.json - Quality: 72%
+Dataset: inventory.parquet - Quality: 95%`
               })}
             </div>
           </div>
         )
 
-      case 'anomaly-detection':
+      case 'monitoring':
         return (
           <div className="max-w-4xl">
             <div className="mb-4">
-              <h1 className="text-xl font-bold text-gray-900 mb-2">Anomaly Detection</h1>
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Monitoring & Logging</h1>
               <p className="text-sm text-gray-600 mb-4">
-                Automatically detect outliers and anomalies in your data.
+                Track API usage, performance, and debug issues effectively.
               </p>
             </div>
 
-            <div className="space-y-6">
-              <div className="bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 rounded-lg p-5">
-                <h3 className="text-base font-semibold text-orange-900 mb-3">Detection Methods</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-orange-900">Statistical</div>
-                    <div className="text-xs text-orange-700">Z-score, IQR</div>
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Activity className="w-5 h-5 text-green-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Usage Metrics</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• API request counts</li>
+                    <li>• Data processing volume</li>
+                    <li>• Response time trends</li>
+                    <li>• Error rates by endpoint</li>
+                  </ul>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Terminal className="w-5 h-5 text-blue-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Request Logging</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Request/response headers</li>
+                    <li>• Execution time breakdown</li>
+                    <li>• Error stack traces</li>
+                    <li>• Custom metadata tags</li>
+                  </ul>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Enable Request Logging',
+                description: 'Configure detailed logging for debugging and monitoring',
+                code: `import logging
+from pollarbase import PollarbaseClient
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('pollarbase')
+
+# Enable request logging
+client = PollarbaseClient(
+    api_key="your_key",
+    debug=True,
+    log_requests=True,
+    request_timeout=30
+)
+
+# Add custom metadata to requests
+with client.request_context(
+    user_id="user_123",
+    session_id="session_abc",
+    environment="production"
+):
+    result = client.upload(
+        file_path="data.csv",
+        tags=["daily_batch", "sales_data"]
+    )
+    
+    analysis = client.analyze(
+        dataset_id=result.id,
+        include_insights=True
+    )
+
+print(f"Upload ID: {result.id}")
+print(f"Processing time: {analysis.processing_time_ms}ms")`,
+                response: `[2024-01-15 10:30:00] DEBUG Request: POST /v1/data/upload
+[2024-01-15 10:30:00] DEBUG Headers: Content-Type: multipart/form-data
+[2024-01-15 10:30:02] DEBUG Response: 200 OK (2.1s)
+[2024-01-15 10:30:02] INFO Upload completed: ds_abc123
+Upload ID: ds_abc123
+Processing time: 2847ms`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'security':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Security Best Practices</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Secure your API integrations and protect sensitive data.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-lg p-4">
+                <h3 className="text-base font-semibold text-red-900 mb-3">Security Checklist</h3>
+                <div className="grid md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-red-800 mb-2">API Key Management</h4>
+                    <ul className="text-xs text-red-700 space-y-1">
+                      <li>• Use environment variables</li>
+                      <li>• Rotate keys regularly</li>
+                      <li>• Different keys per environment</li>
+                      <li>• Monitor key usage</li>
+                    </ul>
                   </div>
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-orange-900">ML-based</div>
-                    <div className="text-xs text-orange-700">Isolation Forest</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-orange-900">Pattern</div>
-                    <div className="text-xs text-orange-700">Clustering</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm font-medium text-orange-900">Time-series</div>
-                    <div className="text-xs text-orange-700">Seasonal</div>
+                  <div>
+                    <h4 className="text-sm font-medium text-red-800 mb-2">Data Protection</h4>
+                    <ul className="text-xs text-red-700 space-y-1">
+                      <li>• Enable data encryption</li>
+                      <li>• Use secure file transfers</li>
+                      <li>• Implement data retention policies</li>
+                      <li>• Regular security audits</li>
+                    </ul>
                   </div>
                 </div>
               </div>
 
               {renderCodeBlock({
                 language: 'python',
-                title: 'Detect Anomalies',
-                description: 'Run anomaly detection on your dataset',
-                code: `# Detect anomalies with multiple methods
-anomalies = client.detect_anomalies(
-    dataset_id='ds_abc123',
-    methods=['statistical', 'ml', 'clustering'],
-    sensitivity=0.05,  # 5% threshold
-    columns=['price', 'quantity', 'score']
+                title: 'Secure Client Configuration',
+                description: 'Set up the client with security best practices',
+                code: `import os
+from pollarbase import PollarbaseClient
+from pollarbase.security import DataEncryption
+
+# Use environment variables for sensitive data
+client = PollarbaseClient(
+    api_key=os.getenv('POLLARBASE_API_KEY'),
+    environment=os.getenv('POLLARBASE_ENV', 'sandbox'),
+    
+    # Enable security features
+    verify_ssl=True,
+    enable_encryption=True,
+    data_retention_days=30,
+    
+    # Request signing for extra security
+    enable_request_signing=True,
+    signing_key=os.getenv('POLLARBASE_SIGNING_KEY')
 )
 
-print(f"Found {len(anomalies)} anomalies")
-for anomaly in anomalies[:5]:
-    print(f"Row {anomaly.row_id}: {anomaly.reason}")
-    print(f"  Confidence: {anomaly.confidence:.2f}")
-    print(f"  Method: {anomaly.method}")
+# Upload with encryption
+encrypted_upload = client.upload(
+    file_path='sensitive_data.csv',
+    encrypt_data=True,
+    encryption_key=os.getenv('DATA_ENCRYPTION_KEY'),
+    
+    # Set access controls
+    access_level='restricted',
+    allowed_users=['user1@company.com', 'user2@company.com'],
+    
+    # Auto-delete after processing
+    auto_delete_after=7  # days
+)
 
-# Auto-handle anomalies
-handled = client.handle_anomalies(
-    dataset_id='ds_abc123',
-    action='flag'  # or 'remove', 'cap', 'transform'
-)`,
-                response: `Found 23 anomalies
-Row 1247: Price value 99999 is 15.2x above normal range
-  Confidence: 0.94
-  Method: statistical
-Row 3891: Quantity -50 is impossible negative value
-  Confidence: 1.00
-  Method: business_rule
-Row 5632: Score 127 exceeds maximum possible value
-  Confidence: 0.87
-  Method: ml`
+print(f"Secure upload: {encrypted_upload.id}")
+print(f"Encryption status: {encrypted_upload.encryption_enabled}")`,
+                response: `Secure upload: ds_encrypted_abc123
+Encryption status: True
+Data retention: 7 days
+Access level: restricted`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'troubleshooting':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Troubleshooting</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Common issues and solutions for API integration problems.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                    <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
+                    Upload Failures
+                  </h4>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div><strong>File too large:</strong> Split files over 100MB or use streaming upload</div>
+                    <div><strong>Encoding issues:</strong> Ensure UTF-8 encoding or specify encoding explicitly</div>
+                    <div><strong>Network timeouts:</strong> Increase timeout settings for large files</div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                    <Clock className="w-4 h-4 text-yellow-500 mr-2" />
+                    Performance Issues
+                  </h4>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <div><strong>Slow processing:</strong> Use Parquet format for better performance</div>
+                    <div><strong>API timeouts:</strong> Implement proper retry logic with exponential backoff</div>
+                    <div><strong>Memory errors:</strong> Process data in smaller batches</div>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Debug API Issues',
+                description: 'Comprehensive error handling and debugging',
+                code: `import logging
+from pollarbase import PollarbaseClient, PollarbaseError
+from pollarbase.exceptions import (
+    AuthenticationError,
+    RateLimitError, 
+    ValidationError,
+    NetworkError
+)
+
+# Enable debug logging
+logging.basicConfig(level=logging.DEBUG)
+client = PollarbaseClient(api_key="your_key", debug=True)
+
+def robust_upload(file_path):
+    try:
+        result = client.upload(
+            file_path=file_path,
+            timeout=300,  # 5 minutes
+            retry_count=3
+        )
+        return result
+        
+    except AuthenticationError as e:
+        print(f"Auth error: Check your API key - {e}")
+        
+    except RateLimitError as e:
+        print(f"Rate limited: {e.retry_after} seconds")
+        # Implement backoff logic here
+        
+    except ValidationError as e:
+        print(f"Validation failed: {e.details}")
+        # Check file format and size
+        
+    except NetworkError as e:
+        print(f"Network issue: {e}. Check connectivity.")
+        
+    except PollarbaseError as e:
+        print(f"API error [{e.error_code}]: {e.message}")
+        
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        # Log full traceback for debugging
+        logging.exception("Upload failed")
+
+# Usage with debugging
+result = robust_upload("problematic_file.csv")`,
+                response: `[DEBUG] Uploading file: problematic_file.csv (45.2MB)
+[DEBUG] Request headers: Content-Type, Authorization, User-Agent
+[ERROR] Validation failed: {'encoding': 'File encoding not supported'}
+Validation failed: {'encoding': 'File encoding not supported', 'suggestion': 'Convert to UTF-8'}
+[DEBUG] Upload aborted due to validation error`
               })}
             </div>
           </div>
@@ -2743,6 +3033,689 @@ Expected improvement: +8%`
           </div>
         )
 
+      case 'filtering':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Filtering & Search</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Search and filter datasets using query parameters and advanced filters.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Search className="w-5 h-5 text-blue-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Search Options</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Full-text search</li>
+                    <li>• Filter by tags</li>
+                    <li>• Date range filters</li>
+                    <li>• Quality score ranges</li>
+                  </ul>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Filter className="w-5 h-5 text-green-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Advanced Filters</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• File format filtering</li>
+                    <li>• Size-based filtering</li>
+                    <li>• Processing status</li>
+                    <li>• Custom metadata</li>
+                  </ul>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Search and Filter Datasets',
+                description: 'Use various filters to find specific datasets',
+                code: `# Basic search
+results = client.datasets.search(
+    query="sales data",
+    limit=20
+)
+
+# Filter by tags and quality
+filtered_results = client.datasets.list(
+    tags=["production", "daily"],
+    quality_score_min=80,
+    created_after="2024-01-01",
+    file_format="csv"
+)
+
+# Advanced filtering with multiple criteria
+advanced_search = client.datasets.search(
+    query="customer",
+    filters={
+        "quality_score": {"min": 75, "max": 100},
+        "file_size": {"max": "50MB"},
+        "processing_status": "completed",
+        "tags": {"any": ["sales", "marketing"]},
+        "columns": {"contains": ["email", "customer_id"]},
+        "created_date": {
+            "after": "2024-01-01",
+            "before": "2024-01-31"
+        }
+    },
+    sort_by="quality_score",
+    order="desc"
+)
+
+print(f"Found {len(advanced_search.data)} datasets")
+for dataset in advanced_search.data:
+    print(f"- {dataset.name}: {dataset.quality_score}%")`,
+                response: `Found 12 datasets
+- customer_profiles_2024.csv: 94%
+- customer_transactions.json: 89% 
+- customer_feedback.xlsx: 87%
+- customer_support_logs.csv: 82%`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'testing':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Testing</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Test your Pollarbase integrations effectively with our testing tools.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                <h3 className="text-base font-semibold text-green-900 mb-3">Testing Environments</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-green-800 mb-2">Sandbox Mode</h4>
+                    <ul className="text-xs text-green-700 space-y-1">
+                      <li>• No real data processing</li>
+                      <li>• Fast mock responses</li>
+                      <li>• Free API calls</li>
+                      <li>• Test error scenarios</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-green-800 mb-2">Test Data</h4>
+                    <ul className="text-xs text-green-700 space-y-1">
+                      <li>• Sample datasets provided</li>
+                      <li>• Synthetic data generation</li>
+                      <li>• Various file formats</li>
+                      <li>• Known quality issues</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Unit Testing with Pollarbase',
+                description: 'Write comprehensive tests for your data processing pipeline',
+                code: `import unittest
+from unittest.mock import patch, MagicMock
+from pollarbase import PollarbaseClient
+from pollarbase.testing import MockClient, SampleData
+
+class TestDataProcessing(unittest.TestCase):
+    
+    def setUp(self):
+        # Use sandbox environment for testing
+        self.client = PollarbaseClient(
+            api_key="test_key",
+            environment="sandbox"
+        )
+        
+        # Or use mock client for unit tests
+        self.mock_client = MockClient()
+    
+    def test_upload_success(self):
+        """Test successful file upload"""
+        # Use sample data for testing
+        test_file = SampleData.create_csv(
+            rows=1000,
+            columns=["name", "email", "age"],
+            quality_issues=["missing_values", "duplicates"]
+        )
+        
+        result = self.client.upload(test_file.path)
+        
+        self.assertIsNotNone(result.id)
+        self.assertEqual(result.status, "uploaded")
+        self.assertGreater(result.file_size, 0)
+    
+    def test_rate_limit_handling(self):
+        """Test rate limit error handling"""
+        with patch.object(self.client, '_make_request') as mock_request:
+            # Simulate rate limit error
+            mock_request.side_effect = RateLimitError("Rate limit exceeded")
+            
+            with self.assertRaises(RateLimitError):
+                self.client.upload("test.csv")
+    
+    def test_quality_threshold(self):
+        """Test quality score validation"""
+        # Create low-quality test data
+        low_quality_data = SampleData.create_csv(
+            rows=100,
+            quality_score=0.45  # Below threshold
+        )
+        
+        result = self.client.upload(
+            low_quality_data.path,
+            min_quality_threshold=0.8
+        )
+        
+        # Should trigger quality improvement suggestions
+        self.assertTrue(result.needs_improvement)
+        self.assertGreater(len(result.suggestions), 0)
+
+if __name__ == '__main__':
+    unittest.main()`,
+                response: `...
+test_upload_success (__main__.TestDataProcessing) ... ok
+test_rate_limit_handling (__main__.TestDataProcessing) ... ok  
+test_quality_threshold (__main__.TestDataProcessing) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.012s
+
+OK`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'performance':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Performance Optimization</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Tips and techniques to optimize your API usage and data processing speed.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <TrendingUp className="w-5 h-5 text-blue-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">File Optimization</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Use Parquet format</li>
+                    <li>• Compress before upload</li>
+                    <li>• Remove unnecessary columns</li>
+                    <li>• Batch similar files</li>
+                  </ul>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Zap className="w-5 h-5 text-green-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">API Efficiency</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Use async requests</li>
+                    <li>• Implement connection pooling</li>
+                    <li>• Cache results locally</li>
+                    <li>• Use webhooks vs polling</li>
+                  </ul>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Settings className="w-5 h-5 text-purple-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Processing Speed</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Enable auto-transforms</li>
+                    <li>• Use quality thresholds</li>
+                    <li>• Process in parallel</li>
+                    <li>• Monitor queue times</li>
+                  </ul>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'High-Performance Data Processing',
+                description: 'Optimize your data processing pipeline for maximum speed',
+                code: `import asyncio
+import aiofiles
+from pollarbase import AsyncPollarbaseClient
+from concurrent.futures import ThreadPoolExecutor
+import pandas as pd
+
+async def optimize_and_upload(client, file_path):
+    """Optimize file before upload for better performance"""
+    
+    # 1. Optimize file format (convert to Parquet if needed)
+    if file_path.endswith('.csv'):
+        df = pd.read_csv(file_path)
+        
+        # Remove empty columns and optimize dtypes
+        df = df.dropna(axis=1, how='all')
+        df = df.convert_dtypes()
+        
+        # Save as optimized Parquet
+        optimized_path = file_path.replace('.csv', '_optimized.parquet')
+        df.to_parquet(optimized_path, compression='snappy')
+        file_path = optimized_path
+    
+    # 2. Upload with optimal settings
+    result = await client.upload(
+        file_path=file_path,
+        auto_analyze=True,
+        auto_transform=True,
+        quality_threshold=0.8,
+        
+        # Performance optimizations
+        chunk_size=8192,  # Larger chunks for faster upload
+        compression='gzip',
+        parallel_processing=True
+    )
+    
+    return result
+
+async def batch_process_files(file_paths, max_concurrent=5):
+    """Process multiple files concurrently"""
+    
+    client = AsyncPollarbaseClient(
+        api_key="your_key",
+        # Connection pooling for better performance
+        max_connections=20,
+        connection_timeout=30
+    )
+    
+    # Create semaphore to limit concurrent uploads
+    semaphore = asyncio.Semaphore(max_concurrent)
+    
+    async def process_with_semaphore(file_path):
+        async with semaphore:
+            return await optimize_and_upload(client, file_path)
+    
+    # Process all files concurrently
+    tasks = [process_with_semaphore(fp) for fp in file_paths]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    successful = [r for r in results if not isinstance(r, Exception)]
+    failed = [r for r in results if isinstance(r, Exception)]
+    
+    print(f"Successfully processed: {len(successful)}")
+    print(f"Failed: {len(failed)}")
+    
+    return successful
+
+# Usage
+files = ["data1.csv", "data2.csv", "data3.csv", "data4.csv"]
+results = asyncio.run(batch_process_files(files))`,
+                response: `Optimizing data1.csv: 45MB -> 12MB (73% reduction)
+Optimizing data2.csv: 67MB -> 18MB (73% reduction)
+Uploading 4 files concurrently...
+Successfully processed: 4
+Failed: 0
+Total processing time: 23.4 seconds (avg 5.8s per file)`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'enterprise':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Enterprise Features</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Advanced capabilities and features available for enterprise customers.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-4">
+                  <Shield className="w-5 h-5 text-purple-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-purple-900 mb-2">Enhanced Security</h4>
+                  <ul className="text-xs text-purple-700 space-y-1">
+                    <li>• SSO integration (SAML, OIDC)</li>
+                    <li>• Role-based access control</li>
+                    <li>• Audit logging & compliance</li>
+                    <li>• Private cloud deployment</li>
+                    <li>• Custom encryption keys</li>
+                  </ul>
+                </div>
+                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4">
+                  <TrendingUp className="w-5 h-5 text-blue-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-blue-900 mb-2">Advanced Analytics</h4>
+                  <ul className="text-xs text-blue-700 space-y-1">
+                    <li>• Custom ML models</li>
+                    <li>• Advanced anomaly detection</li>
+                    <li>• Predictive quality scoring</li>
+                    <li>• Real-time data streams</li>
+                    <li>• Custom transformations</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                  <Settings className="w-5 h-5 text-green-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-green-900 mb-2">Infrastructure</h4>
+                  <ul className="text-xs text-green-700 space-y-1">
+                    <li>• Dedicated compute resources</li>
+                    <li>• Custom SLA guarantees</li>
+                    <li>• Priority processing queues</li>
+                    <li>• Multi-region deployment</li>
+                    <li>• 24/7 technical support</li>
+                  </ul>
+                </div>
+                <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
+                  <Brain className="w-5 h-5 text-yellow-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-yellow-900 mb-2">AI & Automation</h4>
+                  <ul className="text-xs text-yellow-700 space-y-1">
+                    <li>• Auto-scaling processing</li>
+                    <li>• Intelligent data routing</li>
+                    <li>• Custom workflow automation</li>
+                    <li>• Advanced data lineage</li>
+                    <li>• API governance tools</li>
+                  </ul>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Enterprise Client Configuration',
+                description: 'Configure the client with enterprise features enabled',
+                code: `from pollarbase.enterprise import EnterpriseClient
+
+# Initialize enterprise client
+client = EnterpriseClient(
+    api_key=os.getenv('POLLARBASE_ENTERPRISE_KEY'),
+    organization_id='org_enterprise_123',
+    
+    # Enterprise security settings
+    sso_provider='okta',
+    custom_encryption_key=os.getenv('CUSTOM_ENCRYPTION_KEY'),
+    audit_logging=True,
+    
+    # Performance settings
+    dedicated_compute=True,
+    priority_queue='high',
+    multi_region=True,
+    
+    # Advanced features
+    custom_ml_models=True,
+    real_time_processing=True
+)
+
+# Upload with enterprise features
+result = client.upload(
+    file_path='enterprise_data.csv',
+    
+    # Enhanced processing
+    use_custom_models=True,
+    real_time_analysis=True,
+    advanced_anomaly_detection=True,
+    
+    # Security & compliance
+    compliance_tags=['SOX', 'GDPR', 'HIPAA'],
+    data_classification='sensitive',
+    retention_policy='7_years',
+    
+    # Performance optimization
+    dedicated_resources=True,
+    priority_processing=True
+)
+
+# Enterprise analytics
+analytics = client.get_advanced_analytics(
+    dataset_id=result.id,
+    include_predictions=True,
+    include_lineage=True,
+    include_compliance_report=True
+)
+
+print(f"Enterprise upload: {result.id}")
+print(f"Processing time: {result.processing_time_ms}ms")
+print(f"Compliance status: {analytics.compliance_status}")`,
+                response: `Enterprise upload: ds_enterprise_abc123
+Processing time: 245ms (dedicated compute)
+Compliance status: GDPR✓ SOX✓ HIPAA✓
+Advanced analytics: 15 predictive insights
+Data lineage: 3 upstream sources tracked`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'billing':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Billing & Usage</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Understanding pricing, usage tracking, and billing for Pollarbase services.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-base font-semibold text-blue-900 mb-3">Pricing Tiers</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-800">Free</div>
+                    <div className="text-sm text-blue-700">Up to 100MB/month</div>
+                    <div className="text-xs text-blue-600">Basic features</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-800">Pro - $49/mo</div>
+                    <div className="text-sm text-blue-700">Up to 10GB/month</div>
+                    <div className="text-xs text-blue-600">Advanced features</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-800">Enterprise</div>
+                    <div className="text-sm text-blue-700">Custom pricing</div>
+                    <div className="text-xs text-blue-600">All features</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <BarChart3 className="w-5 h-5 text-green-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Usage Metrics</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Data processed (MB/GB)</li>
+                    <li>• API requests count</li>
+                    <li>• Storage usage</li>
+                    <li>• Compute time (minutes)</li>
+                    <li>• Advanced features usage</li>
+                  </ul>
+                </div>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <Clock className="w-5 h-5 text-purple-600 mb-2" />
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Billing Cycle</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Monthly billing cycle</li>
+                    <li>• Usage tracked in real-time</li>
+                    <li>• Overage alerts available</li>
+                    <li>• Detailed usage reports</li>
+                    <li>• Export billing data</li>
+                  </ul>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Monitor Usage and Billing',
+                description: 'Track your API usage and monitor billing information',
+                code: `# Get current usage statistics
+usage = client.billing.get_usage(
+    period='current_month'  # or 'last_30_days', 'last_7_days'
+)
+
+print("Current Usage:")
+print(f"Data processed: {usage.data_processed_mb:.1f} MB")
+print(f"API requests: {usage.api_requests:,}")
+print(f"Storage used: {usage.storage_mb:.1f} MB")
+print(f"Compute minutes: {usage.compute_minutes:.1f}")
+
+# Check remaining quota
+quota = client.billing.get_quota()
+print(f"\\nRemaining quota:")
+print(f"Data: {quota.data_remaining_mb:.1f} MB / {quota.data_limit_mb} MB")
+print(f"Requests: {quota.requests_remaining:,} / {quota.requests_limit:,}")
+
+# Get detailed billing information
+billing = client.billing.get_current_bill()
+print(f"\\nCurrent bill: ${'$'}{billing.amount:.2f}")
+print(f"Due date: {'{'}{billing.due_date}{'}'}")
+
+# Set up usage alerts
+client.billing.set_alert(
+    threshold_percentage=80,  # Alert at 80% usage
+    alert_type='data_usage',
+    notification_email='admin@company.com'
+)
+
+# Get usage by feature
+feature_usage = client.billing.get_feature_usage()
+for feature, usage in feature_usage.items():
+    print(f"{'{'}{feature}{'}'}: {'{'}{usage.count}{'}'} uses, ${'$'}{'{'}{usage.cost:.2f}{'}'}")`,
+                response: `Current Usage:
+Data processed: 2,456.3 MB
+API requests: 15,342
+Storage used: 1,234.5 MB
+Compute minutes: 45.2
+
+Remaining quota:
+Data: 7,543.7 MB / 10,000 MB
+Requests: 84,658 / 100,000
+
+Current bill: $31.45
+Due date: 2024-02-01
+
+Alert set: Email notification at 80% data usage
+Advanced analytics: 42 uses, $8.40
+Custom transformations: 15 uses, $7.50
+Real-time processing: 8 uses, $12.00`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'changelog':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Changelog</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Recent updates, new features, and improvements to the Pollarbase platform.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">Version 2.1.0</h3>
+                  <span className="text-xs text-gray-500">January 15, 2024</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>New:</strong> Enhanced ML models for better anomaly detection accuracy
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>Improved:</strong> 40% faster processing for large CSV files
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>Added:</strong> Real-time data streaming capabilities for enterprise
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">Version 2.0.5</h3>
+                  <span className="text-xs text-gray-500">January 8, 2024</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-yellow-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>Fixed:</strong> Memory leak in batch processing for files over 50MB
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>Improved:</strong> API response times reduced by 25% average
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-base font-semibold text-gray-900">Version 2.0.0</h3>
+                  <span className="text-xs text-gray-500">December 20, 2023</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>Major:</strong> Complete API redesign with improved developer experience
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>New:</strong> Python SDK with async support and better error handling
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>Added:</strong> Advanced data transformation engine
+                    </div>
+                  </div>
+                  <div className="flex items-start space-x-2">
+                    <div className="w-1.5 h-1.5 bg-red-500 rounded-full mt-1.5"></div>
+                    <div className="text-sm text-gray-700">
+                      <strong>Breaking:</strong> API v1 deprecated, migration guide available
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="text-sm font-semibold text-blue-900 mb-2">Stay Updated</h4>
+                <p className="text-xs text-blue-700 mb-3">
+                  Get notified about new releases and important updates.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a href="https://github.com/pollarbase/api/releases" 
+                     className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
+                    GitHub Releases
+                  </a>
+                  <a href="https://status.pollarbase.com" 
+                     className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
+                    Status Page
+                  </a>
+                  <a href="mailto:updates@pollarbase.com?subject=Subscribe to updates" 
+                     className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
+                    Email Updates
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
       default:
         return (
           <div className="max-w-4xl">
@@ -2820,7 +3793,7 @@ Expected improvement: +8%`
                       <li key={item.id}>
                         <button
                           onClick={() => setSelectedSection(item.id)}
-                          className={`w-full flex items-center space-x-2.5 px-2.5 py-1.5 text-left rounded-md transition-all duration-200 text-xs ${
+                          className={`w-full flex items-center space-x-2.5 px-2.5 py-1.5 text-left rounded-md transition-all duration-200 text-sm ${
                             selectedSection === item.id
                               ? 'bg-blue-50 text-blue-700 border-l-3 border-blue-500 shadow-sm font-medium'
                               : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
@@ -2909,13 +3882,13 @@ Expected improvement: +8%`
                 </h3>
                 <div className="space-y-2">
                   <div className="text-xs text-yellow-800">
-                    💡 Use batch uploads for datasets over 100MB
+                    Use batch uploads for datasets over 100MB
                   </div>
                   <div className="text-xs text-yellow-800">
-                    ⚡ Enable auto-transforms to save 80% processing time
+                    Enable auto-transforms to save 80% processing time
                   </div>
                   <div className="text-xs text-yellow-800">
-                    🎯 Set quality thresholds to ensure data standards
+                    Set quality thresholds to ensure data standards
                   </div>
                 </div>
               </div>
