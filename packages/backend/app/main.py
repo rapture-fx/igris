@@ -20,14 +20,12 @@ from app.api.v1.public.transform import router as transform_router
 from app.api.v1.public.jobs import router as jobs_router
 from app.api.v1.public.demo import router as demo_router
 from app.api.v1.public.upload import router as upload_router
-from app.api.v1.dashboard import router as dashboard_router
 from app.api.v1.dashboard_stats import router as dashboard_stats_router
 from app.api.v1.auth_unified import router as auth_router
 from app.api.v1.data_pipeline import router as data_pipeline_router
 from app.api.v1.data_streaming import router as streaming_router
 from app.api.v1.billing import router as billing_router
 from app.api.v1.admin import router as admin_router
-from app.api.v1.monitoring import router as monitoring_router
 from app.api.v1.community import router as community_router
 from app.api.v1.marketplace import router as marketplace_router
 from app.api.v1.integrations import router as integrations_router
@@ -1125,7 +1123,6 @@ app.include_router(validate_router, prefix="/api/v1", tags=["public"])
 app.include_router(transform_router, prefix="/api/v1", tags=["public"])
 app.include_router(jobs_router, prefix="/api/v1", tags=["public"])
 app.include_router(upload_router, prefix="/api/v1/upload", tags=["upload"])
-app.include_router(dashboard_router, prefix="/api/v1/dashboard", tags=["dashboard"])
 app.include_router(dashboard_stats_router, prefix="/api/v1", tags=["dashboard-stats"])
 # Unified authentication system (consolidated from 3 systems into 1)
 app.include_router(auth_router, prefix="/api/v1")
@@ -1137,7 +1134,6 @@ app.include_router(data_pipeline_router, prefix="/api/v1")
 app.include_router(streaming_router, prefix="/api/v1", tags=["streaming"])
 app.include_router(billing_router, prefix="/api/v1/billing", tags=["billing"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
-app.include_router(monitoring_router, prefix="/api/v1/admin/monitoring", tags=["monitoring"])
 app.include_router(community_router, prefix="/api/v1/community", tags=["community"])
 app.include_router(marketplace_router, prefix="/api/v1/marketplace", tags=["marketplace"])
 app.include_router(integrations_router, prefix="/api/v1/integrations", tags=["integrations"])
@@ -1171,7 +1167,7 @@ app.include_router(advanced_ml.router, prefix="/api/v1/ml", tags=["machine-learn
 app.include_router(advanced_ai.router, prefix="/api/v1/advanced-ai", tags=["advanced-ai"])  # New AI endpoints
 app.include_router(ai_framework_endpoints.router, prefix="/api/v1/ai", tags=["ai-framework"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
-app.include_router(monitoring.router, prefix="/api/v1/monitoring", tags=["monitoring"])
+app.include_router(monitoring.router, prefix="/api/v1/admin/monitoring", tags=["monitoring"])
 
 if __name__ == "__main__":
     import uvicorn

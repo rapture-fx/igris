@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timedelta
 import logging
+import uuid
 
 from app.database.connection import get_db
 from app.database.models import User, DataInvestigation, ProcessingJob, JobStatus
@@ -58,6 +59,66 @@ class ProcessingJobStats(BaseModel):
     progress_percentage: float
     started_at: datetime
     estimated_completion: Optional[datetime]
+
+# ==================== TEAM MANAGEMENT ENDPOINTS ====================
+
+class TeamMemberCreate(BaseModel):
+    email: str
+    role: str
+
+class TeamMember(BaseModel):
+    id: str
+    email: str
+    role: str
+    status: str
+    last_active: str
+
+class InviteRequest(BaseModel):
+    email: str
+    role: str
+
+# Simple in-memory store for demonstration purposes (replace with DB integration)
+mock_team_members: List[dict] = [
+    {
+        "id": "1",
+        "email": "admin@example.com",
+        "role": "admin",
+        "status": "active",
+        "last_active": datetime.utcnow().isoformat()
+    },
+    {
+        "id": "2",
+        "email": "user@example.com",
+        "role": "member",
+        "status": "active",
+        "last_active": datetime.utcnow().isoformat()
+    }
+]
+
+@router.get("/team", response_model=List[TeamMember])
+async def get_team_members():
+    """Return the list of team members (mock implementation)."""
+    return mock_team_members
+
+@router.post("/team/invite")
+async def invite_team_member(request: InviteRequest):
+    """Invite a new team member (mock implementation)."""
+    new_member = {
+        "id": str(uuid.uuid4()),
+        "email": request.email,
+        "role": request.role,
+        "status": "pending",
+        "last_active": datetime.utcnow().isoformat()
+    }
+    mock_team_members.append(new_member)
+    return {"message": "Invitation sent successfully", "member": new_member}
+
+@router.delete("/team/{member_id}")
+async def remove_team_member(member_id: str):
+    """Remove a team member (mock implementation)."""
+    global mock_team_members
+    mock_team_members = [m for m in mock_team_members if m["id"] != member_id]
+    return {"message": "Team member removed successfully"}
 
 # ==================== DASHBOARD ENDPOINTS ====================
 
