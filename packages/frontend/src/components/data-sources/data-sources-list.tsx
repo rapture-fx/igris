@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FileText, Database, Clock, CheckCircle2, AlertCircle, Eye, Download, Trash2, RefreshCw } from 'lucide-react'
+import { FileText, Database, Clock, CheckCircle2, AlertCircle, Eye, Download, Trash2, RefreshCw, Calendar, MoreVertical } from 'lucide-react'
 import Link from 'next/link'
 
 interface Investigation {
@@ -21,10 +21,69 @@ interface Investigation {
   }
 }
 
-export function DataSourcesList() {
+interface DataSourcesListProps {
+  searchTerm: string
+  filterType: string
+}
+
+const mockDataSources = [
+  {
+    id: '1',
+    name: 'Customer Dataset 2024',
+    type: 'csv',
+    size: '2.3 MB',
+    records: 15420,
+    uploadDate: '2024-01-15',
+    status: 'active',
+    quality: 94
+  },
+  {
+    id: '2',
+    name: 'Sales Analytics Q4',
+    type: 'excel',
+    size: '5.1 MB', 
+    records: 8950,
+    uploadDate: '2024-01-10',
+    status: 'processing',
+    quality: 87
+  },
+  {
+    id: '3',
+    name: 'Product Inventory',
+    type: 'json',
+    size: '1.8 MB',
+    records: 3240,
+    uploadDate: '2024-01-08',
+    status: 'active',
+    quality: 91
+  },
+  {
+    id: '4',
+    name: 'User Behavior Data',
+    type: 'csv',
+    size: '12.4 MB',
+    records: 45680,
+    uploadDate: '2024-01-05',
+    status: 'active',
+    quality: 89
+  },
+  {
+    id: '5',
+    name: 'Financial Reports',
+    type: 'excel',
+    size: '3.7 MB',
+    records: 2150,
+    uploadDate: '2024-01-03',
+    status: 'error',
+    quality: 76
+  }
+]
+
+export function DataSourcesList({ searchTerm, filterType }: DataSourcesListProps) {
   const [investigations, setInvestigations] = useState<Investigation[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'processing' | 'completed' | 'failed'>('all')
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
 
   useEffect(() => {
     fetchInvestigations()
@@ -89,6 +148,18 @@ export function DataSourcesList() {
     if (filter === 'all') return true
     return inv.status === filter
   })
+
+  const filteredSources = mockDataSources.filter(source => {
+    const matchesSearch = source.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = filterType === 'all' || source.type === filterType
+    return matchesSearch && matchesFilter
+  })
+
+  const toggleSelection = (id: string) => {
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    )
+  }
 
   if (loading) {
     return (

@@ -5,6 +5,15 @@ import { ArrowRight, Database, Brain, Workflow, BarChart3, Shield, Zap, CheckCir
 import { memo, useEffect, useState } from 'react'
 import MercuryNavigation from '@/components/layout/MercuryNavigation'
 import { Footer } from '@/components/layout/Footer'
+import { ChevronRightIcon } from '@heroicons/react/20/solid'
+import { 
+  DocumentTextIcon, 
+  CpuChipIcon, 
+  ShieldCheckIcon,
+  ArrowTrendingUpIcon,
+  CloudIcon,
+  BoltIcon 
+} from '@heroicons/react/24/outline'
 
 // Floating company logos component
 const FloatingLogos = memo(function FloatingLogos() {
@@ -39,60 +48,26 @@ const HeroSection = () => {
   return (
     <section className="flex items-center py-32 sm:py-40 lg:py-48 px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="max-w-4xl mx-auto text-center">
-                <p className="text-sm md:text-base font-medium mb-4 bg-gradient-to-r from-mercury-accent to-black bg-clip-text text-transparent tracking-wide font-apple">
-          No more data schlep.
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
+          The Data <span className="text-blue-600">Schlep Handler</span>
+        </h1>
+        <p className="mt-6 text-lg leading-8 text-gray-600">
+          Stop wasting 80% of your time on data prep. We handle the schlep so you don't have to.
         </p>
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-8 tracking-tight font-apple">
-            Instanly Transform{' '}
-            <span className="text-mercury-accent">Messy Data</span>
-            <br />
-            Into AI-Ready Data Sets.
-          </h1>
-        <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-2xl mx-auto leading-relaxed font-apple">
-         Our solution takes your raw, chaotic data and swiftly converts it into Al-optimized formats. Your Al models can start delivering value in moments, not months.
+        <p className="mt-4 text-base text-gray-500">
+          Throw us your worst CSV files, broken JSON, or whatever data nightmare you're dealing with. 
+          We'll clean it, validate it, and give you something actually useful.
         </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
-                      <Link 
-              href="/dashboard" 
-              className="px-8 py-4 bg-mercury-accent hover:bg-mercury-primary text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg inline-flex items-center gap-2 font-apple"
-            >
-              Optimize your data now
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-            <Link 
-              href="#demo" 
-              className="px-8 py-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition-colors inline-flex items-center gap-2 font-apple"
-            >
-              View demo
-            </Link>
-        </div>
-
-        {/* Company Logos */}
-        <div className="flex justify-center">
-          <div className="text-sm text-gray-500 mb-8 font-apple">Trusted by AI teams at</div>
-        </div>
-        <div className="relative overflow-hidden">
-          <div className="flex animate-scroll-loop items-center gap-8 opacity-60">
-            {/* First set of companies */}
-            {['Microsoft', 'Google', 'Amazon', 'Meta', 'Netflix', 'Spotify', 'Airbnb', 'Uber', 'Tesla', 'OpenAI', 'Anthropic', 'DeepMind', 'NVIDIA', 'Databricks', 'Snowflake', 'Palantir'].map((company, index) => (
-              <div 
-                key={`first-${company}`} 
-                className="text-gray-400 font-semibold text-lg whitespace-nowrap flex-shrink-0 font-apple"
-              >
-                {company}
-              </div>
-            ))}
-            {/* Duplicate set for seamless loop */}
-            {['Microsoft', 'Google', 'Amazon', 'Meta', 'Netflix', 'Spotify', 'Airbnb', 'Uber', 'Tesla', 'OpenAI', 'Anthropic', 'DeepMind', 'NVIDIA', 'Databricks', 'Snowflake', 'Palantir'].map((company, index) => (
-              <div 
-                key={`second-${company}`} 
-                className="text-gray-400 font-semibold text-lg whitespace-nowrap flex-shrink-0 font-apple"
-              >
-                {company}
-              </div>
-            ))}
-          </div>
+        <div className="mt-10 flex items-center justify-center gap-x-6">
+          <Link
+            href="/dashboard"
+            className="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          >
+            Start Handling Schlep
+          </Link>
+          <Link href="/documentation" className="text-sm font-semibold leading-6 text-gray-900">
+            See how it works <span aria-hidden="true">→</span>
+          </Link>
         </div>
       </div>
     </section>
@@ -305,9 +280,25 @@ const FinalCTA = () => {
   )
 }
 
-export default function HomePage() {
+export default function Home() {
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Header */}
+      <header className="px-6 lg:px-8">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+          <div className="flex lg:flex-1">
+            <Link href="/" className="-m-1.5 p-1.5">
+              <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+            </Link>
+          </div>
+          <div className="flex lg:flex-1 lg:justify-end">
+            <Link href="/auth/signin" className="text-sm font-semibold leading-6 text-gray-900">
+              Log in <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </div>
+        </nav>
+      </header>
+
       <MercuryNavigation />
       <HeroSection />
       <ProductShowcase />

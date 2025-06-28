@@ -38,10 +38,9 @@ export default function DashboardLayout({
       <Sidebar />
       <div className="lg:pl-64">
         <Header />
-        <main className="py-6">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {children}
-          </div>
+        <main className="min-h-[calc(100vh-4rem)]">
+          {/* Remove padding/container from layout - let pages handle their own spacing */}
+          {children}
         </main>
       </div>
       

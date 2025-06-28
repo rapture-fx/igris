@@ -13,19 +13,17 @@ import {
   Settings,
   BarChart3,
   Users,
-  Shield
+  Shield,
+  Key
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Data Sources', href: '/data-sources', icon: Database },
-  { name: 'Intelligence', href: '/intelligence', icon: Brain },
-  { name: 'Workflows', href: '/workflows', icon: Workflow },
-  { name: 'Projects', href: '/projects', icon: FolderOpen },
-  { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Team', href: '/team', icon: Users },
-  { name: 'Security', href: '/security', icon: Shield },
-  { name: 'Settings', href: '/settings', icon: Settings },
+  { name: 'Data Sources', href: '/dashboard/data-sources', icon: Database },
+  { name: 'API Keys', href: '/dashboard/api-keys', icon: Key },
+  { name: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
+  { name: 'Security', href: '/dashboard/security', icon: Shield },
+  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
 export function Sidebar() {

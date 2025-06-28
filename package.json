@@ -1,0 +1,30 @@
+{
+  "name": "pollarbase-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pollarbase - The Data Schlep Handler. We handle the schlep so you don't have to",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n frontend,backend -c magenta,cyan \"pnpm --filter pollarbase-web dev\" \"cd packages/backend && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/pollarbase"
+  },
+  "keywords": [
+    "data-processing",
+    "data-cleaning", 
+    "csv-handler",
+    "data-schlep",
+    "data-preparation",
+    "etl",
+    "data-pipeline"
+  ],
+  "author": "Pollarbase Team",
+  "homepage": "https://pollarbase.com"
+} 
