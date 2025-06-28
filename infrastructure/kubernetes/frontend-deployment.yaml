@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pollarbase-frontend
+  labels:
+    app: pollarbase-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pollarbase-frontend
+  template:
+    metadata:
+      labels:
+        app: pollarbase-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/your-org/pollarbase-frontend:latest # Replace in CI/CD when pushing
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "https://api.pollarbase.com" # adjust per environment
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pollarbase-frontend
+spec:
+  selector:
+    app: pollarbase-frontend
+  ports:
+    - port: 80
+      targetPort: 3000
+  type: ClusterIP 

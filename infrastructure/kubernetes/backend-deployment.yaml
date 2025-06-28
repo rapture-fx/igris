@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pollarbase-backend
+  labels:
+    app: pollarbase-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: pollarbase-backend
+  template:
+    metadata:
+      labels:
+        app: pollarbase-backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/your-org/pollarbase-backend:latest # Replace in CI/CD when pushing
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: pollarbase-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: pollarbase-secrets
+                  key: REDIS_URL
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pollarbase-backend
+spec:
+  selector:
+    app: pollarbase-backend
+  ports:
+    - port: 80
+      targetPort: 8000
+  type: ClusterIP 

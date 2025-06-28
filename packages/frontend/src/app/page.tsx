@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { ArrowRight, Database, Brain, Workflow, BarChart3, Shield, Zap, CheckCircle, Github, Star, Sparkles, Target, Users, TrendingUp, Clock } from 'lucide-react'
 import { memo, useEffect, useState } from 'react'
-import { Navigation } from '@/components/layout/Navigation'
+import MercuryNavigation from '@/components/layout/MercuryNavigation'
 import { Footer } from '@/components/layout/Footer'
 
 // Floating company logos component
@@ -39,12 +39,12 @@ const HeroSection = () => {
   return (
     <section className="flex items-center py-32 sm:py-40 lg:py-48 px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="max-w-4xl mx-auto text-center">
-                <p className="text-sm md:text-base font-medium mb-4 bg-gradient-to-r from-emerald-500 to-black bg-clip-text text-transparent tracking-wide font-apple">
+                <p className="text-sm md:text-base font-medium mb-4 bg-gradient-to-r from-mercury-accent to-black bg-clip-text text-transparent tracking-wide font-apple">
           No more data schlep.
         </p>
         <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-gray-900 mb-8 tracking-tight font-apple">
             Instanly Transform{' '}
-            <span className="text-emerald-500">Messy Data</span>
+            <span className="text-mercury-accent">Messy Data</span>
             <br />
             Into AI-Ready Data Sets.
           </h1>
@@ -55,7 +55,7 @@ const HeroSection = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
                       <Link 
               href="/dashboard" 
-              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg inline-flex items-center gap-2 font-apple"
+              className="px-8 py-4 bg-mercury-accent hover:bg-mercury-primary text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg inline-flex items-center gap-2 font-apple"
             >
               Optimize your data now
               <ArrowRight className="w-5 h-5" />
@@ -124,7 +124,7 @@ const ProductShowcase = () => {
       icon: <Zap className="w-6 h-6" />,
       title: "Pattern-Based Labeling",
       description: "Automatically label data based on recognized patterns, reducing manual annotation time by 90%.",
-      gradient: "from-emerald-500 to-emerald-600"
+      gradient: "from-mercury-accent to-mercury-primary"
     },
     {
       icon: <Database className="w-6 h-6" />,
@@ -199,27 +199,28 @@ const CustomerStories = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 font-apple">
-            AI teams love Pollarbase
+            What our customers say
           </h2>
-          <p className="text-lg text-gray-600 font-apple">
-            See how companies are accelerating their AI initiatives
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto font-apple">
+            Join thousands of AI teams who've eliminated data preparation bottlenecks.
           </p>
         </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
+
+        <div className="grid md:grid-cols-3 gap-8">
           {stories.map((story, index) => (
             <div key={index} className="bg-gray-50 p-6 rounded-lg">
               <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-semibold text-sm mr-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-mercury-accent to-blue-500 rounded-lg flex items-center justify-center text-white font-semibold text-sm mr-3">
                   {story.logo}
                 </div>
                 <div>
                   <h4 className="font-semibold text-gray-900 font-apple">{story.company}</h4>
                 </div>
               </div>
-              <p className="text-sm text-gray-700 mb-4 italic font-apple">"{story.quote}"</p>
-              <div className="text-xs text-gray-500 font-apple">
-                <span className="font-medium">{story.author}</span> · {story.role}
+              <p className="text-gray-600 mb-4 italic font-apple">"{story.quote}"</p>
+              <div className="text-sm">
+                <p className="font-semibold text-gray-900 font-apple">{story.author}</p>
+                <p className="text-gray-500 font-apple">{story.role}</p>
               </div>
             </div>
           ))}
@@ -234,21 +235,21 @@ const MarketSection = () => {
   const marketPoints = [
     {
       icon: <Users className="w-8 h-8" />,
-      title: "Target Market",
-      description: "Any company implementing custom AI solutions but struggling with data quality and preparation.",
-      stats: "85% of AI projects fail due to poor data quality"
+      title: "80% Time Savings",
+      description: "Teams report spending 80% less time on data preparation tasks.",
+      stats: "Average 32 hours → 6 hours per dataset"
     },
     {
-      icon: <Sparkles className="w-8 h-8" />,
-      title: "Unfair Advantage",
-      description: "Proprietary algorithms for data cleaning with network effects as users contribute to schlep patterns.",
-      stats: "10x faster than manual data cleaning"
+      icon: <TrendingUp className="w-8 h-8" />,
+      title: "3x Faster AI Deployment",
+      description: "Get your AI models into production 3x faster with clean, ready-to-use data.",
+      stats: "3 months → 3 weeks to production"
     },
     {
-      icon: <Target className="w-8 h-8" />,
-      title: "High Value Solution",
-      description: "Unblocks major AI initiatives by solving the biggest bottleneck in machine learning projects.",
-      stats: "90% reduction in data prep time"
+      icon: <Clock className="w-8 h-8" />,
+      title: "Real-time Processing",
+      description: "Process and clean datasets in real-time as new data arrives.",
+      stats: "Process 1M+ records per minute"
     }
   ]
 
@@ -257,22 +258,22 @@ const MarketSection = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 font-apple">
-            Built for the AI-first world
+            The impact on your AI initiatives
           </h2>
-          <p className="text-lg text-gray-600 font-apple">
-            Addressing the biggest pain point in AI development
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto font-apple">
+            Don't let data preparation be the bottleneck that slows down your AI ambitions.
           </p>
         </div>
-        
+
         <div className="grid md:grid-cols-3 gap-8">
           {marketPoints.map((point, index) => (
-            <div key={index} className="bg-white p-6 rounded-lg text-center border border-gray-200">
-              <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-blue-500 rounded-lg flex items-center justify-center text-white mx-auto mb-4">
+            <div key={index} className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-mercury-accent to-blue-500 rounded-lg flex items-center justify-center text-white mx-auto mb-4">
                 {point.icon}
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2 font-apple">{point.title}</h4>
-              <p className="text-sm text-gray-600 mb-3 font-apple">{point.description}</p>
-              <p className="text-emerald-600 font-semibold text-sm font-apple">{point.stats}</p>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2 font-apple">{point.title}</h3>
+              <p className="text-gray-600 mb-3 font-apple">{point.description}</p>
+              <p className="text-mercury-primary font-semibold text-sm font-apple">{point.stats}</p>
             </div>
           ))}
         </div>
@@ -284,34 +285,21 @@ const MarketSection = () => {
 // Final CTA section
 const FinalCTA = () => {
   return (
-    <section className="py-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto text-center">
-        <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 font-apple">
-          Ready to 10x your AI development speed?
+    <section className="py-16 bg-gray-900 text-white px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-3xl md:text-4xl font-semibold mb-4 font-apple">
+          Ready to eliminate data preparation bottlenecks?
         </h2>
-        <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto font-apple">
-          Join thousands of AI teams who've eliminated data cleaning bottlenecks with Pollarbase. Start your free trial today.
+        <p className="text-lg text-gray-300 mb-8 font-apple">
+          Join thousands of AI teams who've already made the switch to automated, intelligent data preparation.
         </p>
-        
-        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-          <Link 
-            href="/dashboard" 
-            className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg inline-flex items-center gap-2 font-apple"
-          >
-            Start free trial
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <Link 
-            href="/pricing" 
-            className="px-8 py-4 border border-gray-300 text-gray-700 hover:bg-gray-50 font-semibold rounded-lg transition-colors font-apple"
-          >
-            View pricing
-          </Link>
-        </div>
-        
-        <p className="text-sm text-gray-500 mt-4 font-apple">
-          No credit card required • 14-day free trial • Cancel anytime
-        </p>
+        <Link 
+          href="/dashboard"
+          className="px-8 py-4 bg-mercury-accent hover:bg-mercury-primary text-white font-semibold rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-lg inline-flex items-center gap-2 font-apple"
+        >
+          Start optimizing your data
+          <ArrowRight className="w-5 h-5" />
+        </Link>
       </div>
     </section>
   )
@@ -319,16 +307,14 @@ const FinalCTA = () => {
 
 export default function HomePage() {
   return (
-    <>
-      <Navigation />
-      <main className="min-h-screen bg-white">
-        <HeroSection />
-        <ProductShowcase />
-        <CustomerStories />
-        <MarketSection />
-        <FinalCTA />
-      </main>
+    <div className="min-h-screen bg-white">
+      <MercuryNavigation />
+      <HeroSection />
+      <ProductShowcase />
+      <CustomerStories />
+      <MarketSection />
+      <FinalCTA />
       <Footer />
-    </>
+    </div>
   )
 }

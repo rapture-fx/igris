@@ -41,7 +41,7 @@ export function Header() {
         <div className="flex items-center gap-x-4 lg:gap-x-6">
           <Link
             href="/"
-            className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500 transition-colors"
+            className="-m-2.5 p-2.5 text-gray-400 hover:text-mercury-primary transition-colors"
             title="Back to Home"
           >
             <span className="sr-only">Back to Home</span>
@@ -49,7 +49,7 @@ export function Header() {
           </Link>
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
+            className="-m-2.5 p-2.5 text-gray-400 hover:text-mercury-primary"
           >
             <span className="sr-only">View notifications</span>
             <Bell className="h-6 w-6" aria-hidden="true" />
@@ -71,12 +71,12 @@ export function Header() {
               aria-haspopup="true"
             >
               <span className="sr-only">Open user menu</span>
-              <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                <User className="h-5 w-5 text-gray-600" />
+              <div className="h-8 w-8 rounded-full bg-gradient-mercury-accent flex items-center justify-center">
+                <User className="h-5 w-5 text-white" />
               </div>
               <span className="hidden lg:flex lg:items-center">
                 <span
-                  className="ml-4 text-sm font-semibold leading-6 text-gray-900"
+                  className="ml-4 text-sm font-semibold leading-6 text-mercury-primary"
                   aria-hidden="true"
                 >
                   Admin User

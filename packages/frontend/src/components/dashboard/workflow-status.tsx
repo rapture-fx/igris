@@ -90,12 +90,12 @@ export function WorkflowStatus({ limit = 5, className = '' }: WorkflowStatusProp
   }
 
   const generateSteps = (status: string, progress: number): WorkflowStep[] => {
-    const steps = [
-      { id: '1', name: 'Data Ingestion', status: 'pending' as const },
-      { id: '2', name: 'Structure Analysis', status: 'pending' as const },
-      { id: '3', name: 'Quality Assessment', status: 'pending' as const },
-      { id: '4', name: 'Pattern Recognition', status: 'pending' as const },
-      { id: '5', name: 'Report Generation', status: 'pending' as const }
+    const steps: WorkflowStep[] = [
+      { id: '1', name: 'Data Ingestion', status: 'pending' },
+      { id: '2', name: 'Structure Analysis', status: 'pending' },
+      { id: '3', name: 'Quality Assessment', status: 'pending' },
+      { id: '4', name: 'Pattern Recognition', status: 'pending' },
+      { id: '5', name: 'Report Generation', status: 'pending' }
     ]
 
     // Update step statuses based on progress

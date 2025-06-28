@@ -27,12 +27,14 @@ import {
 } from 'lucide-react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import { tomorrow, github } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import MercuryNavigation from '@/components/layout/MercuryNavigation'
+import { Footer } from '@/components/layout/Footer'
 
 // Memoized components for better performance
 const PollarbaseLogo = memo(function PollarbaseLogo({ size = 32 }: { size?: number }) {
   return (
     <div className="flex items-center justify-center">
-      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+      <div className="w-8 h-8 bg-gradient-mercury-accent rounded-lg flex items-center justify-center">
         <Brain className="w-5 h-5 text-white" />
       </div>
     </div>
@@ -41,7 +43,7 @@ const PollarbaseLogo = memo(function PollarbaseLogo({ size = 32 }: { size?: numb
 
 const PythonLogo = memo(function PythonLogo({ size = 24 }: { size?: number }) {
   return (
-    <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-yellow-400 rounded-lg flex items-center justify-center">
+    <div className="w-6 h-6 bg-gradient-to-br from-mercury-accent to-yellow-400 rounded-lg flex items-center justify-center">
       <Code className="w-4 h-4 text-white" />
     </div>
   )
@@ -577,15 +579,17 @@ curl -X GET "https://api.pollarbase.com/v1/jobs/job_456def" \\
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="bg-gray-900 text-white sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4">
+      <MercuryNavigation />
+      
+      {/* Documentation Header */}
+      <header className="bg-mercury-primary text-white pt-20">
+        <div className="max-w-7xl mx-auto px-6 py-12">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <PollarbaseLogo size={32} />
               <div>
-                                  <h1 className="text-xl font-bold">Pollarbase AI</h1>
-                <p className="text-sm text-gray-300">Documentation</p>
+                <h1 className="text-3xl font-bold">Pollarbase Documentation</h1>
+                <p className="text-mercury-text-light mt-2">Everything you need to integrate AI-powered data processing</p>
               </div>
             </div>
             
@@ -597,12 +601,12 @@ curl -X GET "https://api.pollarbase.com/v1/jobs/job_456def" \\
                   placeholder="Search docs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 bg-gray-800 text-white rounded-lg border border-gray-700 focus:border-blue-500 focus:outline-none w-64"
+                  className="pl-10 pr-4 py-2 bg-mercury-surface/10 text-white placeholder-gray-300 rounded-lg border border-mercury-accent/30 focus:border-mercury-accent focus:outline-none w-64"
                 />
               </div>
               <a
                 href="/"
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-mercury-accent hover:bg-mercury-surface hover:text-mercury-primary rounded-lg font-medium transition-colors"
               >
                 <Home className="w-4 h-4 mr-2" />
                 Back to App
@@ -640,16 +644,16 @@ curl -X GET "https://api.pollarbase.com/v1/jobs/job_456def" \\
                           }}
                           className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                             selectedSection === item.id
-                              ? 'bg-blue-50 text-blue-700 font-medium'
+                              ? 'bg-mercury-muted text-mercury-primary font-medium'
                               : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                           }`}
                         >
-                          <span className={selectedSection === item.id ? 'text-blue-600' : 'text-gray-400'}>
+                          <span className={selectedSection === item.id ? 'text-mercury-accent' : 'text-gray-400'}>
                             {item.icon}
                           </span>
                           <span>{item.label}</span>
                           {selectedSection === item.id && (
-                            <ChevronRight className="w-4 h-4 ml-auto text-blue-600" />
+                            <ChevronRight className="w-4 h-4 ml-auto text-mercury-accent" />
                           )}
                         </button>
                       ))}
@@ -668,6 +672,8 @@ curl -X GET "https://api.pollarbase.com/v1/jobs/job_456def" \\
           </main>
         </div>
       </div>
+      
+      <Footer />
     </div>
   )
 } 

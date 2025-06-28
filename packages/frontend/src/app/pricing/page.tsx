@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { ArrowRight, CheckCircle, X, Zap, Shield, Users, Star, Clock, Database, Brain } from 'lucide-react'
-import { Navigation } from '@/components/layout/Navigation'
+import MercuryNavigation from '@/components/layout/MercuryNavigation'
 import { Footer } from '@/components/layout/Footer'
 
 const PricingPage = () => {
@@ -136,7 +136,7 @@ const PricingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navigation />
+      <MercuryNavigation />
       
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
@@ -151,7 +151,7 @@ const PricingPage = () => {
           {/* Billing Toggle */}
           <div className="flex items-center justify-center mb-12">
             <span className="text-sm text-gray-600 font-apple">Monthly billing</span>
-            <div className="mx-3 text-emerald-600 font-medium text-sm font-apple">
+            <div className="mx-3 text-mercury-accent font-medium text-sm font-apple">
               💰 Save 20% with annual billing
             </div>
           </div>
@@ -165,12 +165,12 @@ const PricingPage = () => {
             {plans.map((plan, index) => (
               <div key={index} className={`relative bg-white rounded-2xl p-8 border-2 transition-all hover:shadow-lg ${
                 plan.popular 
-                  ? 'border-emerald-500 shadow-lg' 
+                  ? 'border-mercury-accent shadow-lg' 
                   : 'border-gray-200'
               }`}>
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-emerald-500 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                    <span className="bg-mercury-accent text-white px-4 py-1 rounded-full text-sm font-medium flex items-center gap-1">
                       <Star className="w-3 h-3" />
                       Most Popular
                     </span>
@@ -179,7 +179,7 @@ const PricingPage = () => {
                 
                 {/* Plan Header */}
                 <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 mx-auto mb-4">
+                  <div className="w-16 h-16 bg-mercury-muted rounded-lg flex items-center justify-center text-mercury-primary mx-auto mb-4">
                     {plan.icon}
                   </div>
                   <h3 className="text-2xl font-semibold text-gray-900 mb-2 font-apple">{plan.name}</h3>
@@ -196,7 +196,7 @@ const PricingPage = () => {
                   <ul className="space-y-3">
                     {plan.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start text-sm text-gray-600 font-apple">
-                        <CheckCircle className="w-4 h-4 text-emerald-500 mr-3 mt-0.5 flex-shrink-0" />
+                        <CheckCircle className="w-4 h-4 text-mercury-accent mr-3 mt-0.5 flex-shrink-0" />
                         {feature}
                       </li>
                     ))}
@@ -218,13 +218,17 @@ const PricingPage = () => {
                 </div>
 
                 {/* CTA Button */}
-                <button className={`w-full py-3 px-6 rounded-lg font-medium transition-all font-apple ${
-                  plan.popular 
-                    ? 'bg-emerald-500 hover:bg-emerald-600 text-white hover:scale-105 hover:shadow-lg' 
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
-                }`}>
+                <Link
+                  href="/dashboard"
+                  className={`w-full py-3 px-6 rounded-lg font-semibold text-center transition-all duration-200 inline-flex items-center justify-center gap-2 font-apple ${
+                    plan.popular
+                      ? 'bg-mercury-accent hover:bg-mercury-primary text-white hover:scale-105 hover:shadow-lg'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                  }`}
+                >
                   {plan.cta}
-                </button>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
                 
                 {plan.price !== "Custom" && (
                   <p className="text-xs text-gray-500 text-center mt-3 font-apple">
@@ -252,7 +256,7 @@ const PricingPage = () => {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
               <div key={index} className="bg-white p-6 rounded-lg text-center">
-                <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center text-emerald-600 mx-auto mb-4">
+                <div className="w-12 h-12 bg-mercury-muted rounded-lg flex items-center justify-center text-mercury-primary mx-auto mb-4">
                   {feature.icon}
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2 font-apple">{feature.title}</h3>
@@ -287,7 +291,7 @@ const PricingPage = () => {
       </section>
 
       {/* Final CTA */}
-      <section className="py-16 bg-emerald-50 px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-mercury-muted px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-semibold text-gray-900 mb-4 font-apple">
             Ready to transform your data workflow?
@@ -299,7 +303,7 @@ const PricingPage = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               href="/dashboard" 
-              className="px-8 py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-all hover:scale-105 hover:shadow-lg inline-flex items-center justify-center gap-2 font-apple"
+              className="px-8 py-4 bg-mercury-accent hover:bg-mercury-primary text-white font-semibold rounded-lg transition-all hover:scale-105 hover:shadow-lg inline-flex items-center justify-center gap-2 font-apple"
             >
               Start Free Trial
               <ArrowRight className="w-5 h-5" />
@@ -313,7 +317,7 @@ const PricingPage = () => {
           </div>
           
           <p className="text-sm text-gray-500 mt-4 font-apple">
-            Questions? <a href="mailto:sales@pollarbase.com" className="text-emerald-600 hover:text-emerald-700">Contact our sales team</a>
+            Questions? <a href="mailto:sales@pollarbase.com" className="text-mercury-primary hover:text-mercury-accent">Contact our sales team</a>
           </p>
         </div>
       </section>

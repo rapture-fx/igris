@@ -95,7 +95,7 @@ const BackendIntegration: React.FC = () => {
         return { success: false, error };
       }
     } catch (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Unknown error' };
     }
   }, []);
 
@@ -150,7 +150,7 @@ const BackendIntegration: React.FC = () => {
         return { success: false, error };
       }
     } catch (error) {
-      return { success: false, error: error.message };
+      return { success: false, error: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Unknown error' };
     } finally {
       setIsUploading(false);
     }
@@ -242,7 +242,7 @@ const BackendIntegration: React.FC = () => {
               details: corsOrigin ? `Origin: ${corsOrigin}` : 'No CORS headers' 
             };
           } catch (error) {
-            return { success: false, details: error.message };
+            return { success: false, details: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Unknown error' };
           }
         }
       }
@@ -260,7 +260,7 @@ const BackendIntegration: React.FC = () => {
         setTestResults(prev => [...prev, {
           name: test.name,
           success: false,
-          details: error.message,
+          details: error instanceof Error ? error instanceof Error ? error.message : "Unknown error" : 'Unknown error',
           timestamp: new Date().toISOString()
         }]);
       }

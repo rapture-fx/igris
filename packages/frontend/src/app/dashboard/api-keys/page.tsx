@@ -15,8 +15,8 @@ export default function ApiKeysPage() {
         <div className="p-6">
           <div className="text-center py-8">
             <p className="text-gray-500">No API keys found. Create your first API key to get started.</p>
-            <button className="mt-4 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors">
-              Create API Key
+            <button className="mt-4 px-4 py-2 bg-mercury-accent text-white rounded-lg hover:bg-mercury-primary transition-colors">
+              Generate API Key
             </button>
           </div>
         </div>

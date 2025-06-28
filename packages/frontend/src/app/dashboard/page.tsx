@@ -269,20 +269,21 @@ export default function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Recent Activity */}
           <div data-tour="recent-activity">
-            <RecentActivity activities={recentActivity} />
+            <RecentActivity />
           </div>
 
           {/* Workflow Status */}
           <div data-tour="workflow-status">
-            <WorkflowStatus jobs={activeJobs} />
+            <WorkflowStatus />
           </div>
         </div>
 
         {/* Guided Tour */}
         {showTour && (
           <GuidedTour
-            isOpen={showTour}
+            isVisible={showTour}
             onClose={() => setShowTour(false)}
+            onComplete={() => setShowTour(false)}
           />
         )}
       </div>

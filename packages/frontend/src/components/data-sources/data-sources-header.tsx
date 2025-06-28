@@ -3,7 +3,11 @@
 import { useState } from 'react'
 import { Upload, FileText, TrendingUp, RefreshCw, HelpCircle, Search } from 'lucide-react'
 
-export function DataSourcesHeader() {
+interface DataSourcesHeaderProps {
+  onFileUpload?: (file: File) => Promise<void>
+}
+
+export function DataSourcesHeader({ onFileUpload }: DataSourcesHeaderProps) {
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
@@ -29,13 +33,13 @@ export function DataSourcesHeader() {
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Upload className="w-5 h-5 text-blue-600" />
+        <div className="flex items-center space-x-3 p-3 bg-mercury-muted rounded-lg">
+          <div className="p-2 bg-mercury-surface rounded-lg border border-mercury-accent/20">
+            <Upload className="w-5 h-5 text-mercury-accent" />
           </div>
           <div>
-            <p className="text-sm font-medium text-blue-900">Ready to Upload</p>
-            <p className="text-xs text-blue-700">Drag & drop files or browse</p>
+            <p className="text-sm font-medium text-mercury-primary">Ready to Upload</p>
+            <p className="text-xs text-mercury-text-light">Drag & drop files or browse</p>
           </div>
         </div>
         
@@ -68,7 +72,7 @@ export function DataSourcesHeader() {
           placeholder="Search investigations, datasets, or files..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mercury-accent focus:border-transparent"
         />
       </div>
     </div>

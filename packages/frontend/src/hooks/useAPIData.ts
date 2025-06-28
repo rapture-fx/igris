@@ -271,15 +271,13 @@ export function usePaginatedData<T>(
   const [page, setPage] = useState(initialPage)
   const [totalItems, setTotalItems] = useState(0)
 
-  const { data, loading, error, refetch, lastFetched } = useAPIData(
-    () => fetchFunction(page, pageSize),
-    {
-      ...apiOptions,
-      transform: (result) => {
-        setTotalItems(result.total)
-        return result.data
-      }
-    }
+  const { data, loading, error, refetch, lastFetched } = useAPIData<T[]>(
+    async () => {
+      const result = await fetchFunction(page, pageSize);
+      setTotalItems(result.total);
+      return result.data;
+    },
+    apiOptions
   )
 
   const totalPages = Math.ceil(totalItems / pageSize)
@@ -305,7 +303,7 @@ export function usePaginatedData<T>(
   }, [hasPrevPage])
 
   return {
-    data: data || [],
+    data,
     loading,
     error,
     refetch,
