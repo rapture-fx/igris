@@ -39,8 +39,8 @@ export default function DashboardPage() {
         const [statsRes, activityRes, recommendationsRes, alertsRes] = await Promise.all([
           fetch('/api/proxy/dashboard/stats'),
           fetch('/api/proxy/dashboard/activity'),
-          fetch('/api/proxy/dashboard/recommendations'),
-          fetch('/api/proxy/dashboard/alerts')
+          fetch('/api/proxy/recommendations'),
+          fetch('/api/proxy/predictive-alerts')
         ])
         
         const statsData = await statsRes.json()
@@ -48,12 +48,24 @@ export default function DashboardPage() {
         const recommendationsData = await recommendationsRes.json()
         const alertsData = await alertsRes.json()
         
-        setStats(statsData.data)
-        setRecentActivity(activityData.data || [])
-        setRecommendations(recommendationsData.data || [])
-        setAlerts(alertsData.data || [])
+        // Defensive programming with proper error handling
+        setStats(statsData?.data || statsData || {})
+        
+        const activityArray = activityData?.data || activityData || []
+        setRecentActivity(Array.isArray(activityArray) ? activityArray : [])
+        
+        const recommendationsArray = recommendationsData?.data || recommendationsData || []
+        setRecommendations(Array.isArray(recommendationsArray) ? recommendationsArray : [])
+        
+        const alertsArray = alertsData?.data || alertsData || []
+        setAlerts(Array.isArray(alertsArray) ? alertsArray : [])
       } catch (error) {
         console.error('Error fetching dashboard data:', error)
+        // Ensure arrays remain arrays even on API failure
+        setStats({})
+        if (!Array.isArray(recentActivity)) setRecentActivity([])
+        if (!Array.isArray(recommendations)) setRecommendations([])
+        if (!Array.isArray(alerts)) setAlerts([])
       } finally {
         setLoading(false)
       }

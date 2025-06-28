@@ -14,15 +14,29 @@ import {
   BarChart3,
   Users,
   Shield,
-  Key
+  Key,
+  Search,
+  Zap,
+  Tags,
+  Download,
+  Activity,
+  AlertTriangle
 } from 'lucide-react'
 
-const navigation = [
+const coreFeatures = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Data Analysis', href: '/dashboard/data-analysis', icon: Search, description: 'Upload & analyze data types' },
+  { name: 'Anomaly Detection', href: '/dashboard/anomalies', icon: AlertTriangle, description: 'Identify data issues' },
+  { name: 'Transformations', href: '/dashboard/transformations', icon: Zap, description: 'AI-powered suggestions' },
+  { name: 'Content Labeling', href: '/dashboard/labeling', icon: Tags, description: 'Pattern-based labeling' },
+  { name: 'Export Ready', href: '/dashboard/export', icon: Download, description: 'AI framework outputs' },
+  { name: 'Processing Jobs', href: '/dashboard/jobs', icon: Activity, description: 'Monitor data prep tasks' },
+]
+
+const management = [
   { name: 'Data Sources', href: '/dashboard/data-sources', icon: Database },
   { name: 'API Keys', href: '/dashboard/api-keys', icon: Key },
   { name: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
-  { name: 'Security', href: '/dashboard/security', icon: Shield },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
@@ -40,9 +54,52 @@ export function Sidebar() {
         </div>
         <nav className="flex flex-1 flex-col">
           <ul role="list" className="flex flex-1 flex-col gap-y-7">
+            {/* Core Features */}
             <li>
-              <ul role="list" className="-mx-2 space-y-1">
-                {navigation.map((item) => {
+              <div className="text-xs font-semibold leading-6 text-gray-400 uppercase tracking-wide">
+                Core Features
+              </div>
+              <ul role="list" className="-mx-2 mt-2 space-y-1">
+                {coreFeatures.map((item) => {
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+                  return (
+                    <li key={item.name}>
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          isActive
+                            ? 'bg-mercury-muted text-mercury-primary border-r-2 border-mercury-accent'
+                            : 'text-gray-700 hover:text-mercury-primary hover:bg-gray-50',
+                          'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-medium transition-colors'
+                        )}
+                      >
+                        <item.icon
+                          className={cn(
+                            isActive ? 'text-mercury-accent' : 'text-gray-400 group-hover:text-mercury-accent',
+                            'h-5 w-5 shrink-0'
+                          )}
+                          aria-hidden="true"
+                        />
+                        <div className="flex flex-col">
+                          <span>{item.name}</span>
+                          {item.description && (
+                            <span className="text-xs text-gray-500">{item.description}</span>
+                          )}
+                        </div>
+                      </Link>
+                    </li>
+                  )
+                })}
+              </ul>
+            </li>
+            
+            {/* Management */}
+            <li>
+              <div className="text-xs font-semibold leading-6 text-gray-400 uppercase tracking-wide">
+                Management
+              </div>
+              <ul role="list" className="-mx-2 mt-2 space-y-1">
+                {management.map((item) => {
                   const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
                   return (
                     <li key={item.name}>
