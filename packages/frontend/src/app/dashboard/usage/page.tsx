@@ -163,7 +163,7 @@ export default function UsagePage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-start mb-8">
-          <div>
+      <div>
             <h1 className="text-3xl font-bold text-gray-900">Usage & Billing</h1>
             <p className="text-gray-600 mt-2">Monitor your usage, costs, and manage billing settings</p>
           </div>
@@ -181,9 +181,9 @@ export default function UsagePage() {
               <Download className="w-4 h-4" />
               <span>Export Report</span>
             </button>
-          </div>
+      </div>
         </div>
-
+        
         {/* Current Usage Overview */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-lg border">
@@ -213,7 +213,7 @@ export default function UsagePage() {
             <p className="text-sm text-gray-500 mt-2">based on current usage</p>
           </div>
         </div>
-
+        
         {/* Billing Status Alert */}
         {usageStats.billing.status !== 'active' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-8">
@@ -300,8 +300,8 @@ export default function UsagePage() {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
+        </div>
+      </div>
 
           {/* Billing Information */}
           <div className="bg-white rounded-lg border p-6">
@@ -341,8 +341,8 @@ export default function UsagePage() {
           <div className="p-6 border-b">
             <h2 className="text-xl font-semibold">Billing History</h2>
             <p className="text-gray-600 text-sm mt-1">View and download your past invoices</p>
-          </div>
-          <div className="p-6">
+        </div>
+        <div className="p-6">
             <div className="space-y-4">
               {billingHistory.map((invoice) => (
                 <div key={invoice.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">

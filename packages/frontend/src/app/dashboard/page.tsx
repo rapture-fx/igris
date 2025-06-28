@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { 
   Upload, 
   Database, 
-  BarChart3, 
+  BarChart3,
   Sparkles,
   Plus,
   RefreshCw,
@@ -134,7 +134,7 @@ export default function DashboardPage() {
             </p>
             
             <div className="space-y-4">
-              <button
+            <button
                 onClick={() => setShowUpload(true)}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors flex items-center justify-center space-x-2"
               >
@@ -145,7 +145,7 @@ export default function DashboardPage() {
               <Link href="/dashboard/data-sources" className="block">
                 <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors">
                   Browse Sample Data
-                </button>
+            </button>
               </Link>
             </div>
           </div>
@@ -182,14 +182,14 @@ export default function DashboardPage() {
       <div className="max-w-7xl mx-auto">
         {/* Header with Time Saved Highlight */}
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <div className="flex items-center space-x-4 mt-2">
               <p className="text-gray-600">Your data intelligence overview</p>
               {stats.time_savings && (
                 <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
                   🕒 {stats.time_savings.hours_saved_weekly}h saved this week
-                </div>
+            </div>
               )}
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
-          </div>
+              </div>
 
           {/* Center Column - Smart Recommendations */}
           <div className="lg:col-span-4 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
@@ -364,8 +364,8 @@ export default function DashboardPage() {
               <div className="flex items-center space-x-2 mb-4">
                 <AlertTriangle className="w-5 h-5 text-orange-600" />
                 <h2 className="text-lg font-semibold text-gray-900">Alerts</h2>
-              </div>
-              
+        </div>
+
               <div className="space-y-3">
                 {alerts.slice(0, 3).map((alert) => (
                   <div key={alert.id} className={`p-3 rounded-lg border ${
@@ -416,7 +416,7 @@ export default function DashboardPage() {
             </Link>
           </div>
         </div>
-      </div>
+          </div>
 
       {/* Upload Modal */}
       {showUpload && (

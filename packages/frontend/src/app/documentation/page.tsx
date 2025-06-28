@@ -24,7 +24,11 @@ import {
   TrendingUp,
   Layers,
   Filter,
-  Download
+  Download,
+  List,
+  ExternalLink,
+  HelpCircle,
+  Activity
 } from 'lucide-react'
 import { Footer } from '@/components/layout/Footer'
 
@@ -188,102 +192,197 @@ export default function DocumentationPage() {
     ]
   }
 
-  // Code examples
+    // Code examples
   const codeExamples: Record<string, CodeExample[]> = {
     quickstart: [
       {
         language: 'curl',
         title: 'Upload Your First Dataset',
-        description: 'Get started by uploading a CSV file',
+        description: 'Get started by uploading a CSV file with automatic analysis',
         code: `curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
   -H "Authorization: Bearer sk-abc123..." \\
   -H "Content-Type: multipart/form-data" \\
   -F "file=@customer_data.csv" \\
-  -F "auto_analyze=true"`,
+  -F "auto_analyze=true" \\
+  -F "quality_threshold=0.8"`,
         response: `{
   "dataset_id": "ds_7Qj2mK8fN3xB",
-  "status": "processing",
+  "status": "processing", 
   "name": "customer_data.csv",
   "size_bytes": 524288,
   "rows": 10000,
   "columns": 12,
-  "analysis_job_id": "job_3fD8kL1mP7nX"
+  "analysis_job_id": "job_3fD8kL1mP7nX",
+  "estimated_completion": "2024-06-28T15:35:00Z"
 }`
       },
       {
         language: 'python',
-        title: 'Python Quick Start',
-        description: 'Complete data processing pipeline',
+        title: 'Python Complete Workflow',
+        description: 'End-to-end data processing with error handling',
         code: `import pollarbase
+from pathlib import Path
 
-# Initialize client
-client = pollarbase.Client(api_key="sk-abc123...")
+# Initialize client with environment variable
+client = pollarbase.Client()
 
-# Upload and analyze
-dataset = client.upload_file("data.csv", auto_analyze=True)
-print(f"Dataset ID: {dataset.id}")
-
-# Wait for analysis
-analysis = dataset.wait_for_analysis()
-print(f"Quality Score: {analysis.quality_score}/100")
-
-# Get cleaning suggestions
-suggestions = analysis.get_suggestions()
-for suggestion in suggestions:
-    print(f"• {suggestion.description}")
-
-# Apply transformations
-cleaned = dataset.apply_transformations([
-    pollarbase.RemoveDuplicates(),
-    pollarbase.FillMissing(strategy="mean"),
-    pollarbase.FixFormats()
-])
-
-# Export results
-cleaned.export("cleaned_data.csv")`,
-        response: `Dataset ID: ds_7Qj2mK8fN3xB
+try:
+    # Upload and analyze dataset
+    dataset = client.upload_file(
+        Path("data/customer_data.csv"), 
+        auto_analyze=True,
+        quality_threshold=0.8
+    )
+    print(f"Dataset uploaded: {dataset.id}")
+    
+    # Wait for analysis with progress tracking
+    analysis = dataset.wait_for_analysis(
+        timeout=300,
+        progress_callback=lambda p: print(f"Progress: {p}%")
+    )
+    
+    print(f"Quality Score: {analysis.quality_score}/100")
+    print(f"Issues Found: {len(analysis.issues)}")
+    
+    # Review and apply suggestions
+    if analysis.quality_score < 90:
+        suggestions = analysis.get_suggestions()
+        for suggestion in suggestions:
+            print(f"• {suggestion.description} (Impact: +{suggestion.impact}%)")
+        
+        # Apply high-impact transformations
+        transformations = [s for s in suggestions if s.impact > 5]
+        cleaned = dataset.apply_transformations(transformations)
+        print(f"Applied {len(transformations)} transformations")
+    else:
+        cleaned = dataset
+    
+    # Export in multiple formats
+    exports = cleaned.export_batch([
+        {"format": "csv", "path": "clean_data.csv"},
+        {"format": "parquet", "path": "clean_data.parquet"},
+        {"format": "tensorflow", "split_ratio": 0.8}
+    ])
+    
+    print("Export completed successfully!")
+    for export in exports:
+        print(f"  {export.format}: {export.path}")
+        
+except pollarbase.QualityError as e:
+    print(f"Data quality too low: {e.score}/100")
+    print("Suggestions:", e.suggestions)
+except pollarbase.APIError as e:
+    print(f"API Error: {e.message}")
+except Exception as e:
+    print(f"Unexpected error: {e}")`,
+        response: `Dataset uploaded: ds_7Qj2mK8fN3xB
+Progress: 25%
+Progress: 50% 
+Progress: 75%
+Progress: 100%
 Quality Score: 87/100
-• Remove 23 duplicate rows
-• Fill 156 missing values in 'age' column
-• Standardize date formats in 'created_at'
-• Fix email format issues in 'email' column
-Export completed: cleaned_data.csv`
+Issues Found: 4
+• Remove 23 duplicate rows (Impact: +8%)
+• Fill 156 missing values in 'age' column (Impact: +12%)  
+• Standardize date formats in 'created_at' (Impact: +6%)
+• Fix email format issues in 'email' column (Impact: +9%)
+Applied 4 transformations
+Export completed successfully!
+  csv: clean_data.csv
+  parquet: clean_data.parquet
+  tensorflow: train.tfrecord, test.tfrecord`
       },
       {
         language: 'javascript',
-        title: 'JavaScript/Node.js',
-        description: 'Client-side data processing',
+        title: 'JavaScript Real-time Processing',
+        description: 'Client-side processing with progress tracking and webhooks',
         code: `import Pollarbase from '@pollarbase/js';
 
-const client = new Pollarbase('sk-abc123...');
+const client = new Pollarbase({
+  apiKey: process.env.POLLARBASE_API_KEY,
+  webhook: 'https://myapp.com/webhooks/pollarbase'
+});
 
-async function processData() {
-  try {
-    // Upload file
-    const dataset = await client.upload({
-      file: fileInput.files[0],
-      autoAnalyze: true
-    });
-    
-    // Get analysis results
-    const analysis = await dataset.waitForAnalysis();
-    console.log(\`Quality: \${analysis.qualityScore}%\`);
-    
-    // Apply AI suggestions
-    const cleaned = await dataset.applySuggestions({
-      removeDuplicates: true,
-      fillMissing: 'smart',
-      fixFormats: true
-    });
-    
-    // Download cleaned data
-    const blob = await cleaned.download('csv');
-    downloadFile(blob, 'cleaned_data.csv');
-    
-  } catch (error) {
-    console.error('Processing failed:', error);
+class DataProcessor {
+  async processFile(file) {
+    try {
+      // Setup progress tracking
+      const progressBar = document.getElementById('progress');
+      
+      // Upload with real-time progress
+      const dataset = await client.upload({
+        file: file,
+  autoAnalyze: true,
+        onProgress: (progress) => {
+          progressBar.style.width = progress + '%';
+          console.log(\`Upload: \${progress}%\`);
+        }
+      });
+      
+      console.log(\`Dataset ID: \${dataset.id}\`);
+      
+      // Subscribe to analysis updates
+      const subscription = client.subscribe(dataset.id, {
+        onUpdate: (status) => this.handleAnalysisUpdate(status),
+        onComplete: (analysis) => this.handleAnalysisComplete(analysis),
+        onError: (error) => this.handleError(error)
+      });
+      
+      return { dataset, subscription };
+      
+    } catch (error) {
+      this.handleError(error);
+      throw error;
+    }
   }
-}`
+  
+  handleAnalysisUpdate(status) {
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = \`Processing: \${status.stage} (\${status.progress}%)\`;
+  }
+  
+  async handleAnalysisComplete(analysis) {
+    console.log(\`Quality Score: \${analysis.qualityScore}%\`);
+    
+    if (analysis.qualityScore < 85) {
+      // Auto-apply high-confidence suggestions
+      const autoSuggestions = analysis.suggestions.filter(s => 
+        s.confidence > 0.9 && s.impact > 5
+      );
+      
+      if (autoSuggestions.length > 0) {
+        const cleaned = await analysis.applySuggestions(autoSuggestions);
+        this.displayResults(cleaned);
+      }
+    } else {
+      this.displayResults(analysis.dataset);
+    }
+  }
+  
+  handleError(error) {
+    console.error('Processing failed:', error);
+    const errorEl = document.getElementById('error');
+    errorEl.textContent = error.message;
+    errorEl.classList.remove('hidden');
+  }
+  
+  displayResults(dataset) {
+    const resultsEl = document.getElementById('results');
+    resultsEl.innerHTML = \`
+      <h3>Processing Complete!</h3>
+      <p>Dataset: \${dataset.name}</p>
+      <p>Quality: \${dataset.qualityScore}%</p>
+      <button onclick="downloadData('\${dataset.id}')">Download CSV</button>
+      <button onclick="downloadData('\${dataset.id}', 'json')">Download JSON</button>
+    \`;
+  }
+}
+
+// Usage
+const processor = new DataProcessor();
+document.getElementById('fileInput').addEventListener('change', (e) => {
+  processor.processFile(e.target.files[0]);
+});`
       }
     ],
     authentication: [
@@ -400,26 +499,45 @@ for analysis in analyses:
         title: 'Error Handling in Python',
         description: 'Proper error handling with the Python SDK',
         code: `import pollarbase
+from pollarbase.exceptions import (
+    APIError, 
+    AuthenticationError, 
+    RateLimitError,
+    ValidationError
+)
 
-client = pollarbase.Client(api_key="sk-abc123...")
+client = pollarbase.Client()
 
 try:
     dataset = client.upload_file("data.csv")
     analysis = dataset.analyze()
     
-except pollarbase.ValidationError as e:
-    print(f"Validation failed: {e.message}")
-    print(f"Details: {e.details}")
+except AuthenticationError as e:
+    print(f"Authentication failed: {e.message}")
+    # Handle invalid API key
     
-except pollarbase.RateLimitError as e:
-    print(f"Rate limit exceeded. Retry after: {e.retry_after}s")
+except ValidationError as e:
+    print(f"Validation error: {e.message}")
+    print(f"Invalid fields: {e.fields}")
+    # Handle validation errors
     
-except pollarbase.APIError as e:
-    print(f"API error [{e.code}]: {e.message}")
-    print(f"Request ID: {e.request_id}")
+except RateLimitError as e:
+    print(f"Rate limited. Retry after: {e.retry_after} seconds")
+    time.sleep(e.retry_after)
+    # Implement exponential backoff
     
-except Exception as e:
-    print(f"Unexpected error: {e}")`
+except APIError as e:
+    print(f"API Error: {e.status_code} - {e.message}")
+    if e.status_code >= 500:
+        # Server error - retry logic
+        pass
+    else:
+        # Client error - fix request
+        pass`,
+        response: `Authentication failed: Invalid API key provided
+Rate limited. Retry after: 60 seconds
+Validation error: File format not supported
+Invalid fields: ['file_type', 'encoding']`
       }
     ]
   }
@@ -430,31 +548,80 @@ except Exception as e:
     setTimeout(() => setCopiedCode(null), 2000)
   }
 
+  const renderHighlightedCode = (code: string, language: string) => {
+    // Simple syntax highlighting without external libraries
+    const lines = code.split('\n')
+    return lines.map((line, index) => {
+      let highlightedLine = line
+      
+      // Basic highlighting patterns
+      if (language === 'bash' || language === 'curl') {
+        highlightedLine = line
+          .replace(/(curl|npm|pip|cd|ls|mkdir)/g, '<span class="text-blue-400">$1</span>')
+          .replace(/(-[A-Za-z])/g, '<span class="text-yellow-400">$1</span>')
+          .replace(/(https?:\/\/[^\s]+)/g, '<span class="text-green-400">$1</span>')
+          .replace(/(".*?")/g, '<span class="text-orange-400">$1</span>')
+      } else if (language === 'python') {
+        highlightedLine = line
+          .replace(/(import|from|def|class|if|else|elif|for|while|try|except|return|await|async)/g, '<span class="text-purple-400">$1</span>')
+          .replace(/(print|len|str|int|list|dict)/g, '<span class="text-blue-400">$1</span>')
+          .replace(/(".*?"|'.*?')/g, '<span class="text-green-400">$1</span>')
+          .replace(/(#.*)/g, '<span class="text-gray-500">$1</span>')
+      } else if (language === 'javascript') {
+        highlightedLine = line
+          .replace(/(const|let|var|function|async|await|import|export|if|else|for|while|try|catch|return)/g, '<span class="text-purple-400">$1</span>')
+          .replace(/(console|Array|Object|Promise|fetch)/g, '<span class="text-blue-400">$1</span>')
+          .replace(/(".*?"|'.*?'|`.*?`)/g, '<span class="text-green-400">$1</span>')
+          .replace(/(\/\/.*)/g, '<span class="text-gray-500">$1</span>')
+      } else if (language === 'json') {
+        highlightedLine = line
+          .replace(/(".*?"):/g, '<span class="text-blue-400">$1</span>:')
+          .replace(/: (".*?")/g, ': <span class="text-green-400">$1</span>')
+          .replace(/: (\d+)/g, ': <span class="text-orange-400">$1</span>')
+          .replace(/: (true|false|null)/g, ': <span class="text-purple-400">$1</span>')
+      }
+      
+      return (
+        <span key={index} className="block">
+          <span dangerouslySetInnerHTML={{ __html: highlightedLine }} />
+        </span>
+      )
+    })
+  }
+
   const renderCodeBlock = (example: CodeExample) => (
-    <div className="bg-gray-900 rounded-lg overflow-hidden border border-gray-700 mb-6">
-      <div className="flex items-center justify-between bg-gray-800 px-4 py-3 border-b border-gray-700">
+    <div className="bg-gray-900 rounded-xl overflow-hidden border border-gray-700 mb-6 shadow-lg">
+      <div className="flex items-center justify-between bg-gray-800 px-5 py-3 border-b border-gray-700">
         <div className="flex items-center space-x-3">
+          <div className="flex space-x-1">
+            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+      </div>
           <Terminal className="w-4 h-4 text-gray-400" />
           <span className="text-sm font-medium text-gray-200">{example.title}</span>
-          <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded">{example.language}</span>
+          <span className="text-xs text-gray-400 bg-gray-700 px-2 py-1 rounded-md font-mono">{example.language}</span>
         </div>
-        <button
+          <button
           onClick={() => copyToClipboard(example.code, example.title)}
-          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors"
+          className="flex items-center space-x-2 text-gray-400 hover:text-white transition-colors px-3 py-1 rounded-md hover:bg-gray-700"
         >
           <Copy className="w-4 h-4" />
-          <span className="text-xs">{copiedCode === example.title ? 'Copied!' : 'Copy'}</span>
-        </button>
-      </div>
-      <div className="p-4">
-        <p className="text-sm text-gray-400 mb-3">{example.description}</p>
-        <pre className="text-sm text-gray-100 overflow-x-auto">
-          <code>{example.code}</code>
+          <span className="text-xs font-medium">{copiedCode === example.title ? 'Copied!' : 'Copy'}</span>
+          </button>
+        </div>
+      <div className="p-5">
+        <p className="text-sm text-gray-400 mb-4">{example.description}</p>
+        <pre className="text-sm leading-relaxed overflow-x-auto">
+          <code className="language-bash text-gray-100">{renderHighlightedCode(example.code, example.language)}</code>
         </pre>
         {example.response && (
-          <div className="mt-4 pt-4 border-t border-gray-700">
-            <p className="text-xs text-gray-500 mb-2">Response:</p>
-            <pre className="text-sm text-green-400 overflow-x-auto">
+          <div className="mt-5 pt-4 border-t border-gray-700">
+            <div className="flex items-center space-x-2 mb-3">
+              <div className="w-2 h-2 rounded-full bg-green-400"></div>
+              <p className="text-xs text-gray-400 font-medium">Response:</p>
+            </div>
+            <pre className="text-sm text-green-400 overflow-x-auto leading-relaxed">
               <code>{example.response}</code>
             </pre>
           </div>
@@ -464,43 +631,63 @@ except Exception as e:
   )
 
   const renderAPIEndpoint = (endpoint: APIEndpoint) => (
-    <div className="border border-gray-200 rounded-lg p-6 mb-6">
-      <div className="flex items-center space-x-3 mb-4">
-        <span className={`px-3 py-1 rounded text-xs font-mono font-bold ${
-          endpoint.method === 'GET' ? 'bg-green-100 text-green-700' :
-          endpoint.method === 'POST' ? 'bg-blue-100 text-blue-700' :
-          endpoint.method === 'PUT' ? 'bg-yellow-100 text-yellow-700' :
-          'bg-red-100 text-red-700'
-        }`}>
-          {endpoint.method}
-        </span>
-        <code className="text-lg font-mono text-gray-800 bg-gray-50 px-3 py-1 rounded">{endpoint.path}</code>
-      </div>
-      <p className="text-gray-600 mb-6 text-lg">{endpoint.description}</p>
-      
-      {endpoint.parameters && endpoint.parameters.length > 0 && (
-        <div>
-          <h4 className="font-semibold text-gray-800 mb-4 text-lg">Parameters</h4>
-          <div className="bg-gray-50 rounded-lg p-4">
-            {endpoint.parameters.map((param, index) => (
-              <div key={index} className="flex items-start space-x-4 mb-4 last:mb-0 pb-4 last:pb-0 border-b border-gray-200 last:border-b-0">
-                <code className="text-sm bg-white px-3 py-2 rounded border font-mono text-blue-600 font-semibold">
-                  {param.name}
-                </code>
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <span className="text-sm text-gray-500 bg-gray-200 px-2 py-1 rounded">{param.type}</span>
-                    {param.required && (
-                      <span className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-medium">required</span>
-                    )}
-                  </div>
-                  <p className="text-gray-600">{param.description}</p>
-                </div>
-              </div>
-            ))}
+    <div className="mb-6 border border-gray-200 rounded-xl bg-white shadow-sm hover:shadow-md transition-shadow">
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <span className={`px-3 py-1.5 text-xs font-bold rounded-full ${
+              endpoint.method === 'GET' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+              endpoint.method === 'POST' ? 'bg-blue-100 text-blue-800 border border-blue-200' :
+              endpoint.method === 'PUT' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+              'bg-red-100 text-red-800 border border-red-200'
+            }`}>
+              {endpoint.method}
+            </span>
+            <code className="text-sm font-mono bg-gray-50 px-3 py-1.5 rounded-lg border font-semibold">
+              {endpoint.path}
+            </code>
           </div>
+          <button 
+            onClick={() => copyToClipboard(endpoint.path, 'API Path')}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
+            title="Copy API path"
+          >
+            📋
+          </button>
         </div>
-      )}
+        
+        <p className="text-gray-700 mb-6 text-base leading-relaxed">{endpoint.description}</p>
+        
+        {endpoint.parameters && endpoint.parameters.length > 0 && (
+          <div className="border-t pt-4">
+            <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+              Parameters
+            </h4>
+            <div className="space-y-3">
+              {endpoint.parameters.map((param) => (
+                <div key={param.name} className="bg-gray-50 rounded-lg p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <code className="font-mono bg-white px-3 py-1.5 rounded-md text-sm font-semibold border">
+                      {param.name}
+                    </code>
+                    <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                      param.required 
+                        ? 'bg-red-100 text-red-700 border border-red-200' 
+                        : 'bg-gray-100 text-gray-600 border border-gray-200'
+                    }`}>
+                      {param.type} {param.required ? '• Required' : '• Optional'}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed ml-1">
+                    {param.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 
@@ -508,24 +695,23 @@ except Exception as e:
     switch (selectedSection) {
       case 'introduction':
         return (
-          <div className="max-w-4xl">
-            <div className="mb-12">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3 leading-tight">
                 Pollarbase API Documentation
               </h1>
-              <p className="text-2xl text-gray-600 leading-relaxed mb-8">
+              <p className="text-base text-gray-600 leading-relaxed mb-5">
                 The complete reference for Pollarbase's data processing API. 
-                <br />
-                <strong>Handle the schlep so you don't have to.</strong>
+                <strong> Handle the schlep so you don't have to.</strong>
               </p>
             </div>
 
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8 mb-12">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 mb-6">
               <div className="flex items-start space-x-4">
-                <Sparkles className="w-8 h-8 text-blue-600 mt-1" />
+                <Sparkles className="w-5 h-5 text-blue-600 mt-1" />
                 <div>
-                  <h3 className="text-xl font-bold text-blue-900 mb-3">What is Pollarbase?</h3>
-                  <p className="text-blue-800 leading-relaxed text-lg">
+                  <h3 className="text-base font-bold text-blue-900 mb-2">What is Pollarbase?</h3>
+                  <p className="text-blue-800 leading-relaxed text-sm">
                     Pollarbase is the <strong>Stripe for data</strong> - a comprehensive API platform that automatically 
                     identifies data types, detects anomalies, suggests transformations, and outputs 
                     ML-ready datasets. <strong>Spend 80% less time on data preparation.</strong>
@@ -534,38 +720,38 @@ except Exception as e:
               </div>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 mb-16">
-              <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-yellow-600" />
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-yellow-100 rounded-lg flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-yellow-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">Quick to Start</h3>
+                  <h3 className="text-base font-bold text-gray-900">Quick to Start</h3>
                 </div>
-                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                <p className="text-gray-600 mb-4 text-sm leading-relaxed">
                   Upload your data and get insights in seconds. No complex setup required.
                 </p>
-                <button 
+                <button
                    onClick={() => setSelectedSection('quickstart')}
-                   className="text-blue-600 hover:text-blue-700 font-semibold flex items-center text-lg">
-                  Get started <ArrowRight className="w-5 h-5 ml-2" />
+                   className="text-blue-600 hover:text-blue-700 font-semibold flex items-center text-sm">
+                  Get started <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-200 p-8 shadow-sm hover:shadow-md transition-shadow">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Brain className="w-6 h-6 text-purple-600" />
+              <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Brain className="w-5 h-5 text-purple-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-gray-900">AI-Powered</h3>
+                  <h3 className="text-base font-bold text-gray-900">AI-Powered</h3>
                 </div>
-                <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+                <p className="text-gray-600 mb-4 text-sm leading-relaxed">
                   Advanced ML models automatically detect patterns and suggest improvements.
                 </p>
-                <button 
+                <button
                    onClick={() => setSelectedSection('analysis-api')}
-                   className="text-blue-600 hover:text-blue-700 font-semibold flex items-center text-lg">
-                  Explore AI features <ArrowRight className="w-5 h-5 ml-2" />
+                   className="text-blue-600 hover:text-blue-700 font-semibold flex items-center text-sm">
+                  Explore AI features <ArrowRight className="w-4 h-4 ml-2" />
                 </button>
               </div>
             </div>
@@ -579,11 +765,11 @@ except Exception as e:
                   </div>
                   <h4 className="font-bold text-gray-900 text-lg mb-3">Automatic Type Detection</h4>
                   <p className="text-gray-600">Smart identification of data types and formats</p>
-                </div>
+                  </div>
                 <div className="text-center">
                   <div className="w-16 h-16 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <TrendingUp className="w-8 h-8 text-blue-600" />
-                  </div>
+                </div>
                   <h4 className="font-bold text-gray-900 text-lg mb-3">Quality Scoring</h4>
                   <p className="text-gray-600">Comprehensive quality metrics and insights</p>
                 </div>
@@ -602,17 +788,17 @@ except Exception as e:
       case 'quickstart':
         return (
           <div className="max-w-5xl">
-            <div className="mb-12">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">Quickstart Guide</h1>
-              <p className="text-2xl text-gray-600">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Quickstart Guide</h1>
+              <p className="text-lg text-gray-600">
                 Get up and running with Pollarbase in under 5 minutes.
               </p>
-            </div>
+                  </div>
 
             <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl p-8 mb-12">
               <div className="flex items-start space-x-4">
                 <Key className="w-8 h-8 text-yellow-600 mt-1" />
-                <div>
+                  <div>
                   <h3 className="text-xl font-bold text-yellow-900 mb-3">Get Your API Key</h3>
                   <p className="text-yellow-800 mb-4 text-lg">
                     First, sign up for a free account and get your API key from the dashboard.
@@ -622,8 +808,8 @@ except Exception as e:
                     Get API Key <ArrowRight className="w-5 h-5 ml-2" />
                   </a>
                 </div>
-              </div>
-            </div>
+                  </div>
+                </div>
 
             <div className="space-y-12">
               <div>
@@ -642,7 +828,7 @@ except Exception as e:
                       {lang === 'curl' ? 'cURL' : lang.charAt(0).toUpperCase() + lang.slice(1)}
                     </button>
                   ))}
-                </div>
+                  </div>
                 
                 {codeExamples.quickstart
                   ?.filter(example => example.language === selectedLanguage)
@@ -672,10 +858,10 @@ except Exception as e:
 
       case 'authentication':
         return (
-          <div className="max-w-4xl">
-            <div className="mb-12">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">Authentication</h1>
-              <p className="text-2xl text-gray-600">
+          <div className="max-w-5xl">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Authentication</h1>
+              <p className="text-lg text-gray-600">
                 Secure your API requests with proper authentication.
               </p>
             </div>
@@ -690,7 +876,7 @@ except Exception as e:
               <div className="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-xl p-8">
                 <div className="flex items-start space-x-4">
                   <Shield className="w-8 h-8 text-red-600 mt-1" />
-                  <div>
+                <div>
                     <h3 className="text-xl font-bold text-red-900 mb-4">Security Best Practices</h3>
                     <ul className="text-red-800 space-y-3 text-lg">
                       <li>• Never expose API keys in client-side code</li>
@@ -698,7 +884,7 @@ except Exception as e:
                       <li>• Rotate your API keys regularly</li>
                       <li>• Use different keys for development and production</li>
                     </ul>
-                  </div>
+                </div>
                 </div>
               </div>
             </div>
@@ -707,43 +893,416 @@ except Exception as e:
 
       case 'errors':
         return (
-          <div className="max-w-4xl">
-            <div className="mb-12">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">Error Handling</h1>
-              <p className="text-2xl text-gray-600">
-                Understand and handle API errors gracefully.
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Error Handling</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Understanding and handling errors in the Pollarbase API.
               </p>
             </div>
 
-            <div className="space-y-8">
-              {codeExamples.errors?.map((example, index) => (
-                <div key={index}>
-                  {renderCodeBlock(example)}
+            <div className="grid md:grid-cols-2 gap-6 mb-8">
+              <div className="bg-white rounded-lg border border-gray-200 p-5">
+                <h3 className="text-base font-semibold text-gray-900 mb-3">HTTP Status Codes</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <code className="text-green-600">200</code>
+                    <span className="text-gray-600">Success</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <code className="text-red-600">400</code>
+                    <span className="text-gray-600">Bad Request</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <code className="text-red-600">401</code>
+                    <span className="text-gray-600">Unauthorized</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <code className="text-red-600">429</code>
+                    <span className="text-gray-600">Rate Limited</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <code className="text-red-600">500</code>
+                    <span className="text-gray-600">Server Error</span>
+                  </div>
                 </div>
-              ))}
+              </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-xl p-8">
-                <h3 className="text-xl font-bold text-blue-900 mb-4">Common Error Codes</h3>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <code className="bg-white px-3 py-2 rounded border text-sm font-mono text-red-600">400</code>
-                    <div>
-                      <h4 className="font-semibold text-blue-900">Bad Request</h4>
-                      <p className="text-blue-800">Invalid request parameters or malformed data</p>
+              <div className="bg-white rounded-lg border border-gray-200 p-5">
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Error Response Format</h3>
+                <pre className="text-xs bg-gray-50 p-3 rounded overflow-x-auto">
+{`{
+  "error": {
+    "code": "INVALID_FILE_FORMAT",
+    "message": "File format not supported",
+    "details": {
+      "supported_formats": ["csv", "json", "parquet"],
+      "received_format": "xlsx"
+    }
+  }
+}`}
+                </pre>
+              </div>
+            </div>
+
+            {renderCodeBlock({
+              language: 'python',
+              title: 'Error Handling with Python SDK',
+              description: 'Proper error handling in your Python applications',
+              code: `import pollarbase
+from pollarbase.exceptions import (
+    APIError, 
+    AuthenticationError, 
+    RateLimitError,
+    ValidationError
+)
+
+client = pollarbase.Client()
+
+try:
+    dataset = client.upload_file("data.csv")
+    analysis = dataset.analyze()
+    
+except AuthenticationError as e:
+    print(f"Authentication failed: {e.message}")
+    # Handle invalid API key
+    
+except ValidationError as e:
+    print(f"Validation error: {e.message}")
+    print(f"Invalid fields: {e.fields}")
+    # Handle validation errors
+    
+except RateLimitError as e:
+    print(f"Rate limited. Retry after: {e.retry_after} seconds")
+    time.sleep(e.retry_after)
+    # Implement exponential backoff
+    
+except APIError as e:
+    print(f"API Error: {e.status_code} - {e.message}")
+    if e.status_code >= 500:
+        # Server error - retry logic
+        pass
+    else:
+        # Client error - fix request
+        pass`,
+              response: `Authentication failed: Invalid API key provided
+Rate limited. Retry after: 60 seconds
+Validation error: File format not supported
+Invalid fields: ['file_type', 'encoding']`
+            })}
+          </div>
+        )
+
+      case 'data-processing':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Data Processing</h1>
+              <p className="text-base text-gray-600 mb-6">
+                How Pollarbase processes and analyzes your data behind the scenes.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-blue-900 mb-3">Processing Pipeline</h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm">
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-blue-600 font-semibold text-xs">1</span>
+                    </div>
+                    <div className="font-medium text-blue-900">Upload</div>
+                    <div className="text-blue-700 text-xs">File parsing & validation</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-blue-600 font-semibold text-xs">2</span>
+                    </div>
+                    <div className="font-medium text-blue-900">Analyze</div>
+                    <div className="text-blue-700 text-xs">Schema detection & profiling</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-blue-600 font-semibold text-xs">3</span>
+                    </div>
+                    <div className="font-medium text-blue-900">Transform</div>
+                    <div className="text-blue-700 text-xs">AI-powered cleaning</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                      <span className="text-blue-600 font-semibold text-xs">4</span>
+                    </div>
+                    <div className="font-medium text-blue-900">Export</div>
+                    <div className="text-blue-700 text-xs">ML-ready output</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-3 gap-5">
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Data Types Detected</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Categorical variables</li>
+                    <li>• Numerical (int, float)</li>
+                    <li>• Dates & timestamps</li>
+                    <li>• Text & free-form</li>
+                    <li>• Boolean values</li>
+                    <li>• Email addresses</li>
+                    <li>• Phone numbers</li>
+                    <li>• URLs</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Quality Checks</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Missing value detection</li>
+                    <li>• Duplicate identification</li>
+                    <li>• Outlier analysis</li>
+                    <li>• Format consistency</li>
+                    <li>• Data distribution</li>
+                    <li>• Correlation analysis</li>
+                    <li>• Constraint validation</li>
+                    <li>• Pattern matching</li>
+                  </ul>
+                </div>
+                
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">AI Insights</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Feature importance</li>
+                    <li>• Relationship discovery</li>
+                    <li>• Anomaly scoring</li>
+                    <li>• Trend identification</li>
+                    <li>• Seasonality detection</li>
+                    <li>• Classification readiness</li>
+                    <li>• Prediction targets</li>
+                    <li>• Data drift alerts</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'transformations':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Data Transformations</h1>
+              <p className="text-base text-gray-600 mb-6">
+                AI-powered transformations that clean and prepare your data automatically.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Automatic Transformations</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-start space-x-3">
+                      <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Remove Duplicates</div>
+                        <div className="text-gray-600 text-xs">Exact and fuzzy duplicate detection</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Fill Missing Values</div>
+                        <div className="text-gray-600 text-xs">Smart imputation strategies</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <span className="w-5 h-5 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-xs">✓</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Standardize Formats</div>
+                        <div className="text-gray-600 text-xs">Dates, phones, emails, addresses</div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-4">
-                    <code className="bg-white px-3 py-2 rounded border text-sm font-mono text-red-600">401</code>
-                    <div>
-                      <h4 className="font-semibold text-blue-900">Unauthorized</h4>
-                      <p className="text-blue-800">Invalid or missing API key</p>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h3 className="text-base font-semibold text-gray-900 mb-3">Manual Control</h3>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-start space-x-3">
+                      <span className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs">⚙</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Custom Rules</div>
+                        <div className="text-gray-600 text-xs">Define your own transformation logic</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <span className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs">⚙</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Review & Approve</div>
+                        <div className="text-gray-600 text-xs">Preview changes before applying</div>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3">
+                      <span className="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-xs">⚙</span>
+                      <div>
+                        <div className="font-medium text-gray-900">Rollback Support</div>
+                        <div className="text-gray-600 text-xs">Undo transformations if needed</div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-start space-x-4">
-                    <code className="bg-white px-3 py-2 rounded border text-sm font-mono text-red-600">429</code>
-                    <div>
-                      <h4 className="font-semibold text-blue-900">Rate Limited</h4>
-                      <p className="text-blue-800">Too many requests, please slow down</p>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Advanced Transformation Pipeline',
+                description: 'Chaining multiple transformations with custom rules',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+dataset = client.get_dataset("ds_abc123")
+
+# Define transformation pipeline
+pipeline = pollarbase.TransformationPipeline([
+    # Remove exact duplicates
+    pollarbase.RemoveDuplicates(method="exact"),
+    
+    # Smart missing value imputation
+    pollarbase.FillMissing(
+        strategy="smart",  # Uses ML to predict best values
+        columns=["age", "income"],
+        fallback="median"
+    ),
+    
+    # Standardize date formats
+    pollarbase.StandardizeDates(
+        columns=["created_at", "updated_at"],
+        format="ISO8601"
+    ),
+    
+    # Custom transformation rule
+    pollarbase.CustomRule(
+        name="normalize_email",
+        function=lambda x: x.lower().strip(),
+        columns=["email"]
+    ),
+    
+    # Feature engineering
+    pollarbase.CreateFeatures([
+        pollarbase.DateFeatures(["created_at"]),  # Extract day, month, year
+        pollarbase.TextFeatures(["description"]),  # TF-IDF, sentiment
+        pollarbase.NumericalFeatures(["price"])   # Log, normalize, bin
+    ])
+])
+
+# Preview transformations (dry run)
+preview = dataset.preview_transformations(pipeline)
+print(f"Will affect {preview.rows_affected} rows")
+print(f"Quality score improvement: +{preview.quality_improvement}%")
+
+# Apply if satisfied
+if preview.quality_improvement > 10:
+    transformed = dataset.apply_transformations(pipeline)
+    print(f"Transformation complete. New quality score: {transformed.quality_score}%")
+else:
+    print("Transformations did not meet quality threshold")`,
+                response: `Will affect 2,847 rows
+Quality score improvement: +23%
+Transformation complete. New quality score: 91%`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'quality-scoring':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Quality Scoring</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Understanding how Pollarbase calculates data quality scores and what they mean.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-green-900 mb-3">Quality Score Breakdown</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-700">35%</div>
+                    <div className="text-sm font-medium text-green-900">Completeness</div>
+                    <div className="text-xs text-green-700">Missing values</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-700">25%</div>
+                    <div className="text-sm font-medium text-green-900">Validity</div>
+                    <div className="text-xs text-green-700">Format compliance</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-700">25%</div>
+                    <div className="text-sm font-medium text-green-900">Uniqueness</div>
+                    <div className="text-xs text-green-700">Duplicate detection</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-green-700">15%</div>
+                    <div className="text-sm font-medium text-green-900">Consistency</div>
+                    <div className="text-xs text-green-700">Cross-field validation</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Score Ranges</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span>90-100%</span>
+                      </span>
+                      <span className="text-gray-600">Excellent</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        <span>80-89%</span>
+                      </span>
+                      <span className="text-gray-600">Good</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                        <span>70-79%</span>
+                      </span>
+                      <span className="text-gray-600">Fair</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="flex items-center space-x-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span>Below 70%</span>
+                      </span>
+                      <span className="text-gray-600">Poor</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Improvement Actions</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600">+5-15%</span>
+                      <span className="text-gray-600">Remove duplicates</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600">+10-25%</span>
+                      <span className="text-gray-600">Fill missing values</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600">+5-20%</span>
+                      <span className="text-gray-600">Fix format issues</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-green-600">+3-10%</span>
+                      <span className="text-gray-600">Validate constraints</span>
                     </div>
                   </div>
                 </div>
@@ -752,68 +1311,1134 @@ except Exception as e:
           </div>
         )
 
-      case 'upload-api':
-      case 'analysis-api':
-      case 'transformation-api':
-      case 'export-api':
-      case 'jobs-api':
+      case 'javascript-sdk':
         return (
           <div className="max-w-5xl">
-            <div className="mb-12">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">
-                {selectedSection.split('-').map(word => 
-                  word.charAt(0).toUpperCase() + word.slice(1)
-                ).join(' ')}
-              </h1>
-              <p className="text-2xl text-gray-600">
-                Complete API reference for {selectedSection.replace('-', ' ')}.
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">JavaScript SDK</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Client-side and Node.js SDK for integrating Pollarbase into JavaScript applications.
               </p>
             </div>
 
-            <div className="space-y-8">
-              {apiEndpoints[selectedSection]?.map((endpoint, index) => (
-                <div key={index}>
-                  {renderAPIEndpoint(endpoint)}
-                </div>
-              ))}
+            <div className="space-y-6">
+              {renderCodeBlock({
+                language: 'bash',
+                title: 'Installation',
+                description: 'Install the JavaScript SDK via npm or yarn',
+                code: `# Using npm
+npm install @pollarbase/js
+
+# Using yarn
+yarn add @pollarbase/js
+
+# Using CDN (browser)
+<script src="https://cdn.pollarbase.com/js/v2.1.0/pollarbase.min.js"></script>`
+              })}
+
+              {renderCodeBlock({
+                language: 'javascript',
+                title: 'Basic Setup (Node.js)',
+                description: 'Initialize the SDK in your Node.js application',
+                code: `const Pollarbase = require('@pollarbase/js');
+
+// Initialize with API key
+const client = new Pollarbase({
+  apiKey: process.env.POLLARBASE_API_KEY,
+  environment: 'production', // or 'sandbox'
+  timeout: 30000,
+  retries: 3
+});
+
+// Upload and process file
+async function processData(filePath) {
+  try {
+    const dataset = await client.upload({
+      file: filePath,
+      autoAnalyze: true,
+      qualityThreshold: 0.8
+    });
+    
+    console.log(\`Dataset ID: \${dataset.id}\`);
+    console.log(\`Quality Score: \${dataset.qualityScore}%\`);
+    
+    return dataset;
+  } catch (error) {
+    console.error('Processing failed:', error.message);
+    throw error;
+  }
+}`,
+                response: `Dataset ID: ds_7Qj2mK8fN3xB
+Quality Score: 87%`
+              })}
+
+              {renderCodeBlock({
+                language: 'javascript',
+                title: 'Browser Integration with File Upload',
+                description: 'Handle file uploads directly in the browser',
+                code: `<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.pollarbase.com/js/v2.1.0/pollarbase.min.js"></script>
+</head>
+<body>
+  <input type="file" id="fileInput" accept=".csv,.json" />
+  <div id="progress"></div>
+  <div id="results"></div>
+
+  <script>
+    const client = new Pollarbase({
+      apiKey: 'pk_test_abc123...',  // Use publishable key for browser
+      environment: 'sandbox'
+    });
+
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      try {
+        // Upload with progress tracking
+        const dataset = await client.upload({
+          file: file,
+          autoAnalyze: true,
+          onProgress: (progress) => {
+            document.getElementById('progress').innerHTML = 
+              \`<div class="progress-bar" style="width: \${progress}%">\${progress}%</div>\`;
+          }
+        });
+
+        // Display results
+        document.getElementById('results').innerHTML = \`
+          <h3>Processing Complete!</h3>
+          <p>Dataset ID: \${dataset.id}</p>
+          <p>Quality Score: \${dataset.qualityScore}%</p>
+          <p>Rows: \${dataset.rowCount.toLocaleString()}</p>
+          <p>Columns: \${dataset.columnCount}</p>
+        \`;
+
+        // Get suggestions if quality is low
+        if (dataset.qualityScore < 85) {
+          const suggestions = await dataset.getSuggestions();
+          suggestions.forEach(suggestion => {
+            console.log(\`Suggestion: \${suggestion.description}\`);
+          });
+        }
+
+      } catch (error) {
+        document.getElementById('results').innerHTML = 
+          \`<div class="error">Error: \${error.message}</div>\`;
+      }
+    });
+  </script>
+</body>
+</html>`
+              })}
             </div>
           </div>
         )
 
-      case 'python-sdk':
+      case 'webhooks':
         return (
           <div className="max-w-5xl">
-            <div className="mb-12">
-              <h1 className="text-5xl font-bold text-gray-900 mb-6">Python SDK</h1>
-              <p className="text-2xl text-gray-600">
-                The most powerful way to use Pollarbase in Python applications.
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Webhooks</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Receive real-time notifications when your data processing jobs complete.
               </p>
             </div>
 
-            <div className="space-y-8">
-              {codeExamples['python-sdk']?.map((example, index) => (
-                <div key={index}>
-                  {renderCodeBlock(example)}
+            <div className="space-y-6">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-blue-900 mb-3">Webhook Events</h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <div className="font-medium text-blue-900 mb-2">Dataset Events</div>
+                    <ul className="space-y-1 text-blue-700">
+                      <li>• <code>dataset.uploaded</code></li>
+                      <li>• <code>dataset.analyzed</code></li>
+                      <li>• <code>dataset.transformed</code></li>
+                      <li>• <code>dataset.exported</code></li>
+                    </ul>
+                  </div>
+                  <div>
+                    <div className="font-medium text-blue-900 mb-2">Job Events</div>
+                    <ul className="space-y-1 text-blue-700">
+                      <li>• <code>job.started</code></li>
+                      <li>• <code>job.completed</code></li>
+                      <li>• <code>job.failed</code></li>
+                      <li>• <code>job.cancelled</code></li>
+                    </ul>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              {renderCodeBlock({
+                language: 'javascript',
+                title: 'Express.js Webhook Handler',
+                description: 'Handle webhook events in your Node.js application',
+                code: `const express = require('express');
+const crypto = require('crypto');
+const app = express();
+
+app.use(express.raw({ type: 'application/json' }));
+
+// Webhook endpoint
+app.post('/webhooks/pollarbase', (req, res) => {
+  const signature = req.headers['x-pollarbase-signature'];
+  const payload = req.body;
+  
+  // Verify webhook signature
+  const expectedSignature = crypto
+    .createHmac('sha256', process.env.POLLARBASE_WEBHOOK_SECRET)
+    .update(payload)
+    .digest('hex');
+    
+  if (signature !== \`sha256=\${expectedSignature}\`) {
+    return res.status(401).send('Invalid signature');
+  }
+  
+  const event = JSON.parse(payload);
+  
+  // Handle different event types
+  switch (event.type) {
+    case 'dataset.analyzed':
+      handleDatasetAnalyzed(event.data);
+      break;
+      
+    case 'dataset.transformed':
+      handleDatasetTransformed(event.data);
+      break;
+      
+    case 'job.completed':
+      handleJobCompleted(event.data);
+      break;
+      
+    case 'job.failed':
+      handleJobFailed(event.data);
+      break;
+      
+    default:
+      console.log(\`Unhandled event type: \${event.type}\`);
+  }
+  
+  res.status(200).send('OK');
+});
+
+function handleDatasetAnalyzed(data) {
+  console.log(\`Dataset \${data.dataset_id} analyzed\`);
+  console.log(\`Quality score: \${data.quality_score}%\`);
+  
+  // Send notification to user
+  if (data.quality_score < 70) {
+    sendEmailNotification(data.user_email, {
+      subject: 'Data quality issue detected',
+      message: \`Your dataset has a quality score of \${data.quality_score}%. Consider applying suggested transformations.\`
+    });
+  }
+}
+
+function handleJobCompleted(data) {
+  console.log(\`Job \${data.job_id} completed successfully\`);
+  
+  // Update database
+  updateJobStatus(data.job_id, 'completed', {
+    output_url: data.output_url,
+    metrics: data.metrics
+  });
+}
+
+app.listen(3000, () => {
+  console.log('Webhook server listening on port 3000');
+});`,
+                response: `Webhook server listening on port 3000
+Dataset ds_abc123 analyzed
+Quality score: 87%
+Job job_xyz789 completed successfully`
+              })}
+
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Webhook Configuration</h4>
+                <div className="text-sm">
+                  <p className="text-gray-600 mb-3">Configure webhooks in your dashboard or via API:</p>
+                  <pre className="bg-white p-3 rounded border overflow-x-auto text-xs">
+{`curl -X POST "https://api.pollarbase.com/v1/webhooks" \\
+  -H "Authorization: Bearer sk-abc123..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "url": "https://your-app.com/webhooks/pollarbase",
+    "events": ["dataset.analyzed", "job.completed"],
+    "secret": "your_webhook_secret"
+  }'`}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'rest-api':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">REST API</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Direct HTTP API access for custom integrations and server-to-server communication.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-gray-900 mb-3">Base URL</h3>
+                <code className="text-sm bg-white px-3 py-2 rounded border">https://api.pollarbase.com/v1</code>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Authentication</h4>
+                  <div className="text-sm space-y-2">
+                    <p className="text-gray-600">Include your API key in the Authorization header:</p>
+                    <pre className="bg-gray-50 p-2 rounded text-xs overflow-x-auto">
+Authorization: Bearer sk-abc123...
+                    </pre>
+                  </div>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Rate Limits</h4>
+                  <div className="text-sm space-y-1">
+                    <div className="flex justify-between">
+                      <span>Free Plan:</span>
+                      <span className="font-medium">100 req/hour</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Pro Plan:</span>
+                      <span className="font-medium">1,000 req/hour</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Enterprise:</span>
+                      <span className="font-medium">Custom</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'curl',
+                title: 'Complete API Workflow',
+                description: 'End-to-end data processing via REST API',
+                code: `# 1. Upload dataset
+curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
+  -H "Authorization: Bearer sk-abc123..." \\
+  -F "file=@data.csv" \\
+  -F "auto_analyze=true"
+
+# 2. Check analysis status
+curl -H "Authorization: Bearer sk-abc123..." \\
+  "https://api.pollarbase.com/v1/analysis/job_xyz789"
+
+# 3. Get transformation suggestions
+curl -H "Authorization: Bearer sk-abc123..." \\
+  "https://api.pollarbase.com/v1/datasets/ds_abc123/suggestions"
+
+# 4. Apply transformations
+curl -X POST "https://api.pollarbase.com/v1/transform/apply" \\
+  -H "Authorization: Bearer sk-abc123..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "dataset_id": "ds_abc123",
+    "transformations": [
+      {"type": "remove_duplicates"},
+      {"type": "fill_missing", "strategy": "median", "columns": ["age"]}
+    ]
+  }'
+
+# 5. Export processed data
+curl -X POST "https://api.pollarbase.com/v1/export/download" \\
+  -H "Authorization: Bearer sk-abc123..." \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "dataset_id": "ds_abc123",
+    "format": "csv",
+    "include_metadata": true
+  }'`,
+                response: `Dataset uploaded successfully: ds_abc123
+Analysis complete: 87% quality score
+3 transformation suggestions available
+Transformations applied: +12% quality improvement
+Export ready: https://files.pollarbase.com/exports/ds_abc123_cleaned.csv`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'complete-pipeline':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Complete Pipeline</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Build end-to-end data processing pipelines from raw data to ML-ready datasets.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-purple-900 mb-3">Pipeline Stages</h3>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-3 text-sm">
+                  {['Ingest', 'Validate', 'Clean', 'Transform', 'Export'].map((stage, index) => (
+                    <div key={stage} className="text-center">
+                      <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
+                        <span className="text-purple-600 font-semibold text-xs">{index + 1}</span>
+                      </div>
+                      <div className="font-medium text-purple-900">{stage}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Production Pipeline Example',
+                description: 'Automated pipeline for processing customer data',
+                code: `import pollarbase
+import pandas as pd
+from pathlib import Path
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class CustomerDataPipeline:
+    def __init__(self, api_key: str):
+        self.client = pollarbase.Client(api_key=api_key)
+        self.quality_threshold = 0.85
+        
+    def process_file(self, file_path: Path) -> dict:
+        """Process a single customer data file"""
+        logger.info(f"Processing {file_path.name}")
+        
+        try:
+            # 1. Upload and validate
+            dataset = self.client.upload_file(
+                file_path, 
+                auto_analyze=True,
+                quality_threshold=self.quality_threshold
+            )
+            
+            # 2. Wait for analysis
+            analysis = dataset.wait_for_analysis(timeout=300)
+            logger.info(f"Initial quality score: {analysis.quality_score}%")
+            
+            # 3. Apply automatic transformations if needed
+            if analysis.quality_score < self.quality_threshold * 100:
+                transformations = self._get_transformations(analysis)
+                if transformations:
+                    dataset = dataset.apply_transformations(transformations)
+                    logger.info(f"Applied {len(transformations)} transformations")
+            
+            # 4. Validate business rules
+            validated_dataset = self._validate_business_rules(dataset)
+            
+            # 5. Export for different use cases
+            exports = self._export_data(validated_dataset)
+            
+            return {
+                'status': 'success',
+                'dataset_id': dataset.id,
+                'quality_score': dataset.quality_score,
+                'exports': exports,
+                'metrics': {
+                    'rows_processed': dataset.row_count,
+                    'columns': dataset.column_count,
+                    'processing_time': analysis.processing_time
+                }
+            }
+            
+        except Exception as e:
+            logger.error(f"Pipeline failed: {str(e)}")
+            return {'status': 'failed', 'error': str(e)}
+    
+    def _get_transformations(self, analysis):
+        """Get recommended transformations based on analysis"""
+        transformations = []
+        
+        # Always remove duplicates
+        if analysis.duplicates_found > 0:
+            transformations.append(pollarbase.RemoveDuplicates())
+        
+        # Fill critical missing values
+        for column, missing_pct in analysis.missing_values.items():
+            if missing_pct > 0.1 and column in ['customer_id', 'email']:
+                # Remove rows with missing critical fields
+                transformations.append(
+                    pollarbase.DropMissing(columns=[column])
+                )
+            elif missing_pct > 0.05:
+                # Impute non-critical fields
+                transformations.append(
+                    pollarbase.FillMissing(columns=[column], strategy='smart')
+                )
+        
+        return transformations
+    
+    def _validate_business_rules(self, dataset):
+        """Apply custom business validation rules"""
+        # Example: Validate email domains
+        valid_domains = ['company.com', 'enterprise.com']
+        
+        dataset.add_validation_rule(
+            name='valid_email_domain',
+            column='email',
+            rule=lambda x: any(domain in x for domain in valid_domains),
+            action='flag'  # Don't remove, just flag for review
+        )
+        
+        # Example: Age range validation
+        dataset.add_validation_rule(
+            name='valid_age',
+            column='age', 
+            rule=lambda x: 18 <= x <= 100,
+            action='fix',  # Try to fix automatically
+            fix_value=25  # Default age if invalid
+        )
+        
+        return dataset.apply_validation_rules()
+    
+    def _export_data(self, dataset):
+        """Export data in multiple formats for different teams"""
+        exports = {}
+        
+        # For data science team - Parquet with metadata
+        exports['ml_ready'] = dataset.export(
+            format='parquet',
+            include_metadata=True,
+            split_ratio={'train': 0.8, 'test': 0.2}
+        )
+        
+        # For analytics team - CSV with documentation
+        exports['analytics'] = dataset.export(
+            format='csv',
+            include_documentation=True
+        )
+        
+        # For reporting - JSON for APIs
+        exports['api_ready'] = dataset.export(
+            format='json',
+            nested=True
+        )
+        
+        return exports
+
+# Usage
+if __name__ == "__main__":
+    pipeline = CustomerDataPipeline(api_key="sk-abc123...")
+    
+    # Process multiple files
+    data_directory = Path("./customer_data")
+    results = []
+    
+    for file_path in data_directory.glob("*.csv"):
+        result = pipeline.process_file(file_path)
+        results.append(result)
+        
+        if result['status'] == 'success':
+            logger.info(f"✅ {file_path.name}: {result['quality_score']}% quality")
+        else:
+            logger.error(f"❌ {file_path.name}: {result['error']}")
+    
+    # Summary report
+    successful = len([r for r in results if r['status'] == 'success'])
+    logger.info(f"Pipeline complete: {successful}/{len(results)} files processed successfully")`,
+                response: `Processing customer_jan_2024.csv
+Initial quality score: 78%
+Applied 3 transformations
+✅ customer_jan_2024.csv: 89% quality
+Processing customer_feb_2024.csv
+Initial quality score: 92%
+✅ customer_feb_2024.csv: 92% quality
+Pipeline complete: 2/2 files processed successfully`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'ml-integration':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">ML Integration</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Seamlessly integrate Pollarbase with popular machine learning frameworks and platforms.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-4 gap-4">
+                {[
+                  { name: 'TensorFlow', color: 'orange' },
+                  { name: 'PyTorch', color: 'red' }, 
+                  { name: 'Scikit-learn', color: 'blue' },
+                  { name: 'Hugging Face', color: 'yellow' }
+                ].map((framework) => (
+                  <div key={framework.name} className={`bg-${framework.color}-50 border border-${framework.color}-200 rounded-lg p-4 text-center`}>
+                    <div className="text-sm font-semibold text-gray-900">{framework.name}</div>
+                    <div className="text-xs text-gray-600 mt-1">Native export support</div>
+                  </div>
+                ))}
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'TensorFlow Integration',
+                description: 'Export data directly to TensorFlow datasets',
+                code: `import pollarbase
+import tensorflow as tf
+
+# Process data with Pollarbase
+client = pollarbase.Client()
+dataset = client.get_dataset("ds_abc123")
+
+# Export as TensorFlow dataset
+tf_dataset = dataset.to_tensorflow(
+    batch_size=32,
+    target_column='label',
+    feature_columns=['feature1', 'feature2', 'feature3'],
+    validation_split=0.2,
+    preprocessing={
+        'normalize': True,
+        'categorical_encoding': 'onehot'
+    }
+)
+
+# Use directly in model training
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu'),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(1, activation='sigmoid')
+])
+
+model.compile(
+    optimizer='adam',
+    loss='binary_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train with preprocessed data
+history = model.fit(
+    tf_dataset['train'],
+    validation_data=tf_dataset['validation'],
+    epochs=10
+)`,
+                response: `Exporting to TensorFlow format...
+✅ Dataset exported successfully
+📊 Training samples: 8,000
+📊 Validation samples: 2,000
+🎯 Features: 15 (after preprocessing)
+Epoch 1/10: loss: 0.6234 - accuracy: 0.6543 - val_accuracy: 0.6789`
+              })}
+
+              {renderCodeBlock({
+                language: 'python', 
+                title: 'MLOps Pipeline with Pollarbase',
+                description: 'Integrate with MLflow and other MLOps tools',
+                code: `import pollarbase
+import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report
+
+# MLflow experiment setup
+mlflow.set_experiment("customer_churn_prediction")
+
+with mlflow.start_run():
+    # Data preprocessing with Pollarbase
+    client = pollarbase.Client()
+    dataset = client.get_dataset("customer_data_v2")
+    
+    # Log data quality metrics
+    mlflow.log_metric("data_quality_score", dataset.quality_score)
+    mlflow.log_metric("row_count", dataset.row_count)
+    
+    # Export preprocessed data
+    train_data, test_data = dataset.to_sklearn(
+        target_column='churned',
+        test_size=0.2,
+        random_state=42,
+        preprocessing={
+            'scale_features': True,
+            'encode_categorical': True,
+            'remove_correlated': True
+        }
+    )
+    
+    X_train, y_train = train_data
+    X_test, y_test = test_data
+    
+    # Model training
+    model = RandomForestClassifier(
+        n_estimators=100,
+        max_depth=10,
+        random_state=42
+    )
+    
+    model.fit(X_train, y_train)
+    
+    # Prediction and evaluation
+    y_pred = model.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    
+    # Log results to MLflow
+    mlflow.log_metric("accuracy", accuracy)
+    mlflow.log_param("n_estimators", 100)
+    mlflow.log_param("max_depth", 10)
+    
+    # Log feature importance from Pollarbase analysis
+    feature_importance = dataset.get_feature_importance()
+    for feature, importance in feature_importance.items():
+        mlflow.log_metric(f"feature_importance_{feature}", importance)
+    
+    # Save model
+    mlflow.sklearn.log_model(model, "model")
+    
+    # Log data lineage
+    mlflow.log_param("dataset_id", dataset.id)
+    mlflow.log_param("pollarbase_version", pollarbase.__version__)
+    
+    print(f"Model accuracy: {accuracy:.3f}")
+    print(f"Data quality: {dataset.quality_score}%")`,
+                response: `Model accuracy: 0.847
+Data quality: 94%
+MLflow run: https://mlflow.company.com/experiments/1/runs/abc123
+Model registered: customer_churn_v2.1`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'production-tips':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Production Tips</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Best practices for deploying Pollarbase in production environments.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+                  <h3 className="text-base font-semibold text-green-900 mb-3">Performance Optimization</h3>
+                  <ul className="text-sm text-green-800 space-y-2">
+                    <li>✓ Use async processing for large files</li>
+                    <li>✓ Implement proper retry logic</li>
+                    <li>✓ Cache frequently used transformations</li>
+                    <li>✓ Monitor API rate limits</li>
+                    <li>✓ Use webhooks for status updates</li>
+                  </ul>
+                </div>
+
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+                  <h3 className="text-base font-semibold text-blue-900 mb-3">Security & Compliance</h3>
+                  <ul className="text-sm text-blue-800 space-y-2">
+                    <li>✓ Rotate API keys regularly</li>
+                    <li>✓ Use environment variables for secrets</li>
+                    <li>✓ Enable audit logging</li>
+                    <li>✓ Implement data retention policies</li>
+                    <li>✓ Validate webhook signatures</li>
+                  </ul>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Production-Ready Client Configuration',
+                description: 'Robust client setup with retry logic and monitoring',
+                code: `import pollarbase
+import logging
+import time
+from tenacity import retry, stop_after_attempt, wait_exponential
+from prometheus_client import Counter, Histogram, start_http_server
+
+# Metrics
+api_requests = Counter('pollarbase_api_requests_total', ['method', 'status'])
+api_duration = Histogram('pollarbase_api_duration_seconds', ['method'])
+
+class ProductionPollarbaseClient:
+    def __init__(self, api_key: str, environment: str = 'production'):
+        self.client = pollarbase.Client(
+            api_key=api_key,
+            environment=environment,
+            timeout=60,  # Increase timeout for production
+            max_retries=3,
+            backoff_factor=2.0
+        )
+        
+        # Configure logging
+        self.logger = logging.getLogger('pollarbase.client')
+        self.logger.setLevel(logging.INFO)
+        
+        # Add request interceptor for monitoring
+        self.client.add_interceptor(self._monitor_requests)
+    
+    def _monitor_requests(self, method: str, response):
+        """Monitor API requests for observability"""
+        status = 'success' if response.status_code < 400 else 'error'
+        api_requests.labels(method=method, status=status).inc()
+        
+        if hasattr(response, 'elapsed'):
+            api_duration.labels(method=method).observe(response.elapsed.total_seconds())
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=4, max=10)
+    )
+    def upload_with_retry(self, file_path: str, **kwargs):
+        """Upload file with automatic retry on failure"""
+        try:
+            self.logger.info(f"Uploading {file_path}")
+            dataset = self.client.upload_file(file_path, **kwargs)
+            self.logger.info(f"Upload successful: {dataset.id}")
+            return dataset
+            
+        except pollarbase.RateLimitError as e:
+            self.logger.warning(f"Rate limited, waiting {e.retry_after}s")
+            time.sleep(e.retry_after)
+            raise  # Retry will handle this
+            
+        except pollarbase.APIError as e:
+            if e.status_code >= 500:
+                self.logger.error(f"Server error: {e.message}")
+                raise  # Retry server errors
+            else:
+                self.logger.error(f"Client error: {e.message}")
+                return None  # Don't retry client errors
+    
+    def process_batch(self, file_paths: list, max_concurrent: int = 5):
+        """Process multiple files with concurrency control"""
+        import asyncio
+        from concurrent.futures import ThreadPoolExecutor
+        
+        async def process_file_async(file_path):
+            loop = asyncio.get_event_loop()
+            with ThreadPoolExecutor() as executor:
+                return await loop.run_in_executor(
+                    executor, 
+                    self.upload_with_retry, 
+                    file_path
+                )
+        
+        async def process_all():
+            semaphore = asyncio.Semaphore(max_concurrent)
+            
+            async def process_with_semaphore(file_path):
+                async with semaphore:
+                    return await process_file_async(file_path)
+            
+            tasks = [process_with_semaphore(fp) for fp in file_paths]
+            return await asyncio.gather(*tasks, return_exceptions=True)
+        
+        return asyncio.run(process_all())
+
+# Usage in production
+if __name__ == "__main__":
+    # Start Prometheus metrics server
+    start_http_server(8000)
+    
+    # Initialize client
+    client = ProductionPollarbaseClient(
+        api_key=os.getenv('POLLARBASE_API_KEY'),
+        environment='production'
+    )
+    
+    # Process files
+    files = ['data1.csv', 'data2.csv', 'data3.csv']
+    results = client.process_batch(files, max_concurrent=3)
+    
+    # Log results
+    successful = len([r for r in results if r is not None])
+    logging.info(f"Processed {successful}/{len(files)} files successfully")`,
+                response: `2024-01-15 10:30:00 INFO Uploading data1.csv
+2024-01-15 10:30:02 INFO Upload successful: ds_abc123
+2024-01-15 10:30:02 INFO Uploading data2.csv
+2024-01-15 10:30:04 INFO Upload successful: ds_def456
+Processed 2/3 files successfully
+Metrics available at: http://localhost:8000/metrics`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'best-practices':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Best Practices</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Recommended patterns and practices for effective use of Pollarbase.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Data Validation</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Always validate file formats before upload</li>
+                    <li>• Set quality thresholds for automated processing</li>
+                    <li>• Review suggestions before applying transformations</li>
+                    <li>• Implement data contracts for consistent schema</li>
+                  </ul>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Error Handling</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Implement exponential backoff for retries</li>
+                    <li>• Handle rate limits gracefully</li>
+                    <li>• Log all API errors for debugging</li>
+                    <li>• Use circuit breakers for external services</li>
+                  </ul>
+                </div>
+
+                <div className="bg-white border border-gray-200 rounded-lg p-5">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-3">Performance</h4>
+                  <ul className="text-xs text-gray-600 space-y-1">
+                    <li>• Process files asynchronously when possible</li>
+                    <li>• Use webhooks instead of polling</li>
+                    <li>• Cache transformation results</li>
+                    <li>• Optimize file sizes before upload</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-5">
+                <h3 className="text-base font-semibold text-yellow-900 mb-3">⚠️ Common Pitfalls</h3>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <h4 className="font-medium text-yellow-900 mb-2">Avoid These Mistakes:</h4>
+                    <ul className="text-yellow-800 space-y-1">
+                      <li>• Hardcoding API keys in source code</li>
+                      <li>• Ignoring quality score recommendations</li>
+                      <li>• Not validating data before transformation</li>
+                      <li>• Skipping backup before applying changes</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-yellow-900 mb-2">Do This Instead:</h4>
+                    <ul className="text-yellow-800 space-y-1">
+                      <li>• Use environment variables for secrets</li>
+                      <li>• Set up monitoring and alerts</li>
+                      <li>• Implement data validation pipelines</li>
+                      <li>• Keep original data for rollback scenarios</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Best Practices Implementation',
+                description: 'Production-ready code following all best practices',
+                code: `import pollarbase
+import os
+import logging
+from dataclasses import dataclass
+from typing import List, Optional
+import hashlib
+
+@dataclass
+class DataValidationRules:
+    """Define data validation rules"""
+    required_columns: List[str]
+    max_missing_percentage: float = 0.1
+    min_quality_score: float = 0.8
+    allowed_file_types: List[str] = None
+    max_file_size_mb: int = 100
+
+class BestPracticeProcessor:
+    def __init__(self, api_key: str):
+        # ✅ Use environment variables for API keys
+        self.client = pollarbase.Client(api_key=api_key)
+        self.logger = self._setup_logging()
+        
+    def _setup_logging(self):
+        """✅ Proper logging configuration"""
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+            handlers=[
+                logging.FileHandler('pollarbase.log'),
+                logging.StreamHandler()
+            ]
+        )
+        return logging.getLogger('pollarbase.processor')
+    
+    def validate_file(self, file_path: str, rules: DataValidationRules) -> bool:
+        """✅ Validate file before processing"""
+        import pandas as pd
+        
+        try:
+            # Check file size
+            file_size_mb = os.path.getsize(file_path) / (1024 * 1024)
+            if file_size_mb > rules.max_file_size_mb:
+                self.logger.error(f"File too large: {file_size_mb:.1f}MB > {rules.max_file_size_mb}MB")
+                return False
+            
+            # Check file type
+            if rules.allowed_file_types:
+                file_ext = file_path.split('.')[-1].lower()
+                if file_ext not in rules.allowed_file_types:
+                    self.logger.error(f"Invalid file type: {file_ext}")
+                    return False
+            
+            # Basic data validation
+            df = pd.read_csv(file_path, nrows=100)  # Sample first 100 rows
+            
+            # Check required columns
+            missing_columns = set(rules.required_columns) - set(df.columns)
+            if missing_columns:
+                self.logger.error(f"Missing required columns: {missing_columns}")
+                return False
+            
+            self.logger.info(f"✅ File validation passed: {file_path}")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"File validation failed: {str(e)}")
+            return False
+    
+    def create_backup(self, dataset_id: str) -> str:
+        """✅ Create backup before transformations"""
+        backup_id = f"{dataset_id}_backup_{int(time.time())}"
+        
+        # Export original data as backup
+        backup_export = self.client.get_dataset(dataset_id).export(
+            format='parquet',
+            filename=f"backup_{backup_id}.parquet"
+        )
+        
+        self.logger.info(f"Backup created: {backup_export['url']}")
+        return backup_export['url']
+    
+    def calculate_file_hash(self, file_path: str) -> str:
+        """✅ Calculate file hash for integrity checking"""
+        hasher = hashlib.md5()
+        with open(file_path, 'rb') as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hasher.update(chunk)
+        return hasher.hexdigest()
+    
+    def process_with_best_practices(
+        self, 
+        file_path: str, 
+        validation_rules: DataValidationRules
+    ) -> Optional[dict]:
+        """✅ Complete processing with all best practices"""
+        
+        # 1. Validate input file
+        if not self.validate_file(file_path, validation_rules):
+            return None
+        
+        # 2. Calculate file hash for integrity
+        file_hash = self.calculate_file_hash(file_path)
+        self.logger.info(f"File hash: {file_hash}")
+        
+        try:
+            # 3. Upload with proper error handling
+            dataset = self.client.upload_file(
+                file_path,
+                auto_analyze=True,
+                metadata={'original_hash': file_hash}
+            )
+            
+            # 4. Wait for analysis with timeout
+            analysis = dataset.wait_for_analysis(timeout=300)
+            
+            # 5. Validate quality score
+            if analysis.quality_score < validation_rules.min_quality_score * 100:
+                self.logger.warning(
+                    f"Quality score {analysis.quality_score}% below threshold "
+                    f"{validation_rules.min_quality_score * 100}%"
+                )
+                
+                # 6. Create backup before transformations
+                backup_url = self.create_backup(dataset.id)
+                
+                # 7. Apply only high-confidence transformations
+                suggestions = analysis.get_suggestions()
+                high_confidence = [s for s in suggestions if s.confidence > 0.9]
+                
+                if high_confidence:
+                    self.logger.info(f"Applying {len(high_confidence)} high-confidence transformations")
+                    dataset = dataset.apply_transformations(high_confidence)
+                else:
+                    self.logger.warning("No high-confidence transformations available")
+            
+            # 8. Final validation
+            final_analysis = dataset.get_analysis()
+            
+            return {
+                'status': 'success',
+                'dataset_id': dataset.id,
+                'quality_score': final_analysis.quality_score,
+                'file_hash': file_hash,
+                'backup_url': backup_url if 'backup_url' in locals() else None,
+                'transformations_applied': len(high_confidence) if 'high_confidence' in locals() else 0
+            }
+            
+        except pollarbase.ValidationError as e:
+            self.logger.error(f"Validation error: {e.message}")
+            return {'status': 'validation_failed', 'error': e.message}
+            
+        except pollarbase.RateLimitError as e:
+            self.logger.warning(f"Rate limited, retry after {e.retry_after}s")
+            return {'status': 'rate_limited', 'retry_after': e.retry_after}
+            
+        except Exception as e:
+            self.logger.error(f"Unexpected error: {str(e)}")
+            return {'status': 'failed', 'error': str(e)}
+
+# Usage example
+if __name__ == "__main__":
+    processor = BestPracticeProcessor(os.getenv('POLLARBASE_API_KEY'))
+    
+    rules = DataValidationRules(
+        required_columns=['customer_id', 'email'],
+        max_missing_percentage=0.05,
+        min_quality_score=0.85,
+        allowed_file_types=['csv', 'json'],
+        max_file_size_mb=50
+    )
+    
+    result = processor.process_with_best_practices('customer_data.csv', rules)
+    print(f"Processing result: {result}")`,
+                response: `2024-01-15 10:30:00 INFO ✅ File validation passed: customer_data.csv
+2024-01-15 10:30:00 INFO File hash: d41d8cd98f00b204e9800998ecf8427e
+2024-01-15 10:30:05 INFO Quality score 78% below threshold 85%
+2024-01-15 10:30:06 INFO Backup created: https://files.pollarbase.com/backups/backup_123.parquet
+2024-01-15 10:30:06 INFO Applying 3 high-confidence transformations
+Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_score': 89, 'transformations_applied': 3}`
+              })}
             </div>
           </div>
         )
 
       default:
         return (
-          <div className="max-w-4xl">
-            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+          <div className="max-w-5xl">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">
               {selectedSection.split('-').map(word => 
                 word.charAt(0).toUpperCase() + word.slice(1)
               ).join(' ')}
             </h1>
-            <p className="text-2xl text-gray-600 mb-12">
+            <p className="text-lg text-gray-600 mb-8">
               Documentation for this section is coming soon.
             </p>
-            <div className="bg-gray-50 rounded-xl p-12 text-center">
-              <Book className="w-16 h-16 text-gray-400 mx-auto mb-6" />
-              <p className="text-gray-500 text-lg">
+            <div className="bg-gray-50 rounded-lg p-8 text-center">
+              <Book className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500">
                 This section is currently being written. Check back soon!
               </p>
             </div>
@@ -832,7 +2457,7 @@ except Exception as e:
               <a href="/" className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                   <Brain className="w-6 h-6 text-white" />
-                </div>
+              </div>
                 <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
                 <span className="text-lg text-gray-500 border-l border-gray-300 pl-4">Docs</span>
               </a>
@@ -858,24 +2483,25 @@ except Exception as e:
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex">
-          {/* Sidebar */}
-          <aside className="w-80 shrink-0 py-12 pr-12 border-r border-gray-200">
-            <nav className="space-y-10">
+      {/* Documentation Layout */}
+      <div className="w-full px-8 lg:px-12 py-8">
+        <div className="max-w-[1600px] mx-auto flex gap-12">
+          {/* Left Sidebar - Navigation */}
+          <aside className="w-80 shrink-0">
+            <nav className="sticky top-28 space-y-5">
               {docsSections.map((section) => (
                 <div key={section.id}>
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">
+                  <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">
                     {section.title}
                   </h3>
-                  <ul className="space-y-2">
+                  <ul className="space-y-1">
                     {section.items.map((item) => (
                       <li key={item.id}>
                         <button
                           onClick={() => setSelectedSection(item.id)}
-                          className={`w-full flex items-center space-x-3 px-4 py-3 text-left rounded-lg transition-colors text-lg ${
+                          className={`w-full flex items-center space-x-3 px-3 py-2 text-left rounded-lg transition-all duration-200 text-sm ${
                             selectedSection === item.id
-                              ? 'bg-blue-50 text-blue-700 border-r-4 border-blue-600 font-semibold'
+                              ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-500 shadow-sm font-medium'
                               : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                           }`}
                         >
@@ -890,14 +2516,216 @@ except Exception as e:
             </nav>
           </aside>
 
-          {/* Main Content */}
-          <main className="flex-1 py-12 pl-12">
+          {/* Main Content - Centered and Wider */}
+          <main className="flex-1 min-w-0 max-w-5xl mx-auto px-4">
             {renderContent()}
           </main>
+
+          {/* Right Sidebar - Table of Contents & Links */}
+          <aside className="w-80 shrink-0">
+            <div className="sticky top-28 space-y-5">
+              {/* Table of Contents */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <List className="w-4 h-4" />
+                  On This Page
+                </h3>
+                <nav className="space-y-1">
+                  {selectedSection === 'introduction' && (
+                    <>
+                      <a href="#what-is-pollarbase" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">What is Pollarbase?</a>
+                      <a href="#getting-started" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Getting Started</a>
+                      <a href="#features" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Key Features</a>
+                    </>
+                  )}
+                  {selectedSection === 'quickstart' && (
+                    <>
+                      <a href="#upload-dataset" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Upload Dataset</a>
+                      <a href="#python-workflow" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Python Workflow</a>
+                      <a href="#javascript-processing" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">JavaScript Processing</a>
+                    </>
+                  )}
+                  {(selectedSection.endsWith('-api') || selectedSection === 'authentication') && (
+                    <>
+                      <a href="#endpoints" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">API Endpoints</a>
+                      <a href="#parameters" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Parameters</a>
+                      <a href="#examples" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors py-1">Code Examples</a>
+                    </>
+                  )}
+                </nav>
+              </div>
+
+              {/* Quick Links */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <ExternalLink className="w-4 h-4" />
+                  Quick Links
+                </h3>
+                <div className="space-y-2">
+                  <a href="/dashboard" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group">
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    <span>Go to Dashboard</span>
+                  </a>
+                  <a href="https://github.com/pollarbase/python-sdk" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    <span>Python SDK</span>
+                  </a>
+                  <a href="https://github.com/pollarbase/js-sdk" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    <span>JavaScript SDK</span>
+                  </a>
+                  <a href="https://status.pollarbase.com" className="flex items-center space-x-2 text-sm text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                    <span className="group-hover:translate-x-1 transition-transform">→</span>
+                    <span>API Status</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Support */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-5">
+                <h3 className="text-base font-bold text-blue-900 mb-3 flex items-center gap-2">
+                  <HelpCircle className="w-4 h-4" />
+                  Need Help?
+                </h3>
+                <p className="text-sm text-blue-800 mb-3 leading-relaxed">
+                  Get support from our team or connect with the community.
+                </p>
+                <div className="space-y-2">
+                  <a href="mailto:support@pollarbase.com" className="flex items-center space-x-2 text-sm text-blue-700 hover:text-blue-800 transition-colors">
+                    <span>📧</span>
+                    <span>Email Support</span>
+                  </a>
+                  <a href="https://discord.gg/pollarbase" className="flex items-center space-x-2 text-sm text-blue-700 hover:text-blue-800 transition-colors" target="_blank">
+                    <span>💬</span>
+                    <span>Discord Community</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* API Health */}
+              <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm">
+                <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-green-500" />
+                  API Status
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">API Health</span>
+                    <span className="flex items-center text-sm text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                      Operational
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Response Time</span>
+                    <span className="text-sm text-gray-900 font-medium">45ms</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Uptime</span>
+                    <span className="text-sm text-gray-900 font-medium">99.9%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
-
-      <Footer />
+      
+      {/* Full-width Documentation Footer */}
+      <footer className="bg-white border-t border-gray-200 mt-16">
+        <div className="w-full px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="col-span-1">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                  <Brain className="w-6 h-6 text-white" />
+                </div>
+                <span className="text-xl font-bold text-gray-900">Pollarbase</span>
+              </div>
+              <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                The Data Schlep Handler. We handle the schlep so you don't have to.
+              </p>
+              <div className="flex items-center space-x-2 text-sm text-green-600">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <span>All systems operational</span>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Documentation</h4>
+              <div className="space-y-2">
+                <button onClick={() => setSelectedSection('quickstart')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Quick Start
+                </button>
+                <button onClick={() => setSelectedSection('python-sdk')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Python SDK
+                </button>
+                <button onClick={() => setSelectedSection('authentication')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Authentication
+                </button>
+                <button onClick={() => setSelectedSection('webhooks')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Webhooks
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">API Reference</h4>
+              <div className="space-y-2">
+                <button onClick={() => setSelectedSection('upload-api')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Upload API
+                </button>
+                <button onClick={() => setSelectedSection('analysis-api')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Analysis API
+                </button>
+                <button onClick={() => setSelectedSection('transformation-api')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Transform API
+                </button>
+                <button onClick={() => setSelectedSection('export-api')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Export API
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-sm font-semibold text-gray-900 mb-4">Support & Community</h4>
+              <div className="space-y-2">
+                <a href="mailto:support@pollarbase.com" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Email Support
+                </a>
+                <a href="https://discord.gg/pollarbase" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                  Discord Community
+                </a>
+                <a href="https://status.pollarbase.com" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                  Status Page
+                </a>
+                <a href="https://github.com/pollarbase/pollarbase" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                  GitHub
+                </a>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-200 mt-8 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center">
+              <p className="text-gray-600 text-sm">
+                © 2024 Pollarbase. The Data Schlep Handler. Built with ❤️ for data teams everywhere.
+              </p>
+              <div className="flex items-center space-x-6 mt-4 md:mt-0">
+                <a href="/privacy" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Privacy Policy
+                </a>
+                <a href="/terms" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Terms of Service
+                </a>
+                <div className="text-sm text-gray-500">
+                  v2.1.0
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 } 

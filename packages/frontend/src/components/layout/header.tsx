@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell, Search, Menu, User, Home } from 'lucide-react'
+import { Bell, Search, Menu, User, Home, Book } from 'lucide-react'
 import { useState } from 'react'
 import Link from 'next/link'
 
@@ -46,6 +46,14 @@ export function Header() {
           >
             <span className="sr-only">Back to Home</span>
             <Home className="h-6 w-6" aria-hidden="true" />
+          </Link>
+          <Link
+            href="/documentation"
+            className="-m-2.5 p-2.5 text-gray-400 hover:text-mercury-primary transition-colors"
+            title="Documentation"
+          >
+            <span className="sr-only">Documentation</span>
+            <Book className="h-6 w-6" aria-hidden="true" />
           </Link>
           <button
             type="button"
