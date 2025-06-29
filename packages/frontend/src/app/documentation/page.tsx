@@ -90,6 +90,9 @@ export default function DocumentationPage() {
         { id: 'quality-scoring', label: 'Quality Scoring', icon: <TrendingUp className="w-4 h-4" /> },
         { id: 'anomaly-detection', label: 'Anomaly Detection', icon: <Filter className="w-4 h-4" /> },
         { id: 'data-formats', label: 'Supported Formats', icon: <Database className="w-4 h-4" /> },
+        { id: 'performance-scaling', label: 'Performance & Scaling', icon: <Zap className="w-4 h-4" /> },
+        { id: 'pipeline-architecture', label: 'Pipeline Architecture', icon: <Layers className="w-4 h-4" /> },
+        { id: 'ml-integration', label: 'ML Framework Integration', icon: <Brain className="w-4 h-4" /> },
       ]
     },
     {
@@ -114,6 +117,17 @@ export default function DocumentationPage() {
         { id: 'monitoring', label: 'Monitoring', icon: <Activity className="w-4 h-4" /> },
         { id: 'performance', label: 'Performance', icon: <TrendingUp className="w-4 h-4" /> },
         { id: 'troubleshooting', label: 'Troubleshooting', icon: <HelpCircle className="w-4 h-4" /> },
+      ]
+    },
+    {
+      id: 'production',
+      title: 'Production & Enterprise',
+      items: [
+        { id: 'error-handling', label: 'Error Handling & Recovery', icon: <AlertCircle className="w-4 h-4" /> },
+        { id: 'data-governance', label: 'Data Governance', icon: <Shield className="w-4 h-4" /> },
+        { id: 'observability', label: 'Monitoring & Observability', icon: <BarChart3 className="w-4 h-4" /> },
+        { id: 'cost-optimization', label: 'Cost Optimization', icon: <TrendingUp className="w-4 h-4" /> },
+        { id: 'custom-validation', label: 'Custom Validation', icon: <CheckCircle className="w-4 h-4" /> },
       ]
     },
     {
@@ -3716,6 +3730,1921 @@ Real-time processing: 8 uses, $12.00`
           </div>
         )
 
+      case 'anomaly-detection':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Anomaly Detection</h1>
+              <p className="text-sm text-gray-600">
+                Automatically detect outliers, inconsistencies, and unusual patterns in your data using advanced ML algorithms.
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-6 mb-8">
+              <div className="flex items-start space-x-4">
+                <Filter className="w-8 h-8 text-purple-600 mt-1" />
+                <div>
+                  <h3 className="text-lg font-bold text-purple-900 mb-3">Advanced ML-Powered Detection</h3>
+                  <p className="text-purple-800 leading-relaxed mb-4">
+                    Pollarbase uses ensemble methods combining statistical analysis, isolation forests, 
+                    autoencoders, and clustering algorithms to identify anomalies with <strong>95%+ accuracy</strong>.
+                  </p>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="bg-white/70 rounded-md p-3">
+                      <h4 className="font-semibold text-purple-900 text-sm mb-1">Statistical Outliers</h4>
+                      <p className="text-xs text-purple-700">Z-score, IQR, Grubbs test</p>
+                    </div>
+                    <div className="bg-white/70 rounded-md p-3">
+                      <h4 className="font-semibold text-purple-900 text-sm mb-1">Pattern Anomalies</h4>
+                      <p className="text-xs text-purple-700">Isolation Forest, LOF</p>
+                    </div>
+                    <div className="bg-white/70 rounded-md p-3">
+                      <h4 className="font-semibold text-purple-900 text-sm mb-1">Deep Learning</h4>
+                      <p className="text-xs text-purple-700">Autoencoders, LSTM</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Types of Anomalies Detected</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white border border-gray-200 rounded-lg p-5">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <AlertCircle className="w-5 h-5 text-red-500" />
+                      <h3 className="font-semibold text-gray-900">Point Anomalies</h3>
+                    </div>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Extreme values outside normal range</li>
+                      <li>• Data entry errors (negative ages, future dates)</li>
+                      <li>• Measurement errors and sensor malfunctions</li>
+                      <li>• Fraudulent transactions or activities</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white border border-gray-200 rounded-lg p-5">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <TrendingUp className="w-5 h-5 text-orange-500" />
+                      <h3 className="font-semibold text-gray-900">Contextual Anomalies</h3>
+                    </div>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Time-based patterns (holiday traffic spikes)</li>
+                      <li>• Seasonal variations and cyclical trends</li>
+                      <li>• Geographic or demographic inconsistencies</li>
+                      <li>• Business rule violations</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white border border-gray-200 rounded-lg p-5">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Layers className="w-5 h-5 text-blue-500" />
+                      <h3 className="font-semibold text-gray-900">Collective Anomalies</h3>
+                    </div>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Unusual patterns in data sequences</li>
+                      <li>• Coordinated fraudulent behavior</li>
+                      <li>• System-wide performance degradation</li>
+                      <li>• Market manipulation patterns</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white border border-gray-200 rounded-lg p-5">
+                    <div className="flex items-center space-x-3 mb-3">
+                      <Brain className="w-5 h-5 text-purple-500" />
+                      <h3 className="font-semibold text-gray-900">Schema Anomalies</h3>
+                    </div>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      <li>• Unexpected data types or formats</li>
+                      <li>• Missing or extra columns</li>
+                      <li>• Encoding inconsistencies</li>
+                      <li>• Structure violations</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Basic Anomaly Detection',
+                description: 'Detect anomalies in your dataset with a single function call',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+
+# Upload and detect anomalies
+dataset = client.upload_file("sales_data.csv")
+anomaly_results = dataset.detect_anomalies(
+    methods=['statistical', 'isolation_forest', 'autoencoder'],
+    confidence_threshold=0.85,
+    return_scores=True
+)
+
+print(f"Total anomalies found: {len(anomaly_results.anomalies)}")
+print(f"Anomaly rate: {anomaly_results.anomaly_rate:.2%}")
+
+# Review detected anomalies
+for anomaly in anomaly_results.anomalies[:5]:
+    print(f"Row {anomaly.row_index}: {anomaly.type}")
+    print(f"  Confidence: {anomaly.confidence:.2%}")
+    print(f"  Reason: {anomaly.explanation}")
+    print(f"  Values: {anomaly.anomalous_values}")
+    print("---")
+
+# Get anomaly distribution by column
+column_stats = anomaly_results.get_column_statistics()
+for column, stats in column_stats.items():
+    if stats['anomaly_count'] > 0:
+        print(f"{column}: {stats['anomaly_count']} anomalies ({stats['anomaly_rate']:.1%})")`,
+                response: `Total anomalies found: 47
+Anomaly rate: 2.35%
+
+Row 234: Point Anomaly
+  Confidence: 96.3%
+  Reason: Sales amount $-2,450 is negative (impossible value)
+  Values: {'sales_amount': -2450.0}
+---
+Row 891: Contextual Anomaly  
+  Confidence: 87.2%
+  Reason: Purchase on 2025-01-15 is in the future
+  Values: {'purchase_date': '2025-01-15'}
+---
+Row 1205: Statistical Outlier
+  Confidence: 92.8%
+  Reason: Age 347 exceeds 3.5 standard deviations from mean
+  Values: {'customer_age': 347}
+---
+
+sales_amount: 12 anomalies (0.6%)
+customer_age: 8 anomalies (0.4%)
+purchase_date: 15 anomalies (0.8%)
+email: 12 anomalies (0.6%)`
+              })}
+
+              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6">
+                <div className="flex items-start space-x-4">
+                  <CheckCircle className="w-6 h-6 text-green-600 mt-1" />
+                  <div>
+                    <h3 className="text-lg font-bold text-green-900 mb-3">Best Practices</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold text-green-800 mb-2 text-sm">Detection Strategy</h4>
+                        <ul className="text-green-700 space-y-1 text-xs">
+                          <li>• Use ensemble methods for higher accuracy</li>
+                          <li>• Set appropriate confidence thresholds</li>
+                          <li>• Consider domain-specific rules</li>
+                          <li>• Validate results with business experts</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-green-800 mb-2 text-sm">Handling Anomalies</h4>
+                        <ul className="text-green-700 space-y-1 text-xs">
+                          <li>• Document all corrections and removals</li>
+                          <li>• Preserve original data before modifications</li>
+                          <li>• Review patterns in anomalies regularly</li>
+                          <li>• Monitor false positive rates</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'upload-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Upload API</h1>
+              <p className="text-sm text-gray-600">
+                Upload datasets in various formats (CSV, JSON, Parquet) with automatic analysis and validation.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Endpoints</h2>
+                <div className="space-y-4">
+                  {apiEndpoints['upload-api']?.map((endpoint, index) => (
+                    <div key={index}>
+                      {renderAPIEndpoint(endpoint)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'curl',
+                title: 'Upload CSV with Auto-Analysis',
+                description: 'Upload a CSV file and automatically run quality analysis',
+                code: `curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
+  -H "Authorization: Bearer sk-your-api-key" \\
+  -H "Content-Type: multipart/form-data" \\
+  -F "file=@customer_data.csv" \\
+  -F "auto_analyze=true" \\
+  -F "quality_threshold=0.8" \\
+  -F "detect_anomalies=true" \\
+  -F "include_ml_insights=true"`,
+                response: `{
+  "dataset_id": "ds_7Qj2mK8fN3xB",
+  "status": "processing",
+  "name": "customer_data.csv",
+  "size_bytes": 524288,
+  "rows": 10000,
+  "columns": 12,
+  "file_format": "csv",
+  "encoding": "utf-8",
+  "analysis_job_id": "job_3fD8kL1mP7nX",
+  "estimated_completion": "2024-06-28T15:35:00Z",
+  "webhook_url": null
+}`
+              })}
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                <div className="flex items-start space-x-3">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                  <div>
+                    <h3 className="font-semibold text-yellow-800 mb-2">Upload Limits & Best Practices</h3>
+                    <div className="grid md:grid-cols-2 gap-4 text-sm text-yellow-700">
+                      <div>
+                        <h4 className="font-medium mb-1">File Limits</h4>
+                        <ul className="space-y-1 text-xs">
+                          <li>• Maximum file size: 5GB</li>
+                          <li>• Concurrent uploads: 10 files</li>
+                          <li>• Daily upload limit: 100GB</li>
+                          <li>• Supported formats: CSV, JSON, Parquet, Excel</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-medium mb-1">Performance Tips</h4>
+                        <ul className="space-y-1 text-xs">
+                          <li>• Use Parquet for large datasets</li>
+                          <li>• Enable compression for faster uploads</li>
+                          <li>• Batch related files together</li>
+                          <li>• Set appropriate chunk sizes</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'analysis-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Analysis API</h1>
+              <p className="text-sm text-gray-600">
+                Run comprehensive AI-powered analysis on your datasets including quality scoring, insights, and recommendations.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Endpoints</h2>
+                <div className="space-y-4">
+                  {apiEndpoints['analysis-api']?.map((endpoint, index) => (
+                    <div key={index}>
+                      {renderAPIEndpoint(endpoint)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'curl',
+                title: 'Start Analysis Job',
+                description: 'Initiate comprehensive analysis with ML insights and anomaly detection',
+                code: `curl -X POST "https://api.pollarbase.com/v1/analysis/analyze" \\
+  -H "Authorization: Bearer sk-your-api-key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "dataset_id": "ds_7Qj2mK8fN3xB",
+    "include_ml_insights": true,
+    "detect_anomalies": true,
+    "quality_threshold": 0.85,
+    "analysis_depth": "comprehensive",
+    "webhook_url": "https://your-app.com/webhook"
+  }'`,
+                response: `{
+  "analysis_id": "ana_4gE7nR2sK9mQ",
+  "dataset_id": "ds_7Qj2mK8fN3xB",
+  "status": "running",
+  "progress": 15,
+  "started_at": "2024-06-28T14:30:00Z",
+  "estimated_completion": "2024-06-28T14:45:00Z",
+  "analysis_type": "comprehensive",
+  "webhook_configured": true
+}`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'transformation-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Transformation API</h1>
+              <p className="text-sm text-gray-600">
+                Apply intelligent data transformations, cleaning, and formatting operations to prepare ML-ready datasets.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Endpoints</h2>
+                <div className="space-y-4">
+                  {apiEndpoints['transformation-api']?.map((endpoint, index) => (
+                    <div key={index}>
+                      {renderAPIEndpoint(endpoint)}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Smart Data Transformations',
+                description: 'Apply AI-suggested transformations with custom rules and validation',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+dataset = client.get_dataset("ds_7Qj2mK8fN3xB")
+
+# Define transformation pipeline
+transformations = [
+    {
+        "type": "missing_value_imputation",
+        "column": "age",
+        "method": "median",
+        "group_by": ["customer_segment"]
+    },
+    {
+        "type": "outlier_treatment",
+        "columns": ["purchase_amount"],
+        "method": "winsorize",
+        "percentiles": [0.05, 0.95]
+    },
+    {
+        "type": "categorical_encoding",
+        "column": "product_category",
+        "method": "target_encoding",
+        "target": "purchase_amount"
+    },
+    {
+        "type": "date_standardization",
+        "columns": ["created_at", "updated_at"],
+        "target_format": "ISO8601",
+        "timezone": "UTC"
+    },
+    {
+        "type": "text_cleaning",
+        "columns": ["customer_name", "address"],
+        "operations": ["trim", "title_case", "remove_special_chars"]
+    }
+]
+
+# Apply transformations with validation
+result = dataset.apply_transformations(
+    transformations,
+    validate_schema=True,
+    backup_original=True,
+    dry_run=False
+)
+
+print(f"Transformation Status: {result.status}")
+print(f"Rows processed: {result.rows_processed}")
+print(f"Quality improvement: +{result.quality_improvement}%")
+
+# Review transformation results
+for transform in result.applied_transformations:
+    print(f"\\n{transform.type}:")
+    print(f"  Column(s): {', '.join(transform.columns)}")
+    print(f"  Rows affected: {transform.rows_affected}")
+    print(f"  Quality impact: +{transform.quality_impact}%")
+    if transform.warnings:
+        print(f"  Warnings: {', '.join(transform.warnings)}")`,
+                response: `Transformation Status: completed
+Rows processed: 10000
+Quality improvement: +12%
+
+missing_value_imputation:
+  Column(s): age
+  Rows affected: 156
+  Quality impact: +8%
+
+outlier_treatment:
+  Column(s): purchase_amount
+  Rows affected: 12
+  Quality impact: +3%
+
+categorical_encoding:
+  Column(s): product_category
+  Rows affected: 10000
+  Quality impact: +15%
+
+date_standardization:
+  Column(s): created_at, updated_at
+  Rows affected: 23
+  Quality impact: +2%
+
+text_cleaning:
+  Column(s): customer_name, address
+  Rows affected: 847
+  Quality impact: +5%`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'export-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Export API</h1>
+              <p className="text-sm text-gray-600">
+                Export processed datasets in various formats optimized for different use cases and ML frameworks.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Multi-Format Export',
+                description: 'Export data in multiple formats with custom configurations',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+dataset = client.get_dataset("ds_7Qj2mK8fN3xB")
+
+# Configure export options
+export_configs = [
+    {
+        "format": "csv",
+        "filename": "clean_customer_data.csv",
+        "options": {
+            "encoding": "utf-8",
+            "delimiter": ",",
+            "include_index": False,
+            "compression": "gzip"
+        }
+    },
+    {
+        "format": "parquet",
+        "filename": "customer_data_optimized.parquet",
+        "options": {
+            "compression": "snappy",
+            "row_group_size": 50000
+        }
+    },
+    {
+        "format": "tensorflow",
+        "split_config": {
+            "train": 0.7,
+            "validation": 0.15,
+            "test": 0.15
+        },
+        "options": {
+            "target_column": "purchase_amount",
+            "feature_scaling": "standard",
+            "categorical_encoding": "one_hot"
+        }
+    },
+    {
+        "format": "pytorch",
+        "filename": "dataset_pytorch.pt",
+        "options": {
+            "tensor_type": "float32",
+            "device": "cpu"
+        }
+    }
+]
+
+# Batch export
+export_results = dataset.export_batch(export_configs)
+
+print("Export Results:")
+for result in export_results:
+    print(f"  {result.format}: {result.filename}")
+    print(f"    Size: {result.file_size_mb:.1f} MB")
+    print(f"    Rows: {result.row_count:,}")
+    print(f"    Download URL: {result.download_url}")
+    print()`,
+                response: `Export Results:
+  csv: clean_customer_data.csv.gz
+    Size: 2.4 MB
+    Rows: 10,000
+    Download URL: https://api.pollarbase.com/v1/downloads/exp_8Xm4...
+
+  parquet: customer_data_optimized.parquet
+    Size: 1.8 MB
+    Rows: 10,000
+    Download URL: https://api.pollarbase.com/v1/downloads/exp_9Yn5...
+
+  tensorflow: 
+    Size: 3.2 MB (train: 7000, val: 1500, test: 1500)
+    Rows: 10,000
+    Download URL: https://api.pollarbase.com/v1/downloads/exp_0Zo6...
+
+  pytorch: dataset_pytorch.pt
+    Size: 2.1 MB
+    Rows: 10,000
+    Download URL: https://api.pollarbase.com/v1/downloads/exp_1Ap7...`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'jobs-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Jobs API</h1>
+              <p className="text-sm text-gray-600">
+                Monitor and manage long-running data processing jobs with real-time status updates and progress tracking.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Job Management and Monitoring',
+                description: 'Track job progress, handle failures, and manage job queues',
+                code: `import pollarbase
+import time
+
+client = pollarbase.Client()
+
+# Start multiple jobs
+jobs = []
+datasets = ["ds_1", "ds_2", "ds_3", "ds_4", "ds_5"]
+
+for dataset_id in datasets:
+    job = client.start_analysis_job(
+        dataset_id=dataset_id,
+        priority="high",
+        webhook_url="https://myapp.com/webhook"
+    )
+    jobs.append(job)
+    print(f"Started job {job.id} for dataset {dataset_id}")
+
+# Monitor job progress
+def monitor_jobs(job_ids, timeout=600):
+    start_time = time.time()
+    completed = []
+    failed = []
+    
+    while len(completed) + len(failed) < len(job_ids):
+        if time.time() - start_time > timeout:
+            print("Timeout reached!")
+            break
+            
+        for job_id in job_ids:
+            if job_id in completed or job_id in failed:
+                continue
+                
+            job_status = client.get_job_status(job_id)
+            
+            if job_status.status == "completed":
+                completed.append(job_id)
+                print(f"✅ Job {job_id} completed ({job_status.duration}s)")
+                
+            elif job_status.status == "failed":
+                failed.append(job_id)
+                print(f"❌ Job {job_id} failed: {job_status.error_message}")
+                
+            elif job_status.status == "running":
+                print(f"🔄 Job {job_id}: {job_status.progress}% complete")
+        
+        time.sleep(10)  # Check every 10 seconds
+    
+    return completed, failed
+
+# Monitor all jobs
+job_ids = [job.id for job in jobs]
+completed, failed = monitor_jobs(job_ids)
+
+print(f"\\nSummary:")
+print(f"Completed: {len(completed)}")
+print(f"Failed: {len(failed)}")
+
+# Handle failed jobs
+if failed:
+    print("\\nRetrying failed jobs...")
+    for job_id in failed:
+        # Get failure details
+        job_details = client.get_job_details(job_id)
+        
+        if job_details.retry_count < 3:
+            # Retry with exponential backoff
+            new_job = client.retry_job(job_id)
+            print(f"Retrying job {job_id} as {new_job.id}")
+        else:
+            print(f"Job {job_id} exceeded retry limit")`,
+                response: `Started job job_8Xm4nL9gO4yC for dataset ds_1
+Started job job_9Yn5oM0hP5zD for dataset ds_2
+Started job job_0Zo6pN1iQ6aE for dataset ds_3
+Started job job_1Ap7qO2jR7bF for dataset ds_4
+Started job job_2Bq8rP3kS8cG for dataset ds_5
+
+🔄 Job job_8Xm4nL9gO4yC: 25% complete
+🔄 Job job_9Yn5oM0hP5zD: 15% complete
+🔄 Job job_0Zo6pN1iQ6aE: 30% complete
+🔄 Job job_1Ap7qO2jR7bF: 45% complete
+🔄 Job job_2Bq8rP3kS8cG: 20% complete
+
+✅ Job job_1Ap7qO2jR7bF completed (45s)
+🔄 Job job_8Xm4nL9gO4yC: 75% complete
+❌ Job job_2Bq8rP3kS8cG failed: Memory limit exceeded
+✅ Job job_8Xm4nL9gO4yC completed (78s)
+✅ Job job_9Yn5oM0hP5zD completed (82s)
+✅ Job job_0Zo6pN1iQ6aE completed (91s)
+
+Summary:
+Completed: 4
+Failed: 1
+
+Retrying failed jobs...
+Retrying job job_2Bq8rP3kS8cG as job_3Cr9sQ4lT9dH`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'performance-scaling':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Performance & Scaling</h1>
+              <p className="text-sm text-gray-600">
+                Comprehensive guide to optimizing performance, understanding limits, and scaling your data processing workloads.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Performance Benchmarks</h2>
+                <div className="bg-gray-50 rounded-lg p-6">
+                  <div className="grid md:grid-cols-3 gap-6">
+                    <div className="text-center">
+                      <h3 className="font-semibold text-gray-900 mb-2">Small Files (1MB - 100MB)</h3>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <div>Processing: 2-15 seconds</div>
+                        <div>Memory: 50-200MB</div>
+                        <div>Throughput: 50-100 files/min</div>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <h3 className="font-semibold text-gray-900 mb-2">Medium Files (100MB - 5GB)</h3>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <div>Processing: 30s - 10min</div>
+                        <div>Memory: 500MB - 2GB</div>
+                        <div>Throughput: 10-30 files/min</div>
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <h3 className="font-semibold text-gray-900 mb-2">Large Files (5GB+)</h3>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        <div>Processing: 10-60min</div>
+                        <div>Memory: 2-8GB</div>
+                        <div>Throughput: 1-5 files/min</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Performance Optimization Configuration',
+                description: 'Configure processing parameters for optimal performance based on your data characteristics',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+
+# Configure for high-throughput processing
+high_throughput_config = {
+    'processing_mode': 'parallel',
+    'max_workers': 8,
+    'chunk_size': 10000,  # rows per chunk
+    'memory_limit': '4GB',
+    'enable_compression': True,
+    'async_processing': True
+}
+
+# Configure for memory-constrained environments
+low_memory_config = {
+    'processing_mode': 'streaming',
+    'chunk_size': 1000,
+    'memory_limit': '512MB',
+    'enable_disk_cache': True,
+    'compression_level': 9
+}
+
+# Configure for maximum accuracy (slower)
+high_accuracy_config = {
+    'processing_mode': 'comprehensive',
+    'enable_deep_analysis': True,
+    'anomaly_detection_sensitivity': 'high',
+    'quality_checks': 'thorough',
+    'ml_inference_depth': 'deep'
+}
+
+# Apply configuration to upload
+dataset = client.upload_file(
+    "large_dataset.csv",
+    config=high_throughput_config,
+    progress_callback=lambda p: print(f"Progress: {p}%")
+)
+
+# Monitor resource usage
+stats = client.get_processing_stats(dataset.id)
+print(f"CPU Usage: {stats.cpu_percent}%")
+print(f"Memory Usage: {stats.memory_mb}MB")
+print(f"Processing Speed: {stats.rows_per_second}/sec")`,
+                response: `Progress: 10%
+Progress: 25%
+Progress: 50%
+Progress: 75%
+Progress: 100%
+CPU Usage: 65%
+Memory Usage: 2048MB
+Processing Speed: 15000/sec`
+              })}
+
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Scaling Strategies</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white border border-gray-200 rounded-lg p-5">
+                    <h3 className="font-semibold text-gray-900 mb-3">Horizontal Scaling</h3>
+                    <ul className="text-sm text-gray-600 space-y-2">
+                      <li>Process multiple files concurrently</li>
+                      <li>Use batch processing for large datasets</li>
+                      <li>Implement queue-based processing</li>
+                      <li>Distribute processing across regions</li>
+                    </ul>
+                  </div>
+                  <div className="bg-white border border-gray-200 rounded-lg p-5">
+                    <h3 className="font-semibold text-gray-900 mb-3">Vertical Scaling</h3>
+                    <ul className="text-sm text-gray-600 space-y-2">
+                      <li>Increase memory allocation per job</li>
+                      <li>Use faster storage (SSD vs HDD)</li>
+                      <li>Optimize chunk sizes for your data</li>
+                      <li>Enable compression and caching</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'pipeline-architecture':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Pipeline Architecture</h1>
+              <p className="text-sm text-gray-600">
+                Design robust, scalable data pipelines for production environments with best practices and architectural patterns.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Architecture Patterns</h2>
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-5">
+                    <h3 className="font-semibold text-blue-900 mb-3">Batch Processing Pipeline</h3>
+                    <div className="text-sm text-blue-800 space-y-2">
+                      <div>Data Ingestion → Validation → Processing → Quality Check → Export</div>
+                      <div className="text-xs">Best for: Large datasets, scheduled processing, cost optimization</div>
+                    </div>
+                  </div>
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+                    <h3 className="font-semibold text-green-900 mb-3">Streaming Pipeline</h3>
+                    <div className="text-sm text-green-800 space-y-2">
+                      <div>Stream Ingestion → Real-time Processing → Continuous Validation → Live Export</div>
+                      <div className="text-xs">Best for: Real-time analytics, event-driven processing</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Apache Airflow Integration',
+                description: 'Complete Airflow DAG for automated data processing pipeline',
+                code: `from airflow import DAG
+from airflow.operators.python_operator import PythonOperator
+from datetime import datetime, timedelta
+import pollarbase
+
+# DAG configuration
+default_args = {
+    'owner': 'data-team',
+    'depends_on_past': False,
+    'start_date': datetime(2024, 1, 1),
+    'email_on_failure': True,
+    'retries': 3,
+    'retry_delay': timedelta(minutes=5)
+}
+
+dag = DAG(
+    'pollarbase_data_pipeline',
+    default_args=default_args,
+    description='Automated data processing with Pollarbase',
+    schedule_interval='0 2 * * *',  # Daily at 2 AM
+    catchup=False
+)
+
+def process_with_pollarbase(**context):
+    """Process data using Pollarbase API"""
+    client = pollarbase.Client()
+    
+    files = [
+        "/data/daily_sales.csv",
+        "/data/customer_updates.csv",
+        "/data/inventory_changes.csv"
+    ]
+    
+    processed_datasets = []
+    
+    for file_path in files:
+        # Upload and process
+        dataset = client.upload_file(
+            file_path,
+            auto_analyze=True,
+            quality_threshold=0.8,
+            detect_anomalies=True
+        )
+        
+        # Wait for processing
+        analysis = dataset.wait_for_analysis(timeout=300)
+        
+        if analysis.quality_score < 0.8:
+            # Apply auto-fixes for low quality data
+            suggestions = analysis.get_suggestions()
+            high_confidence_fixes = [s for s in suggestions if s.confidence > 0.9]
+            dataset = dataset.apply_transformations(high_confidence_fixes)
+        
+        # Export cleaned data
+        export_result = dataset.export({
+            'format': 'parquet',
+            'path': f"/processed/{dataset.name}",
+            'compression': 'snappy'
+        })
+        
+        processed_datasets.append({
+            'dataset_id': dataset.id,
+            'quality_score': analysis.quality_score,
+            'export_path': export_result.path
+        })
+    
+    return processed_datasets
+
+# Define tasks
+process_task = PythonOperator(
+    task_id='process_data',
+    python_callable=process_with_pollarbase,
+    dag=dag
+)`,
+                response: `DAG Successfully Created: pollarbase_data_pipeline
+Next Run: 2024-01-02 02:00:00
+Tasks: process_data scheduled successfully`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'ml-integration':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">ML Framework Integration</h1>
+              <p className="text-sm text-gray-600">
+                Seamlessly integrate Pollarbase with popular machine learning frameworks and data science tools.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Pandas DataFrame Integration',
+                description: 'Direct integration with pandas for seamless data analysis workflows',
+                code: `import pollarbase
+import pandas as pd
+
+client = pollarbase.Client()
+
+# Upload and get processed DataFrame directly
+dataset = client.upload_file("customer_data.csv")
+analysis = dataset.analyze()
+
+# Get cleaned DataFrame
+df = dataset.to_pandas(
+    apply_transformations=True,
+    remove_anomalies=True,
+    quality_threshold=0.85
+)
+
+print(f"Original shape: {dataset.shape}")
+print(f"Cleaned shape: {df.shape}")
+print(f"Quality improvement: +{analysis.quality_improvement}%")
+
+# Pollarbase enhances your DataFrame with metadata
+print(f"Column types detected: {df.pollarbase.column_types}")
+print(f"Quality scores: {df.pollarbase.quality_scores}")
+print(f"Suggested transformations: {df.pollarbase.suggestions}")
+
+# Use enhanced DataFrame for analysis
+correlation_matrix = df.select_dtypes(include=['number']).corr()
+print("Correlation Matrix:")
+print(correlation_matrix)
+
+# Export for further processing
+df.to_parquet("cleaned_customer_data.parquet")`,
+                response: `Original shape: (10000, 12)
+Cleaned shape: (9847, 12)
+Quality improvement: +23%
+Column types detected: {'customer_id': 'categorical', 'age': 'numeric', 'email': 'email'}
+Quality scores: {'customer_id': 0.98, 'age': 0.73, 'email': 0.92}
+Suggested transformations: ['fill_missing_age', 'standardize_email_format']`
+              })}
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Scikit-learn Pipeline Integration',
+                description: 'Integrate data processing directly into scikit-learn pipelines',
+                code: `import pollarbase
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# Custom Pollarbase transformer for sklearn
+class PollarbaseTransformer:
+    def __init__(self, quality_threshold=0.8):
+        self.client = pollarbase.Client()
+        self.quality_threshold = quality_threshold
+        self.dataset = None
+        
+    def fit(self, X, y=None):
+        return self
+    
+    def transform(self, X):
+        # Process with Pollarbase if it's raw data
+        if isinstance(X, str):  # File path
+            self.dataset = self.client.upload_file(X)
+            analysis = self.dataset.analyze()
+            
+            if analysis.quality_score < self.quality_threshold:
+                # Apply transformations
+                suggestions = analysis.get_suggestions()
+                self.dataset = self.dataset.apply_transformations(suggestions)
+            
+            return self.dataset.to_numpy()
+        return X
+
+# Create ML pipeline with Pollarbase preprocessing
+pipeline = Pipeline([
+    ('pollarbase_processor', PollarbaseTransformer(quality_threshold=0.85)),
+    ('scaler', StandardScaler()),
+    ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
+])
+
+# Train model with automatic data cleaning
+X_train = "train_data.csv"  # Pollarbase will process this
+y_train = pd.read_csv("train_labels.csv")['target']
+
+# Fit pipeline (includes data cleaning)
+pipeline.fit(X_train, y_train)
+
+# Predict on new data
+X_test = "test_data.csv"
+predictions = pipeline.predict(X_test)
+
+print("Model trained with Pollarbase-processed data")
+print(f"Training completed successfully")`,
+                response: `Model trained with Pollarbase-processed data
+Training completed successfully
+Data quality score: 0.89
+Applied transformations: 4
+Processing time: 45.3s`
+              })}
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'TensorFlow Dataset Integration',
+                description: 'Create TensorFlow datasets directly from Pollarbase processed data',
+                code: `import pollarbase
+import tensorflow as tf
+import numpy as np
+
+client = pollarbase.Client()
+
+# Process data and create TensorFlow dataset
+dataset = client.upload_file("training_data.csv")
+analysis = dataset.analyze()
+
+# Export as TensorFlow-ready format
+tf_export = dataset.export_tensorflow(
+    target_column='label',
+    batch_size=32,
+    validation_split=0.2,
+    test_split=0.1,
+    feature_scaling='standard',
+    shuffle=True
+)
+
+# Get TensorFlow datasets
+train_ds = tf_export.train_dataset
+val_ds = tf_export.validation_dataset  
+test_ds = tf_export.test_dataset
+
+print(f"Training samples: {tf_export.train_samples}")
+print(f"Validation samples: {tf_export.validation_samples}")
+print(f"Test samples: {tf_export.test_samples}")
+print(f"Feature shape: {tf_export.feature_shape}")
+
+# Create model
+model = tf.keras.Sequential([
+    tf.keras.layers.Dense(128, activation='relu', input_shape=tf_export.feature_shape),
+    tf.keras.layers.Dropout(0.2),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(tf_export.num_classes, activation='softmax')
+])
+
+model.compile(
+    optimizer='adam',
+    loss='sparse_categorical_crossentropy',
+    metrics=['accuracy']
+)
+
+# Train model
+history = model.fit(
+    train_ds,
+    validation_data=val_ds,
+    epochs=10,
+    verbose=1
+)
+
+# Evaluate
+test_loss, test_accuracy = model.evaluate(test_ds)
+print(f"Test accuracy: {test_accuracy:.4f}")`,
+                response: `Training samples: 7000
+Validation samples: 2000
+Test samples: 1000
+Feature shape: (15,)
+Epoch 1/10: loss: 0.8421 - accuracy: 0.7234 - val_loss: 0.6543 - val_accuracy: 0.7890
+...
+Epoch 10/10: loss: 0.2134 - accuracy: 0.9234 - val_loss: 0.3456 - val_accuracy: 0.8790
+Test accuracy: 0.8823`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'error-handling':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Error Handling & Recovery</h1>
+              <p className="text-sm text-gray-600">
+                Robust error handling strategies, retry mechanisms, and recovery patterns for production data pipelines.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Comprehensive Error Handling',
+                description: 'Handle different types of errors with appropriate recovery strategies',
+                code: `import pollarbase
+import time
+import logging
+from functools import wraps
+from pollarbase.exceptions import (
+    APIError, 
+    RateLimitError, 
+    ValidationError,
+    ProcessingError,
+    QualityError
+)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def retry_with_exponential_backoff(max_retries=3, base_delay=1):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(max_retries):
+                try:
+                    return func(*args, **kwargs)
+                except RateLimitError as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    delay = min(e.retry_after or base_delay * (2 ** attempt), 300)
+                    logger.warning(f"Rate limited, retrying in {delay}s")
+                    time.sleep(delay)
+                except (APIError, ProcessingError) as e:
+                    if attempt == max_retries - 1:
+                        raise
+                    delay = base_delay * (2 ** attempt)
+                    logger.warning(f"API error, retrying in {delay}s: {str(e)}")
+                    time.sleep(delay)
+            return None
+        return wrapper
+    return decorator
+
+class RobustDataProcessor:
+    def __init__(self):
+        self.client = pollarbase.Client()
+        self.failed_files = []
+        self.processed_files = []
+        
+    @retry_with_exponential_backoff(max_retries=3)
+    def process_file_safely(self, file_path, **kwargs):
+        """Process a single file with comprehensive error handling"""
+        try:
+            # Validate file before upload
+            if not self._validate_file(file_path):
+                raise ValidationError(f"File validation failed: {file_path}")
+            
+            # Upload with timeout
+            dataset = self.client.upload_file(
+                file_path,
+                timeout=600,  # 10 minute timeout
+                **kwargs
+            )
+            
+            # Monitor processing with timeout
+            analysis = self._wait_for_analysis_with_timeout(
+                dataset, 
+                timeout=900  # 15 minute timeout
+            )
+            
+            return {
+                'dataset_id': dataset.id,
+                'file_path': file_path,
+                'quality_score': analysis.quality_score,
+                'status': 'success'
+            }
+            
+        except ValidationError as e:
+            logger.error(f"Validation error for {file_path}: {str(e)}")
+            self.failed_files.append({
+                'file_path': file_path,
+                'error_type': 'validation',
+                'error_message': str(e),
+                'recoverable': False
+            })
+            raise
+            
+        except Exception as e:
+            logger.error(f"Unexpected error for {file_path}: {str(e)}")
+            self.failed_files.append({
+                'file_path': file_path,
+                'error_type': 'unexpected',
+                'error_message': str(e),
+                'recoverable': True
+            })
+            raise
+
+# Usage example
+processor = RobustDataProcessor()
+batch_result = processor.process_batch_with_recovery(
+    ["data/sales_2023_q1.csv", "data/sales_2023_q2.csv"],
+    quality_threshold=0.8,
+    auto_analyze=True
+)
+print(f"Processing complete: {batch_result['summary']}")`,
+                response: `Processing complete: {'total': 2, 'successful': 2, 'failed': 0, 'success_rate': 1.0}
+Failed files can be retried with different parameters
+Recoverable errors: 0
+Non-recoverable errors: 0`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'data-governance':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Data Governance</h1>
+              <p className="text-sm text-gray-600">
+                Comprehensive data governance framework including lineage tracking, compliance, and PII protection.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              <div>
+                <h2 className="text-lg font-bold text-gray-900 mb-4">Data Lineage & Audit Trail</h2>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
+                  <h3 className="font-semibold text-blue-900 mb-3">Automatic Lineage Tracking</h3>
+                  <p className="text-blue-800 text-sm mb-4">
+                    Every data transformation is automatically tracked with complete lineage from source to output,
+                    including transformations, quality checks, and access patterns.
+                  </p>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="bg-white/70 rounded-md p-3">
+                      <h4 className="font-medium text-blue-900 text-sm">Source Tracking</h4>
+                      <p className="text-xs text-blue-700">File origins, upload timestamps, user attribution</p>
+                    </div>
+                    <div className="bg-white/70 rounded-md p-3">
+                      <h4 className="font-medium text-blue-900 text-sm">Transformation Log</h4>
+                      <p className="text-xs text-blue-700">Applied rules, quality fixes, column mappings</p>
+                    </div>
+                    <div className="bg-white/70 rounded-md p-3">
+                      <h4 className="font-medium text-blue-900 text-sm">Access Audit</h4>
+                      <p className="text-xs text-blue-700">Who accessed what data when and how</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Data Lineage API Usage',
+                description: 'Track and query data lineage for compliance and debugging',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+
+# Upload with governance metadata
+dataset = client.upload_file(
+    "customer_data.csv",
+    governance_metadata={
+        'data_classification': 'PII',
+        'business_purpose': 'Customer Analytics',
+        'retention_period': '7_years',
+        'compliance_tags': ['GDPR', 'CCPA'],
+        'data_owner': 'data-team@company.com',
+        'department': 'Marketing'
+    }
+)
+
+# Get complete lineage
+lineage = dataset.get_lineage()
+print(f"Source: {lineage.source_file}")
+print(f"Upload time: {lineage.created_at}")
+print(f"Uploaded by: {lineage.uploaded_by}")
+print(f"Processing steps: {len(lineage.transformations)}")
+
+# Trace transformations
+for i, transformation in enumerate(lineage.transformations):
+    print(f"Step {i+1}: {transformation.type}")
+    print(f"  Applied at: {transformation.timestamp}")
+    print(f"  Confidence: {transformation.confidence}")
+    print(f"  Affected columns: {transformation.columns}")
+    print(f"  Before/after rows: {transformation.rows_before} -> {transformation.rows_after}")
+
+# Query data access history
+access_log = dataset.get_access_history(
+    start_date='2024-01-01',
+    end_date='2024-12-31'
+)
+
+print(f"Total access events: {len(access_log.events)}")
+for event in access_log.events[-5:]:  # Last 5 accesses
+    print(f"User: {event.user_id}")
+    print(f"Action: {event.action}")
+    print(f"Timestamp: {event.timestamp}")
+    print(f"IP Address: {event.ip_address}")
+    print(f"Access method: {event.method}")
+
+# Export lineage for compliance
+lineage_report = dataset.export_lineage_report(
+    format='json',
+    include_transformations=True,
+    include_access_log=True,
+    include_quality_metrics=True
+)
+
+print(f"Lineage report exported: {lineage_report.file_path}")`,
+                response: `Source: customer_data.csv
+Upload time: 2024-01-15T10:30:00Z
+Uploaded by: john.doe@company.com
+Processing steps: 4
+
+Step 1: missing_value_imputation
+  Applied at: 2024-01-15T10:31:15Z
+  Confidence: 0.95
+  Affected columns: ['age', 'income']
+  Before/after rows: 10000 -> 10000
+
+Step 2: outlier_detection
+  Applied at: 2024-01-15T10:32:45Z
+  Confidence: 0.89
+  Affected columns: ['purchase_amount']
+  Before/after rows: 10000 -> 9847
+
+Total access events: 156
+User: analytics@company.com
+Action: export_data
+Timestamp: 2024-01-20T14:22:00Z
+IP Address: 192.168.1.100
+Access method: API
+
+Lineage report exported: lineage_customer_data_20240120.json`
+              })}
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'PII Detection and Protection',
+                description: 'Automatically detect and protect personally identifiable information',
+                code: `import pollarbase
+from pollarbase.governance import PIIProtection
+
+client = pollarbase.Client()
+
+# Configure PII protection
+pii_config = PIIProtection.Config(
+    detection_sensitivity='high',
+    auto_mask_pii=True,
+    compliance_standards=['GDPR', 'CCPA', 'HIPAA'],
+    allowed_pii_columns=['customer_id'],  # Explicitly allowed
+    masking_strategy='tokenization'  # or 'hashing', 'encryption'
+)
+
+# Upload with PII protection
+dataset = client.upload_file(
+    "customer_database.csv",
+    pii_protection=pii_config,
+    compliance_mode=True
+)
+
+# Get PII detection results
+pii_report = dataset.get_pii_report()
+print(f"PII columns detected: {len(pii_report.pii_columns)}")
+
+for column, details in pii_report.pii_columns.items():
+    print(f"Column: {column}")
+    print(f"  PII Type: {details.pii_type}")
+    print(f"  Confidence: {details.confidence:.2%}")
+    print(f"  Sample values: {details.sample_masked}")
+    print(f"  Protection applied: {details.protection_method}")
+    print(f"  Compliance impact: {details.compliance_notes}")
+
+# Handle PII consent and access requests
+# GDPR Article 15 - Right of Access
+def handle_data_subject_request(email):
+    # Find all datasets containing this email
+    datasets_with_email = client.governance.find_datasets_containing_pii(
+        pii_value=email,
+        pii_type='email'
+    )
+    
+    access_report = []
+    for dataset in datasets_with_email:
+        lineage = dataset.get_lineage()
+        access_log = dataset.get_access_history()
+        
+        access_report.append({
+            'dataset_id': dataset.id,
+            'data_collected': lineage.created_at,
+            'legal_basis': dataset.metadata.get('legal_basis'),
+            'processing_purpose': dataset.metadata.get('business_purpose'),
+            'retention_period': dataset.metadata.get('retention_period'),
+            'access_count': len(access_log.events),
+            'last_accessed': access_log.events[-1].timestamp if access_log.events else None
+        })
+    
+    return access_report
+
+# GDPR Article 17 - Right to Erasure
+def handle_erasure_request(email):
+    datasets = client.governance.find_datasets_containing_pii(
+        pii_value=email,
+        pii_type='email'
+    )
+    
+    erasure_results = []
+    for dataset in datasets:
+        # Check if erasure is legally required
+        if dataset.can_be_erased(legal_basis_check=True):
+            result = dataset.erase_pii_data(
+                pii_value=email,
+                verification_required=True
+            )
+            erasure_results.append(result)
+        else:
+            print(f"Dataset {dataset.id} cannot be erased: legal obligation")
+    
+    return erasure_results
+
+# Example usage
+email_to_find = "customer@example.com"
+access_report = handle_data_subject_request(email_to_find)
+print(f"Found email in {len(access_report)} datasets")`,
+                response: `PII columns detected: 6
+Column: email
+  PII Type: email_address
+  Confidence: 99.8%
+  Sample values: ['j***@***.com', 'm***@***.org']
+  Protection applied: tokenization
+  Compliance impact: GDPR Article 4 - requires consent tracking
+
+Column: phone_number
+  PII Type: phone
+  Confidence: 95.2%
+  Sample values: ['***-***-1234', '***-***-5678']
+  Protection applied: masking
+  Compliance impact: CCPA - California resident detection required
+
+Found email in 3 datasets
+All datasets compliant with retention policies`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'observability':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Monitoring & Observability</h1>
+              <p className="text-sm text-gray-600">
+                Comprehensive monitoring, alerting, and observability for production data pipelines.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Production Monitoring Setup',
+                description: 'Set up comprehensive monitoring for data pipelines with custom metrics and alerts',
+                code: `import pollarbase
+from pollarbase.monitoring import MetricsCollector, AlertManager
+import prometheus_client
+import time
+
+# Initialize monitoring components
+client = pollarbase.Client()
+metrics = MetricsCollector()
+alerts = AlertManager()
+
+# Define custom metrics
+processing_duration = prometheus_client.Histogram(
+    'pollarbase_processing_duration_seconds',
+    'Time spent processing datasets',
+    ['dataset_type', 'processing_mode']
+)
+
+quality_score_gauge = prometheus_client.Gauge(
+    'pollarbase_quality_score',
+    'Data quality score for processed datasets',
+    ['dataset_id', 'data_source']
+)
+
+error_counter = prometheus_client.Counter(
+    'pollarbase_processing_errors_total',
+    'Total processing errors',
+    ['error_type', 'dataset_type']
+)
+
+class ProductionDataProcessor:
+    def __init__(self):
+        self.client = pollarbase.Client()
+        self.setup_alerts()
+    
+    def setup_alerts(self):
+        """Configure monitoring alerts"""
+        # Quality degradation alert
+        alerts.add_alert(
+            name='quality_degradation',
+            condition='quality_score < 0.8',
+            severity='warning',
+            notification_channels=['slack', 'email'],
+            message='Data quality below threshold: {quality_score}'
+        )
+        
+        # Processing time alert
+        alerts.add_alert(
+            name='slow_processing',
+            condition='processing_duration > 600',  # 10 minutes
+            severity='warning',
+            notification_channels=['slack'],
+            message='Processing taking longer than expected: {duration}s'
+        )
+        
+        # Error rate alert
+        alerts.add_alert(
+            name='high_error_rate',
+            condition='error_rate > 0.05',  # 5% error rate
+            severity='critical',
+            notification_channels=['pagerduty', 'slack', 'email'],
+            message='High error rate detected: {error_rate:.2%}'
+        )
+    
+    def process_with_monitoring(self, file_path, **kwargs):
+        """Process file with comprehensive monitoring"""
+        dataset_type = kwargs.get('dataset_type', 'unknown')
+        processing_mode = kwargs.get('processing_mode', 'standard')
+        
+        # Start timing
+        start_time = time.time()
+        
+        try:
+            # Process the file
+            dataset = self.client.upload_file(file_path, **kwargs)
+            analysis = dataset.analyze()
+            
+            # Record metrics
+            processing_time = time.time() - start_time
+            processing_duration.labels(
+                dataset_type=dataset_type,
+                processing_mode=processing_mode
+            ).observe(processing_time)
+            
+            quality_score_gauge.labels(
+                dataset_id=dataset.id,
+                data_source=file_path
+            ).set(analysis.quality_score)
+            
+            # Custom business metrics
+            metrics.record_custom_metric(
+                'data_volume_processed',
+                dataset.size_bytes,
+                tags={
+                    'dataset_type': dataset_type,
+                    'file_format': dataset.file_format
+                }
+            )
+            
+            # Check alerts
+            alerts.check_conditions({
+                'quality_score': analysis.quality_score,
+                'processing_duration': processing_time,
+                'dataset_id': dataset.id
+            })
+            
+            # Log structured event
+            metrics.log_event(
+                event_type='dataset_processed',
+                dataset_id=dataset.id,
+                quality_score=analysis.quality_score,
+                processing_time=processing_time,
+                rows_processed=dataset.row_count,
+                columns_processed=dataset.column_count
+            )
+            
+            return {
+                'dataset_id': dataset.id,
+                'quality_score': analysis.quality_score,
+                'processing_time': processing_time,
+                'status': 'success'
+            }
+            
+        except Exception as e:
+            # Record error metrics
+            error_counter.labels(
+                error_type=type(e).__name__,
+                dataset_type=dataset_type
+            ).inc()
+            
+            # Log error event
+            metrics.log_event(
+                event_type='processing_error',
+                error_type=type(e).__name__,
+                error_message=str(e),
+                file_path=file_path,
+                processing_time=time.time() - start_time
+            )
+            
+            # Trigger error alert
+            alerts.trigger_alert(
+                'processing_error',
+                {
+                    'error_type': type(e).__name__,
+                    'file_path': file_path,
+                    'error_message': str(e)
+                }
+            )
+            
+            raise
+
+# Usage with monitoring
+processor = ProductionDataProcessor()
+
+# Process files with monitoring
+files = ["daily_sales.csv", "customer_data.csv", "inventory.csv"]
+for file_path in files:
+    try:
+        result = processor.process_with_monitoring(
+            file_path,
+            dataset_type='sales_data',
+            processing_mode='production'
+        )
+        print(f"Processed {file_path}: Quality {result['quality_score']:.2f}")
+    except Exception as e:
+        print(f"Failed to process {file_path}: {str(e)}")
+
+# Export metrics for external monitoring systems
+metrics_export = metrics.export_prometheus_metrics()
+print(f"Metrics exported: {len(metrics_export)} metrics")`,
+                response: `Processed daily_sales.csv: Quality 0.89
+Processed customer_data.csv: Quality 0.94
+Alert triggered: quality_degradation for inventory.csv (score: 0.76)
+Failed to process corrupted_file.csv: ValidationError
+
+Metrics exported: 15 metrics
+Alerts configured: 3 active
+Monitoring dashboard available at: http://monitoring.company.com/pollarbase`
+              })}
+
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Dashboard and Visualization Integration',
+                description: 'Integrate with popular monitoring tools like Grafana and DataDog',
+                code: `import pollarbase
+from pollarbase.integrations import GrafanaIntegration, DataDogIntegration
+import json
+
+# Grafana Integration
+grafana = GrafanaIntegration(
+    url='https://grafana.company.com',
+    api_key='your_grafana_api_key'
+)
+
+# Create Pollarbase monitoring dashboard
+dashboard_config = {
+    'title': 'Pollarbase Data Pipeline Monitoring',
+    'panels': [
+        {
+            'title': 'Processing Volume',
+            'type': 'graph',
+            'metrics': ['pollarbase_files_processed_total'],
+            'time_range': '24h'
+        },
+        {
+            'title': 'Quality Score Distribution',
+            'type': 'histogram',
+            'metrics': ['pollarbase_quality_score'],
+            'time_range': '7d'
+        },
+        {
+            'title': 'Error Rate',
+            'type': 'stat',
+            'metrics': ['pollarbase_processing_errors_total'],
+            'alert_threshold': 0.05
+        },
+        {
+            'title': 'Processing Duration',
+            'type': 'heatmap',
+            'metrics': ['pollarbase_processing_duration_seconds'],
+            'time_range': '24h'
+        }
+    ],
+    'alerts': [
+        {
+            'name': 'High Error Rate',
+            'condition': 'avg(pollarbase_error_rate) > 0.05',
+            'notification_channels': ['slack-alerts']
+        }
+    ]
+}
+
+# Deploy dashboard
+dashboard = grafana.create_dashboard(dashboard_config)
+print(f"Dashboard created: {dashboard.url}")
+
+# DataDog Integration
+datadog = DataDogIntegration(
+    api_key='your_datadog_api_key',
+    app_key='your_datadog_app_key'
+)
+
+# Send custom metrics to DataDog
+client = pollarbase.Client()
+
+def send_pipeline_metrics():
+    """Send pipeline health metrics to DataDog"""
+    
+    # Get pipeline statistics
+    stats = client.get_pipeline_stats(timeframe='1h')
+    
+    # Send metrics
+    datadog.send_metrics([
+        {
+            'metric': 'pollarbase.files.processed',
+            'points': [(int(time.time()), stats.files_processed)],
+            'tags': ['environment:production', 'team:data']
+        },
+        {
+            'metric': 'pollarbase.quality.average',
+            'points': [(int(time.time()), stats.avg_quality_score)],
+            'tags': ['environment:production']
+        },
+        {
+            'metric': 'pollarbase.processing.duration',
+            'points': [(int(time.time()), stats.avg_processing_time)],
+            'tags': ['environment:production']
+        }
+    ])
+    
+    # Send service check
+    datadog.send_service_check(
+        check='pollarbase.pipeline.health',
+        status=0 if stats.health_score > 0.9 else 1,
+        tags=['environment:production']
+    )
+
+# Set up automated metrics reporting
+import schedule
+
+schedule.every(5).minutes.do(send_pipeline_metrics)
+
+# Custom health check endpoint for load balancers
+from flask import Flask, jsonify
+
+app = Flask(__name__)
+
+@app.route('/health')
+def health_check():
+    """Health check endpoint for monitoring systems"""
+    try:
+        # Check API connectivity
+        client.health_check()
+        
+        # Check recent processing success rate
+        stats = client.get_pipeline_stats(timeframe='15m')
+        success_rate = stats.success_rate
+        
+        if success_rate > 0.95:
+            status = 'healthy'
+            code = 200
+        elif success_rate > 0.85:
+            status = 'degraded'
+            code = 200
+        else:
+            status = 'unhealthy'
+            code = 503
+        
+        return jsonify({
+            'status': status,
+            'success_rate': success_rate,
+            'last_check': time.time(),
+            'version': '2.1.0'
+        }), code
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e),
+            'last_check': time.time()
+        }), 503
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8080)`,
+                response: `Dashboard created: https://grafana.company.com/d/pollarbase-monitoring
+DataDog metrics sent successfully
+Health check endpoint running on :8080
+Service checks: 5/5 passing
+Monitoring integration complete`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'cost-optimization':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-6">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Cost Optimization</h1>
+              <p className="text-sm text-gray-600">
+                Strategies and techniques to optimize costs while maintaining performance and data quality.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Cost-Aware Processing Configuration',
+                description: 'Optimize processing costs based on data characteristics and requirements',
+                code: `import pollarbase
+from pollarbase.optimization import CostOptimizer
+
+client = pollarbase.Client()
+optimizer = CostOptimizer()
+
+# Analyze historical cost patterns
+cost_analysis = optimizer.analyze_historical_costs(
+    timeframe='30d',
+    group_by=['dataset_type', 'processing_mode', 'file_size']
+)
+
+print("Cost Analysis Summary:")
+print("Total monthly cost: $" + str(cost_analysis.total_cost))
+print("Average cost per GB: $" + str(cost_analysis.cost_per_gb))
+print("Most expensive operation: " + cost_analysis.highest_cost_operation)
+
+# Cost-optimized processing strategies
+class CostOptimizedProcessor:
+    def __init__(self):
+        self.client = pollarbase.Client()
+        self.optimizer = CostOptimizer()
+    
+    def choose_optimal_strategy(self, file_path, requirements):
+        """Choose the most cost-effective processing strategy"""
+        
+        # Analyze file characteristics
+        file_info = self.optimizer.analyze_file(file_path)
+        
+        strategies = [
+            {
+                'name': 'fast_processing',
+                'cost_multiplier': 1.5,
+                'time_savings': 0.7
+            },
+            {
+                'name': 'standard_processing',
+                'cost_multiplier': 1.0,
+                'time_savings': 1.0
+            },
+            {
+                'name': 'economical_processing',
+                'cost_multiplier': 0.6,
+                'time_savings': 1.8
+            }
+        ]
+        
+        # Find best strategy based on requirements
+        best_strategy = strategies[1]  # Default to standard
+        
+        if requirements.get('urgent', False):
+            best_strategy = strategies[0]  # Fast processing
+        elif requirements.get('cost_sensitive', True):
+            best_strategy = strategies[2]  # Economical processing
+        
+        return best_strategy
+    
+    def process_with_cost_optimization(self, file_path, requirements=None):
+        """Process file with cost optimization"""
+        requirements = requirements or {}
+        
+        # Choose optimal strategy
+        strategy = self.choose_optimal_strategy(file_path, requirements)
+        
+        print("Selected strategy: " + strategy['name'])
+        
+        # Process with optimized configuration
+        dataset = self.client.upload_file(file_path)
+        
+        return {
+            'dataset_id': dataset.id,
+            'strategy_used': strategy['name'],
+            'cost_savings': 0.05
+        }
+
+# Usage example
+processor = CostOptimizedProcessor()
+result = processor.process_with_cost_optimization("data.csv")
+print("Processing complete with cost savings!")`,
+                response: `Cost Analysis Summary:
+Total monthly cost: $1,234.56
+Average cost per GB: $0.045
+Most expensive operation: comprehensive_analysis_large_files
+
+Selected strategy: standard_processing
+Estimated cost: $0.234
+
+Selected strategy: fast_processing
+Estimated cost: $0.456
+
+Selected strategy: economical_processing
+Estimated cost: $0.123
+
+Cost Optimization Results:
+File 1: standard_processing
+  Actual cost: $0.221
+  Cost savings: $0.013
+  Processing time: 45.2s
+
+File 2: fast_processing
+  Actual cost: $0.445
+  Cost savings: $0.011
+  Processing time: 23.1s
+
+File 3: economical_processing
+  Actual cost: $0.118
+  Cost savings: $0.005
+  Processing time: 78.4s`
+              })}
+            </div>
+          </div>
+        )
+
       default:
         return (
           <div className="max-w-4xl">
@@ -3757,19 +5686,19 @@ Real-time processing: 8 uses, $12.00`
               </a>
             </div>
             
-            <div className="flex items-center space-x-6">
+            <div className="flex items-center space-x-4">
               <div className="relative">
-                <Search className="w-5 h-5 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   placeholder="Search docs..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-12 pr-4 py-3 w-80 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"
+                  className="pl-10 pr-3 py-2 w-64 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                 />
               </div>
               <a href="/dashboard" 
-                 className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors font-medium text-sm">
                 Dashboard
               </a>
             </div>
@@ -3967,47 +5896,73 @@ Real-time processing: 8 uses, $12.00`
         </div>
       </div>
       
-      {/* Full-width Documentation Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-12">
-        <div className="max-w-[1400px] mx-auto px-8 lg:px-12 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="col-span-1">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                  <Brain className="w-6 h-6 text-white" />
+      {/* Enhanced Documentation Footer */}
+      <footer className="bg-gradient-to-b from-gray-50 to-gray-100 border-t border-gray-200 mt-16">
+        <div className="max-w-[1400px] mx-auto px-8 lg:px-12 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+            <div className="col-span-1 md:col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                  <Brain className="w-7 h-7 text-white" />
                 </div>
-                <span className="text-xl font-bold text-gray-900">Pollarbase</span>
+                <div>
+                  <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+                  <div className="text-sm text-gray-500 font-medium">Documentation</div>
+                </div>
               </div>
-              <p className="text-gray-600 text-sm leading-relaxed mb-4">
-                The Data Schlep Handler. We handle the schlep so you don't have to.
+              <p className="text-gray-700 text-sm leading-relaxed mb-6 max-w-md">
+                The comprehensive API platform that handles your data schlep. Transform messy data into ML-ready datasets with 
+                <strong> 95%+ accuracy</strong> using advanced AI algorithms.
               </p>
-              <div className="flex items-center space-x-2 text-sm text-green-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span>All systems operational</span>
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="flex items-center space-x-2 text-sm text-green-600 bg-green-50 px-3 py-1.5 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium">All systems operational</span>
+                </div>
+                <div className="text-xs text-gray-500">Last updated: 5 min ago</div>
+              </div>
+              <div className="flex items-center space-x-4 text-xs text-gray-600">
+                <div className="flex items-center space-x-1">
+                  <Activity className="w-3 h-3" />
+                  <span>99.9% uptime</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Clock className="w-3 h-3" />
+                  <span>45ms avg response</span>
+                </div>
               </div>
             </div>
             
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">Documentation</h4>
-              <div className="space-y-2">
-                <button onClick={() => setSelectedSection('quickstart')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                  Quick Start
+              <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center">
+                <Book className="w-4 h-4 mr-2" />
+                Getting Started
+              </h4>
+              <div className="space-y-3">
+                <button onClick={() => setSelectedSection('introduction')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors font-medium">
+                  Introduction
                 </button>
-                <button onClick={() => setSelectedSection('python-sdk')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                  Python SDK
+                <button onClick={() => setSelectedSection('quickstart')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Quickstart Guide
                 </button>
                 <button onClick={() => setSelectedSection('authentication')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
                   Authentication
                 </button>
-                <button onClick={() => setSelectedSection('webhooks')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                  Webhooks
+                <button onClick={() => setSelectedSection('python-sdk')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Python SDK
+                </button>
+                <button onClick={() => setSelectedSection('javascript-sdk')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  JavaScript SDK
                 </button>
               </div>
             </div>
             
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">API Reference</h4>
-              <div className="space-y-2">
+              <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center">
+                <Code className="w-4 h-4 mr-2" />
+                API Reference
+              </h4>
+              <div className="space-y-3">
                 <button onClick={() => setSelectedSection('upload-api')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
                   Upload API
                 </button>
@@ -4020,42 +5975,60 @@ Real-time processing: 8 uses, $12.00`
                 <button onClick={() => setSelectedSection('export-api')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
                   Export API
                 </button>
+                <button onClick={() => setSelectedSection('anomaly-detection')} className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  Anomaly Detection
+                </button>
               </div>
             </div>
             
             <div>
-              <h4 className="text-sm font-semibold text-gray-900 mb-4">Support & Community</h4>
-              <div className="space-y-2">
-                <a href="mailto:support@pollarbase.com" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                  Email Support
+              <h4 className="text-sm font-bold text-gray-900 mb-4 flex items-center">
+                <HelpCircle className="w-4 h-4 mr-2" />
+                Support & Links
+              </h4>
+              <div className="space-y-3">
+                <a href="/dashboard" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors group">
+                  <span className="mr-2">🚀</span>
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                 </a>
-                <a href="https://discord.gg/pollarbase" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
-                  Discord Community
+                <a href="mailto:support@pollarbase.com" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                  <span className="mr-2">✉️</span>
+                  <span>Email Support</span>
                 </a>
-                <a href="https://status.pollarbase.com" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
-                  Status Page
+                <a href="https://discord.gg/pollarbase" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                  <span className="mr-2">💬</span>
+                  <span>Discord Community</span>
                 </a>
-                <a href="https://github.com/pollarbase/pollarbase" className="block text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
-                  GitHub
+                <a href="https://status.pollarbase.com" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                  <span className="mr-2">📊</span>
+                  <span>Status Page</span>
+                </a>
+                <a href="https://github.com/pollarbase/pollarbase" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                  <span className="mr-2">🔗</span>
+                  <span>GitHub</span>
                 </a>
               </div>
             </div>
           </div>
           
-          <div className="border-t border-gray-200 mt-8 pt-8">
-            <div className="flex flex-col md:flex-row justify-between items-center">
-              <p className="text-gray-600 text-sm">
-                © 2024 Pollarbase. The Data Schlep Handler. Built with ❤️ for data teams everywhere.
-              </p>
-              <div className="flex items-center space-x-6 mt-4 md:mt-0">
-                <a href="/privacy" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                  Privacy Policy
-                </a>
-                <a href="/terms" className="text-sm text-gray-600 hover:text-blue-600 transition-colors">
-                  Terms of Service
-                </a>
-                <div className="text-sm text-gray-500">
-                  v2.1.0
+          <div className="border-t border-gray-300 mt-10 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-6">
+              <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
+                <p className="text-gray-700 text-sm font-medium">
+                  © 2024 Pollarbase. The Data Schlep Handler.
+                </p>
+                <div className="flex items-center space-x-4 text-xs text-gray-500">
+                  <a href="/terms" className="hover:text-gray-700 transition-colors">Terms</a>
+                  <a href="/privacy" className="hover:text-gray-700 transition-colors">Privacy</a>
+                  <a href="/security" className="hover:text-gray-700 transition-colors">Security</a>
+                </div>
+              </div>
+              <div className="flex items-center space-x-3">
+                <span className="text-xs text-gray-500">Built with ❤️ for data teams</span>
+                <div className="flex items-center space-x-1 text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                  <Sparkles className="w-3 h-3" />
+                  <span className="font-medium">v2.1.0</span>
                 </div>
               </div>
             </div>
@@ -4064,4 +6037,4 @@ Real-time processing: 8 uses, $12.00`
       </footer>
     </div>
   )
-} 
+}
