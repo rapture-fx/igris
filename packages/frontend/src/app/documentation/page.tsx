@@ -158,6 +158,14 @@ export default function DocumentationPage() {
         { id: 'ml-integration', label: 'ML Integration', icon: <Brain className="w-4 h-4" /> },
         { id: 'changelog', label: 'Changelog', icon: <Activity className="w-4 h-4" /> },
       ]
+    },
+    {
+      id: 'meta-documentation',
+      title: 'Meta & Analysis',
+      items: [
+        { id: 'data-governance', label: 'Data Governance Framework', icon: <Shield className="w-4 h-4" /> },
+        { id: 'documentation-gap-analysis', label: 'Documentation Gap Analysis', icon: <AlertCircle className="w-4 h-4" /> },
+      ]
     }
   ]
 
@@ -181,6 +189,68 @@ export default function DocumentationPage() {
         parameters: [
           { name: 'limit', type: 'integer', required: false, description: 'Number of results (max 100)' },
           { name: 'offset', type: 'integer', required: false, description: 'Pagination offset' }
+        ]
+      }
+    ],
+    'investigations-api': [
+      {
+        method: 'POST',
+        path: '/v1/data/investigations',
+        description: 'Create a new data investigation',
+        parameters: [
+          { name: 'workspace_id', type: 'string', required: true, description: 'Workspace identifier' },
+          { name: 'name', type: 'string', required: true, description: 'Investigation name' },
+          { name: 'description', type: 'string', required: false, description: 'Investigation description' },
+          { name: 'auto_process', type: 'boolean', required: false, description: 'Start processing immediately' }
+        ]
+      },
+      {
+        method: 'GET',
+        path: '/v1/data/investigations',
+        description: 'List all data investigations',
+        parameters: [
+          { name: 'workspace_id', type: 'string', required: false, description: 'Filter by workspace' },
+          { name: 'status', type: 'string', required: false, description: 'Filter by status (pending, processing, completed, failed)' },
+          { name: 'limit', type: 'integer', required: false, description: 'Number of results (max 100)' },
+          { name: 'offset', type: 'integer', required: false, description: 'Pagination offset' }
+        ]
+      },
+      {
+        method: 'GET',
+        path: '/v1/data/investigations/{investigation_id}',
+        description: 'Get investigation details',
+        parameters: [
+          { name: 'investigation_id', type: 'string', required: true, description: 'Investigation UUID' }
+        ]
+      }
+    ],
+    'jobs-api': [
+      {
+        method: 'POST',
+        path: '/v1/data/jobs',
+        description: 'Create a processing job',
+        parameters: [
+          { name: 'investigation_id', type: 'string', required: true, description: 'Investigation UUID' },
+          { name: 'job_type', type: 'string', required: true, description: 'Job type (analysis, transformation, export)' },
+          { name: 'configuration', type: 'object', required: false, description: 'Job-specific configuration' }
+        ]
+      },
+      {
+        method: 'GET',
+        path: '/v1/data/investigations/{investigation_id}/jobs',
+        description: 'List jobs for an investigation',
+        parameters: [
+          { name: 'investigation_id', type: 'string', required: true, description: 'Investigation UUID' },
+          { name: 'limit', type: 'integer', required: false, description: 'Number of results (max 100)' },
+          { name: 'offset', type: 'integer', required: false, description: 'Pagination offset' }
+        ]
+      },
+      {
+        method: 'GET',
+        path: '/v1/data/jobs/{job_id}',
+        description: 'Get job status and results',
+        parameters: [
+          { name: 'job_id', type: 'string', required: true, description: 'Job UUID' }
         ]
       }
     ],
@@ -235,6 +305,103 @@ export default function DocumentationPage() {
         description: 'Get job status and results',
         parameters: [
           { name: 'job_id', type: 'string', required: true, description: 'Job ID' }
+        ]
+      }
+    ],
+    'integrations-api': [
+      {
+        method: 'POST',
+        path: '/v1/integrations/database/connect',
+        description: 'Connect to a database (PostgreSQL, MySQL, MongoDB)',
+        parameters: [
+          { name: 'connection_name', type: 'string', required: true, description: 'Name for this connection' },
+          { name: 'database_type', type: 'string', required: true, description: 'Database type (postgresql, mysql, mongodb)' },
+          { name: 'host', type: 'string', required: true, description: 'Database host' },
+          { name: 'port', type: 'integer', required: true, description: 'Database port' },
+          { name: 'database', type: 'string', required: true, description: 'Database name' },
+          { name: 'username', type: 'string', required: true, description: 'Database username' },
+          { name: 'password', type: 'string', required: true, description: 'Database password' }
+        ]
+      },
+      {
+        method: 'POST',
+        path: '/v1/integrations/webhooks/setup',
+        description: 'Setup webhook for receiving data',
+        parameters: [
+          { name: 'webhook_name', type: 'string', required: true, description: 'Name for this webhook' },
+          { name: 'endpoint_path', type: 'string', required: true, description: 'Webhook endpoint path' },
+          { name: 'auth_method', type: 'string', required: false, description: 'Authentication method (hmac, token)' },
+          { name: 'secret', type: 'string', required: false, description: 'Webhook secret for verification' }
+        ]
+      }
+    ],
+    'ai-framework-api': [
+      {
+        method: 'POST',
+        path: '/v1/export/pytorch',
+        description: 'Export data in PyTorch format',
+        parameters: [
+          { name: 'investigation_id', type: 'string', required: true, description: 'Investigation UUID' },
+          { name: 'task_type', type: 'string', required: true, description: 'ML task type (classification, regression)' },
+          { name: 'target_column', type: 'string', required: false, description: 'Target column for supervised learning' },
+          { name: 'batch_size', type: 'integer', required: false, description: 'Batch size for DataLoader' },
+          { name: 'train_ratio', type: 'number', required: false, description: 'Training split ratio (0.0-1.0)' }
+        ]
+      },
+      {
+        method: 'POST',
+        path: '/v1/export/tensorflow',
+        description: 'Export data in TensorFlow format',
+        parameters: [
+          { name: 'investigation_id', type: 'string', required: true, description: 'Investigation UUID' },
+          { name: 'task_type', type: 'string', required: true, description: 'ML task type (classification, regression)' },
+          { name: 'target_column', type: 'string', required: false, description: 'Target column for supervised learning' },
+          { name: 'export_format', type: 'string', required: false, description: 'Export format (tfrecord, csv, parquet)' }
+        ]
+      }
+    ],
+    'monitoring-api': [
+      {
+        method: 'GET',
+        path: '/v1/monitoring/metrics/snapshot',
+        description: 'Get complete performance snapshot',
+        parameters: []
+      },
+      {
+        method: 'GET',
+        path: '/v1/monitoring/health',
+        description: 'Get system health status',
+        parameters: []
+      }
+    ],
+    'enterprise-api': [
+      {
+        method: 'POST',
+        path: '/v1/enterprise/api-keys',
+        description: 'Create a new API key',
+        parameters: [
+          { name: 'name', type: 'string', required: true, description: 'API key name' },
+          { name: 'permissions', type: 'array', required: true, description: 'List of permissions' },
+          { name: 'rate_limit', type: 'integer', required: false, description: 'Requests per minute limit' },
+          { name: 'expires_at', type: 'string', required: false, description: 'Expiration date (ISO 8601)' }
+        ]
+      },
+      {
+        method: 'GET',
+        path: '/v1/enterprise/api-keys',
+        description: 'List API keys',
+        parameters: []
+      }
+    ],
+    'advanced-ai-api': [
+      {
+        method: 'POST',
+        path: '/v1/analysis/intelligent-analysis',
+        description: 'Advanced AI-powered comprehensive analysis',
+        parameters: [
+          { name: 'investigation_id', type: 'string', required: true, description: 'Investigation UUID' },
+          { name: 'analysis_scope', type: 'array', required: false, description: 'Scope of analysis (data_quality, patterns, anomalies, insights)' },
+          { name: 'generate_suggestions', type: 'boolean', required: false, description: 'Generate transformation suggestions' }
         ]
       }
     ]
@@ -1919,7 +2086,7 @@ Pipeline complete: 2/2 files processed successfully`
           <div className="max-w-5xl">
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">ML Integration</h1>
-              <p className="text-base text-gray-600 mb-6">
+              <p className="text-sm text-gray-600 mb-6">
                 Seamlessly integrate Pollarbase with popular machine learning frameworks and platforms.
               </p>
             </div>
@@ -4937,6 +5104,780 @@ Non-recoverable errors: 0`
           </div>
         )
 
+      case 'pipeline-architecture':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Pipeline Architecture</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Build robust, scalable data processing pipelines with multi-step workflows, dependency management, error recovery, and comprehensive monitoring.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {/* Overview Section */}
+              <div className="bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl p-8">
+                <div className="flex items-start space-x-4 mb-6">
+                  <Layers className="w-8 h-8 text-emerald-600 mt-1" />
+                  <div>
+                    <h2 className="text-xl font-bold text-emerald-900 mb-3">Enterprise Pipeline Architecture</h2>
+                    <p className="text-emerald-800 mb-4">
+                      Pollarbase provides enterprise-grade pipeline orchestration with multi-step workflows, 
+                      intelligent dependency management, automatic error recovery, and comprehensive monitoring.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-white rounded-lg border border-emerald-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      Multi-Step Workflows
+                    </h3>
+                    <p className="text-sm text-gray-600">Complex pipelines with parallel execution and dependency chains</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-emerald-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      Error Recovery
+                    </h3>
+                    <p className="text-sm text-gray-600">Circuit breakers, retry mechanisms, and automatic failover</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-emerald-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      Smart Orchestration
+                    </h3>
+                    <p className="text-sm text-gray-600">Intelligent scheduling and resource optimization</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Complex Pipeline Architecture */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Complex Multi-Step Pipeline Architecture',
+                description: 'Build enterprise-grade pipelines with parallel execution, dependencies, and error recovery',
+                code: `import pollarbase
+from pollarbase.pipeline import PipelineBuilder, Stage, Dependency, ErrorPolicy
+from pollarbase.monitoring import PipelineMonitor
+import asyncio
+
+class EnterpriseDataPipeline:
+    def __init__(self, client):
+        self.client = client
+        self.builder = PipelineBuilder(client)
+        self.monitor = PipelineMonitor()
+        
+    def build_comprehensive_pipeline(self):
+        """Build a complex multi-stage data processing pipeline"""
+        
+        # Stage 1: Data Ingestion (Parallel Sources)
+        ingestion_stage = Stage(
+            name="data_ingestion",
+            parallel_tasks=[
+                {
+                    "name": "ingest_database",
+                    "function": self.ingest_from_database,
+                    "resources": {"cpu": 2, "memory": "4GB"},
+                    "timeout": 300,
+                    "retry_policy": {"max_attempts": 3, "backoff": "exponential"}
+                },
+                {
+                    "name": "ingest_api",
+                    "function": self.ingest_from_api,
+                    "resources": {"cpu": 1, "memory": "2GB"}, 
+                    "timeout": 180,
+                    "retry_policy": {"max_attempts": 5, "backoff": "linear"}
+                },
+                {
+                    "name": "ingest_files",
+                    "function": self.ingest_from_files,
+                    "resources": {"cpu": 3, "memory": "8GB"},
+                    "timeout": 600,
+                    "retry_policy": {"max_attempts": 2, "backoff": "fixed"}
+                }
+            ],
+            error_policy=ErrorPolicy.PARTIAL_SUCCESS,  # Continue if >=1 task succeeds
+            output_merge_strategy="union"
+        )
+        
+        # Stage 2: Data Validation & Quality Assessment 
+        validation_stage = Stage(
+            name="data_validation",
+            depends_on=[ingestion_stage],
+            function=self.comprehensive_data_validation,
+            parallel_execution=True,
+            resources={"cpu": 4, "memory": "16GB"},
+            error_policy=ErrorPolicy.FAIL_FAST,
+            quality_gates={
+                "min_completeness": 0.95,
+                "max_error_rate": 0.01,
+                "min_records": 1000
+            }
+        )
+        
+        # Stage 3: Data Enrichment (Parallel Enrichers)
+        enrichment_stage = Stage(
+            name="data_enrichment", 
+            depends_on=[validation_stage],
+            parallel_tasks=[
+                {
+                    "name": "geo_enrichment",
+                    "function": self.enrich_with_geography,
+                    "condition": lambda data: "address" in data.columns
+                },
+                {
+                    "name": "company_enrichment", 
+                    "function": self.enrich_with_company_data,
+                    "condition": lambda data: "email" in data.columns
+                },
+                {
+                    "name": "demographic_enrichment",
+                    "function": self.enrich_with_demographics,
+                    "condition": lambda data: "age" in data.columns
+                }
+            ],
+            error_policy=ErrorPolicy.BEST_EFFORT,
+            timeout=900
+        )
+        
+        # Stage 4: Advanced Transformations
+        transformation_stage = Stage(
+            name="transformations",
+            depends_on=[enrichment_stage],
+            sequential_tasks=[
+                {
+                    "name": "feature_engineering",
+                    "function": self.advanced_feature_engineering,
+                    "cache_results": True
+                },
+                {
+                    "name": "normalization",
+                    "function": self.normalize_data,
+                    "depends_on_task": "feature_engineering"
+                },
+                {
+                    "name": "outlier_detection",
+                    "function": self.detect_and_handle_outliers,
+                    "depends_on_task": "normalization"
+                }
+            ],
+            error_policy=ErrorPolicy.ROLLBACK_ON_FAILURE
+        )
+        
+        # Stage 5: Quality Assurance
+        qa_stage = Stage(
+            name="quality_assurance",
+            depends_on=[transformation_stage],
+            function=self.final_quality_assessment,
+            quality_gates={
+                "min_quality_score": 0.9,
+                "max_drift_score": 0.1,
+                "required_features": ["feature_1", "feature_2", "target"]
+            },
+            error_policy=ErrorPolicy.FAIL_FAST
+        )
+        
+        # Stage 6: Multi-Format Export
+        export_stage = Stage(
+            name="export",
+            depends_on=[qa_stage],
+            parallel_tasks=[
+                {
+                    "name": "export_ml_ready",
+                    "function": self.export_ml_formats,
+                    "outputs": ["train.parquet", "test.parquet", "features.json"]
+                },
+                {
+                    "name": "export_analytics",
+                    "function": self.export_analytics_formats,
+                    "outputs": ["analytics.csv", "dashboard_data.json"]
+                },
+                {
+                    "name": "export_warehouse",
+                    "function": self.export_to_warehouse,
+                    "outputs": ["warehouse_table"]
+                }
+            ],
+            error_policy=ErrorPolicy.PARTIAL_SUCCESS
+        )
+        
+        # Build complete pipeline
+        pipeline = self.builder.build_pipeline([
+            ingestion_stage,
+            validation_stage, 
+            enrichment_stage,
+            transformation_stage,
+            qa_stage,
+            export_stage
+        ])
+        
+        return pipeline
+    
+    async def execute_with_monitoring(self, pipeline, input_config):
+        """Execute pipeline with comprehensive monitoring and error handling"""
+        
+        # Start monitoring
+        monitor_task = asyncio.create_task(
+            self.monitor.start_monitoring(pipeline)
+        )
+        
+        try:
+            # Execute pipeline
+            execution = await pipeline.execute_async(
+                input_config=input_config,
+                execution_config={
+                    "max_parallel_stages": 3,
+                    "resource_limits": {
+                        "total_cpu": 16,
+                        "total_memory": "64GB", 
+                        "max_duration": 3600
+                    },
+                    "monitoring": {
+                        "metrics_interval": 30,
+                        "health_check_interval": 60,
+                        "alert_on_errors": True,
+                        "send_progress_updates": True
+                    }
+                }
+            )
+            
+            # Monitor execution progress
+            async for progress_update in execution.progress_stream():
+                await self.handle_progress_update(progress_update)
+            
+            # Get final results
+            results = await execution.get_results()
+            
+            print(f"Pipeline completed successfully!")
+            print(f"Total execution time: {results.execution_time}")
+            print(f"Stages completed: {results.stages_completed}/{results.total_stages}")
+            print(f"Data quality score: {results.final_quality_score}")
+            
+            return results
+            
+        except Exception as e:
+            # Handle pipeline failures
+            await self.handle_pipeline_failure(e, execution)
+            raise
+        finally:
+            # Stop monitoring
+            monitor_task.cancel()
+
+# Usage example
+async def main():
+    client = pollarbase.Client(api_key="sk-your-key")
+    pipeline_manager = EnterpriseDataPipeline(client)
+    
+    # Build comprehensive pipeline
+    pipeline = pipeline_manager.build_comprehensive_pipeline()
+    
+    # Configure input sources
+    input_config = {
+        "database": {
+            "connection_string": "postgresql://...",
+            "query": "SELECT * FROM customer_data WHERE updated_at > NOW() - INTERVAL '1 day'"
+        },
+        "api": {
+            "url": "https://api.example.com/customers",
+            "auth_token": "bearer_token",
+            "batch_size": 1000
+        },
+        "files": {
+            "directory": "/data/incoming",
+            "pattern": "customer_*.csv",
+            "encoding": "utf-8"
+        }
+    }
+    
+    # Execute with monitoring
+    results = await pipeline_manager.execute_with_monitoring(pipeline, input_config)
+    
+    print(f"Pipeline execution complete!")
+    print(f"Final outputs: {results.outputs}")
+
+if __name__ == "__main__":
+    asyncio.run(main())`,
+                response: `Pipeline completed successfully!
+Total execution time: 1,247 seconds (20.8 minutes)
+Stages completed: 6/6
+Data quality score: 96.8%
+
+Execution Summary:
+✅ Stage 1 (data_ingestion): 3/3 sources successful
+   - Database: 2.3M records (180s)
+   - API: 850K records (145s) 
+   - Files: 1.2M records (220s)
+
+✅ Stage 2 (data_validation): PASSED
+   - Completeness: 98.2% ✓
+   - Error rate: 0.003% ✓
+   - Record count: 4.35M ✓
+
+✅ Stage 3 (data_enrichment): 3/3 enrichers successful
+   - Geography: 89% coverage
+   - Company data: 76% coverage
+   - Demographics: 92% coverage
+
+✅ Stage 4 (transformations): All tasks completed
+   - Feature engineering: 247 features created
+   - Normalization: Applied to 156 columns
+   - Outlier detection: 0.2% outliers handled
+
+✅ Stage 5 (quality_assurance): PASSED
+   - Quality score: 96.8% ✓
+   - Drift score: 0.03% ✓
+   - Required features: All present ✓
+
+✅ Stage 6 (export): 3/3 formats exported
+   - ML formats: train.parquet (3.5M), test.parquet (850K)
+   - Analytics: dashboard_data.json (45MB)
+   - Warehouse: customer_features table updated
+
+ Final outputs: 6 artifacts, 4.35M records processed
+ Resource utilization: 82% CPU, 45GB memory peak`
+               })}
+
+              {/* Error Recovery and Circuit Breakers */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Advanced Error Recovery and Circuit Breakers',
+                description: 'Implement robust error handling with circuit breakers, retry mechanisms, and automatic failover',
+                code: `import pollarbase
+from pollarbase.resilience import CircuitBreaker, RetryPolicy, FailoverManager
+import asyncio
+import time
+import random
+
+class ResilientPipelineManager:
+    def __init__(self, client):
+        self.client = client
+        self.circuit_breakers = {}
+        self.failover_manager = FailoverManager()
+        
+    def setup_circuit_breakers(self):
+        """Configure circuit breakers for different services"""
+        
+        # Database circuit breaker
+        self.circuit_breakers['database'] = CircuitBreaker(
+            failure_threshold=5,      # Open after 5 failures
+            recovery_timeout=60,      # Try to recover after 60 seconds
+            expected_exception=DatabaseConnectionError,
+            fallback_function=self.database_fallback
+        )
+        
+        # External API circuit breaker
+        self.circuit_breakers['external_api'] = CircuitBreaker(
+            failure_threshold=3,
+            recovery_timeout=30,
+            expected_exception=APITimeoutError,
+            fallback_function=self.api_fallback,
+            half_open_max_calls=2    # Only 2 test calls in half-open state
+        )
+        
+        # ML service circuit breaker
+        self.circuit_breakers['ml_service'] = CircuitBreaker(
+            failure_threshold=2,
+            recovery_timeout=120,
+            expected_exception=MLServiceError,
+            fallback_function=self.ml_fallback
+        )
+    
+    async def resilient_data_processing(self, data_source):
+        """Process data with comprehensive error recovery"""
+        
+        try:
+            # Primary processing path
+            result = await self.primary_processing_pipeline(data_source)
+            return result
+            
+        except Exception as e:
+            print(f"Primary processing failed: {e}")
+            
+            # Determine recovery strategy
+            recovery_strategy = await self.determine_recovery_strategy(e)
+            
+            if recovery_strategy == "retry_with_backoff":
+                return await self.retry_with_intelligent_backoff(data_source, e)
+                
+            elif recovery_strategy == "failover_to_secondary":
+                return await self.failover_to_secondary_system(data_source)
+                
+            elif recovery_strategy == "degraded_processing":
+                return await self.process_in_degraded_mode(data_source)
+                
+            else:
+                # Last resort: manual intervention required
+                await self.trigger_manual_intervention(e, data_source)
+                raise
+    
+    async def retry_with_intelligent_backoff(self, data_source, original_error):
+        """Intelligent retry with adaptive backoff"""
+        
+        max_attempts = 5
+        base_delay = 1.0
+        max_delay = 30.0
+        
+        for attempt in range(max_attempts):
+            try:
+                # Jittered exponential backoff
+                delay = min(
+                    base_delay * (2 ** attempt) * (0.5 + 0.5 * random.random()),
+                    max_delay
+                )
+                
+                if attempt > 0:
+                    print(f"Retry attempt {attempt + 1}/{max_attempts} in {delay:.1f}s")
+                    await asyncio.sleep(delay)
+                
+                # Adjust processing parameters for retry
+                adjusted_params = self.adjust_parameters_for_retry(attempt, original_error)
+                
+                result = await self.primary_processing_pipeline(
+                    data_source, 
+                    parameters=adjusted_params
+                )
+                
+                print(f"Recovery successful on attempt {attempt + 1}")
+                return result
+                
+            except Exception as retry_error:
+                print(f"Retry attempt {attempt + 1} failed: {retry_error}")
+                
+                # Update retry strategy based on error pattern
+                if self.should_change_strategy(retry_error, attempt):
+                    return await self.failover_to_secondary_system(data_source)
+        
+        # All retries exhausted
+        raise Exception(f"Failed after {max_attempts} attempts")
+    
+    async def failover_to_secondary_system(self, data_source):
+        """Failover to secondary processing system"""
+        
+        print("Initiating failover to secondary system...")
+        
+        # Activate secondary processing cluster
+        secondary_client = await self.failover_manager.activate_secondary_cluster()
+        
+        try:
+            # Use simplified processing pipeline on secondary system
+            result = await secondary_client.process_with_reduced_complexity(
+                data_source,
+                processing_mode="safe",
+                quality_threshold=0.8,  # Lower threshold for secondary
+                timeout_multiplier=2.0   # More lenient timeouts
+            )
+            
+            print("Failover processing completed successfully")
+            return result
+            
+        except Exception as secondary_error:
+            print(f"Secondary system also failed: {secondary_error}")
+            return await self.process_in_degraded_mode(data_source)
+    
+    async def process_in_degraded_mode(self, data_source):
+        """Process data in degraded mode with minimal features"""
+        
+        print("Entering degraded processing mode...")
+        
+        degraded_config = {
+            "skip_advanced_features": True,
+            "use_cached_models": True,
+            "reduce_precision": True,
+            "skip_optional_validations": True,
+            "process_in_smaller_batches": True
+        }
+        
+        result = await self.client.process_minimal(
+            data_source,
+            config=degraded_config,
+            timeout=600
+        )
+        
+        result.metadata['processing_mode'] = 'degraded'
+        result.metadata['quality_warning'] = 'Processed in degraded mode due to system issues'
+        
+        return result
+
+# Usage example  
+async def resilient_processing_example():
+    client = pollarbase.Client(api_key="sk-your-key")
+    resilient_manager = ResilientPipelineManager(client)
+    
+    # Setup resilience components
+    resilient_manager.setup_circuit_breakers()
+    
+    # Process data with full resilience
+    data_source = "large_customer_dataset.csv"
+    
+    result = await resilient_manager.resilient_data_processing(data_source)
+    print("Processing completed successfully with resilience!")
+
+if __name__ == "__main__":
+    asyncio.run(resilient_processing_example())`,
+                response: `Resilient Processing Started:
+✅ Circuit breakers configured (3 services)
+✅ Retry policies established
+✅ Failover systems on standby
+
+Processing Execution:
+Primary processing failed: DatabaseConnectionError("Connection timeout")
+Retry attempt 1/5 in 1.2s
+Retry attempt 2/5 in 2.8s
+Recovery successful on attempt 3
+
+Circuit Breaker Status:
+- Database: HALF_OPEN (2/5 failures)
+- External API: CLOSED (healthy)
+- ML Service: CLOSED (healthy)
+
+Resilience Metrics:
+- Recovery success rate: 94.2%
+- Average failover time: 12.3s
+- Data integrity: 100% maintained
+
+Processing completed successfully with resilience!`
+              })}
+
+              {/* Dynamic Resource Management */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Dynamic Resource Management and Auto-Scaling',
+                description: 'Intelligent resource allocation and automatic scaling based on workload characteristics',
+                code: `import pollarbase
+from pollarbase.orchestration import ResourceManager, AutoScaler, WorkloadAnalyzer
+import asyncio
+
+class IntelligentResourceManager:
+    def __init__(self, client):
+        self.client = client
+        self.resource_manager = ResourceManager()
+        self.auto_scaler = AutoScaler()
+        self.workload_analyzer = WorkloadAnalyzer()
+        
+    async def adaptive_pipeline_execution(self, pipeline_config):
+        """Execute pipeline with intelligent resource management"""
+        
+        # Analyze workload characteristics
+        workload_analysis = await self.workload_analyzer.analyze_pipeline(pipeline_config)
+        
+        print("Workload Analysis:")
+        print(f"Estimated data volume: {workload_analysis.data_volume_gb:.2f} GB")
+        print(f"Complexity score: {workload_analysis.complexity_score}/100")
+        print(f"Expected duration: {workload_analysis.estimated_duration_minutes:.1f} minutes")
+        print(f"Resource intensity: {workload_analysis.resource_intensity}")
+        
+        # Calculate optimal resource allocation
+        optimal_resources = await self.calculate_optimal_resources(workload_analysis)
+        
+        # Setup auto-scaling policies
+        scaling_policies = await self.setup_intelligent_scaling(workload_analysis)
+        
+        # Execute with adaptive resource management
+        execution_manager = AdaptiveExecutionManager(
+            optimal_resources, 
+            scaling_policies,
+            workload_analysis
+        )
+        
+        try:
+            result = await execution_manager.execute_with_adaptation(pipeline_config)
+            return result
+        finally:
+            await execution_manager.cleanup_resources()
+    
+    async def calculate_optimal_resources(self, workload_analysis):
+        """Calculate optimal resource allocation based on workload"""
+        
+        base_requirements = {
+            "cpu_cores": max(2, workload_analysis.data_volume_gb // 10),
+            "memory_gb": max(4, workload_analysis.data_volume_gb * 2),
+            "storage_gb": workload_analysis.data_volume_gb * 3,
+            "network_bandwidth_mbps": max(100, workload_analysis.data_volume_gb * 10)
+        }
+        
+        # Adjust based on complexity
+        complexity_multiplier = 1 + (workload_analysis.complexity_score / 100)
+        
+        # Adjust based on processing patterns
+        if workload_analysis.has_ml_components:
+            base_requirements["cpu_cores"] *= 2
+            base_requirements["memory_gb"] *= 1.5
+            
+        if workload_analysis.has_streaming:
+            base_requirements["cpu_cores"] *= 1.5
+            base_requirements["network_bandwidth_mbps"] *= 2
+            
+        if workload_analysis.requires_gpu:
+            base_requirements["gpu_count"] = max(1, workload_analysis.complexity_score // 25)
+            base_requirements["gpu_memory_gb"] = 16
+        
+        # Apply complexity multiplier
+        for resource, value in base_requirements.items():
+            if resource not in ["gpu_count", "gpu_memory_gb"]:
+                base_requirements[resource] = int(value * complexity_multiplier)
+        
+        return base_requirements
+    
+    async def setup_intelligent_scaling(self, workload_analysis):
+        """Setup intelligent auto-scaling policies"""
+        
+        scaling_policies = {
+            "cpu_scaling": {
+                "metric": "cpu_utilization",
+                "target_utilization": 75,
+                "scale_up_threshold": 85,
+                "scale_down_threshold": 40,
+                "min_instances": 1,
+                "max_instances": 20,
+                "scale_up_cooldown": 300,   # 5 minutes
+                "scale_down_cooldown": 600  # 10 minutes
+            },
+            "memory_scaling": {
+                "metric": "memory_utilization", 
+                "target_utilization": 80,
+                "scale_up_threshold": 90,
+                "scale_down_threshold": 50,
+                "emergency_threshold": 95   # Emergency scaling at 95%
+            },
+            "predictive_scaling": {
+                "enabled": True,
+                "prediction_window": 1800,  # 30 minutes
+                "confidence_threshold": 0.8,
+                "preemptive_scale_factor": 1.2
+            }
+        }
+        
+        # Adjust policies based on workload characteristics
+        if workload_analysis.has_batch_processing:
+            scaling_policies["cpu_scaling"]["scale_up_cooldown"] = 600  # Slower scaling
+            
+        if workload_analysis.has_streaming:
+            scaling_policies["cpu_scaling"]["scale_up_cooldown"] = 60   # Faster scaling
+        
+        return scaling_policies
+
+class AdaptiveExecutionManager:
+    def __init__(self, optimal_resources, scaling_policies, workload_analysis):
+        self.optimal_resources = optimal_resources
+        self.scaling_policies = scaling_policies
+        self.workload_analysis = workload_analysis
+        
+    async def execute_with_adaptation(self, pipeline_config):
+        """Execute pipeline with continuous resource adaptation"""
+        
+        # Start with optimal resource allocation
+        await self.provision_initial_resources()
+        
+        # Start resource monitoring
+        monitoring_task = asyncio.create_task(self.continuous_resource_monitoring())
+        
+        # Start predictive scaling
+        predictive_task = asyncio.create_task(self.predictive_scaling_engine())
+        
+        try:
+            # Execute pipeline with adaptive management
+            execution_task = asyncio.create_task(
+                self.execute_pipeline_with_monitoring(pipeline_config)
+            )
+            
+            # Wait for completion
+            result = await execution_task
+            
+            print("Pipeline execution completed with adaptive resource management")
+            return result
+            
+        finally:
+            # Cleanup
+            monitoring_task.cancel()
+            predictive_task.cancel()
+    
+    async def continuous_resource_monitoring(self):
+        """Continuously monitor and adjust resources"""
+        
+        while True:
+            try:
+                # Collect current metrics
+                current_metrics = await self.collect_resource_metrics()
+                
+                # Check if scaling is needed
+                scaling_decisions = await self.analyze_scaling_needs(current_metrics)
+                
+                # Apply scaling decisions
+                for decision in scaling_decisions:
+                    await self.apply_scaling_decision(decision)
+                
+                await asyncio.sleep(30)  # Check every 30 seconds
+                
+            except Exception as e:
+                print(f"Resource monitoring error: {e}")
+                await asyncio.sleep(60)  # Back off on error
+
+# Usage example
+async def intelligent_resource_example():
+    client = pollarbase.Client(api_key="sk-your-key")
+    resource_manager = IntelligentResourceManager(client)
+    
+    pipeline_config = {
+        "stages": [
+            {"name": "ingestion", "data_volume_gb": 50, "cpu_intensive": True},
+            {"name": "ml_analysis", "requires_gpu": True, "memory_intensive": True},
+            {"name": "transformation", "streaming": True, "network_intensive": True},
+            {"name": "export", "io_intensive": True}
+        ],
+        "expected_duration": 3600,  # 1 hour
+        "sla_requirements": {
+            "max_latency": 1800,    # 30 minutes
+            "min_throughput": 1000   # records/second
+        }
+    }
+    
+    # Execute with intelligent resource management
+    result = await resource_manager.adaptive_pipeline_execution(pipeline_config)
+    
+    print("Intelligent resource management completed!")
+    print(f"Resource efficiency: ${"{"} result.resource_efficiency:.1f ${"}"} %")
+    print(f"Cost optimization: $${"{"} result.cost_savings:.2f ${"}"} saved")
+
+if __name__ == "__main__":
+    asyncio.run(intelligent_resource_example())`,
+                response: `Workload Analysis:
+Estimated data volume: 50.00 GB
+Complexity score: 78/100
+Expected duration: 62.3 minutes
+Resource intensity: HIGH
+
+Optimal Resource Allocation:
+- CPU cores: 12 (complexity-adjusted)
+- Memory: 150 GB
+- Storage: 150 GB  
+- Network: 500 Mbps
+- GPU: 3 units (16GB each)
+
+Auto-Scaling Policies Configured:
+✅ CPU scaling: Target 75%, emergency at 85%
+✅ Memory scaling: Target 80%, emergency at 95%
+✅ Predictive scaling: 30min window, 80% confidence
+
+Real-Time Scaling Events:
+12:34:15 - CPU utilization 82% → Scaled up 2 cores
+12:45:22 - Predictive scaling: Memory increase in 8min
+12:53:45 - Queue length 95 → Added 1 processing node
+13:15:30 - Load decreased → Scaled down 1 core (cost optimization)
+
+Pipeline execution completed with adaptive resource management
+Resource efficiency: 94.2%
+Cost optimization: $47.83 saved
+
+Intelligent resource management completed!`
+              })}
+            </div>
+          </div>
+         )
+
       case 'data-governance':
         return (
           <div className="max-w-4xl">
@@ -5640,6 +6581,1683 @@ File 3: economical_processing
   Actual cost: $0.118
   Cost savings: $0.005
   Processing time: 78.4s`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'documentation-gap-analysis':
+        return (
+          <div className="max-w-6xl">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Documentation Gap Analysis</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Comprehensive analysis of missing documentation compared to implemented features and user needs.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {/* High Priority Missing Documentation */}
+              <div className="bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-8">
+                <div className="flex items-start space-x-4 mb-6">
+                  <AlertCircle className="w-8 h-8 text-red-600 mt-1" />
+                  <div>
+                    <h2 className="text-xl font-bold text-red-900 mb-3">🚨 High Priority Missing Documentation</h2>
+                    <p className="text-red-800 mb-4">
+                      Critical documentation gaps that prevent production adoption and user success.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-white rounded-lg border border-red-200 p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <Shield className="w-5 h-5 text-red-600 mr-2" />
+                      Production Security & Governance
+                    </h3>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>Data Governance Framework:</strong> PII detection, data lineage, compliance controls
+                        </div>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>Custom Validation Rules:</strong> Business logic validation, data quality gates
+                        </div>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>Audit & Compliance:</strong> Audit trails, security logging, compliance reporting
+                        </div>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>RBAC & Permissions:</strong> Role-based access control, data access policies
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-white rounded-lg border border-red-200 p-6">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                      <Layers className="w-5 h-5 text-red-600 mr-2" />
+                      Advanced Pipeline Architecture
+                    </h3>
+                    <ul className="space-y-2 text-sm">
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>Streaming Data Processing:</strong> Real-time ingestion, chunk processing patterns
+                        </div>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>Performance Scaling:</strong> Auto-scaling, performance optimization, resource management
+                        </div>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>Error Recovery:</strong> Retry mechanisms, circuit breakers, failure handling
+                        </div>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className="text-red-500 mt-1">•</span>
+                        <div>
+                          <strong>Pipeline Orchestration:</strong> Multi-step workflows, dependency management
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Medium Priority Gaps */}
+              <div className="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-xl p-8">
+                <h2 className="text-xl font-bold text-yellow-900 mb-4 flex items-center">
+                  <Clock className="w-6 h-6 mr-2" />
+                  Medium Priority Missing Documentation
+                </h2>
+                
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-white rounded-lg border border-yellow-200 p-4">
+                    <h4 className="font-bold text-gray-900 mb-3">🔧 Advanced Configuration</h4>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Environment-specific configs</li>
+                      <li>• Custom transformation engines</li>
+                      <li>• Plugin architecture</li>
+                      <li>• Advanced data connectors</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-yellow-200 p-4">
+                    <h4 className="font-bold text-gray-900 mb-3">📊 Observability Deep Dive</h4>
+                    <ul className="space-y-1 text-xs">
+                      <li>• Custom metrics collection</li>
+                      <li>• Dashboard configuration</li>
+                      <li>• Alerting strategies</li>
+                      <li>• Performance monitoring</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-yellow-200 p-4">
+                    <h4 className="font-bold text-gray-900 mb-3">🚀 ML Framework Integration</h4>
+                    <ul className="space-y-1 text-xs">
+                      <li>• PyTorch/TensorFlow exports</li>
+                      <li>• HuggingFace integration</li>
+                      <li>• AutoML pipelines</li>
+                      <li>• Model deployment patterns</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Implementation Status Matrix */}
+              <div className="bg-white border border-gray-200 rounded-xl p-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">📋 Documentation Implementation Status</h2>
+                
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-3 px-4 font-semibold">Documentation Section</th>
+                        <th className="text-left py-3 px-4 font-semibold">Code Implementation</th>
+                        <th className="text-left py-3 px-4 font-semibold">Docs Status</th>
+                        <th className="text-left py-3 px-4 font-semibold">Priority</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100">
+                      <tr>
+                        <td className="py-3 px-4">Data Governance</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">✅ Implemented</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">❌ Missing</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">🔥 Critical</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4">Custom Validation</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">✅ Implemented</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">❌ Missing</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">🔥 Critical</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4">Pipeline Architecture</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">✅ Implemented</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">⚠️ Partial</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">⚡ High</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4">Streaming Processing</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">✅ Implemented</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">❌ Missing</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">⚡ High</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4">Performance Scaling</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">✅ Implemented</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">⚠️ Partial</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded-full text-xs">⚡ High</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td className="py-3 px-4">AI Framework Integration</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">✅ Implemented</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">⚠️ Partial</span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">📋 Medium</span>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Action Plan */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8">
+                <h2 className="text-xl font-bold text-blue-900 mb-6 flex items-center">
+                  <CheckCircle className="w-6 h-6 mr-2" />
+                  Recommended Action Plan
+                </h2>
+                
+                <div className="space-y-6">
+                  <div className="bg-white rounded-lg border border-blue-200 p-6">
+                    <h3 className="text-lg font-bold text-red-900 mb-4">🚨 Week 1-2: Critical Security & Governance</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Data Governance Documentation</h4>
+                        <ul className="text-sm space-y-1">
+                          <li>• PII Detection patterns and configuration</li>
+                          <li>• Data lineage tracking setup</li>
+                          <li>• Compliance framework integration</li>
+                          <li>• Audit trail configuration</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Custom Validation Rules</h4>
+                        <ul className="text-sm space-y-1">
+                          <li>• Business rule validation patterns</li>
+                          <li>• Data quality gate configuration</li>
+                          <li>• Validation pipeline integration</li>
+                          <li>• Error handling strategies</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-blue-200 p-6">
+                    <h3 className="text-lg font-bold text-orange-900 mb-4">⚡ Week 3-4: Production Architecture</h3>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Streaming & Real-time Processing</h4>
+                        <ul className="text-sm space-y-1">
+                          <li>• Chunk processing patterns</li>
+                          <li>• Real-time data ingestion</li>
+                          <li>• Performance optimization guides</li>
+                          <li>• Resource management</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-2">Pipeline Architecture Deep Dive</h4>
+                        <ul className="text-sm space-y-1">
+                          <li>• Multi-step workflow patterns</li>
+                          <li>• Dependency management</li>
+                          <li>• Error recovery mechanisms</li>
+                          <li>• Monitoring integration</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-blue-200 p-6">
+                    <h3 className="text-lg font-bold text-yellow-900 mb-4">📋 Week 5-6: Advanced Features</h3>
+                    <div className="text-sm">
+                      <p className="mb-3">Complete documentation for advanced ML integration, observability deep dive, and enterprise configuration patterns.</p>
+                      <div className="bg-gray-50 rounded-lg p-4">
+                        <strong>Success Metrics:</strong> Reduce support tickets by 60%, increase enterprise adoption by 40%, improve developer onboarding time by 50%.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+
+      case 'data-governance':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Data Governance Framework</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Comprehensive data governance, PII detection, compliance controls, and audit capabilities for enterprise-grade data processing.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {/* Overview Section */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8">
+                <div className="flex items-start space-x-4 mb-6">
+                  <Shield className="w-8 h-8 text-blue-600 mt-1" />
+                  <div>
+                    <h2 className="text-xl font-bold text-blue-900 mb-3">Enterprise Data Governance</h2>
+                    <p className="text-blue-800 mb-4">
+                      Pollarbase provides enterprise-grade data governance with automated PII detection, 
+                      data lineage tracking, compliance reporting, and comprehensive audit trails.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-white rounded-lg border border-blue-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      PII Detection
+                    </h3>
+                    <p className="text-sm text-gray-600">Automatic detection of 15+ PII types with 95%+ accuracy</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-blue-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      Data Lineage
+                    </h3>
+                    <p className="text-sm text-gray-600">Complete tracking of data transformations and processing</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-blue-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      Compliance Ready
+                    </h3>
+                    <p className="text-sm text-gray-600">GDPR, CCPA, HIPAA compliance features built-in</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* PII Detection Deep Dive */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Advanced PII Detection Configuration',
+                description: 'Configure automatic PII detection with custom patterns and sensitivity levels',
+                code: `import pollarbase
+from pollarbase.governance import PIIDetector, SensitivityLevel, PIIType
+
+# Initialize PII detector with custom configuration
+pii_detector = PIIDetector(
+    confidence_threshold=0.85,
+    include_custom_patterns=True,
+    sensitivity_levels=[
+        SensitivityLevel.HIGH,    # SSN, Credit Cards, Medical IDs
+        SensitivityLevel.MEDIUM,  # Phone numbers, Addresses
+        SensitivityLevel.LOW      # Names, Email domains
+    ]
+)
+
+# Configure client with governance settings
+client = pollarbase.Client(
+    api_key="sk-your-key",
+    governance_config={
+        "pii_detection": {
+            "enabled": True,
+            "auto_mask": True,
+            "detection_threshold": 0.8,
+            "supported_types": [
+                PIIType.SSN,
+                PIIType.CREDIT_CARD,
+                PIIType.EMAIL,
+                PIIType.PHONE,
+                PIIType.ADDRESS,
+                PIIType.MEDICAL_ID,
+                PIIType.PASSPORT,
+                PIIType.DRIVERS_LICENSE
+            ]
+        },
+        "data_lineage": {
+            "enabled": True,
+            "track_transformations": True,
+            "store_metadata": True
+        },
+        "audit_logging": {
+            "enabled": True,
+            "log_level": "INFO",
+            "include_pii_events": True
+        }
+    }
+)
+
+# Process data with automatic PII detection
+def process_customer_data(file_path):
+    """Process customer data with comprehensive governance"""
+    
+    # Upload with PII scanning
+    dataset = client.upload_file(
+        file_path,
+        scan_for_pii=True,
+        governance_profile="enterprise_strict"
+    )
+    
+    # Get PII detection results
+    pii_report = dataset.get_pii_report()
+    
+    print("PII Detection Summary:")
+    print(f"Total PII instances found: {pii_report.total_instances}")
+    print(f"High sensitivity PII: {pii_report.high_sensitivity_count}")
+    print(f"Data classification: {pii_report.classification}")
+    
+    # Handle detected PII based on sensitivity
+    governance_actions = []
+    
+    for pii_finding in pii_report.findings:
+        if pii_finding.sensitivity == SensitivityLevel.HIGH:
+            # High sensitivity: Remove or encrypt
+            governance_actions.append({
+                "action": "encrypt",
+                "column": pii_finding.column,
+                "pii_type": pii_finding.pii_type,
+                "justification": "High sensitivity PII requires encryption"
+            })
+        elif pii_finding.sensitivity == SensitivityLevel.MEDIUM:
+            # Medium sensitivity: Mask or tokenize
+            governance_actions.append({
+                "action": "mask",
+                "column": pii_finding.column,
+                "mask_pattern": "***-**-{last_4}",
+                "justification": "Medium sensitivity PII masked for analysis"
+            })
+        else:
+            # Low sensitivity: Log and proceed
+            governance_actions.append({
+                "action": "log",
+                "column": pii_finding.column,
+                "justification": "Low sensitivity PII logged for audit"
+            })
+    
+    # Apply governance actions
+    protected_dataset = dataset.apply_governance_actions(governance_actions)
+    
+    # Generate compliance report
+    compliance_report = protected_dataset.generate_compliance_report(
+        standards=["GDPR", "CCPA", "HIPAA"],
+        include_lineage=True,
+        include_audit_trail=True
+    )
+    
+    return {
+        "dataset": protected_dataset,
+        "pii_report": pii_report,
+        "governance_actions": governance_actions,
+        "compliance_report": compliance_report
+    }
+
+# Advanced: Custom PII patterns
+custom_patterns = {
+    "employee_id": {
+        "pattern": r"EMP-\\d{6}",
+        "description": "Company employee ID format",
+        "sensitivity": SensitivityLevel.MEDIUM,
+        "examples": ["EMP-123456", "EMP-789012"]
+    },
+    "project_code": {
+        "pattern": r"PRJ-[A-Z]{3}-\\d{4}",
+        "description": "Internal project codes",
+        "sensitivity": SensitivityLevel.LOW,
+        "examples": ["PRJ-ABC-1234", "PRJ-XYZ-5678"]
+    }
+}
+
+# Register custom patterns
+pii_detector.register_custom_patterns(custom_patterns)
+
+# Example usage
+result = process_customer_data("sensitive_customer_data.csv")
+print(f"Processing complete with {len(result['governance_actions'])} governance actions applied")`,
+                response: `PII Detection Summary:
+Total PII instances found: 1,247
+High sensitivity PII: 156
+Data classification: RESTRICTED
+
+Governance Actions Applied:
+- Encrypted: 156 high sensitivity fields (SSN, Credit Cards)
+- Masked: 423 medium sensitivity fields (Phone, Address)
+- Logged: 668 low sensitivity fields (Names, Emails)
+
+Compliance Status:
+✅ GDPR: Compliant (automatic right to be forgotten implemented)
+✅ CCPA: Compliant (data minimization and access controls)
+✅ HIPAA: Compliant (healthcare data encrypted and audited)
+
+Processing complete with 1,247 governance actions applied`
+              })}
+
+              {/* Data Lineage and Audit Trail */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Data Lineage and Audit Trail Configuration',
+                description: 'Track data transformations and maintain comprehensive audit trails',
+                code: `from pollarbase.governance import AuditTrail, DataLineage, ComplianceFramework
+
+# Configure comprehensive data lineage tracking
+lineage_config = DataLineage(
+    track_sources=True,
+    track_transformations=True,
+    track_destinations=True,
+    metadata_retention_days=2555,  # 7 years for compliance
+    include_schema_evolution=True
+)
+
+# Set up audit trail with enterprise settings
+audit_config = AuditTrail(
+    log_all_access=True,
+    log_transformations=True,
+    log_exports=True,
+    retention_policy="7_years",
+    encryption_at_rest=True,
+    tamper_proof=True
+)
+
+# Configure compliance framework
+compliance_config = ComplianceFramework(
+    frameworks=["GDPR", "CCPA", "HIPAA", "SOX"],
+    auto_classification=True,
+    policy_enforcement=True,
+    reporting_schedule="monthly"
+)
+
+# Initialize governance-enabled client
+client = pollarbase.Client(
+    api_key="sk-your-key",
+    governance_config={
+        "lineage": lineage_config,
+        "audit": audit_config,
+        "compliance": compliance_config
+    }
+)
+
+def comprehensive_data_processing(source_file):
+    """Complete data processing with full governance tracking"""
+    
+    # Step 1: Upload with lineage tracking
+    dataset = client.upload_file(
+        source_file,
+        lineage_metadata={
+            "source_system": "customer_crm",
+            "data_owner": "customer_success_team",
+            "collection_date": "2024-01-15",
+            "retention_policy": "5_years",
+            "legal_basis": "legitimate_interest"  # GDPR
+        }
+    )
+    
+    # Step 2: Data quality assessment with audit logging
+    quality_report = dataset.assess_quality(
+        audit_assessment=True,
+        log_quality_metrics=True
+    )
+    
+    # Step 3: Apply transformations with full lineage
+    transformations = [
+        {"action": "remove_duplicates", "justification": "data_quality"},
+        {"action": "standardize_emails", "justification": "normalization"},
+        {"action": "validate_addresses", "justification": "accuracy"}
+    ]
+    
+    transformed_dataset = dataset.apply_transformations(
+        transformations,
+        track_lineage=True,
+        audit_each_step=True
+    )
+    
+    # Step 4: Generate comprehensive governance report
+    governance_report = transformed_dataset.generate_governance_report(
+        include_lineage_graph=True,
+        include_audit_trail=True,
+        include_compliance_status=True,
+        include_risk_assessment=True
+    )
+    
+    return governance_report
+
+# Advanced: Query audit trail and lineage
+def audit_data_access(dataset_id, time_range="30d"):
+    """Query audit trail for specific dataset"""
+    
+    audit_query = client.governance.query_audit_trail(
+        dataset_id=dataset_id,
+        time_range=time_range,
+        event_types=["access", "transformation", "export"],
+        include_user_context=True
+    )
+    
+    print("Audit Trail Summary:")
+    for event in audit_query.events:
+        print(f"{event.timestamp}: {event.event_type} by {event.user_id}")
+        print(f"  Action: {event.action}")
+        print(f"  Risk Level: {event.risk_level}")
+        print(f"  Compliance Notes: {event.compliance_notes}")
+    
+    return audit_query
+
+# Data lineage visualization
+def visualize_data_lineage(dataset_id):
+    """Generate data lineage graph"""
+    
+    lineage = client.governance.get_lineage_graph(
+        dataset_id=dataset_id,
+        include_upstream=True,
+        include_downstream=True,
+        format="interactive_html"
+    )
+    
+    # Lineage includes:
+    # - Source systems and files
+    # - All transformation steps
+    # - Quality checks applied
+    # - PII handling actions
+    # - Export destinations
+    # - User interactions
+    
+    return lineage
+
+# Compliance reporting automation
+def generate_compliance_reports():
+    """Automated compliance reporting"""
+    
+    reports = client.governance.generate_compliance_reports(
+        frameworks=["GDPR", "CCPA", "HIPAA"],
+        time_period="monthly",
+        include_recommendations=True,
+        auto_remediation_suggestions=True
+    )
+    
+    for framework, report in reports.items():
+        print(f"\\n{framework} Compliance Report:")
+        print(f"Status: {report.compliance_status}")
+        print(f"Risk Score: {report.risk_score}/100")
+        print(f"Open Issues: {len(report.open_issues)}")
+        print(f"Recommendations: {len(report.recommendations)}")
+    
+    return reports
+
+# Example usage
+governance_report = comprehensive_data_processing("customer_data.csv")
+audit_results = audit_data_access(governance_report.dataset_id)
+compliance_reports = generate_compliance_reports()`,
+                response: `Governance Report Generated:
+Dataset ID: ds-gov-abc123
+Lineage Tracked: ✅ 5 transformation steps recorded
+Audit Trail: ✅ 23 events logged
+PII Handling: ✅ 12 fields protected
+Compliance Status: ✅ All frameworks compliant
+
+Audit Trail Summary:
+2024-01-15 09:30:15: upload by user_123
+  Action: file_upload
+  Risk Level: LOW
+  Compliance Notes: GDPR consent verified
+
+2024-01-15 09:32:45: transformation by user_123
+  Action: remove_duplicates
+  Risk Level: LOW
+  Compliance Notes: Data minimization applied
+
+2024-01-15 09:35:12: pii_detection by system
+  Action: scan_sensitive_data
+  Risk Level: MEDIUM
+  Compliance Notes: 12 PII fields identified and protected
+
+GDPR Compliance Report:
+Status: COMPLIANT
+Risk Score: 15/100 (Low Risk)
+Open Issues: 0
+Recommendations: 2 (data retention optimization)
+
+Data lineage graph generated: 15 nodes, 23 relationships tracked
+Compliance automation: ✅ Monthly reports scheduled`
+              })}
+
+              {/* Custom Validation Rules */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Custom Business Validation Rules',
+                description: 'Implement custom validation logic for business-specific data quality requirements',
+                code: `from pollarbase.governance import ValidationRule, ValidationSeverity, BusinessRuleEngine
+
+# Define custom validation rules for business logic
+class CustomerDataValidator:
+    def __init__(self, client):
+        self.client = client
+        self.rule_engine = BusinessRuleEngine()
+        self._register_validation_rules()
+    
+    def _register_validation_rules(self):
+        """Register all custom validation rules"""
+        
+        # Email domain validation for B2B customers
+        email_domain_rule = ValidationRule(
+            name="valid_business_email_domain",
+            description="Ensure email uses approved business domains",
+            severity=ValidationSeverity.ERROR,
+            applies_to=["email", "contact_email", "primary_email"],
+            validation_function=self._validate_business_email,
+            remediation_action="flag_for_review"
+        )
+        
+        # Customer age validation
+        age_validation_rule = ValidationRule(
+            name="valid_customer_age",
+            description="Customer age must be between 18-120",
+            severity=ValidationSeverity.ERROR,
+            applies_to=["age", "customer_age"],
+            validation_function=lambda x: 18 <= x <= 120,
+            remediation_action="set_default",
+            default_value=25
+        )
+        
+        # Revenue validation for enterprise customers
+        revenue_validation_rule = ValidationRule(
+            name="enterprise_revenue_threshold",
+            description="Enterprise customers must have revenue > $1M",
+            severity=ValidationSeverity.WARNING,
+            applies_to=["annual_revenue", "company_revenue"],
+            validation_function=lambda x: x >= 1000000,
+            remediation_action="flag_for_sales_review"
+        )
+        
+        # Data consistency rules
+        consistency_rule = ValidationRule(
+            name="contact_data_consistency",
+            description="Contact information must be consistent across fields",
+            severity=ValidationSeverity.WARNING,
+            applies_to=["multiple_fields"],
+            validation_function=self._validate_contact_consistency,
+            remediation_action="standardize_format"
+        )
+        
+        # Register all rules
+        self.rule_engine.register_rules([
+            email_domain_rule,
+            age_validation_rule,
+            revenue_validation_rule,
+            consistency_rule
+        ])
+    
+    def _validate_business_email(self, email):
+        """Custom email domain validation"""
+        approved_domains = [
+            'company.com', 'enterprise.com', 'business.org',
+            'corporation.net', 'ltd.co.uk'
+        ]
+        
+        # Extract domain
+        if '@' not in email:
+            return False
+        
+        domain = email.split('@')[1].lower()
+        return domain in approved_domains
+    
+    def _validate_contact_consistency(self, row_data):
+        """Validate consistency across contact fields"""
+        issues = []
+        
+        # Check phone number format consistency
+        phone_fields = ['phone', 'mobile', 'work_phone']
+        phone_formats = []
+        
+        for field in phone_fields:
+            if field in row_data and row_data[field]:
+                # Extract format pattern
+                phone = str(row_data[field])
+                if phone.startswith('+'):
+                    phone_formats.append('international')
+                elif phone.startswith('1-'):
+                    phone_formats.append('us_format')
+                elif len(phone) == 10:
+                    phone_formats.append('us_local')
+                else:
+                    phone_formats.append('unknown')
+        
+        # All phone numbers should use same format
+        if len(set(phone_formats)) > 1:
+            issues.append("Inconsistent phone number formats")
+        
+        # Check email domain consistency
+        email_fields = ['email', 'work_email', 'contact_email']
+        email_domains = []
+        
+        for field in email_fields:
+            if field in row_data and row_data[field]:
+                email = row_data[field]
+                if '@' in email:
+                    domain = email.split('@')[1]
+                    email_domains.append(domain)
+        
+        # Business emails should use same domain
+        if len(set(email_domains)) > 1:
+            issues.append("Multiple email domains detected")
+        
+        return len(issues) == 0, issues
+
+# Advanced validation with custom business rules
+def validate_customer_data_with_business_rules(file_path):
+    """Process customer data with comprehensive business validation"""
+    
+    client = pollarbase.Client(api_key="sk-your-key")
+    validator = CustomerDataValidator(client)
+    
+    # Upload dataset
+    dataset = client.upload_file(file_path)
+    
+    # Apply business validation rules
+    validation_results = validator.rule_engine.validate_dataset(
+        dataset,
+        strict_mode=False,  # Continue processing with warnings
+        generate_report=True,
+        auto_remediation=True
+    )
+    
+    print("Business Validation Results:")
+    print(f"Total records validated: {validation_results.total_records}")
+    print(f"Validation errors: {validation_results.error_count}")
+    print(f"Validation warnings: {validation_results.warning_count}")
+    print(f"Auto-remediated issues: {validation_results.remediated_count}")
+    
+    # Process validation issues by severity
+    for issue in validation_results.issues:
+        if issue.severity == ValidationSeverity.ERROR:
+            print(f"ERROR: {issue.rule_name} - {issue.description}")
+            print(f"  Affected records: {len(issue.affected_records)}")
+            print(f"  Remediation: {issue.remediation_action}")
+        elif issue.severity == ValidationSeverity.WARNING:
+            print(f"WARNING: {issue.rule_name} - {issue.description}")
+            print(f"  Affected records: {len(issue.affected_records)}")
+    
+    # Generate business validation report
+    business_report = validation_results.generate_business_report(
+        include_recommendations=True,
+        include_data_quality_impact=True,
+        include_business_impact_assessment=True
+    )
+    
+    return {
+        "dataset": dataset,
+        "validation_results": validation_results,
+        "business_report": business_report
+    }
+
+# Custom validation for specific industries
+class HealthcareDataValidator(CustomerDataValidator):
+    """Healthcare-specific validation rules"""
+    
+    def _register_validation_rules(self):
+        super()._register_validation_rules()
+        
+        # HIPAA compliance validation
+        hipaa_rule = ValidationRule(
+            name="hipaa_identifier_check",
+            description="Validate HIPAA identifier format",
+            severity=ValidationSeverity.ERROR,
+            applies_to=["patient_id", "medical_record_number"],
+            validation_function=self._validate_hipaa_format,
+            remediation_action="encrypt_and_flag"
+        )
+        
+        # Medical data validation
+        medical_rule = ValidationRule(
+            name="medical_data_completeness",
+            description="Critical medical fields must be complete",
+            severity=ValidationSeverity.ERROR,
+            applies_to=["diagnosis", "treatment", "medication"],
+            validation_function=lambda x: x is not None and x.strip() != "",
+            remediation_action="flag_for_medical_review"
+        )
+        
+        self.rule_engine.register_rules([hipaa_rule, medical_rule])
+    
+    def _validate_hipaa_format(self, identifier):
+        """Validate HIPAA-compliant identifier format"""
+        import re
+        # Example: Medical record format MRN-YYYYMMDD-XXXX
+        pattern = r'^MRN-\\d{8}-\\d{4}$'
+        return re.match(pattern, str(identifier)) is not None
+
+# Example usage with industry-specific validation
+healthcare_validator = HealthcareDataValidator(client)
+result = validate_customer_data_with_business_rules("patient_data.csv")`,
+                response: `Business Validation Results:
+Total records validated: 10,547
+Validation errors: 23
+Validation warnings: 156
+Auto-remediated issues: 89
+
+ERROR: valid_business_email_domain - Ensure email uses approved business domains
+  Affected records: 12
+  Remediation: flag_for_review
+
+ERROR: valid_customer_age - Customer age must be between 18-120
+  Affected records: 8
+  Remediation: set_default (age=25)
+
+WARNING: enterprise_revenue_threshold - Enterprise customers must have revenue > $1M
+  Affected records: 45
+  Remediation: flag_for_sales_review
+
+WARNING: contact_data_consistency - Contact information must be consistent across fields
+  Affected records: 98
+  Remediation: standardize_format
+
+Business Impact Assessment:
+- Data Quality Score: 94.2%
+- Revenue Impact: $2.3M in flagged enterprise accounts
+- Compliance Risk: LOW (all critical issues auto-remediated)
+- Recommended Actions: 3 process improvements identified
+
+Validation complete with 92% auto-remediation success rate`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'data-governance':
+        return (
+          <div className="max-w-5xl">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-gray-900 mb-3">Data Governance Framework</h1>
+              <p className="text-base text-gray-600 mb-6">
+                Comprehensive data governance, PII detection, compliance controls, and audit capabilities for enterprise-grade data processing.
+              </p>
+            </div>
+
+            <div className="space-y-8">
+              {/* Overview Section */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8">
+                <div className="flex items-start space-x-4 mb-6">
+                  <Shield className="w-8 h-8 text-blue-600 mt-1" />
+                  <div>
+                    <h2 className="text-xl font-bold text-blue-900 mb-3">Enterprise Data Governance</h2>
+                    <p className="text-blue-800 mb-4">
+                      Pollarbase provides enterprise-grade data governance with automated PII detection, 
+                      data lineage tracking, compliance reporting, and comprehensive audit trails.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-6">
+                  <div className="bg-white rounded-lg border border-blue-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      PII Detection
+                    </h3>
+                    <p className="text-sm text-gray-600">Automatic detection of 15+ PII types with 95%+ accuracy</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-blue-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      Data Lineage
+                    </h3>
+                    <p className="text-sm text-gray-600">Complete tracking of data transformations and processing</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-lg border border-blue-200 p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                      <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                      Compliance Ready
+                    </h3>
+                    <p className="text-sm text-gray-600">GDPR, CCPA, HIPAA compliance features built-in</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* PII Detection Deep Dive */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Advanced PII Detection Configuration',
+                description: 'Configure automatic PII detection with custom patterns and sensitivity levels',
+                code: `import pollarbase
+from pollarbase.governance import PIIDetector, SensitivityLevel, PIIType
+
+# Initialize PII detector with custom configuration
+pii_detector = PIIDetector(
+    confidence_threshold=0.85,
+    include_custom_patterns=True,
+    sensitivity_levels=[
+        SensitivityLevel.HIGH,    # SSN, Credit Cards, Medical IDs
+        SensitivityLevel.MEDIUM,  # Phone numbers, Addresses
+        SensitivityLevel.LOW      # Names, Email domains
+    ]
+)
+
+# Configure client with governance settings
+client = pollarbase.Client(
+    api_key="sk-your-key",
+    governance_config={
+        "pii_detection": {
+            "enabled": True,
+            "auto_mask": True,
+            "detection_threshold": 0.8,
+            "supported_types": [
+                PIIType.SSN,
+                PIIType.CREDIT_CARD,
+                PIIType.EMAIL,
+                PIIType.PHONE,
+                PIIType.ADDRESS,
+                PIIType.MEDICAL_ID,
+                PIIType.PASSPORT,
+                PIIType.DRIVERS_LICENSE
+            ]
+        },
+        "data_lineage": {
+            "enabled": True,
+            "track_transformations": True,
+            "store_metadata": True
+        },
+        "audit_logging": {
+            "enabled": True,
+            "log_level": "INFO",
+            "include_pii_events": True
+        }
+    }
+)
+
+# Process data with automatic PII detection
+def process_customer_data(file_path):
+    """Process customer data with comprehensive governance"""
+    
+    # Upload with PII scanning
+    dataset = client.upload_file(
+        file_path,
+        scan_for_pii=True,
+        governance_profile="enterprise_strict"
+    )
+    
+    # Get PII detection results
+    pii_report = dataset.get_pii_report()
+    
+    print("PII Detection Summary:")
+    print(f"Total PII instances found: {pii_report.total_instances}")
+    print(f"High sensitivity PII: {pii_report.high_sensitivity_count}")
+    print(f"Data classification: {pii_report.classification}")
+    
+    # Handle detected PII based on sensitivity
+    governance_actions = []
+    
+    for pii_finding in pii_report.findings:
+        if pii_finding.sensitivity == SensitivityLevel.HIGH:
+            governance_actions.append({
+                "action": "encrypt",
+                "column": pii_finding.column,
+                "pii_type": pii_finding.pii_type,
+                "justification": "High sensitivity PII requires encryption"
+            })
+        elif pii_finding.sensitivity == SensitivityLevel.MEDIUM:
+            governance_actions.append({
+                "action": "mask",
+                "column": pii_finding.column,
+                "mask_pattern": "***-**-{last_4}",
+                "justification": "Medium sensitivity PII masked for analysis"
+            })
+        else:
+            governance_actions.append({
+                "action": "log",
+                "column": pii_finding.column,
+                "justification": "Low sensitivity PII logged for audit"
+            })
+    
+    # Apply governance actions
+    protected_dataset = dataset.apply_governance_actions(governance_actions)
+    
+    # Generate compliance report
+    compliance_report = protected_dataset.generate_compliance_report(
+        standards=["GDPR", "CCPA", "HIPAA"],
+        include_lineage=True,
+        include_audit_trail=True
+    )
+    
+    return {
+        "dataset": protected_dataset,
+        "pii_report": pii_report,
+        "governance_actions": governance_actions,
+        "compliance_report": compliance_report
+    }
+
+# Custom PII patterns for your organization
+custom_patterns = {
+    "employee_id": {
+        "pattern": r"EMP-\\d{6}",
+        "description": "Company employee ID format",
+        "sensitivity": SensitivityLevel.MEDIUM,
+        "examples": ["EMP-123456", "EMP-789012"]
+    },
+    "project_code": {
+        "pattern": r"PRJ-[A-Z]{3}-\\d{4}",
+        "description": "Internal project codes",
+        "sensitivity": SensitivityLevel.LOW,
+        "examples": ["PRJ-ABC-1234", "PRJ-XYZ-5678"]
+    }
+}
+
+# Register and use custom patterns
+pii_detector.register_custom_patterns(custom_patterns)
+result = process_customer_data("sensitive_customer_data.csv")
+print(f"Processing complete with {len(result['governance_actions'])} governance actions applied")`,
+                response: `PII Detection Summary:
+Total PII instances found: 1,247
+High sensitivity PII: 156
+Data classification: RESTRICTED
+
+Governance Actions Applied:
+- Encrypted: 156 high sensitivity fields (SSN, Credit Cards)
+- Masked: 423 medium sensitivity fields (Phone, Address)  
+- Logged: 668 low sensitivity fields (Names, Emails)
+
+Compliance Status:
+✅ GDPR: Compliant (automatic right to be forgotten implemented)
+✅ CCPA: Compliant (data minimization and access controls)
+✅ HIPAA: Compliant (healthcare data encrypted and audited)
+
+Processing complete with 1,247 governance actions applied`
+              })}
+
+              {/* Custom Validation Rules */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Custom Business Validation Rules',
+                description: 'Implement custom validation logic for business-specific data quality requirements',
+                code: `from pollarbase.governance import ValidationRule, ValidationSeverity, BusinessRuleEngine
+
+# Define custom validation rules for business logic
+class CustomerDataValidator:
+    def __init__(self, client):
+        self.client = client
+        self.rule_engine = BusinessRuleEngine()
+        self._register_validation_rules()
+    
+    def _register_validation_rules(self):
+        """Register all custom validation rules"""
+        
+        # Email domain validation for B2B customers
+        email_domain_rule = ValidationRule(
+            name="valid_business_email_domain",
+            description="Ensure email uses approved business domains",
+            severity=ValidationSeverity.ERROR,
+            applies_to=["email", "contact_email", "primary_email"],
+            validation_function=self._validate_business_email,
+            remediation_action="flag_for_review"
+        )
+        
+        # Customer age validation
+        age_validation_rule = ValidationRule(
+            name="valid_customer_age",
+            description="Customer age must be between 18-120",
+            severity=ValidationSeverity.ERROR,
+            applies_to=["age", "customer_age"],
+            validation_function=lambda x: 18 <= x <= 120,
+            remediation_action="set_default",
+            default_value=25
+        )
+        
+        # Revenue validation for enterprise customers
+        revenue_validation_rule = ValidationRule(
+            name="enterprise_revenue_threshold",
+            description="Enterprise customers must have revenue > $1M",
+            severity=ValidationSeverity.WARNING,
+            applies_to=["annual_revenue", "company_revenue"],
+            validation_function=lambda x: x >= 1000000,
+            remediation_action="flag_for_sales_review"
+        )
+        
+        # Register all rules
+        self.rule_engine.register_rules([
+            email_domain_rule,
+            age_validation_rule,
+            revenue_validation_rule
+        ])
+    
+    def _validate_business_email(self, email):
+        """Custom email domain validation"""
+        approved_domains = [
+            'company.com', 'enterprise.com', 'business.org',
+            'corporation.net', 'ltd.co.uk'
+        ]
+        
+        if '@' not in email:
+            return False
+        
+        domain = email.split('@')[1].lower()
+        return domain in approved_domains
+
+# Apply business validation rules
+def validate_customer_data_with_business_rules(file_path):
+    """Process customer data with comprehensive business validation"""
+    
+    client = pollarbase.Client(api_key="sk-your-key")
+    validator = CustomerDataValidator(client)
+    
+    # Upload dataset
+    dataset = client.upload_file(file_path)
+    
+    # Apply business validation rules
+    validation_results = validator.rule_engine.validate_dataset(
+        dataset,
+        strict_mode=False,
+        generate_report=True,
+        auto_remediation=True
+    )
+    
+    print("Business Validation Results:")
+    print(f"Total records validated: {validation_results.total_records}")
+    print(f"Validation errors: {validation_results.error_count}")
+    print(f"Validation warnings: {validation_results.warning_count}")
+    print(f"Auto-remediated issues: {validation_results.remediated_count}")
+    
+    # Generate business validation report
+    business_report = validation_results.generate_business_report(
+        include_recommendations=True,
+        include_data_quality_impact=True,
+        include_business_impact_assessment=True
+    )
+    
+    return {
+        "dataset": dataset,
+        "validation_results": validation_results,
+        "business_report": business_report
+    }
+
+# Industry-specific validation example
+class HealthcareDataValidator(CustomerDataValidator):
+    """Healthcare-specific validation rules"""
+    
+    def _register_validation_rules(self):
+        super()._register_validation_rules()
+        
+        # HIPAA compliance validation
+        hipaa_rule = ValidationRule(
+            name="hipaa_identifier_check", 
+            description="Validate HIPAA identifier format",
+            severity=ValidationSeverity.ERROR,
+            applies_to=["patient_id", "medical_record_number"],
+            validation_function=self._validate_hipaa_format,
+            remediation_action="encrypt_and_flag"
+        )
+        
+        self.rule_engine.register_rules([hipaa_rule])
+    
+    def _validate_hipaa_format(self, identifier):
+        """Validate HIPAA-compliant identifier format"""
+        import re
+        pattern = r'^MRN-\\d{8}-\\d{4}$'
+        return re.match(pattern, str(identifier)) is not None
+
+# Example usage
+validator = CustomerDataValidator(client)
+result = validate_customer_data_with_business_rules("customer_data.csv")`,
+                response: `Business Validation Results:
+Total records validated: 10,547
+Validation errors: 23
+Validation warnings: 156
+Auto-remediated issues: 89
+
+ERROR: valid_business_email_domain - 12 records flagged for review
+ERROR: valid_customer_age - 8 records auto-corrected to default age
+WARNING: enterprise_revenue_threshold - 45 accounts flagged for sales review
+
+Business Impact Assessment:
+- Data Quality Score: 94.2%
+- Revenue Impact: $2.3M in flagged enterprise accounts
+- Compliance Risk: LOW (all critical issues auto-remediated)
+
+Validation complete with 92% auto-remediation success rate`
+              })}
+
+              {/* Audit Trail and Compliance */}
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Audit Trail and Compliance Reporting',
+                description: 'Comprehensive audit trails and automated compliance reporting for regulatory requirements',
+                code: `from pollarbase.governance import AuditTrail, DataLineage, ComplianceFramework
+
+# Configure comprehensive audit and compliance tracking
+client = pollarbase.Client(
+    api_key="sk-your-key",
+    governance_config={
+        "audit_trail": {
+            "enabled": True,
+            "log_all_access": True,
+            "log_transformations": True,
+            "log_exports": True,
+            "retention_policy": "7_years",
+            "encryption_at_rest": True,
+            "tamper_proof": True
+        },
+        "compliance": {
+            "frameworks": ["GDPR", "CCPA", "HIPAA", "SOX"],
+            "auto_classification": True,
+            "policy_enforcement": True,
+            "reporting_schedule": "monthly"
+        },
+        "data_lineage": {
+            "track_sources": True,
+            "track_transformations": True,
+            "track_destinations": True,
+            "metadata_retention_days": 2555,  # 7 years
+            "include_schema_evolution": True
+        }
+    }
+)
+
+def comprehensive_data_processing_with_audit(source_file):
+    """Complete data processing with full governance tracking"""
+    
+    # Step 1: Upload with lineage tracking
+    dataset = client.upload_file(
+        source_file,
+        lineage_metadata={
+            "source_system": "customer_crm",
+            "data_owner": "customer_success_team",
+            "collection_date": "2024-01-15",
+            "retention_policy": "5_years",
+            "legal_basis": "legitimate_interest"  # GDPR requirement
+        }
+    )
+    
+    # Step 2: Apply transformations with full audit trail
+    transformations = [
+        {"action": "remove_duplicates", "justification": "data_quality"},
+        {"action": "standardize_emails", "justification": "normalization"},
+        {"action": "validate_addresses", "justification": "accuracy"}
+    ]
+    
+    transformed_dataset = dataset.apply_transformations(
+        transformations,
+        track_lineage=True,
+        audit_each_step=True
+    )
+    
+    # Step 3: Generate comprehensive governance report
+    governance_report = transformed_dataset.generate_governance_report(
+        include_lineage_graph=True,
+        include_audit_trail=True,
+        include_compliance_status=True,
+        include_risk_assessment=True
+    )
+    
+    return governance_report
+
+# Query audit trail for compliance investigations
+def audit_data_access(dataset_id, time_range="30d"):
+    """Query audit trail for specific dataset"""
+    
+    audit_query = client.governance.query_audit_trail(
+        dataset_id=dataset_id,
+        time_range=time_range,
+        event_types=["access", "transformation", "export"],
+        include_user_context=True
+    )
+    
+    print("Audit Trail Summary:")
+    for event in audit_query.events:
+        print(f"{event.timestamp}: {event.event_type} by {event.user_id}")
+        print(f"  Action: {event.action}")
+        print(f"  Risk Level: {event.risk_level}")
+        print(f"  IP Address: {event.ip_address}")
+        print(f"  Compliance Notes: {event.compliance_notes}")
+    
+    return audit_query
+
+# Automated compliance reporting
+def generate_compliance_reports():
+    """Generate automated compliance reports for multiple frameworks"""
+    
+    reports = client.governance.generate_compliance_reports(
+        frameworks=["GDPR", "CCPA", "HIPAA"],
+        time_period="monthly",
+        include_recommendations=True,
+        auto_remediation_suggestions=True
+    )
+    
+    for framework, report in reports.items():
+        print(f"\\n{framework} Compliance Report:")
+        print(f"Status: {report.compliance_status}")
+        print(f"Risk Score: {report.risk_score}/100")
+        print(f"Open Issues: {len(report.open_issues)}")
+        print(f"Recommendations: {len(report.recommendations)}")
+        
+        # Export report for auditors
+        report.export_for_auditors(
+            format="pdf",
+            include_evidence=True,
+            digital_signature=True
+        )
+    
+    return reports
+
+# Data lineage visualization for compliance
+def visualize_data_lineage(dataset_id):
+    """Generate comprehensive data lineage graph"""
+    
+    lineage = client.governance.get_lineage_graph(
+        dataset_id=dataset_id,
+        include_upstream=True,
+        include_downstream=True,
+        format="interactive_html"
+    )
+    
+    # Lineage tracks complete data journey:
+    # - Source systems and collection methods
+    # - All transformation steps and logic
+    # - Quality checks and validations applied
+    # - PII handling and protection actions
+    # - Export destinations and access patterns
+    # - User interactions and approval workflows
+    
+    return lineage
+
+# Usage example
+governance_report = comprehensive_data_processing_with_audit("customer_data.csv")
+audit_results = audit_data_access(governance_report.dataset_id)
+compliance_reports = generate_compliance_reports()
+lineage_graph = visualize_data_lineage(governance_report.dataset_id)`,
+                response: `Governance Report Generated:
+Dataset ID: ds-gov-abc123
+Lineage Tracked: ✅ 5 transformation steps recorded
+Audit Trail: ✅ 23 events logged with tamper-proof encryption
+PII Handling: ✅ 12 fields protected according to sensitivity levels
+Compliance Status: ✅ All frameworks compliant
+
+Audit Trail Summary:
+2024-01-15 09:30:15: upload by user_123 (IP: 192.168.1.100)
+  Action: file_upload
+  Risk Level: LOW
+  Compliance Notes: GDPR consent verified, data minimization applied
+
+2024-01-15 09:35:12: pii_detection by system
+  Action: scan_sensitive_data  
+  Risk Level: MEDIUM
+  Compliance Notes: 12 PII fields identified and protected per policy
+
+GDPR Compliance Report:
+Status: COMPLIANT
+Risk Score: 15/100 (Low Risk)
+Open Issues: 0
+Recommendations: 2 (data retention optimization)
+
+HIPAA Compliance Report:
+Status: COMPLIANT  
+Risk Score: 8/100 (Very Low Risk)
+Open Issues: 0
+Recommendations: 1 (access log archival)
+
+Data lineage graph: 15 nodes, 23 relationships tracked
+Compliance reports exported with digital signatures for audit`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'custom-validation':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Custom Validation</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Create custom validation rules and quality checks for your specific data requirements.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Custom Validation Rules',
+                description: 'Define custom validation logic for your data',
+                code: `import pollarbase
+from pollarbase.validation import ValidationRule, DataType, ValidationSeverity
+
+# Define custom validation rules
+class EmailValidationRule(ValidationRule):
+    def __init__(self):
+        super().__init__(
+            name="email_format",
+            description="Validates email format and domain",
+            severity=ValidationSeverity.ERROR
+        )
+    
+    def validate(self, value, context=None):
+        if not isinstance(value, str):
+            return self.fail("Email must be a string")
+        
+        if "@" not in value:
+            return self.fail("Invalid email format")
+        
+        domain = value.split("@")[1]
+        if domain in ["tempmail.com", "10minutemail.com"]:
+            return self.warn("Suspicious email domain detected")
+        
+        return self.success()
+
+class AgeRangeRule(ValidationRule):
+    def __init__(self, min_age=0, max_age=150):
+        super().__init__(
+            name="age_range",
+            description=f"Age must be between {min_age} and {max_age}",
+            severity=ValidationSeverity.WARNING
+        )
+        self.min_age = min_age
+        self.max_age = max_age
+    
+    def validate(self, value, context=None):
+        try:
+            age = int(value)
+            if age < self.min_age or age > self.max_age:
+                return self.fail(f"Age {age} is outside valid range")
+            return self.success()
+        except (ValueError, TypeError):
+            return self.fail("Age must be a valid number")
+
+# Apply custom validations
+client = pollarbase.Client()
+
+dataset = client.upload_file("customer_data.csv")
+
+# Register custom validators
+dataset.add_validation_rule("email", EmailValidationRule())
+dataset.add_validation_rule("age", AgeRangeRule(min_age=13, max_age=120))
+
+# Run validation
+results = dataset.validate()
+print(f"Validation passed: {results.is_valid}")
+for error in results.errors:
+    print(f"Error: {error.message} (Column: {error.column})")`,
+                response: `Validation passed: False
+Error: Invalid email format (Column: email, Row: 23)
+Error: Suspicious email domain detected (Column: email, Row: 156)
+Error: Age 200 is outside valid range (Column: age, Row: 89)`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'investigations-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Investigations API</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Manage data investigations - the core workflow for organizing and processing your datasets.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-base font-semibold text-blue-900 mb-2">What are Data Investigations?</h3>
+                <p className="text-sm text-blue-800">
+                  Data investigations are containers for your data processing workflows. Each investigation can contain multiple datasets, 
+                  processing jobs, and analysis results, providing a structured way to organize your data work.
+                </p>
+              </div>
+
+              {apiEndpoints['investigations-api']?.map((endpoint, index) => (
+                <div key={index}>
+                  {renderAPIEndpoint(endpoint)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+
+      case 'integrations-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">Integrations API</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Connect Pollarbase to your databases, APIs, and data sources for seamless data ingestion.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'Database Integration Example',
+                description: 'Connect to PostgreSQL and automatically sync data',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+
+# Connect to PostgreSQL
+connection = client.integrations.database.connect(
+    connection_name="production_db",
+    database_type="postgresql",
+    host="db.company.com",
+    port=5432,
+    database="analytics",
+    username="pollarbase_user",
+    password="secure_password"
+)
+
+# Sync specific tables
+tables = connection.sync_tables([
+    "customer_profiles",
+    "transaction_logs",
+    "product_catalog"
+])
+
+# Schedule automatic syncs
+connection.schedule_sync(
+    frequency="daily",
+    time="02:00",
+    tables=["transaction_logs"]
+)
+
+print(f"Connected to {connection.database} - {len(tables)} tables synced")`,
+                response: `Connected to analytics - 3 tables synced
+- customer_profiles: 15,432 rows
+- transaction_logs: 2,345,123 rows  
+- product_catalog: 1,234 rows`
+              })}
+            </div>
+          </div>
+        )
+
+      case 'ai-framework-api':
+        return (
+          <div className="max-w-4xl">
+            <div className="mb-4">
+              <h1 className="text-xl font-bold text-gray-900 mb-2">AI Framework Integration</h1>
+              <p className="text-sm text-gray-600 mb-4">
+                Export your processed data directly to PyTorch, TensorFlow, and other ML frameworks.
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {renderCodeBlock({
+                language: 'python',
+                title: 'PyTorch Export',
+                description: 'Export data as PyTorch DataLoader with automatic train/val splits',
+                code: `import pollarbase
+
+client = pollarbase.Client()
+investigation = client.investigations.get("inv_abc123")
+
+# Export to PyTorch format
+pytorch_export = investigation.export_pytorch(
+    task_type="classification",
+    target_column="category",
+    batch_size=32,
+    train_ratio=0.8,
+    validation_ratio=0.1,
+    test_ratio=0.1
+)
+
+# Use the generated DataLoaders
+train_loader = pytorch_export.train_loader
+val_loader = pytorch_export.val_loader
+test_loader = pytorch_export.test_loader
+
+print(f"Training batches: {len(train_loader)}")
+print(f"Validation batches: {len(val_loader)}")
+print(f"Feature shape: {pytorch_export.feature_shape}")`,
+                response: `Training batches: 625
+Validation batches: 79
+Feature shape: torch.Size([32, 15])
+Export saved to: ./pytorch_export/`
               })}
             </div>
           </div>
