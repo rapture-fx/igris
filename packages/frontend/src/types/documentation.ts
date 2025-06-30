@@ -49,4 +49,49 @@ export interface DocumentationContent {
   sections: Record<string, ContentSection>
   apiEndpoints: Record<string, APIEndpoint[]>
   codeExamples: Record<string, CodeExample[]>
+}
+
+// Content Renderer Types
+export interface ContentSectionItem {
+  type: string
+  title?: string
+  description?: string
+  style?: string
+  icon?: string
+  items?: any[]
+  sections?: ContentSectionItem[]
+  features?: any[]
+  frameworks?: any[]
+  action?: {
+    label: string
+    target?: string
+    url?: string
+  }
+  languages?: string[]
+  codeExamplesRef?: string
+}
+
+export interface ContentRendererSection {
+  id: string
+  title: string
+  subtitle?: string
+  lastUpdated?: string
+  sections: ContentSectionItem[]
+}
+
+export interface ContentRendererProps {
+  content: ContentRendererSection
+  onSectionChange: (sectionId: string) => void
+  onLanguageChange?: (language: string) => void
+  selectedLanguage?: string
+  codeExamples?: CodeExample[]
+}
+
+// Individual component props
+export interface SectionComponentProps {
+  section: ContentSectionItem
+  onSectionChange: (sectionId: string) => void
+  onLanguageChange?: (language: string) => void
+  selectedLanguage?: string
+  codeExamples?: CodeExample[]
 } 

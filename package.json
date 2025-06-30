@@ -18,7 +18,7 @@
   },
   "keywords": [
     "data-processing",
-    "data-cleaning", 
+    "data-cleaning",
     "csv-handler",
     "data-schlep",
     "data-preparation",
@@ -27,4 +27,4 @@
   ],
   "author": "Pollarbase Team",
   "homepage": "https://pollarbase.com"
-} 
+}
