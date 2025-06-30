@@ -141,7 +141,7 @@ export default function DocumentationPage() {
       ]
     },
     {
-      id: 'production',
+      id: 'production-deployment',
       title: 'Production',
       items: [
         { id: 'security', label: 'Security', icon: <Shield className="w-4 h-4" /> },
@@ -155,7 +155,7 @@ export default function DocumentationPage() {
       title: 'Guides & Tutorials',
       items: [
         { id: 'complete-pipeline', label: 'Complete Pipeline', icon: <Layers className="w-4 h-4" /> },
-        { id: 'ml-integration', label: 'ML Integration', icon: <Brain className="w-4 h-4" /> },
+        { id: 'ml-integration-tutorial', label: 'ML Integration', icon: <Brain className="w-4 h-4" /> },
         { id: 'changelog', label: 'Changelog', icon: <Activity className="w-4 h-4" /> },
       ]
     },
@@ -163,7 +163,7 @@ export default function DocumentationPage() {
       id: 'meta-documentation',
       title: 'Meta & Analysis',
       items: [
-        { id: 'data-governance', label: 'Data Governance Framework', icon: <Shield className="w-4 h-4" /> },
+        { id: 'data-governance-framework', label: 'Data Governance Framework', icon: <Shield className="w-4 h-4" /> },
         { id: 'documentation-gap-analysis', label: 'Documentation Gap Analysis', icon: <AlertCircle className="w-4 h-4" /> },
       ]
     }
@@ -8652,7 +8652,7 @@ Export saved to: ./pytorch_export/`
             </div>
           </div>
         </div>
-      </footer>
-    </div>
+              </footer>
+      </div>
   )
 }
