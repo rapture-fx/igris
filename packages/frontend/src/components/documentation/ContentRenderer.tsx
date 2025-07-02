@@ -27,7 +27,16 @@ import {
   TransformationTypesGrid,
   ExportFormatsGrid,
   JobStatusFlow,
-  JobMonitoringFeatures
+  JobMonitoringFeatures,
+  PaginationStrategies,
+  PaginationParameters,
+  PaginationBestPractices,
+  MonitoringFeatures,
+  MonitoringDashboard,
+  LoggingConfiguration,
+  SecurityChecklist,
+  SecurityFeatures,
+  SecurityConfiguration
 } from './sections'
 
 export function ContentRenderer({ 
@@ -98,6 +107,24 @@ export function ContentRenderer({
         return <JobStatusFlow {...commonProps} />
       case 'job-monitoring-features':
         return <JobMonitoringFeatures {...commonProps} />
+      case 'pagination-strategies':
+        return <PaginationStrategies {...commonProps} />
+      case 'pagination-parameters':
+        return <PaginationParameters {...commonProps} />
+      case 'pagination-best-practices':
+        return <PaginationBestPractices {...commonProps} />
+      case 'monitoring-features':
+        return <MonitoringFeatures {...commonProps} />
+      case 'monitoring-dashboard':
+        return <MonitoringDashboard {...commonProps} />
+      case 'logging-configuration':
+        return <LoggingConfiguration {...commonProps} />
+      case 'security-checklist':
+        return <SecurityChecklist {...commonProps} />
+      case 'security-features':
+        return <SecurityFeatures {...commonProps} />
+      case 'security-configuration':
+        return <SecurityConfiguration {...commonProps} />
       default:
         console.warn(`Unknown section type: ${section.type}`)
         return null

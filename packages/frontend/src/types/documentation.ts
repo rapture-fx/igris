@@ -117,6 +117,83 @@ export interface ContentSectionItem {
   }
   languages?: string[]
   codeExamplesRef?: string
+  
+  // Pagination properties
+  paginationStrategies?: Array<{
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+    benefits: string[];
+    useCase: string;
+  }>;
+  paginationParameters?: Array<{
+    name: string;
+    type: string;
+    default: string;
+    description: string;
+    range: string;
+  }>;
+  paginationPractices?: Array<{
+    category: string;
+    color: string;
+    icon: string;
+    tips: string[];
+  }>;
+
+  // Monitoring properties
+  monitoringFeatures?: Array<{
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+    metrics: string[];
+  }>;
+  monitoringDashboards?: Array<{
+    category: string;
+    color: string;
+    icon: string;
+    widgets: Array<{
+      name: string;
+      type: string;
+      description: string;
+    }>;
+  }>;
+  logLevels?: Array<{
+    level: string;
+    color: string;
+    description: string;
+    useCase: string;
+  }>;
+  logFormats?: Array<{
+    name: string;
+    description: string;
+    benefits: string[];
+  }>;
+
+  // Security properties
+  securityCategories?: Array<{
+    name: string;
+    color: string;
+    icon: string;
+    practices: string[];
+  }>;
+  securityFeatures?: Array<{
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+    capabilities: string[];
+  }>;
+  securityConfigurations?: Array<{
+    category: string;
+    settings: Array<{
+      name: string;
+      description: string;
+      options: string[];
+      recommended: string;
+    }>;
+  }>;
 }
 
 export interface ContentRendererSection {
