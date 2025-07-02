@@ -62,6 +62,13 @@ export interface ContentSectionItem {
   sections?: ContentSectionItem[]
   features?: any[]
   frameworks?: any[]
+  methods?: any[]
+  types?: any[]
+  formats?: any[]
+  benchmarks?: any[]
+  strategies?: any[]
+  patterns?: any[]
+  examples?: string[]
   action?: {
     label: string
     target?: string

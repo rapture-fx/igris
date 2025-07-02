@@ -407,7 +407,7 @@ export default function DocumentationPage() {
     ]
   }
 
-    // Code examples
+  // Code examples
   const codeExamples: Record<string, CodeExample[]> = {
     quickstart: [
       {

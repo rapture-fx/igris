@@ -14,7 +14,14 @@ import {
   ImprovementActions,
   TwoColumnContainer,
   GovernanceHero,
-  MLFrameworksGrid
+  MLFrameworksGrid,
+  AnomalyHero,
+  AnomalyTypesGrid,
+  BestPracticesCallout,
+  FormatsGrid,
+  PerformanceBenchmarks,
+  ScalingStrategies,
+  ArchitecturePatterns
 } from './sections'
 
 export function ContentRenderer({ 
@@ -59,6 +66,20 @@ export function ContentRenderer({
         return <GovernanceHero {...commonProps} />
       case 'ml-frameworks-grid':
         return <MLFrameworksGrid {...commonProps} />
+      case 'anomaly-hero':
+        return <AnomalyHero {...commonProps} />
+      case 'anomaly-types-grid':
+        return <AnomalyTypesGrid {...commonProps} />
+      case 'best-practices-callout':
+        return <BestPracticesCallout {...commonProps} />
+      case 'formats-grid':
+        return <FormatsGrid {...commonProps} />
+      case 'performance-benchmarks':
+        return <PerformanceBenchmarks {...commonProps} />
+      case 'scaling-strategies':
+        return <ScalingStrategies {...commonProps} />
+      case 'architecture-patterns':
+        return <ArchitecturePatterns {...commonProps} />
       default:
         console.warn(`Unknown section type: ${section.type}`)
         return null
