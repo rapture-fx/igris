@@ -21,7 +21,13 @@ import {
   FormatsGrid,
   PerformanceBenchmarks,
   ScalingStrategies,
-  ArchitecturePatterns
+  ArchitecturePatterns,
+  ApiEndpoints,
+  UploadLimitsCallout,
+  TransformationTypesGrid,
+  ExportFormatsGrid,
+  JobStatusFlow,
+  JobMonitoringFeatures
 } from './sections'
 
 export function ContentRenderer({ 
@@ -80,6 +86,18 @@ export function ContentRenderer({
         return <ScalingStrategies {...commonProps} />
       case 'architecture-patterns':
         return <ArchitecturePatterns {...commonProps} />
+      case 'api-endpoints':
+        return <ApiEndpoints {...commonProps} />
+      case 'upload-limits-callout':
+        return <UploadLimitsCallout {...commonProps} />
+      case 'transformation-types':
+        return <TransformationTypesGrid {...commonProps} />
+      case 'export-formats':
+        return <ExportFormatsGrid {...commonProps} />
+      case 'job-status-flow':
+        return <JobStatusFlow {...commonProps} />
+      case 'job-monitoring-features':
+        return <JobMonitoringFeatures {...commonProps} />
       default:
         console.warn(`Unknown section type: ${section.type}`)
         return null

@@ -60,7 +60,12 @@ export interface ContentSectionItem {
   icon?: string
   items?: any[]
   sections?: ContentSectionItem[]
-  features?: any[]
+  features?: {
+    category: string
+    color: string
+    icon: string
+    items: string[]
+  }[]
   frameworks?: any[]
   methods?: any[]
   types?: any[]
@@ -68,6 +73,42 @@ export interface ContentSectionItem {
   benchmarks?: any[]
   strategies?: any[]
   patterns?: any[]
+  endpoints?: any[]
+  limits?: any
+  transformationTypes?: {
+    category: string
+    color: string
+    icon: string
+    types: {
+      name: string
+      description: string
+      methods: string[]
+    }[]
+  }[]
+  exportFormats?: {
+    category: string
+    color: string
+    icon: string
+    formats: {
+      name: string
+      description: string
+      features: string[]
+      useCase: string
+    }[]
+  }[]
+  statusFlow?: {
+    states: {
+      name: string
+      description: string
+      color: string
+      icon: string
+    }[]
+    transitions: {
+      from: string
+      to: string
+      action?: string
+    }[]
+  }
   examples?: string[]
   action?: {
     label: string
