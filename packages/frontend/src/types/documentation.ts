@@ -194,6 +194,214 @@ export interface ContentSectionItem {
       recommended: string;
     }>;
   }>;
+
+  // Troubleshooting properties
+  troubleshootingCategories?: Array<{
+    name: string;
+    color: string;
+    icon: string;
+    issues: Array<{
+      problem: string;
+      solution: string;
+    }>;
+  }>;
+  troubleshootingDiagnostics?: Array<{
+    category: string;
+    description: string;
+    steps: string[];
+  }>;
+
+  // Performance properties
+  performanceCategories?: Array<{
+    name: string;
+    color: string;
+    icon: string;
+    techniques: string[];
+  }>;
+  performanceBenchmarks?: Array<{
+    category: string;
+    metrics: string[];
+  }>;
+  performanceTips?: Array<{
+    category: string;
+    description: string;
+    tips: string[];
+  }>;
+
+  // Testing properties
+  testingEnvironments?: Array<{
+    name: string;
+    color: string;
+    icon: string;
+    features: string[];
+  }>;
+  testingStrategies?: Array<{
+    category: string;
+    description: string;
+    practices: string[];
+  }>;
+  testingTools?: Array<{
+    name: string;
+    description: string;
+    useCase: string;
+    features: string[];
+  }>;
+
+  // Error handling properties
+  errorCategories?: Array<{
+    name: string;
+    color: string;
+    icon: string;
+    description: string;
+    examples: string[];
+    recoveryActions: string[];
+  }>;
+  recoveryStrategies?: Array<{
+    strategy: string;
+    description: string;
+    useCase: string;
+    implementation: string[];
+    benefits: string[];
+  }>;
+  errorMonitoring?: Array<{
+    category: string;
+    color: string;
+    icon: string;
+    features: string[];
+  }>;
+
+  // Observability properties
+  observabilityFeatures?: Array<{
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+    capabilities: string[];
+  }>;
+  monitoringStack?: Array<{
+    category: string;
+    description: string;
+    tools: Array<{
+      name: string;
+      purpose: string;
+      integration: string;
+    }>;
+  }>;
+  observabilityMetrics?: Array<{
+    category: string;
+    color: string;
+    icon: string;
+    metrics: string[];
+  }>;
+
+  // Cost optimization properties
+  costStrategies?: Array<{
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+    costMultiplier: string;
+    timeReduction: string;
+    features: string[];
+    useCase: string;
+  }>;
+  costMonitoring?: Array<{
+    category: string;
+    color: string;
+    icon: string;
+    features: string[];
+  }>;
+  costOptimizationTechniques?: Array<{
+    technique: string;
+    description: string;
+    savingsRange: string;
+    complexity: string;
+    implementation: string[];
+    benefits: string[];
+  }>;
+
+  // Custom validation properties
+  validationRules?: Array<{
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+    severity: string;
+    features: string[];
+    useCase: string;
+  }>;
+  validationConfiguration?: Array<{
+    category: string;
+    description: string;
+    color: string;
+    icon: string;
+    settings: Array<{
+      name: string;
+      description: string;
+      action: string;
+      recommended: string;
+    }>;
+  }>;
+  validationPatterns?: Array<{
+    pattern: string;
+    description: string;
+    complexity: string;
+    icon: string;
+    validations: string[];
+    industries: string[];
+    implementation: string[];
+  }>;
+  
+  // Rate Limits
+  rateLimits?: Array<{
+    tier: string;
+    description: string;
+    color: string;
+    icon: string;
+    limits: Array<{
+      metric: string;
+      value: string;
+      description: string;
+    }>;
+  }>;
+  handlingStrategies?: Array<{
+    strategy: string;
+    description: string;
+    color: string;
+    icon: string;
+    benefits: string[];
+    implementation: string[];
+    useCase: string;
+  }>;
+  monitoringTools?: Array<{
+    tool: string;
+    description: string;
+    color: string;
+    icon: string;
+    headers?: Array<{
+      header: string;
+      description: string;
+      example: string;
+    }>;
+    metrics?: Array<{
+      metric: string;
+      description: string;
+      action: string;
+    }>;
+    alerts?: Array<{
+      alert: string;
+      description: string;
+      action: string;
+    }>;
+  }>;
+
+  // SDK properties
+  methods?: InstallationMethod[];
+  features?: SDKFeature[];
+
+  // Webhook properties
+  eventCategories?: EventCategory[];
+  configMethod?: string;
 }
 
 export interface ContentRendererSection {
@@ -219,4 +427,51 @@ export interface SectionComponentProps {
   onLanguageChange?: (language: string) => void
   selectedLanguage?: string
   codeExamples?: CodeExample[]
+}
+
+// SDK interfaces
+export interface InstallationMethod {
+  name: string;
+  command: string;
+}
+
+export interface SDKFeature {
+  name: string;
+  description: string;
+  icon: string;
+}
+
+// Webhook interfaces
+export interface WebhookEvent {
+  name: string;
+  description: string;
+}
+
+export interface EventCategory {
+  name: string;
+  color: string;
+  events: WebhookEvent[];
 } 
+// Webhook interfaces
+export interface WebhookEvent {
+  name: string;
+  description: string;
+}
+
+export interface EventCategory {
+  name: string;
+  color: string;
+  events: WebhookEvent[];
+}
+
+// REST API interfaces
+export interface APIDetail {
+  name: string;
+  description: string;
+  example?: string;
+  limits?: Array<{
+    plan: string;
+    limit: string;
+  }>;
+  icon: string;
+}

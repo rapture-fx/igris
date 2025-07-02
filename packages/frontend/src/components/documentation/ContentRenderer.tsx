@@ -36,7 +36,35 @@ import {
   LoggingConfiguration,
   SecurityChecklist,
   SecurityFeatures,
-  SecurityConfiguration
+  SecurityConfiguration,
+  TroubleshootingCategories,
+  TroubleshootingDiagnostics,
+  PerformanceCategories,
+  PerformanceTips,
+  TestingEnvironments,
+  TestingStrategies,
+  TestingTools,
+  ErrorCategories,
+  RecoveryStrategies,
+  ErrorMonitoring,
+  ObservabilityFeatures,
+  MonitoringStack,
+  ObservabilityMetrics,
+  CostStrategies,
+  CostMonitoring,
+  CostOptimizationTechniques,
+  ValidationRules,
+  ValidationConfiguration,
+  ValidationPatterns,
+  RateLimitOverview,
+  RateLimitHandling,
+  RateLimitMonitoring,
+  InstallationGuide,
+  SDKFeatures,
+  WebhookEvents,
+  WebhookConfiguration,
+  APIBaseInfo,
+  APIDetailsGrid
 } from './sections'
 
 export function ContentRenderer({ 
@@ -125,6 +153,62 @@ export function ContentRenderer({
         return <SecurityFeatures {...commonProps} />
       case 'security-configuration':
         return <SecurityConfiguration {...commonProps} />
+      case 'troubleshooting-categories':
+        return <TroubleshootingCategories troubleshootingCategories={section.troubleshootingCategories || []} />
+      case 'troubleshooting-diagnostics':
+        return <TroubleshootingDiagnostics troubleshootingDiagnostics={section.troubleshootingDiagnostics || []} />
+      case 'performance-categories':
+        return <PerformanceCategories {...commonProps} />
+      case 'performance-tips':
+        return <PerformanceTips {...commonProps} />
+      case 'testing-environments':
+        return <TestingEnvironments testingEnvironments={section.testingEnvironments || []} />
+      case 'testing-strategies':
+        return <TestingStrategies testingStrategies={section.testingStrategies || []} />
+      case 'testing-tools':
+        return <TestingTools testingTools={section.testingTools || []} />
+      case 'error-categories':
+        return <ErrorCategories errorCategories={section.errorCategories || []} />
+      case 'recovery-strategies':
+        return <RecoveryStrategies recoveryStrategies={section.recoveryStrategies || []} />
+      case 'error-monitoring':
+        return <ErrorMonitoring errorMonitoring={section.errorMonitoring || []} />
+      case 'observability-features':
+        return <ObservabilityFeatures observabilityFeatures={section.observabilityFeatures || []} />
+      case 'monitoring-stack':
+        return <MonitoringStack monitoringStack={section.monitoringStack || []} />
+      case 'observability-metrics':
+        return <ObservabilityMetrics observabilityMetrics={section.observabilityMetrics || []} />
+      case 'cost-strategies':
+        return <CostStrategies costStrategies={section.costStrategies || []} />
+      case 'cost-monitoring':
+        return <CostMonitoring costMonitoring={section.costMonitoring || []} />
+      case 'cost-optimization-techniques':
+        return <CostOptimizationTechniques costOptimizationTechniques={section.costOptimizationTechniques || []} />
+      case 'validation-rules':
+        return <ValidationRules validationRules={section.validationRules || []} />
+      case 'validation-configuration':
+        return <ValidationConfiguration validationConfiguration={section.validationConfiguration || []} />
+      case 'validation-patterns':
+        return <ValidationPatterns validationPatterns={section.validationPatterns || []} />
+      case 'rate-limit-overview':
+        return <RateLimitOverview rateLimits={section.rateLimits || []} />
+      case 'rate-limit-handling':
+        return <RateLimitHandling handlingStrategies={section.handlingStrategies || []} />
+      case 'rate-limit-monitoring':
+        return <RateLimitMonitoring monitoringTools={section.monitoringTools || []} />
+      case 'installation-guide':
+        return <InstallationGuide {...commonProps} />
+      case 'sdk-features':
+        return <SDKFeatures {...commonProps} />
+      case 'webhook-events':
+        return <WebhookEvents {...commonProps} />
+      case 'webhook-configuration':
+      case 'api-base-info':
+        return <APIBaseInfo {...commonProps} />
+      case 'api-details-grid':
+        return <APIDetailsGrid {...commonProps} />
+        return <WebhookConfiguration {...commonProps} />
       default:
         console.warn(`Unknown section type: ${section.type}`)
         return null
