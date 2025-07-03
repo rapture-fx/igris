@@ -48,8 +48,7 @@ export function Sidebar() {
       <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white border-r border-gray-200 px-6 pb-4">
         <div className="flex h-16 shrink-0 items-center">
           <div className="flex items-center space-x-3">
-            <Logo width={40} height={40} alt="Pollarbase Logo" />
-            <span className="text-xl font-bold text-mercury-primary">Pollarbase</span>
+            <Logo width={40} height={40} alt="Schlep Engine Logo" />
           </div>
         </div>
         <nav className="flex flex-1 flex-col">

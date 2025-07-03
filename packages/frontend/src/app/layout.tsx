@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Pollarbase - The Data Schlep Handler',
-  description: 'Stop wasting 80% of your time on data prep. We handle the schlep so you don\'t have to. Upload your messy data, get clean results.',
+  title: 'Schlep-engine | The Stripe for Data',
+  description: 'The comprehensive API platform that handles your data schlep. Transform messy data into ML-ready datasets with 95%+ accuracy using advanced AI algorithms.',
   keywords: ['data processing', 'data cleaning', 'csv handler', 'data preparation', 'etl', 'data pipeline'],
   authors: [{ name: 'Pollarbase Team' }],
   openGraph: {

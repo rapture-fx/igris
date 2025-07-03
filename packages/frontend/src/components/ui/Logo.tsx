@@ -14,11 +14,11 @@ export function Logo({
   className = '', 
   width = 40, 
   height = 40, 
-  alt = 'Pollarbase Logo' 
+  alt = 'Schlep Engine Logo' 
 }: LogoProps) {
   return (
     <Image
-      src="/new-logo.svg"
+      src="/Schlep-engine new.svg"
       alt={alt}
       width={width}
       height={height}
