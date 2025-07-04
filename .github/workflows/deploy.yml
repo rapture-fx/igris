@@ -188,7 +188,7 @@ jobs:
           sleep 30
           
           # Add your production URL here
-          PROD_URL="https://pollarbase.vercel.app"
+          PROD_URL="https://schlep-engine.vercel.app"
           
           # Basic health check
           if curl -f -s "$PROD_URL" > /dev/null; then
@@ -216,9 +216,9 @@ jobs:
       - name: 📢 Deployment notification
         run: |
           if [ "${{ needs.deploy.result }}" == "success" ]; then
-            echo " Deployment successful!"
+            echo "✅ Schlep-engine deployment successful!"
             # Add Slack/Discord/Email notification here if needed
           else
-            echo " Deployment failed!"
+            echo "❌ Schlep-engine deployment failed!"
             # Add failure notification here if needed
           fi 
