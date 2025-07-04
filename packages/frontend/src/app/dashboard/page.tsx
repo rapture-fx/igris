@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { 
   Upload, 
   Database, 
@@ -23,60 +23,33 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { FileUpload } from '@/components/upload/FileUpload'
+import { useDashboardData } from '@/hooks/useDashboardData'
+
+// NOTE: This refactoring focuses on adopting the new data fetching hooks.
+// The `recommendations` and `predictive-alerts` sections have been removed
+// as they are not currently provided by `useDashboardData`. They can be
+// re-integrated when corresponding hooks are available.
+
+// Add a type for the job object to improve safety
+interface ActiveJob {
+  job_id: string;
+  investigation_name: string;
+  status: string;
+  progress_percentage: number | null;
+  estimated_completion: string | null;
+}
 
 export default function DashboardPage() {
-  const [stats, setStats] = useState<any>(null)
-  const [recentActivity, setRecentActivity] = useState<any[]>([])
-  const [recommendations, setRecommendations] = useState<any[]>([])
-  const [alerts, setAlerts] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
   const [showUpload, setShowUpload] = useState(false)
-
-  // Fetch live data from API with enhanced endpoints
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, activityRes, recommendationsRes, alertsRes] = await Promise.all([
-          fetch('/api/proxy/dashboard/stats'),
-          fetch('/api/proxy/dashboard/activity'),
-          fetch('/api/proxy/recommendations'),
-          fetch('/api/proxy/predictive-alerts')
-        ])
-        
-        const statsData = await statsRes.json()
-        const activityData = await activityRes.json()
-        const recommendationsData = await recommendationsRes.json()
-        const alertsData = await alertsRes.json()
-        
-        // Defensive programming with proper error handling
-        setStats(statsData?.data || statsData || {})
-        
-        const activityArray = activityData?.data || activityData || []
-        setRecentActivity(Array.isArray(activityArray) ? activityArray : [])
-        
-        const recommendationsArray = recommendationsData?.data || recommendationsData || []
-        setRecommendations(Array.isArray(recommendationsArray) ? recommendationsArray : [])
-        
-        const alertsArray = alertsData?.data || alertsData || []
-        setAlerts(Array.isArray(alertsArray) ? alertsArray : [])
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error)
-        // Ensure arrays remain arrays even on API failure
-        setStats({})
-        if (!Array.isArray(recentActivity)) setRecentActivity([])
-        if (!Array.isArray(recommendations)) setRecommendations([])
-        if (!Array.isArray(alerts)) setAlerts([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-    
-    // Refresh every 10 seconds
-    const interval = setInterval(fetchData, 10000)
-    return () => clearInterval(interval)
-  }, [])
+  const { 
+    stats, 
+    recentActivity, 
+    dataQuality,
+    activeJobs,
+    isLoading, 
+    isError, 
+    refetchAll 
+  } = useDashboardData()
 
   const formatNumber = (num: number) => {
     if (!num) return '0'
@@ -106,7 +79,7 @@ export default function DashboardPage() {
     return 'Just now'
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="flex items-center space-x-2">
@@ -117,8 +90,19 @@ export default function DashboardPage() {
     )
   }
 
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center space-x-2 text-red-500">
+          <AlertTriangle className="w-5 h-5" />
+          <span>Error loading dashboard data. Please try again later.</span>
+        </div>
+      </div>
+    )
+  }
+
   // Empty state for new users
-  if (!stats || stats.data_sources === 0) {
+  if (!stats.data || stats.data.data_sources === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="flex items-center justify-center min-h-screen p-6">
@@ -166,7 +150,7 @@ export default function DashboardPage() {
               <FileUpload 
                 onUploadComplete={() => {
                   setShowUpload(false)
-                  window.location.reload()
+                  refetchAll()
                 }}
               />
             </div>
@@ -186,9 +170,9 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <div className="flex items-center space-x-4 mt-2">
               <p className="text-gray-600">Your data intelligence overview</p>
-              {stats.time_savings && (
+              {stats.data?.time_savings && (
                 <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                  🕒 {stats.time_savings.hours_saved_weekly}h saved this week
+                  🕒 {stats.data.time_savings.hours_saved_weekly}h saved this week
             </div>
               )}
             </div>
@@ -208,9 +192,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-green-100 text-sm font-medium">Time Saved Weekly</p>
-                <p className="text-3xl font-bold">{stats.time_savings?.hours_saved_weekly || 0}h</p>
+                <p className="text-3xl font-bold">{stats.data?.time_savings?.hours_saved_weekly || 0}h</p>
                 <p className="text-green-100 text-xs mt-1">
-                  {formatCurrency(stats.time_savings?.cost_savings_monthly / 4 || 0)} value
+                  {formatCurrency(stats.data?.time_savings?.cost_savings_monthly / 4 || 0)} value
                 </p>
               </div>
               <Clock className="w-8 h-8 text-green-200" />
@@ -221,9 +205,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Quality Score</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.quality_score}%</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.data?.quality_score}%</p>
                 <p className="text-xs text-green-600 mt-1">
-                  +{stats.quality_insights?.trends?.weekly_improvement || 2.3}% this week
+                  +{stats.data?.quality_insights?.trends?.weekly_improvement || 2.3}% this week
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-500" />
@@ -234,9 +218,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Records</p>
-                <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.total_records)}</p>
+                <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.data?.total_records)}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {stats.time_savings?.issues_auto_fixed || 0} issues auto-fixed
+                  {stats.data?.time_savings?.issues_auto_fixed || 0} issues auto-fixed
                 </p>
               </div>
               <Database className="w-8 h-8 text-blue-500" />
@@ -247,9 +231,9 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Data Sources</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.data_sources}</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.data?.data_sources}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {stats.active_jobs} processing
+                  in {stats.data?.project_count || 1} projects
                 </p>
               </div>
               <Sparkles className="w-8 h-8 text-orange-500" />
@@ -258,188 +242,104 @@ export default function DashboardPage() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Left Column - Recent Activity */}
-          <div className="lg:col-span-5 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-gray-900">Recent Activity</h2>
-              <Link href="/dashboard/data-sources" className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                View all →
-              </Link>
-            </div>
-            
-            <div className="space-y-4">
-              {recentActivity.length > 0 ? (
-                recentActivity.slice(0, 4).map((activity) => (
-                  <div key={activity.id} className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors">
-                    <div className="flex-shrink-0 mt-1">
-                      {activity.status === 'completed' ? (
-                        <CheckCircle2 className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <Clock className="w-5 h-5 text-blue-500" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                      <p className="text-sm text-gray-600 truncate">{activity.description}</p>
-                      <p className="text-xs text-gray-500 mt-1">{getTimeAgo(activity.timestamp)}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-8">
-                  <Clock className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No recent activity</p>
-                </div>
-              )}
-            </div>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Main Column - Data Quality & Active Jobs */}
+          <div className="lg:col-span-2 space-y-6">
 
-          {/* Center Column - Smart Recommendations */}
-          <div className="lg:col-span-4 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center space-x-2 mb-6">
-              <Brain className="w-5 h-5 text-purple-600" />
-              <h2 className="text-lg font-semibold text-gray-900">Smart Recommendations</h2>
-            </div>
-            
-            <div className="space-y-4">
-              {recommendations.slice(0, 3).map((rec) => (
-                <div key={rec.id} className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-                  <div className="flex items-start justify-between mb-2">
-                    <h3 className="text-sm font-medium text-gray-900">{rec.title}</h3>
-                    <span className={`px-2 py-1 text-xs rounded-full ${
-                      rec.priority === 'high' ? 'bg-red-100 text-red-800' :
-                      rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {rec.priority}
-                    </span>
+            {/* Data Quality Insights */}
+            {dataQuality.data && (
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Target className="w-6 h-6 text-indigo-500" />
+                    <h2 className="text-lg font-bold text-gray-800">Data Quality Insights</h2>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">{rec.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-green-600">⏱️ Saves {rec.estimated_time_saved}</span>
-                    <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-                      {rec.action} →
-                    </button>
+                  <Link href="/dashboard/data-analysis">
+                    <span className="text-sm font-medium text-blue-600 hover:underline">View Details</span>
+                  </Link>
+                </div>
+                {/* Quality Score Gauge */}
+                <div className="text-center mb-4">
+                  <div className="relative inline-block">
+                    <Gauge className="w-24 h-24 text-gray-200" />
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-3xl font-bold text-gray-900">{dataQuality.data.overall_score}%</span>
+                      <span className="text-sm text-gray-500">Overall Score</span>
+                    </div>
                   </div>
                 </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-green-600">{dataQuality.data.excellent_count}</p>
+                    <p className="text-sm text-gray-500">Excellent</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-blue-500">{dataQuality.data.good_count}</p>
+                    <p className="text-sm text-gray-500">Good</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-yellow-500">{dataQuality.data.fair_count}</p>
+                    <p className="text-sm text-gray-500">Fair</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-red-500">{dataQuality.data.poor_count}</p>
+                    <p className="text-sm text-gray-500">Poor</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* Active Jobs */}
+            {activeJobs.data && activeJobs.data.length > 0 && (
+              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+                <div className="flex items-center space-x-3 mb-4">
+                  <Zap className="w-6 h-6 text-yellow-500" />
+                  <h2 className="text-lg font-bold text-gray-800">Active Jobs</h2>
+                </div>
+                <ul className="space-y-4">
+                  {activeJobs.data.map((job: ActiveJob) => (
+                    <li key={job.job_id} className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-gray-800">{job.investigation_name}</p>
+                        <p className="text-sm text-gray-500">{job.status}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium text-blue-600">{(job.progress_percentage || 0).toFixed(0)}%</p>
+                        <p className="text-xs text-gray-400">
+                          ETA: {job.estimated_completion ? getTimeAgo(job.estimated_completion) : 'Calculating...'}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          {/* Side Column - Recent Activity */}
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-3 mb-4">
+              <BarChart3 className="w-6 h-6 text-blue-500" />
+              <h2 className="text-lg font-bold text-gray-800">Recent Activity</h2>
+            </div>
+            
+            <ul className="space-y-4">
+              {recentActivity.data?.map((activity: any) => (
+                <li key={activity.id} className="flex space-x-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <CheckCircle2 className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm text-gray-800">{activity.title}</p>
+                    <p className="text-xs text-gray-500">{activity.description}</p>
+                    <p className="text-xs text-gray-400 mt-1">{getTimeAgo(activity.timestamp)}</p>
+                  </div>
+                </li>
               ))}
-            </div>
-          </div>
-
-          {/* Right Column - System Health & Alerts */}
-          <div className="lg:col-span-3 space-y-6">
-            {/* System Health */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center space-x-2 mb-4">
-                <Gauge className="w-5 h-5 text-green-600" />
-                <h2 className="text-lg font-semibold text-gray-900">System Health</h2>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Status</span>
-                  <span className="flex items-center text-sm">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                    {stats.system_health?.status || 'Healthy'}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Processing Speed</span>
-                  <span className="text-sm text-gray-900">{stats.system_health?.processing_speed}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Storage Used</span>
-                  <span className="text-sm text-gray-900">{stats.system_health?.storage_used_percentage}%</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Uptime</span>
-                  <span className="text-sm text-gray-900">{stats.system_health?.uptime_percentage}%</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Predictive Alerts */}
-            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-              <div className="flex items-center space-x-2 mb-4">
-                <AlertTriangle className="w-5 h-5 text-orange-600" />
-                <h2 className="text-lg font-semibold text-gray-900">Alerts</h2>
-        </div>
-
-              <div className="space-y-3">
-                {alerts.slice(0, 3).map((alert) => (
-                  <div key={alert.id} className={`p-3 rounded-lg border ${
-                    alert.severity === 'warning' ? 'border-yellow-200 bg-yellow-50' :
-                    alert.severity === 'critical' ? 'border-red-200 bg-red-50' :
-                    'border-blue-200 bg-blue-50'
-                  }`}>
-                    <div className="flex items-start justify-between mb-1">
-                      <h3 className="text-sm font-medium text-gray-900">{alert.title}</h3>
-                      <span className="text-xs text-gray-500">{alert.confidence}%</span>
-                    </div>
-                    <p className="text-xs text-gray-600 mb-2">{alert.description}</p>
-                    <button className="text-xs text-blue-600 hover:text-blue-700 font-medium">
-                      {alert.suggested_action} →
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            </ul>
           </div>
         </div>
-
-        {/* Quick Actions Bar */}
-        <div className="mt-8 bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Link href="/dashboard/data-sources" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors">
-              <Database className="w-5 h-5 text-blue-600" />
-              <span className="text-sm font-medium">Data Sources</span>
-            </Link>
-            
-            <button
-              onClick={() => setShowUpload(true)}
-              className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-green-300 hover:bg-green-50 transition-colors"
-            >
-              <Upload className="w-5 h-5 text-green-600" />
-              <span className="text-sm font-medium">Upload Data</span>
-            </button>
-            
-            <Link href="/dashboard/api-keys" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors">
-              <Sparkles className="w-5 h-5 text-purple-600" />
-              <span className="text-sm font-medium">API Keys</span>
-            </Link>
-            
-            <Link href="/dashboard/usage" className="flex items-center space-x-3 p-3 border border-gray-200 rounded-lg hover:border-orange-300 hover:bg-orange-50 transition-colors">
-              <BarChart3 className="w-5 h-5 text-orange-600" />
-              <span className="text-sm font-medium">Usage Stats</span>
-            </Link>
-          </div>
-        </div>
-          </div>
-
-      {/* Upload Modal */}
-      {showUpload && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold">Upload New Dataset</h2>
-              <button
-                onClick={() => setShowUpload(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            <FileUpload 
-              onUploadComplete={() => {
-                setShowUpload(false)
-                window.location.reload()
-              }}
-            />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   )
-} 
+}

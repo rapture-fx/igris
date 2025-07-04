@@ -20,7 +20,10 @@ import {
   Tags,
   Download,
   Activity,
-  AlertTriangle
+  AlertTriangle,
+  Network,
+  CreditCard,
+  HeartPulse
 } from 'lucide-react'
 
 const coreFeatures = [
@@ -31,12 +34,16 @@ const coreFeatures = [
   { name: 'Content Labeling', href: '/dashboard/labeling', icon: Tags, description: 'Pattern-based labeling' },
   { name: 'Export Ready', href: '/dashboard/export', icon: Download, description: 'AI framework outputs' },
   { name: 'Processing Jobs', href: '/dashboard/jobs', icon: Activity, description: 'Monitor data prep tasks' },
+  { name: 'Integrations', href: '/dashboard/integrations', icon: Network, description: 'Connect to services' },
 ]
 
 const management = [
   { name: 'Data Sources', href: '/dashboard/data-sources', icon: Database },
   { name: 'API Keys', href: '/dashboard/api-keys', icon: Key },
   { name: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
+  { name: 'Team', href: '/dashboard/team', icon: Users },
+  { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
+  { name: 'Security', href: '/dashboard/security', icon: Shield },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 

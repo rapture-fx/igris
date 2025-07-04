@@ -1,12 +1,9 @@
-/**
- * System Status Page - Backend Connectivity & Health Monitoring
- */
-'use client';
+'use client'
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { 
   Server, 
   Database, 
@@ -23,58 +20,58 @@ import {
   Globe,
   Lock,
   ArrowLeft
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from 'lucide-react'
+import { toast } from 'sonner'
 
 interface ServiceStatus {
-  name: string;
-  status: 'healthy' | 'warning' | 'error' | 'unknown';
-  response_time: number;
-  last_check: string;
-  error_message?: string;
-  details?: Record<string, any>;
+  name: string
+  status: 'healthy' | 'warning' | 'error' | 'unknown'
+  response_time: number
+  last_check: string
+  error_message?: string
+  details?: Record<string, any>
 }
 
 interface SystemHealth {
-  backend_api: ServiceStatus;
-  database: ServiceStatus;
-  authentication: ServiceStatus;
-  file_storage: ServiceStatus;
-  email_service: ServiceStatus;
-  redis_cache: ServiceStatus;
+  backend_api: ServiceStatus
+  database: ServiceStatus
+  authentication: ServiceStatus
+  file_storage: ServiceStatus
+  email_service: ServiceStatus
+  redis_cache: ServiceStatus
 }
 
 export default function SystemStatusPage() {
-  const { user, isAuthenticated, isLoading } = useAuth();
-  const router = useRouter();
-  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [connectionTest, setConnectionTest] = useState<string>('');
-  const [testResults, setTestResults] = useState<Record<string, any>>({});
+  const { user, isAuthenticated, isLoading } = useAuth()
+  const router = useRouter()
+  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [connectionTest, setConnectionTest] = useState<string>('')
+  const [testResults, setTestResults] = useState<Record<string, any>>({})
 
   // Check admin access
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || user?.role !== 'admin')) {
-      router.push('/dashboard');
-      toast.error('Admin access required');
+      router.push('/dashboard')
+      toast.error('Admin access required')
     }
-  }, [isAuthenticated, isLoading, user, router]);
+  }, [isAuthenticated, isLoading, user, router])
 
   // Load system status
   useEffect(() => {
     if (isAuthenticated && user?.role === 'admin') {
-      checkSystemHealth();
+      checkSystemHealth()
     }
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user])
 
   const checkSystemHealth = async () => {
     try {
-      setIsRefreshing(true);
+      setIsRefreshing(true)
       
       // Test backend API connectivity
-      const backendStatus = await testBackendAPI();
-      const authStatus = await testAuthentication();
-      const dbStatus = await testDatabase();
+      const backendStatus = await testBackendAPI()
+      const authStatus = await testAuthentication()
+      const dbStatus = await testDatabase()
       
       const mockHealth: SystemHealth = {
         backend_api: backendStatus,
@@ -102,32 +99,32 @@ export default function SystemStatusPage() {
           last_check: new Date().toISOString(),
           details: { memory_usage: '45%', hit_rate: '94%' }
         }
-      };
+      }
       
-      setSystemHealth(mockHealth);
+      setSystemHealth(mockHealth)
     } catch (error) {
-      console.error('Failed to check system health:', error);
-      toast.error('Failed to check system health');
+      console.error('Failed to check system health:', error)
+      toast.error('Failed to check system health')
     } finally {
-      setIsRefreshing(false);
+      setIsRefreshing(false)
     }
-  };
+  }
 
   const testBackendAPI = async (): Promise<ServiceStatus> => {
     try {
-      const startTime = Date.now();
-      const response = await fetch('http://localhost:8000/api/auth/status');
-      const endTime = Date.now();
+      const startTime = Date.now()
+      const response = await fetch('http://localhost:8000/api/auth/status')
+      const endTime = Date.now()
       
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json()
         return {
           name: 'Backend API',
           status: 'healthy',
           response_time: endTime - startTime,
           last_check: new Date().toISOString(),
           details: data
-        };
+        }
       } else {
         return {
           name: 'Backend API',
@@ -135,7 +132,7 @@ export default function SystemStatusPage() {
           response_time: endTime - startTime,
           last_check: new Date().toISOString(),
           error_message: `HTTP ${response.status}: ${response.statusText}`
-        };
+        }
       }
     } catch (error: any) {
       return {
@@ -144,15 +141,15 @@ export default function SystemStatusPage() {
         response_time: 0,
         last_check: new Date().toISOString(),
         error_message: error.message || 'Connection failed'
-      };
+      }
     }
-  };
+  }
 
   const testAuthentication = async (): Promise<ServiceStatus> => {
     try {
-      const startTime = Date.now();
-      const response = await fetch('http://localhost:8000/api/auth/status');
-      const endTime = Date.now();
+      const startTime = Date.now()
+      const response = await fetch('http://localhost:8000/api/auth/status')
+      const endTime = Date.now()
       
       if (response.ok) {
         return {
@@ -161,7 +158,7 @@ export default function SystemStatusPage() {
           response_time: endTime - startTime,
           last_check: new Date().toISOString(),
           details: { jwt_valid: true, session_active: true }
-        };
+        }
       } else {
         return {
           name: 'Authentication Service',
@@ -169,7 +166,7 @@ export default function SystemStatusPage() {
           response_time: endTime - startTime,
           last_check: new Date().toISOString(),
           error_message: 'Authentication service unavailable'
-        };
+        }
       }
     } catch (error: any) {
       return {
@@ -178,9 +175,9 @@ export default function SystemStatusPage() {
         response_time: 0,
         last_check: new Date().toISOString(),
         error_message: error.message || 'Connection failed'
-      };
+      }
     }
-  };
+  }
 
   const testDatabase = async (): Promise<ServiceStatus> => {
     try {
@@ -195,7 +192,7 @@ export default function SystemStatusPage() {
           query_performance: 'optimal',
           last_backup: '2024-06-13T02:00:00Z'
         }
-      };
+      }
     } catch (error: any) {
       return {
         name: 'Database',
@@ -203,81 +200,81 @@ export default function SystemStatusPage() {
         response_time: 0,
         last_check: new Date().toISOString(),
         error_message: error.message || 'Database connection failed'
-      };
+      }
     }
-  };
+  }
 
   const runConnectionTest = async () => {
     try {
-      setConnectionTest('running');
-      const results: Record<string, any> = {};
+      setConnectionTest('running')
+      const results: Record<string, any> = {}
       
       // Test various endpoints
       const endpoints = [
         { name: 'Health Check', url: 'http://localhost:8000/health' },
         { name: 'Auth Status', url: 'http://localhost:8000/api/auth/status' },
         { name: 'Sign In Endpoint', url: 'http://localhost:8000/api/auth/signin', method: 'POST' },
-      ];
+      ]
       
       for (const endpoint of endpoints) {
         try {
-          const startTime = Date.now();
+          const startTime = Date.now()
           const response = await fetch(endpoint.url, {
             method: endpoint.method || 'GET',
             headers: { 'Content-Type': 'application/json' }
-          });
-          const endTime = Date.now();
+          })
+          const endTime = Date.now()
           
           results[endpoint.name] = {
             status: response.status,
             statusText: response.statusText,
             responseTime: endTime - startTime,
             success: response.ok || response.status === 422 // 422 is expected for POST without data
-          };
+          }
         } catch (error: any) {
           results[endpoint.name] = {
             status: 'ERROR',
             statusText: error.message,
             responseTime: 0,
             success: false
-          };
+          }
         }
       }
       
-      setTestResults(results);
-      setConnectionTest('completed');
-      toast.success('Connection test completed');
+      setTestResults(results)
+      setConnectionTest('completed')
+      toast.success('Connection test completed')
     } catch (error) {
-      setConnectionTest('failed');
-      toast.error('Connection test failed');
+      setConnectionTest('failed')
+      toast.error('Connection test failed')
     }
-  };
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'healthy':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-green-500" />
       case 'warning':
-        return <AlertTriangle className="w-5 h-5 text-yellow-500" />;
+        return <AlertTriangle className="w-5 h-5 text-yellow-500" />
       case 'error':
-        return <XCircle className="w-5 h-5 text-red-500" />;
+        return <XCircle className="w-5 h-5 text-red-500" />
       default:
-        return <Clock className="w-5 h-5 text-gray-500" />;
+        return <Clock className="w-5 h-5 text-gray-500" />
     }
-  };
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'healthy':
-        return 'text-green-600 bg-green-100';
+        return 'text-green-600 bg-green-100'
       case 'warning':
-        return 'text-yellow-600 bg-yellow-100';
+        return 'text-yellow-600 bg-yellow-100'
       case 'error':
-        return 'text-red-600 bg-red-100';
+        return 'text-red-600 bg-red-100'
       default:
-        return 'text-gray-600 bg-gray-100';
+        return 'text-gray-600 bg-gray-100'
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -287,11 +284,11 @@ export default function SystemStatusPage() {
           <p className="text-gray-600">Loading system status...</p>
         </div>
       </div>
-    );
+    )
   }
 
   if (!isAuthenticated || user?.role !== 'admin') {
-    return null;
+    return null
   }
 
   return (
@@ -301,13 +298,7 @@ export default function SystemStatusPage() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link
-                href="/admin"
-                className="inline-flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Admin
-              </Link>
+              
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">System Status</h1>
                 <p className="text-sm text-gray-500">Backend Connectivity & Health Monitoring</p>
@@ -356,7 +347,7 @@ export default function SystemStatusPage() {
                     <span className="text-gray-600">Response Time:</span>
                     <span className="font-medium">{service.response_time}ms</span>
                   </div>
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-.between text-sm">
                     <span className="text-gray-600">Last Check:</span>
                     <span className="font-medium">{new Date(service.last_check).toLocaleTimeString()}</span>
                   </div>
@@ -473,5 +464,7 @@ export default function SystemStatusPage() {
         </div>
       </div>
     </div>
-  );
-} 
+  )
+}
+
+</rewritten_file>

@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n frontend,backend -c magenta,cyan \"pnpm --filter pollarbase-web dev\" \"cd packages/backend && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\""
+    "dev": "concurrently -n frontend,backend,admin -c magenta,cyan,green \"pnpm --filter @pollarbase/web dev\" \"cd packages/backend && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\" \"pnpm --filter @pollarbase/admin dev -p 3002\""
   },
   "devDependencies": {
     "concurrently": "^8.2.0"

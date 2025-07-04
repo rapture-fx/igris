@@ -11,19 +11,19 @@ RUN npm install -g pnpm
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # 5. Copy app-specific dependency files
-COPY packages/frontend/package.json ./packages/frontend/
+COPY packages/admin/package.json ./packages/admin/
 
 # 6. Install all dependencies for the workspace
 RUN pnpm install
 
 # 7. Copy source code for the app
-COPY packages/frontend/ ./packages/frontend/
+COPY packages/admin/ ./packages/admin/
 
 # 8. Change to the app directory
-WORKDIR /app/packages/frontend
+WORKDIR /app/packages/admin
 
 # 9. Expose port
-EXPOSE 3000
+EXPOSE 3002
 
 # 10. Start dev server
-# The actual command is specified in docker-compose.yml
+# The actual command is specified in docker-compose.yml 

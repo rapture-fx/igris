@@ -36,6 +36,7 @@ from app.auth.unified_interface import (
     SecurityLevel, AuthenticationMethod, AuthError, InvalidCredentialsError,
     UserNotFoundError, UserExistsError, TokenExpiredError
 )
+from app.core.security_utils import hash_password, verify_password
 
 logger = logging.getLogger(__name__)
 
@@ -50,20 +51,22 @@ class UnifiedAuthService(AuthenticationInterface):
     def __init__(self):
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.redis_client = None
-        self._initialize_redis()
+        if settings.USE_REDIS_CACHE:
+            try:
+                self.redis_client = redis.from_url(
+                    f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
+                    decode_responses=True
+                )
+                # This is a synchronous check, but the library handles it.
+                # For a fully async setup, this would need to be handled differently.
+                self.redis_client.ping()
+                logger.info("Redis connection established for session management")
+            except Exception as e:
+                logger.warning(f"Redis connection failed: {e}. Session management will be limited.")
+                self.redis_client = None
     
-    async def _initialize_redis(self):
-        """Initialize Redis connection for session management"""
-        try:
-            self.redis_client = redis.from_url(
-                f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
-                decode_responses=True
-            )
-            await self.redis_client.ping()
-            logger.info("Redis connection established for session management")
-        except Exception as e:
-            logger.warning(f"Redis connection failed: {e}. Session management will be limited.")
-            self.redis_client = None
+    async def initialize(self):
+        pass
     
     # ==================== CORE AUTHENTICATION METHODS ====================
     
@@ -347,6 +350,8 @@ class UnifiedAuthService(AuthenticationInterface):
         token: str
     ) -> Optional[User]:
         """Get current user from token"""
+        if not token:
+            return None
         try:
             result = await self.verify_token(db, token)
             return result.user if result.success else None

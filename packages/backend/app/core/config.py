@@ -13,6 +13,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "HS256"
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
+    # Cache
+    USE_REDIS_CACHE: bool = False
+    
     # API
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "Pollarbase"

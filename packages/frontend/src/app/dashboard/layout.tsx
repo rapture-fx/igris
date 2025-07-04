@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { GuidedTour } from '@/components/onboarding/guided-tour'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/hooks/useAuth'
 // import { Toaster } from 'sonner'
 
 export default function DashboardLayout({
@@ -11,26 +12,33 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
+  const { user, isLoading } = useAuth()
   const [showTour, setShowTour] = useState(false)
-  const [userId, setUserId] = useState<string>('')
 
   useEffect(() => {
-    // Check if user is new and hasn't completed onboarding
-    const token = localStorage.getItem('token')
-    if (token) {
-      // Get user info from token or make API call
-      const userId = 'current-user' // This would come from auth context
-      setUserId(userId)
-      
-      const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${userId}`)
+    if (user?.id) {
+      const hasCompletedOnboarding = localStorage.getItem(`onboarding_completed_${user.id}`)
       if (!hasCompletedOnboarding) {
         setShowTour(true)
       }
     }
-  }, [])
+  }, [user])
 
   const handleTourComplete = () => {
     console.log('Tour completed!')
+    if (user?.id) {
+      localStorage.setItem(`onboarding_completed_${user.id}`, 'true')
+      setShowTour(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        {/* You can replace this with a proper skeleton loader */}
+        <p>Loading...</p>
+      </div>
+    )
   }
 
   return (
@@ -49,7 +57,7 @@ export default function DashboardLayout({
         isVisible={showTour}
         onClose={() => setShowTour(false)}
         onComplete={handleTourComplete}
-        userId={userId}
+        userId={user?.id || ''}
       />
       
       {/* <Toaster position="top-right" richColors /> */}
