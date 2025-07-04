@@ -32,6 +32,7 @@ import os
 from fastapi import HTTPException, status
 from pydantic import BaseModel, EmailStr, validator
 import asyncpg
+from sqlalchemy.ext.asyncio import create_async_engine
 
 logger = logging.getLogger(__name__)
 
@@ -152,12 +153,13 @@ class APIKeyResponse(BaseModel):
 class DatabaseManager:
     def __init__(self):
         self.pool: Optional[asyncpg.Pool] = None
+        self.engine: Optional[create_async_engine] = None
         
     async def connect(self):
         """Initialize database connection pool"""
         database_url = os.getenv(
             "DATABASE_URL",
-            "postgresql://pollarbase:secure_password_123@localhost:5432/pollarbase"
+            "postgresql://schlep-engine:secure_password_123@localhost:5432/schlep_engine"
         )
         
         try:
@@ -166,6 +168,11 @@ class DatabaseManager:
                 min_size=5,
                 max_size=20,
                 command_timeout=60
+            )
+            self.engine = create_async_engine(
+                database_url,
+                pool_recycle=3600,
+                pool_pre_ping=True
             )
             logger.info("Database connection pool created successfully")
         except Exception as e:
@@ -409,7 +416,7 @@ class UserManager:
             "subscription_tier": user['subscription_tier'],
             "exp": datetime.utcnow() + timedelta(hours=AuthConfig.JWT_EXPIRATION_HOURS),
             "iat": datetime.utcnow(),
-            "iss": "pollarbase"
+            "iss": "schlep-engine"
         }
         
         return jwt.encode(payload, AuthConfig.JWT_SECRET, algorithm=AuthConfig.JWT_ALGORITHM)

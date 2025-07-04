@@ -1,6 +1,6 @@
 """
-ENHANCED RESPONSE CACHE SYSTEM - POLLARBASE
-===========================================
+ENHANCED RESPONSE CACHE SYSTEM - SCHLEP-ENGINE
+==============================================
 
 Advanced caching system with intelligent cache invalidation, performance optimization,
 and multiple caching strategies for different types of API responses.

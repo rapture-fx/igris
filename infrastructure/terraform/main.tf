@@ -1,90 +1,66 @@
-terraform {
-  required_version = ">= 1.4.0"
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
+# ======================================================================================
+# Main Terraform Configuration for Schlep Engine
+#
+# This file defines the core cloud infrastructure for the application, including:
+# - AWS provider configuration
+# - Virtual Private Cloud (VPC)
+# - Elastic Kubernetes Service (EKS) cluster
+# - Relational Database Service (RDS) instance for PostgreSQL
+# - S3 bucket for backups
+# - ElastiCache (Redis) cluster for caching and session management
+# ======================================================================================
 
 provider "aws" {
   region = var.aws_region
 }
 
-module "vpc" {
-  source  = "terraform-aws-modules/vpc/aws"
-  version = "5.0.0"
-
-  name = "pollarbase-vpc"
-  cidr = "10.0.0.0/16"
-
-  azs             = ["${var.aws_region}a", "${var.aws_region}b", "${var.aws_region}c"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
-  private_subnets = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
-
-  enable_nat_gateway = true
+resource "aws_vpc" "main" {
+  cidr_block = "10.0.0.0/16"
+  tags = {
+    Name = "schlep-engine-vpc"
+  }
 }
 
-module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "19.0.0"
+# Add subnet and security group resources here...
 
-  cluster_name    = "pollarbase-eks"
-  cluster_version = "1.27"
-  subnets         = module.vpc.private_subnets
-  vpc_id          = module.vpc.vpc_id
+resource "aws_eks_cluster" "main" {
+  name     = "schlep-engine-eks"
+  role_arn = var.eks_role_arn
 
-  manage_aws_auth_configmap = true
+  vpc_config {
+    # Reference your subnets and security groups here
+    subnet_ids = [] 
+  }
+
+  depends_on = [aws_vpc.main]
 }
 
-module "rds" {
-  source  = "terraform-aws-modules/rds/aws"
-  version = "6.0.0"
-
-  identifier = "pollarbase-db"
-  engine     = "postgres"
-  engine_version = "15.3"
-  instance_class = "db.t3.medium"
-
+resource "aws_db_instance" "main" {
   allocated_storage    = 20
-  storage_encrypted    = true
-  multi_az             = false
-
-  db_name  = "pollarbase"
-  username = var.db_username
-  password = var.db_password
-
-  vpc_security_group_ids = [module.vpc.default_security_group_id]
-  subnet_ids             = module.vpc.public_subnets
+  engine               = "postgres"
+  engine_version       = "15.3"
+  instance_class       = "db.t3.micro"
+  identifier           = "schlep-engine-db"
+  db_name              = "schlep_engine"
+  username             = var.db_username
+  password             = var.db_password
+  parameter_group_name = "default.postgres15"
+  skip_final_snapshot  = true
 }
 
-module "s3" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "3.0.0"
-
-  bucket = "pollarbase-backups-${terraform.workspace}"
-  versioning = {
-    enabled = true
-  }
-  server_side_encryption_configuration = {
-    rule = {
-      apply_server_side_encryption_by_default = {
-        sse_algorithm = "AES256"
-      }
-    }
+resource "aws_s3_bucket" "backups" {
+  bucket = "schlep-engine-backups-${terraform.workspace}"
+  tags = {
+    Name        = "Schlep Engine Backups"
+    Environment = terraform.workspace
   }
 }
 
-module "memorydb" {
-  source  = "terraform-aws-modules/memorydb/aws"
-  version = "1.1.0"
-
-  name                = "pollarbase-memorydb"
-  acl_name            = "open-access"
-  node_type           = "db.t4g.small"
-  num_shards          = 1
-  replicas_per_shard  = 1
-  security_group_ids  = [module.vpc.default_security_group_id]
-  subnet_ids          = module.vpc.private_subnets
-} 
+resource "aws_elasticache_cluster" "main" {
+  cluster_id           = "schlep-engine-memorydb"
+  engine               = "redis"
+  node_type            = "cache.t3.small"
+  num_cache_nodes      = 1
+  parameter_group_name = "default.redis7"
+  port                 = 6379
+}

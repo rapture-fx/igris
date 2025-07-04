@@ -1,30 +1,30 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pollarbase-frontend
+  name: schlep-engine-frontend
   labels:
-    app: pollarbase-frontend
+    app: schlep-engine-frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: pollarbase-frontend
+      app: schlep-engine-frontend
   template:
     metadata:
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
       labels:
-        app: pollarbase-frontend
+        app: schlep-engine-frontend
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/your-org/pollarbase-frontend:latest # Replace in CI/CD when pushing
+          image: ghcr.io/your-org/schlep-engine-frontend:latest # Replace in CI/CD when pushing
           ports:
             - containerPort: 3000
           env:
             - name: NEXT_PUBLIC_API_URL
-              value: "https://api.pollarbase.com" # adjust per environment
+              value: "https://api.schlep-engine.com" # adjust per environment
           readinessProbe:
             httpGet:
               path: /
@@ -37,14 +37,16 @@ spec:
               port: 3000
             initialDelaySeconds: 15
             periodSeconds: 20
+          resources:
+            requests:
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: pollarbase-frontend
+  name: schlep-engine-frontend
 spec:
   selector:
-    app: pollarbase-frontend
+    app: schlep-engine-frontend
   ports:
     - port: 80
       targetPort: 3000

@@ -9,6 +9,23 @@ interface WebhookConfigurationProps {
 export function WebhookConfiguration({ section }: WebhookConfigurationProps) {
   const { title, description } = section;
 
+  const codeString = \`{
+  "event": "data.investigation.completed",
+  "data": {
+    "investigation_id": "inv_12345",
+    "status": "completed",
+    "quality_score": 95.7
+  }
+}\`;
+
+  const curlString = \`curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
+-H "Authorization: Bearer YOUR_API_KEY" \\
+-H "Content-Type: application/json" \\
+-d '{
+  "url": "https://your-app.com/webhooks/schlep-engine",
+  "events": ["data.investigation.completed", "data.investigation.failed"]
+}'\`;
+
   return (
     <div className="space-y-6">
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
@@ -19,14 +36,7 @@ export function WebhookConfiguration({ section }: WebhookConfigurationProps) {
         <div className="text-sm">
           <p className="text-gray-600 mb-3">{description}</p>
           <pre className="bg-white p-3 rounded border overflow-x-auto text-xs">
-{`curl -X POST "https://api.pollarbase.com/v1/webhooks" \\
-  -H "Authorization: Bearer sk-abc123..." \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "url": "https://your-app.com/webhooks/pollarbase",
-    "events": ["dataset.analyzed", "job.completed"],
-    "secret": "your_webhook_secret"
-  }'`}
+{curlString}
           </pre>
         </div>
       </div>

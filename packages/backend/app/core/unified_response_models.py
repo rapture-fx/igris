@@ -1,6 +1,6 @@
 """
-UNIFIED RESPONSE MODELS - POLLARBASE API
-=======================================
+UNIFIED RESPONSE MODELS - SCHLEP-ENGINE API
+==========================================
 
 This module provides standardized response models for all API endpoints,
 ensuring consistent response formats, error handling, and documentation.

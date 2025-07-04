@@ -6,8 +6,8 @@ export async function GET() {
     const healthStatus = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
-      service: 'pollarbase-frontend',
-      version: process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0',
+      service: 'schlep-engine-frontend',
+      version: process.env.npm_package_version || 'unknown',
       environment: process.env.NODE_ENV || 'development',
       uptime: process.uptime(),
       memory: {

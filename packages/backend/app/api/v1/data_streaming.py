@@ -1,6 +1,6 @@
 """
-STREAMING DATA PROCESSING API - POLLARBASE
-==========================================
+STREAMING DATA PROCESSING API - SCHLEP-ENGINE
+=============================================
 
 Advanced streaming data processing system for handling large datasets efficiently.
 Supports real-time processing, progressive results, and memory-optimized operations.

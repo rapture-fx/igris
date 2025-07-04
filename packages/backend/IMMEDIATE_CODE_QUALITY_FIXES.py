@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-IMMEDIATE CODE QUALITY FIXES FOR POLLARBASE
-==========================================
+IMMEDIATE CODE QUALITY FIXES FOR Schlep-engine
+===============================================
 
 This script demonstrates the specific fixes needed to improve code quality.
 These are the exact changes that should be implemented.
@@ -255,7 +255,7 @@ class ProcessingConfig(BaseSettings):
     pattern_confidence_threshold: float = Field(default=0.7, description="Pattern recognition confidence")
     
     class Config:
-        env_prefix = "POLLARBASE_"
+        env_prefix = "SCHLEP_ENGINE_"
         env_file = ".env"
 
 # Global config instance
@@ -457,7 +457,7 @@ VALIDATION:
 """
 
 if __name__ == "__main__":
-    print("🔧 POLLARBASE CODE QUALITY FIXES")
+    print("🔧 SCHLEP_ENGINE CODE QUALITY FIXES")
     print("================================")
     print("This file contains the exact fixes needed to improve code quality.")
     print("Implement these changes to achieve maintainable, production-ready code.")

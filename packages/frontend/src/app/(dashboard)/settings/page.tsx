@@ -66,9 +66,9 @@ export default function SettingsPage() {
                   <input type="text" defaultValue="User" className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Email</label>
-                <input type="email" defaultValue="admin@pollarbase.ai" className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
+              <div className="mt-4">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Admin Email</label>
+                <input type="email" defaultValue="admin@schlep-engine.com" className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700">Role</label>

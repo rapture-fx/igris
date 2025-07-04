@@ -1,6 +1,6 @@
 """
-ADVANCED INTELLIGENT RATE LIMITING SYSTEM - POLLARBASE
-=====================================================
+ADVANCED INTELLIGENT RATE LIMITING SYSTEM - SCHLEP-ENGINE
+=========================================================
 
 Enhanced rate limiting with adaptive algorithms, user tier awareness,
 and intelligent throttling based on system load and user behavior.

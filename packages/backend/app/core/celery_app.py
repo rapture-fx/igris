@@ -15,7 +15,7 @@ broker_url = getattr(settings, "CELERY_BROKER_URL", "redis://localhost:6379/0")
 backend_url = getattr(settings, "CELERY_RESULT_BACKEND", "redis://localhost:6379/1")
 
 celery_app = Celery(
-    "pollarbase_worker",
+    "schlep_engine_worker",
     broker=broker_url,
     backend=backend_url,
     include=["app.tasks.data_processing_tasks", "app.tasks.ai_processing_tasks", "app.tasks.monitoring_tasks"],
