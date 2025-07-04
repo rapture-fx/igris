@@ -18,16 +18,19 @@ export function GovernanceHero({ section }: Pick<SectionComponentProps, 'section
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {section.features?.map((feature, index) => (
-          <div key={index} className="bg-white rounded-lg border border-blue-200 p-4">
-            <h3 className="font-bold text-gray-900 mb-2 flex items-center">
-              <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-              {feature.title}
-            </h3>
-            <p className="text-sm text-gray-600">{feature.description}</p>
-          </div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {section.features?.map((feature, index) => {
+          const icon = getIcon(feature.icon);
+          return (
+            <div key={index} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300">
+              <h3 className="font-bold text-gray-900 mb-2 flex items-center">
+                {icon && React.cloneElement(icon, { className: "w-4 h-4 text-blue-600 mr-2" })}
+                {feature.name}
+              </h3>
+              <p className="text-sm text-gray-600">{feature.description}</p>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

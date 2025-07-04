@@ -18,7 +18,7 @@ interface APIDetailsGridProps {
 }
 
 export function APIDetailsGrid({ section }: APIDetailsGridProps) {
-  const { details } = section;
+  const details = (section as any).details || [];
 
   const getIcon = (iconName: string) => {
     const iconProps = { className: "w-5 h-5 text-gray-600" };

@@ -99,11 +99,6 @@ export { SDKFeatures } from './SDKFeatures'
 export { WebhookEvents } from './WebhookEvents'
 export { WebhookConfiguration } from './WebhookConfiguration'
 
-
-// Webhook components
-export { WebhookEvents } from "./WebhookEvents"
-export { WebhookConfiguration } from "./WebhookConfiguration"
-
 // REST API components
 export { APIBaseInfo } from "./APIBaseInfo"
 export { APIDetailsGrid } from "./APIDetailsGrid"

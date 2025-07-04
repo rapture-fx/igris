@@ -12,8 +12,11 @@ import uuid
 from contextlib import asynccontextmanager
 
 from app.core.api_config import settings
+from app.core.config import settings as core_settings
 from app.core.error_handler import unified_error_handler
-# # REMOVED: broken import - analyze_router
+from app.middleware.rate_limiter import create_rate_limiter
+from app.middleware.exception_middleware import GlobalExceptionMiddleware
+# Analyze router temporarily disabled - TODO: Fix dependencies
 from app.api.v1.public.clean import router as clean_router
 from app.api.v1.public.validate import router as validate_router
 from app.api.v1.public.transform import router as transform_router
@@ -1014,13 +1017,36 @@ app.add_middleware(
     allowed_hosts=["localhost", "127.0.0.1", "*.Schlep-engine.ai"]
 )
 
-# CORS middleware
+# Global exception middleware (should be added early in middleware chain)
+app.add_middleware(
+    GlobalExceptionMiddleware,
+    debug=core_settings.ENVIRONMENT == "development"
+)
+
+# Rate limiting middleware
+rate_limiter = create_rate_limiter(core_settings.ENVIRONMENT)
+app.add_middleware(type(rate_limiter), 
+                   default_limit=rate_limiter.default_limit,
+                   default_window=rate_limiter.default_window)
+
+# CORS middleware - Secure configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all origins for demo
-    allow_credentials=False,  # Set to False when allowing all origins
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=core_settings.secure_cors_origins,
+    allow_credentials=core_settings.cors_allow_credentials,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=[
+        "Accept",
+        "Accept-Language",
+        "Content-Language",
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "X-Request-ID",
+        "X-API-Key"
+    ],
+    expose_headers=["X-Request-ID", "X-Process-Time"],
+    max_age=86400,  # 24 hours
 )
 
 # Request ID middleware
@@ -1115,59 +1141,57 @@ async def root():
         "demo": "/api/v1/demo/features"
     }
 
-# Include routers
+# Include routers - Core API endpoints
 app.include_router(demo_router, prefix="/api/v1", tags=["demo"])
-# # REMOVED: broken router - analyze_router
+# TODO: Re-enable analyze_router after fixing dependencies
 app.include_router(clean_router, prefix="/api/v1", tags=["public"])
 app.include_router(validate_router, prefix="/api/v1", tags=["public"])
 app.include_router(transform_router, prefix="/api/v1", tags=["public"])
 app.include_router(jobs_router, prefix="/api/v1", tags=["public"])
 app.include_router(upload_router, prefix="/api/v1/upload", tags=["upload"])
 app.include_router(dashboard_stats_router, prefix="/api/v1", tags=["dashboard-stats"])
-# Unified authentication system (consolidated from 3 systems into 1)
-app.include_router(auth_router, prefix="/api/v1")
 
-# Core data processing pipeline
+# Authentication system (unified)
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
+
+# Data processing pipeline
 app.include_router(data_pipeline_router, prefix="/api/v1")
-
-# Advanced streaming data processing
 app.include_router(streaming_router, prefix="/api/v1", tags=["streaming"])
+app.include_router(data_processing_router, prefix="/api/v1/processing", tags=["data-processing"])
+app.include_router(prepare_router, prefix="/api/v1", tags=["core-preparation"])
+app.include_router(sample_data_router, prefix="/api/v1", tags=["sample-data"])
+
+# Business & Admin features
 app.include_router(billing_router, prefix="/api/v1/billing", tags=["billing"])
 app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(community_router, prefix="/api/v1/community", tags=["community"])
 app.include_router(marketplace_router, prefix="/api/v1/marketplace", tags=["marketplace"])
 app.include_router(integrations_router, prefix="/api/v1/integrations", tags=["integrations"])
 app.include_router(partner_router, prefix="/api/v1/partner", tags=["partner"])
-app.include_router(data_processing_router, prefix="/api/v1/processing", tags=["data-processing"])
 
-# Sample data endpoints for onboarding and demonstrations
-app.include_router(sample_data_router, prefix="/api/v1", tags=["sample-data"])
-
-# CORE PRODUCT ENDPOINT - The main value proposition
-app.include_router(prepare_router, prefix="/api/v1", tags=["core-preparation"])
-
-# AI Framework Integration and Advanced Auto-Labeling (Enterprise data preparation features)
+# Advanced AI & ML features
 try:
     from app.api.v1.ai_framework_endpoints import router as ai_framework_router
     app.include_router(ai_framework_router, prefix="/api/v1/ai-frameworks", tags=["ai-frameworks"])
 except ImportError as e:
     logger.warning(f"AI Framework endpoints not available: {e}")
 
-# Phase 3: Advanced Features - Enterprise ML and Data Integration
 logger.info("🧠 Loading Advanced ML endpoints...")
 app.include_router(advanced_ml_router, tags=["Advanced ML"])
 
 logger.info("🏢 Loading Enterprise features...")
 app.include_router(enterprise_router, tags=["Enterprise"])
 
-# Include API routers
-app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
-app.include_router(data_processing.router, prefix="/api/v1/data", tags=["data-processing"])
-app.include_router(advanced_ml.router, prefix="/api/v1/ml", tags=["machine-learning"])
-app.include_router(advanced_ai.router, prefix="/api/v1/advanced-ai", tags=["advanced-ai"])  # New AI endpoints
-app.include_router(ai_framework_endpoints.router, prefix="/api/v1/ai", tags=["ai-framework"])
-app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
-app.include_router(monitoring.router, prefix="/api/v1/admin/monitoring", tags=["monitoring"])
+# Additional API routers (advanced features)
+try:
+    app.include_router(data_processing.router, prefix="/api/v1/data", tags=["data-processing"])
+    app.include_router(advanced_ml.router, prefix="/api/v1/ml", tags=["machine-learning"])
+    app.include_router(advanced_ai.router, prefix="/api/v1/advanced-ai", tags=["advanced-ai"])
+    app.include_router(ai_framework_endpoints.router, prefix="/api/v1/ai", tags=["ai-framework"])
+    app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
+    app.include_router(monitoring.router, prefix="/api/v1/admin/monitoring", tags=["monitoring"])
+except Exception as e:
+    logger.warning(f"Some advanced routers not available: {e}")
 
 if __name__ == "__main__":
     import uvicorn

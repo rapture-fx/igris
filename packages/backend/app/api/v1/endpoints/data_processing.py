@@ -9,6 +9,7 @@ from app.crud import crud_data_processing
 from app.schemas import data_processing as schemas_dp # Aliased
 from app.database.models import User # Using the SQLAlchemy User model
 from app.tasks.data_processing_tasks import schema_detection_task # Import the Celery task
+from app.core.error_decorators import handle_database_errors, handle_file_processing_errors
 
 # Placeholder for current_user dependency - replace with actual auth
 async def get_current_active_user() -> User:
@@ -25,6 +26,7 @@ router = APIRouter()
 # --- DataInvestigation Endpoints ---
 
 @router.post("/investigations/", response_model=schemas_dp.DataInvestigation, status_code=status.HTTP_201_CREATED)
+@handle_database_errors
 async def create_data_investigation(
     *, # Ensures all following parameters are keyword-only
     db: AsyncSession = Depends(get_db),
@@ -118,6 +120,7 @@ async def delete_data_investigation(
 # --- ProcessingJob Endpoints ---
 
 @router.post("/jobs/", response_model=schemas_dp.ProcessingJob, status_code=status.HTTP_201_CREATED)
+@handle_file_processing_errors
 async def create_processing_job(
     *, # Keyword-only args
     db: AsyncSession = Depends(get_db),

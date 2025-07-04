@@ -6,6 +6,9 @@ Creates tables and default users for Schlep-engine platform
 
 import asyncio
 import sys
+import os
+import secrets
+import string
 from pathlib import Path
 
 # Add the backend directory to Python path
@@ -19,6 +22,20 @@ from app.auth.unified_service import unified_auth_service as auth_service
 from app.core.config import settings
 import uuid
 from datetime import datetime
+
+def generate_secure_password(length: int = 16) -> str:
+    """Generate a secure random password"""
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
+    password = ''.join(secrets.choice(alphabet) for _ in range(length))
+    return password
+
+def get_password_from_env(env_var: str, default_length: int = 16) -> str:
+    """Get password from environment variable or generate secure one"""
+    password = os.getenv(env_var)
+    if not password:
+        password = generate_secure_password(default_length)
+        print(f"⚠️  Generated secure password for {env_var}. Set {env_var} environment variable to use custom password.")
+    return password
 
 async def create_tables():
     """Create all database tables"""
@@ -38,6 +55,11 @@ async def create_tables():
 async def create_default_users():
     """Create default users for testing"""
     print("Creating default users...")
+    
+    # Get passwords from environment or generate secure ones
+    admin_password = get_password_from_env("ADMIN_PASSWORD")
+    demo_password = get_password_from_env("DEMO_PASSWORD")
+    analyst_password = get_password_from_env("ANALYST_PASSWORD")
     
     engine = create_async_engine(settings.DATABASE_URL, echo=False)
     async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
@@ -63,7 +85,7 @@ async def create_default_users():
                 db=session,
                 email="admin@Schlep-engine.com",
                 username="admin",
-                password="admin123",
+                password=admin_password,
                 first_name="Admin",
                 last_name="User"
             )
@@ -76,7 +98,7 @@ async def create_default_users():
                 db=session,
                 email="demo@Schlep-engine.com", 
                 username="demo",
-                password="demo123",
+                password=demo_password,
                 first_name="Demo",
                 last_name="User"
             )
@@ -88,7 +110,7 @@ async def create_default_users():
                 db=session,
                 email="analyst@Schlep-engine.com",
                 username="analyst", 
-                password="analyst123",
+                password=analyst_password,
                 first_name="Data",
                 last_name="Analyst"
             )
@@ -96,13 +118,14 @@ async def create_default_users():
             analyst_user.organization_id = org.id
             await session.commit()
             
-            print(" Default users created:")
-            print(f"   Admin: admin@Schlep-engine.com / admin123")
-            print(f"   Demo:  demo@Schlep-engine.com / demo123")
-            print(f"   Analyst: analyst@Schlep-engine.com / analyst123")
+            print("✅ Default users created:")
+            print(f"   Admin: admin@Schlep-engine.com / {admin_password}")
+            print(f"   Demo:  demo@Schlep-engine.com / {demo_password}")
+            print(f"   Analyst: analyst@Schlep-engine.com / {analyst_password}")
+            print("⚠️  Store these passwords securely. Set environment variables for production.")
             
         except Exception as e:
-            print(f" Error creating users: {e}")
+            print(f"❌ Error creating users: {e}")
             await session.rollback()
         finally:
             await session.close()

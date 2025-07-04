@@ -1,347 +1,302 @@
 """
-Unified Authentication API
-=========================
-
-This is the single, consolidated authentication API for Schlep-engine.
-It replaces all fragmented authentication endpoints with a clean, unified interface.
-
-Features:
-- Single authentication endpoint with intelligent routing
-- Consistent request/response models
-- Enhanced security with rate limiting
-- Comprehensive error handling
-- Audit logging
-- Backward compatibility
+Unified Authentication API Router
+Consolidates all authentication endpoints into a single, clean API
 """
 
-from typing import Optional, Dict, Any
-from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Dict, Any, List
+import logging
 
-from app.database.connection import get_db
-from app.auth.unified_service import unified_auth_service
-from app.auth.unified_interface import (
-    LoginRequest, RegisterRequest, TokenResponse, UserResponse,
-    AuthCredentials, UserData, AuthenticationMethod, AuthError
+from app.auth.unified_auth_system import (
+    UnifiedAuthService,
+    UserLoginRequest,
+    UserRegisterRequest,
+    TokenResponse,
+    AuthResult,
+    AuthStatus,
+    get_current_user,
+    get_current_active_user,
+    get_admin_user,
+    unified_auth_service
 )
-from app.auth.dependencies import get_current_user, get_client_info
-from app.core.rate_limiting import rate_limit
+from app.database.connection import get_async_session
+from app.core.error_decorators import handle_auth_errors, handle_database_errors
 
-router = APIRouter(prefix="/auth", tags=["Authentication"])
-
-
-def user_to_response(user) -> Dict[str, Any]:
-    """Convert User model to response dictionary"""
-    return {
-        "id": str(user.id),
-        "email": user.email,
-        "username": user.username,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "role": user.role.value,
-        "is_active": user.is_active,
-        "is_verified": user.is_verified,
-        "created_at": user.created_at.isoformat() if user.created_at else None,
-        "last_login": user.last_login.isoformat() if user.last_login else None
-    }
-
+logger = logging.getLogger(__name__)
+router = APIRouter()
+security = HTTPBearer()
 
 @router.post("/login", response_model=TokenResponse)
-@rate_limit
+@handle_auth_errors
 async def login(
+    login_data: UserLoginRequest,
     request: Request,
-    login_data: LoginRequest,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_session)
 ):
     """
     User login endpoint
     
-    Authenticates user with email/username and password.
-    Returns access token and user information.
+    Returns access token and refresh token on successful authentication
     """
     try:
-        client_info = get_client_info(request)
-        
-        # Create authentication credentials
-        credentials = AuthCredentials(
-            identifier=login_data.identifier,
-            password=login_data.password,
-            method=AuthenticationMethod.PASSWORD
-        )
-        
-        # Authenticate user
-        auth_result = await unified_auth_service.authenticate(
-            db=db,
-            credentials=credentials,
-            ip_address=client_info["ip_address"],
-            user_agent=client_info["user_agent"]
-        )
+        # Attempt login
+        auth_result = await unified_auth_service.login_user(db, login_data)
         
         if not auth_result.success:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=auth_result.error or "Authentication failed",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            # Log failed attempt
+            logger.warning(f"Login failed for {login_data.email}: {auth_result.error_message}")
+            
+            # Return appropriate error
+            if auth_result.status == AuthStatus.ACCOUNT_LOCKED:
+                raise HTTPException(status_code=423, detail=auth_result.error_message)
+            elif auth_result.status == AuthStatus.ACCOUNT_DISABLED:
+                raise HTTPException(status_code=403, detail=auth_result.error_message)
+            else:
+                raise HTTPException(status_code=401, detail=auth_result.error_message)
         
-        # Handle MFA requirement (if implemented)
-        if auth_result.mfa_required:
-            return {
-                "status": "mfa_required",
-                "mfa_challenge_token": auth_result.mfa_challenge_token,
-                "message": "Multi-factor authentication required"
-            }
+        # Success - log and return tokens
+        logger.info(f"Successful login for user {auth_result.user.email}")
         
-        # Return successful authentication response
         return TokenResponse(
             access_token=auth_result.access_token,
-            token_type="bearer",
-            expires_in=auth_result.expires_in,
             refresh_token=auth_result.refresh_token,
-            user=user_to_response(auth_result.user)
+            token_type="bearer",
+            expires_in=auth_result.metadata.get("expires_in", 1800),
+            user={
+                "id": str(auth_result.user.id),
+                "email": auth_result.user.email,
+                "username": auth_result.user.username,
+                "first_name": auth_result.user.first_name,
+                "last_name": auth_result.user.last_name,
+                "role": auth_result.user.role.value if auth_result.user.role else "user",
+                "is_verified": auth_result.user.is_verified,
+                "organization_id": str(auth_result.user.organization_id) if auth_result.user.organization_id else None
+            }
         )
         
-    except AuthError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=e.message
-        )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Authentication service error"
-        )
+        logger.error(f"Login error for {login_data.email}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error during login")
 
-
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-@rate_limit
+@router.post("/register", response_model=TokenResponse)
+@handle_auth_errors
 async def register(
+    register_data: UserRegisterRequest,
     request: Request,
-    register_data: RegisterRequest,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_async_session)
 ):
     """
     User registration endpoint
     
-    Creates a new user account and immediately logs them in.
-    Returns access token and user information.
+    Creates new user account and returns access tokens
     """
     try:
-        client_info = get_client_info(request)
-        
-        # Create user data
-        user_data = UserData(
-            email=register_data.email,
-            username=register_data.username,
-            password=register_data.password,
-            first_name=register_data.first_name,
-            last_name=register_data.last_name
-        )
-        
         # Create user
-        user = await unified_auth_service.create_user(db=db, user_data=user_data)
+        user = await unified_auth_service.create_user(db, register_data)
         
-        # Authenticate the new user immediately
-        credentials = AuthCredentials(
-            identifier=register_data.email,
-            password=register_data.password,
-            method=AuthenticationMethod.PASSWORD
+        # Auto-login after registration
+        login_data = UserLoginRequest(
+            email=register_data.email,
+            password=register_data.password
         )
         
-        auth_result = await unified_auth_service.authenticate(
-            db=db,
-            credentials=credentials,
-            ip_address=client_info["ip_address"],
-            user_agent=client_info["user_agent"]
-        )
+        auth_result = await unified_auth_service.login_user(db, login_data)
         
         if not auth_result.success:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to authenticate new user"
-            )
+            # This shouldn't happen, but handle gracefully
+            logger.error(f"Auto-login failed after registration for {register_data.email}")
+            raise HTTPException(status_code=500, detail="Registration successful but auto-login failed")
+        
+        logger.info(f"New user registered: {user.email}")
         
         return TokenResponse(
             access_token=auth_result.access_token,
-            token_type="bearer",
-            expires_in=auth_result.expires_in,
             refresh_token=auth_result.refresh_token,
-            user=user_to_response(auth_result.user)
+            token_type="bearer",
+            expires_in=auth_result.metadata.get("expires_in", 1800),
+            user={
+                "id": str(user.id),
+                "email": user.email,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "role": user.role.value if user.role else "user",
+                "is_verified": user.is_verified,
+                "organization_id": str(user.organization_id) if user.organization_id else None
+            }
         )
         
-    except AuthError as e:
-        if "already exists" in e.message:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=e.message
-            )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=e.message
-            )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Registration service error"
-        )
+        logger.error(f"Registration error for {register_data.email}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error during registration")
 
-
-@router.post("/refresh", response_model=TokenResponse)
+@router.post("/refresh", response_model=Dict[str, Any])
+@handle_auth_errors
 async def refresh_token(
-    request: Request,
-    refresh_token: str,
-    db: AsyncSession = Depends(get_db)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_async_session)
 ):
     """
-    Refresh access token
-    
-    Uses refresh token to generate a new access token.
+    Refresh access token using refresh token
     """
     try:
-        auth_result = await unified_auth_service.refresh_token(
-            db=db,
-            refresh_token=refresh_token
-        )
+        auth_result = await unified_auth_service.refresh_access_token(db, credentials.credentials)
         
         if not auth_result.success:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=auth_result.error or "Token refresh failed",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
+            raise HTTPException(status_code=401, detail=auth_result.error_message)
         
-        return TokenResponse(
-            access_token=auth_result.access_token,
-            token_type="bearer",
-            expires_in=auth_result.expires_in,
-            refresh_token=auth_result.refresh_token,
-            user=user_to_response(auth_result.user)
-        )
+        return {
+            "access_token": auth_result.access_token,
+            "token_type": "bearer",
+            "expires_in": auth_result.metadata.get("expires_in", 1800)
+        }
         
-    except AuthError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=e.message
-        )
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Token refresh service error"
-        )
+        logger.error(f"Token refresh error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error during token refresh")
 
+@router.get("/me", response_model=Dict[str, Any])
+async def get_current_user_info(
+    current_user = Depends(get_current_active_user)
+):
+    """
+    Get current authenticated user information
+    """
+    return {
+        "id": str(current_user.id),
+        "email": current_user.email,
+        "username": current_user.username,
+        "first_name": current_user.first_name,
+        "last_name": current_user.last_name,
+        "role": current_user.role.value if current_user.role else "user",
+        "is_verified": current_user.is_verified,
+        "is_active": current_user.is_active,
+        "organization_id": str(current_user.organization_id) if current_user.organization_id else None,
+        "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+        "last_login": current_user.last_login.isoformat() if current_user.last_login else None
+    }
 
 @router.post("/logout")
 async def logout(
-    request: Request,
-    current_user = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user = Depends(get_current_active_user)
 ):
     """
-    User logout
+    User logout endpoint
     
-    Invalidates the current session and tokens.
+    Note: With JWT tokens, logout is mainly handled on the client side
+    by discarding the token. Server-side token blacklisting could be added here.
     """
-    try:
-        # Extract session ID from request if available
-        session_id = request.headers.get("X-Session-ID")
-        
-        success = await unified_auth_service.logout(
-            db=db,
-            user_id=str(current_user.id),
-            session_id=session_id
-        )
-        
-        if success:
-            return {"message": "Successfully logged out"}
-        else:
-            return {"message": "Logout completed (session may have already expired)"}
-        
-    except Exception as e:
-        # Even if logout fails, we don't want to prevent the user from logging out
-        return {"message": "Logout completed"}
+    logger.info(f"User {current_user.email} logged out")
+    
+    return {
+        "message": "Successfully logged out",
+        "user_id": str(current_user.id)
+    }
 
+@router.get("/status")
+async def auth_status():
+    """
+    Authentication system status endpoint
+    """
+    return {
+        "service": "Unified Authentication System",
+        "status": "active",
+        "version": "1.0.0",
+        "features": [
+            "JWT access tokens",
+            "JWT refresh tokens", 
+            "Role-based authorization",
+            "Account lockout protection",
+            "Password strength validation",
+            "Organization support"
+        ]
+    }
 
-@router.get("/me", response_model=UserResponse)
-async def get_current_user_info(
-    current_user = Depends(get_current_user)
+# Admin endpoints
+@router.get("/admin/users", response_model=List[Dict[str, Any]])
+async def list_users(
+    skip: int = 0,
+    limit: int = 100,
+    admin_user = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_async_session)
 ):
     """
-    Get current user information
-    
-    Returns the authenticated user's profile information.
+    List all users (admin only)
     """
-    return UserResponse(
-        id=str(current_user.id),
-        email=current_user.email,
-        username=current_user.username,
-        first_name=current_user.first_name,
-        last_name=current_user.last_name,
-        role=current_user.role.value,
-        is_active=current_user.is_active,
-        is_verified=current_user.is_verified,
-        created_at=current_user.created_at,
-        last_login=current_user.last_login
+    from sqlalchemy import select
+    from app.database.models import User
+    
+    result = await db.execute(
+        select(User).offset(skip).limit(limit)
     )
-
-
-@router.post("/verify-token")
-async def verify_token(
-    request: Request,
-    token: str,
-    db: AsyncSession = Depends(get_db)
-):
-    """
-    Verify JWT token validity
+    users = result.scalars().all()
     
-    Checks if a token is valid and returns user information.
-    """
-    try:
-        auth_result = await unified_auth_service.verify_token(db=db, token=token)
-        
-        if not auth_result.success:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token"
-            )
-        
-        return {
-            "valid": True,
-            "user": user_to_response(auth_result.user)
+    return [
+        {
+            "id": str(user.id),
+            "email": user.email,
+            "username": user.username,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "role": user.role.value if user.role else "user",
+            "is_active": user.is_active,
+            "is_verified": user.is_verified,
+            "created_at": user.created_at.isoformat() if user.created_at else None,
+            "last_login": user.last_login.isoformat() if user.last_login else None
         }
-        
-    except AuthError as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=e.message
-        )
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Token verification service error"
-        )
+        for user in users
+    ]
 
-
-# Backward compatibility endpoints
-@router.post("/signin", response_model=TokenResponse)
-async def signin_compat(
-    request: Request,
-    login_data: LoginRequest,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
+@router.put("/admin/users/{user_id}/role")
+async def update_user_role(
+    user_id: str,
+    role_data: Dict[str, str],
+    admin_user = Depends(get_admin_user),
+    db: AsyncSession = Depends(get_async_session)
 ):
-    """Backward compatibility endpoint for signin"""
-    return await login(request, login_data, background_tasks, db)
+    """
+    Update user role (admin only)
+    """
+    from app.database.models import User, UserRole
+    import uuid
+    
+    # Get user
+    user = await unified_auth_service.get_user_by_id(db, uuid.UUID(user_id))
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Update role
+    new_role = role_data.get("role")
+    if new_role not in [role.value for role in UserRole]:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    
+    user.role = UserRole(new_role)
+    await db.commit()
+    
+    logger.info(f"Admin {admin_user.email} updated user {user.email} role to {new_role}")
+    
+    return {
+        "message": "User role updated successfully",
+        "user_id": str(user.id),
+        "new_role": new_role
+    }
 
-
-@router.post("/signup", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def signup_compat(
-    request: Request,
-    register_data: RegisterRequest,
-    background_tasks: BackgroundTasks,
-    db: AsyncSession = Depends(get_db)
-):
-    """Backward compatibility endpoint for signup"""
-    return await register(request, register_data, background_tasks, db) 
+# Legacy compatibility endpoints
+@router.get("/legacy/status")
+async def legacy_auth_status():
+    """
+    Legacy authentication status endpoint for backwards compatibility
+    """
+    return {
+        "message": "Legacy auth endpoints are deprecated. Use /api/v1/auth/status instead.",
+        "status": "deprecated",
+        "migration_guide": "https://docs.schlep-engine.com/auth-migration"
+    } 

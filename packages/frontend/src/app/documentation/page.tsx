@@ -298,16 +298,6 @@ export default function DocumentationPage() {
         ]
       }
     ],
-    'jobs-api': [
-      {
-        method: 'GET',
-        path: '/v1/jobs/{job_id}',
-        description: 'Get job status and results',
-        parameters: [
-          { name: 'job_id', type: 'string', required: true, description: 'Job ID' }
-        ]
-      }
-    ],
     'integrations-api': [
       {
         method: 'POST',

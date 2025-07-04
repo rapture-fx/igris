@@ -4,19 +4,7 @@ import React from 'react'
 import { AlertCircle, Clock, Key, CheckCircle } from 'lucide-react'
 import { SectionComponentProps } from '../../../types/documentation'
 
-interface TroubleshootingCategoriesProps extends SectionComponentProps {
-  section: {
-    troubleshootingCategories: Array<{
-      name: string;
-      color: string;
-      icon: string;
-      issues: Array<{
-        problem: string;
-        solution: string;
-      }>;
-    }>;
-  };
-}
+interface TroubleshootingCategoriesProps extends SectionComponentProps {}
 
 const iconMap = {
   'AlertCircle': AlertCircle,
@@ -56,7 +44,7 @@ const subtextColorMap = {
 export const TroubleshootingCategories: React.FC<TroubleshootingCategoriesProps> = ({ section }) => {
   return (
     <div className="grid gap-4">
-      {section.troubleshootingCategories.map((category, index) => {
+      {section.troubleshootingCategories?.map((category, index) => {
         const IconComponent = iconMap[category.icon as keyof typeof iconMap];
         const bgColor = colorMap[category.color as keyof typeof colorMap];
         const iconColor = iconColorMap[category.color as keyof typeof iconColorMap];

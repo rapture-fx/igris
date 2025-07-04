@@ -7,7 +7,8 @@ interface APIBaseInfoProps {
 }
 
 export function APIBaseInfo({ section }: APIBaseInfoProps) {
-  const { title, baseUrl } = section;
+  const { title } = section;
+  const baseUrl = (section as any).baseUrl || 'https://api.schlep-engine.com';
 
   return (
     <div className="space-y-6">

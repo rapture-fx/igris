@@ -9,22 +9,22 @@ interface WebhookConfigurationProps {
 export function WebhookConfiguration({ section }: WebhookConfigurationProps) {
   const { title, description } = section;
 
-  const codeString = \`{
+  const codeString = `{
   "event": "data.investigation.completed",
   "data": {
     "investigation_id": "inv_12345",
     "status": "completed",
     "quality_score": 95.7
   }
-}\`;
+}`;
 
-  const curlString = \`curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
+  const curlString = `curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
 -H "Authorization: Bearer YOUR_API_KEY" \\
 -H "Content-Type: application/json" \\
 -d '{
   "url": "https://your-app.com/webhooks/schlep-engine",
   "events": ["data.investigation.completed", "data.investigation.failed"]
-}'\`;
+}'`;
 
   return (
     <div className="space-y-6">

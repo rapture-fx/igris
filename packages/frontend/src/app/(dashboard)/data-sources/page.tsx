@@ -67,9 +67,23 @@ export default function DataSourcesPage() {
     setShowCleaning(true)
   }
 
+  const handleUploadClick = () => {
+    // Trigger file picker
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = '.csv,.json,.xlsx,.xls,.tsv,.parquet'
+    input.onchange = (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0]
+      if (file) {
+        handleFileUpload(file)
+      }
+    }
+    input.click()
+  }
+
   return (
     <div className="space-y-6">
-      <DataSourcesHeader onFileUpload={handleFileUpload} />
+      <DataSourcesHeader onFileUpload={handleFileUpload} onUploadClick={handleUploadClick} />
       
       {/* Upload Progress */}
       {(isUploading || uploadResponse) && (

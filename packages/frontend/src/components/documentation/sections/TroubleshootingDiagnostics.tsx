@@ -1,25 +1,18 @@
 'use client'
 
 import React from 'react'
+import { CheckCircle } from 'lucide-react'
 import { SectionComponentProps } from '../../../types/documentation'
 
-interface TroubleshootingDiagnosticsProps extends SectionComponentProps {
-  section: {
-    troubleshootingDiagnostics: Array<{
-      category: string;
-      description: string;
-      steps: string[];
-    }>;
-  };
-}
+interface TroubleshootingDiagnosticsProps extends SectionComponentProps {}
 
 export const TroubleshootingDiagnostics: React.FC<TroubleshootingDiagnosticsProps> = ({ section }) => {
   return (
-    <div className="space-y-6">
+    <div className="space-y-3">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Diagnostic Procedures</h3>
       
       <div className="grid md:grid-cols-1 gap-6">
-        {section.troubleshootingDiagnostics.map((diagnostic, index) => (
+        {section.troubleshootingDiagnostics?.map((diagnostic, index) => (
           <div key={index} className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
             <h4 className="text-base font-semibold text-blue-900 mb-2">{diagnostic.category}</h4>
             <p className="text-sm text-blue-800 mb-4">{diagnostic.description}</p>

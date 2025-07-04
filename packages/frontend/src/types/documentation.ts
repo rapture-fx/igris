@@ -60,12 +60,6 @@ export interface ContentSectionItem {
   icon?: string
   items?: any[]
   sections?: ContentSectionItem[]
-  features?: {
-    category: string
-    color: string
-    icon: string
-    items: string[]
-  }[]
   frameworks?: any[]
   methods?: any[]
   types?: any[]
@@ -396,7 +390,7 @@ export interface ContentSectionItem {
   }>;
 
   // SDK properties
-  methods?: InstallationMethod[];
+  sdkMethods?: InstallationMethod[];
   features?: SDKFeature[];
 
   // Webhook properties
@@ -441,17 +435,6 @@ export interface SDKFeature {
   icon: string;
 }
 
-// Webhook interfaces
-export interface WebhookEvent {
-  name: string;
-  description: string;
-}
-
-export interface EventCategory {
-  name: string;
-  color: string;
-  events: WebhookEvent[];
-} 
 // Webhook interfaces
 export interface WebhookEvent {
   name: string;

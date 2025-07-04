@@ -30,7 +30,7 @@ export function BestPracticesCallout({ section }: BestPracticesCalloutProps) {
         <div>
           <h3 className="text-lg font-bold text-green-900 mb-3">{title}</h3>
           <div className="grid md:grid-cols-2 gap-4">
-            {sections?.map((section: BestPracticeSection, index: number) => (
+            {(sections as BestPracticeSection[])?.map((section: BestPracticeSection, index: number) => (
               <div key={index}>
                 <h4 className="font-semibold text-green-800 mb-2 text-sm">{section.title}</h4>
                 <ul className="text-green-700 space-y-1 text-xs">

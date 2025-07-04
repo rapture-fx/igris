@@ -154,9 +154,9 @@ export function ContentRenderer({
       case 'security-configuration':
         return <SecurityConfiguration {...commonProps} />
       case 'troubleshooting-categories':
-        return <TroubleshootingCategories troubleshootingCategories={section.troubleshootingCategories || []} />
+        return <TroubleshootingCategories {...commonProps} />
       case 'troubleshooting-diagnostics':
-        return <TroubleshootingDiagnostics troubleshootingDiagnostics={section.troubleshootingDiagnostics || []} />
+        return <TroubleshootingDiagnostics {...commonProps} />
       case 'performance-categories':
         return <PerformanceCategories {...commonProps} />
       case 'performance-tips':
@@ -204,11 +204,11 @@ export function ContentRenderer({
       case 'webhook-events':
         return <WebhookEvents {...commonProps} />
       case 'webhook-configuration':
+        return <WebhookConfiguration {...commonProps} />
       case 'api-base-info':
         return <APIBaseInfo {...commonProps} />
       case 'api-details-grid':
         return <APIDetailsGrid {...commonProps} />
-        return <WebhookConfiguration {...commonProps} />
       default:
         console.warn(`Unknown section type: ${section.type}`)
         return null

@@ -247,13 +247,13 @@ export default function RateLimitMonitoring({ monitoringTools }: RateLimitMonito
           <Code className="w-4 h-4 mr-2" />
           Quick Implementation Example
         </h4>
-        <div className="bg-black text-green-400 p-4 rounded font-mono text-sm overflow-x-auto">
-          <div className="text-gray-400"># Monitor rate limits in real-time</div>
-          <div>def track_rate_limits(response):</div>
+        <div className="bg-white p-3 rounded border overflow-x-auto text-xs">
+          <div className="ml-4"># Check remaining requests</div>
+          <div className="ml-4">response = requests.get(url, headers=headers)</div>
           <div className="ml-4">limit = response.headers.get('X-RateLimit-Limit')</div>
           <div className="ml-4">remaining = response.headers.get('X-RateLimit-Remaining')</div>
-          <div className="ml-4">if remaining and int(remaining) &lt; 10:</div>
-          <div className="ml-8">alert_team(f"Low rate limit: {remaining}/{limit}")</div>
+          <div className="ml-4">{'if remaining and int(remaining) < 10:'}</div>
+          <div className="ml-8">{'alert_team(f"Low rate limit: {remaining}/{limit}")'}</div>
         </div>
       </div>
     </div>

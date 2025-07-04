@@ -3,8 +3,8 @@ import { Upload, Activity, Zap, Shield, Code, FileText, Database, Wand, BarChart
 import { ContentSectionItem } from '../../../types/documentation';
 
 interface SDKFeature {
-  name: string;
-  description: string;
+  category: string;
+  items: string[];
   icon: string;
 }
 
@@ -50,15 +50,15 @@ export function SDKFeatures({ section }: SDKFeaturesProps) {
             <div key={index} className="bg-white border border-gray-200 rounded-lg p-5">
               <div className="flex items-start space-x-4">
                 <div className="flex-shrink-0">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600">
-                      {getIcon(feature.icon)}
-                    </span>
-                  </div>
+                  {getIcon(feature.icon)}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">{feature.name}</h3>
-                  <p className="text-sm text-gray-600">{feature.description}</p>
+                  <h3 className="font-semibold text-gray-800">{feature.category}</h3>
+                  <ul className="text-sm text-gray-600 list-disc list-inside mt-1">
+                    {feature.items.map((item, itemIndex) => (
+                      <li key={itemIndex}>{item}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
