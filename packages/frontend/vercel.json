@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "name": "pollarbase-ai-platform",
-  "alias": ["pollarbase.vercel.app"],
+  "name": "schlep-engine",
+  "alias": ["schlep-engine.vercel.app"],
   "regions": ["iad1", "sfo1"],
   "framework": "nextjs",
   "buildCommand": "pnpm build",
