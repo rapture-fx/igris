@@ -1,5 +1,5 @@
 {
-  "name": "@pollarbase/admin",
+  "name": "@schlep-engine/admin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
