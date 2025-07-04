@@ -1,14 +1,14 @@
-# Pollarbase - The Data Schlep Handler
+# Schlep-engine - The Data Schlep Handler
 
 **Stop wasting 80% of your time on data prep. We handle the schlep so you don't have to.**
 
-This repository contains Pollarbase, the only data platform that actually understands your pain. Throw us your worst CSV files, broken JSON, or whatever data nightmare you're dealing with. We'll clean it, validate it, and give you something actually useful.
+This repository contains Schlep-engine, the only data platform that actually understands your pain. Throw us your worst CSV files, broken JSON, or whatever data nightmare you're dealing with. We'll clean it, validate it, and give you something actually useful.
 
-## What is Pollarbase?
+## What is Schlep-engine?
 
 **The honest answer:** We're the thing that handles all the boring, frustrating data work that data scientists and ML engineers hate doing.
 
-**The corporate answer (if you need it for your boss):** Pollarbase is a comprehensive data processing platform that automates data preparation workflows.
+**The corporate answer (if you need it for your boss):** Schlep-engine is a comprehensive data processing platform that automates data preparation workflows.
 
 **What we actually do:**
 - Take your messy CSV files and make them work
@@ -23,7 +23,7 @@ This repository contains Pollarbase, the only data platform that actually unders
 We're built as a monorepo because we believe in keeping things simple:
 
 ```
-pollarbase/
+Schlep-engine/
 ├── packages/
 │   ├── frontend/              # The UI where you upload your data nightmares
 │   │   ├── src/              # Next.js app that doesn't judge your data
@@ -74,7 +74,7 @@ The usual suspects:
 **1. Clone this repo:**
     ```bash
     git clone <repository-url>
-cd pollarbase
+cd Schlep-engine
     ```
 
 **2. Install everything:**
@@ -107,7 +107,7 @@ pnpm dev
 3. **Get Usable Data** - Clean, structured, ready for analysis
 4. **Do the Interesting Work** - Build models, create insights, ship features
 
-## Why Pollarbase?
+## Why Schlep-engine?
 
 **Because we're honest about what we do.**
 
@@ -140,16 +140,16 @@ We don't promise to "transform your business with AI." We promise to handle the 
 pnpm install
 
 # Run frontend (the upload interface)
-pnpm --filter pollarbase-web dev
+pnpm --filter Schlep-engine-web dev
 
 # Run backend (the schlep handler)
-pnpm --filter pollarbase-backend dev
+pnpm --filter Schlep-engine-backend dev
 
 # Build for production
-pnpm --filter pollarbase-web build
+pnpm --filter Schlep-engine-web build
 
 # Clean install (when things get weird)
-pnpm --filter pollarbase-web fresh-install
+pnpm --filter Schlep-engine-web fresh-install
 ```
 
 ## Contributing
@@ -164,6 +164,6 @@ We welcome contributions that make the schlep-handling better.
 
 ---
 
-**Pollarbase: We handle the schlep so you don't have to.**
+**Schlep-engine: We handle the schlep so you don't have to.**
 
 *Finally, a data platform that admits data work is often boring and just handles it for you.*

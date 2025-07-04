@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-POLLARBASE API PERFORMANCE TESTING SUITE
+Schlep-engine API PERFORMANCE TESTING SUITE
 ========================================
 
 Comprehensive testing suite to validate API enhancements and performance improvements.
@@ -142,7 +142,7 @@ class APIPerformanceTester:
         
         # Test registration
         register_payload = {
-            "email": f"test_{int(time.time())}@pollarbase.ai",
+            "email": f"test_{int(time.time())}@Schlep-engine.ai",
             "password": "TestPassword123!",
             "action": "register",
             "username": f"testuser_{int(time.time())}",
@@ -391,7 +391,7 @@ def print_test_results(results: Dict[str, Any]):
     """Print formatted test results"""
     
     print("\n" + "="*80)
-    print("🚀 POLLARBASE API PERFORMANCE TEST RESULTS")
+    print("🚀 Schlep-engine API PERFORMANCE TEST RESULTS")
     print("="*80)
     
     # Print summary
@@ -432,7 +432,7 @@ def print_test_results(results: Dict[str, Any]):
 async def main():
     """Main test execution function"""
     
-    print("🚀 Starting Pollarbase API Performance Testing Suite...")
+    print("🚀 Starting Schlep-engine API Performance Testing Suite...")
     
     try:
         async with APIPerformanceTester() as tester:

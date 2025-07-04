@@ -1,8 +1,8 @@
 {
-  "name": "@pollarbase/web",
+  "name": "@Schlep-engine/web",
   "version": "0.1.0",
   "private": true,
-  "description": "Pollarbase Web Interface - Upload your data disasters, get clean data back",
+  "description": "Schlep-engine Web Interface - Upload your data disasters, get clean data back",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -16,7 +16,7 @@
     "file-handler",
     "data-schlep"
   ],
-  "author": "Pollarbase Team",
+  "author": "Schlep-engine Team",
   "license": "MIT",
   "dependencies": {
     "@headlessui/react": "^1.7.17",

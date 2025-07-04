@@ -6,7 +6,7 @@ from functools import lru_cache
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://wira@localhost:5432/pollarbase_dev"
+    DATABASE_URL: str = "postgresql://wira@localhost:5432/Schlep-engine_dev"
     
     # JWT
     JWT_SECRET_KEY: str = "dev_jwt_secret_key_change_in_production_2024"
@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     
     # API
     API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Pollarbase"
+    PROJECT_NAME: str = "Schlep-engine"
     
     # CORS
     BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]

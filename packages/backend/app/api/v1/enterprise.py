@@ -1,6 +1,6 @@
 """
 Enterprise Features API - Multi-tenancy, RBAC, API Management, Custom Branding
-Provides enterprise-grade features for Pollarbase
+Provides enterprise-grade features for Schlep-engine
 """
 
 from fastapi import APIRouter, Depends, HTTPException, Query, BackgroundTasks

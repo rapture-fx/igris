@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Database Initialization Script
-Creates tables and default users for Pollarbase platform
+Creates tables and default users for Schlep-engine platform
 """
 
 import asyncio
@@ -47,9 +47,9 @@ async def create_default_users():
             # Create default organization
             org = Organization(
                 id=uuid.uuid4(),
-                        name="Pollarbase Demo",
-        slug="pollarbase-demo",
-        domain="demo.pollarbase.com",
+                        name="Schlep-engine Demo",
+        slug="Schlep-engine-demo",
+        domain="demo.Schlep-engine.com",
                 subscription_plan="pro",
                 subscription_status="active",
                 created_at=datetime.utcnow()
@@ -61,7 +61,7 @@ async def create_default_users():
             # Create admin user
             admin_user = await auth_service.create_user(
                 db=session,
-                email="admin@pollarbase.com",
+                email="admin@Schlep-engine.com",
                 username="admin",
                 password="admin123",
                 first_name="Admin",
@@ -74,7 +74,7 @@ async def create_default_users():
             # Create demo user
             demo_user = await auth_service.create_user(
                 db=session,
-                email="demo@pollarbase.com", 
+                email="demo@Schlep-engine.com", 
                 username="demo",
                 password="demo123",
                 first_name="Demo",
@@ -86,7 +86,7 @@ async def create_default_users():
             # Create test analyst
             analyst_user = await auth_service.create_user(
                 db=session,
-                email="analyst@pollarbase.com",
+                email="analyst@Schlep-engine.com",
                 username="analyst", 
                 password="analyst123",
                 first_name="Data",
@@ -97,9 +97,9 @@ async def create_default_users():
             await session.commit()
             
             print(" Default users created:")
-            print(f"   Admin: admin@pollarbase.com / admin123")
-            print(f"   Demo:  demo@pollarbase.com / demo123")
-            print(f"   Analyst: analyst@pollarbase.com / analyst123")
+            print(f"   Admin: admin@Schlep-engine.com / admin123")
+            print(f"   Demo:  demo@Schlep-engine.com / demo123")
+            print(f"   Analyst: analyst@Schlep-engine.com / analyst123")
             
         except Exception as e:
             print(f" Error creating users: {e}")
@@ -111,7 +111,7 @@ async def create_default_users():
 
 async def main():
     """Main initialization function"""
-    print(" Initializing Pollarbase Database...")
+    print(" Initializing Schlep-engine Database...")
     print(f"Database URL: {settings.DATABASE_URL}")
     
     try:

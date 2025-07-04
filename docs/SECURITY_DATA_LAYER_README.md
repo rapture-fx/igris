@@ -1,6 +1,6 @@
-# Security Data Layer for Sherringfords API
+# Security Data Layer for Schlep-engine API
 
-This security data layer provides comprehensive data protection capabilities for the Sherringfords API without modifying existing table structures. All security features are implemented as additive components that work alongside your existing models.
+This security data layer provides comprehensive data protection capabilities for the Schlep-engine API without modifying existing table structures. All security features are implemented as additive components that work alongside your existing models.
 
 ##  Quick Start
 

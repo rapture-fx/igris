@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Pollarbase ML Service
+Schlep-engine ML Service
 ====================
 
 Dedicated microservice for machine learning operations.
@@ -92,7 +92,7 @@ class HealthResponse(BaseModel):
 
 # FastAPI application
 app = FastAPI(
-    title="Pollarbase ML Service",
+    title="Schlep-engine ML Service",
     description="Dedicated microservice for machine learning operations",
     version="1.0.0",
     docs_url="/docs",
@@ -355,7 +355,7 @@ async def delete_model(model_id: str):
 @app.on_event("startup")
 async def startup_event():
     """Startup tasks"""
-    logger.info("Starting Pollarbase ML Service")
+    logger.info("Starting Schlep-engine ML Service")
     logger.info(f"ML dependencies available: {ML_AVAILABLE}")
     logger.info(f"Models loaded: {len(ml_engine.models)}")
 
@@ -363,7 +363,7 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     """Cleanup tasks"""
-    logger.info("Shutting down Pollarbase ML Service")
+    logger.info("Shutting down Schlep-engine ML Service")
 
 if __name__ == "__main__":
     # Create logs directory

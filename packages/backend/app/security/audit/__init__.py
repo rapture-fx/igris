@@ -2,7 +2,7 @@
 Security Audit Module
 
 This module provides comprehensive security audit logging, event tracking,
-and compliance reporting capabilities for the Pollarbase platform. It
+and compliance reporting capabilities for the Schlep-engine platform. It
 implements tamper-proof audit trails, real-time monitoring, and forensic
 analysis tools to support security investigations and regulatory compliance.
 

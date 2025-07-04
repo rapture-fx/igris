@@ -1,5 +1,5 @@
 """
-Advanced Auto-Labeling Service - Pollarbase
+Advanced Auto-Labeling Service - Schlep-engine
 ==========================================
 
 This service provides sophisticated automated labeling capabilities using

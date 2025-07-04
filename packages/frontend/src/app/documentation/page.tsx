@@ -414,7 +414,7 @@ export default function DocumentationPage() {
         language: 'curl',
         title: 'Upload Your First Dataset',
         description: 'Get started by uploading a CSV file with automatic analysis',
-        code: `curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
+        code: `curl -X POST "https://api.Schlep-engine.com/v1/data/upload" \\
   -H "Authorization: Bearer sk-abc123..." \\
   -H "Content-Type: multipart/form-data" \\
   -F "file=@customer_data.csv" \\
@@ -435,11 +435,11 @@ export default function DocumentationPage() {
         language: 'python',
         title: 'Python Complete Workflow',
         description: 'End-to-end data processing with error handling',
-        code: `import pollarbase
+        code: `import Schlep-engine
 from pathlib import Path
 
 # Initialize client with environment variable
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 try:
     # Upload and analyze dataset
@@ -483,10 +483,10 @@ try:
     for export in exports:
         print(f"  {export.format}: {export.path}")
         
-except pollarbase.QualityError as e:
+except Schlep-engine.QualityError as e:
     print(f"Data quality too low: {e.score}/100")
     print("Suggestions:", e.suggestions)
-except pollarbase.APIError as e:
+except Schlep-engine.APIError as e:
     print(f"API Error: {e.message}")
 except Exception as e:
     print(f"Unexpected error: {e}")`,
@@ -511,11 +511,11 @@ Export completed successfully!
         language: 'javascript',
         title: 'JavaScript Real-time Processing',
         description: 'Client-side processing with progress tracking and webhooks',
-        code: `import Pollarbase from '@pollarbase/js';
+        code: `import Schlep-engine from '@Schlep-engine/js';
 
-const client = new Pollarbase({
-  apiKey: process.env.POLLARBASE_API_KEY,
-  webhook: 'https://myapp.com/webhooks/pollarbase'
+const client = new Schlep-engine({
+  apiKey: process.env.Schlep-engine_API_KEY,
+  webhook: 'https://myapp.com/webhooks/Schlep-engine'
 });
 
 class DataProcessor {
@@ -607,7 +607,7 @@ document.getElementById('fileInput').addEventListener('change', (e) => {
         description: 'All API requests require authentication',
         code: `# Include your API key in the Authorization header
 curl -H "Authorization: Bearer sk-abc123..." \\
-  https://api.pollarbase.com/v1/data/datasets`,
+  https://api.Schlep-engine.com/v1/data/datasets`,
         response: `{
   "datasets": [
     {
@@ -623,18 +623,18 @@ curl -H "Authorization: Bearer sk-abc123..." \\
         language: 'python',
         title: 'SDK Authentication',
         description: 'Set up authentication in Python SDK',
-        code: `import pollarbase
+        code: `import Schlep-engine
 import os
 
 # Option 1: Direct API key
-client = pollarbase.Client(api_key="sk-abc123...")
+client = Schlep-engine.Client(api_key="sk-abc123...")
 
 # Option 2: Environment variable (recommended)
-os.environ['POLLARBASE_API_KEY'] = 'sk-abc123...'
-client = pollarbase.Client()  # Auto-detects from env
+os.environ['Schlep-engine_API_KEY'] = 'sk-abc123...'
+client = Schlep-engine.Client()  # Auto-detects from env
 
 # Option 3: Configuration file
-client = pollarbase.Client.from_config('~/.pollarbase/config.json')`
+client = Schlep-engine.Client.from_config('~/.Schlep-engine/config.json')`
       }
     ],
     'python-sdk': [
@@ -643,24 +643,24 @@ client = pollarbase.Client.from_config('~/.pollarbase/config.json')`
         title: 'Installation',
         description: 'Install the Python SDK',
         code: `# Install via pip
-pip install pollarbase
+pip install Schlep-engine
 
 # Or with conda
-conda install -c pollarbase pollarbase
+conda install -c Schlep-engine Schlep-engine
 
 # Development version
-pip install git+https://github.com/pollarbase/python-sdk.git`
+pip install git+https://github.com/Schlep-engine/python-sdk.git`
       },
       {
         language: 'python',
         title: 'Complete Example',
         description: 'End-to-end data processing workflow',
-        code: `import pollarbase
+        code: `import Schlep-engine
 import pandas as pd
 from pathlib import Path
 
 # Initialize
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Upload multiple files
 datasets = []
@@ -713,15 +713,15 @@ for analysis in analyses:
         language: 'python',
         title: 'Error Handling in Python',
         description: 'Proper error handling with the Python SDK',
-        code: `import pollarbase
-from pollarbase.exceptions import (
+        code: `import Schlep-engine
+from Schlep-engine.exceptions import (
     APIError, 
     AuthenticationError, 
     RateLimitError,
     ValidationError
 )
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 try:
     dataset = client.upload_file("data.csv")
@@ -926,10 +926,10 @@ Invalid fields: ['file_type', 'encoding']`
           <div className="max-w-4xl">
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
-                Pollarbase API Documentation
+                Schlep-engine API Documentation
               </h1>
               <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                The complete reference for Pollarbase's data processing API. 
+                The complete reference for Schlep-engine's data processing API. 
                 <strong> Handle the schlep so you don't have to.</strong>
               </p>
             </div>
@@ -938,9 +938,9 @@ Invalid fields: ['file_type', 'encoding']`
               <div className="flex items-start space-x-4">
                 <Sparkles className="w-5 h-5 text-blue-600 mt-1" />
                 <div>
-                  <h3 className="text-base font-bold text-blue-900 mb-2">What is Pollarbase?</h3>
+                  <h3 className="text-base font-bold text-blue-900 mb-2">What is Schlep-engine?</h3>
                   <p className="text-blue-800 leading-relaxed text-sm">
-                    Pollarbase is the <strong>Stripe for data</strong> - a comprehensive API platform that automatically 
+                    Schlep-engine is the <strong>Stripe for data</strong> - a comprehensive API platform that automatically 
                     identifies data types, detects anomalies, suggests transformations, and outputs 
                     ML-ready datasets. <strong>Spend 80% less time on data preparation.</strong>
                   </p>
@@ -1009,7 +1009,7 @@ Invalid fields: ['file_type', 'encoding']`
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Quickstart Guide</h1>
               <p className="text-sm text-gray-600 mb-4">
-                Get up and running with Pollarbase in under 5 minutes.
+                Get up and running with Schlep-engine in under 5 minutes.
               </p>
             </div>
 
@@ -1115,7 +1115,7 @@ Invalid fields: ['file_type', 'encoding']`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">Error Handling</h1>
               <p className="text-base text-gray-600 mb-6">
-                Understanding and handling errors in the Pollarbase API.
+                Understanding and handling errors in the Schlep-engine API.
               </p>
             </div>
 
@@ -1167,15 +1167,15 @@ Invalid fields: ['file_type', 'encoding']`
               language: 'python',
               title: 'Error Handling with Python SDK',
               description: 'Proper error handling in your Python applications',
-              code: `import pollarbase
-from pollarbase.exceptions import (
+              code: `import Schlep-engine
+from Schlep-engine.exceptions import (
     APIError, 
     AuthenticationError, 
     RateLimitError,
     ValidationError
 )
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 try:
     dataset = client.upload_file("data.csv")
@@ -1217,7 +1217,7 @@ Invalid fields: ['file_type', 'encoding']`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">Data Processing</h1>
               <p className="text-base text-gray-600 mb-6">
-                How Pollarbase processes and analyzes your data behind the scenes.
+                How Schlep-engine processes and analyzes your data behind the scenes.
               </p>
             </div>
 
@@ -1374,41 +1374,41 @@ Invalid fields: ['file_type', 'encoding']`
                 language: 'python',
                 title: 'Advanced Transformation Pipeline',
                 description: 'Chaining multiple transformations with custom rules',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 dataset = client.get_dataset("ds_abc123")
 
 # Define transformation pipeline
-pipeline = pollarbase.TransformationPipeline([
+pipeline = Schlep-engine.TransformationPipeline([
     # Remove exact duplicates
-    pollarbase.RemoveDuplicates(method="exact"),
+    Schlep-engine.RemoveDuplicates(method="exact"),
     
     # Smart missing value imputation
-    pollarbase.FillMissing(
+    Schlep-engine.FillMissing(
         strategy="smart",  # Uses ML to predict best values
         columns=["age", "income"],
         fallback="median"
     ),
     
     # Standardize date formats
-    pollarbase.StandardizeDates(
+    Schlep-engine.StandardizeDates(
         columns=["created_at", "updated_at"],
         format="ISO8601"
     ),
     
     # Custom transformation rule
-    pollarbase.CustomRule(
+    Schlep-engine.CustomRule(
         name="normalize_email",
         function=lambda x: x.lower().strip(),
         columns=["email"]
     ),
     
     # Feature engineering
-    pollarbase.CreateFeatures([
-        pollarbase.DateFeatures(["created_at"]),  # Extract day, month, year
-        pollarbase.TextFeatures(["description"]),  # TF-IDF, sentiment
-        pollarbase.NumericalFeatures(["price"])   # Log, normalize, bin
+    Schlep-engine.CreateFeatures([
+        Schlep-engine.DateFeatures(["created_at"]),  # Extract day, month, year
+        Schlep-engine.TextFeatures(["description"]),  # TF-IDF, sentiment
+        Schlep-engine.NumericalFeatures(["price"])   # Log, normalize, bin
     ])
 ])
 
@@ -1437,7 +1437,7 @@ Transformation complete. New quality score: 91%`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">Quality Scoring</h1>
               <p className="text-base text-gray-600 mb-6">
-                Understanding how Pollarbase calculates data quality scores and what they mean.
+                Understanding how Schlep-engine calculates data quality scores and what they mean.
               </p>
             </div>
 
@@ -1535,7 +1535,7 @@ Transformation complete. New quality score: 91%`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">JavaScript SDK</h1>
               <p className="text-base text-gray-600 mb-6">
-                Client-side and Node.js SDK for integrating Pollarbase into JavaScript applications.
+                Client-side and Node.js SDK for integrating Schlep-engine into JavaScript applications.
               </p>
             </div>
 
@@ -1545,24 +1545,24 @@ Transformation complete. New quality score: 91%`
                 title: 'Installation',
                 description: 'Install the JavaScript SDK via npm or yarn',
                 code: `# Using npm
-npm install @pollarbase/js
+npm install @Schlep-engine/js
 
 # Using yarn
-yarn add @pollarbase/js
+yarn add @Schlep-engine/js
 
 # Using CDN (browser)
-<script src="https://cdn.pollarbase.com/js/v2.1.0/pollarbase.min.js"></script>`
+<script src="https://cdn.Schlep-engine.com/js/v2.1.0/Schlep-engine.min.js"></script>`
               })}
 
               {renderCodeBlock({
                 language: 'javascript',
                 title: 'Basic Setup (Node.js)',
                 description: 'Initialize the SDK in your Node.js application',
-                code: `const Pollarbase = require('@pollarbase/js');
+                code: `const Schlep-engine = require('@Schlep-engine/js');
 
 // Initialize with API key
-const client = new Pollarbase({
-  apiKey: process.env.POLLARBASE_API_KEY,
+const client = new Schlep-engine({
+  apiKey: process.env.Schlep-engine_API_KEY,
   environment: 'production', // or 'sandbox'
   timeout: 30000,
   retries: 3
@@ -1597,7 +1597,7 @@ Quality Score: 87%`
                 code: `<!DOCTYPE html>
 <html>
 <head>
-  <script src="https://cdn.pollarbase.com/js/v2.1.0/pollarbase.min.js"></script>
+  <script src="https://cdn.Schlep-engine.com/js/v2.1.0/Schlep-engine.min.js"></script>
 </head>
 <body>
   <input type="file" id="fileInput" accept=".csv,.json" />
@@ -1605,7 +1605,7 @@ Quality Score: 87%`
   <div id="results"></div>
 
   <script>
-    const client = new Pollarbase({
+    const client = new Schlep-engine({
       apiKey: 'pk_test_abc123...',  // Use publishable key for browser
       environment: 'sandbox'
     });
@@ -1701,13 +1701,13 @@ const app = express();
 app.use(express.raw({ type: 'application/json' }));
 
 // Webhook endpoint
-app.post('/webhooks/pollarbase', (req, res) => {
-  const signature = req.headers['x-pollarbase-signature'];
+app.post('/webhooks/Schlep-engine', (req, res) => {
+  const signature = req.headers['x-Schlep-engine-signature'];
   const payload = req.body;
   
   // Verify webhook signature
   const expectedSignature = crypto
-    .createHmac('sha256', process.env.POLLARBASE_WEBHOOK_SECRET)
+    .createHmac('sha256', process.env.Schlep-engine_WEBHOOK_SECRET)
     .update(payload)
     .digest('hex');
     
@@ -1779,11 +1779,11 @@ Job job_xyz789 completed successfully`
                 <div className="text-sm">
                   <p className="text-gray-600 mb-3">Configure webhooks in your dashboard or via API:</p>
                   <pre className="bg-white p-3 rounded border overflow-x-auto text-xs">
-{`curl -X POST "https://api.pollarbase.com/v1/webhooks" \\
+{`curl -X POST "https://api.Schlep-engine.com/v1/webhooks" \\
   -H "Authorization: Bearer sk-abc123..." \\
   -H "Content-Type: application/json" \\
   -d '{
-    "url": "https://your-app.com/webhooks/pollarbase",
+    "url": "https://your-app.com/webhooks/Schlep-engine",
     "events": ["dataset.analyzed", "job.completed"],
     "secret": "your_webhook_secret"
   }'`}
@@ -1807,7 +1807,7 @@ Job job_xyz789 completed successfully`
             <div className="space-y-6">
               <div className="bg-gray-50 border border-gray-200 rounded-lg p-5">
                 <h3 className="text-base font-semibold text-gray-900 mb-3">Base URL</h3>
-                <code className="text-sm bg-white px-3 py-2 rounded border">https://api.pollarbase.com/v1</code>
+                <code className="text-sm bg-white px-3 py-2 rounded border">https://api.Schlep-engine.com/v1</code>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
@@ -1845,21 +1845,21 @@ Authorization: Bearer sk-abc123...
                 title: 'Complete API Workflow',
                 description: 'End-to-end data processing via REST API',
                 code: `# 1. Upload dataset
-curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
+curl -X POST "https://api.Schlep-engine.com/v1/data/upload" \\
   -H "Authorization: Bearer sk-abc123..." \\
   -F "file=@data.csv" \\
   -F "auto_analyze=true"
 
 # 2. Check analysis status
 curl -H "Authorization: Bearer sk-abc123..." \\
-  "https://api.pollarbase.com/v1/analysis/job_xyz789"
+  "https://api.Schlep-engine.com/v1/analysis/job_xyz789"
 
 # 3. Get transformation suggestions
 curl -H "Authorization: Bearer sk-abc123..." \\
-  "https://api.pollarbase.com/v1/datasets/ds_abc123/suggestions"
+  "https://api.Schlep-engine.com/v1/datasets/ds_abc123/suggestions"
 
 # 4. Apply transformations
-curl -X POST "https://api.pollarbase.com/v1/transform/apply" \\
+curl -X POST "https://api.Schlep-engine.com/v1/transform/apply" \\
   -H "Authorization: Bearer sk-abc123..." \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -1871,7 +1871,7 @@ curl -X POST "https://api.pollarbase.com/v1/transform/apply" \\
   }'
 
 # 5. Export processed data
-curl -X POST "https://api.pollarbase.com/v1/export/download" \\
+curl -X POST "https://api.Schlep-engine.com/v1/export/download" \\
   -H "Authorization: Bearer sk-abc123..." \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -1883,7 +1883,7 @@ curl -X POST "https://api.pollarbase.com/v1/export/download" \\
 Analysis complete: 87% quality score
 3 transformation suggestions available
 Transformations applied: +12% quality improvement
-Export ready: https://files.pollarbase.com/exports/ds_abc123_cleaned.csv`
+Export ready: https://files.Schlep-engine.com/exports/ds_abc123_cleaned.csv`
               })}
             </div>
           </div>
@@ -1918,7 +1918,7 @@ Export ready: https://files.pollarbase.com/exports/ds_abc123_cleaned.csv`
                 language: 'python',
                 title: 'Production Pipeline Example',
                 description: 'Automated pipeline for processing customer data',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import pandas as pd
 from pathlib import Path
 import logging
@@ -1929,7 +1929,7 @@ logger = logging.getLogger(__name__)
 
 class CustomerDataPipeline:
     def __init__(self, api_key: str):
-        self.client = pollarbase.Client(api_key=api_key)
+        self.client = Schlep-engine.Client(api_key=api_key)
         self.quality_threshold = 0.85
         
     def process_file(self, file_path: Path) -> dict:
@@ -1983,19 +1983,19 @@ class CustomerDataPipeline:
         
         # Always remove duplicates
         if analysis.duplicates_found > 0:
-            transformations.append(pollarbase.RemoveDuplicates())
+            transformations.append(Schlep-engine.RemoveDuplicates())
         
         # Fill critical missing values
         for column, missing_pct in analysis.missing_values.items():
             if missing_pct > 0.1 and column in ['customer_id', 'email']:
                 # Remove rows with missing critical fields
                 transformations.append(
-                    pollarbase.DropMissing(columns=[column])
+                    Schlep-engine.DropMissing(columns=[column])
                 )
             elif missing_pct > 0.05:
                 # Impute non-critical fields
                 transformations.append(
-                    pollarbase.FillMissing(columns=[column], strategy='smart')
+                    Schlep-engine.FillMissing(columns=[column], strategy='smart')
                 )
         
         return transformations
@@ -2087,7 +2087,7 @@ Pipeline complete: 2/2 files processed successfully`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">ML Integration</h1>
               <p className="text-sm text-gray-600 mb-6">
-                Seamlessly integrate Pollarbase with popular machine learning frameworks and platforms.
+                Seamlessly integrate Schlep-engine with popular machine learning frameworks and platforms.
               </p>
             </div>
 
@@ -2110,11 +2110,11 @@ Pipeline complete: 2/2 files processed successfully`
                 language: 'python',
                 title: 'TensorFlow Integration',
                 description: 'Export data directly to TensorFlow datasets',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import tensorflow as tf
 
-# Process data with Pollarbase
-client = pollarbase.Client()
+# Process data with Schlep-engine
+client = Schlep-engine.Client()
 dataset = client.get_dataset("ds_abc123")
 
 # Export as TensorFlow dataset
@@ -2158,9 +2158,9 @@ Epoch 1/10: loss: 0.6234 - accuracy: 0.6543 - val_accuracy: 0.6789`
 
               {renderCodeBlock({
                 language: 'python', 
-                title: 'MLOps Pipeline with Pollarbase',
+                title: 'MLOps Pipeline with Schlep-engine',
                 description: 'Integrate with MLflow and other MLOps tools',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import mlflow
 import mlflow.sklearn
 from sklearn.ensemble import RandomForestClassifier
@@ -2170,8 +2170,8 @@ from sklearn.metrics import accuracy_score, classification_report
 mlflow.set_experiment("customer_churn_prediction")
 
 with mlflow.start_run():
-    # Data preprocessing with Pollarbase
-    client = pollarbase.Client()
+    # Data preprocessing with Schlep-engine
+    client = Schlep-engine.Client()
     dataset = client.get_dataset("customer_data_v2")
     
     # Log data quality metrics
@@ -2211,7 +2211,7 @@ with mlflow.start_run():
     mlflow.log_param("n_estimators", 100)
     mlflow.log_param("max_depth", 10)
     
-    # Log feature importance from Pollarbase analysis
+    # Log feature importance from Schlep-engine analysis
     feature_importance = dataset.get_feature_importance()
     for feature, importance in feature_importance.items():
         mlflow.log_metric(f"feature_importance_{feature}", importance)
@@ -2221,7 +2221,7 @@ with mlflow.start_run():
     
     # Log data lineage
     mlflow.log_param("dataset_id", dataset.id)
-    mlflow.log_param("pollarbase_version", pollarbase.__version__)
+    mlflow.log_param("Schlep-engine_version", Schlep-engine.__version__)
     
     print(f"Model accuracy: {accuracy:.3f}")
     print(f"Data quality: {dataset.quality_score}%")`,
@@ -2240,7 +2240,7 @@ Model registered: customer_churn_v2.1`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">Production Tips</h1>
               <p className="text-base text-gray-600 mb-6">
-                Best practices for deploying Pollarbase in production environments.
+                Best practices for deploying Schlep-engine in production environments.
               </p>
             </div>
 
@@ -2273,19 +2273,19 @@ Model registered: customer_churn_v2.1`
                 language: 'python',
                 title: 'Production-Ready Client Configuration',
                 description: 'Robust client setup with retry logic and monitoring',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import logging
 import time
 from tenacity import retry, stop_after_attempt, wait_exponential
 from prometheus_client import Counter, Histogram, start_http_server
 
 # Metrics
-api_requests = Counter('pollarbase_api_requests_total', ['method', 'status'])
-api_duration = Histogram('pollarbase_api_duration_seconds', ['method'])
+api_requests = Counter('Schlep-engine_api_requests_total', ['method', 'status'])
+api_duration = Histogram('Schlep-engine_api_duration_seconds', ['method'])
 
-class ProductionPollarbaseClient:
+class ProductionSchlep-engineClient:
     def __init__(self, api_key: str, environment: str = 'production'):
-        self.client = pollarbase.Client(
+        self.client = Schlep-engine.Client(
             api_key=api_key,
             environment=environment,
             timeout=60,  # Increase timeout for production
@@ -2294,7 +2294,7 @@ class ProductionPollarbaseClient:
         )
         
         # Configure logging
-        self.logger = logging.getLogger('pollarbase.client')
+        self.logger = logging.getLogger('Schlep-engine.client')
         self.logger.setLevel(logging.INFO)
         
         # Add request interceptor for monitoring
@@ -2320,12 +2320,12 @@ class ProductionPollarbaseClient:
             self.logger.info(f"Upload successful: {dataset.id}")
             return dataset
             
-        except pollarbase.RateLimitError as e:
+        except Schlep-engine.RateLimitError as e:
             self.logger.warning(f"Rate limited, waiting {e.retry_after}s")
             time.sleep(e.retry_after)
             raise  # Retry will handle this
             
-        except pollarbase.APIError as e:
+        except Schlep-engine.APIError as e:
             if e.status_code >= 500:
                 self.logger.error(f"Server error: {e.message}")
                 raise  # Retry server errors
@@ -2365,8 +2365,8 @@ if __name__ == "__main__":
     start_http_server(8000)
     
     # Initialize client
-    client = ProductionPollarbaseClient(
-        api_key=os.getenv('POLLARBASE_API_KEY'),
+    client = ProductionSchlep-engineClient(
+        api_key=os.getenv('Schlep-engine_API_KEY'),
         environment='production'
     )
     
@@ -2394,7 +2394,7 @@ Metrics available at: http://localhost:8000/metrics`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">Best Practices</h1>
               <p className="text-base text-gray-600 mb-6">
-                Recommended patterns and practices for effective use of Pollarbase.
+                Recommended patterns and practices for effective use of Schlep-engine.
               </p>
             </div>
 
@@ -2459,7 +2459,7 @@ Metrics available at: http://localhost:8000/metrics`
                 language: 'python',
                 title: 'Best Practices Implementation',
                 description: 'Production-ready code following all best practices',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import os
 import logging
 from dataclasses import dataclass
@@ -2478,7 +2478,7 @@ class DataValidationRules:
 class BestPracticeProcessor:
     def __init__(self, api_key: str):
         # ✅ Use environment variables for API keys
-        self.client = pollarbase.Client(api_key=api_key)
+        self.client = Schlep-engine.Client(api_key=api_key)
         self.logger = self._setup_logging()
         
     def _setup_logging(self):
@@ -2487,11 +2487,11 @@ class BestPracticeProcessor:
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             handlers=[
-                logging.FileHandler('pollarbase.log'),
+                logging.FileHandler('Schlep-engine.log'),
                 logging.StreamHandler()
             ]
         )
-        return logging.getLogger('pollarbase.processor')
+        return logging.getLogger('Schlep-engine.processor')
     
     def validate_file(self, file_path: str, rules: DataValidationRules) -> bool:
         """✅ Validate file before processing"""
@@ -2606,11 +2606,11 @@ class BestPracticeProcessor:
                 'transformations_applied': len(high_confidence) if 'high_confidence' in locals() else 0
             }
             
-        except pollarbase.ValidationError as e:
+        except Schlep-engine.ValidationError as e:
             self.logger.error(f"Validation error: {e.message}")
             return {'status': 'validation_failed', 'error': e.message}
             
-        except pollarbase.RateLimitError as e:
+        except Schlep-engine.RateLimitError as e:
             self.logger.warning(f"Rate limited, retry after {e.retry_after}s")
             return {'status': 'rate_limited', 'retry_after': e.retry_after}
             
@@ -2620,7 +2620,7 @@ class BestPracticeProcessor:
 
 # Usage example
 if __name__ == "__main__":
-    processor = BestPracticeProcessor(os.getenv('POLLARBASE_API_KEY'))
+    processor = BestPracticeProcessor(os.getenv('Schlep-engine_API_KEY'))
     
     rules = DataValidationRules(
         required_columns=['customer_id', 'email'],
@@ -2635,7 +2635,7 @@ if __name__ == "__main__":
                 response: `2024-01-15 10:30:00 INFO ✅ File validation passed: customer_data.csv
 2024-01-15 10:30:00 INFO File hash: d41d8cd98f00b204e9800998ecf8427e
 2024-01-15 10:30:05 INFO Quality score 78% below threshold 85%
-2024-01-15 10:30:06 INFO Backup created: https://files.pollarbase.com/backups/backup_123.parquet
+2024-01-15 10:30:06 INFO Backup created: https://files.Schlep-engine.com/backups/backup_123.parquet
 2024-01-15 10:30:06 INFO Applying 3 high-confidence transformations
 Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_score': 89, 'transformations_applied': 3}`
               })}
@@ -2681,7 +2681,7 @@ Processing result: {'status': 'success', 'dataset_id': 'ds_abc123', 'quality_sco
                 description: 'Implement proper retry logic for rate-limited requests',
                 code: `import time
 import random
-from pollarbase import PollarbaseClient, RateLimitError
+from Schlep-engine import Schlep-engineClient, RateLimitError
 
 def upload_with_retry(client, file_path, max_retries=5):
     for attempt in range(max_retries):
@@ -2700,7 +2700,7 @@ def upload_with_retry(client, file_path, max_retries=5):
     raise Exception("Max retries exceeded")
 
 # Usage
-client = PollarbaseClient(api_key="your_key")
+client = Schlep-engineClient(api_key="your_key")
 result = upload_with_retry(client, "large_dataset.csv")`,
                 response: `Rate limited. Retrying in 1.3s...
 Upload successful: dataset_id=ds_abc123`
@@ -2715,7 +2715,7 @@ Upload successful: dataset_id=ds_abc123`
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Supported Data Formats</h1>
               <p className="text-sm text-gray-600 mb-4">
-                File formats and data schemas supported by Pollarbase.
+                File formats and data schemas supported by Schlep-engine.
               </p>
             </div>
 
@@ -2858,7 +2858,7 @@ async function* paginateDatasets(client, limit = 50) {
 }
 
 // Usage
-const client = new PollarbaseClient(apiKey);
+const client = new Schlep-engineClient(apiKey);
 
 for await (const dataset of paginateDatasets(client)) {
   console.log(\`Dataset: \${dataset.name} - Quality: \${dataset.quality_score}%\`);
@@ -2915,14 +2915,14 @@ Dataset: inventory.parquet - Quality: 95%`
                 title: 'Enable Request Logging',
                 description: 'Configure detailed logging for debugging and monitoring',
                 code: `import logging
-from pollarbase import PollarbaseClient
+from Schlep-engine import Schlep-engineClient
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('pollarbase')
+logger = logging.getLogger('Schlep-engine')
 
 # Enable request logging
-client = PollarbaseClient(
+client = Schlep-engineClient(
     api_key="your_key",
     debug=True,
     log_requests=True,
@@ -2998,13 +2998,13 @@ Processing time: 2847ms`
                 title: 'Secure Client Configuration',
                 description: 'Set up the client with security best practices',
                 code: `import os
-from pollarbase import PollarbaseClient
-from pollarbase.security import DataEncryption
+from Schlep-engine import Schlep-engineClient
+from Schlep-engine.security import DataEncryption
 
 # Use environment variables for sensitive data
-client = PollarbaseClient(
-    api_key=os.getenv('POLLARBASE_API_KEY'),
-    environment=os.getenv('POLLARBASE_ENV', 'sandbox'),
+client = Schlep-engineClient(
+    api_key=os.getenv('Schlep-engine_API_KEY'),
+    environment=os.getenv('Schlep-engine_ENV', 'sandbox'),
     
     # Enable security features
     verify_ssl=True,
@@ -3013,7 +3013,7 @@ client = PollarbaseClient(
     
     # Request signing for extra security
     enable_request_signing=True,
-    signing_key=os.getenv('POLLARBASE_SIGNING_KEY')
+    signing_key=os.getenv('Schlep-engine_SIGNING_KEY')
 )
 
 # Upload with encryption
@@ -3083,8 +3083,8 @@ Access level: restricted`
                 title: 'Debug API Issues',
                 description: 'Comprehensive error handling and debugging',
                 code: `import logging
-from pollarbase import PollarbaseClient, PollarbaseError
-from pollarbase.exceptions import (
+from Schlep-engine import Schlep-engineClient, Schlep-engineError
+from Schlep-engine.exceptions import (
     AuthenticationError,
     RateLimitError, 
     ValidationError,
@@ -3093,7 +3093,7 @@ from pollarbase.exceptions import (
 
 # Enable debug logging
 logging.basicConfig(level=logging.DEBUG)
-client = PollarbaseClient(api_key="your_key", debug=True)
+client = Schlep-engineClient(api_key="your_key", debug=True)
 
 def robust_upload(file_path):
     try:
@@ -3118,7 +3118,7 @@ def robust_upload(file_path):
     except NetworkError as e:
         print(f"Network issue: {e}. Check connectivity.")
         
-    except PollarbaseError as e:
+    except Schlep-engineError as e:
         print(f"API error [{e.error_code}]: {e.message}")
         
     except Exception as e:
@@ -3144,7 +3144,7 @@ Validation failed: {'encoding': 'File encoding not supported', 'suggestion': 'Co
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Python SDK</h1>
               <p className="text-sm text-gray-600 mb-4">
-                The most comprehensive way to integrate Pollarbase into Python applications.
+                The most comprehensive way to integrate Schlep-engine into Python applications.
               </p>
             </div>
 
@@ -3154,25 +3154,25 @@ Validation failed: {'encoding': 'File encoding not supported', 'suggestion': 'Co
                 title: 'Installation',
                 description: 'Install the Python SDK via pip',
                 code: `# Install the latest version
-pip install pollarbase
+pip install Schlep-engine
 
 # Or install specific version
-pip install pollarbase==2.1.0
+pip install Schlep-engine==2.1.0
 
 # For development
-pip install pollarbase[dev]`
+pip install Schlep-engine[dev]`
               })}
 
               {renderCodeBlock({
                 language: 'python',
                 title: 'Complete Workflow Example',
                 description: 'End-to-end data processing with the Python SDK',
-                code: `import pollarbase as pb
+                code: `import Schlep-engine as pb
 import pandas as pd
 
 # Initialize client
 client = pb.Client(
-    api_key=os.getenv('POLLARBASE_API_KEY'),
+    api_key=os.getenv('Schlep-engine_API_KEY'),
     environment='production'
 )
 
@@ -3303,7 +3303,7 @@ for dataset in advanced_search.data:
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Testing</h1>
               <p className="text-sm text-gray-600 mb-4">
-                Test your Pollarbase integrations effectively with our testing tools.
+                Test your Schlep-engine integrations effectively with our testing tools.
               </p>
             </div>
 
@@ -3334,18 +3334,18 @@ for dataset in advanced_search.data:
 
               {renderCodeBlock({
                 language: 'python',
-                title: 'Unit Testing with Pollarbase',
+                title: 'Unit Testing with Schlep-engine',
                 description: 'Write comprehensive tests for your data processing pipeline',
                 code: `import unittest
 from unittest.mock import patch, MagicMock
-from pollarbase import PollarbaseClient
-from pollarbase.testing import MockClient, SampleData
+from Schlep-engine import Schlep-engineClient
+from Schlep-engine.testing import MockClient, SampleData
 
 class TestDataProcessing(unittest.TestCase):
     
     def setUp(self):
         # Use sandbox environment for testing
-        self.client = PollarbaseClient(
+        self.client = Schlep-engineClient(
             api_key="test_key",
             environment="sandbox"
         )
@@ -3460,7 +3460,7 @@ OK`
                 description: 'Optimize your data processing pipeline for maximum speed',
                 code: `import asyncio
 import aiofiles
-from pollarbase import AsyncPollarbaseClient
+from Schlep-engine import AsyncSchlep-engineClient
 from concurrent.futures import ThreadPoolExecutor
 import pandas as pd
 
@@ -3498,7 +3498,7 @@ async def optimize_and_upload(client, file_path):
 async def batch_process_files(file_paths, max_concurrent=5):
     """Process multiple files concurrently"""
     
-    client = AsyncPollarbaseClient(
+    client = AsyncSchlep-engineClient(
         api_key="your_key",
         # Connection pooling for better performance
         max_connections=20,
@@ -3603,11 +3603,11 @@ Total processing time: 23.4 seconds (avg 5.8s per file)`
                 language: 'python',
                 title: 'Enterprise Client Configuration',
                 description: 'Configure the client with enterprise features enabled',
-                code: `from pollarbase.enterprise import EnterpriseClient
+                code: `from Schlep-engine.enterprise import EnterpriseClient
 
 # Initialize enterprise client
 client = EnterpriseClient(
-    api_key=os.getenv('POLLARBASE_ENTERPRISE_KEY'),
+    api_key=os.getenv('Schlep-engine_ENTERPRISE_KEY'),
     organization_id='org_enterprise_123',
     
     # Enterprise security settings
@@ -3671,7 +3671,7 @@ Data lineage: 3 upstream sources tracked`
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Billing & Usage</h1>
               <p className="text-sm text-gray-600 mb-4">
-                Understanding pricing, usage tracking, and billing for Pollarbase services.
+                Understanding pricing, usage tracking, and billing for Schlep-engine services.
               </p>
             </div>
 
@@ -3787,7 +3787,7 @@ Real-time processing: 8 uses, $12.00`
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Changelog</h1>
               <p className="text-sm text-gray-600 mb-4">
-                Recent updates, new features, and improvements to the Pollarbase platform.
+                Recent updates, new features, and improvements to the Schlep-engine platform.
               </p>
             </div>
 
@@ -3879,15 +3879,15 @@ Real-time processing: 8 uses, $12.00`
                   Get notified about new releases and important updates.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-2">
-                  <a href="https://github.com/pollarbase/api/releases" 
+                  <a href="https://github.com/Schlep-engine/api/releases" 
                      className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
                     GitHub Releases
                   </a>
-                  <a href="https://status.pollarbase.com" 
+                  <a href="https://status.Schlep-engine.com" 
                      className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
                     Status Page
                   </a>
-                  <a href="mailto:updates@pollarbase.com?subject=Subscribe to updates" 
+                  <a href="mailto:updates@Schlep-engine.com?subject=Subscribe to updates" 
                      className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200 transition-colors">
                     Email Updates
                   </a>
@@ -3913,7 +3913,7 @@ Real-time processing: 8 uses, $12.00`
                 <div>
                   <h3 className="text-lg font-bold text-purple-900 mb-3">Advanced ML-Powered Detection</h3>
                   <p className="text-purple-800 leading-relaxed mb-4">
-                    Pollarbase uses ensemble methods combining statistical analysis, isolation forests, 
+                    Schlep-engine uses ensemble methods combining statistical analysis, isolation forests, 
                     autoencoders, and clustering algorithms to identify anomalies with <strong>95%+ accuracy</strong>.
                   </p>
                   <div className="grid md:grid-cols-3 gap-4">
@@ -3996,9 +3996,9 @@ Real-time processing: 8 uses, $12.00`
                 language: 'python',
                 title: 'Basic Anomaly Detection',
                 description: 'Detect anomalies in your dataset with a single function call',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Upload and detect anomalies
 dataset = client.upload_file("sales_data.csv")
@@ -4107,7 +4107,7 @@ email: 12 anomalies (0.6%)`
                 language: 'curl',
                 title: 'Upload CSV with Auto-Analysis',
                 description: 'Upload a CSV file and automatically run quality analysis',
-                code: `curl -X POST "https://api.pollarbase.com/v1/data/upload" \\
+                code: `curl -X POST "https://api.Schlep-engine.com/v1/data/upload" \\
   -H "Authorization: Bearer sk-your-api-key" \\
   -H "Content-Type: multipart/form-data" \\
   -F "file=@customer_data.csv" \\
@@ -4188,7 +4188,7 @@ email: 12 anomalies (0.6%)`
                 language: 'curl',
                 title: 'Start Analysis Job',
                 description: 'Initiate comprehensive analysis with ML insights and anomaly detection',
-                code: `curl -X POST "https://api.pollarbase.com/v1/analysis/analyze" \\
+                code: `curl -X POST "https://api.Schlep-engine.com/v1/analysis/analyze" \\
   -H "Authorization: Bearer sk-your-api-key" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -4240,9 +4240,9 @@ email: 12 anomalies (0.6%)`
                 language: 'python',
                 title: 'Smart Data Transformations',
                 description: 'Apply AI-suggested transformations with custom rules and validation',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 dataset = client.get_dataset("ds_7Qj2mK8fN3xB")
 
 # Define transformation pipeline
@@ -4346,9 +4346,9 @@ text_cleaning:
                 language: 'python',
                 title: 'Multi-Format Export',
                 description: 'Export data in multiple formats with custom configurations',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 dataset = client.get_dataset("ds_7Qj2mK8fN3xB")
 
 # Configure export options
@@ -4408,22 +4408,22 @@ for result in export_results:
   csv: clean_customer_data.csv.gz
     Size: 2.4 MB
     Rows: 10,000
-    Download URL: https://api.pollarbase.com/v1/downloads/exp_8Xm4...
+    Download URL: https://api.Schlep-engine.com/v1/downloads/exp_8Xm4...
 
   parquet: customer_data_optimized.parquet
     Size: 1.8 MB
     Rows: 10,000
-    Download URL: https://api.pollarbase.com/v1/downloads/exp_9Yn5...
+    Download URL: https://api.Schlep-engine.com/v1/downloads/exp_9Yn5...
 
   tensorflow: 
     Size: 3.2 MB (train: 7000, val: 1500, test: 1500)
     Rows: 10,000
-    Download URL: https://api.pollarbase.com/v1/downloads/exp_0Zo6...
+    Download URL: https://api.Schlep-engine.com/v1/downloads/exp_0Zo6...
 
   pytorch: dataset_pytorch.pt
     Size: 2.1 MB
     Rows: 10,000
-    Download URL: https://api.pollarbase.com/v1/downloads/exp_1Ap7...`
+    Download URL: https://api.Schlep-engine.com/v1/downloads/exp_1Ap7...`
               })}
             </div>
           </div>
@@ -4444,10 +4444,10 @@ for result in export_results:
                 language: 'python',
                 title: 'Job Management and Monitoring',
                 description: 'Track job progress, handle failures, and manage job queues',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import time
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Start multiple jobs
 jobs = []
@@ -4592,9 +4592,9 @@ Retrying job job_2Bq8rP3kS8cG as job_3Cr9sQ4lT9dH`
                 language: 'python',
                 title: 'Performance Optimization Configuration',
                 description: 'Configure processing parameters for optimal performance based on your data characteristics',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Configure for high-throughput processing
 high_throughput_config = {
@@ -4711,7 +4711,7 @@ Processing Speed: 15000/sec`
                 code: `from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
 from datetime import datetime, timedelta
-import pollarbase
+import Schlep-engine
 
 # DAG configuration
 default_args = {
@@ -4724,16 +4724,16 @@ default_args = {
 }
 
 dag = DAG(
-    'pollarbase_data_pipeline',
+    'Schlep-engine_data_pipeline',
     default_args=default_args,
-    description='Automated data processing with Pollarbase',
+    description='Automated data processing with Schlep-engine',
     schedule_interval='0 2 * * *',  # Daily at 2 AM
     catchup=False
 )
 
-def process_with_pollarbase(**context):
-    """Process data using Pollarbase API"""
-    client = pollarbase.Client()
+def process_with_Schlep-engine(**context):
+    """Process data using Schlep-engine API"""
+    client = Schlep-engine.Client()
     
     files = [
         "/data/daily_sales.csv",
@@ -4779,10 +4779,10 @@ def process_with_pollarbase(**context):
 # Define tasks
 process_task = PythonOperator(
     task_id='process_data',
-    python_callable=process_with_pollarbase,
+    python_callable=process_with_Schlep-engine,
     dag=dag
 )`,
-                response: `DAG Successfully Created: pollarbase_data_pipeline
+                response: `DAG Successfully Created: Schlep-engine_data_pipeline
 Next Run: 2024-01-02 02:00:00
 Tasks: process_data scheduled successfully`
               })}
@@ -4796,7 +4796,7 @@ Tasks: process_data scheduled successfully`
             <div className="mb-6">
               <h1 className="text-xl font-bold text-gray-900 mb-2">ML Framework Integration</h1>
               <p className="text-sm text-gray-600">
-                Seamlessly integrate Pollarbase with popular machine learning frameworks and data science tools.
+                Seamlessly integrate Schlep-engine with popular machine learning frameworks and data science tools.
               </p>
             </div>
 
@@ -4805,10 +4805,10 @@ Tasks: process_data scheduled successfully`
                 language: 'python',
                 title: 'Pandas DataFrame Integration',
                 description: 'Direct integration with pandas for seamless data analysis workflows',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import pandas as pd
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Upload and get processed DataFrame directly
 dataset = client.upload_file("customer_data.csv")
@@ -4825,10 +4825,10 @@ print(f"Original shape: {dataset.shape}")
 print(f"Cleaned shape: {df.shape}")
 print(f"Quality improvement: +{analysis.quality_improvement}%")
 
-# Pollarbase enhances your DataFrame with metadata
-print(f"Column types detected: {df.pollarbase.column_types}")
-print(f"Quality scores: {df.pollarbase.quality_scores}")
-print(f"Suggested transformations: {df.pollarbase.suggestions}")
+# Schlep-engine enhances your DataFrame with metadata
+print(f"Column types detected: {df.Schlep-engine.column_types}")
+print(f"Quality scores: {df.Schlep-engine.quality_scores}")
+print(f"Suggested transformations: {df.Schlep-engine.suggestions}")
 
 # Use enhanced DataFrame for analysis
 correlation_matrix = df.select_dtypes(include=['number']).corr()
@@ -4849,17 +4849,17 @@ Suggested transformations: ['fill_missing_age', 'standardize_email_format']`
                 language: 'python',
                 title: 'Scikit-learn Pipeline Integration',
                 description: 'Integrate data processing directly into scikit-learn pipelines',
-                code: `import pollarbase
+                code: `import Schlep-engine
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
-# Custom Pollarbase transformer for sklearn
-class PollarbaseTransformer:
+# Custom Schlep-engine transformer for sklearn
+class Schlep-engineTransformer:
     def __init__(self, quality_threshold=0.8):
-        self.client = pollarbase.Client()
+        self.client = Schlep-engine.Client()
         self.quality_threshold = quality_threshold
         self.dataset = None
         
@@ -4867,7 +4867,7 @@ class PollarbaseTransformer:
         return self
     
     def transform(self, X):
-        # Process with Pollarbase if it's raw data
+        # Process with Schlep-engine if it's raw data
         if isinstance(X, str):  # File path
             self.dataset = self.client.upload_file(X)
             analysis = self.dataset.analyze()
@@ -4880,15 +4880,15 @@ class PollarbaseTransformer:
             return self.dataset.to_numpy()
         return X
 
-# Create ML pipeline with Pollarbase preprocessing
+# Create ML pipeline with Schlep-engine preprocessing
 pipeline = Pipeline([
-    ('pollarbase_processor', PollarbaseTransformer(quality_threshold=0.85)),
+    ('Schlep-engine_processor', Schlep-engineTransformer(quality_threshold=0.85)),
     ('scaler', StandardScaler()),
     ('classifier', RandomForestClassifier(n_estimators=100, random_state=42))
 ])
 
 # Train model with automatic data cleaning
-X_train = "train_data.csv"  # Pollarbase will process this
+X_train = "train_data.csv"  # Schlep-engine will process this
 y_train = pd.read_csv("train_labels.csv")['target']
 
 # Fit pipeline (includes data cleaning)
@@ -4898,9 +4898,9 @@ pipeline.fit(X_train, y_train)
 X_test = "test_data.csv"
 predictions = pipeline.predict(X_test)
 
-print("Model trained with Pollarbase-processed data")
+print("Model trained with Schlep-engine-processed data")
 print(f"Training completed successfully")`,
-                response: `Model trained with Pollarbase-processed data
+                response: `Model trained with Schlep-engine-processed data
 Training completed successfully
 Data quality score: 0.89
 Applied transformations: 4
@@ -4910,12 +4910,12 @@ Processing time: 45.3s`
               {renderCodeBlock({
                 language: 'python',
                 title: 'TensorFlow Dataset Integration',
-                description: 'Create TensorFlow datasets directly from Pollarbase processed data',
-                code: `import pollarbase
+                description: 'Create TensorFlow datasets directly from Schlep-engine processed data',
+                code: `import Schlep-engine
 import tensorflow as tf
 import numpy as np
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Process data and create TensorFlow dataset
 dataset = client.upload_file("training_data.csv")
@@ -4994,11 +4994,11 @@ Test accuracy: 0.8823`
                 language: 'python',
                 title: 'Comprehensive Error Handling',
                 description: 'Handle different types of errors with appropriate recovery strategies',
-                code: `import pollarbase
+                code: `import Schlep-engine
 import time
 import logging
 from functools import wraps
-from pollarbase.exceptions import (
+from Schlep-engine.exceptions import (
     APIError, 
     RateLimitError, 
     ValidationError,
@@ -5035,7 +5035,7 @@ def retry_with_exponential_backoff(max_retries=3, base_delay=1):
 
 class RobustDataProcessor:
     def __init__(self):
-        self.client = pollarbase.Client()
+        self.client = Schlep-engine.Client()
         self.failed_files = []
         self.processed_files = []
         
@@ -5122,7 +5122,7 @@ Non-recoverable errors: 0`
                   <div>
                     <h2 className="text-xl font-bold text-emerald-900 mb-3">Enterprise Pipeline Architecture</h2>
                     <p className="text-emerald-800 mb-4">
-                      Pollarbase provides enterprise-grade pipeline orchestration with multi-step workflows, 
+                      Schlep-engine provides enterprise-grade pipeline orchestration with multi-step workflows, 
                       intelligent dependency management, automatic error recovery, and comprehensive monitoring.
                     </p>
                   </div>
@@ -5160,9 +5160,9 @@ Non-recoverable errors: 0`
                 language: 'python',
                 title: 'Complex Multi-Step Pipeline Architecture',
                 description: 'Build enterprise-grade pipelines with parallel execution, dependencies, and error recovery',
-                code: `import pollarbase
-from pollarbase.pipeline import PipelineBuilder, Stage, Dependency, ErrorPolicy
-from pollarbase.monitoring import PipelineMonitor
+                code: `import Schlep-engine
+from Schlep-engine.pipeline import PipelineBuilder, Stage, Dependency, ErrorPolicy
+from Schlep-engine.monitoring import PipelineMonitor
 import asyncio
 
 class EnterpriseDataPipeline:
@@ -5369,7 +5369,7 @@ class EnterpriseDataPipeline:
 
 # Usage example
 async def main():
-    client = pollarbase.Client(api_key="sk-your-key")
+    client = Schlep-engine.Client(api_key="sk-your-key")
     pipeline_manager = EnterpriseDataPipeline(client)
     
     # Build comprehensive pipeline
@@ -5446,8 +5446,8 @@ Execution Summary:
                 language: 'python',
                 title: 'Advanced Error Recovery and Circuit Breakers',
                 description: 'Implement robust error handling with circuit breakers, retry mechanisms, and automatic failover',
-                code: `import pollarbase
-from pollarbase.resilience import CircuitBreaker, RetryPolicy, FailoverManager
+                code: `import Schlep-engine
+from Schlep-engine.resilience import CircuitBreaker, RetryPolicy, FailoverManager
 import asyncio
 import time
 import random
@@ -5604,7 +5604,7 @@ class ResilientPipelineManager:
 
 # Usage example  
 async def resilient_processing_example():
-    client = pollarbase.Client(api_key="sk-your-key")
+    client = Schlep-engine.Client(api_key="sk-your-key")
     resilient_manager = ResilientPipelineManager(client)
     
     # Setup resilience components
@@ -5647,8 +5647,8 @@ Processing completed successfully with resilience!`
                 language: 'python',
                 title: 'Dynamic Resource Management and Auto-Scaling',
                 description: 'Intelligent resource allocation and automatic scaling based on workload characteristics',
-                code: `import pollarbase
-from pollarbase.orchestration import ResourceManager, AutoScaler, WorkloadAnalyzer
+                code: `import Schlep-engine
+from Schlep-engine.orchestration import ResourceManager, AutoScaler, WorkloadAnalyzer
 import asyncio
 
 class IntelligentResourceManager:
@@ -5818,7 +5818,7 @@ class AdaptiveExecutionManager:
 
 # Usage example
 async def intelligent_resource_example():
-    client = pollarbase.Client(api_key="sk-your-key")
+    client = Schlep-engine.Client(api_key="sk-your-key")
     resource_manager = IntelligentResourceManager(client)
     
     pipeline_config = {
@@ -5918,9 +5918,9 @@ Intelligent resource management completed!`
                 language: 'python',
                 title: 'Data Lineage API Usage',
                 description: 'Track and query data lineage for compliance and debugging',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Upload with governance metadata
 dataset = client.upload_file(
@@ -6004,10 +6004,10 @@ Lineage report exported: lineage_customer_data_20240120.json`
                 language: 'python',
                 title: 'PII Detection and Protection',
                 description: 'Automatically detect and protect personally identifiable information',
-                code: `import pollarbase
-from pollarbase.governance import PIIProtection
+                code: `import Schlep-engine
+from Schlep-engine.governance import PIIProtection
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Configure PII protection
 pii_config = PIIProtection.Config(
@@ -6125,38 +6125,38 @@ All datasets compliant with retention policies`
                 language: 'python',
                 title: 'Production Monitoring Setup',
                 description: 'Set up comprehensive monitoring for data pipelines with custom metrics and alerts',
-                code: `import pollarbase
-from pollarbase.monitoring import MetricsCollector, AlertManager
+                code: `import Schlep-engine
+from Schlep-engine.monitoring import MetricsCollector, AlertManager
 import prometheus_client
 import time
 
 # Initialize monitoring components
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 metrics = MetricsCollector()
 alerts = AlertManager()
 
 # Define custom metrics
 processing_duration = prometheus_client.Histogram(
-    'pollarbase_processing_duration_seconds',
+    'Schlep-engine_processing_duration_seconds',
     'Time spent processing datasets',
     ['dataset_type', 'processing_mode']
 )
 
 quality_score_gauge = prometheus_client.Gauge(
-    'pollarbase_quality_score',
+    'Schlep-engine_quality_score',
     'Data quality score for processed datasets',
     ['dataset_id', 'data_source']
 )
 
 error_counter = prometheus_client.Counter(
-    'pollarbase_processing_errors_total',
+    'Schlep-engine_processing_errors_total',
     'Total processing errors',
     ['error_type', 'dataset_type']
 )
 
 class ProductionDataProcessor:
     def __init__(self):
-        self.client = pollarbase.Client()
+        self.client = Schlep-engine.Client()
         self.setup_alerts()
     
     def setup_alerts(self):
@@ -6301,15 +6301,15 @@ Failed to process corrupted_file.csv: ValidationError
 
 Metrics exported: 15 metrics
 Alerts configured: 3 active
-Monitoring dashboard available at: http://monitoring.company.com/pollarbase`
+Monitoring dashboard available at: http://monitoring.company.com/Schlep-engine`
               })}
 
               {renderCodeBlock({
                 language: 'python',
                 title: 'Dashboard and Visualization Integration',
                 description: 'Integrate with popular monitoring tools like Grafana and DataDog',
-                code: `import pollarbase
-from pollarbase.integrations import GrafanaIntegration, DataDogIntegration
+                code: `import Schlep-engine
+from Schlep-engine.integrations import GrafanaIntegration, DataDogIntegration
 import json
 
 # Grafana Integration
@@ -6318,39 +6318,39 @@ grafana = GrafanaIntegration(
     api_key='your_grafana_api_key'
 )
 
-# Create Pollarbase monitoring dashboard
+# Create Schlep-engine monitoring dashboard
 dashboard_config = {
-    'title': 'Pollarbase Data Pipeline Monitoring',
+    'title': 'Schlep-engine Data Pipeline Monitoring',
     'panels': [
         {
             'title': 'Processing Volume',
             'type': 'graph',
-            'metrics': ['pollarbase_files_processed_total'],
+            'metrics': ['Schlep-engine_files_processed_total'],
             'time_range': '24h'
         },
         {
             'title': 'Quality Score Distribution',
             'type': 'histogram',
-            'metrics': ['pollarbase_quality_score'],
+            'metrics': ['Schlep-engine_quality_score'],
             'time_range': '7d'
         },
         {
             'title': 'Error Rate',
             'type': 'stat',
-            'metrics': ['pollarbase_processing_errors_total'],
+            'metrics': ['Schlep-engine_processing_errors_total'],
             'alert_threshold': 0.05
         },
         {
             'title': 'Processing Duration',
             'type': 'heatmap',
-            'metrics': ['pollarbase_processing_duration_seconds'],
+            'metrics': ['Schlep-engine_processing_duration_seconds'],
             'time_range': '24h'
         }
     ],
     'alerts': [
         {
             'name': 'High Error Rate',
-            'condition': 'avg(pollarbase_error_rate) > 0.05',
+            'condition': 'avg(Schlep-engine_error_rate) > 0.05',
             'notification_channels': ['slack-alerts']
         }
     ]
@@ -6367,7 +6367,7 @@ datadog = DataDogIntegration(
 )
 
 # Send custom metrics to DataDog
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 def send_pipeline_metrics():
     """Send pipeline health metrics to DataDog"""
@@ -6378,17 +6378,17 @@ def send_pipeline_metrics():
     # Send metrics
     datadog.send_metrics([
         {
-            'metric': 'pollarbase.files.processed',
+            'metric': 'Schlep-engine.files.processed',
             'points': [(int(time.time()), stats.files_processed)],
             'tags': ['environment:production', 'team:data']
         },
         {
-            'metric': 'pollarbase.quality.average',
+            'metric': 'Schlep-engine.quality.average',
             'points': [(int(time.time()), stats.avg_quality_score)],
             'tags': ['environment:production']
         },
         {
-            'metric': 'pollarbase.processing.duration',
+            'metric': 'Schlep-engine.processing.duration',
             'points': [(int(time.time()), stats.avg_processing_time)],
             'tags': ['environment:production']
         }
@@ -6396,7 +6396,7 @@ def send_pipeline_metrics():
     
     # Send service check
     datadog.send_service_check(
-        check='pollarbase.pipeline.health',
+        check='Schlep-engine.pipeline.health',
         status=0 if stats.health_score > 0.9 else 1,
         tags=['environment:production']
     )
@@ -6448,7 +6448,7 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)`,
-                response: `Dashboard created: https://grafana.company.com/d/pollarbase-monitoring
+                response: `Dashboard created: https://grafana.company.com/d/Schlep-engine-monitoring
 DataDog metrics sent successfully
 Health check endpoint running on :8080
 Service checks: 5/5 passing
@@ -6473,10 +6473,10 @@ Monitoring integration complete`
                 language: 'python',
                 title: 'Cost-Aware Processing Configuration',
                 description: 'Optimize processing costs based on data characteristics and requirements',
-                code: `import pollarbase
-from pollarbase.optimization import CostOptimizer
+                code: `import Schlep-engine
+from Schlep-engine.optimization import CostOptimizer
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 optimizer = CostOptimizer()
 
 # Analyze historical cost patterns
@@ -6493,7 +6493,7 @@ print("Most expensive operation: " + cost_analysis.highest_cost_operation)
 # Cost-optimized processing strategies
 class CostOptimizedProcessor:
     def __init__(self):
-        self.client = pollarbase.Client()
+        self.client = Schlep-engine.Client()
         self.optimizer = CostOptimizer()
     
     def choose_optimal_strategy(self, file_path, requirements):
@@ -6899,7 +6899,7 @@ File 3: economical_processing
                   <div>
                     <h2 className="text-xl font-bold text-blue-900 mb-3">Enterprise Data Governance</h2>
                     <p className="text-blue-800 mb-4">
-                      Pollarbase provides enterprise-grade data governance with automated PII detection, 
+                      Schlep-engine provides enterprise-grade data governance with automated PII detection, 
                       data lineage tracking, compliance reporting, and comprehensive audit trails.
                     </p>
                   </div>
@@ -6937,8 +6937,8 @@ File 3: economical_processing
                 language: 'python',
                 title: 'Advanced PII Detection Configuration',
                 description: 'Configure automatic PII detection with custom patterns and sensitivity levels',
-                code: `import pollarbase
-from pollarbase.governance import PIIDetector, SensitivityLevel, PIIType
+                code: `import Schlep-engine
+from Schlep-engine.governance import PIIDetector, SensitivityLevel, PIIType
 
 # Initialize PII detector with custom configuration
 pii_detector = PIIDetector(
@@ -6952,7 +6952,7 @@ pii_detector = PIIDetector(
 )
 
 # Configure client with governance settings
-client = pollarbase.Client(
+client = Schlep-engine.Client(
     api_key="sk-your-key",
     governance_config={
         "pii_detection": {
@@ -7092,7 +7092,7 @@ Processing complete with 1,247 governance actions applied`
                 language: 'python',
                 title: 'Data Lineage and Audit Trail Configuration',
                 description: 'Track data transformations and maintain comprehensive audit trails',
-                code: `from pollarbase.governance import AuditTrail, DataLineage, ComplianceFramework
+                code: `from Schlep-engine.governance import AuditTrail, DataLineage, ComplianceFramework
 
 # Configure comprehensive data lineage tracking
 lineage_config = DataLineage(
@@ -7122,7 +7122,7 @@ compliance_config = ComplianceFramework(
 )
 
 # Initialize governance-enabled client
-client = pollarbase.Client(
+client = Schlep-engine.Client(
     api_key="sk-your-key",
     governance_config={
         "lineage": lineage_config,
@@ -7278,7 +7278,7 @@ Compliance automation: ✅ Monthly reports scheduled`
                 language: 'python',
                 title: 'Custom Business Validation Rules',
                 description: 'Implement custom validation logic for business-specific data quality requirements',
-                code: `from pollarbase.governance import ValidationRule, ValidationSeverity, BusinessRuleEngine
+                code: `from Schlep-engine.governance import ValidationRule, ValidationSeverity, BusinessRuleEngine
 
 # Define custom validation rules for business logic
 class CustomerDataValidator:
@@ -7399,7 +7399,7 @@ class CustomerDataValidator:
 def validate_customer_data_with_business_rules(file_path):
     """Process customer data with comprehensive business validation"""
     
-    client = pollarbase.Client(api_key="sk-your-key")
+    client = Schlep-engine.Client(api_key="sk-your-key")
     validator = CustomerDataValidator(client)
     
     # Upload dataset
@@ -7533,7 +7533,7 @@ Validation complete with 92% auto-remediation success rate`
                   <div>
                     <h2 className="text-xl font-bold text-blue-900 mb-3">Enterprise Data Governance</h2>
                     <p className="text-blue-800 mb-4">
-                      Pollarbase provides enterprise-grade data governance with automated PII detection, 
+                      Schlep-engine provides enterprise-grade data governance with automated PII detection, 
                       data lineage tracking, compliance reporting, and comprehensive audit trails.
                     </p>
                   </div>
@@ -7571,8 +7571,8 @@ Validation complete with 92% auto-remediation success rate`
                 language: 'python',
                 title: 'Advanced PII Detection Configuration',
                 description: 'Configure automatic PII detection with custom patterns and sensitivity levels',
-                code: `import pollarbase
-from pollarbase.governance import PIIDetector, SensitivityLevel, PIIType
+                code: `import Schlep-engine
+from Schlep-engine.governance import PIIDetector, SensitivityLevel, PIIType
 
 # Initialize PII detector with custom configuration
 pii_detector = PIIDetector(
@@ -7586,7 +7586,7 @@ pii_detector = PIIDetector(
 )
 
 # Configure client with governance settings
-client = pollarbase.Client(
+client = Schlep-engine.Client(
     api_key="sk-your-key",
     governance_config={
         "pii_detection": {
@@ -7721,7 +7721,7 @@ Processing complete with 1,247 governance actions applied`
                 language: 'python',
                 title: 'Custom Business Validation Rules',
                 description: 'Implement custom validation logic for business-specific data quality requirements',
-                code: `from pollarbase.governance import ValidationRule, ValidationSeverity, BusinessRuleEngine
+                code: `from Schlep-engine.governance import ValidationRule, ValidationSeverity, BusinessRuleEngine
 
 # Define custom validation rules for business logic
 class CustomerDataValidator:
@@ -7788,7 +7788,7 @@ class CustomerDataValidator:
 def validate_customer_data_with_business_rules(file_path):
     """Process customer data with comprehensive business validation"""
     
-    client = pollarbase.Client(api_key="sk-your-key")
+    client = Schlep-engine.Client(api_key="sk-your-key")
     validator = CustomerDataValidator(client)
     
     # Upload dataset
@@ -7872,10 +7872,10 @@ Validation complete with 92% auto-remediation success rate`
                 language: 'python',
                 title: 'Audit Trail and Compliance Reporting',
                 description: 'Comprehensive audit trails and automated compliance reporting for regulatory requirements',
-                code: `from pollarbase.governance import AuditTrail, DataLineage, ComplianceFramework
+                code: `from Schlep-engine.governance import AuditTrail, DataLineage, ComplianceFramework
 
 # Configure comprehensive audit and compliance tracking
-client = pollarbase.Client(
+client = Schlep-engine.Client(
     api_key="sk-your-key",
     governance_config={
         "audit_trail": {
@@ -8067,8 +8067,8 @@ Compliance reports exported with digital signatures for audit`
                 language: 'python',
                 title: 'Custom Validation Rules',
                 description: 'Define custom validation logic for your data',
-                code: `import pollarbase
-from pollarbase.validation import ValidationRule, DataType, ValidationSeverity
+                code: `import Schlep-engine
+from Schlep-engine.validation import ValidationRule, DataType, ValidationSeverity
 
 # Define custom validation rules
 class EmailValidationRule(ValidationRule):
@@ -8112,7 +8112,7 @@ class AgeRangeRule(ValidationRule):
             return self.fail("Age must be a valid number")
 
 # Apply custom validations
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 dataset = client.upload_file("customer_data.csv")
 
@@ -8168,7 +8168,7 @@ Error: Age 200 is outside valid range (Column: age, Row: 89)`
             <div className="mb-4">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Integrations API</h1>
               <p className="text-sm text-gray-600 mb-4">
-                Connect Pollarbase to your databases, APIs, and data sources for seamless data ingestion.
+                Connect Schlep-engine to your databases, APIs, and data sources for seamless data ingestion.
               </p>
             </div>
 
@@ -8177,9 +8177,9 @@ Error: Age 200 is outside valid range (Column: age, Row: 89)`
                 language: 'python',
                 title: 'Database Integration Example',
                 description: 'Connect to PostgreSQL and automatically sync data',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 
 # Connect to PostgreSQL
 connection = client.integrations.database.connect(
@@ -8188,7 +8188,7 @@ connection = client.integrations.database.connect(
     host="db.company.com",
     port=5432,
     database="analytics",
-    username="pollarbase_user",
+    username="Schlep-engine_user",
     password="secure_password"
 )
 
@@ -8231,9 +8231,9 @@ print(f"Connected to {connection.database} - {len(tables)} tables synced")`,
                 language: 'python',
                 title: 'PyTorch Export',
                 description: 'Export data as PyTorch DataLoader with automatic train/val splits',
-                code: `import pollarbase
+                code: `import Schlep-engine
 
-client = pollarbase.Client()
+client = Schlep-engine.Client()
 investigation = client.investigations.get("inv_abc123")
 
 # Export to PyTorch format
@@ -8299,7 +8299,7 @@ Export saved to: ./pytorch_export/`
                 <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                   <Brain className="w-6 h-6 text-white" />
               </div>
-                <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+                <span className="text-2xl font-bold text-gray-900">Schlep-engine</span>
                 <span className="text-lg text-gray-500 border-l border-gray-300 pl-4">Docs</span>
               </a>
             </div>
@@ -8374,7 +8374,7 @@ Export saved to: ./pytorch_export/`
                 <nav className="space-y-1">
                   {selectedSection === 'introduction' && (
                     <>
-                      <a href="#what-is-pollarbase" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">What is Pollarbase?</a>
+                      <a href="#what-is-Schlep-engine" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">What is Schlep-engine?</a>
                       <a href="#getting-started" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Getting Started</a>
                       <a href="#features" className="block text-xs text-gray-600 hover:text-blue-600 transition-colors py-0.5">Key Features</a>
                     </>
@@ -8451,15 +8451,15 @@ Export saved to: ./pytorch_export/`
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>Go to Dashboard</span>
                   </a>
-                  <a href="https://github.com/pollarbase/python-sdk" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                  <a href="https://github.com/Schlep-engine/python-sdk" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>Python SDK</span>
                   </a>
-                  <a href="https://github.com/pollarbase/js-sdk" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                  <a href="https://github.com/Schlep-engine/js-sdk" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>JavaScript SDK</span>
                   </a>
-                  <a href="https://status.pollarbase.com" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
+                  <a href="https://status.Schlep-engine.com" className="flex items-center space-x-2 text-xs text-gray-600 hover:text-blue-600 transition-colors group" target="_blank">
                     <span className="group-hover:translate-x-1 transition-transform">→</span>
                     <span>API Status</span>
                   </a>
@@ -8476,10 +8476,10 @@ Export saved to: ./pytorch_export/`
                   Get support from our team or connect with the community.
                 </p>
                 <div className="space-y-1">
-                  <a href="mailto:support@pollarbase.com" className="flex items-center space-x-2 text-xs text-blue-700 hover:text-blue-800 transition-colors">
+                  <a href="mailto:support@Schlep-engine.com" className="flex items-center space-x-2 text-xs text-blue-700 hover:text-blue-800 transition-colors">
                     <span>Email Support</span>
                   </a>
-                  <a href="https://discord.gg/pollarbase" className="flex items-center space-x-2 text-xs text-blue-700 hover:text-blue-800 transition-colors" target="_blank">
+                  <a href="https://discord.gg/Schlep-engine" className="flex items-center space-x-2 text-xs text-blue-700 hover:text-blue-800 transition-colors" target="_blank">
                     <span>Discord Community</span>
                   </a>
                 </div>
@@ -8524,7 +8524,7 @@ Export saved to: ./pytorch_export/`
                   <Brain className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+                  <span className="text-2xl font-bold text-gray-900">Schlep-engine</span>
                   <div className="text-sm text-gray-500 font-medium">Documentation</div>
                 </div>
               </div>
@@ -8610,19 +8610,19 @@ Export saved to: ./pytorch_export/`
                   <span>Go to Dashboard</span>
                   <ArrowRight className="w-3 h-3 ml-1 group-hover:translate-x-0.5 transition-transform" />
                 </a>
-                <a href="mailto:support@pollarbase.com" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
+                <a href="mailto:support@Schlep-engine.com" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors">
                   <span className="mr-2">✉️</span>
                   <span>Email Support</span>
                 </a>
-                <a href="https://discord.gg/pollarbase" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                <a href="https://discord.gg/Schlep-engine" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
                   <span className="mr-2">💬</span>
                   <span>Discord Community</span>
                 </a>
-                <a href="https://status.pollarbase.com" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                <a href="https://status.Schlep-engine.com" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
                   <span className="mr-2">📊</span>
                   <span>Status Page</span>
                 </a>
-                <a href="https://github.com/pollarbase/pollarbase" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
+                <a href="https://github.com/Schlep-engine/Schlep-engine" className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors" target="_blank">
                   <span className="mr-2">🔗</span>
                   <span>GitHub</span>
                 </a>
@@ -8634,7 +8634,7 @@ Export saved to: ./pytorch_export/`
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0 md:space-x-6">
               <div className="flex flex-col md:flex-row items-center space-y-2 md:space-y-0 md:space-x-6">
                 <p className="text-gray-700 text-sm font-medium">
-                  © 2024 Pollarbase. The Data Schlep Handler.
+                  © 2024 Schlep-engine. The Data Schlep Handler.
                 </p>
                 <div className="flex items-center space-x-4 text-xs text-gray-500">
                   <a href="/terms" className="hover:text-gray-700 transition-colors">Terms</a>

@@ -1,17 +1,17 @@
-# Kubernetes Deployment for Pollarbase
+# Kubernetes Deployment for Schlep-engine
 
-This directory contains reference manifests for running the Pollarbase stack on Kubernetes. These files are **minimal starting points**— customise them to fit your cluster standards (namespaces, resource limits, ingress, secrets, etc.).
+This directory contains reference manifests for running the Schlep-engine stack on Kubernetes. These files are **minimal starting points**— customise them to fit your cluster standards (namespaces, resource limits, ingress, secrets, etc.).
 
 ## Prerequisites
 
 * Kubernetes v1.24+
-* A container registry (e.g. GitHub Container Registry) where the CI pipeline pushes images `ghcr.io/your-org/pollarbase-*`.
+* A container registry (e.g. GitHub Container Registry) where the CI pipeline pushes images `ghcr.io/your-org/Schlep-engine-*`.
 * `kubectl` configured to talk to your cluster.
-* A `pollarbase-secrets` Secret containing `DATABASE_URL`, `REDIS_URL` and any other sensitive values required by the backend.
+* A `Schlep-engine-secrets` Secret containing `DATABASE_URL`, `REDIS_URL` and any other sensitive values required by the backend.
 
 ```bash
-kubectl create secret generic pollarbase-secrets \
-  --from-literal=DATABASE_URL=postgresql://user:pass@db/pollarbase \
+kubectl create secret generic Schlep-engine-secrets \
+  --from-literal=DATABASE_URL=postgresql://user:pass@db/Schlep-engine \
   --from-literal=REDIS_URL=redis://redis:6379/0
 ```
 

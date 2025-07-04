@@ -1,5 +1,5 @@
 """
-Advanced Load Testing Suite for Pollarbase API
+Advanced Load Testing Suite for Schlep-engine API
 Comprehensive performance validation with real-world scenarios
 """
 
@@ -152,7 +152,7 @@ class LoadTestScenarios:
         try:
             # Try to authenticate with demo credentials
             auth_data = {
-                "username": "admin@pollarbase.com",
+                "username": "admin@Schlep-engine.com",
                 "password": "admin123"
             }
             
@@ -419,7 +419,7 @@ class AdvancedLoadTester:
         async with aiohttp.ClientSession(
             connector=connector,
             timeout=timeout,
-            headers={"User-Agent": "Pollarbase-LoadTester/1.0"}
+            headers={"User-Agent": "Schlep-engine-LoadTester/1.0"}
         ) as session:
             # Create tasks for concurrent users
             tasks = []
@@ -548,7 +548,7 @@ class AdvancedLoadTester:
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Pollarbase Load Test Report</title>
+            <title>Schlep-engine Load Test Report</title>
             <style>
                 body {{ font-family: Arial, sans-serif; margin: 40px; }}
                 .header {{ background: #3b82f6; color: white; padding: 20px; border-radius: 8px; }}
@@ -564,7 +564,7 @@ class AdvancedLoadTester:
         </head>
         <body>
             <div class="header">
-                <h1>Pollarbase Load Test Report</h1>
+                <h1>Schlep-engine Load Test Report</h1>
                 <p>Test executed on {result.start_time.strftime('%Y-%m-%d %H:%M:%S')} UTC</p>
             </div>
             
@@ -661,7 +661,7 @@ async def main():
     """Main function for running load tests"""
     import argparse
     
-    parser = argparse.ArgumentParser(description="Pollarbase Advanced Load Testing")
+    parser = argparse.ArgumentParser(description="Schlep-engine Advanced Load Testing")
     parser.add_argument("--url", default="http://localhost:8000", help="Base URL for testing")
     parser.add_argument("--users", type=int, default=50, help="Number of concurrent users")
     parser.add_argument("--duration", type=int, default=300, help="Test duration in seconds")
@@ -679,7 +679,7 @@ async def main():
         scenarios=args.scenarios
     )
     
-    print(" POLLARBASE ADVANCED LOAD TESTING")
+    print(" Schlep-engine ADVANCED LOAD TESTING")
     print("=" * 50)
     
     tester = AdvancedLoadTester(config)

@@ -26,7 +26,7 @@ interface GuidedTourProps {
 const tourSteps: TourStep[] = [
   {
     id: 'welcome',
-    title: '🚀 Welcome to Pollarbase!',
+    title: '🚀 Welcome to Schlep-engine!',
     description: 'Transform your messy data into AI-ready insights in minutes, not hours.',
     content: (
       <div className="space-y-4">
@@ -182,7 +182,7 @@ const tourSteps: TourStep[] = [
     content: (
       <div className="space-y-4">
         <p className="text-sm text-gray-600">
-          Explore Pollarbase with pre-loaded sample datasets:
+          Explore Schlep-engine with pre-loaded sample datasets:
         </p>
         <div className="grid gap-3">
           <div className="border border-gray-200 rounded-lg p-3 hover:bg-gray-50 cursor-pointer">
@@ -328,7 +328,7 @@ export function GuidedTour({ isVisible, onClose, onComplete, userId }: GuidedTou
           <div className="px-6 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="text-lg font-semibold">Pollarbase Tour</h2>
+                <h2 className="text-lg font-semibold">Schlep-engine Tour</h2>
                 <p className="text-blue-100 text-sm">
                   Step {currentStep + 1} of {tourSteps.length}
                 </p>

@@ -2,7 +2,7 @@
 Security Monitoring Module
 
 This module provides comprehensive security monitoring, threat detection, and
-incident response capabilities for the Pollarbase platform. It implements
+incident response capabilities for the Schlep-engine platform. It implements
 real-time security monitoring, anomaly detection, and automated response
 mechanisms to protect against cyber threats and security incidents.
 

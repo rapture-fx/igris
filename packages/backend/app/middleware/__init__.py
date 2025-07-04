@@ -1,7 +1,7 @@
 """
 Security Middleware Package
 
-This package provides comprehensive security middleware for the Pollarbase API
+This package provides comprehensive security middleware for the Schlep-engine API
 with decorator-based implementation for minimal changes to existing endpoints.
 
 Modules:

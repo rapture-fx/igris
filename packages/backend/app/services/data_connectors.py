@@ -1,5 +1,5 @@
 """
-Universal Data Connectors Service for Pollarbase
+Universal Data Connectors Service for Schlep-engine
 Provides comprehensive data integration capabilities including databases, cloud storage, APIs, and real-time streaming
 """
 

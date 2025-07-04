@@ -2,7 +2,7 @@
 Compliance Security Module
 
 This module provides comprehensive regulatory compliance management for the
-Pollarbase platform, implementing frameworks for SOC 2, GDPR, HIPAA,
+Schlep-engine platform, implementing frameworks for SOC 2, GDPR, HIPAA,
 PCI DSS, and other industry standards. It automates compliance monitoring,
 reporting, and evidence collection to support audit readiness.
 

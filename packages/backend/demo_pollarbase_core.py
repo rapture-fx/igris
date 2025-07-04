@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-🎯 POLLARBASE CORE PRODUCT DEMO
+🎯 Schlep-engine CORE PRODUCT DEMO
 ==============================
 
 This demo shows the ACTUAL WORKING PRODUCT in action.
 
-Run this script to see how Pollarbase transforms any data file
+Run this script to see how Schlep-engine transforms any data file
 into AI-ready datasets for multiple frameworks.
 """
 
@@ -37,10 +37,10 @@ def create_demo_data():
     df.to_csv('demo_customer_data.csv', index=False)
     return 'demo_customer_data.csv'
 
-def run_pollarbase_demo():
-    """Run complete Pollarbase demo"""
+def run_Schlep-engine_demo():
+    """Run complete Schlep-engine demo"""
     
-    print("🚀 POLLARBASE AI DATA PREPARATION PLATFORM")
+    print("🚀 Schlep-engine AI DATA PREPARATION PLATFORM")
     print("=" * 60)
     print("🎯 MISSION: Transform any data into AI-ready datasets")
     print("⚡ SPEED: Process files in seconds, not hours")
@@ -54,7 +54,7 @@ def run_pollarbase_demo():
     print(f"✅ Created: {demo_file}")
     print()
     
-    # Step 2: Process with Pollarbase
+    # Step 2: Process with Schlep-engine
     print("🧠 STEP 2: AI-powered data analysis and preparation...")
     print("   • Identifying data types semantically")
     print("   • Detecting anomalies and quality issues") 
@@ -69,7 +69,7 @@ def run_pollarbase_demo():
         print(f"🔥 PROCESSING FOR {framework.upper()}:")
         print("-" * 40)
         
-        # Run Pollarbase AI engine
+        # Run Schlep-engine AI engine
         result = prepare_data_for_ai(demo_file, framework)
         
         if result['status'] == 'success':
@@ -114,7 +114,7 @@ def run_pollarbase_demo():
         print()
     
     print("=" * 60)
-    print("🎉 POLLARBASE DEMO COMPLETE!")
+    print("🎉 Schlep-engine DEMO COMPLETE!")
     print()
     print("💡 WHAT YOU JUST SAW:")
     print("   • Uploaded raw CSV data file")
@@ -125,9 +125,9 @@ def run_pollarbase_demo():
     print("   • Exported to 4 different AI frameworks")
     print("   • All in under 5 seconds!")
     print()
-    print("🚀 THIS IS THE POWER OF POLLARBASE!")
+    print("🚀 THIS IS THE POWER OF Schlep-engine!")
     print("💰 READY FOR COMMERCIALIZATION!")
     print("=" * 60)
 
 if __name__ == "__main__":
-    run_pollarbase_demo()
+    run_Schlep-engine_demo()

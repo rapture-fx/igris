@@ -1,3 +1,3 @@
-# Pollarbase ML Service Dependencies
+# Schlep-engine ML Service Dependencies
 # Heavy ML dependencies for separate service
 

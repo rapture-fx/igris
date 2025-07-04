@@ -1,6 +1,6 @@
 """
 Sample Data API Endpoint
-Provides pre-built datasets for users to explore Pollarbase features
+Provides pre-built datasets for users to explore Schlep-engine features
 """
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks

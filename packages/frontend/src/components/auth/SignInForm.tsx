@@ -192,7 +192,7 @@ export function SignInForm() {
           <div className="w-full border-t border-gray-200"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-gray-500">New to Pollarbase?</span>
+          <span className="px-4 bg-white text-gray-500">New to Schlep-engine?</span>
         </div>
       </div>
 

@@ -425,7 +425,7 @@ class EnhancedSecurity:
         # Generate QR code
         provisioning_uri = totp.provisioning_uri(
             name=username,
-            issuer_name="Pollarbase Data Intelligence"
+            issuer_name="Schlep-engine Data Intelligence"
         )
         
         qr = qrcode.QRCode(version=1, box_size=10, border=5)

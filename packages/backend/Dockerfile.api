@@ -1,4 +1,4 @@
-# Pollarbase Core API Service Dockerfile
+# Schlep-engine Core API Service Dockerfile
 # Optimized for production deployment with minimal dependencies (24 packages)
 FROM python:3.11-slim as base
 
@@ -11,7 +11,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_DEFAULT_TIMEOUT=100
 
 # Create non-root user
-RUN groupadd -r pollarbase && useradd -r -g pollarbase pollarbase
+RUN groupadd -r Schlep-engine && useradd -r -g Schlep-engine Schlep-engine
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
@@ -51,10 +51,10 @@ COPY sql/ /app/sql/
 
 # Create necessary directories
 RUN mkdir -p /app/uploads /app/logs /app/static && \
-    chown -R pollarbase:pollarbase /app
+    chown -R Schlep-engine:Schlep-engine /app
 
 # Switch to non-root user
-USER pollarbase
+USER Schlep-engine
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \

@@ -201,7 +201,7 @@ cython_debug/
 *.py,cover
 .hypothesis/
 
-# Pollarbase AI-powered data analysis platform - Specific Exclusions
+# Schlep-engine AI-powered data analysis platform - Specific Exclusions
 
 # Uploaded data files (for privacy and size)
 backend/uploads/

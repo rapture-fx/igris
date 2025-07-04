@@ -82,8 +82,8 @@ class CICDPipeline:
     """
     
     def __init__(self, 
-                 project_name: str = "pollarbase-ai",
-                 repository_url: str = "https://github.com/pollarbase/ai-platform"):
+                 project_name: str = "Schlep-engine-ai",
+                 repository_url: str = "https://github.com/Schlep-engine/ai-platform"):
         self.project_name = project_name
         self.repository_url = repository_url
         self.test_config = TestConfig()
@@ -93,7 +93,7 @@ class CICDPipeline:
     def generate_github_actions_workflow(self) -> str:
         """Generate GitHub Actions workflow configuration"""
         workflow = {
-            "name": "Pollarbase AI Platform CI/CD",
+            "name": "Schlep-engine AI Platform CI/CD",
             "on": {
                 "push": {
                     "branches": ["main", "develop", "release/*"]
@@ -358,7 +358,7 @@ class CICDPipeline:
                         "target": "production"
                     },
                     "environment": [
-                        "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/pollarbase_test",
+                        "DATABASE_URL=postgresql://postgres:postgres@postgres:5432/Schlep-engine_test",
                         "REDIS_URL=redis://redis:6379/0",
                         "TESTING=true"
                     ],
@@ -376,7 +376,7 @@ class CICDPipeline:
                     "environment": [
                         "POSTGRES_USER=postgres",
                         "POSTGRES_PASSWORD=postgres",
-                        "POSTGRES_DB=pollarbase_test"
+                        "POSTGRES_DB=Schlep-engine_test"
                     ],
                     "healthcheck": {
                         "test": ["CMD-SHELL", "pg_isready -U postgres"],
@@ -453,7 +453,7 @@ IMAGE_NAME="${REGISTRY}/${GITHUB_REPOSITORY}:${IMAGE_TAG}"
 
 # Backup database
 echo "💾 Creating database backup..."
-docker exec pollarbase_postgres pg_dump -U pollarbase pollarbase_prod > "backup_$(date +%Y%m%d_%H%M%S).sql"
+docker exec Schlep-engine_postgres pg_dump -U Schlep-engine Schlep-engine_prod > "backup_$(date +%Y%m%d_%H%M%S).sql"
 
 # Blue-Green deployment
 echo "🔵 Starting Blue-Green deployment..."
@@ -510,7 +510,7 @@ echo "🔙 Rolling back to version: ${PREVIOUS_VERSION}"
 # Restore from backup if needed
 if [ "$ENVIRONMENT" = "production" ]; then
   echo "💾 Database rollback available if needed"
-  echo "Run: docker exec pollarbase_postgres psql -U pollarbase -d pollarbase_prod < backup_file.sql"
+  echo "Run: docker exec Schlep-engine_postgres psql -U Schlep-engine -d Schlep-engine_prod < backup_file.sql"
 fi
 
 # Deploy previous version
@@ -732,13 +732,13 @@ alerting:
           - alertmanager:9093
 
 scrape_configs:
-  - job_name: 'pollarbase-api'
+  - job_name: 'Schlep-engine-api'
     static_configs:
       - targets: ['backend:8000']
     metrics_path: '/metrics'
     scrape_interval: 15s
     
-  - job_name: 'pollarbase-system'
+  - job_name: 'Schlep-engine-system'
     static_configs:
       - targets: ['backend:8000']
     metrics_path: '/system/metrics'
@@ -749,7 +749,7 @@ scrape_configs:
         configs["grafana-dashboard.json"] = """
 {
   "dashboard": {
-    "title": "Pollarbase AI Platform Monitoring",
+    "title": "Schlep-engine AI Platform Monitoring",
     "panels": [
       {
         "title": "API Response Time",
@@ -802,8 +802,8 @@ scrape_configs:
 def create_pipeline_config():
     """Create CI/CD pipeline configuration"""
     pipeline = CICDPipeline(
-        project_name="pollarbase-ai",
-        repository_url="https://github.com/pollarbase/ai-platform"
+        project_name="Schlep-engine-ai",
+        repository_url="https://github.com/Schlep-engine/ai-platform"
     )
     
     return {

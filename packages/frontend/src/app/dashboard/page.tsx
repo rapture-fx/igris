@@ -111,7 +111,7 @@ export default function DashboardPage() {
               <Upload className="w-8 h-8 text-blue-600" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 mb-3">
-              Welcome to Pollarbase
+              Welcome to Schlep-engine
             </h1>
             <p className="text-gray-600 mb-8">
               Upload your first dataset to start handling the data schlep

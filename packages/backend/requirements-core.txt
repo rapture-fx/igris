@@ -1,4 +1,4 @@
-# Pollarbase Core API Dependencies
+# Schlep-engine Core API Dependencies
 # Optimized for production deployment
 
 aiofiles==23.2.1

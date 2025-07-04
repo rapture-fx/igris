@@ -1,6 +1,6 @@
 """
 Advanced Data Integration API - Database, Cloud Storage, API, and Real-time Streaming
-Provides comprehensive data integration capabilities for Pollarbase
+Provides comprehensive data integration capabilities for Schlep-engine
 """
 
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks

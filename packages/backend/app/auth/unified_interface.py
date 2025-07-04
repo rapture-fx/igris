@@ -2,7 +2,7 @@
 Unified Authentication Interface
 ===============================
 
-This module provides the single, consolidated authentication interface for Pollarbase.
+This module provides the single, consolidated authentication interface for Schlep-engine.
 It replaces all fragmented authentication systems with a clean, unified approach.
 
 Key Features:

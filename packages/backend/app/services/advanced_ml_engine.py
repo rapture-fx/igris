@@ -26,7 +26,7 @@ except ImportError:
 
 
 Advanced ML Engine for Custom Model Training and Predictive Analytics
-Provides enterprise-grade machine learning capabilities for Pollarbase
+Provides enterprise-grade machine learning capabilities for Schlep-engine
 """
 
 import numpy as np

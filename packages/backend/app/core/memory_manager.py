@@ -1,5 +1,5 @@
 """
-Advanced Memory Management System for Pollarbase
+Advanced Memory Management System for Schlep-engine
 Dynamic resource allocation, monitoring, and optimization
 """
 

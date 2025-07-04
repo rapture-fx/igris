@@ -29,7 +29,7 @@ NEXT_PUBLIC_MAX_UPLOAD_SIZE=100
 NEXT_PUBLIC_MAX_CONCURRENT_UPLOADS=5
 
 # UI Configuration
-NEXT_PUBLIC_APP_NAME=Sherringfords
+NEXT_PUBLIC_APP_NAME=Schlep-engine
 NEXT_PUBLIC_APP_DESCRIPTION="AI-Powered Data Intelligence Platform"
 EOL
     echo " .env.local created successfully"
@@ -59,7 +59,7 @@ if [ ! -f .env.production ]; then
 # Production Environment Configuration
 NODE_ENV=production
 NEXT_PUBLIC_DEBUG=false
-NEXT_PUBLIC_API_URL=https://api.sherringfords.com
+NEXT_PUBLIC_API_URL=https://api.Schlep-engine.com
 NEXT_PUBLIC_API_VERSION=v1
 EOL
     echo " .env.production created successfully"

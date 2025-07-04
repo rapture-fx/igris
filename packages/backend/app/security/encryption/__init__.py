@@ -1,7 +1,7 @@
 """
 Security Encryption Module
 
-This module provides comprehensive encryption capabilities for the Pollarbase platform:
+This module provides comprehensive encryption capabilities for the Schlep-engine platform:
 
 1. Field-Level Encryption (field_encryption.py):
    - AES-256-GCM authenticated encryption
@@ -153,7 +153,7 @@ __all__ = [
 
 # Version info
 __version__ = '1.0.0'
-__author__ = 'Pollarbase Security Team'
+__author__ = 'Schlep-engine Security Team'
 __description__ = 'Comprehensive encryption and PII protection module'
 
 from typing import Dict, Any, List, Optional

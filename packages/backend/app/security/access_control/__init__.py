@@ -2,7 +2,7 @@
 Access Control Security Module
 
 This module implements comprehensive Role-Based Access Control (RBAC) and
-fine-grained permission management for the Pollarbase platform. It provides
+fine-grained permission management for the Schlep-engine platform. It provides
 enterprise-grade authorization mechanisms with support for hierarchical roles,
 dynamic permissions, and resource-level access control.
 

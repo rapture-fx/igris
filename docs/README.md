@@ -413,4 +413,4 @@ logging.getLogger("app.security").setLevel(logging.DEBUG)
 
 ## License and Support
 
-This security middleware is part of the Sherringfords AI-Powered Data Intelligence project and follows the same licensing terms. For support and contributions, please refer to the main project documentation. 
+This security middleware is part of the Schlep-engine AI-Powered Data Intelligence project and follows the same licensing terms. For support and contributions, please refer to the main project documentation. 

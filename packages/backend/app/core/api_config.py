@@ -9,7 +9,7 @@ load_dotenv("environment.env")
 class Settings(BaseSettings):
     # API Settings
     API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Pollarbase"
+    PROJECT_NAME: str = "Schlep-engine"
     
     # Security
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-here")
@@ -116,8 +116,8 @@ class Settings(BaseSettings):
         "http://localhost:8001",  # API (current port)
         "http://127.0.0.1:8000",  # API localhost IP
         "http://127.0.0.1:8001",  # API current port with IP
-        "https://api.pollarbase.ai",
-        "https://app.pollarbase.ai",
+        "https://api.Schlep-engine.ai",
+        "https://app.Schlep-engine.ai",
         "null",  # For file:// protocol requests
     ]
     
@@ -125,7 +125,7 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: str = os.getenv("POSTGRES_SERVER", "localhost")
     POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
     POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "postgres")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "pollarbase_dev")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "Schlep-engine_dev")
     SQLALCHEMY_DATABASE_URI: str = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_SERVER}/{POSTGRES_DB}"
     
     # Redis

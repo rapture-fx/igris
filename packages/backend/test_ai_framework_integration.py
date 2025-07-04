@@ -2,7 +2,7 @@
 Test Suite for AI Framework Integration and Advanced Auto-Labeling
 ================================================================
 
-This test suite validates the enhanced AI capabilities that make Pollarbase
+This test suite validates the enhanced AI capabilities that make Schlep-engine
 a comprehensive data preparation platform for AI/ML workflows.
 
 Test Coverage:
@@ -547,4 +547,4 @@ if __name__ == "__main__":
     print("   • Pattern-based labeling rules")
     print("   • Proper train/validation/test splits")
     print("   • Framework recommendations")
-    print("\n🎯 Pollarbase provides comprehensive AI-powered data preparation capabilities!") 
+    print("\n🎯 Schlep-engine provides comprehensive AI-powered data preparation capabilities!") 

@@ -349,7 +349,7 @@ class IntegrationTester:
 
 def main():
     """Main entry point"""
-    print(" Integration Testing for Pollarbase Immediate Improvements")
+    print(" Integration Testing for Schlep-engine Immediate Improvements")
     print("Testing unified auth, error handling, and monitoring systems...")
     print()
     

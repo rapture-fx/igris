@@ -2,7 +2,7 @@
 Unified Authentication API
 =========================
 
-This is the single, consolidated authentication API for Pollarbase.
+This is the single, consolidated authentication API for Schlep-engine.
 It replaces all fragmented authentication endpoints with a clean, unified interface.
 
 Features:

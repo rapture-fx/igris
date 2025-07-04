@@ -1,5 +1,5 @@
 """
-AI Framework Integration Service - Pollarbase
+AI Framework Integration Service - Schlep-engine
 ============================================
 
 This service provides seamless integration with popular AI/ML frameworks,

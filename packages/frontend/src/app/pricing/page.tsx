@@ -103,7 +103,7 @@ const PricingPage = () => {
     },
     {
       question: "Do you offer refunds?",
-      answer: "Yes, we offer a 30-day money-back guarantee for all paid plans. If you're not satisfied with Pollarbase, we'll provide a full refund within the first 30 days."
+      answer: "Yes, we offer a 30-day money-back guarantee for all paid plans. If you're not satisfied with Schlep-engine, we'll provide a full refund within the first 30 days."
     },
     {
       question: "Can I get a custom plan?",
@@ -141,7 +141,7 @@ const PricingPage = () => {
           <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
             <div className="flex lg:flex-1">
               <Link href="/" className="-m-1.5 p-1.5">
-                <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+                <span className="text-2xl font-bold text-gray-900">Schlep-engine</span>
               </Link>
             </div>
             <div className="flex lg:flex-1 lg:justify-end gap-x-8">
@@ -292,7 +292,7 @@ const PricingPage = () => {
               Frequently asked questions
             </h2>
             <p className="text-lg text-gray-600 font-apple">
-              Everything you need to know about Pollarbase pricing
+              Everything you need to know about Schlep-engine pricing
             </p>
           </div>
 
@@ -314,7 +314,7 @@ const PricingPage = () => {
             Ready to transform your data workflow?
           </h2>
           <p className="text-lg text-gray-600 mb-8 font-apple">
-            Start your free trial today and see why thousands of AI teams choose Pollarbase
+            Start your free trial today and see why thousands of AI teams choose Schlep-engine
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -334,7 +334,7 @@ const PricingPage = () => {
           </div>
           
           <p className="text-sm text-gray-500 mt-4 font-apple">
-            Questions? <a href="mailto:sales@pollarbase.com" className="text-mercury-primary hover:text-mercury-accent">Contact our sales team</a>
+            Questions? <a href="mailto:sales@Schlep-engine.com" className="text-mercury-primary hover:text-mercury-accent">Contact our sales team</a>
           </p>
         </div>
       </section>

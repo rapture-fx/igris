@@ -1,20 +1,20 @@
 {
-  "name": "pollarbase-monorepo",
+  "name": "Schlep-engine-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "Pollarbase - The Data Schlep Handler. We handle the schlep so you don't have to",
+  "description": "Schlep-engine - The Data Schlep Handler. We handle the schlep so you don't have to",
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently -n frontend,backend,admin -c magenta,cyan,green \"pnpm --filter @pollarbase/web dev\" \"cd packages/backend && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\" \"pnpm --filter @pollarbase/admin dev -p 3002\""
+    "dev": "concurrently -n frontend,backend,admin -c magenta,cyan,green \"pnpm --filter @Schlep-engine/web dev\" \"cd packages/backend && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\" \"pnpm --filter @Schlep-engine/admin dev -p 3002\""
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/pollarbase"
+    "url": "https://github.com/your-org/Schlep-engine"
   },
   "keywords": [
     "data-processing",
@@ -25,6 +25,6 @@
     "etl",
     "data-pipeline"
   ],
-  "author": "Pollarbase Team",
-  "homepage": "https://pollarbase.com"
+  "author": "Schlep-engine Team",
+  "homepage": "https://Schlep-engine.com"
 }

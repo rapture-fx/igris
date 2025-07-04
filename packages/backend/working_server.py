@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Pollarbase API - Working Server Entry Point
-This file serves as the main entry point for the Pollarbase API server.
+Schlep-engine API - Working Server Entry Point
+This file serves as the main entry point for the Schlep-engine API server.
 """
 
 from app.main import app

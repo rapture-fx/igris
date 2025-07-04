@@ -1,4 +1,4 @@
-name: Pollarbase CI/CD Pipeline
+name: Schlep-engine CI/CD Pipeline
 
 on:
   push:
@@ -125,7 +125,7 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: pollarbase_test
+          POSTGRES_DB: Schlep-engine_test
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -164,7 +164,7 @@ jobs:
         python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 &
         sleep 10
       env:
-        DATABASE_URL: postgresql://postgres:postgres@localhost/pollarbase_test
+        DATABASE_URL: postgresql://postgres:postgres@localhost/Schlep-engine_test
     
     - name: Build frontend
       run: |

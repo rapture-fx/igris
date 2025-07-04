@@ -145,7 +145,7 @@ const CustomerStories = () => {
     {
       company: "TechCorp",
       logo: "TC",
-      quote: "Pollarbase cut our data prep time from weeks to hours. Our AI models are now training on clean, reliable data.",
+      quote: "Schlep-engine cut our data prep time from weeks to hours. Our AI models are now training on clean, reliable data.",
       author: "Sarah Chen",
       role: "Head of AI"
     },
@@ -284,7 +284,7 @@ export default function Home() {
         <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
           <div className="flex lg:flex-1">
             <Link href="/" className="-m-1.5 p-1.5">
-              <span className="text-2xl font-bold text-gray-900">Pollarbase</span>
+              <span className="text-2xl font-bold text-gray-900">Schlep-engine</span>
             </Link>
           </div>
           <div className="flex lg:flex-1 lg:justify-end">
@@ -325,7 +325,7 @@ export default function Home() {
       {/* Problem Section */}
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto max-w-2xl lg:text-center">
-          <h2 className="text-base font-semibold leading-7 text-blue-600">Why Pollarbase?</h2>
+          <h2 className="text-base font-semibold leading-7 text-blue-600">Why Schlep-engine?</h2>
           <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
             Because we're honest about what we do
           </p>
@@ -451,12 +451,12 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 py-12 md:flex md:items-center md:justify-between lg:px-8">
           <div className="flex justify-center space-x-6 md:order-2">
             <p className="text-xs leading-5 text-gray-400">
-              Pollarbase: We handle the schlep so you don't have to.
+              Schlep-engine: We handle the schlep so you don't have to.
             </p>
           </div>
           <div className="mt-8 md:order-1 md:mt-0">
             <p className="text-center text-xs leading-5 text-gray-400">
-              &copy; 2024 Pollarbase. Finally, a data platform that admits data work is often boring.
+              &copy; 2024 Schlep-engine. Finally, a data platform that admits data work is often boring.
             </p>
           </div>
         </div>

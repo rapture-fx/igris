@@ -208,7 +208,7 @@ print(f'\nTOTAL DUPLICATION: {sum(auth_methods.values())} create_user methods ac
         
         # Combine all analysis results
         cat > reports/quality-summary.md << 'EOF'
-        # 🏗️ Pollarbase Code Quality Report
+        # 🏗️ Schlep-engine Code Quality Report
         
         ## 📈 Quality Metrics Summary
         
@@ -352,8 +352,8 @@ print(f'\nTOTAL DUPLICATION: {sum(auth_methods.values())} create_user methods ac
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
-          -Dsonar.organization=pollarbase
-          -Dsonar.projectKey=pollarbase_main
+          -Dsonar.organization=Schlep-engine
+          -Dsonar.projectKey=Schlep-engine_main
           -Dsonar.python.coverage.reportPaths=coverage.xml
           -Dsonar.sources=packages/backend/app,packages/frontend/src
           -Dsonar.exclusions=**/node_modules/**,**/venv/**,**/__pycache__/**

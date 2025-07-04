@@ -1,4 +1,4 @@
-# Pollarbase ML Service Dockerfile
+# Schlep-engine ML Service Dockerfile
 # Optimized for ML workloads with PyTorch, Transformers, and scikit-learn
 FROM python:3.11-slim as base
 

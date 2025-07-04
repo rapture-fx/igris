@@ -1,5 +1,5 @@
 """
-AI-powered data analysis Service - Core proprietary algorithms for Pollarbase
+AI-powered data analysis Service - Core proprietary algorithms for Schlep-engine
 Implements advanced pattern recognition, anomaly detection, and data quality analysis
 """
 

@@ -1,8 +1,8 @@
 """
-Pollarbase Security Module
+Schlep-engine Security Module
 
 This module provides comprehensive enterprise-grade security features for the
-Pollarbase AI-Powered Data Intelligence platform. It implements defense-in-depth
+Schlep-engine AI-Powered Data Intelligence platform. It implements defense-in-depth
 security architecture with multiple layers of protection.
 
 Core Security Components:
@@ -29,7 +29,7 @@ Usage:
 from typing import Dict, Any
 
 __version__ = "1.0.0"
-__author__ = "Pollarbase Security Team"
+__author__ = "Schlep-engine Security Team"
 
 # Module metadata
 SECURITY_MODULES = {

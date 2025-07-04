@@ -2,7 +2,7 @@
 Unified Authentication Service
 =============================
 
-This is the single, consolidated authentication service for Pollarbase.
+This is the single, consolidated authentication service for Schlep-engine.
 It replaces all existing authentication modules and provides a clean,
 unified interface for all authentication operations.
 

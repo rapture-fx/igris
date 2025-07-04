@@ -392,4 +392,4 @@ def apply_security_filters(self, sql: str, user: User) -> str:
    - Validate with actual business users
    - Iterate based on feedback
 
-The semantic layer transforms your Pollarbase platform from a technical data processing tool into an intelligent business analytics platform that any user can leverage for revenue insights. 
+The semantic layer transforms your Schlep-engine platform from a technical data processing tool into an intelligent business analytics platform that any user can leverage for revenue insights. 

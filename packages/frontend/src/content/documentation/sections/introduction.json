@@ -1,13 +1,13 @@
 {
   "id": "introduction",
-  "title": "Pollarbase API Documentation",
-  "subtitle": "The complete reference for Pollarbase's data processing API. Handle the schlep so you don't have to.",
+  "title": "Schlep-engine API Documentation",
+  "subtitle": "The complete reference for Schlep-engine's data processing API. Handle the schlep so you don't have to.",
   "lastUpdated": "2024-01-15",
   "sections": [
     {
       "type": "hero",
-      "title": "What is Pollarbase?",
-      "description": "Pollarbase is the Stripe for data - a comprehensive API platform that automatically identifies data types, detects anomalies, suggests transformations, and outputs ML-ready datasets. Spend 80% less time on data preparation.",
+      "title": "What is Schlep-engine?",
+      "description": "Schlep-engine is the Stripe for data - a comprehensive API platform that automatically identifies data types, detects anomalies, suggests transformations, and outputs ML-ready datasets. Spend 80% less time on data preparation.",
       "style": "gradient-blue"
     },
     {

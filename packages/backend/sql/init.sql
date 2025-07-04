@@ -1,11 +1,11 @@
--- Pollarbase AI-Powered Data Intelligence Database Schema
+-- Schlep-engine AI-Powered Data Intelligence Database Schema
 -- Production-ready database setup for MVP launch
 
 -- Create database if not exists (handled by Docker)
--- CREATE DATABASE IF NOT EXISTS pollarbase;
+-- CREATE DATABASE IF NOT EXISTS Schlep-engine;
 
 -- Use the database
--- \c pollarbase;
+-- \c Schlep-engine;
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -272,7 +272,7 @@ INSERT INTO users (
     subscription_tier
 ) VALUES (
     uuid_generate_v4(),
-    'admin@pollarbase.com',
+    'admin@Schlep-engine.com',
     'admin',
     '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewB5hx9YAW5hMGAS', -- admin123
     'System',
@@ -292,7 +292,7 @@ INSERT INTO api_keys (
     rate_limit_tier
 ) VALUES (
     uuid_generate_v4(),
-    (SELECT id FROM users WHERE email = 'admin@pollarbase.com' LIMIT 1),
+    (SELECT id FROM users WHERE email = 'admin@Schlep-engine.com' LIMIT 1),
     encode(digest('sk_live_admin_key_123', 'sha256'), 'hex'),
     'Default Admin Key',
     true,
@@ -344,15 +344,15 @@ $$ LANGUAGE plpgsql;
 -- =============================================================================
 
 -- Grant necessary permissions
-GRANT USAGE ON SCHEMA public TO pollarbase;
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO pollarbase;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO pollarbase;
+GRANT USAGE ON SCHEMA public TO Schlep-engine;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO Schlep-engine;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO Schlep-engine;
 
 -- Success message
 DO $$
 BEGIN
-    RAISE NOTICE 'Pollarbase database initialization completed successfully!';
-    RAISE NOTICE 'Default admin user created: admin@pollarbase.com (password: admin123)';
+    RAISE NOTICE 'Schlep-engine database initialization completed successfully!';
+    RAISE NOTICE 'Default admin user created: admin@Schlep-engine.com (password: admin123)';
     RAISE NOTICE 'Default API key created: sk_live_admin_key_123';
     RAISE NOTICE 'Database is ready for production use.';
 END

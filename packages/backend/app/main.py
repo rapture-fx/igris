@@ -72,7 +72,7 @@ REQUEST_LATENCY = Histogram(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan events"""
-    logger.info("Pollarbase API starting up...")
+    logger.info("Schlep-engine API starting up...")
     
     # Initialize high-performance unified data processor
     logger.info("🚀 Initializing high-performance unified data processor...")
@@ -80,18 +80,18 @@ async def lifespan(app: FastAPI):
     logger.info("✅ High-performance data processor ready!")
     
     yield
-    logger.info("Pollarbase API shutting down...")
+    logger.info("Schlep-engine API shutting down...")
 
 # Custom OpenAPI schema
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
     openapi_schema = get_openapi(
-        title="Pollarbase API",
+        title="Schlep-engine API",
         version="1.0.0",
         summary="AI-Powered Data Intelligence Platform",
         description="""
-        ## Welcome to Pollarbase API
+        ## Welcome to Schlep-engine API
         
         **Transform your data into actionable insights with cutting-edge AI technology.**
         
@@ -124,13 +124,13 @@ def custom_openapi():
         routes=app.routes,
     )
     openapi_schema["info"]["x-logo"] = {
-        "url": "https://via.placeholder.com/200x60/3b82f6/white?text=Pollarbase"
+        "url": "https://via.placeholder.com/200x60/3b82f6/white?text=Schlep-engine"
     }
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
 app = FastAPI(
-    title="Pollarbase API",
+    title="Schlep-engine API",
     description="AI Powered data intelligence",
     version="1.0.0",
     docs_url=None,  # Disable default docs
@@ -153,12 +153,12 @@ async def custom_swagger_ui_html():
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="Comprehensive API documentation for Pollarbase AI Powered data intelligence platform featuring advanced analytics, machine learning, and data processing capabilities.">
+        <meta name="description" content="Comprehensive API documentation for Schlep-engine AI Powered data intelligence platform featuring advanced analytics, machine learning, and data processing capabilities.">
         <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css" />
         <link rel="shortcut icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAyMDAgMjAwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxkZWZzPjxsaW5lYXJHcmFkaWVudCBpZD0ibG9nb0dyYWRpZW50IiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjM2I4MmY2IiAvPjxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjMWQ0ZWQ4IiAvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzFlNDBhZiIgLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48Y2lyY2xlIGN4PSIxMDAiIGN5PSI2MCIgcj0iMTIiIGZpbGw9InVybCgjbG9nb0dyYWRpZW50KSIgLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjgiIGZpbGw9InVybCgjbG9nb0dyYWRpZW50KSIgLz48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxNDAiIHI9IjEyIiBmaWxsPSJ1cmwoI2xvZ29HcmFkaWVudCkiIC8+PGNpcmNsZSBjeD0iNjAiIGN5PSI4MCIgcj0iOCIgZmlsbD0idXJsKCNsb2dvR3JhZGllbnQpIiAvPjxjaXJjbGUgY3g9IjE0MCIgY3k9IjgwIiByPSI4IiBmaWxsPSJ1cmwoI2xvZ29HcmFkaWVudCkiIC8+PGNpcmNsZSBjeD0iNjAiIGN5PSIxMjAiIHI9IjgiIGZpbGw9InVybCgjbG9nb0dyYWRpZW50KSIgLz48Y2lyY2xlIGN4PSIxNDAiIGN5PSIxMjAiIHI9IjgiIGZpbGw9InVybCgjbG9nb0dyYWRpZW50KSIgLz48cGF0aCBkPSJNMTAwIDYwIEw2MCA4MCBMMTIwIEwxMDAgMTQwIEwxNDAgMTIwIEwxNDAgODAgWiIgc3Ryb2tlPSJ1cmwoI2xvZ29HcmFkaWVudCkiIHN0cm9rZS13aWR0aD0iMiIgZmlsbD0ibm9uZSIgLz48L3N2Zz4=" />
-        <title>API Documentation - Pollarbase AI-Powered Data Intelligence</title>
+        <title>API Documentation - Schlep-engine AI-Powered Data Intelligence</title>
         <style>
-            /* Pollarbase Landing Page Design System */
+            /* Schlep-engine Landing Page Design System */
             @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
             
             :root {{
@@ -216,8 +216,8 @@ async def custom_swagger_ui_html():
                 -moz-osx-font-smoothing: grayscale;
             }}
             
-            /* Pollarbase Header - Matching Landing Page */
-            .pollarbase-header {{
+            /* Schlep-engine Header - Matching Landing Page */
+            .Schlep-engine-header {{
                 background: var(--gradient-primary);
                 color: white;
                 padding: 2rem 0;
@@ -226,7 +226,7 @@ async def custom_swagger_ui_html():
                 overflow: hidden;
             }}
             
-            .pollarbase-header::before {{
+            .Schlep-engine-header::before {{
                 content: '';
                 position: absolute;
                 top: 0;
@@ -248,13 +248,13 @@ async def custom_swagger_ui_html():
                 z-index: 2;
             }}
             
-            .pollarbase-brand {{
+            .Schlep-engine-brand {{
                 display: flex;
                 align-items: center;
                 gap: 1rem;
             }}
             
-            .pollarbase-logo {{
+            .Schlep-engine-logo {{
                 width: 64px;
                 height: 64px;
                 filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
@@ -811,11 +811,11 @@ async def custom_swagger_ui_html():
         </style>
     </head>
     <body>
-        <!-- Pollarbase Header -->
-        <div class="pollarbase-header">
+        <!-- Schlep-engine Header -->
+        <div class="Schlep-engine-header">
             <div class="header-container">
-                <div class="pollarbase-brand">
-                    <svg class="pollarbase-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div class="Schlep-engine-brand">
+                    <svg class="Schlep-engine-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stop-color="#ffffff" />
@@ -840,7 +840,7 @@ async def custom_swagger_ui_html():
                         <path d="M100 60 L60 80 L60 120 L100 140 L140 120 L140 80 Z" stroke="url(#logoGradient)" stroke-width="1.5" fill="none" opacity="0.7" />
                     </svg>
                     <div>
-                        <h1 class="api-title">Pollarbase API</h1>
+                        <h1 class="api-title">Schlep-engine API</h1>
                         <p class="api-subtitle">AI Powered data intelligence</p>
                     </div>
                 </div>
@@ -1011,7 +1011,7 @@ async def custom_swagger_ui_html():
 # Security middleware
 app.add_middleware(
     TrustedHostMiddleware, 
-    allowed_hosts=["localhost", "127.0.0.1", "*.pollarbase.ai"]
+    allowed_hosts=["localhost", "127.0.0.1", "*.Schlep-engine.ai"]
 )
 
 # CORS middleware
@@ -1097,7 +1097,7 @@ async def health_check():
     """Health check endpoint"""
     return {
         "status": "healthy",
-        "service": "Pollarbase API",
+        "service": "Schlep-engine API",
         "version": "1.0.0",
         "timestamp": time.time()
     }
@@ -1107,7 +1107,7 @@ async def health_check():
 async def root():
     """Root endpoint with API information"""
     return {
-        "message": "Welcome to Pollarbase API",
+        "message": "Welcome to Schlep-engine API",
         "description": "AI Powered data intelligence",
         "version": "1.0.0",
         "docs": "/docs",

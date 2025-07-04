@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# POLLARBASE WORKER STOP SCRIPT
+# Schlep-engine WORKER STOP SCRIPT
 # =============================================================================
 # This script gracefully stops all Celery workers and related processes
 
@@ -14,7 +14,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE} Stopping Pollarbase Celery Workers${NC}"
+echo -e "${BLUE} Stopping Schlep-engine Celery Workers${NC}"
 echo "=============================================="
 
 # Function to stop process by PID file

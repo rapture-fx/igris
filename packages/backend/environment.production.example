@@ -1,9 +1,9 @@
-# Pollarbase Production Environment Configuration
+# Schlep-engine Production Environment Configuration
 # Copy this file to environment.production and fill in the values
 
 # Database Configuration
 POSTGRES_PASSWORD=your_secure_postgres_password_here
-DATABASE_URL=postgresql://pollarbase:your_secure_postgres_password_here@postgres:5432/pollarbase_prod
+DATABASE_URL=postgresql://Schlep-engine:your_secure_postgres_password_here@postgres:5432/Schlep-engine_prod
 
 # Redis Configuration
 REDIS_PASSWORD=your_secure_redis_password_here
@@ -18,7 +18,7 @@ ENCRYPTION_KEY=your_32_character_encryption_key_here
 # Application Settings
 ENVIRONMENT=production
 DEBUG=false
-PROJECT_NAME=Pollarbase
+PROJECT_NAME=Schlep-engine
 API_V1_STR=/api/v1
 
 # CORS Settings
@@ -32,7 +32,7 @@ ALLOWED_FILE_TYPES=csv,json,xlsx,xls,txt,parquet,avro
 # AWS S3 Configuration (for file storage)
 AWS_ACCESS_KEY_ID=your_aws_access_key_id
 AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
-AWS_S3_BUCKET=your-pollarbase-bucket
+AWS_S3_BUCKET=your-Schlep-engine-bucket
 AWS_REGION=us-east-1
 
 # OpenAI Configuration

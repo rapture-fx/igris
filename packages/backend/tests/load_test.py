@@ -1,5 +1,5 @@
 """
-Load Testing Framework for Pollarbase Performance Validation
+Load Testing Framework for Schlep-engine Performance Validation
 ===========================================================
 
 This module implements comprehensive load testing to validate the performance
@@ -422,7 +422,7 @@ class LoadTester:
     def _print_summary(self, analysis: Dict[str, Any]):
         """Print test summary to console"""
         print("\n" + "="*60)
-        print(" POLLARBASE LOAD TEST SUMMARY")
+        print(" Schlep-engine LOAD TEST SUMMARY")
         print("="*60)
         
         config = analysis['test_config']
@@ -484,7 +484,7 @@ class LoadTester:
 
 async def main():
     """Main entry point for load testing"""
-    parser = argparse.ArgumentParser(description="Pollarbase Load Testing Framework")
+    parser = argparse.ArgumentParser(description="Schlep-engine Load Testing Framework")
     parser.add_argument('--concurrent-users', type=int, default=10, help='Number of concurrent users')
     parser.add_argument('--duration', type=int, default=60, help='Test duration in seconds')
     parser.add_argument('--ramp-up', type=int, default=10, help='Ramp-up time in seconds')

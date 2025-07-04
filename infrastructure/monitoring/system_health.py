@@ -430,9 +430,9 @@ class SystemHealthMonitor:
         try:
             # Create alert email
             msg = MimeMultipart()
-            msg['From'] = self.smtp_config.get('from_email', 'noreply@pollarbase.ai')
+            msg['From'] = self.smtp_config.get('from_email', 'noreply@Schlep-engine.ai')
             msg['To'] = self.alert_email
-            msg['Subject'] = f" Pollarbase System Health Alert - {health.overall_status.value.upper()}"
+            msg['Subject'] = f" Schlep-engine System Health Alert - {health.overall_status.value.upper()}"
             
             # Create alert body
             body = f"""
@@ -459,7 +459,7 @@ Component Status:
                         body += f"   - {key}: {value}\n"
                 body += "\n"
             
-            body += "\nPlease investigate immediately.\n\nPollarbase Monitoring System"
+            body += "\nPlease investigate immediately.\n\nSchlep-engine Monitoring System"
             
             msg.attach(MimeText(body, 'plain'))
             
@@ -519,7 +519,7 @@ async def create_health_monitor():
             "username": os.getenv("SMTP_USERNAME"),
             "password": os.getenv("SMTP_PASSWORD"),
             "use_tls": True,
-            "from_email": os.getenv("FROM_EMAIL", "alerts@pollarbase.ai")
+            "from_email": os.getenv("FROM_EMAIL", "alerts@Schlep-engine.ai")
         } if os.getenv("SMTP_HOST") else None
     )
     

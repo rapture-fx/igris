@@ -2,7 +2,7 @@
 Data Processing Pipeline API
 ===========================
 
-This module provides the core data processing pipeline for Pollarbase.
+This module provides the core data processing pipeline for Schlep-engine.
 It handles the complete user flow: Upload → Process → Results → Insights
 """
 

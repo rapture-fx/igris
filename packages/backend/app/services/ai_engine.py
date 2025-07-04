@@ -25,7 +25,7 @@ except ImportError:
     from app.services.ml_service_client import ml_service
 
 
-Core AI Data Processing Engine for Pollarbase
+Core AI Data Processing Engine for Schlep-engine
 Handles data quality analysis, anomaly detection, and auto-labeling
 """
 

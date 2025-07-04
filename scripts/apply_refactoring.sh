@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ============================================
-# Pollarbase Technical Debt Resolution Script
+# Schlep-engine Technical Debt Resolution Script
 # ============================================
 # 
 # This script applies systematic refactoring to eliminate:
@@ -13,7 +13,7 @@
 
 set -e
 
-echo "🚀 Starting Pollarbase Technical Debt Resolution..."
+echo "🚀 Starting Schlep-engine Technical Debt Resolution..."
 
 # Check if we're in the right directory
 if [ ! -f "package.json" ] && [ ! -f "packages/frontend/package.json" ]; then

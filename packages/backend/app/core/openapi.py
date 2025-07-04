@@ -6,7 +6,7 @@ def custom_openapi():
         return app.openapi_schema
     
     openapi_schema = get_openapi(
-        title="Pollarbase API",
+        title="Schlep-engine API",
         version="1.0.0",
         description="""
         AI-powered data analysis platform.

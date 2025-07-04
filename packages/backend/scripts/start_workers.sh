@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # =============================================================================
-# POLLARBASE WORKER MANAGEMENT SCRIPT
+# Schlep-engine WORKER MANAGEMENT SCRIPT
 # =============================================================================
-# This script starts optimized Celery workers for the Pollarbase platform
+# This script starts optimized Celery workers for the Schlep-engine platform
 # with performance enhancements and monitoring capabilities.
 
 set -e  # Exit on any error
@@ -21,7 +21,7 @@ LOG_LEVEL="info"
 MAX_WORKERS=4
 REDIS_URL="redis://localhost:6379/0"
 
-echo -e "${BLUE}Starting Pollarbase Celery Workers${NC}"
+echo -e "${BLUE}Starting Schlep-engine Celery Workers${NC}"
 echo "=============================================="
 
 # Check if Redis is running
@@ -94,14 +94,14 @@ start_flower() {
         
         flower -A $WORKER_APP \
             --port=5555 \
-            --basic_auth=admin:pollarbase123 \
+            --basic_auth=admin:Schlep-engine123 \
             --logging=info \
             --logfile=logs/flower.log \
             --pidfile=pids/flower.pid \
             &
         
         echo -e "${GREEN} Flower started on http://localhost:5555${NC}"
-        echo -e "${YELLOW}   Username: admin, Password: pollarbase123${NC}"
+        echo -e "${YELLOW}   Username: admin, Password: Schlep-engine123${NC}"
     else
         echo -e "${YELLOW}  Flower not installed. Skipping monitoring.${NC}"
         echo "   Install with: pip install flower"

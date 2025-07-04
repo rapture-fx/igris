@@ -2,7 +2,7 @@
 Dashboard Statistics API
 ========================
 
-Provides real-time dashboard statistics and metrics for the Pollarbase platform.
+Provides real-time dashboard statistics and metrics for the Schlep-engine platform.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status

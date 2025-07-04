@@ -1,4 +1,4 @@
-# Pollarbase Core Dependencies (Optimized)
+# Schlep-engine Core Dependencies (Optimized)
 # For production API service deployment
 # ML dependencies moved to requirements-ml.txt
 # Dev dependencies moved to requirements-dev.txt

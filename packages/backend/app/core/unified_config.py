@@ -59,13 +59,13 @@ class UnifiedSettings(BaseSettings):
     
     # API Configuration
     API_V1_STR: str = Field(default="/api/v1", description="API v1 prefix")
-    PROJECT_NAME: str = Field(default="Pollarbase", description="Project name")
+    PROJECT_NAME: str = Field(default="Schlep-engine", description="Project name")
     PROJECT_VERSION: str = Field(default="1.0.0", description="Project version")
     
     # ==================== DATABASE SETTINGS ====================
     
     DATABASE_URL: str = Field(
-        default="postgresql://wira@localhost:5432/pollarbase_dev",
+        default="postgresql://wira@localhost:5432/Schlep-engine_dev",
         description="Database connection URL"
     )
     

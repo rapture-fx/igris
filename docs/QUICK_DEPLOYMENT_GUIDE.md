@@ -1,4 +1,4 @@
-# Pollarbase Quick Deployment Guide
+# Schlep-engine Quick Deployment Guide
 **Updated:** December 2024  
 **Status:** ✅ **Production Ready**
 
@@ -15,7 +15,7 @@
 ```bash
 # 1. Clone and install dependencies
 git clone <repository>
-cd pollarbase
+cd Schlep-engine
 pnpm install
 
 # 2. Backend setup
@@ -74,13 +74,13 @@ docker-compose -f docker-compose.ml.yml up -d
 docker-compose -f docker-compose.ml.yml ps
 
 # View logs
-docker-compose -f docker-compose.ml.yml logs -f pollarbase-api
+docker-compose -f docker-compose.ml.yml logs -f Schlep-engine-api
 ```
 
 ### **3. Database Migration**
 ```bash
 # Run migrations on production
-docker-compose -f docker-compose.ml.yml exec pollarbase-api alembic upgrade head
+docker-compose -f docker-compose.ml.yml exec Schlep-engine-api alembic upgrade head
 ```
 
 ### **4. Access Production Services**
@@ -95,8 +95,8 @@ docker-compose -f docker-compose.ml.yml exec pollarbase-api alembic upgrade head
 ### **Database (PostgreSQL)**
 ```yaml
 # Default configuration in docker-compose.ml.yml
-POSTGRES_DB: pollarbase_prod
-POSTGRES_USER: pollarbase
+POSTGRES_DB: Schlep-engine_prod
+POSTGRES_USER: Schlep-engine
 POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
 ```
 
@@ -109,7 +109,7 @@ REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
 ### **Application (FastAPI)**
 ```yaml
 # Key environment variables
-DATABASE_URL: postgresql://pollarbase:${POSTGRES_PASSWORD}@postgres:5432/pollarbase_prod
+DATABASE_URL: postgresql://Schlep-engine:${POSTGRES_PASSWORD}@postgres:5432/Schlep-engine_prod
 JWT_SECRET_KEY: ${JWT_SECRET_KEY}
 ENVIRONMENT: production
 DEBUG: false
@@ -142,7 +142,7 @@ docker-compose -f docker-compose.ml.yml ps
 ### **Log Monitoring**
 ```bash
 # Application logs
-docker-compose -f docker-compose.ml.yml logs -f pollarbase-api
+docker-compose -f docker-compose.ml.yml logs -f Schlep-engine-api
 
 # All services
 docker-compose -f docker-compose.ml.yml logs -f
@@ -180,7 +180,7 @@ server {
     ssl_certificate_key /etc/nginx/ssl/key.pem;
     
     location / {
-        proxy_pass http://pollarbase-api:8000;
+        proxy_pass http://Schlep-engine-api:8000;
     }
 }
 ```
@@ -260,13 +260,13 @@ echo $JWT_SECRET_KEY
 
 # Verify user exists
 docker-compose -f docker-compose.ml.yml exec postgres \
-  psql -U pollarbase -d pollarbase_prod -c "SELECT * FROM users LIMIT 5;"
+  psql -U Schlep-engine -d Schlep-engine_prod -c "SELECT * FROM users LIMIT 5;"
 ```
 
 #### **File Upload Issues**
 ```bash
 # Check upload directory permissions
-docker-compose -f docker-compose.ml.yml exec pollarbase-api \
+docker-compose -f docker-compose.ml.yml exec Schlep-engine-api \
   ls -la /app/uploads
 
 # Check disk space
@@ -292,7 +292,7 @@ docker-compose -f docker-compose.ml.yml up -d --scale celery-worker=4
 
 # Monitor database performance
 docker-compose -f docker-compose.ml.yml exec postgres \
-  psql -U pollarbase -d pollarbase_prod -c "SELECT * FROM pg_stat_activity;"
+  psql -U Schlep-engine -d Schlep-engine_prod -c "SELECT * FROM pg_stat_activity;"
 ```
 
 ---
@@ -302,7 +302,7 @@ docker-compose -f docker-compose.ml.yml exec postgres \
 ### **Horizontal Scaling**
 ```bash
 # Scale API instances
-docker-compose -f docker-compose.ml.yml up -d --scale pollarbase-api=3
+docker-compose -f docker-compose.ml.yml up -d --scale Schlep-engine-api=3
 
 # Scale Celery workers
 docker-compose -f docker-compose.ml.yml up -d --scale celery-worker=6
@@ -333,11 +333,11 @@ redis-server --appendonly yes --appendfsync everysec
 ```bash
 # Create backup
 docker-compose -f docker-compose.ml.yml exec postgres \
-  pg_dump -U pollarbase pollarbase_prod > backup_$(date +%Y%m%d).sql
+  pg_dump -U Schlep-engine Schlep-engine_prod > backup_$(date +%Y%m%d).sql
 
 # Restore backup
 docker-compose -f docker-compose.ml.yml exec -T postgres \
-  psql -U pollarbase pollarbase_prod < backup_20241215.sql
+  psql -U Schlep-engine Schlep-engine_prod < backup_20241215.sql
 ```
 
 ### **File Backup**

@@ -477,7 +477,7 @@ except ImportError:
         # Core requirements (main API service)
         core_file = self.project_root / "requirements-core.txt"
         with open(core_file, 'w') as f:
-            f.write("# Pollarbase Core API Dependencies\n")
+            f.write("# Schlep-engine Core API Dependencies\n")
             f.write("# Optimized for production deployment\n\n")
             for req in sorted(optimized_requirements['core']):
                 f.write(f"{req}\n")
@@ -485,7 +485,7 @@ except ImportError:
         # ML requirements (separate ML service)
         ml_file = self.project_root / "requirements-ml.txt"
         with open(ml_file, 'w') as f:
-            f.write("# Pollarbase ML Service Dependencies\n")
+            f.write("# Schlep-engine ML Service Dependencies\n")
             f.write("# Heavy ML dependencies for separate service\n\n")
             for req in sorted(optimized_requirements['ml']):
                 f.write(f"{req}\n")
@@ -493,14 +493,14 @@ except ImportError:
         # Development requirements
         dev_file = self.project_root / "requirements-dev.txt"
         with open(dev_file, 'w') as f:
-            f.write("# Pollarbase Development Dependencies\n")
+            f.write("# Schlep-engine Development Dependencies\n")
             f.write("# For local development and testing\n\n")
             for req in sorted(optimized_requirements['dev']):
                 f.write(f"{req}\n")
         
         # Update main requirements.txt to core only
         with open(self.requirements_file, 'w') as f:
-            f.write("# Pollarbase Core Dependencies (Optimized)\n")
+            f.write("# Schlep-engine Core Dependencies (Optimized)\n")
             f.write("# For production API service deployment\n")
             f.write("# ML dependencies moved to requirements-ml.txt\n")
             f.write("# Dev dependencies moved to requirements-dev.txt\n\n")
