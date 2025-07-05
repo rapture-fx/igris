@@ -26,5 +26,10 @@
     "data-pipeline"
   ],
   "author": "Schlep-engine Team",
-  "homepage": "https://Schlep-engine.com"
+  "homepage": "https://Schlep-engine.com",
+  "dependencies": {
+    "@radix-ui/react-dialog": "^1.1.2",
+    "@radix-ui/react-progress": "^1.1.7",
+    "class-variance-authority": "^0.7.1"
+  }
 }

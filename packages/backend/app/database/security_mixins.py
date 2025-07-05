@@ -37,9 +37,15 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.sql import func
 from sqlalchemy.ext.declarative import declared_attr
 import enum
+from sqlalchemy import event
+from sqlalchemy.orm import attributes
 
+from app.database.security_models import EncryptedField, DataClassificationRecord, ComplianceEvent
 from app.security.encryption.field_encryption import field_encryptor
 from app.security.encryption.pii_detector import pii_detector, SensitivityLevel
+from app.database.security_models import AuditTrail
+from app.database.connection import SessionLocal
+from app.core.request_context import get_request_context
 
 
 class EncryptionLevel(str, enum.Enum):
@@ -252,6 +258,85 @@ class AuditTrailMixin:
             lazy="select"
         )
     
+    @staticmethod
+    def _get_user_info_from_context():
+        """Gets user info from the request context variables."""
+        context = get_request_context()
+        return (
+            context.get("user_id") or "system",
+            context.get("ip_address") or "unknown",
+            context.get("user_agent") or "unknown"
+        )
+
+    @classmethod
+    def __declare_last__(cls):
+        event.listen(cls, 'after_insert', cls._audit_insert)
+        event.listen(cls, 'after_update', cls._audit_update)
+        event.listen(cls, 'after_delete', cls._audit_delete)
+
+    @staticmethod
+    def _audit_insert(mapper, connection, target):
+        """Listen for inserts and create an audit record."""
+        user_id, ip_address, user_agent = AuditTrailMixin._get_user_info_from_context()
+        
+        with SessionLocal() as session:
+            audit_record = AuditTrail(
+                table_name=target.__tablename__,
+                record_id=str(target.id),
+                action=AuditAction.CREATE,
+                user_id=user_id,
+                changes={col.name: getattr(target, col.name) for col in target.__table__.columns},
+                ip_address=ip_address,
+                user_agent=user_agent
+            )
+            session.add(audit_record)
+            session.commit()
+
+    @staticmethod
+    def _audit_update(mapper, connection, target):
+        """Listen for updates and create an audit record."""
+        user_id, ip_address, user_agent = AuditTrailMixin._get_user_info_from_context()
+        changes = {}
+        for attr in attributes.instance_state(target).attrs:
+            hist = attributes.get_history(target, attr.key)
+            if hist.has_changes():
+                changes[attr.key] = {
+                    "old": hist.deleted[0] if hist.deleted else None,
+                    "new": hist.added[0] if hist.added else None,
+                }
+        
+        if changes:
+            with SessionLocal() as session:
+                audit_record = AuditTrail(
+                    table_name=target.__tablename__,
+                    record_id=str(target.id),
+                    action=AuditAction.UPDATE,
+                    user_id=user_id,
+                    changes=changes,
+                    ip_address=ip_address,
+                    user_agent=user_agent
+                )
+                session.add(audit_record)
+                session.commit()
+
+    @staticmethod
+    def _audit_delete(mapper, connection, target):
+        """Listen for deletes and create an audit record."""
+        user_id, ip_address, user_agent = AuditTrailMixin._get_user_info_from_context()
+        
+        with SessionLocal() as session:
+            audit_record = AuditTrail(
+                table_name=target.__tablename__,
+                record_id=str(target.id),
+                action=AuditAction.DELETE,
+                user_id=user_id,
+                changes={col.name: getattr(target, col.name) for col in target.__table__.columns},
+                ip_address=ip_address,
+                user_agent=user_agent
+            )
+            session.add(audit_record)
+            session.commit()
+
     def create_audit_record(
         self,
         action: AuditAction,

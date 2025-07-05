@@ -16,6 +16,7 @@ from app.core.config import settings as core_settings
 from app.core.error_handler import unified_error_handler
 from app.middleware.rate_limiter import create_rate_limiter
 from app.middleware.exception_middleware import GlobalExceptionMiddleware
+from app.middleware.request_context_middleware import RequestContextMiddleware
 # Analyze router temporarily disabled - TODO: Fix dependencies
 from app.api.v1.public.clean import router as clean_router
 from app.api.v1.public.validate import router as validate_router
@@ -49,7 +50,8 @@ from .api.v1 import (
     advanced_ai,  # New AI router
     auth,
     data_processing,
-    monitoring
+    monitoring,
+    audit,
 )
 
 # Configure logging
@@ -143,6 +145,9 @@ app = FastAPI(
 )
 
 app.openapi = custom_openapi
+
+# Add RequestContextMiddleware early in the stack
+app.add_middleware(RequestContextMiddleware)
 
 # Mount static files
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
@@ -1184,12 +1189,11 @@ app.include_router(enterprise_router, tags=["Enterprise"])
 
 # Additional API routers (advanced features)
 try:
-    app.include_router(data_processing.router, prefix="/api/v1/data", tags=["data-processing"])
-    app.include_router(advanced_ml.router, prefix="/api/v1/ml", tags=["machine-learning"])
-    app.include_router(advanced_ai.router, prefix="/api/v1/advanced-ai", tags=["advanced-ai"])
-    app.include_router(ai_framework_endpoints.router, prefix="/api/v1/ai", tags=["ai-framework"])
-    app.include_router(admin.router, prefix="/api/v1/admin", tags=["admin"])
-    app.include_router(monitoring.router, prefix="/api/v1/admin/monitoring", tags=["monitoring"])
+    app.include_router(data_processing.router, prefix="/api/v1/data", tags=["Data Processing"])
+    app.include_router(ai_models.router, prefix="/api/v1/ai", tags=["AI Models"])
+    app.include_router(billing.router, prefix="/api/v1/billing", tags=["Billing"])
+    app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
+    app.include_router(audit.router, prefix="/api/v1", tags=["Audit"])
 except Exception as e:
     logger.warning(f"Some advanced routers not available: {e}")
 

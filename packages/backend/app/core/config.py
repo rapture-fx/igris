@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://wira@localhost:5432/Schlep-engine_dev"
     
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379/0"
+    
     # JWT
     JWT_SECRET_KEY: str = "dev_jwt_secret_key_change_in_production_2024"
     JWT_ALGORITHM: str = "HS256"

@@ -78,11 +78,6 @@ async function handleRequest(
   params: { path: string[] },
   method: string
 ) {
-  // For development, always return mock data
-  if (process.env.NODE_ENV === 'development') {
-    return getMockResponse(params.path, method, request)
-  }
-
   try {
     const path = params.path.join('/')
     const url = `${BACKEND_API_URL}/${path}`
@@ -159,12 +154,20 @@ async function handleRequest(
   } catch (error) {
     console.error('API Proxy Error:', error)
     
-    // Return mock data for development when backend is not available
-    return getMockResponse(params.path, method, request)
+    // Return a proper error response instead of mock data
+    return new NextResponse(
+      JSON.stringify({
+        status: 'error',
+        message: 'API proxy failed to connect to the backend.',
+        error: error instanceof Error ? error.message : 'An unknown error occurred.',
+      }),
+      { status: 502 } // 502 Bad Gateway
+    );
   }
 }
 
 // Enhanced mock responses for development
+// This code will no longer be hit by default but is kept for potential testing purposes.
 async function getMockResponse(path: string[], method: string, request?: NextRequest) {
   const pathStr = path.join('/')
   

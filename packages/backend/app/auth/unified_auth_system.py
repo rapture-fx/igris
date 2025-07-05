@@ -26,6 +26,7 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.database.models import User, UserRole, Organization
 from app.database.connection import get_async_session
+from app.core.redis_client import get_redis_client
 import logging
 
 logger = logging.getLogger(__name__)
@@ -92,9 +93,8 @@ class UnifiedAuthService:
     """Unified Authentication Service - Single source of truth for all auth operations"""
     
     def __init__(self):
-        self.failed_attempts: Dict[str, List[datetime]] = {}
         self.max_failed_attempts = 5
-        self.lockout_duration = timedelta(minutes=15)
+        self.lockout_duration_seconds = 900  # 15 minutes
         self.token_expire_minutes = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
         self.refresh_token_expire_days = 7
     
@@ -112,31 +112,42 @@ class UnifiedAuthService:
         return secrets.token_urlsafe(length)
     
     # Account Security
-    def is_account_locked(self, identifier: str) -> bool:
-        """Check if account is locked due to failed attempts"""
-        if identifier not in self.failed_attempts:
+    async def get_lockout_key(self, identifier: str) -> str:
+        return f"auth:lockout:{identifier}"
+
+    async def get_failed_attempts_key(self, identifier: str) -> str:
+        return f"auth:failed_attempts:{identifier}"
+
+    async def is_account_locked(self, identifier: str) -> bool:
+        """Check if account is locked due to failed attempts using Redis."""
+        redis = await get_redis_client()
+        if not redis:
             return False
+        lockout_key = await self.get_lockout_key(identifier)
+        return await redis.exists(lockout_key)
+
+    async def record_failed_attempt(self, identifier: str):
+        """Record a failed authentication attempt in Redis."""
+        redis = await get_redis_client()
+        if not redis:
+            return
+
+        failed_attempts_key = await self.get_failed_attempts_key(identifier)
+        current_attempts = await redis.incr(failed_attempts_key)
+        await redis.expire(failed_attempts_key, self.lockout_duration_seconds)
+
+        if current_attempts >= self.max_failed_attempts:
+            lockout_key = await self.get_lockout_key(identifier)
+            await redis.setex(lockout_key, self.lockout_duration_seconds, "locked")
+
+    async def clear_failed_attempts(self, identifier: str):
+        """Clear failed attempts for successful login from Redis."""
+        redis = await get_redis_client()
+        if not redis:
+            return
         
-        attempts = self.failed_attempts[identifier]
-        recent_attempts = [
-            attempt for attempt in attempts
-            if datetime.utcnow() - attempt < self.lockout_duration
-        ]
-        
-        self.failed_attempts[identifier] = recent_attempts
-        return len(recent_attempts) >= self.max_failed_attempts
-    
-    def record_failed_attempt(self, identifier: str):
-        """Record a failed authentication attempt"""
-        if identifier not in self.failed_attempts:
-            self.failed_attempts[identifier] = []
-        
-        self.failed_attempts[identifier].append(datetime.utcnow())
-    
-    def clear_failed_attempts(self, identifier: str):
-        """Clear failed attempts for successful login"""
-        if identifier in self.failed_attempts:
-            del self.failed_attempts[identifier]
+        await redis.delete(await self.get_failed_attempts_key(identifier))
+        await redis.delete(await self.get_lockout_key(identifier))
     
     # JWT Token Management
     def create_access_token(self, user: User, remember_me: bool = False) -> str:
@@ -245,53 +256,32 @@ class UnifiedAuthService:
         """Authenticate user with email and password"""
         
         # Check if account is locked
-        if self.is_account_locked(email):
+        if await self.is_account_locked(email):
             return AuthResult(
                 success=False,
                 status=AuthStatus.ACCOUNT_LOCKED,
-                error_message="Account temporarily locked due to multiple failed attempts"
+                error_message="Account is temporarily locked due to too many failed login attempts."
             )
-        
-        # Get user
+            
         user = await self.get_user_by_email(db, email)
-        if not user:
-            self.record_failed_attempt(email)
-            return AuthResult(
-                success=False,
-                status=AuthStatus.INVALID_CREDENTIALS,
-                error_message="Invalid email or password"
-            )
         
-        # Check if account is disabled
-        if not user.is_active:
-            return AuthResult(
-                success=False,
-                status=AuthStatus.ACCOUNT_DISABLED,
-                error_message="Account is disabled"
-            )
-        
-        # Verify password
-        if not self.verify_password(password, user.hashed_password):
-            self.record_failed_attempt(email)
-            return AuthResult(
-                success=False,
-                status=AuthStatus.INVALID_CREDENTIALS,
-                error_message="Invalid email or password"
-            )
-        
-        # Success - clear failed attempts
-        self.clear_failed_attempts(email)
-        
-        return AuthResult(
-            success=True,
-            status=AuthStatus.SUCCESS,
-            user=user
-        )
+        if user and self.verify_password(password, user.hashed_password):
+            if not user.is_active:
+                return AuthResult(success=False, status=AuthStatus.ACCOUNT_DISABLED, error_message="Account is disabled")
+            
+            # Success - clear any failed attempts
+            await self.clear_failed_attempts(email)
+            
+            return AuthResult(success=True, status=AuthStatus.SUCCESS, user=user)
+        else:
+            # Failure - record failed attempt
+            if user: # Only record attempt if user exists
+                await self.record_failed_attempt(email)
+            return AuthResult(success=False, status=AuthStatus.INVALID_CREDENTIALS, error_message="Invalid email or password")
     
     async def login_user(self, db: AsyncSession, login_data: UserLoginRequest) -> AuthResult:
-        """Complete user login process"""
+        """Login a user and return tokens"""
         
-        # Authenticate user
         auth_result = await self.authenticate_user(db, login_data.email, login_data.password)
         
         if not auth_result.success:

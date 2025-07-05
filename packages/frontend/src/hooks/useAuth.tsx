@@ -35,20 +35,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
-        // Check if auth should be bypassed for development
-        if (shouldBypassAuth()) {
-          devLog('🚫 Authentication bypassed - using mock user');
-          const mockUser = getMockUser();
-          if (mockUser) {
-            setUser(mockUser);
-            // Set mock tokens for consistency
-            tokenStorage.setTokens('dev_token_123', 'dev_refresh_456');
-            tokenStorage.setUser(mockUser);
-          }
-          setIsLoading(false);
-          return;
-        }
-
         // Normal authentication flow
         const storedUser = tokenStorage.getUser();
         const hasToken = tokenStorage.hasAccessToken();
@@ -88,20 +74,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signIn = async (data: SignInRequest) => {
     try {
       setIsLoading(true);
-      
-      // Check if auth should be bypassed for development
-      if (shouldBypassAuth()) {
-        devLog('🚫 Sign in bypassed - using mock user');
-        const mockUser = getMockUser();
-        if (mockUser) {
-          setUser(mockUser);
-          tokenStorage.setTokens('dev_token_123', 'dev_refresh_456');
-          tokenStorage.setUser(mockUser);
-          toast.success(' Development: Sign in bypassed!');
-          router.push('/dashboard');
-          return;
-        }
-      }
 
       // Normal sign in flow
       const response = await authAPIClient.signIn(data);
@@ -128,14 +100,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signUp = async (data: SignUpRequest) => {
     try {
       setIsLoading(true);
-      
-      // Check if auth should be bypassed for development
-      if (shouldBypassAuth()) {
-        devLog('🚫 Sign up bypassed - redirecting to sign in');
-        toast.success(' Development: Account created! Please sign in.');
-        router.push('/auth/signin');
-        return;
-      }
 
       // Normal sign up flow
       const response = await authAPIClient.signUp(data);
