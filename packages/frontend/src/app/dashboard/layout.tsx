@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
 // import { Toaster } from 'sonner'
 
 interface HealthStatus {
@@ -168,6 +169,7 @@ export default function DashboardLayout({
   const [showTour, setShowTour] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSystemStatusOpen, setIsSystemStatusOpen] = useState(false)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
@@ -199,11 +201,15 @@ export default function DashboardLayout({
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-screen-2xl mx-auto lg:flex">
         <Sidebar 
+          isCollapsed={isSidebarCollapsed}
           onSettingsClick={() => setIsSettingsOpen(true)} 
           onSystemStatusClick={() => setIsSystemStatusOpen(true)}
         />
-        <div className="flex-1 min-w-0">
-          <Header />
+        <div className={cn(
+            "flex-1 min-w-0",
+            isSidebarCollapsed ? "lg:pl-20" : "lg:pl-72"
+          )}>
+          <Header onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
           <main className="py-10">
             <div className="px-4 sm:px-6 lg:px-8">{children}</div>
           </main>

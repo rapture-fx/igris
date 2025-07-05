@@ -1,27 +1,21 @@
 'use client'
 
-import { Bell, Search, Menu, User } from 'lucide-react'
-import { useState } from 'react'
+import { Bell, Search, Menu as MenuIcon } from 'lucide-react'
 
-export function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-
+export function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   return (
-    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
       <button
         type="button"
-        className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-        onClick={() => setMobileMenuOpen(true)}
+        className="-m-2.5 p-2.5 text-gray-700"
+        onClick={onToggleSidebar}
       >
-        <span className="sr-only">Open sidebar</span>
-        <Menu className="h-6 w-6" aria-hidden="true" />
+        <span className="sr-only">Toggle sidebar</span>
+        <MenuIcon className="h-6 w-6" aria-hidden="true" />
       </button>
 
-      {/* Separator */}
-      <div className="h-6 w-px bg-gray-200 lg:hidden" aria-hidden="true" />
-
-      <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-        <form className="relative flex flex-1" action="#" method="GET">
+      <div className="flex flex-1 items-center justify-end gap-x-4 lg:gap-x-6">
+        <form className="relative flex-1 max-w-sm" action="#" method="GET">
           <label htmlFor="search-field" className="sr-only">
             Search
           </label>

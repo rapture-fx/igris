@@ -25,6 +25,7 @@ import {
   CreditCard,
   User
 } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -56,64 +57,65 @@ const resources = [
   { name: 'Documentation', href: '/documentation', icon: BookOpen },
 ]
 
-export function Sidebar({ onSettingsClick, onSystemStatusClick }: { onSettingsClick: () => void, onSystemStatusClick: () => void }) {
+interface SidebarProps {
+  isCollapsed: boolean;
+  onSettingsClick: () => void;
+  onSystemStatusClick: () => void;
+}
+
+export function Sidebar({ isCollapsed, onSettingsClick, onSystemStatusClick }: SidebarProps) {
   const pathname = usePathname()
 
   const renderNav = (items: typeof navigation) => (
-    <ul role="list" className="-mx-2 space-y-1">
+    <ul role="list" className="space-y-1">
       {items.map((item) => {
         const isSettings = item.name === 'Settings';
         const isSystemStatus = item.name === 'System Status';
         const isActive = !isSettings && !isSystemStatus && (pathname === item.href || pathname.startsWith(item.href + '/'));
 
-        if (isSettings) {
-          return (
-            <li key={item.name}>
-              <button
-                onClick={onSettingsClick}
-                className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold w-full text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
-              >
-                <item.icon className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-indigo-600" aria-hidden="true" />
-                {item.name}
-              </button>
-            </li>
-          )
-        }
+        const commonClasses = cn(
+          "group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold",
+          isCollapsed ? "justify-center" : "",
+          isActive 
+            ? 'bg-gray-50 text-indigo-600'
+            : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50'
+        )
 
-        if (isSystemStatus) {
-          return (
-            <li key={item.name}>
-              <button
-                onClick={onSystemStatusClick}
-                className="group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold w-full text-gray-700 hover:text-indigo-600 hover:bg-gray-50"
-              >
-                <item.icon className="h-6 w-6 shrink-0 text-gray-400 group-hover:text-indigo-600" aria-hidden="true" />
-                {item.name}
-              </button>
-            </li>
-          )
-        }
+        const content = (
+          <>
+            <item.icon
+              className={cn(
+                isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
+                'h-6 w-6 shrink-0'
+              )}
+              aria-hidden="true"
+            />
+            <span className={cn(isCollapsed ? "sr-only" : "")}>{item.name}</span>
+          </>
+        )
+
+        const NavLink = isSettings 
+          ? ({ children }: { children: React.ReactNode }) => <button onClick={onSettingsClick} className={cn(commonClasses, "w-full")}>{children}</button>
+          : isSystemStatus
+          ? ({ children }: { children: React.ReactNode }) => <button onClick={onSystemStatusClick} className={cn(commonClasses, "w-full")}>{children}</button>
+          : ({ children }: { children: React.ReactNode }) => <Link href={item.href} className={commonClasses}>{children}</Link>
 
         return (
           <li key={item.name}>
-            <Link
-              href={item.href}
-              className={cn(
-                isActive
-                  ? 'bg-gray-50 text-indigo-600'
-                  : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50',
-                'group flex gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold'
-              )}
-            >
-              <item.icon
-                className={cn(
-                  isActive ? 'text-indigo-600' : 'text-gray-400 group-hover:text-indigo-600',
-                  'h-6 w-6 shrink-0'
-                )}
-                aria-hidden="true"
-              />
-              {item.name}
-            </Link>
+            {isCollapsed ? (
+              <TooltipProvider delayDuration={0}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <NavLink>{content}</NavLink>
+                  </TooltipTrigger>
+                  <TooltipContent side="right">
+                    <p>{item.name}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <NavLink>{content}</NavLink>
+            )}
           </li>
         )
       })}
@@ -121,12 +123,18 @@ export function Sidebar({ onSettingsClick, onSystemStatusClick }: { onSettingsCl
   );
 
   return (
-    <div className="hidden lg:sticky lg:top-0 lg:flex lg:w-72 lg:flex-col lg:h-screen">
+    <div className={cn(
+        "hidden lg:sticky lg:top-0 lg:flex lg:flex-col lg:h-screen transition-all duration-300",
+        isCollapsed ? "lg:w-20" : "lg:w-72"
+      )}>
       <div className="flex grow flex-col overflow-y-auto border-r border-gray-200 bg-white">
-        <div className="flex h-16 shrink-0 items-center px-6">
+        <div className={cn(
+            "flex h-16 shrink-0 items-center px-6",
+            isCollapsed && "justify-center"
+          )}>
           <Link href="/dashboard" className="flex items-center gap-x-3">
             <Logo className="h-8 w-auto" />
-            <div className="font-dm-sans text-lg text-gray-800">
+            <div className={cn("font-dm-sans text-lg text-gray-800", isCollapsed && "sr-only")}>
               <span className="font-bold">Schlep</span>
               <span>-engine</span>
             </div>
@@ -139,23 +147,29 @@ export function Sidebar({ onSettingsClick, onSystemStatusClick }: { onSettingsCl
                 {renderNav(navigation)}
             </li>
             <li>
-              <div className="text-xs font-semibold leading-6 text-gray-400">Account</div>
+              <div className={cn("text-xs font-semibold leading-6 text-gray-400", isCollapsed && "text-center")}>
+                {isCollapsed ? "ACCT" : "Account"}
+              </div>
               {renderNav(account)}
             </li>
             <li>
-              <div className="text-xs font-semibold leading-6 text-gray-400">Administration</div>
+              <div className={cn("text-xs font-semibold leading-6 text-gray-400", isCollapsed && "text-center")}>
+                {isCollapsed ? "ADMIN" : "Administration"}
+              </div>
               {renderNav(administration)}
             </li>
              <li>
-              <div className="text-xs font-semibold leading-6 text-gray-400">Resources</div>
+              <div className={cn("text-xs font-semibold leading-6 text-gray-400", isCollapsed && "text-center")}>
+                {isCollapsed ? "DOCS" : "Resources"}
+              </div>
               {renderNav(resources)}
             </li>
-            <li className="-mx-6 mt-auto">
+            <li className={cn("-mx-6 mt-auto", isCollapsed && "mx-0")}>
               <div className="flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-50 border-t border-gray-200">
                 <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center">
                   <User className="h-5 w-5 text-white" />
                 </div>
-                <span aria-hidden="true">Admin</span>
+                <span aria-hidden="true" className={cn(isCollapsed && "sr-only")}>Admin</span>
               </div>
             </li>
           </ul>
