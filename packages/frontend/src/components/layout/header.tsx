@@ -1,19 +1,10 @@
 'use client'
 
-import { Bell, Search, Menu as MenuIcon } from 'lucide-react'
+import { Bell, Search, PanelRightOpen } from 'lucide-react'
 
-export function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
+export function Header({ onToggleRightPanel }: { onToggleRightPanel: () => void }) {
   return (
-    <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-6 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
-      <button
-        type="button"
-        className="-m-2.5 p-2.5 text-gray-700"
-        onClick={onToggleSidebar}
-      >
-        <span className="sr-only">Toggle sidebar</span>
-        <MenuIcon className="h-6 w-6" aria-hidden="true" />
-      </button>
-
+    <div className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-x-6 border-b border-gray-200 bg-white px-4 sm:px-6 lg:px-8">
       <div className="flex flex-1 items-center justify-end gap-x-4 lg:gap-x-6">
         <form className="relative flex-1 max-w-sm" action="#" method="GET">
           <label htmlFor="search-field" className="sr-only">
@@ -38,6 +29,15 @@ export function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           >
             <span className="sr-only">View notifications</span>
             <Bell className="h-6 w-6" aria-hidden="true" />
+          </button>
+          
+          <button
+            type="button"
+            className="-m-2.5 p-2.5 text-gray-400 hover:text-gray-500"
+            onClick={onToggleRightPanel}
+          >
+            <span className="sr-only">Toggle activity feed</span>
+            <PanelRightOpen className="h-6 w-6" aria-hidden="true" />
           </button>
         </div>
       </div>

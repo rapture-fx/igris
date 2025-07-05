@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/header'
 import { GuidedTour } from '@/components/onboarding/guided-tour'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { X, Server, Database, Cpu, MemoryStick, AlertTriangle, Shield, CheckCircle } from 'lucide-react'
+import { X, Server, Database, Cpu, MemoryStick, AlertTriangle, Shield, CheckCircle, Activity, TrendingUp, FileText, CheckSquare } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -160,6 +160,55 @@ const SystemStatusSheet = ({ isOpen, onOpenChange }: { isOpen: boolean, onOpenCh
   )
 }
 
+interface AuditLog {
+  id: string;
+  summary: string;
+  timestamp: string;
+}
+
+interface AuditLogResponse {
+  logs: AuditLog[];
+  total_pages: number;
+  current_page: number;
+}
+
+const RightPanel = ({ className }: { className?: string }) => {
+  const { data: stats, isLoading, error } = useQuery<any>({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => apiService.getDashboardStats(),
+  })
+
+  const metrics = [
+    { name: 'Records Processed', value: stats?.records_processed_today, icon: TrendingUp },
+    { name: 'Active Data Sources', value: stats?.active_sources, icon: Database },
+    { name: 'Total Records', value: stats?.total_records, icon: FileText },
+    { name: 'Jobs Completed', value: stats?.jobs_today, icon: CheckSquare },
+  ]
+
+  return (
+    <aside className={cn("hidden xl:block w-80 shrink-0 bg-gray-50 p-6 h-screen sticky top-0", className)}>
+       <div className="pt-16"> {/* Offset for header */}
+        <h3 className="text-lg font-semibold mb-6">Key Metrics</h3>
+        {isLoading && <p>Loading metrics...</p>}
+        {error && <p className="text-sm text-red-500">Could not load metrics.</p>}
+        <div className="space-y-4">
+         {metrics.map(item => (
+           <div key={item.name} className="flex items-start gap-x-4">
+             <div className="h-10 w-10 flex items-center justify-center shrink-0">
+               <item.icon className="h-6 w-6 text-gray-600" />
+             </div>
+             <div>
+               <p className="text-sm font-semibold text-gray-800">{item.value?.toLocaleString() || '...'}</p>
+               <p className="text-xs text-gray-600">{item.name}</p>
+             </div>
+           </div>
+         ))}
+        </div>
+       </div>
+    </aside>
+  )
+}
+
 export default function DashboardLayout({
   children,
 }: {
@@ -170,6 +219,7 @@ export default function DashboardLayout({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSystemStatusOpen, setIsSystemStatusOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
@@ -199,21 +249,20 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-screen-2xl mx-auto lg:flex">
-        <Sidebar 
+      <div className="max-w-screen-xl mx-auto lg:flex">
+         <Sidebar 
           isCollapsed={isSidebarCollapsed}
+          onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onSettingsClick={() => setIsSettingsOpen(true)} 
           onSystemStatusClick={() => setIsSystemStatusOpen(true)}
         />
-        <div className={cn(
-            "flex-1 min-w-0",
-            isSidebarCollapsed ? "lg:pl-20" : "lg:pl-72"
-          )}>
-          <Header onToggleSidebar={() => setIsSidebarCollapsed(!isSidebarCollapsed)} />
-          <main className="py-10">
-            <div className="px-4 sm:px-6 lg:px-8">{children}</div>
-          </main>
+        <div className="flex-1 min-w-0">
+            <Header onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)} />
+            <main className="py-10">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
+            </main>
         </div>
+        <RightPanel className={cn(!isRightPanelOpen && "hidden")} />
       </div>
       
       {/* Guided Tour */}
