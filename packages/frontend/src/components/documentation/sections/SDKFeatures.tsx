@@ -1,12 +1,6 @@
 import React from 'react';
 import { Upload, Activity, Zap, Shield, Code, FileText, Database, Wand, BarChart } from 'lucide-react';
-import { ContentSectionItem } from '../../../types/documentation';
-
-interface SDKFeature {
-  category: string;
-  items: string[];
-  icon: string;
-}
+import { ContentSectionItem, SDKFeature } from '../../../types/documentation';
 
 interface SDKFeaturesProps {
   section: ContentSectionItem;
@@ -53,12 +47,8 @@ export function SDKFeatures({ section }: SDKFeaturesProps) {
                   {getIcon(feature.icon)}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-gray-800">{feature.category}</h3>
-                  <ul className="text-sm text-gray-600 list-disc list-inside mt-1">
-                    {feature.items.map((item, itemIndex) => (
-                      <li key={itemIndex}>{item}</li>
-                    ))}
-                  </ul>
+                  <h3 className="font-semibold text-gray-800">{feature.name}</h3>
+                  <p className="text-sm text-gray-600 mt-1">{feature.description}</p>
                 </div>
               </div>
             </div>
