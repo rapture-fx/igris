@@ -336,7 +336,7 @@ class AuditTrailMixin:
             )
             session.add(audit_record)
             session.commit()
-
+    
     def create_audit_record(
         self,
         action: AuditAction,

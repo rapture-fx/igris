@@ -262,13 +262,13 @@ class UnifiedAuthService:
                 status=AuthStatus.ACCOUNT_LOCKED,
                 error_message="Account is temporarily locked due to too many failed login attempts."
             )
-            
+        
         user = await self.get_user_by_email(db, email)
         
         if user and self.verify_password(password, user.hashed_password):
-            if not user.is_active:
+        if not user.is_active:
                 return AuthResult(success=False, status=AuthStatus.ACCOUNT_DISABLED, error_message="Account is disabled")
-            
+        
             # Success - clear any failed attempts
             await self.clear_failed_attempts(email)
             

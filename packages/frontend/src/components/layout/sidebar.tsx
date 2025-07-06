@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { Logo } from '@/components/ui/Logo'
 import { 
   LayoutDashboard, 
   Database, 
@@ -24,7 +23,8 @@ import {
   Shield,
   CreditCard,
   User,
-  ChevronsLeft
+  ChevronsLeft,
+  ChevronsRight
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
@@ -69,18 +69,18 @@ export function Sidebar({ isCollapsed, onToggle, onSettingsClick, onSystemStatus
   const pathname = usePathname()
 
   const renderNav = (items: typeof navigation) => (
-    <ul role="list" className="space-y-1">
+    <ul role="list" className="space-y-2">
       {items.map((item) => {
         const isSettings = item.name === 'Settings';
         const isSystemStatus = item.name === 'System Status';
         const isActive = !isSettings && !isSystemStatus && (pathname === item.href || pathname.startsWith(item.href + '/'));
 
         const commonClasses = cn(
-          "group flex items-center gap-x-3 rounded-md p-2 text-sm leading-6 font-semibold",
+          "group flex items-center gap-x-3 rounded-lg p-2 text-sm leading-6 font-semibold",
           isCollapsed ? "justify-center" : "",
           isActive 
-            ? 'bg-gray-50 text-indigo-600'
-            : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-50'
+            ? 'bg-gray-100 text-indigo-600'
+            : 'text-gray-700 hover:text-indigo-600 hover:bg-gray-100'
         )
 
         const content = (
@@ -92,7 +92,7 @@ export function Sidebar({ isCollapsed, onToggle, onSettingsClick, onSystemStatus
               )}
               aria-hidden="true"
             />
-            <span className={cn(isCollapsed ? "sr-only" : "")}>{item.name}</span>
+            <span className={cn(isCollapsed ? "hidden" : "")}>{item.name}</span>
           </>
         )
 
@@ -126,60 +126,49 @@ export function Sidebar({ isCollapsed, onToggle, onSettingsClick, onSystemStatus
 
   return (
     <div className={cn(
-        "hidden lg:sticky lg:top-0 lg:flex lg:flex-col lg:h-screen transition-all duration-300 z-30",
+        "relative hidden lg:sticky lg:top-20 lg:flex lg:flex-col lg:h-[calc(100vh-5rem)] transition-all duration-300 z-30 bg-gray-50",
         isCollapsed ? "lg:w-20" : "lg:w-72"
       )}>
-      <div className="flex h-full flex-col bg-gray-50">
-        <div className="relative flex shrink-0 items-center justify-between px-6 py-8">
-          <Link href="/dashboard" className={cn("flex items-center gap-x-3", isCollapsed && "w-full justify-center")}>
-            <Logo className="h-8 w-auto" />
-            <div className={cn("font-dm-sans text-lg text-gray-800 whitespace-nowrap", isCollapsed && "sr-only")}>
-              <span className="font-bold">Schlep</span>
-              <span>-engine</span>
-            </div>
-          </Link>
-          <button onClick={onToggle} className={cn("p-1.5 rounded-full hover:bg-gray-200", isCollapsed ? "absolute right-[-14px] top-1/2 -translate-y-1/2 bg-white border shadow-md" : "relative")}>
-             <ChevronsLeft className={cn("h-5 w-5 transition-transform", isCollapsed && "rotate-180")} />
-          </button>
-        </div>
-        
-        <nav className="flex-1 overflow-y-auto px-4">
-          <ul role="list" className="flex flex-col gap-y-4">
+       <nav className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 pt-8">
+           <ul role="list" className="flex flex-col gap-y-6">
             <li>{renderNav(navigation)}</li>
             <li>
-              <div className={cn("text-xs font-semibold leading-6 text-gray-400 mt-4", isCollapsed && "text-center")}>{isCollapsed ? "ACCT" : "Account"}</div>
+              <div className={cn("text-xs font-semibold leading-6 text-gray-400", isCollapsed && "hidden")}>Account</div>
               {renderNav(account)}
             </li>
             <li>
-              <div className={cn("text-xs font-semibold leading-6 text-gray-400 mt-4", isCollapsed && "text-center")}>{isCollapsed ? "ADMIN" : "Administration"}</div>
+              <div className={cn("text-xs font-semibold leading-6 text-gray-400", isCollapsed && "hidden")}>Administration</div>
               {renderNav(administration)}
             </li>
              <li>
-              <div className={cn("text-xs font-semibold leading-6 text-gray-400 mt-4", isCollapsed && "text-center")}>{isCollapsed ? "DOCS" : "Resources"}</div>
+              <div className={cn("text-xs font-semibold leading-6 text-gray-400", isCollapsed && "hidden")}>Resources</div>
               {renderNav(resources)}
             </li>
-            <li className={cn(isCollapsed ? "mx-0" : "-mx-4", "mt-8 mb-4")}>
-                 <TooltipProvider delayDuration={0}>
-                  <Tooltip>
-                    <TooltipTrigger className="w-full">
-                       <div className={cn("flex items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-6 text-gray-900 hover:bg-gray-100", isCollapsed && "justify-center")}>
-                        <div className="h-8 w-8 rounded-full bg-gray-800 flex items-center justify-center shrink-0">
-                          <User className="h-5 w-5 text-white" />
-                        </div>
-                        <span aria-hidden="true" className={cn("whitespace-nowrap", isCollapsed && "sr-only")}>Admin</span>
-                      </div>
-                    </TooltipTrigger>
-                    {isCollapsed && (
-                      <TooltipContent side="right">
-                        <p>Admin</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
+            <li className="mt-auto">
+              <div className="border-t border-gray-200 pt-4">
+                <div className="flex items-center gap-x-3">
+                  <div className="h-10 w-10 rounded-full bg-gray-800 flex items-center justify-center shrink-0">
+                    <User className="h-6 w-6 text-white" />
+                  </div>
+                  <div className={cn("flex-1", isCollapsed && "hidden")}>
+                    <div className="text-sm font-semibold">Admin User</div>
+                    <div className="text-xs text-gray-500 hover:underline cursor-pointer">View profile</div>
+                  </div>
+                </div>
+              </div>
             </li>
           </ul>
         </nav>
-      </div>
+        <div className="border-t border-gray-200 p-4">
+          <button
+            onClick={onToggle}
+            className="w-full flex justify-center items-center p-2 rounded-lg hover:bg-gray-100 gap-x-3"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isCollapsed ? <ChevronsRight className="h-5 w-5 text-gray-600" /> : <ChevronsLeft className="h-5 w-5 text-gray-600" />}
+            <span className={cn("text-sm font-semibold", isCollapsed && "hidden")}>Collapse</span>
+          </button>
+        </div>
     </div>
   )
 } 

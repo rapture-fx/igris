@@ -186,25 +186,23 @@ const RightPanel = ({ className }: { className?: string }) => {
   ]
 
   return (
-    <aside className={cn("hidden xl:block w-80 shrink-0 bg-gray-50 p-6 h-screen sticky top-0", className)}>
-       <div className="pt-16"> {/* Offset for header */}
-        <h3 className="text-lg font-semibold mb-6">Key Metrics</h3>
-        {isLoading && <p>Loading metrics...</p>}
-        {error && <p className="text-sm text-red-500">Could not load metrics.</p>}
-        <div className="space-y-4">
-         {metrics.map(item => (
-           <div key={item.name} className="flex items-start gap-x-4">
-             <div className="h-10 w-10 flex items-center justify-center shrink-0">
-               <item.icon className="h-6 w-6 text-gray-600" />
-             </div>
-             <div>
-               <p className="text-sm font-semibold text-gray-800">{item.value?.toLocaleString() || '...'}</p>
-               <p className="text-xs text-gray-600">{item.name}</p>
-             </div>
+    <aside className={cn("hidden xl:block w-80 shrink-0 bg-gray-50 py-10 pr-6 lg:pr-10 pl-6 h-[calc(100vh-5rem)] sticky top-20", className)}>
+      <h3 className="text-lg font-semibold mb-6">Key Metrics</h3>
+      {isLoading && <p>Loading metrics...</p>}
+      {error && <p className="text-sm text-red-500">Could not load metrics.</p>}
+      <div className="space-y-4">
+       {metrics.map(item => (
+         <div key={item.name} className="flex items-start gap-x-4">
+           <div className="h-10 w-10 flex items-center justify-center shrink-0">
+             <item.icon className="h-6 w-6 text-gray-600" />
            </div>
-         ))}
-        </div>
-       </div>
+           <div>
+             <p className="text-sm font-semibold text-gray-800">{item.value?.toLocaleString() || '...'}</p>
+             <p className="text-xs text-gray-600">{item.name}</p>
+           </div>
+         </div>
+       ))}
+      </div>
     </aside>
   )
 }
@@ -219,7 +217,6 @@ export default function DashboardLayout({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSystemStatusOpen, setIsSystemStatusOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
@@ -249,6 +246,7 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
+       <Header />
       <div className="max-w-screen-xl mx-auto lg:flex">
          <Sidebar 
           isCollapsed={isSidebarCollapsed}
@@ -256,13 +254,12 @@ export default function DashboardLayout({
           onSettingsClick={() => setIsSettingsOpen(true)} 
           onSystemStatusClick={() => setIsSystemStatusOpen(true)}
         />
-        <div className="flex-1 min-w-0">
-            <Header onToggleRightPanel={() => setIsRightPanelOpen(!isRightPanelOpen)} />
-            <main className="py-10">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">{children}</div>
+        <div className="flex-1 min-w-0 flex">
+            <main className="flex-1 py-10 px-6 lg:px-10">
+              {children}
             </main>
+            <RightPanel />
         </div>
-        <RightPanel className={cn(!isRightPanelOpen && "hidden")} />
       </div>
       
       {/* Guided Tour */}

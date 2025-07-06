@@ -69,7 +69,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-inter)", ...fontFamily.sans],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif', ...fontFamily.sans],
         "dm-sans": ["var(--font-dm-sans)"],
         'figtree': ['var(--font-figtree)', 'system-ui', 'sans-serif'],
         'apple': ['-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
