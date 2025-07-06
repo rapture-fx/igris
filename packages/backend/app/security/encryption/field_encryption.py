@@ -435,5 +435,34 @@ def encrypt_credit_card(cc_number: str, encryptor: FieldEncryption) -> str:
     return encryptor.encrypt_field(cc_number, "credit_card")
 
 def decrypt_credit_card(encrypted_cc: str, encryptor: FieldEncryption) -> str:
-    """Decrypt credit card number."""
-    return encryptor.decrypt_field(encrypted_cc, "credit_card") 
+    """Convenience function for decrypting credit card numbers"""
+    return encryptor.decrypt_field(encrypted_cc, context="credit_card")
+
+# ==============================================================================
+# Global Field Encryptor Instance
+# ==============================================================================
+
+# This is the global instance that will be used by the application middleware
+# and other services. It should be configured with a master key from a secure
+# source, such as environment variables or a secret management system.
+
+# IMPORTANT: Ensure MASTER_ENCRYPTION_KEY is set in your environment variables.
+# It should be a 32-byte (256-bit) key, preferably in base64 format.
+master_key_b64 = os.environ.get("MASTER_ENCRYPTION_KEY")
+if not master_key_b64:
+    logger.warning(
+        "MASTER_ENCRYPTION_KEY not set. "
+        "Generating a temporary, insecure key for development. "
+        "DO NOT USE IN PRODUCTION."
+    )
+    # This key is for development/testing only and is not secure
+    master_key = FieldEncryption.generate_master_key()
+else:
+    try:
+        master_key = base64.b64decode(master_key_b64)
+    except (ValueError, TypeError):
+        logger.error("MASTER_ENCRYPTION_KEY is not a valid base64-encoded string.")
+        raise InvalidKeyError("Invalid MASTER_ENCRYPTION_KEY format")
+
+# Create the global encryptor instance
+field_encryptor = FieldEncryption(master_key=master_key) 

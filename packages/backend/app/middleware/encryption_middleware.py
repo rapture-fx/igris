@@ -33,7 +33,7 @@ import json
 import asyncio
 from typing import Optional, Dict, List, Any, Callable, Set, Union
 from functools import wraps
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from enum import Enum
 import logging
 
@@ -66,16 +66,26 @@ class EncryptionPolicy(Enum):
 
 @dataclass
 class EncryptionConfig:
-    """Configuration for response encryption"""
+    """Configuration for the encryption middleware."""
+    enabled: bool = True
+    log_level: str = "INFO"
+    default_sensitivity: SensitivityLevel = SensitivityLevel.CONFIDENTIAL
+    pii_detection_confidence: float = 0.8
+    masking_strategy: MaskingStrategy = MaskingStrategy.TOKENIZE
+    encrypted_fields: Dict[str, str] = field(default_factory=lambda: {
+        "user.email": "email",
+        "payment.credit_card_number": "credit_card"
+    })
     encryption_level: EncryptionLevel = EncryptionLevel.MEDIUM
     encryption_policy: EncryptionPolicy = EncryptionPolicy.DETECT_AND_ENCRYPT
     encrypt_fields: Set[str] = None
     exclude_fields: Set[str] = None
     pii_detection_enabled: bool = True
-    masking_strategy: MaskingStrategy = MaskingStrategy.TOKENIZATION
-    minimum_sensitivity: SensitivityLevel = SensitivityLevel.SENSITIVE
+    minimum_sensitivity: SensitivityLevel = SensitivityLevel.CONFIDENTIAL
     preserve_structure: bool = True
     add_encryption_metadata: bool = True
+    request_pii_check_fields: List[str] = field(default_factory=lambda: ["query", "headers", "body"])
+    response_pii_check_fields: List[str] = field(default_factory=lambda: ["data"])
 
 class ResponseEncryptor:
     """Handles encryption of response data"""
@@ -309,8 +319,8 @@ def encrypt_response(
     encrypt_fields: Set[str] = None,
     exclude_fields: Set[str] = None,
     pii_detection_enabled: bool = True,
-    masking_strategy: MaskingStrategy = MaskingStrategy.TOKENIZATION,
-    minimum_sensitivity: SensitivityLevel = SensitivityLevel.SENSITIVE,
+    masking_strategy: MaskingStrategy = MaskingStrategy.TOKENIZE,
+    minimum_sensitivity: SensitivityLevel = SensitivityLevel.CONFIDENTIAL,
     preserve_structure: bool = True,
     add_encryption_metadata: bool = True
 ):
@@ -408,11 +418,11 @@ def encrypt_sensitive_data(
         encrypt_fields=encrypt_fields,
         exclude_fields=exclude_fields,
         pii_detection_enabled=True,
-        minimum_sensitivity=SensitivityLevel.SENSITIVE
+        minimum_sensitivity=SensitivityLevel.CONFIDENTIAL
     )
 
 def encrypt_pii_data(
-    masking_strategy: MaskingStrategy = MaskingStrategy.TOKENIZATION
+    masking_strategy: MaskingStrategy = MaskingStrategy.TOKENIZE
 ):
     """Decorator for endpoints that may contain PII"""
     return encrypt_response(
@@ -420,7 +430,7 @@ def encrypt_pii_data(
         encryption_policy=EncryptionPolicy.DETECT_AND_ENCRYPT,
         pii_detection_enabled=True,
         masking_strategy=masking_strategy,
-        minimum_sensitivity=SensitivityLevel.PERSONAL
+        minimum_sensitivity=SensitivityLevel.CONFIDENTIAL
     )
 
 def encrypt_financial_data():

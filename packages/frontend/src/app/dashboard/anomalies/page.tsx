@@ -201,7 +201,7 @@ export default function AnomaliesPage() {
       } catch (error) {
         console.error('Error fetching anomalies:', error)
       } finally {
-        setLoading(false)
+    setLoading(false)
       }
     }
 
@@ -350,7 +350,7 @@ export default function AnomaliesPage() {
             Configure Rules
           </button>
         </div>
-      </div>
+        </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -431,10 +431,10 @@ export default function AnomaliesPage() {
           <div className="text-center p-4 bg-yellow-50 rounded-xl border border-yellow-100">
             <div className="w-8 h-8 bg-yellow-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <Info className="w-4 h-4 text-yellow-600" />
-            </div>
+              </div>
             <p className="text-2xl font-bold text-yellow-600">{stats.medium}</p>
             <p className="text-sm text-yellow-700 font-medium">Medium</p>
-          </div>
+              </div>
           <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2">
               <CheckCircle className="w-4 h-4 text-blue-600" />
@@ -442,8 +442,8 @@ export default function AnomaliesPage() {
             <p className="text-2xl font-bold text-blue-600">{stats.low}</p>
             <p className="text-sm text-blue-700 font-medium">Low</p>
           </div>
-        </div>
-      </div>
+              </div>
+              </div>
 
       {/* Controls */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100">

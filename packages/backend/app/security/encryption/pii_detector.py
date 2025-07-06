@@ -933,21 +933,29 @@ def anonymize_dataset(
     data: Dict[str, str],
     strategy: MaskingStrategy = MaskingStrategy.TOKENIZE
 ) -> Tuple[Dict[str, str], Dict[str, str]]:
-    """Anonymize a dataset and return token mapping"""
-    detector = PIIDetector()
+    """
+    Anonymize an entire dataset of key-value pairs.
+    
+    Returns:
+        A tuple containing the anonymized data and the token mapping.
+    """
+    detector = create_pii_detector()
     anonymized_data = {}
-    all_tokens = {}
-    
+    full_token_map = {}
+
     for key, value in data.items():
-        if isinstance(value, str):
-            if strategy == MaskingStrategy.TOKENIZE:
-                anonymized_value, tokens = detector.tokenize_pii(value)
-                all_tokens.update(tokens)
-            else:
-                anonymized_value, _ = detector.mask_pii(value, strategy)
-            
-            anonymized_data[key] = anonymized_value
-        else:
-            anonymized_data[key] = value
-    
-    return anonymized_data, all_tokens 
+        anonymized_data[key], token_map = detector.tokenize_pii(value, reversible=True)
+        full_token_map.update(token_map)
+        
+    return anonymized_data, full_token_map
+
+
+# ==============================================================================
+# Global PII Detector Instance
+# ==============================================================================
+
+# This is the global instance that will be used by the application for
+# PII detection, classification, and masking. It is pre-initialized with
+# all the default patterns.
+
+pii_detector = create_pii_detector() 

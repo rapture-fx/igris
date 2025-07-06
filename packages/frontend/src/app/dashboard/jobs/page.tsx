@@ -144,7 +144,7 @@ export default function JobsPage() {
       } catch (error) {
         console.error('Error fetching jobs:', error)
       } finally {
-        setLoading(false)
+    setLoading(false)
       }
     }
 
@@ -284,16 +284,16 @@ export default function JobsPage() {
         </div>
         <div className="flex items-center space-x-3">
           <button className="inline-flex items-center px-4 py-2 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium rounded-lg transition-colors">
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </button>
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Refresh
+              </button>
           <button className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all transform hover:scale-105">
             <Activity className="w-4 h-4 mr-2" />
             New Job
-          </button>
-        </div>
-      </div>
-
+                    </button>
+                  </div>
+                </div>
+                
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
@@ -305,63 +305,63 @@ export default function JobsPage() {
             </div>
             <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
               <Activity className="w-6 h-6 text-gray-600" />
-            </div>
-          </div>
-        </div>
-
+                  </div>
+                  </div>
+                </div>
+                
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <div className="flex items-center justify-between">
-            <div>
+                  <div>
               <p className="text-sm font-medium text-gray-600">Running</p>
               <p className="text-3xl font-bold text-blue-600">{stats.running}</p>
               <p className="text-xs text-gray-500 mt-1">currently active</p>
-            </div>
+                  </div>
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
               <RefreshCw className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
+                  </div>
+                </div>
+              </div>
 
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <div className="flex items-center justify-between">
-            <div>
+                    <div>
               <p className="text-sm font-medium text-gray-600">Completed</p>
               <p className="text-3xl font-bold text-green-600">{stats.completed}</p>
               <p className="text-xs text-gray-500 mt-1">today</p>
-            </div>
+                    </div>
             <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
               <CheckCircle2 className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
+                  </div>
+                  </div>
+                </div>
+                
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <div className="flex items-center justify-between">
-            <div>
+                  <div>
               <p className="text-sm font-medium text-gray-600">Queued</p>
               <p className="text-3xl font-bold text-yellow-600">{stats.queued}</p>
               <p className="text-xs text-gray-500 mt-1">waiting to start</p>
-            </div>
+                  </div>
             <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
               <Clock className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-        </div>
+                  </div>
+                </div>
+              </div>
 
         <div className="bg-white rounded-2xl p-6 border border-gray-100">
           <div className="flex items-center justify-between">
-            <div>
+                    <div>
               <p className="text-sm font-medium text-gray-600">Failed</p>
               <p className="text-3xl font-bold text-red-600">{stats.failed}</p>
               <p className="text-xs text-gray-500 mt-1">need attention</p>
             </div>
             <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center">
               <AlertTriangle className="w-6 h-6 text-red-600" />
-            </div>
-          </div>
-        </div>
-      </div>
-
+                    </div>
+                  </div>
+                  </div>
+                </div>
+                
       {/* Controls */}
       <div className="bg-white rounded-2xl p-6 border border-gray-100">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -375,7 +375,7 @@ export default function JobsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-            </div>
+                  </div>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
@@ -410,16 +410,16 @@ export default function JobsPage() {
               <option value="status">Status</option>
               <option value="priority">Priority</option>
             </select>
-          </div>
-        </div>
-      </div>
+                  </div>
+                </div>
+              </div>
 
       {/* Jobs List */}
       <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-100">
           <h3 className="text-lg font-semibold text-gray-900">Jobs ({sortedJobs.length})</h3>
-        </div>
-        
+                </div>
+                
         {sortedJobs.length === 0 ? (
           <div className="text-center py-12">
             <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -452,8 +452,8 @@ export default function JobsPage() {
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(job.priority)}`}>
                           {job.priority} priority
                         </span>
-                      </div>
-                      
+        </div>
+
                       <div className="flex items-center space-x-6 text-sm text-gray-600 mb-3">
                         <span className="flex items-center">
                           <Users className="w-4 h-4 mr-1" />
@@ -467,7 +467,7 @@ export default function JobsPage() {
                         {job.total_records && (
                           <span>{formatNumber(job.total_records)} records</span>
                         )}
-                      </div>
+                </div>
 
                       {/* Progress Bar for Running Jobs */}
                       {(job.status === 'running' || job.status === 'paused') && (
@@ -475,22 +475,22 @@ export default function JobsPage() {
                           <div className="flex items-center justify-between text-sm mb-2">
                             <span className="text-gray-600">Progress</span>
                             <span className="font-medium text-gray-900">{job.progress}%</span>
-                          </div>
+                </div>
                           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                             <div 
                               className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300"
                               style={{ width: `${job.progress}%` }}
                             />
-                          </div>
+                </div>
                           {job.records_processed && job.total_records && (
                             <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
                               <span>{formatNumber(job.records_processed)} / {formatNumber(job.total_records)} records</span>
                               {job.estimated_completion && (
                                 <span>{getTimeRemaining(job.estimated_completion)}</span>
                               )}
-                            </div>
+                </div>
                           )}
-                        </div>
+              </div>
                       )}
 
                       {/* Resource Usage for Running Jobs */}
@@ -508,14 +508,14 @@ export default function JobsPage() {
                             <Network className="w-3 h-3 mr-1" />
                             Storage: {job.resource_usage.storage}%
                           </span>
-                        </div>
+            </div>
                       )}
 
                       {/* Error Message for Failed Jobs */}
                       {job.status === 'failed' && job.error_message && (
                         <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
                           <p className="text-sm text-red-800">{job.error_message}</p>
-                        </div>
+                  </div>
                       )}
 
                       {/* Completion Info */}
@@ -528,9 +528,9 @@ export default function JobsPage() {
                           {job.records_processed && (
                             <span>{formatNumber(job.records_processed)} records processed</span>
                           )}
-                        </div>
+                  </div>
                       )}
-                    </div>
+                </div>
                   </div>
 
                   <div className="flex items-center space-x-2 flex-shrink-0">

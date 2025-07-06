@@ -41,16 +41,10 @@ const navigation = [
 ]
 
 const account = [
-  { name: 'Usage', href: '/dashboard/usage', icon: BarChart3 },
-  { name: 'Billing', href: '/dashboard/billing', icon: CreditCard },
-  { name: 'Team', href: '/dashboard/team', icon: Users },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
 const administration = [
-  { name: 'API Keys', href: '/dashboard/api-keys', icon: Key },
-  { name: 'Security', href: '/dashboard/security', icon: Shield },
-  { name: 'Audit Logs', href: '/dashboard/audit-logs', icon: ShieldCheck },
   { name: 'System Status', href: '/dashboard/system-status', icon: Server },
 ]
 

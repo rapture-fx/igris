@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { apiService, handleAPIError, APIError } from '@/lib/api-service'
+import { toast } from 'sonner'
 
 // ==================== TYPES ====================
 
@@ -44,6 +45,16 @@ export interface UsePaginatedDataResult<T> extends UseAPIDataResult<T[]> {
   goToPage: (page: number) => void
   nextPage: () => void
   prevPage: () => void
+}
+
+export interface AuditLogFilters {
+  search: string
+  action_type: string
+  user_id: string
+  start_date: string
+  end_date: string
+  limit: number
+  offset: number
 }
 
 // ==================== CORE HOOK ====================
@@ -456,4 +467,672 @@ export function usePolling<T>(
     stopPolling,
     refetch
   }
+}
+
+// ==================== NEW DATA PROCESSING HOOKS ====================
+
+export function useDataProcessing() {
+  const [processing, setProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const processFile = useCallback(async (
+    file: File, 
+    options: { target_framework?: string, processing_mode?: string } = {}
+  ) => {
+    setProcessing(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.processDataFile(file, options)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Processing failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setProcessing(false)
+    }
+  }, [])
+
+  return {
+    processFile,
+    processing,
+    error
+  }
+}
+
+export function useSupportedFrameworks(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getSupportedFrameworks(),
+    {
+      refetchInterval: 300000, // 5 minutes - frameworks don't change often
+      ...options
+    }
+  )
+}
+
+export function useMLAnalysis() {
+  const [analyzing, setAnalyzing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const runAnalysis = useCallback(async (
+    data: any[],
+    analysisType: 'anomaly_detection' | 'sentiment_analysis' | 'classification',
+    config?: Record<string, any>
+  ) => {
+    setAnalyzing(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.runMLAnalysis({
+        data,
+        analysis_type: analysisType,
+        config
+      })
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Analysis failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setAnalyzing(false)
+    }
+  }, [])
+
+  return {
+    runAnalysis,
+    analyzing,
+    error
+  }
+}
+
+export function useMLServiceStatus(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getMLServiceStatus(),
+    {
+      refetchInterval: 30000, // 30 seconds
+      ...options
+    }
+  )
+}
+
+export function useAvailableMLModels(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getAvailableMLModels(),
+    {
+      refetchInterval: 60000, // 1 minute
+      ...options
+    }
+  )
+}
+
+export function useDataPrepHealth(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getDataPrepHealth(),
+    {
+      refetchInterval: 15000, // 15 seconds
+      ...options
+    }
+  )
+}
+
+// ==================== TRANSFORMATION HOOKS ====================
+
+export function useAvailableTransformations(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getAvailableTransformations(),
+    {
+      refetchInterval: 300000, // 5 minutes - transformations don't change often
+      ...options
+    }
+  )
+}
+
+export function useTransformationPipelines(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getTransformationPipelines(),
+    {
+      refetchInterval: 30000, // 30 seconds
+      ...options
+    }
+  )
+}
+
+export function useTransformationPipeline() {
+  const [creating, setCreating] = useState(false)
+  const [executing, setExecuting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createPipeline = useCallback(async (pipelineData: {
+    name: string
+    description?: string
+    dataset_id: string
+    steps: Array<{
+      type: string
+      column: string
+      params: Record<string, any>
+    }>
+    target_framework?: string
+  }) => {
+    setCreating(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.createTransformationPipeline(pipelineData)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Pipeline creation failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setCreating(false)
+    }
+  }, [])
+
+  const executePipeline = useCallback(async (pipelineId: string) => {
+    setExecuting(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.executeTransformationPipeline(pipelineId)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Pipeline execution failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setExecuting(false)
+    }
+  }, [])
+
+  return {
+    createPipeline,
+    executePipeline,
+    creating,
+    executing,
+    error
+  }
+}
+
+export function useTransformationPipelineStatus(pipelineId: string | null, options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => pipelineId ? apiService.getTransformationPipelineStatus(pipelineId) : Promise.resolve(null),
+    {
+      enabled: !!pipelineId,
+      refetchInterval: 2000, // 2 seconds for real-time status
+      ...options
+    }
+  )
+}
+
+export function useFrameworkTransformationSuggestions(
+  datasetId: string | null, 
+  framework: string,
+  options: UseAPIDataOptions = {}
+) {
+  return useAPIData(
+    () => datasetId ? apiService.getFrameworkTransformationSuggestions(datasetId, framework) : Promise.resolve(null),
+    {
+      enabled: !!datasetId,
+      refetchInterval: 60000, // 1 minute
+      ...options
+    }
+  )
+}
+
+export function useTransformationPreview() {
+  const [previewing, setPreviewing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const previewTransformation = useCallback(async (transformationData: {
+    dataset_id: string
+    step: {
+      type: string
+      column: string
+      params: Record<string, any>
+    }
+  }) => {
+    setPreviewing(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.previewTransformation(transformationData)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Preview failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setPreviewing(false)
+    }
+  }, [])
+
+  return {
+    previewTransformation,
+    previewing,
+    error
+  }
+}
+
+// ==================== AUTO-LABELING HOOKS ====================
+
+export function useAutoLabelingCapabilities(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getAutoLabelingCapabilities(),
+    {
+      refetchInterval: 300000, // 5 minutes - capabilities don't change often
+      ...options
+    }
+  )
+}
+
+export function useLabelingProjects(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getLabelingProjects(),
+    {
+      refetchInterval: 30000, // 30 seconds
+      ...options
+    }
+  )
+}
+
+export function useLabelingQueue(projectId: string | null, limit: number = 10, options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => projectId ? apiService.getLabelingQueue(projectId, limit) : Promise.resolve(null),
+    {
+      enabled: !!projectId,
+      refetchInterval: 5000, // 5 seconds for real-time queue updates
+      ...options
+    }
+  )
+}
+
+export function useLabelingProject() {
+  const [creating, setCreating] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const createProject = useCallback(async (projectData: {
+    name: string
+    description?: string
+    type: 'image_classification' | 'text_categorization' | 'object_detection'
+    dataset_id: string
+    labels: string[]
+    auto_label_enabled: boolean
+    confidence_threshold?: number
+  }) => {
+    setCreating(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.createLabelingProject(projectData)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Project creation failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setCreating(false)
+    }
+  }, [])
+
+  const submitLabel = useCallback(async (
+    projectId: string, 
+    itemId: string, 
+    labelData: {
+      label: string
+      confidence?: number
+      review_notes?: string
+      accept_auto_label?: boolean
+    }
+  ) => {
+    setSubmitting(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.submitLabel(projectId, itemId, labelData)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Label submission failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setSubmitting(false)
+    }
+  }, [])
+
+  return {
+    createProject,
+    submitLabel,
+    creating,
+    submitting,
+    error
+  }
+}
+
+export function useAutoLabeling() {
+  const [requesting, setRequesting] = useState(false)
+  const [bulkProcessing, setBulkProcessing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const requestAutoLabeling = useCallback(async (projectId: string, itemIds: string[]) => {
+    setRequesting(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.requestAutoLabeling(projectId, itemIds)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Auto-labeling request failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setRequesting(false)
+    }
+  }, [])
+
+  const bulkAutoLabel = useCallback(async (
+    datasetId: string, 
+    labelingConfig: {
+      model_type: 'image_classification' | 'text_classification' | 'object_detection'
+      confidence_threshold: number
+      labels: string[]
+      review_low_confidence: boolean
+    }
+  ) => {
+    setBulkProcessing(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.bulkAutoLabel(datasetId, labelingConfig)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Bulk auto-labeling failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setBulkProcessing(false)
+    }
+  }, [])
+
+  return {
+    requestAutoLabeling,
+    bulkAutoLabel,
+    requesting,
+    bulkProcessing,
+    error
+  }
+}
+
+export function useAutoLabelingJobStatus(jobId: string | null, options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => jobId ? apiService.getAutoLabelingJobStatus(jobId) : Promise.resolve(null),
+    {
+      enabled: !!jobId,
+      refetchInterval: 2000, // 2 seconds for real-time status
+      ...options
+    }
+  )
+}
+
+export function useLabelingProjectAnalytics(projectId: string | null, options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => projectId ? apiService.getLabelingProjectAnalytics(projectId) : Promise.resolve(null),
+    {
+      enabled: !!projectId,
+      refetchInterval: 30000, // 30 seconds
+      ...options
+    }
+  )
+}
+
+// ==================== SECURITY HOOKS ====================
+
+export function useSecuritySettings(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getSecuritySettings(),
+    {
+      refetchInterval: 60000, // 1 minute
+      ...options
+    }
+  )
+}
+
+export function useActiveSessions(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getActiveSessions(),
+    {
+      refetchInterval: 30000, // 30 seconds
+      ...options
+    }
+  )
+}
+
+export function useAPIKeys(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getAPIKeys(),
+    {
+      refetchInterval: 60000, // 1 minute
+      ...options
+    }
+  )
+}
+
+export function useAuditLogs(filters?: {
+  start_date?: string
+  end_date?: string
+  action_type?: string
+  user_id?: string
+  limit?: number
+  offset?: number
+}, options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getAuditLogs(filters),
+    {
+      refetchInterval: 30000, // 30 seconds
+      ...options
+    }
+  )
+}
+
+export function useSecurityMetrics(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getSecurityMetrics(),
+    {
+      refetchInterval: 60000, // 1 minute
+      ...options
+    }
+  )
+}
+
+export function useSecurityRecommendations(options: UseAPIDataOptions = {}) {
+  return useAPIData(
+    () => apiService.getSecurityRecommendations(),
+    {
+      refetchInterval: 300000, // 5 minutes
+      ...options
+    }
+  )
+}
+
+export function useSecurityManagement() {
+  const [updating, setUpdating] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [revoking, setRevoking] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const updateSecuritySettings = useCallback(async (settings: {
+    mfa_enabled?: boolean
+    session_timeout?: number
+    password_policy?: Record<string, any>
+  }) => {
+    setUpdating(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.updateSecuritySettings(settings)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Settings update failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setUpdating(false)
+    }
+  }, [])
+
+  const updateMFASettings = useCallback(async (enabled: boolean, method?: string) => {
+    setUpdating(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.updateMFASettings(enabled, method)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'MFA update failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setUpdating(false)
+    }
+  }, [])
+
+  const createAPIKey = useCallback(async (keyData: {
+    name: string
+    permissions: string[]
+    expires_at?: string
+    description?: string
+  }) => {
+    setCreating(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.createAPIKey(keyData)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'API key creation failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setCreating(false)
+    }
+  }, [])
+
+  const revokeAPIKey = useCallback(async (keyId: string) => {
+    setRevoking(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.revokeAPIKey(keyId)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'API key revocation failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setRevoking(false)
+    }
+  }, [])
+
+  const revokeSession = useCallback(async (sessionId: string) => {
+    setRevoking(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.revokeSession(sessionId)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Session revocation failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setRevoking(false)
+    }
+  }, [])
+
+  const changePassword = useCallback(async (passwordData: {
+    current_password: string
+    new_password: string
+    confirm_password: string
+  }) => {
+    setUpdating(true)
+    setError(null)
+    
+    try {
+      const result = await apiService.changePassword(passwordData)
+      return result
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Password change failed'
+      setError(errorMessage)
+      throw err
+    } finally {
+      setUpdating(false)
+    }
+  }, [])
+
+  const testAPIKey = async (keyId: string) => {
+    try {
+      const result = await apiService.post(`/security/api-keys/${keyId}/test`);
+      toast.success(result.message || 'API key is valid and working.');
+      return result;
+    } catch (error) {
+      const apiError = handleAPIError(error);
+      toast.error(apiError.message);
+      throw apiError;
+    }
+  };
+
+  return {
+    updateSecuritySettings,
+    updateMFASettings,
+    createAPIKey,
+    revokeAPIKey,
+    revokeSession,
+    changePassword,
+    testAPIKey,
+    updating,
+    creating,
+    revoking,
+    error
+  }
+}
+
+export const useBilling = () => {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true)
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      setData({
+        subscription: {
+          plan_name: 'Professional',
+          cost_mtd: 78.50,
+          renews_on: '2024-08-01',
+          usage: 75230,
+        },
+        paymentMethod: {
+          card_type: 'Visa',
+          last4: '4242',
+          expiry_date: '12/25'
+        },
+        billingHistory: [
+          { id: 'inv_12345', date: '2024-07-01', amount: 99.00, invoice_url: '#' },
+          { id: 'inv_12344', date: '2024-06-01', amount: 99.00, invoice_url: '#' },
+          { id: 'inv_12343', date: '2024-05-01', amount: 99.00, invoice_url: '#' },
+        ]
+      })
+      setLoading(false)
+    }
+    fetchData()
+  }, [])
+
+  return { data, loading }
+}
+
+export const useTeamManagement = () => {
+  const [data, setData] = useState<any>(null)
+  // ... existing code ...
 } 

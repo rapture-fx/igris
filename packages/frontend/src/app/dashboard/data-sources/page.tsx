@@ -130,12 +130,12 @@ export default function DataSourcesPage() {
         await new Promise(resolve => setTimeout(resolve, 1000))
         setDataSources(mockDataSources)
         setInvestigations([])
-      } catch (error) {
+    } catch (error) {
         console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
-      }
+    } finally {
+      setLoading(false)
     }
+  }
 
     fetchData()
   }, [])
@@ -218,7 +218,7 @@ export default function DataSourcesPage() {
           <p className="text-gray-600 mt-1">Manage and monitor your data connections</p>
         </div>
         <div className="flex items-center space-x-3">
-          <button
+                <button 
             onClick={() => setShowUpload(true)}
             className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all transform hover:scale-105"
           >
@@ -228,8 +228,8 @@ export default function DataSourcesPage() {
           <button className="inline-flex items-center px-4 py-2 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium rounded-lg transition-colors">
             <Download className="w-4 h-4 mr-2" />
             Export
-          </button>
-        </div>
+                </button>
+              </div>
       </div>
 
       {/* Stats Cards */}
@@ -291,7 +291,7 @@ export default function DataSourcesPage() {
               <Activity className="w-6 h-6 text-orange-600" />
             </div>
           </div>
-        </div>
+            </div>
       </div>
 
       {/* Controls */}
@@ -299,25 +299,25 @@ export default function DataSourcesPage() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center space-x-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              <input
-                type="text"
-                placeholder="Search data sources..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search data sources..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <select
-              value={filterType}
-              onChange={(e) => setFilterType(e.target.value)}
+            />
+          </div>
+          <select
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Types</option>
-              <option value="csv">CSV Files</option>
-              <option value="json">JSON Files</option>
-              <option value="excel">Excel Files</option>
-              <option value="database">Database</option>
+          >
+            <option value="all">All Types</option>
+            <option value="csv">CSV Files</option>
+            <option value="json">JSON Files</option>
+            <option value="excel">Excel Files</option>
+            <option value="database">Database</option>
               <option value="api">API</option>
             </select>
             <select
@@ -329,7 +329,7 @@ export default function DataSourcesPage() {
               <option value="name">Name</option>
               <option value="quality">Quality Score</option>
               <option value="size">Record Count</option>
-            </select>
+          </select>
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -358,7 +358,7 @@ export default function DataSourcesPage() {
                   <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-gray-100 transition-colors">
                     {getTypeIcon(source.type)}
                   </div>
-                  <div>
+      <div>
                     <h3 className="font-semibold text-gray-900">{source.name}</h3>
                     <p className="text-sm text-gray-600 capitalize">{source.type}</p>
                   </div>
@@ -366,7 +366,7 @@ export default function DataSourcesPage() {
                 <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded">
                   <MoreVertical className="w-4 h-4 text-gray-600" />
                 </button>
-              </div>
+      </div>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -385,15 +385,15 @@ export default function DataSourcesPage() {
                     {source.quality_score}%
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Size</span>
                   <span className="text-sm font-medium text-gray-900">{source.size}</span>
-                </div>
+            </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">Updated</span>
                   <span className="text-sm text-gray-600">{formatDate(source.last_updated)}</span>
-                </div>
-              </div>
+          </div>
+        </div>
 
               <div className="mt-6 pt-4 border-t border-gray-100">
                 <div className="flex items-center justify-between">
@@ -436,15 +436,15 @@ export default function DataSourcesPage() {
                     <div className="text-right">
                       <p className="text-sm font-medium text-gray-900">{source.size}</p>
                       <p className="text-xs text-gray-600">Size</p>
-                    </div>
+                        </div>
                     <div className="text-right">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(source.status)}`}>
                         {source.status}
-                      </span>
-                    </div>
+                        </span>
+                      </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-600">{formatDate(source.last_updated)}</p>
-                    </div>
+                      </div>
                     <div className="flex items-center space-x-2">
                       <button className="p-1 hover:bg-gray-100 rounded">
                         <Eye className="w-4 h-4 text-gray-600" />
@@ -454,15 +454,15 @@ export default function DataSourcesPage() {
                       </button>
                       <button className="p-1 hover:bg-gray-100 rounded">
                         <MoreVertical className="w-4 h-4 text-gray-600" />
-                      </button>
+                        </button>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
       {/* Empty State */}
       {sortedDataSources.length === 0 && (

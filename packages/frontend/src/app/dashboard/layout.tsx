@@ -5,7 +5,7 @@ import { Header } from '@/components/layout/header'
 import { GuidedTour } from '@/components/onboarding/guided-tour'
 import { useState, useEffect } from 'react'
 import { useAuth } from '@/hooks/useAuth'
-import { X, Server, Database, Cpu, MemoryStick, AlertTriangle, Shield, CheckCircle, Activity, TrendingUp, FileText, CheckSquare } from 'lucide-react'
+import { X, Server, Database, Cpu, MemoryStick, AlertTriangle, Shield, CheckCircle, Activity, TrendingUp, FileText, CheckSquare, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '@/lib/api'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -172,10 +172,11 @@ interface AuditLogResponse {
   current_page: number;
 }
 
-const RightPanel = ({ className }: { className?: string }) => {
+const RightPanel = ({ className, isCollapsed, onToggle }: { className?: string, isCollapsed: boolean, onToggle: () => void }) => {
   const { data: stats, isLoading, error } = useQuery<any>({
     queryKey: ['dashboard-stats'],
     queryFn: () => apiService.getDashboardStats(),
+    enabled: !isCollapsed,
   })
 
   const metrics = [
@@ -186,22 +187,38 @@ const RightPanel = ({ className }: { className?: string }) => {
   ]
 
   return (
-    <aside className={cn("hidden xl:block w-80 shrink-0 bg-white py-10 pr-8 lg:pr-12 pl-8 h-[calc(100vh-5rem)] sticky top-20", className)}>
-      <h3 className="text-lg font-semibold mb-6">Key Metrics</h3>
-      {isLoading && <p>Loading metrics...</p>}
-      {error && <p className="text-sm text-red-500">Could not load metrics.</p>}
-      <div className="space-y-4">
-       {metrics.map(item => (
-         <div key={item.name} className="flex items-start gap-x-4">
-           <div className="h-10 w-10 flex items-center justify-center shrink-0">
-             <item.icon className="h-6 w-6 text-gray-600" />
-           </div>
-           <div>
-             <p className="text-sm font-semibold text-gray-800">{item.value?.toLocaleString() || '...'}</p>
-             <p className="text-xs text-gray-600">{item.name}</p>
-           </div>
-         </div>
-       ))}
+    <aside className={cn(
+      "hidden lg:flex flex-col bg-white h-[calc(100vh-5rem)] sticky top-20 transition-all duration-300",
+      isCollapsed ? "w-16 items-center" : "w-80",
+      className
+    )}>
+      <div className={cn("py-10", isCollapsed ? "px-4" : "pr-8 lg:pr-12 pl-8")}>
+        <div className="flex items-center justify-between mb-6">
+          {!isCollapsed && <h3 className="text-lg font-semibold">Key Metrics</h3>}
+          <button onClick={onToggle} className="p-1 rounded-md hover:bg-gray-100">
+            {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+          </button>
+        </div>
+        
+        {!isCollapsed && (
+          <>
+            {isLoading && <p>Loading metrics...</p>}
+            {error && <p className="text-sm text-red-500">Could not load metrics.</p>}
+            <div className="space-y-4">
+            {stats && metrics.map(item => (
+              <div key={item.name} className="flex items-start gap-x-4">
+                <div className="h-10 w-10 flex items-center justify-center shrink-0">
+                  <item.icon className="h-6 w-6 text-gray-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-gray-800">{item.value?.toLocaleString() || '...'}</p>
+                  <p className="text-xs text-gray-600">{item.name}</p>
+                </div>
+              </div>
+            ))}
+            </div>
+          </>
+        )}
       </div>
     </aside>
   )
@@ -217,6 +234,7 @@ export default function DashboardLayout({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [isSystemStatusOpen, setIsSystemStatusOpen] = useState(false)
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
@@ -246,7 +264,7 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-white">
-       <Header />
+        <Header />
       <div className="max-w-[1600px] mx-auto lg:flex">
          <Sidebar 
           isCollapsed={isSidebarCollapsed}
@@ -256,9 +274,9 @@ export default function DashboardLayout({
         />
         <div className="flex-1 min-w-0 flex">
             <main className="flex-1 py-10 px-8 lg:px-12 ml-8">
-              {children}
-            </main>
-            <RightPanel />
+            {children}
+        </main>
+            <RightPanel isCollapsed={isRightPanelCollapsed} onToggle={() => setIsRightPanelCollapsed(!isRightPanelCollapsed)} />
         </div>
       </div>
       
@@ -269,7 +287,7 @@ export default function DashboardLayout({
         onComplete={handleTourComplete}
         userId={user?.id || ''}
       />
-
+      
       {isSettingsOpen && <SettingsModal setIsOpen={setIsSettingsOpen} />}
       <SystemStatusSheet isOpen={isSystemStatusOpen} onOpenChange={setIsSystemStatusOpen} />
       

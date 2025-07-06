@@ -118,30 +118,30 @@ export default function DashboardPage() {
         <div className="max-w-md w-full text-center">
           <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
             <Upload className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Welcome to Schlep-engine
-          </h1>
-          <p className="text-gray-600 mb-8">
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-3">
+              Welcome to Schlep-engine
+            </h1>
+            <p className="text-gray-600 mb-8">
             Upload your first dataset to start transforming messy data into ML-ready insights
-          </p>
-          
+            </p>
+            
           <div className="space-y-3">
             <button
-              onClick={() => setShowUpload(true)}
+                onClick={() => setShowUpload(true)}
               className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
-            >
-              <Plus className="w-5 h-5" />
-              <span>Upload Your First File</span>
-            </button>
-            
-            <Link href="/dashboard/data-sources" className="block">
-              <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors">
-                Browse Sample Data
+              >
+                <Plus className="w-5 h-5" />
+                <span>Upload Your First File</span>
               </button>
-            </Link>
+              
+              <Link href="/dashboard/data-sources" className="block">
+                <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors">
+                  Browse Sample Data
+            </button>
+              </Link>
+            </div>
           </div>
-        </div>
       </div>
     )
   }
@@ -151,92 +151,92 @@ export default function DashboardPage() {
     <div className="space-y-8">
       {/* Header */}
       <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
           <p className="text-gray-600 mt-1">Your data intelligence overview</p>
-        </div>
-        <button
-          onClick={() => setShowUpload(true)}
+          </div>
+          <button
+            onClick={() => setShowUpload(true)}
           className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all transform hover:scale-105"
-        >
+          >
           <Plus className="w-4 h-4 mr-2" />
           Add Data
-        </button>
-      </div>
+          </button>
+        </div>
 
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
-          <div className="flex items-center justify-between">
-            <div>
+            <div className="flex items-center justify-between">
+              <div>
               <p className="text-emerald-100 text-sm font-medium">Time Saved Weekly</p>
-              <p className="text-3xl font-bold">{stats.data?.time_savings?.hours_saved_weekly || 0}h</p>
+                <p className="text-3xl font-bold">{stats.data?.time_savings?.hours_saved_weekly || 0}h</p>
               <p className="text-emerald-100 text-xs mt-1">
-                {formatCurrency(stats.data?.time_savings?.cost_savings_monthly / 4 || 0)} value
-              </p>
-            </div>
+                  {formatCurrency(stats.data?.time_savings?.cost_savings_monthly / 4 || 0)} value
+                </p>
+              </div>
             <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
               <Clock className="w-6 h-6 text-white" />
             </div>
+            </div>
           </div>
-        </div>
 
         <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Quality Score</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Quality Score</p>
               <p className="text-3xl font-bold text-gray-900">{stats.data?.quality_score}%</p>
               <p className="text-xs text-emerald-600 mt-1 flex items-center">
                 <TrendingUp className="w-3 h-3 mr-1" />
-                +{stats.data?.quality_insights?.trends?.weekly_improvement || 2.3}% this week
-              </p>
-            </div>
+                  +{stats.data?.quality_insights?.trends?.weekly_improvement || 2.3}% this week
+                </p>
+              </div>
             <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
               <Target className="w-6 h-6 text-purple-600" />
             </div>
+            </div>
           </div>
-        </div>
 
         <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Records</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Records</p>
               <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.data?.total_records)}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {stats.data?.time_savings?.issues_auto_fixed || 0} issues auto-fixed
-              </p>
-            </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  {stats.data?.time_savings?.issues_auto_fixed || 0} issues auto-fixed
+                </p>
+              </div>
             <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
               <Database className="w-6 h-6 text-blue-600" />
             </div>
+            </div>
           </div>
-        </div>
 
         <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Data Sources</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Data Sources</p>
               <p className="text-3xl font-bold text-gray-900">{stats.data?.data_sources}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                in {stats.data?.project_count || 1} projects
-              </p>
-            </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  in {stats.data?.project_count || 1} projects
+                </p>
+              </div>
             <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
               <Sparkles className="w-6 h-6 text-orange-600" />
             </div>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Content Grid */}
+        {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column - Data Quality */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Data Quality Insights */}
-          {dataQuality.data && (
+          <div className="lg:col-span-2 space-y-6">
+            {/* Data Quality Insights */}
+            {dataQuality.data && (
             <div className="bg-white rounded-2xl p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
                     <Target className="w-5 h-5 text-indigo-600" />
                   </div>
@@ -253,9 +253,9 @@ export default function DashboardPage() {
                 </Link>
               </div>
 
-              {/* Quality Score Gauge */}
+                {/* Quality Score Gauge */}
               <div className="text-center mb-6">
-                <div className="relative inline-block">
+                  <div className="relative inline-block">
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                     <div className="w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center">
                       <span className="text-2xl font-bold text-gray-900">{dataQuality.data.overall_score}%</span>
@@ -263,17 +263,17 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-              </div>
+                  </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-emerald-50 rounded-xl">
                   <p className="text-2xl font-bold text-emerald-600">{dataQuality.data.excellent_count}</p>
                   <p className="text-sm text-emerald-700 font-medium">Excellent</p>
-                </div>
+                  </div>
                 <div className="text-center p-4 bg-blue-50 rounded-xl">
                   <p className="text-2xl font-bold text-blue-600">{dataQuality.data.good_count}</p>
                   <p className="text-sm text-blue-700 font-medium">Good</p>
-                </div>
+                  </div>
                 <div className="text-center p-4 bg-amber-50 rounded-xl">
                   <p className="text-2xl font-bold text-amber-600">{dataQuality.data.fair_count}</p>
                   <p className="text-sm text-amber-700 font-medium">Fair</p>
@@ -281,13 +281,13 @@ export default function DashboardPage() {
                 <div className="text-center p-4 bg-red-50 rounded-xl">
                   <p className="text-2xl font-bold text-red-600">{dataQuality.data.poor_count}</p>
                   <p className="text-sm text-red-700 font-medium">Poor</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
-
-          {/* Active Jobs */}
-          {activeJobs.data && activeJobs.data.length > 0 && (
+            )}
+            
+            {/* Active Jobs */}
+            {activeJobs.data && activeJobs.data.length > 0 && (
             <div className="bg-white rounded-2xl p-6 border border-gray-100">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center space-x-3">
@@ -318,8 +318,8 @@ export default function DashboardPage() {
                         <h3 className="font-medium text-gray-900">{job.name}</h3>
                         <p className="text-sm text-gray-600">{job.status}</p>
                       </div>
-                    </div>
-                    <div className="text-right">
+                      </div>
+                      <div className="text-right">
                       <div className="text-sm font-medium text-gray-900">{job.progress}%</div>
                       <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div 
@@ -329,11 +329,11 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                ))}
+                  ))}
               </div>
-            </div>
-          )}
-        </div>
+              </div>
+            )}
+          </div>
 
         {/* Right Column - Recent Activity */}
         <div className="space-y-6">
