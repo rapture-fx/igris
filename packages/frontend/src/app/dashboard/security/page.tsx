@@ -1,12 +1,14 @@
 'use client'
 
+import { Shield } from 'lucide-react'
+import { PlaceholderPage } from '@/components/ui/placeholder-page'
+
 export default function SecurityPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Security</h1>
-      <p className="mt-2 text-gray-600">
-        View audit logs and manage security settings. This feature is coming soon.
-      </p>
-    </div>
+    <PlaceholderPage
+      icon={Shield}
+      title="Security"
+      description="This section is under construction. Security settings and monitoring tools will be available here soon."
+    />
   )
 } 

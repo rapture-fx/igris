@@ -1,29 +1,31 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  Upload, 
-  Database, 
-  BarChart3,
-  Sparkles,
-  Plus,
-  RefreshCw,
-  Clock,
-  CheckCircle2,
-  TrendingUp,
-  X,
-  DollarSign,
-  Zap,
-  AlertTriangle,
-  Target,
-  Brain,
-  Shield,
-  Gauge,
-  TrendingDown
-} from 'lucide-react'
 import Link from 'next/link'
-import { FileUpload } from '@/components/upload/FileUpload'
 import { useDashboardData } from '@/hooks/useDashboardData'
+import { FileUpload } from '@/components/upload/FileUpload'
+import { 
+  Plus, 
+  Upload, 
+  RefreshCw, 
+  AlertTriangle, 
+  Clock, 
+  Database, 
+  TrendingUp, 
+  CheckCircle2, 
+  Target,
+  Gauge,
+  BarChart3,
+  Activity,
+  ArrowUpRight,
+  Sparkles,
+  Zap,
+  Shield,
+  Users,
+  FileText,
+  Settings,
+  ChevronRight
+} from 'lucide-react'
 
 // NOTE: This refactoring focuses on adopting the new data fetching hooks.
 // The `recommendations` and `predictive-alerts` sections have been removed
@@ -81,10 +83,10 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-2">
-          <RefreshCw className="w-5 h-5 animate-spin" />
-          <span>Loading your data intelligence...</span>
+      <div className="flex items-center justify-center min-h-96">
+        <div className="flex items-center space-x-3">
+          <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
+          <span className="text-gray-600">Loading dashboard...</span>
         </div>
       </div>
     )
@@ -92,10 +94,18 @@ export default function DashboardPage() {
 
   if (isError) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex items-center space-x-2 text-red-500">
-          <AlertTriangle className="w-5 h-5" />
-          <span>Error loading dashboard data. Please try again later.</span>
+      <div className="flex items-center justify-center min-h-96">
+        <div className="text-center">
+          <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Unable to load dashboard</h3>
+          <p className="text-gray-600 mb-4">There was an error loading your dashboard data.</p>
+          <button
+            onClick={refetchAll}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
+          </button>
         </div>
       </div>
     )
@@ -104,242 +114,302 @@ export default function DashboardPage() {
   // Empty state for new users
   if (!stats.data || stats.data.data_sources === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="flex items-center justify-center min-h-screen p-6">
-          <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Upload className="w-8 h-8 text-blue-600" />
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-3">
-              Welcome to Schlep-engine
-            </h1>
-            <p className="text-gray-600 mb-8">
-              Upload your first dataset to start handling the data schlep
-            </p>
-            
-            <div className="space-y-4">
+      <div className="flex items-center justify-center min-h-96">
+        <div className="max-w-md w-full text-center">
+          <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Upload className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            Welcome to Schlep-engine
+          </h1>
+          <p className="text-gray-600 mb-8">
+            Upload your first dataset to start transforming messy data into ML-ready insights
+          </p>
+          
+          <div className="space-y-3">
             <button
-                onClick={() => setShowUpload(true)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-xl transition-colors flex items-center justify-center space-x-2"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Upload Your First File</span>
-              </button>
-              
-              <Link href="/dashboard/data-sources" className="block">
-                <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors">
-                  Browse Sample Data
+              onClick={() => setShowUpload(true)}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3 px-6 rounded-xl transition-all transform hover:scale-105 flex items-center justify-center space-x-2"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Upload Your First File</span>
             </button>
-              </Link>
-            </div>
+            
+            <Link href="/dashboard/data-sources" className="block">
+              <button className="w-full border border-gray-300 hover:border-gray-400 text-gray-700 font-medium py-3 px-6 rounded-xl transition-colors">
+                Browse Sample Data
+              </button>
+            </Link>
           </div>
         </div>
-
-        {showUpload && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-2xl p-6 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold">Upload Dataset</h2>
-                <button
-                  onClick={() => setShowUpload(false)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-              <FileUpload 
-                onUploadComplete={() => {
-                  setShowUpload(false)
-                  refetchAll()
-                }}
-              />
-            </div>
-          </div>
-        )}
       </div>
     )
   }
 
-  // Production Dashboard with all phases
+  // Main Dashboard
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header with Time Saved Highlight */}
-        <div className="flex justify-between items-center mb-8">
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600 mt-1">Your data intelligence overview</p>
+        </div>
+        <button
+          onClick={() => setShowUpload(true)}
+          className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all transform hover:scale-105"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Data
+        </button>
+      </div>
+
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl p-6 text-white">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <div className="flex items-center space-x-4 mt-2">
-              <p className="text-gray-600">Your data intelligence overview</p>
-              {stats.data?.time_savings && (
-                <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                  🕒 {stats.data.time_savings.hours_saved_weekly}h saved this week
+              <p className="text-emerald-100 text-sm font-medium">Time Saved Weekly</p>
+              <p className="text-3xl font-bold">{stats.data?.time_savings?.hours_saved_weekly || 0}h</p>
+              <p className="text-emerald-100 text-xs mt-1">
+                {formatCurrency(stats.data?.time_savings?.cost_savings_monthly / 4 || 0)} value
+              </p>
             </div>
-              )}
-            </div>
-          </div>
-          <button
-            onClick={() => setShowUpload(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center space-x-2"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Data</span>
-          </button>
-        </div>
-
-        {/* Hero Metrics - Time Savings Focus */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-green-100 text-sm font-medium">Time Saved Weekly</p>
-                <p className="text-3xl font-bold">{stats.data?.time_savings?.hours_saved_weekly || 0}h</p>
-                <p className="text-green-100 text-xs mt-1">
-                  {formatCurrency(stats.data?.time_savings?.cost_savings_monthly / 4 || 0)} value
-                </p>
-              </div>
-              <Clock className="w-8 h-8 text-green-200" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Quality Score</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.data?.quality_score}%</p>
-                <p className="text-xs text-green-600 mt-1">
-                  +{stats.data?.quality_insights?.trends?.weekly_improvement || 2.3}% this week
-                </p>
-              </div>
-              <TrendingUp className="w-8 h-8 text-purple-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Records</p>
-                <p className="text-2xl font-bold text-gray-900">{formatNumber(stats.data?.total_records)}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {stats.data?.time_savings?.issues_auto_fixed || 0} issues auto-fixed
-                </p>
-              </div>
-              <Database className="w-8 h-8 text-blue-500" />
-            </div>
-          </div>
-
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Data Sources</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.data?.data_sources}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  in {stats.data?.project_count || 1} projects
-                </p>
-              </div>
-              <Sparkles className="w-8 h-8 text-orange-500" />
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+              <Clock className="w-6 h-6 text-white" />
             </div>
           </div>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Column - Data Quality & Active Jobs */}
-          <div className="lg:col-span-2 space-y-6">
-
-            {/* Data Quality Insights */}
-            {dataQuality.data && (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <Target className="w-6 h-6 text-indigo-500" />
-                    <h2 className="text-lg font-bold text-gray-800">Data Quality Insights</h2>
-                  </div>
-                  <Link href="/dashboard/data-analysis">
-                    <span className="text-sm font-medium text-blue-600 hover:underline">View Details</span>
-                  </Link>
-                </div>
-                {/* Quality Score Gauge */}
-                <div className="text-center mb-4">
-                  <div className="relative inline-block">
-                    <Gauge className="w-24 h-24 text-gray-200" />
-                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                      <span className="text-3xl font-bold text-gray-900">{dataQuality.data.overall_score}%</span>
-                      <span className="text-sm text-gray-500">Overall Score</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div>
-                    <p className="text-2xl font-bold text-green-600">{dataQuality.data.excellent_count}</p>
-                    <p className="text-sm text-gray-500">Excellent</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-blue-500">{dataQuality.data.good_count}</p>
-                    <p className="text-sm text-gray-500">Good</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-yellow-500">{dataQuality.data.fair_count}</p>
-                    <p className="text-sm text-gray-500">Fair</p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-red-500">{dataQuality.data.poor_count}</p>
-                    <p className="text-sm text-gray-500">Poor</p>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Active Jobs */}
-            {activeJobs.data && activeJobs.data.length > 0 && (
-              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                <div className="flex items-center space-x-3 mb-4">
-                  <Zap className="w-6 h-6 text-yellow-500" />
-                  <h2 className="text-lg font-bold text-gray-800">Active Jobs</h2>
-                </div>
-                <ul className="space-y-4">
-                  {activeJobs.data.map((job: ActiveJob) => (
-                    <li key={job.job_id} className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-gray-800">{job.investigation_name}</p>
-                        <p className="text-sm text-gray-500">{job.status}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-medium text-blue-600">{(job.progress_percentage || 0).toFixed(0)}%</p>
-                        <p className="text-xs text-gray-400">
-                          ETA: {job.estimated_completion ? getTimeAgo(job.estimated_completion) : 'Calculating...'}
-                        </p>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
-          {/* Side Column - Recent Activity */}
-          <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center space-x-3 mb-4">
-              <BarChart3 className="w-6 h-6 text-blue-500" />
-              <h2 className="text-lg font-bold text-gray-800">Recent Activity</h2>
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Quality Score</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.data?.quality_score}%</p>
+              <p className="text-xs text-emerald-600 mt-1 flex items-center">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                +{stats.data?.quality_insights?.trends?.weekly_improvement || 2.3}% this week
+              </p>
             </div>
-            
-            <ul className="space-y-4">
-              {recentActivity.data?.map((activity: any) => (
-                <li key={activity.id} className="flex space-x-4">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="font-medium text-sm text-gray-800">{activity.title}</p>
-                    <p className="text-xs text-gray-500">{activity.description}</p>
-                    <p className="text-xs text-gray-400 mt-1">{getTimeAgo(activity.timestamp)}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+              <Target className="w-6 h-6 text-purple-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Total Records</p>
+              <p className="text-3xl font-bold text-gray-900">{formatNumber(stats.data?.total_records)}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {stats.data?.time_savings?.issues_auto_fixed || 0} issues auto-fixed
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+              <Database className="w-6 h-6 text-blue-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Data Sources</p>
+              <p className="text-3xl font-bold text-gray-900">{stats.data?.data_sources}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                in {stats.data?.project_count || 1} projects
+              </p>
+            </div>
+            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+              <Sparkles className="w-6 h-6 text-orange-600" />
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column - Data Quality */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Data Quality Insights */}
+          {dataQuality.data && (
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+                    <Target className="w-5 h-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Data Quality Insights</h2>
+                    <p className="text-sm text-gray-600">Real-time quality monitoring</p>
+                  </div>
+                </div>
+                <Link href="/dashboard/data-analysis">
+                  <button className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
+                    View Details
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </Link>
+              </div>
+
+              {/* Quality Score Gauge */}
+              <div className="text-center mb-6">
+                <div className="relative inline-block">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <div className="w-20 h-20 bg-white rounded-full flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-gray-900">{dataQuality.data.overall_score}%</span>
+                      <span className="text-xs text-gray-500">Overall</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-emerald-50 rounded-xl">
+                  <p className="text-2xl font-bold text-emerald-600">{dataQuality.data.excellent_count}</p>
+                  <p className="text-sm text-emerald-700 font-medium">Excellent</p>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-xl">
+                  <p className="text-2xl font-bold text-blue-600">{dataQuality.data.good_count}</p>
+                  <p className="text-sm text-blue-700 font-medium">Good</p>
+                </div>
+                <div className="text-center p-4 bg-amber-50 rounded-xl">
+                  <p className="text-2xl font-bold text-amber-600">{dataQuality.data.fair_count}</p>
+                  <p className="text-sm text-amber-700 font-medium">Fair</p>
+                </div>
+                <div className="text-center p-4 bg-red-50 rounded-xl">
+                  <p className="text-2xl font-bold text-red-600">{dataQuality.data.poor_count}</p>
+                  <p className="text-sm text-red-700 font-medium">Poor</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Active Jobs */}
+          {activeJobs.data && activeJobs.data.length > 0 && (
+            <div className="bg-white rounded-2xl p-6 border border-gray-100">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Activity className="w-5 h-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900">Active Jobs</h2>
+                    <p className="text-sm text-gray-600">{activeJobs.data.length} jobs running</p>
+                  </div>
+                </div>
+                <Link href="/dashboard/jobs">
+                  <button className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
+                    View All
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                </Link>
+              </div>
+
+              <div className="space-y-4">
+                {activeJobs.data.slice(0, 3).map((job: any) => (
+                  <div key={job.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <Zap className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900">{job.name}</h3>
+                        <p className="text-sm text-gray-600">{job.status}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-gray-900">{job.progress}%</div>
+                      <div className="w-20 h-2 bg-gray-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-300"
+                          style={{ width: `${job.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column - Recent Activity */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                <BarChart3 className="w-5 h-5 text-green-600" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+                <p className="text-sm text-gray-600">Latest updates</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {recentActivity.data?.slice(0, 5).map((activity: any) => (
+                <div key={activity.id} className="flex space-x-4">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm text-gray-900">{activity.title}</p>
+                    <p className="text-xs text-gray-600 mt-1">{activity.description}</p>
+                    <p className="text-xs text-gray-500 mt-2">{getTimeAgo(activity.timestamp)}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="bg-white rounded-2xl p-6 border border-gray-100">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="space-y-3">
+              <Link href="/dashboard/data-sources">
+                <button className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <Database className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-900">Data Sources</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+              </Link>
+              <Link href="/dashboard/anomalies">
+                <button className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <Shield className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-900">Anomaly Detection</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+              </Link>
+              <Link href="/dashboard/settings">
+                <button className="w-full flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 rounded-xl transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <Settings className="w-5 h-5 text-gray-600" />
+                    <span className="font-medium text-gray-900">Settings</span>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* File Upload Modal */}
+      {showUpload && (
+        <FileUpload 
+          onClose={() => setShowUpload(false)}
+          onUploadComplete={() => {
+            setShowUpload(false)
+            refetchAll()
+          }}
+        />
+      )}
     </div>
   )
 }

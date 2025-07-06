@@ -1,12 +1,14 @@
 'use client'
 
+import { Users } from 'lucide-react'
+import { PlaceholderPage } from '@/components/ui/placeholder-page'
+
 export default function TeamPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Team Management</h1>
-      <p className="mt-2 text-gray-600">
-        Invite and manage your team members. This feature is coming soon.
-      </p>
-    </div>
+    <PlaceholderPage
+      icon={Users}
+      title="Team Management"
+      description="This section is under construction. Features for inviting and managing team members will be available here soon."
+    />
   )
 } 

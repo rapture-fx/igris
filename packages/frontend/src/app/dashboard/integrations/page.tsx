@@ -1,12 +1,14 @@
 'use client'
 
+import { Network } from 'lucide-react'
+import { PlaceholderPage } from '@/components/ui/placeholder-page'
+
 export default function IntegrationsPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold">Integrations</h1>
-      <p className="mt-2 text-gray-600">
-        Connect to third-party services. This feature is coming soon.
-      </p>
-    </div>
+    <PlaceholderPage
+      icon={Network}
+      title="Integrations"
+      description="This section is under construction. Features for connecting with third-party services and APIs will be available here soon."
+    />
   )
 } 

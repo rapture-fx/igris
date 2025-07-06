@@ -7,8 +7,8 @@ import { cn } from '@/lib/utils'
 
 export function Header() {
   return (
-    <div className="sticky top-0 z-40 flex h-20 shrink-0 items-center gap-x-6 border-b border-gray-900/10 bg-white/80 backdrop-blur-sm">
-      <div className="flex items-center gap-x-6 px-6 lg:px-10 w-full max-w-screen-xl mx-auto">
+    <div className="sticky top-0 z-40 flex h-20 shrink-0 items-center gap-x-6 bg-white/80 backdrop-blur-sm">
+      <div className="flex items-center gap-x-6 px-6 lg:px-10 w-full max-w-[1600px] mx-auto">
         <Link href="/dashboard" className="flex items-center gap-x-3">
             <Logo className="h-8 w-auto" />
             <div className="font-dm-sans text-lg text-gray-800 whitespace-nowrap">

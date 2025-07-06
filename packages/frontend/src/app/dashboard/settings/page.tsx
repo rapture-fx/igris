@@ -22,6 +22,7 @@ import {
   Plus,
   Save
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 interface UserProfile {
   name: string
@@ -168,6 +169,7 @@ export default function SettingsPage() {
     setSaving(true)
     setTimeout(() => {
       setSaving(false)
+      toast.success('Settings saved successfully!')
     }, 1500)
   }
 
@@ -229,7 +231,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900">Settings</h1>

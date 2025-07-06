@@ -23,8 +23,8 @@ import {
   Shield,
   CreditCard,
   User,
-  ChevronsLeft,
-  ChevronsRight
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
@@ -126,7 +126,7 @@ export function Sidebar({ isCollapsed, onToggle, onSettingsClick, onSystemStatus
 
   return (
     <div className={cn(
-        "relative hidden lg:sticky lg:top-20 lg:flex lg:flex-col lg:h-[calc(100vh-5rem)] transition-all duration-300 z-30 bg-gray-50",
+        "relative hidden lg:sticky lg:top-20 lg:flex lg:flex-col lg:h-[calc(100vh-5rem)] transition-all duration-300 z-30 bg-white border-r border-gray-100",
         isCollapsed ? "lg:w-20" : "lg:w-72"
       )}>
        <nav className="flex-1 overflow-y-auto overflow-x-hidden no-scrollbar px-4 pt-8">
@@ -162,11 +162,10 @@ export function Sidebar({ isCollapsed, onToggle, onSettingsClick, onSystemStatus
         <div className="border-t border-gray-200 p-4">
           <button
             onClick={onToggle}
-            className="w-full flex justify-center items-center p-2 rounded-lg hover:bg-gray-100 gap-x-3"
+            className="w-full flex justify-center items-center p-2 rounded-lg hover:bg-gray-100"
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
-            {isCollapsed ? <ChevronsRight className="h-5 w-5 text-gray-600" /> : <ChevronsLeft className="h-5 w-5 text-gray-600" />}
-            <span className={cn("text-sm font-semibold", isCollapsed && "hidden")}>Collapse</span>
+            {isCollapsed ? <ChevronRight className="h-5 w-5 text-gray-600" /> : <ChevronLeft className="h-5 w-5 text-gray-600" />}
           </button>
         </div>
     </div>
