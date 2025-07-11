@@ -28,7 +28,7 @@ from sqlalchemy.orm import relationship, backref
 from sqlalchemy.sql import func
 
 from app.database.connection import Base
-from app.database.security_mixins import (
+from app.database.security_enums import (
     EncryptionLevel, AuditAction, DataClassification, ComplianceFramework
 )
 

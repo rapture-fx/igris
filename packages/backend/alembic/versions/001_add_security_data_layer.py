@@ -20,7 +20,7 @@ import uuid
 
 # revision identifiers, used by Alembic.
 revision = '001_add_security_data_layer'
-down_revision = None
+down_revision = '51eb2357e1f2'
 branch_labels = None
 depends_on = None
 
@@ -50,7 +50,7 @@ def upgrade() -> None:
         
         # PII and sensitivity metadata
         sa.Column('contains_pii', sa.Boolean(), default=False),
-        sa.Column('pii_types', postgresql.JSON(), default=lambda: []),
+        sa.Column('pii_types', postgresql.JSONB(), default=lambda: []),
         sa.Column('sensitivity_level', sa.String(), default='INTERNAL'),
         
         # Key management
@@ -93,8 +93,8 @@ def upgrade() -> None:
         sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=True),
         
         # Change tracking
-        sa.Column('changes', postgresql.JSON(), default=lambda: {}),
-        sa.Column('metadata', postgresql.JSON(), default=lambda: {}),
+        sa.Column('changes', postgresql.JSONB(), default=lambda: {}),
+        sa.Column('metadata', postgresql.JSONB(), default=lambda: {}),
         
         # Request context
         sa.Column('ip_address', sa.String()),
@@ -104,7 +104,7 @@ def upgrade() -> None:
         
         # Compliance and security context
         sa.Column('security_level', sa.String()),
-        sa.Column('compliance_frameworks', postgresql.JSON(), default=lambda: []),
+        sa.Column('compliance_frameworks', postgresql.JSONB(), default=lambda: []),
         sa.Column('data_classification', sa.Enum('public', 'internal', 'confidential', 'restricted', 
                                                 'highly_restricted', name='dataclassification'), nullable=True),
         
@@ -121,7 +121,7 @@ def upgrade() -> None:
     op.create_index('idx_audit_trail_lookup', 'audit_trail', ['table_name', 'record_id', 'created_at'])
     op.create_index('idx_audit_trail_user_action', 'audit_trail', ['user_id', 'action', 'created_at'])
     op.create_index('idx_audit_trail_security', 'audit_trail', ['security_level', 'data_classification'])
-    op.create_index('idx_audit_trail_compliance', 'audit_trail', ['compliance_frameworks'], postgresql_using='gin')
+    op.create_index('idx_audit_trail_compliance', 'audit_trail', ['compliance_frameworks'], postgresql_using='gin', postgresql_ops={'compliance_frameworks': 'jsonb_path_ops'})
     
     # ============================================================================
     # DATA CLASSIFICATION RECORDS TABLE
@@ -138,7 +138,7 @@ def upgrade() -> None:
         # Classification details
         sa.Column('classification', sa.Enum('public', 'internal', 'confidential', 'restricted', 
                                           'highly_restricted', name='dataclassification_record'), nullable=False),
-        sa.Column('compliance_frameworks', postgresql.JSON(), default=lambda: []),
+        sa.Column('compliance_frameworks', postgresql.JSONB(), default=lambda: []),
         
         # Retention and handling
         sa.Column('retention_period_days', sa.Integer()),
@@ -146,8 +146,8 @@ def upgrade() -> None:
         sa.Column('handling_instructions', sa.Text()),
         
         # Additional metadata
-        sa.Column('metadata', postgresql.JSON(), default=lambda: {}),
-        sa.Column('tags', postgresql.JSON(), default=lambda: []),
+        sa.Column('metadata', postgresql.JSONB(), default=lambda: {}),
+        sa.Column('tags', postgresql.JSONB(), default=lambda: []),
         
         # Review and approval
         sa.Column('approved_by_id', postgresql.UUID(as_uuid=True), nullable=True),
@@ -170,8 +170,9 @@ def upgrade() -> None:
     
     # Indexes for data_classification_records
     op.create_index('idx_data_classification_lookup', 'data_classification_records', ['table_name', 'record_id'])
-    op.create_index('idx_data_classification_level', 'data_classification_records', 
-                   ['classification', 'compliance_frameworks'], postgresql_using='gin')
+    op.create_index('idx_data_classification_level_gin', 'data_classification_records', 
+                   ['compliance_frameworks'], postgresql_using='gin', postgresql_ops={'compliance_frameworks': 'jsonb_path_ops'})
+    op.create_index('idx_data_classification_level_btree', 'data_classification_records', ['classification'])
     op.create_index('idx_data_classification_retention', 'data_classification_records', 
                    ['retention_period_days', 'retention_start_date'])
     
@@ -198,7 +199,7 @@ def upgrade() -> None:
         sa.Column('description', sa.Text(), nullable=False),
         
         # Event metadata
-        sa.Column('metadata', postgresql.JSON(), default=lambda: {}),
+        sa.Column('metadata', postgresql.JSONB(), default=lambda: {}),
         sa.Column('severity', sa.String(), default='medium'),
         sa.Column('status', sa.String(), default='open'),
         
@@ -228,8 +229,9 @@ def upgrade() -> None:
     
     # Indexes for compliance_events
     op.create_index('idx_compliance_events_lookup', 'compliance_events', ['table_name', 'record_id', 'created_at'])
-    op.create_index('idx_compliance_events_framework', 'compliance_events', ['framework', 'event_type', 'status'])
-    op.create_index('idx_compliance_events_severity', 'compliance_events', ['severity', 'status', 'created_at'])
+    op.create_index('idx_compliance_events_user', 'compliance_events', ['user_id', 'created_at'])
+    op.create_index('idx_compliance_events_framework', 'compliance_events', ['framework', 'event_type', 'created_at'])
+    op.create_index('idx_compliance_events_metadata', 'compliance_events', ['metadata'], postgresql_using='gin', postgresql_ops={'metadata': 'jsonb_path_ops'})
     
     # ============================================================================
     # SECURITY POLICIES TABLE
@@ -245,15 +247,15 @@ def upgrade() -> None:
         sa.Column('version', sa.String(), default='1.0'),
         
         # Policy definition
-        sa.Column('policy_document', postgresql.JSON(), nullable=False),
-        sa.Column('encryption_requirements', postgresql.JSON(), default=lambda: {}),
-        sa.Column('audit_requirements', postgresql.JSON(), default=lambda: {}),
-        sa.Column('retention_requirements', postgresql.JSON(), default=lambda: {}),
+        sa.Column('policy_document', postgresql.JSONB(), nullable=False),
+        sa.Column('encryption_requirements', postgresql.JSONB(), default=lambda: {}),
+        sa.Column('audit_requirements', postgresql.JSONB(), default=lambda: {}),
+        sa.Column('retention_requirements', postgresql.JSONB(), default=lambda: {}),
         
         # Applicability
-        sa.Column('applies_to_tables', postgresql.JSON(), default=lambda: []),
-        sa.Column('applies_to_roles', postgresql.JSON(), default=lambda: []),
-        sa.Column('applies_to_organizations', postgresql.JSON(), default=lambda: []),
+        sa.Column('applies_to_tables', postgresql.JSONB(), default=lambda: []),
+        sa.Column('applies_to_roles', postgresql.JSONB(), default=lambda: []),
+        sa.Column('applies_to_organizations', postgresql.JSONB(), default=lambda: []),
         
         # Policy status
         sa.Column('is_active', sa.Boolean(), default=True),
@@ -262,8 +264,8 @@ def upgrade() -> None:
         sa.Column('expiration_date', sa.DateTime(timezone=True)),
         
         # Compliance mapping
-        sa.Column('compliance_frameworks', postgresql.JSON(), default=lambda: []),
-        sa.Column('regulatory_requirements', postgresql.JSON(), default=lambda: {}),
+        sa.Column('compliance_frameworks', postgresql.JSONB(), default=lambda: []),
+        sa.Column('regulatory_requirements', postgresql.JSONB(), default=lambda: {}),
         
         # Management
         sa.Column('created_by_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id')),
@@ -276,10 +278,10 @@ def upgrade() -> None:
     )
     
     # Indexes for security_policies
-    op.create_index('idx_security_policies_active', 'security_policies', 
-                   ['is_active', 'effective_date', 'expiration_date'])
-    op.create_index('idx_security_policies_compliance', 'security_policies', 
-                   ['compliance_frameworks'], postgresql_using='gin')
+    op.create_index('idx_security_policies_name', 'security_policies', ['name'], unique=True)
+    op.create_index('idx_security_policies_active', 'security_policies', ['is_active', 'effective_date', 'expiration_date'])
+    op.create_index('idx_security_policies_applicability', 'security_policies', 
+                   ['applies_to_tables', 'applies_to_roles'], postgresql_using='gin', postgresql_ops={'applies_to_tables': 'jsonb_path_ops', 'applies_to_roles': 'jsonb_path_ops'})
     
     # ============================================================================
     # SECURITY POLICY ASSIGNMENTS TABLE
@@ -299,7 +301,7 @@ def upgrade() -> None:
         # Assignment details
         sa.Column('assigned_by_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id')),
         sa.Column('assignment_reason', sa.Text()),
-        sa.Column('assignment_metadata', postgresql.JSON(), default=lambda: {}),
+        sa.Column('assignment_metadata', postgresql.JSONB(), default=lambda: {}),
         
         # Assignment status
         sa.Column('is_active', sa.Boolean(), default=True),
@@ -307,7 +309,7 @@ def upgrade() -> None:
         sa.Column('expiration_date', sa.DateTime(timezone=True)),
         
         # Override capabilities
-        sa.Column('policy_overrides', postgresql.JSON(), default=lambda: {}),
+        sa.Column('policy_overrides', postgresql.JSONB(), default=lambda: {}),
         
         # Timestamps
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
@@ -343,14 +345,14 @@ def upgrade() -> None:
         
         # Retention rules
         sa.Column('retention_reason', sa.String()),
-        sa.Column('applicable_frameworks', postgresql.JSON(), default=lambda: []),
-        sa.Column('exemptions', postgresql.JSON(), default=lambda: []),
+        sa.Column('applicable_frameworks', postgresql.JSONB(), default=lambda: []),
+        sa.Column('exemptions', postgresql.JSONB(), default=lambda: []),
         
         # Execution status
         sa.Column('status', sa.String(), default='scheduled'),
         sa.Column('executed_at', sa.DateTime(timezone=True)),
         sa.Column('executed_by_id', postgresql.UUID(as_uuid=True), sa.ForeignKey('users.id'), nullable=True),
-        sa.Column('execution_metadata', postgresql.JSON(), default=lambda: {}),
+        sa.Column('execution_metadata', postgresql.JSONB(), default=lambda: {}),
         
         # Approval workflow
         sa.Column('requires_approval', sa.Boolean(), default=False),
@@ -363,11 +365,9 @@ def upgrade() -> None:
     )
     
     # Indexes for data_retention_schedules
-    op.create_index('idx_retention_schedule_lookup', 'data_retention_schedules', ['table_name', 'record_id'])
-    op.create_index('idx_retention_schedule_execution', 'data_retention_schedules', 
-                   ['scheduled_deletion_date', 'status'])
-    op.create_index('idx_retention_schedule_frameworks', 'data_retention_schedules', 
-                   ['applicable_frameworks'], postgresql_using='gin')
+    op.create_index('idx_data_retention_lookup', 'data_retention_schedules', ['table_name', 'record_id'])
+    op.create_index('idx_data_retention_date', 'data_retention_schedules', ['scheduled_deletion_date', 'status'])
+    op.create_index('idx_data_retention_frameworks', 'data_retention_schedules', ['applicable_frameworks'], postgresql_using='gin', postgresql_ops={'applicable_frameworks': 'jsonb_path_ops'})
     
     # ============================================================================
     # ADD SOFT DELETE FIELDS TO EXISTING TABLES
@@ -387,7 +387,7 @@ def upgrade() -> None:
             op.add_column(table_name, sa.Column('deleted_at', sa.DateTime(timezone=True), nullable=True))
             op.add_column(table_name, sa.Column('deleted_by_id', postgresql.UUID(as_uuid=True), nullable=True))
             op.add_column(table_name, sa.Column('deletion_reason', sa.String(), nullable=True))
-            op.add_column(table_name, sa.Column('deletion_metadata', postgresql.JSON(), default=lambda: {}))
+            op.add_column(table_name, sa.Column('deletion_metadata', postgresql.JSONB(), default=lambda: {}))
             
             # Add foreign key constraint for deleted_by_id if users table exists
             if table_name != 'users':  # Don't add FK to itself

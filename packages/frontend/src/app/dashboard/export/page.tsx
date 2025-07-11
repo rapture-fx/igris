@@ -21,21 +21,14 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/ui/page-header'
 import { cn } from '@/lib/utils'
-
-interface ExportJob {
-  id: string
-  sourceName: string
-  sourceType: 'dataset' | 'pipeline'
-  format: 'csv' | 'json' | 'parquet'
-  status: 'completed' | 'processing' | 'failed' | 'queued'
-  createdAt: string
-  fileSize: string
-  destination: 'download' | 's3' | 'gcs'
-}
+import { ExportJobsTable } from '@/components/export/export-jobs-table'
+import { NewExportModal } from '@/components/export/new-export-modal'
+import { ExportJob } from '@/components/export/export-job-row'
 
 export default function ExportPage() {
   const [exportJobs, setExportJobs] = useState<ExportJob[]>([])
   const [loading, setLoading] = useState(true)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     const mockJobs: ExportJob[] = [
@@ -45,8 +38,10 @@ export default function ExportPage() {
       { id: 'exp_4', sourceName: 'User Activity Logs', sourceType: 'dataset', format: 'json', status: 'failed', createdAt: '2024-06-27T16:20:00Z', fileSize: 'N/A', destination: 'download' },
       { id: 'exp_5', sourceName: 'Marketing Campaign Data', sourceType: 'dataset', format: 'csv', status: 'queued', createdAt: '2024-06-28T12:00:00Z', fileSize: '... MB', destination: 's3' },
     ]
-    setExportJobs(mockJobs)
-    setLoading(false)
+    setTimeout(() => {
+        setExportJobs(mockJobs)
+        setLoading(false)
+    }, 1000);
   }, [])
   
   const getStatusPill = (status: ExportJob['status']) => {
@@ -77,9 +72,24 @@ export default function ExportPage() {
     }
   }
 
+  const EmptyState = () => (
+    <div className="text-center py-16 border-2 border-dashed border-gray-300 rounded-lg">
+        <Download className="mx-auto h-12 w-12 text-gray-400" />
+        <h3 className="mt-2 text-sm font-medium text-gray-900">No exports found</h3>
+        <p className="mt-1 text-sm text-gray-500">Get started by creating a new export.</p>
+        <button 
+            onClick={() => setIsModalOpen(true)}
+            className="mt-6 inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          New Export
+        </button>
+    </div>
+  )
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[calc(100vh-10rem)]">
+      <div className="h-full bg-gray-50 flex items-center justify-center">
         <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
         <span className="text-gray-600 ml-2">Loading export history...</span>
       </div>
@@ -87,80 +97,30 @@ export default function ExportPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="h-full bg-gray-50">
       <PageHeader
         title="Export Center"
         description="Create and manage exports for your datasets and transformation pipelines."
-      >
-        <button className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg shadow-sm hover:shadow-lg transition-all transform hover:scale-105">
-          <Plus className="w-4 h-4 mr-2" />
-          New Export
-        </button>
-      </PageHeader>
+        actions={
+          <button 
+              onClick={() => setIsModalOpen(true)}
+              className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-sm hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Export
+          </button>
+        }
+      />
       
-      <div className="bg-white rounded-2xl shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-           <h2 className="text-xl font-bold text-gray-800">Recent Exports</h2>
-           <p className="text-sm text-gray-500 mt-1">View the status and details of your most recent export jobs.</p>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead className="bg-gray-50/80">
-              <tr className="text-sm font-semibold text-gray-600">
-                <th className="p-4">Source</th>
-                <th className="p-4">Format</th>
-                <th className="p-4">Status</th>
-                <th className="p-4">Created</th>
-                <th className="p-4">Size</th>
-                <th className="p-4">Destination</th>
-                <th className="p-4"></th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-200">
-              {exportJobs.map(job => (
-                <tr key={job.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-gray-100 rounded-md">
-                        {job.sourceType === 'dataset' ? <Database className="w-5 h-5 text-gray-500"/> : <Zap className="w-5 h-5 text-gray-500"/>}
-                    </div>
-                    <div>
-                        <p className="font-semibold text-gray-800">{job.sourceName}</p>
-                        <p className="text-sm text-gray-500 capitalize">{job.sourceType}</p>
-              </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center space-x-2">
-                        {getFormatIcon(job.format)}
-                        <span className="font-medium text-gray-700 uppercase">{job.format}</span>
-                    </div>
-                  </td>
-                  <td className="p-4">{getStatusPill(job.status)}</td>
-                  <td className="p-4 text-sm text-gray-600">{new Date(job.createdAt).toLocaleString()}</td>
-                  <td className="p-4 font-medium text-gray-800">{job.fileSize}</td>
-                  <td className="p-4">
-                     <div className="flex items-center space-x-2">
-                        {getDestinationIcon(job.destination)}
-                        <span className="font-medium text-gray-700 capitalize">{job.destination}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-right">
-                    <button className="p-2 rounded-md hover:bg-gray-200 text-gray-500">
-                      <MoreVertical className="w-4 h-4"/>
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              </tbody>
-            </table>
-          </div>
-        <div className="p-4 border-t border-gray-200 flex justify-end">
-            <button className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700">
-                View all exports <ChevronRight className="w-4 h-4 ml-1"/>
-            </button>
-        </div>
-      </div>
+      <main className="p-4 lg:p-8">
+        {exportJobs.length > 0 ? (
+            <ExportJobsTable jobs={exportJobs} />
+        ) : (
+            <EmptyState />
+        )}
+      </main>
+
+      <NewExportModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   )
 }

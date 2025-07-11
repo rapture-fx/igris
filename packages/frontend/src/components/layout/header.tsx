@@ -10,10 +10,12 @@ export function Header() {
     <div className="sticky top-0 z-40 flex h-20 shrink-0 items-center gap-x-6 bg-white/80 backdrop-blur-sm">
       <div className="flex items-center gap-x-6 px-6 lg:px-10 w-full max-w-[1600px] mx-auto">
         <Link href="/dashboard" className="flex items-center gap-x-3">
-            <Logo className="h-8 w-auto" />
-            <div className="font-dm-sans text-lg text-gray-800 whitespace-nowrap">
-              <span className="font-bold">Schlep</span>
-              <span>-engine</span>
+            <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">S</span>
+            </div>
+            <div className="font-dm-sans text-xl text-gray-800 whitespace-nowrap">
+              <span className="font-bold text-blue-600">Schlep</span>
+              <span className="text-gray-700">-engine</span>
             </div>
         </Link>
         

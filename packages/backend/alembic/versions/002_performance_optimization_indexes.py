@@ -82,7 +82,7 @@ def upgrade():
         'api_keys',
         ['key_hash', 'is_active'],
         unique=False,
-        postgresql_where=sa.text('is_active = true AND (expires_at IS NULL OR expires_at > NOW())')
+        postgresql_where=sa.text('is_active = true')
     )
     
     # Index for user's API keys
@@ -136,7 +136,7 @@ def upgrade():
         'data_investigations',
         ['status', 'created_at'],
         unique=False,
-        postgresql_where=sa.text("status IN ('pending', 'running')")
+        postgresql_where=sa.text("status IN ('PENDING'::jobstatus, 'RUNNING'::jobstatus)")
     )
     
     # =========================================================================
@@ -165,7 +165,7 @@ def upgrade():
         'processing_jobs',
         ['status', 'started_at'],
         unique=False,
-        postgresql_where=sa.text("status IN ('pending', 'running')")
+        postgresql_where=sa.text("status IN ('PENDING'::jobstatus, 'RUNNING'::jobstatus)")
     )
     
     # =========================================================================
@@ -201,28 +201,55 @@ def upgrade():
         'idx_audit_logs_ip_created',
         'audit_logs',
         ['ip_address', 'created_at'],
-        unique=False,
-        postgresql_where=sa.text('ip_address IS NOT NULL')
+        unique=False
     )
     
     # =========================================================================
-    # ORGANIZATIONS TABLE INDEXES - For multi-tenant performance
+    # WEBHOOK_ENDPOINTS TABLE INDEXES - For efficient webhook delivery
     # =========================================================================
     
-    # Index for organization lookup by domain
+    # Index for active webhooks by organization
+    op.create_index(
+        'idx_webhook_endpoints_org_active',
+        'webhook_endpoints',
+        ['organization_id', 'is_active'],
+        unique=False
+    )
+    
+    # =========================================================================
+    # INTEGRATIONS TABLE INDEXES - For quick integration lookups
+    # =========================================================================
+    
+    # Index for active integrations by organization
+    op.create_index(
+        'idx_integrations_org_active',
+        'integrations',
+        ['organization_id', 'is_active', 'integration_type'],
+        unique=False
+    )
+    
+    # =========================================================================
+    # ORGANIZATIONS TABLE INDEXES - For domain/slug lookups
+    # =========================================================================
+    
+    # Index for organization lookup by domain (for SSO, etc.)
     op.create_index(
         'idx_organizations_domain',
         'organizations',
         ['domain'],
-        unique=False,
+        unique=True,
         postgresql_where=sa.text('domain IS NOT NULL')
     )
     
-    # Index for subscription management
+    # =========================================================================
+    # WORKSPACES TABLE INDEXES - For organization's workspaces
+    # =========================================================================
+    
+    # Index for workspaces within an organization
     op.create_index(
-        'idx_organizations_subscription',
-        'organizations',
-        ['subscription_plan', 'subscription_status'],
+        'idx_workspaces_organization',
+        'workspaces',
+        ['organization_id'],
         unique=False
     )
     
@@ -230,177 +257,72 @@ def upgrade():
     # USAGE_METRICS TABLE INDEXES - For billing and analytics
     # =========================================================================
     
-    # Index for organization usage tracking
+    # Index for usage metrics by organization and type
     op.create_index(
-        'idx_usage_metrics_org_period',
+        'idx_usage_metrics_org_type_recorded',
         'usage_metrics',
         ['organization_id', 'metric_type', 'recorded_at'],
         unique=False
     )
     
-    # Index for user usage tracking
+    # Index for usage metrics by user
     op.create_index(
-        'idx_usage_metrics_user_period',
+        'idx_usage_metrics_user_type_recorded',
         'usage_metrics',
         ['user_id', 'metric_type', 'recorded_at'],
-        unique=False,
-        postgresql_where=sa.text('user_id IS NOT NULL')
-    )
-    
-    # Index for time-based analytics
-    op.create_index(
-        'idx_usage_metrics_time_type',
-        'usage_metrics',
-        ['recorded_at', 'metric_type'],
         unique=False
     )
-    
-    # =========================================================================
-    # SECURITY INDEXES - For enhanced security performance
-    # =========================================================================
-    
-    # Index for encrypted fields (if security models exist)
-    try:
-        # Check if security tables exist
-        result = connection.execute(text("""
-            SELECT EXISTS (
-                SELECT FROM information_schema.tables 
-                WHERE table_schema = 'public' 
-                AND table_name = 'encrypted_fields'
-            );
-        """))
-        
-        if result.scalar():
-            # Index for encrypted field lookups
-            op.create_index(
-                'idx_encrypted_fields_entity',
-                'encrypted_fields',
-                ['entity_type', 'entity_id', 'field_name'],
-                unique=False
-            )
-    except Exception as e:
-        print(f"Security indexes skipped (tables don't exist): {e}")
-    
-    # =========================================================================
-    # COMPOSITE INDEXES FOR COMPLEX QUERIES
-    # =========================================================================
-    
-    # Index for dashboard queries (user's recent investigations)
-    op.create_index(
-        'idx_dashboard_user_investigations',
-        'data_investigations',
-        ['created_by_id', 'status', 'created_at', 'workspace_id'],
-        unique=False
-    )
-    
-    # Index for API rate limiting queries
-    op.create_index(
-        'idx_api_keys_rate_limiting',
-        'api_keys',
-        ['user_id', 'is_active', 'last_used'],
-        unique=False
-    )
-    
-    # =========================================================================
-    # PARTIAL INDEXES FOR BETTER PERFORMANCE
-    # =========================================================================
-    
-    # Index only for failed jobs (for monitoring and cleanup)
-    op.create_index(
-        'idx_processing_jobs_failed',
-        'processing_jobs',
-        ['created_at', 'error_message'],
-        unique=False,
-        postgresql_where=sa.text("status = 'failed'")
-    )
-    
-    # Index for completed jobs with results
-    op.create_index(
-        'idx_data_investigations_completed_with_results',
-        'data_investigations',
-        ['completed_at', 'quality_score'],
-        unique=False,
-        postgresql_where=sa.text("status = 'completed' AND quality_score IS NOT NULL")
-    )
-    
-    print("Performance optimization indexes created successfully!")
-    
-    # =========================================================================
-    # ANALYZE TABLES FOR UPDATED STATISTICS
-    # =========================================================================
-    
-    # Update table statistics for query planner
-    tables_to_analyze = [
-        'users', 'api_keys', 'data_investigations', 'processing_jobs',
-        'audit_logs', 'organizations', 'usage_metrics'
-    ]
-    
-    for table in tables_to_analyze:
-        try:
-            connection.execute(text(f"ANALYZE {table}"))
-            print(f"Analyzed table: {table}")
-        except Exception as e:
-            print(f"Failed to analyze table {table}: {e}")
+
+    print("Performance optimization indexes added successfully.")
+
 
 def downgrade():
     """Remove performance optimization indexes"""
     
     print("Removing performance optimization indexes...")
     
-    # Remove indexes in reverse order
-    indexes_to_drop = [
-        # Composite and partial indexes
-        'idx_data_investigations_completed_with_results',
-        'idx_processing_jobs_failed',
-        'idx_api_keys_rate_limiting',
-        'idx_dashboard_user_investigations',
-        
-        # Security indexes
-        'idx_encrypted_fields_entity',
-        
-        # Usage metrics indexes
-        'idx_usage_metrics_time_type',
-        'idx_usage_metrics_user_period',
-        'idx_usage_metrics_org_period',
-        
-        # Organizations indexes
-        'idx_organizations_subscription',
-        'idx_organizations_domain',
-        
-        # Audit logs indexes
-        'idx_audit_logs_ip_created',
-        'idx_audit_logs_resource_created',
-        'idx_audit_logs_action_created',
-        'idx_audit_logs_user_created',
-        
-        # Processing jobs indexes
-        'idx_processing_jobs_active',
-        'idx_processing_jobs_status_created',
-        'idx_processing_jobs_investigation_status',
-        
-        # Data investigations indexes
-        'idx_data_investigations_active_jobs',
-        'idx_data_investigations_status_updated',
-        'idx_data_investigations_workspace_status',
-        'idx_data_investigations_user_created',
-        
-        # API keys indexes
-        'idx_api_keys_expires_at',
-        'idx_api_keys_user_active',
-        'idx_api_keys_hash_active',
-        
-        # Users indexes
-        'idx_users_last_login',
-        'idx_users_organization_role',
-        'idx_users_username_active',
-        'idx_users_email_active',
-    ]
+    # USAGE_METRICS
+    op.drop_index('idx_usage_metrics_user_type_recorded', table_name='usage_metrics')
+    op.drop_index('idx_usage_metrics_org_type_recorded', table_name='usage_metrics')
     
-    for index_name in indexes_to_drop:
-        try:
-            op.drop_index(index_name)
-            print(f"Dropped index: {index_name}")
-        except Exception as e:
-            print(f"Failed to drop index {index_name}: {e}")
+    # WORKSPACES
+    op.drop_index('idx_workspaces_organization', table_name='workspaces')
     
-    print("Performance optimization indexes removed successfully!") 
+    # ORGANIZATIONS
+    op.drop_index('idx_organizations_domain', table_name='organizations')
+    
+    # INTEGRATIONS
+    op.drop_index('idx_integrations_org_active', table_name='integrations')
+    
+    # WEBHOOK_ENDPOINTS
+    op.drop_index('idx_webhook_endpoints_org_active', table_name='webhook_endpoints')
+    
+    # AUDIT_LOGS
+    op.drop_index('idx_audit_logs_ip_created', table_name='audit_logs')
+    op.drop_index('idx_audit_logs_resource_created', table_name='audit_logs')
+    op.drop_index('idx_audit_logs_action_created', table_name='audit_logs')
+    op.drop_index('idx_audit_logs_user_created', table_name='audit_logs')
+    
+    # PROCESSING_JOBS
+    op.drop_index('idx_processing_jobs_active', table_name='processing_jobs')
+    op.drop_index('idx_processing_jobs_status_created', table_name='processing_jobs')
+    op.drop_index('idx_processing_jobs_investigation_status', table_name='processing_jobs')
+    
+    # DATA_INVESTIGATIONS
+    op.drop_index('idx_data_investigations_active_jobs', table_name='data_investigations')
+    op.drop_index('idx_data_investigations_status_updated', table_name='data_investigations')
+    op.drop_index('idx_data_investigations_workspace_status', table_name='data_investigations')
+    op.drop_index('idx_data_investigations_user_created', table_name='data_investigations')
+    
+    # API_KEYS
+    op.drop_index('idx_api_keys_expires_at', table_name='api_keys')
+    op.drop_index('idx_api_keys_user_active', table_name='api_keys')
+    op.drop_index('idx_api_keys_hash_active', table_name='api_keys')
+    
+    # USERS
+    op.drop_index('idx_users_last_login', table_name='users')
+    op.drop_index('idx_users_organization_role', table_name='users')
+    op.drop_index('idx_users_username_active', table_name='users')
+    op.drop_index('idx_users_email_active', table_name='users')
+    
+    print("Performance optimization indexes removed successfully.") 

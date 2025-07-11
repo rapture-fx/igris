@@ -74,7 +74,7 @@ class ActiveLearningRequest(BaseModel):
 
 class PatternRulesRequest(BaseModel):
     """Request model for pattern-based labeling"""
-    patterns: Dict[str, str] = Field(..., description="Label patterns (regex)")
+    patterns: Dict[str, str] = Field(..., description="Dictionary of label -> regex pattern")
     task_name: str = Field(..., description="Task name identifier")
 
 class ApplyPatternRequest(BaseModel):
@@ -82,6 +82,11 @@ class ApplyPatternRequest(BaseModel):
     rule_key: str = Field(..., description="Pattern rule identifier")
     data: List[Dict[str, Any]] = Field(..., description="Data to label")
     text_column: Optional[str] = Field(None, description="Text column name")
+
+class RuleStats(BaseModel):
+    pattern_rules: int
+    ml_rules: int # Future-proofing for when ML-based rules are more explicit
+    total_rules: int
 
 # ==================== FRAMEWORK EXPORT ENDPOINTS ====================
 
@@ -482,6 +487,32 @@ async def apply_pattern_rules(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Rule application failed: {str(e)}"
+        )
+
+@router.get("/labeling/rules/stats", response_model=RuleStats)
+async def get_rule_stats(
+    current_user: User = Depends(get_current_user)
+):
+    """Get statistics about labeling rules."""
+    try:
+        # This is a mock implementation. In a real system, this would query
+        # the rule registry or database.
+        pattern_rules_count = len(auto_labeler.pattern_rules)
+        
+        # ML rules are not explicitly stored as 'rules' yet, so we'll mock it.
+        ml_rules_count = len(auto_labeler.models)
+
+        return RuleStats(
+            pattern_rules=pattern_rules_count,
+            ml_rules=ml_rules_count,
+            total_rules=pattern_rules_count + ml_rules_count
+        )
+
+    except Exception as e:
+        logger.error(f"Failed to get rule stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve rule statistics"
         )
 
 # ==================== UTILITY ENDPOINTS ====================

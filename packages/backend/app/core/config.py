@@ -8,6 +8,18 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://wira@localhost:5432/Schlep-engine_dev"
     
+    # Connection pooling settings
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
+
+    @property
+    def ASYNC_DATABASE_URI(self) -> str:
+        return (
+            f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
+            f"{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+            f"?pool_size={self.DB_POOL_SIZE}&max_overflow={self.DB_MAX_OVERFLOW}"
+        )
+
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"
     

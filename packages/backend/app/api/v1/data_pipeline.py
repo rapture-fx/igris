@@ -60,6 +60,11 @@ class UploadResponse(BaseModel):
     status: str
     message: str
 
+class PipelineStats(BaseModel):
+    active: int
+    completed: int
+    failed: int
+
 # ==================== CORE PIPELINE ENDPOINTS ====================
 
 @router.post("/upload", response_model=UploadResponse)
@@ -142,6 +147,50 @@ async def upload_file(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Upload failed: {str(e)}"
+        )
+
+@router.get("/pipelines/stats", response_model=PipelineStats)
+async def get_pipeline_stats(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """Get statistics about processing pipelines."""
+    try:
+        from sqlalchemy import select, func
+
+        result = await db.execute(
+            select(
+                ProcessingJob.status,
+                func.count(ProcessingJob.id)
+            )
+            .join(DataInvestigation, ProcessingJob.investigation_id == DataInvestigation.id)
+            .where(DataInvestigation.created_by_id == current_user.id)
+            .group_by(ProcessingJob.status)
+        )
+        
+        stats = result.all()
+        
+        pipeline_stats = {
+            "active": 0,
+            "completed": 0,
+            "failed": 0
+        }
+        
+        for status, count in stats:
+            if status in [JobStatus.PENDING, JobStatus.PROCESSING]:
+                pipeline_stats["active"] += count
+            elif status == JobStatus.COMPLETED:
+                pipeline_stats["completed"] = count
+            elif status == JobStatus.FAILED:
+                pipeline_stats["failed"] = count
+                
+        return PipelineStats(**pipeline_stats)
+
+    except Exception as e:
+        logger.error(f"Failed to get pipeline stats: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve pipeline statistics"
         )
 
 @router.get("/investigations", response_model=List[InvestigationResponse])

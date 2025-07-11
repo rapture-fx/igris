@@ -4,19 +4,19 @@
 # Use requirements-dev-optimized.txt for development
 
 # Core FastAPI stack
-fastapi==0.104.1
+fastapi
 uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 pydantic-settings==2.1.0
 
 # Database & ORM
 sqlalchemy==2.0.31
-alembic==1.13.2
+alembic
 asyncpg==0.29.0
 
 # Authentication & Security
 cryptography==41.0.0
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]
 passlib[bcrypt]==1.7.4
 pyotp==2.9.0
 
@@ -48,3 +48,6 @@ websockets==12.0         # Real-time features
 # Data format support (add if needed)
 openpyxl==3.1.2          # Excel files
 pyarrow==14.0.1          # Parquet files
+
+# Added for data analysis
+pandas

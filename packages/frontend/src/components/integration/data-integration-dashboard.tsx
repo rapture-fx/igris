@@ -387,10 +387,17 @@ const DataIntegrationDashboard: React.FC = () => {
           {activeTab === 'overview' && renderOverview()}
         </motion.div>
       </div>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* ... More rendering logic ... */}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 bg-gray-50 min-h-screen">
+      {/* ... More rendering logic ... */}
     </div>
   );
 };
 
 export default DataIntegrationDashboard;
-
-export { DataIntegrationDashboard }

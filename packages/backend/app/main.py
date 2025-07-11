@@ -10,6 +10,12 @@ from prometheus_client import Counter, Histogram
 import logging
 import uuid
 from contextlib import asynccontextmanager
+import asyncio
+import typer
+from app.database.session import SessionLocal
+from app.database.init_db import init_db
+from app.core.config import settings
+from app.scripts.seed_database import seed_data
 
 from app.core.api_config import settings
 from app.core.config import settings as core_settings
@@ -37,6 +43,9 @@ from app.api.v1.partner import router as partner_router
 from app.api.v1.endpoints.data_processing import router as data_processing_router
 from app.api.v1.prepare import router as prepare_router
 from app.api.v1.sample_data import router as sample_data_router
+from app.api.v1.data_connections import router as data_connections_router
+from app.api.v1.unified_pipeline import router as unified_pipeline_router
+from app.api.v1.websocket_manager import router as websocket_router
 
 # Phase 3: Advanced Features Routers
 from app.api.v1.advanced_ml import router as advanced_ml_router
@@ -84,7 +93,13 @@ async def lifespan(app: FastAPI):
     from app.services.unified_data_processor import unified_processor
     logger.info("✅ High-performance data processor ready!")
     
+    # on startup
+    async with engine.begin() as conn:
+        await conn.run_sync(init_db)
+    await seed_data()
     yield
+    # on shutdown
+    await engine.dispose()
     logger.info("Schlep-engine API shutting down...")
 
 # Custom OpenAPI schema
@@ -135,14 +150,18 @@ def custom_openapi():
     return app.openapi_schema
 
 app = FastAPI(
-    title="Schlep-engine API",
-    description="AI Powered data intelligence",
-    version="1.0.0",
-    docs_url=None,  # Disable default docs
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
-    lifespan=lifespan
+    title=settings.PROJECT_NAME,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json"
 )
+
+cli = typer.Typer()
+
+@cli.command()
+def seed():
+    """
+    Seed the database with initial data.
+    """
+    asyncio.run(seed_data())
 
 app.openapi = custom_openapi
 
@@ -1165,6 +1184,9 @@ app.include_router(streaming_router, prefix="/api/v1", tags=["streaming"])
 app.include_router(data_processing_router, prefix="/api/v1/processing", tags=["data-processing"])
 app.include_router(prepare_router, prefix="/api/v1", tags=["core-preparation"])
 app.include_router(sample_data_router, prefix="/api/v1", tags=["sample-data"])
+app.include_router(data_connections_router, prefix="/api/v1", tags=["data-connections"])
+app.include_router(unified_pipeline_router, prefix="/api/v1", tags=["unified-pipeline"])
+app.include_router(websocket_router, prefix="/api/v1", tags=["websocket"])
 
 # Business & Admin features
 app.include_router(billing_router, prefix="/api/v1/billing", tags=["billing"])

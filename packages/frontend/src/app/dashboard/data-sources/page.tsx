@@ -1,209 +1,387 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { FileUpload } from '@/components/upload/FileUpload'
-import { DataProcessingOverview } from '@/components/dashboard/data-processing-overview'
-import { DataQualityCharts } from '@/components/dashboard/data-quality-charts'
+import { useState, useMemo } from 'react'
 import { 
+  Database, 
   Plus, 
   Search, 
   Filter, 
-  Database, 
-  FileText, 
-  Upload, 
-  Download, 
-  RefreshCw, 
-  TrendingUp, 
-  CheckCircle2, 
+  Grid3X3, 
+  List, 
+  Upload,
+  CheckCircle2,
   AlertTriangle,
-  Eye,
-  Settings,
-  MoreVertical,
-  Calendar,
-  BarChart3,
-  Activity,
-  Shield,
-  Zap,
   Clock,
-  Users,
+  TrendingUp,
+  BarChart3,
+  MoreHorizontal,
+  Eye,
+  Download,
+  Settings,
+  Trash2,
+  RefreshCw,
+  Calendar,
+  FileText,
+  Globe,
+  Server,
+  Layers,
+  Target,
+  Activity,
+  Zap,
+  Shield,
+  Star,
+  Tag,
+  ExternalLink,
   ArrowUpRight,
-  ChevronRight,
-  Grid3X3,
-  List,
-  Folder,
-  FileSpreadsheet,
-  FileJson,
-  Table
+  ChevronDown,
+  SortAsc,
+  SortDesc
 } from 'lucide-react'
-import { DataSourcesHeader } from '@/components/data-sources/data-sources-header'
-import { DataSourcesList } from '@/components/data-sources/data-sources-list'
-import DataIntegrationDashboard from '@/components/integration/data-integration-dashboard'
+import { PageHeader, PageHeaderActions } from '@/components/ui/page-header'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
+import { cn, formatNumber, getTimeAgo } from '@/lib/utils'
+import { StatCard } from '@/components/dashboard/stat-card'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
-interface Investigation {
-  id: string
-  name: string
-  description?: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
-  progress_percentage: number
-  quality_score?: number
-  created_at: string
-  updated_at: string
-  file_type?: string
-  file_size?: number
-  records_count?: number
+// Mock data for data sources
+const mockDataSources = [
+  {
+    id: 'ds_1',
+    name: 'Customer Database',
+    type: 'PostgreSQL',
+    status: 'active',
+    records: 125000,
+    quality_score: 92,
+    last_sync: '2024-01-15T10:30:00Z',
+    size: '2.4 GB',
+    tables: 8,
+    connection_health: 'excellent',
+    tags: ['production', 'customers', 'crm'],
+    description: 'Primary customer database with user profiles and transaction history'
+  },
+  {
+    id: 'ds_2',
+    name: 'Sales Analytics',
+    type: 'BigQuery',
+    status: 'active',
+    records: 890000,
+    quality_score: 88,
+    last_sync: '2024-01-15T09:15:00Z',
+    size: '5.2 GB',
+    tables: 12,
+    connection_health: 'good',
+    tags: ['analytics', 'sales', 'revenue'],
+    description: 'Sales performance data and revenue analytics'
+  },
+  {
+    id: 'ds_3',
+    name: 'Product Catalog',
+    type: 'MongoDB',
+    status: 'syncing',
+    records: 45000,
+    quality_score: 95,
+    last_sync: '2024-01-15T08:45:00Z',
+    size: '1.8 GB',
+    tables: 5,
+    connection_health: 'excellent',
+    tags: ['products', 'inventory', 'catalog'],
+    description: 'Product information and inventory management'
+  },
+  {
+    id: 'ds_4',
+    name: 'Legacy System',
+    type: 'MySQL',
+    status: 'warning',
+    records: 230000,
+    quality_score: 67,
+    last_sync: '2024-01-14T16:20:00Z',
+    size: '3.1 GB',
+    tables: 15,
+    connection_health: 'poor',
+    tags: ['legacy', 'migration', 'archive'],
+    description: 'Legacy system data pending migration'
+  },
+  {
+    id: 'ds_5',
+    name: 'Marketing Data',
+    type: 'Snowflake',
+    status: 'active',
+    records: 567000,
+    quality_score: 91,
+    last_sync: '2024-01-15T11:00:00Z',
+    size: '4.7 GB',
+    tables: 9,
+    connection_health: 'excellent',
+    tags: ['marketing', 'campaigns', 'leads'],
+    description: 'Marketing campaigns and lead generation data'
+  },
+  {
+    id: 'ds_6',
+    name: 'API Logs',
+    type: 'Elasticsearch',
+    status: 'inactive',
+    records: 1250000,
+    quality_score: 78,
+    last_sync: '2024-01-13T14:30:00Z',
+    size: '8.9 GB',
+    tables: 3,
+    connection_health: 'disconnected',
+    tags: ['logs', 'api', 'monitoring'],
+    description: 'API request logs and monitoring data'
+  }
+]
+
+const statusConfig = {
+  active: { 
+    label: 'Active', 
+    color: 'bg-green-50 text-green-700 border-green-200',
+    icon: CheckCircle2
+  },
+  syncing: { 
+    label: 'Syncing', 
+    color: 'bg-blue-50 text-blue-700 border-blue-200',
+    icon: RefreshCw
+  },
+  warning: { 
+    label: 'Warning', 
+    color: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    icon: AlertTriangle
+  },
+  inactive: { 
+    label: 'Inactive', 
+    color: 'bg-gray-50 text-gray-700 border-gray-200',
+    icon: Clock
+  }
 }
 
-interface DataSource {
-  id: string
-  name: string
-  type: 'csv' | 'json' | 'excel' | 'database' | 'api'
-  status: 'active' | 'inactive' | 'error'
-  records: number
-  last_updated: string
-  quality_score: number
-  size: string
+const healthConfig = {
+  excellent: { label: 'Excellent', color: 'text-green-600', score: 95 },
+  good: { label: 'Good', color: 'text-blue-600', score: 80 },
+  poor: { label: 'Poor', color: 'text-yellow-600', score: 60 },
+  disconnected: { label: 'Disconnected', color: 'text-red-600', score: 0 }
+}
+
+const typeIcons = {
+  PostgreSQL: Database,
+  BigQuery: BarChart3,
+  MongoDB: Layers,
+  MySQL: Server,
+  Snowflake: Globe,
+  Elasticsearch: Search
 }
 
 export default function DataSourcesPage() {
-  const searchParams = useSearchParams()
-  const [investigations, setInvestigations] = useState<Investigation[]>([])
-  const [dataSources, setDataSources] = useState<DataSource[]>([])
-  const [loading, setLoading] = useState(true)
-  const [showUpload, setShowUpload] = useState(false)
-  const [selectedInvestigation, setSelectedInvestigation] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
+  const [filterStatus, setFilterStatus] = useState('all')
+  const [sortBy, setSortBy] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
-  const [sortBy, setSortBy] = useState('recent')
 
-  // Mock data for demonstration
-  const mockDataSources: DataSource[] = [
-    {
-      id: '1',
-      name: 'Customer Database',
-      type: 'database',
-      status: 'active',
-      records: 125000,
-      last_updated: '2024-01-15T10:30:00Z',
-      quality_score: 94,
-      size: '2.3 GB'
-    },
-    {
-      id: '2',
-      name: 'Sales Data Q4',
-      type: 'csv',
-      status: 'active',
-      records: 45000,
-      last_updated: '2024-01-14T15:45:00Z',
-      quality_score: 87,
-      size: '12.5 MB'
-    },
-    {
-      id: '3',
-      name: 'Product Catalog',
-      type: 'json',
-      status: 'active',
-      records: 8500,
-      last_updated: '2024-01-13T09:20:00Z',
-      quality_score: 92,
-      size: '3.2 MB'
-    },
-    {
-      id: '4',
-      name: 'Marketing Analytics',
-      type: 'excel',
-      status: 'inactive',
-      records: 22000,
-      last_updated: '2024-01-10T14:15:00Z',
-      quality_score: 78,
-      size: '8.7 MB'
-    }
-  ]
-
-  useEffect(() => {
-    // Simulate API call
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        // Mock API delay
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setDataSources(mockDataSources)
-        setInvestigations([])
-    } catch (error) {
-        console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-    fetchData()
-  }, [])
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'csv': return <FileSpreadsheet className="w-5 h-5 text-green-600" />
-      case 'json': return <FileJson className="w-5 h-5 text-blue-600" />
-      case 'excel': return <Table className="w-5 h-5 text-orange-600" />
-      case 'database': return <Database className="w-5 h-5 text-purple-600" />
-      case 'api': return <Zap className="w-5 h-5 text-yellow-600" />
-      default: return <FileText className="w-5 h-5 text-gray-600" />
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800'
-      case 'inactive': return 'bg-gray-100 text-gray-800'
-      case 'error': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getQualityColor = (score: number) => {
-    if (score >= 90) return 'text-green-600'
-    if (score >= 80) return 'text-blue-600'
-    if (score >= 70) return 'text-yellow-600'
-    return 'text-red-600'
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+  const filteredAndSortedSources = useMemo(() => {
+    let filtered = mockDataSources.filter(source => {
+      const matchesSearch = source.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           source.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           source.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      const matchesType = filterType === 'all' || source.type === filterType
+      const matchesStatus = filterStatus === 'all' || source.status === filterStatus
+      
+      return matchesSearch && matchesType && matchesStatus
     })
-  }
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K'
-    return num.toLocaleString()
-  }
+    return filtered.sort((a, b) => {
+      let aValue: any = a[sortBy as keyof typeof a]
+      let bValue: any = b[sortBy as keyof typeof b]
+      
+      if (sortBy === 'last_sync') {
+        aValue = new Date(aValue).getTime()
+        bValue = new Date(bValue).getTime()
+      }
+      
+      if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      }
+      
+      const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+  }, [searchTerm, filterType, filterStatus, sortBy, sortOrder])
 
-  const filteredDataSources = dataSources.filter(source => {
-    const matchesSearch = source.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesType = filterType === 'all' || source.type === filterType
-    return matchesSearch && matchesType
-  })
+  const stats = useMemo(() => ({
+    total: mockDataSources.length,
+    active: mockDataSources.filter(s => s.status === 'active').length,
+    avgQuality: Math.round(mockDataSources.reduce((acc, s) => acc + s.quality_score, 0) / mockDataSources.length),
+    totalRecords: mockDataSources.reduce((acc, s) => acc + s.records, 0)
+  }), [])
 
-  const sortedDataSources = [...filteredDataSources].sort((a, b) => {
-    switch (sortBy) {
-      case 'name': return a.name.localeCompare(b.name)
-      case 'quality': return b.quality_score - a.quality_score
-      case 'size': return b.records - a.records
-      case 'recent':
-      default: return new Date(b.last_updated).getTime() - new Date(a.last_updated).getTime()
-    }
-  })
+  const DataSourceCard = ({ source }: { source: typeof mockDataSources[0] }) => {
+    const StatusIcon = statusConfig[source.status as keyof typeof statusConfig]?.icon || CheckCircle2
+    const TypeIcon = typeIcons[source.type as keyof typeof typeIcons] || Database
 
-  if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="flex items-center space-x-3">
-          <RefreshCw className="w-5 h-5 animate-spin text-blue-600" />
-          <span className="text-gray-600">Loading data sources...</span>
+      <Card className="group hover:shadow-lg transition-all duration-200 border-gray-200/60 hover:border-gray-300">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+                <TypeIcon className="w-5 h-5 text-gray-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold text-gray-900">
+                  {source.name}
+                </CardTitle>
+                <CardDescription className="text-sm text-gray-500">
+                  {source.type}
+                </CardDescription>
+              </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Eye className="w-4 h-4 mr-2" />
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="w-4 h-4 mr-2" />
+                  Configure
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Download className="w-4 h-4 mr-2" />
+                  Export
+                </DropdownMenuItem>
+                <DropdownMenuItem className="text-red-600">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-gray-600 line-clamp-2">{source.description}</p>
+          
+          <div className="flex items-center gap-2">
+            <Badge 
+              variant="outline" 
+              className={cn("text-xs", statusConfig[source.status as keyof typeof statusConfig]?.color)}
+            >
+              <StatusIcon className="w-3 h-3 mr-1" />
+              {statusConfig[source.status as keyof typeof statusConfig]?.label}
+            </Badge>
+            <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600">
+              {formatNumber(source.records)} records
+            </Badge>
+          </div>
+
+          <div className="flex flex-wrap gap-1">
+            {source.tags.map((tag) => (
+              <Badge key={tag} variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+
+          <Separator />
+
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-gray-500">Quality Score</p>
+              <p className="font-semibold text-gray-900">{source.quality_score}%</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Last Sync</p>
+              <p className="font-semibold text-gray-900">{getTimeAgo(source.last_sync)}</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Size</p>
+              <p className="font-semibold text-gray-900">{source.size}</p>
+            </div>
+            <div>
+              <p className="text-gray-500">Health</p>
+              <p className={cn("font-semibold", healthConfig[source.connection_health as keyof typeof healthConfig]?.color)}>
+                {healthConfig[source.connection_health as keyof typeof healthConfig]?.label}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const DataSourceListItem = ({ source }: { source: typeof mockDataSources[0] }) => {
+    const StatusIcon = statusConfig[source.status as keyof typeof statusConfig]?.icon || CheckCircle2
+    const TypeIcon = typeIcons[source.type as keyof typeof typeIcons] || Database
+
+    return (
+      <div className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0">
+        <div className="flex items-center gap-4 flex-1">
+          <div className="w-10 h-10 bg-gray-50 rounded-lg flex items-center justify-center">
+            <TypeIcon className="w-5 h-5 text-gray-600" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gray-900">{source.name}</h3>
+              <Badge 
+                variant="outline" 
+                className={cn("text-xs", statusConfig[source.status as keyof typeof statusConfig]?.color)}
+              >
+                <StatusIcon className="w-3 h-3 mr-1" />
+                {statusConfig[source.status as keyof typeof statusConfig]?.label}
+              </Badge>
+            </div>
+            <p className="text-sm text-gray-500 truncate">{source.description}</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-8 text-sm">
+          <div className="text-center">
+            <p className="text-gray-500">Records</p>
+            <p className="font-semibold text-gray-900">{formatNumber(source.records)}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-gray-500">Quality</p>
+            <p className="font-semibold text-gray-900">{source.quality_score}%</p>
+          </div>
+          <div className="text-center">
+            <p className="text-gray-500">Last Sync</p>
+            <p className="font-semibold text-gray-900">{getTimeAgo(source.last_sync)}</p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm">
+                <MoreHorizontal className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>
+                <Eye className="w-4 h-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Settings className="w-4 h-4 mr-2" />
+                Configure
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     )
@@ -211,309 +389,169 @@ export default function DataSourcesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Data Sources</h1>
-          <p className="text-gray-600 mt-1">Manage and monitor your data connections</p>
-        </div>
-        <div className="flex items-center space-x-3">
-                <button 
-            onClick={() => setShowUpload(true)}
-            className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all transform hover:scale-105"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Data Source
-          </button>
-          <button className="inline-flex items-center px-4 py-2 border border-gray-300 hover:border-gray-400 text-gray-700 font-medium rounded-lg transition-colors">
-            <Download className="w-4 h-4 mr-2" />
-            Export
-                </button>
-              </div>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Sources</p>
-              <p className="text-3xl font-bold text-gray-900">{dataSources.length}</p>
-              <p className="text-xs text-gray-500 mt-1">4 types connected</p>
-            </div>
-            <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-              <Database className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Records</p>
-              <p className="text-3xl font-bold text-gray-900">{formatNumber(dataSources.reduce((sum, source) => sum + source.records, 0))}</p>
-              <p className="text-xs text-emerald-600 mt-1 flex items-center">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                +12% this month
-              </p>
-            </div>
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <BarChart3 className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Avg Quality Score</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {Math.round(dataSources.reduce((sum, source) => sum + source.quality_score, 0) / dataSources.length)}%
-              </p>
-              <p className="text-xs text-gray-500 mt-1">across all sources</p>
-            </div>
-            <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-              <Shield className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl p-6 border border-gray-100">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Sources</p>
-              <p className="text-3xl font-bold text-gray-900">
-                {dataSources.filter(source => source.status === 'active').length}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">currently processing</p>
-            </div>
-            <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
-              <Activity className="w-6 h-6 text-orange-600" />
-            </div>
-          </div>
-            </div>
-      </div>
-
-      {/* Controls */}
-      <div className="bg-white rounded-2xl p-6 border border-gray-100">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder="Search data sources..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          >
-            <option value="all">All Types</option>
-            <option value="csv">CSV Files</option>
-            <option value="json">JSON Files</option>
-            <option value="excel">Excel Files</option>
-            <option value="database">Database</option>
-              <option value="api">API</option>
-            </select>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+      <PageHeader
+        title="Data Sources"
+        description="Manage and monitor your connected data sources"
+        stats={[
+          {
+            label: 'Total Sources',
+            value: stats.total,
+            icon: Database,
+            color: 'blue'
+          },
+          {
+            label: 'Active',
+            value: stats.active,
+            icon: CheckCircle2,
+            color: 'green'
+          },
+          {
+            label: 'Avg Quality',
+            value: `${stats.avgQuality}%`,
+            icon: Target,
+            color: 'purple'
+          },
+          {
+            label: 'Total Records',
+            value: formatNumber(stats.totalRecords),
+            icon: BarChart3,
+            color: 'yellow'
+          }
+        ]}
+        actions={
+          <div className="flex items-center gap-2">
+            <PageHeaderActions.Secondary
+              icon={Upload}
             >
-              <option value="recent">Most Recent</option>
-              <option value="name">Name</option>
-              <option value="quality">Quality Score</option>
-              <option value="size">Record Count</option>
-          </select>
-          </div>
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
+              Import
+            </PageHeaderActions.Secondary>
+            <PageHeaderActions.Primary
+              icon={Plus}
             >
-              <Grid3X3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
-            >
-              <List className="w-4 h-4" />
-            </button>
+              Add Source
+            </PageHeaderActions.Primary>
           </div>
-        </div>
-      </div>
+        }
+      />
 
-      {/* Data Sources Grid/List */}
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sortedDataSources.map((source) => (
-            <div key={source.id} className="bg-white rounded-2xl p-6 border border-gray-100 hover:shadow-lg transition-all duration-200 group">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center group-hover:bg-gray-100 transition-colors">
-                    {getTypeIcon(source.type)}
-                  </div>
-      <div>
-                    <h3 className="font-semibold text-gray-900">{source.name}</h3>
-                    <p className="text-sm text-gray-600 capitalize">{source.type}</p>
-                  </div>
-                </div>
-                <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-100 rounded">
-                  <MoreVertical className="w-4 h-4 text-gray-600" />
-                </button>
-      </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Status</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(source.status)}`}>
-                    {source.status}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Records</span>
-                  <span className="text-sm font-medium text-gray-900">{formatNumber(source.records)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Quality</span>
-                  <span className={`text-sm font-medium ${getQualityColor(source.quality_score)}`}>
-                    {source.quality_score}%
-                  </span>
-                </div>
-          <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Size</span>
-                  <span className="text-sm font-medium text-gray-900">{source.size}</span>
-            </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Updated</span>
-                  <span className="text-sm text-gray-600">{formatDate(source.last_updated)}</span>
-          </div>
-        </div>
-
-              <div className="mt-6 pt-4 border-t border-gray-100">
-                <div className="flex items-center justify-between">
-                  <button className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium">
-                    <Eye className="w-4 h-4 mr-1" />
-                    View Details
-                  </button>
-                  <button className="inline-flex items-center text-sm text-gray-600 hover:text-gray-700">
-                    <Settings className="w-4 h-4 mr-1" />
-                    Configure
-                  </button>
-                </div>
+      {/* Filters and Search */}
+      <Card className="border-gray-200/60">
+        <CardContent className="p-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Search data sources..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
             </div>
-          ))}
-        </div>
-      ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-100">
-            <h3 className="text-lg font-semibold text-gray-900">Data Sources</h3>
-          </div>
-          <div className="divide-y divide-gray-100">
-            {sortedDataSources.map((source) => (
-              <div key={source.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center">
-                      {getTypeIcon(source.type)}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{source.name}</h4>
-                      <p className="text-sm text-gray-600 capitalize">{source.type} • {formatNumber(source.records)} records</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-6">
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{source.quality_score}%</p>
-                      <p className="text-xs text-gray-600">Quality</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">{source.size}</p>
-                      <p className="text-xs text-gray-600">Size</p>
-                        </div>
-                    <div className="text-right">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(source.status)}`}>
-                        {source.status}
-                        </span>
-                      </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">{formatDate(source.last_updated)}</p>
-                      </div>
-                    <div className="flex items-center space-x-2">
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <Eye className="w-4 h-4 text-gray-600" />
-                      </button>
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <Settings className="w-4 h-4 text-gray-600" />
-                      </button>
-                      <button className="p-1 hover:bg-gray-100 rounded">
-                        <MoreVertical className="w-4 h-4 text-gray-600" />
-                        </button>
-                    </div>
-                  </div>
-                </div>
+            
+            <div className="flex items-center gap-2">
+              <Select value={filterType} onValueChange={setFilterType}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem value="PostgreSQL">PostgreSQL</SelectItem>
+                  <SelectItem value="BigQuery">BigQuery</SelectItem>
+                  <SelectItem value="MongoDB">MongoDB</SelectItem>
+                  <SelectItem value="MySQL">MySQL</SelectItem>
+                  <SelectItem value="Snowflake">Snowflake</SelectItem>
+                  <SelectItem value="Elasticsearch">Elasticsearch</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="syncing">Syncing</SelectItem>
+                  <SelectItem value="warning">Warning</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="name">Name</SelectItem>
+                  <SelectItem value="quality_score">Quality</SelectItem>
+                  <SelectItem value="records">Records</SelectItem>
+                  <SelectItem value="last_sync">Last Sync</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              >
+                {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
+              </Button>
+
+              <Separator orientation="vertical" className="h-6" />
+
+              <div className="flex items-center border border-gray-200 rounded-lg p-1">
+                <Button
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('grid')}
+                  className="h-8 w-8 p-0"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setViewMode('list')}
+                  className="h-8 w-8 p-0"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
               </div>
-            ))}
             </div>
           </div>
-        )}
+        </CardContent>
+      </Card>
 
-      {/* Empty State */}
-      {sortedDataSources.length === 0 && (
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Database className="w-8 h-8 text-gray-600" />
-          </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">No data sources found</h3>
-          <p className="text-gray-600 mb-6">
-            {searchTerm || filterType !== 'all' 
-              ? 'Try adjusting your search or filter criteria.'
-              : 'Get started by adding your first data source.'
-            }
-          </p>
-          {!searchTerm && filterType === 'all' && (
-            <button
-              onClick={() => setShowUpload(true)}
-              className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all transform hover:scale-105"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Data Source
-            </button>
+      {/* Data Sources */}
+      <Card className="border-gray-200/60">
+        <CardContent className="p-6">
+          {filteredAndSortedSources.length === 0 ? (
+            <div className="text-center py-12">
+              <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Sources Found</h3>
+              <p className="text-gray-500 mb-4">Try adjusting your search or filters</p>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Data Source
+              </Button>
+            </div>
+          ) : viewMode === 'grid' ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredAndSortedSources.map((source) => (
+                <DataSourceCard key={source.id} source={source} />
+              ))}
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {filteredAndSortedSources.map((source) => (
+                <DataSourceListItem key={source.id} source={source} />
+              ))}
+            </div>
           )}
-        </div>
-      )}
-
-      {/* Data Integration Dashboard */}
-      <div>
-        <DataIntegrationDashboard />
-      </div>
-
-      {/* Data Processing Overview */}
-      {investigations.length > 0 && (
-        <DataProcessingOverview />
-      )}
-
-      {/* Selected Investigation Details */}
-      {selectedInvestigation && (
-        <DataQualityCharts investigationId={selectedInvestigation} />
-      )}
-
-      {/* File Upload Modal */}
-      {showUpload && (
-        <FileUpload 
-          onClose={() => setShowUpload(false)}
-          onUploadComplete={() => {
-            setShowUpload(false)
-            // Refresh data sources
-          }}
-        />
-      )}
+        </CardContent>
+      </Card>
     </div>
   )
 } 

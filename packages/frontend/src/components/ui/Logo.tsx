@@ -1,31 +1,47 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 interface LogoProps {
   className?: string;
-  width?: number;
-  height?: number;
-  alt?: string;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'white';
 }
 
-export function Logo({ 
-  className = '', 
-  width = 40, 
-  height = 40, 
-  alt = 'Schlep Engine Logo' 
-}: LogoProps) {
+export function Logo({ className, size = 'md', variant = 'default' }: LogoProps) {
+  const sizeClasses = {
+    sm: 'h-6 w-6',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12'
+  };
+
+  const textSizeClasses = {
+    sm: 'text-lg',
+    md: 'text-xl',
+    lg: 'text-2xl'
+  };
+
+  const colorClasses = {
+    default: 'text-blue-600',
+    white: 'text-white'
+  };
+
   return (
-    <Image
-      src="/Schlep-engine new.svg"
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      priority
-    />
+    <div className={cn('flex items-center gap-2', className)}>
+      <div className={cn(
+        'rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center',
+        sizeClasses[size]
+      )}>
+        <span className="text-white font-bold text-sm">S</span>
+      </div>
+      <span className={cn(
+        'font-bold tracking-tight',
+        textSizeClasses[size],
+        colorClasses[variant]
+      )}>
+        Schlep
+      </span>
+    </div>
   );
-}
-
-export default Logo; 
+} 

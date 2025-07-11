@@ -85,6 +85,12 @@ class InsightsResponse(BaseModel):
     generated_date: str
     recommendations: List[str]
 
+class ModelStats(BaseModel):
+    anomaly_detection: int
+    classification: int
+    regression: int
+    other: int
+
 @router.post("/train-model", response_model=ModelResponse)
 async def train_ml_model(
     background_tasks: BackgroundTasks,
@@ -202,6 +208,31 @@ async def train_model_background(
         
     except Exception as e:
         logger.error(f"Background model training failed: {str(e)}")
+
+@router.get("/models/stats", response_model=ModelStats)
+async def get_model_stats(
+    current_user: User = Depends(get_current_user)
+):
+    """Get statistics about trained models by type."""
+    try:
+        # In a real implementation, this would query a database or a model registry.
+        # For now, we'll use a mock implementation that mirrors what the sidebar needs.
+        
+        # This function would ideally be in advanced_ml_engine
+        # models = advanced_ml_engine.get_model_summary_by_type() 
+        
+        mock_stats = {
+            "anomaly_detection": 5, # Example count
+            "classification": 12,   # Example count
+            "regression": 3,      # Example count
+            "other": 1            # Example count
+        }
+        
+        return ModelStats(**mock_stats)
+
+    except Exception as e:
+        logger.error(f"Error getting model stats: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve model statistics")
 
 @router.get("/models", response_model=Dict[str, Any])
 async def list_trained_models(

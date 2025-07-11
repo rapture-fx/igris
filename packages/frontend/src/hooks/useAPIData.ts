@@ -207,7 +207,7 @@ export function useDataQualityMetrics(options: UseAPIDataOptions = {}) {
   return useAPIData(
     () => apiService.getDataQualityMetrics(),
     {
-      refetchInterval: 30000, // 30 seconds
+      refetchInterval: 60000,
       ...options
     }
   )
@@ -219,18 +219,22 @@ export function useInvestigations(options: UseAPIDataOptions = {}) {
   return useAPIData(
     () => apiService.getInvestigations(),
     {
-      refetchInterval: 10000, // 10 seconds
-      ...options
+      refetchInterval: 60000, // 60 seconds
+      ...options,
     }
   )
 }
 
-export function useInvestigation(id: string, options: UseAPIDataOptions = {}) {
+export function useInvestigation(id: string | null, options: UseAPIDataOptions = {}) {
   return useAPIData(
-    () => apiService.getInvestigation(id),
+    () => {
+      if (!id) return Promise.resolve(null) // Should not happen due to `enabled`
+      return apiService.getInvestigation(id)
+    },
     {
       enabled: !!id,
-      ...options
+      refetchInterval: 10000, // 10 seconds, e.g. for polling progress
+      ...options,
     }
   )
 }
@@ -747,7 +751,16 @@ export function useLabelingQueue(projectId: string | null, limit: number = 10, o
   )
 }
 
-export function useLabelingProject() {
+export function useLabelingProject(projectId: string | null) {
+  return useAPIData(
+    () => (projectId ? apiService.getLabelingProject(projectId) : Promise.resolve(null)),
+    {
+      enabled: !!projectId,
+    }
+  );
+}
+
+export function useLabelingProjectMutations() {
   const [creating, setCreating] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
