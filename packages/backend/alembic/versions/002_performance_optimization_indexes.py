@@ -272,7 +272,7 @@ def upgrade():
         ['user_id', 'metric_type', 'recorded_at'],
         unique=False
     )
-
+    
     print("Performance optimization indexes added successfully.")
 
 
@@ -302,7 +302,7 @@ def downgrade():
     op.drop_index('idx_audit_logs_resource_created', table_name='audit_logs')
     op.drop_index('idx_audit_logs_action_created', table_name='audit_logs')
     op.drop_index('idx_audit_logs_user_created', table_name='audit_logs')
-    
+        
     # PROCESSING_JOBS
     op.drop_index('idx_processing_jobs_active', table_name='processing_jobs')
     op.drop_index('idx_processing_jobs_status_created', table_name='processing_jobs')
@@ -313,12 +313,12 @@ def downgrade():
     op.drop_index('idx_data_investigations_status_updated', table_name='data_investigations')
     op.drop_index('idx_data_investigations_workspace_status', table_name='data_investigations')
     op.drop_index('idx_data_investigations_user_created', table_name='data_investigations')
-    
+        
     # API_KEYS
     op.drop_index('idx_api_keys_expires_at', table_name='api_keys')
     op.drop_index('idx_api_keys_user_active', table_name='api_keys')
     op.drop_index('idx_api_keys_hash_active', table_name='api_keys')
-    
+        
     # USERS
     op.drop_index('idx_users_last_login', table_name='users')
     op.drop_index('idx_users_organization_role', table_name='users')
