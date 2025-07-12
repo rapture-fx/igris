@@ -42,6 +42,7 @@ pyyaml==6.0.1
 
 # Optional services (comment out if not needed)
 boto3==1.34.141          # AWS/S3 support
+google-cloud-storage==2.10.0  # Google Cloud Storage support
 stripe==7.7.0            # Payment processing
 websockets==12.0         # Real-time features
 

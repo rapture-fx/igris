@@ -280,6 +280,29 @@ class UnifiedSettings(BaseSettings):
         description="Celery result backend URL"
     )
     
+    # ==================== CLOUD STORAGE SETTINGS ====================
+    
+    CLOUD_STORAGE_BUCKET_NAME: str = Field(
+        default="schlep-engine-storage",
+        description="Google Cloud Storage bucket name"
+    )
+    CDN_DOMAIN: Optional[str] = Field(
+        default=None,
+        description="CDN domain for serving files (e.g., cdn.schlep-engine.com)"
+    )
+    MAX_FILE_SIZE_BYTES: int = Field(
+        default=100 * 1024 * 1024,  # 100MB
+        description="Maximum file size in bytes"
+    )
+    FILE_RETENTION_DAYS: int = Field(
+        default=30,
+        description="File retention period in days"
+    )
+    GOOGLE_CLOUD_CREDENTIALS_PATH: Optional[str] = Field(
+        default=None,
+        description="Path to Google Cloud service account credentials file"
+    )
+    
     # ==================== EXTERNAL SERVICES ====================
     
     # Stripe (if using)
