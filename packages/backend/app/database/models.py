@@ -27,6 +27,17 @@ class DataSourceType(str, enum.Enum):
     API = "api"
     STREAM = "stream"
 
+class MFAMethod(str, enum.Enum):
+    TOTP = "totp"
+    SMS = "sms"
+    EMAIL = "email"
+
+class SessionStatus(str, enum.Enum):
+    ACTIVE = "active"
+    EXPIRED = "expired"
+    REVOKED = "revoked"
+    SUSPICIOUS = "suspicious"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -42,6 +53,17 @@ class User(Base):
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
     avatar_url = Column(String)
     
+    # Enhanced security fields
+    mfa_enabled = Column(Boolean, default=False)
+    mfa_method = Column(Enum(MFAMethod))
+    mfa_secret = Column(String)  # Encrypted TOTP secret
+    mfa_backup_codes = Column(JSON)  # Encrypted backup codes
+    failed_login_attempts = Column(Integer, default=0)
+    account_locked_until = Column(DateTime(timezone=True))
+    password_changed_at = Column(DateTime(timezone=True))
+    last_password_reset_request = Column(DateTime(timezone=True))
+    security_questions = Column(JSON)  # Encrypted security questions/answers
+    
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -52,6 +74,8 @@ class User(Base):
     api_keys = relationship("ApiKey", back_populates="user")
     data_investigations = relationship("DataInvestigation", back_populates="created_by")
     audit_logs = relationship("AuditLog", back_populates="user")
+    user_sessions = relationship("UserSession", back_populates="user")
+    password_reset_tokens = relationship("PasswordResetToken", back_populates="user")
     
     # Security relationships (optional - for security models)
     encrypted_fields = relationship("EncryptedField", foreign_keys="[EncryptedField.users_id]", back_populates="user")
@@ -114,12 +138,56 @@ class ApiKey(Base):
     is_active = Column(Boolean, default=True)
     last_used = Column(DateTime(timezone=True))
     expires_at = Column(DateTime(timezone=True))
+    rate_limit = Column(Integer)  # Requests per minute
+    usage_count = Column(Integer, default=0)
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
     # Relationships
     user = relationship("User", back_populates="api_keys")
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    session_id = Column(String, unique=True, index=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    ip_address = Column(String)
+    user_agent = Column(Text)
+    device_fingerprint = Column(String)
+    status = Column(Enum(SessionStatus), default=SessionStatus.ACTIVE)
+    security_level = Column(String, default="medium")  # low, medium, high, critical
+    mfa_verified = Column(Boolean, default=False)
+    risk_score = Column(Float, default=0.0)
+    session_metadata = Column(JSON, default={})
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_accessed = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    
+    # Relationships
+    user = relationship("User", back_populates="user_sessions")
+
+class PasswordResetToken(Base):
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    token = Column(String, unique=True, index=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    email = Column(String, nullable=False)
+    status = Column(String, default="pending")  # pending, completed, expired, invalid
+    attempts = Column(Integer, default=0)
+    ip_address = Column(String)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    used_at = Column(DateTime(timezone=True))
+    
+    # Relationships
+    user = relationship("User", back_populates="password_reset_tokens")
 
 class DataInvestigation(Base):
     __tablename__ = "data_investigations"
@@ -217,6 +285,8 @@ class AuditLog(Base):
     details = Column(JSON, default={})
     ip_address = Column(String)
     user_agent = Column(String)
+    severity = Column(String, default="info")  # info, warning, error, critical
+    category = Column(String)  # authentication, authorization, data_access, etc.
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -253,4 +323,94 @@ class UsageMetric(Base):
     # Timestamps
     recorded_at = Column(DateTime(timezone=True), server_default=func.now())
     period_start = Column(DateTime(timezone=True))
-    period_end = Column(DateTime(timezone=True)) 
+    period_end = Column(DateTime(timezone=True))
+
+# ==================== SECURITY MODELS ====================
+
+class EncryptedField(Base):
+    __tablename__ = "encrypted_fields"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    field_name = Column(String, nullable=False)
+    encrypted_value = Column(Text, nullable=False)
+    encryption_key_id = Column(String)
+    
+    # Foreign keys for different entities
+    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[users_id], back_populates="encrypted_fields")
+    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="encrypted_fields")
+    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="encrypted_fields")
+
+class AuditTrail(Base):
+    __tablename__ = "audit_trail"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    event_type = Column(String, nullable=False)
+    event_data = Column(JSON, default={})
+    ip_address = Column(String)
+    user_agent = Column(String)
+    
+    # Foreign keys for different entities
+    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[users_id], back_populates="audit_trail")
+    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="audit_trail")
+    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="audit_trail")
+
+class DataClassificationRecord(Base):
+    __tablename__ = "data_classification_records"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    classification_level = Column(String, nullable=False)  # public, internal, confidential, restricted
+    classification_reason = Column(String)
+    data_type = Column(String)  # pii, phi, financial, etc.
+    detection_method = Column(String)  # automated, manual, ai
+    
+    # Foreign keys for different entities
+    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[users_id], back_populates="data_classification")
+    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="data_classification")
+    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="data_classification")
+
+class ComplianceEvent(Base):
+    __tablename__ = "compliance_events"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    compliance_standard = Column(String, nullable=False)  # gdpr, hipaa, sox, etc.
+    event_type = Column(String, nullable=False)  # data_access, data_export, consent_given, etc.
+    event_details = Column(JSON, default={})
+    compliance_status = Column(String)  # compliant, non_compliant, requires_review
+    
+    # Foreign keys for different entities
+    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    user = relationship("User", foreign_keys=[users_id], back_populates="compliance_events")
+    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="compliance_events")
+    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="compliance_events") 
