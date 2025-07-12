@@ -1,449 +1,572 @@
-import time
+"""
+Data Processing Tasks for Schlep-engine
+
+This module contains all data processing tasks that run asynchronously
+using Celery. Tasks include data cleaning, validation, transformation,
+and analysis with robust retry mechanisms and error handling.
+"""
+
 import logging
-import uuid
-import asyncio
-import gc
-import psutil
-from datetime import datetime
-from pathlib import Path
-from typing import Dict, Any, Optional
-import pandas as pd
+import time
+import json
+from datetime import datetime, timedelta
+from typing import Dict, Any, List, Optional
+from celery import current_task
+from celery.utils.log import get_task_logger
 
 from app.core.celery_app import celery_app
-from app.services.ai_engine import DataQualityAnalyzer, DataCleaner
-from app.services.ai_data_intelligence_processor import AIDataIntelligenceProcessor
-from app.services.file_processor import ProcessingJobManager
-from celery import current_task
+from app.core.unified_config import settings
+from app.database.connection import get_sync_db
+from app.services.data_processing_service import DataProcessingService
+from app.services.ai_processing_service import AIProcessingService
 
-# For database updates from within the task, we'll need a way to get a DB session.
-# This is a common pattern for Celery tasks interacting with SQLAlchemy.
-# from app.database.connection import AsyncSessionLocal # If using AsyncSessionLocal directly
-# from app.crud import crud_data_processing # To update job status
-# from app.database.models import JobStatus # For enum
+logger = get_task_logger(__name__)
 
-logger = logging.getLogger(__name__)
 
-# Performance constants
-MAX_MEMORY_USAGE_PERCENT = 85
-CHUNK_SIZE = 10000  # Process in chunks for large files
+class TaskRetryException(Exception):
+    """Custom exception for task retries"""
+    pass
 
-@celery_app.task(bind=True, name="tasks.detect_schema")
-def schema_detection_task(self, job_id: str, file_path: str):
+
+def exponential_backoff_retry_delay(retry_count: int, base_delay: int = 60) -> int:
     """
-    Celery task to detect schema from a given file.
-    Updates the ProcessingJob status and results.
-    """
-    logger.info(f"[Job ID: {job_id}] Starting schema detection for file: {file_path}")
-    
-    # Simulate actual work
-    try:
-        # This is where you'd put actual schema detection logic
-        # e.g., using pandas to read the file and infer dtypes
-        time.sleep(10) # Simulate a 10-second processing time
-        detected_schema = {
-            "columns": [
-                {"name": "column_A", "type": "string", "inferred_type": "text"},
-                {"name": "column_B", "type": "integer", "inferred_type": "numeric"},
-                {"name": "column_C", "type": "datetime", "inferred_type": "timestamp"}
-            ],
-            "row_count": 1000,
-            "file_size_bytes": 20480
-        }
-        logger.info(f"[Job ID: {job_id}] Schema detection successful. Schema: {detected_schema}")
-        
-        # TODO: Update ProcessingJob in database with status=COMPLETED, result=detected_schema
-        # Example (requires db session setup within task):
-        # async def update_db():
-        #     async with AsyncSessionLocal() as db:
-        #         await crud_data_processing.update_processing_job(
-        #             db, 
-        #             job_id=uuid.UUID(job_id), 
-        #             job_in=schemas.ProcessingJobUpdate(
-        #                 status=JobStatus.COMPLETED, 
-        #                 output_summary=detected_schema,
-        #                 progress_percentage=100.0
-        #             )
-        #         )
-        # asyncio.run(update_db()) # Running async code from sync task context if needed, or make task async
-
-        return {"status": "SUCCESS", "file": file_path, "schema": detected_schema}
-
-    except Exception as e:
-        logger.error(f"[Job ID: {job_id}] Error during schema detection for {file_path}: {e}", exc_info=True)
-        # TODO: Update ProcessingJob in database with status=FAILED, error_message=str(e)
-        # Example (requires db session setup within task):
-        # async def update_db_failed():
-        #     async with AsyncSessionLocal() as db:
-        #         await crud_data_processing.update_processing_job(
-        #             db, 
-        #             job_id=uuid.UUID(job_id), 
-        #             job_in=schemas.ProcessingJobUpdate(
-        #                 status=JobStatus.FAILED, 
-        #                 error_message=str(e)
-        #             )
-        #         )
-        # asyncio.run(update_db_failed())
-        # self.update_state(state='FAILURE', meta={'exc_type': type(e).__name__, 'exc_message': str(e)})
-        # raise # Or handle gracefully and just return error status
-        return {"status": "FAILURE", "file": file_path, "error": str(e)}
-
-@celery_app.task(bind=True, name="tasks.process_large_file", queue="data_processing")
-def process_large_file_task(self, job_id: str, file_path: str, processing_options: Dict[str, Any] = None):
-    """
-    Enhanced file processing task with streaming support for large files
+    Calculate exponential backoff delay for retries.
     
     Args:
-        job_id: Unique job identifier
-        file_path: Path to the file to process
-        processing_options: Processing configuration options
+        retry_count: Current retry attempt number
+        base_delay: Base delay in seconds (default: 60)
+    
+    Returns:
+        Delay in seconds for next retry
     """
-    logger.info(f"[Job {job_id}] Starting enhanced file processing for: {file_path}")
-    
-    if processing_options is None:
-        processing_options = {
-            'run_ai_analysis': True,
-            'chunk_processing': True,
-            'memory_limit_mb': 2000
-        }
-    
-    try:
-        # Update task progress
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'progress': 10, 'status': 'Initializing file processing...'}
-        )
-        
-        # Check file size to determine processing strategy
-        file_path_obj = Path(file_path)
-        if not file_path_obj.exists():
-            raise FileNotFoundError(f"File not found: {file_path}")
-        
-        file_size_gb = file_path_obj.stat().st_size / (1024**3)
-        use_streaming = file_size_gb > 0.5  # Use streaming for files > 500MB
-        
-        logger.info(f"[Job {job_id}] File size: {file_size_gb:.2f}GB, Using streaming: {use_streaming}")
-        
-        # Initialize processors
-        job_manager = ProcessingJobManager()
-        
-        current_task.update_state(
-            state='PROGRESS',
-            meta={'progress': 20, 'status': 'Processing file...'}
-        )
-        
-        if use_streaming:
-            result = _process_file_streaming(job_id, file_path, processing_options)
-        else:
-            # Use existing job manager for small files
-            result = asyncio.run(job_manager.process_file_async(job_id))
-        
-        current_task.update_state(
-            state='SUCCESS',
-            meta={
-                'progress': 100,
-                'status': 'File processing completed successfully',
-                'result': result
-            }
-        )
-        
-        logger.info(f"[Job {job_id}] File processing completed successfully")
-        return result
-        
-    except Exception as e:
-        error_msg = str(e)
-        logger.error(f"[Job {job_id}] File processing failed: {error_msg}")
-        
-        current_task.update_state(
-            state='FAILURE',
-            meta={
-                'progress': 0,
-                'status': f'File processing failed: {error_msg}',
-                'error': error_msg
-            }
-        )
-        
-        raise
+    return min(base_delay * (2 ** retry_count), 3600)  # Max 1 hour delay
 
-def _process_file_streaming(job_id: str, file_path: str, options: Dict[str, Any]) -> Dict[str, Any]:
-    """Process large files using streaming approach with memory management"""
+
+@celery_app.task(
+    bind=True,
+    max_retries=5,
+    default_retry_delay=60,
+    autoretry_for=(TaskRetryException,),
+    retry_backoff=True,
+    retry_jitter=True,
+    time_limit=7200,  # 2 hours
+    soft_time_limit=6600,  # 1 hour 50 minutes
+    queue='data_processing'
+)
+def process_dataset(self, dataset_id: int, processing_options: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Process a dataset asynchronously with comprehensive error handling and retries.
     
-    logger.info(f"[Job {job_id}] Starting streaming file processing")
+    Args:
+        dataset_id: ID of the dataset to process
+        processing_options: Processing configuration options
     
-    # Memory monitoring
-    def get_memory_usage():
-        return psutil.virtual_memory().percent
-    
-    def force_garbage_collection():
-        gc.collect()
-        logger.info(f"Garbage collection completed. Memory usage: {get_memory_usage()}%")
-    
-    # Initialize results
-    processing_result = {
-        'total_rows': 0,
-        'chunks_processed': 0,
-        'processing_time_seconds': 0,
-        'memory_peak_usage_percent': 0,
-        'ai_analysis_summary': None
-    }
-    
-    start_time = time.time()
-    peak_memory = 0
+    Returns:
+        Processing results and metadata
+    """
+    task_id = self.request.id
+    logger.info(f"Starting dataset processing task {task_id} for dataset {dataset_id}")
     
     try:
-        # Process file in chunks
-        chunk_count = 0
-        total_rows = 0
+        # Update task status
+        self.update_state(
+            state='PROGRESS',
+            meta={'current': 0, 'total': 100, 'status': 'Initializing processing...'}
+        )
         
-        # Read file in chunks
-        file_extension = Path(file_path).suffix.lower()
+        # Get database session
+        db = next(get_sync_db())
         
-        if file_extension == '.csv':
-            chunk_iter = pd.read_csv(file_path, chunksize=CHUNK_SIZE)
-        elif file_extension == '.json':
-            # For JSON, read full file but process in chunks
-            df = pd.read_json(file_path)
-            chunk_iter = [df[i:i+CHUNK_SIZE] for i in range(0, len(df), CHUNK_SIZE)]
-        elif file_extension in ['.xlsx', '.xls']:
-            # Excel files need to be read completely first
-            df = pd.read_excel(file_path)
-            chunk_iter = [df[i:i+CHUNK_SIZE] for i in range(0, len(df), CHUNK_SIZE)]
-        else:
-            raise ValueError(f"Unsupported file format: {file_extension}")
+        # Initialize processing service
+        processing_service = DataProcessingService(db)
         
-        for chunk_idx, chunk in enumerate(chunk_iter):
-            logger.info(f"[Job {job_id}] Processing chunk {chunk_idx + 1}, size: {len(chunk)} rows")
-            
-            # Monitor memory usage
-            current_memory = get_memory_usage()
-            peak_memory = max(peak_memory, current_memory)
-            
-            if current_memory > MAX_MEMORY_USAGE_PERCENT:
-                logger.warning(f"[Job {job_id}] High memory usage: {current_memory}%")
-                force_garbage_collection()
-            
-            # Process chunk
-            chunk_count += 1
-            total_rows += len(chunk)
-            
-            # Update progress
-            progress = min(80, 20 + chunk_idx * 50 / max(chunk_count, 1))
-            current_task.update_state(
+        # Validate dataset exists
+        dataset = processing_service.get_dataset(dataset_id)
+        if not dataset:
+            raise TaskRetryException(f"Dataset {dataset_id} not found")
+        
+        # Update progress
+        self.update_state(
+            state='PROGRESS',
+            meta={'current': 10, 'total': 100, 'status': 'Dataset validated, starting processing...'}
+        )
+        
+        # Process dataset
+        results = processing_service.process_dataset(
+            dataset_id=dataset_id,
+            options=processing_options,
+            progress_callback=lambda current, total, status: self.update_state(
                 state='PROGRESS',
                 meta={
-                    'progress': progress,
-                    'status': f'Processed {total_rows} rows in {chunk_count} chunks'
+                    'current': int(10 + (current / total) * 80),  # 10-90% range
+                    'total': 100,
+                    'status': status
                 }
             )
-            
-            # Optional: Run AI analysis on first chunk if requested
-            if options.get('run_ai_analysis', False) and chunk_idx == 0:
-                logger.info(f"[Job {job_id}] Running AI analysis on sample chunk")
-                detective = AIDataIntelligenceProcessor()
-                chunk_analysis = asyncio.run(detective.comprehensive_analysis(chunk, options))
-                processing_result['ai_analysis_summary'] = chunk_analysis
+        )
         
-        # Finalize results
-        processing_result.update({
-            'total_rows': total_rows,
-            'chunks_processed': chunk_count,
-            'processing_time_seconds': time.time() - start_time,
-            'memory_peak_usage_percent': peak_memory,
-            'status': 'completed',
-            'processing_method': 'streaming'
-        })
-        
-        logger.info(f"[Job {job_id}] Streaming processing completed: {processing_result}")
-        
-        return processing_result
-        
-    except Exception as e:
-        logger.error(f"[Job {job_id}] Streaming processing failed: {e}")
-        raise
-
-@celery_app.task(bind=True, name="tasks.cleanup_expired_jobs", queue="data_processing")
-def cleanup_expired_jobs(self):
-    """
-    Clean up expired processing jobs and temporary files
-    """
-    logger.info("Starting cleanup of expired processing jobs")
-    
-    try:
-        cleanup_stats = {
-            'jobs_cleaned': 0,
-            'files_deleted': 0,
-            'size_freed_mb': 0,
-            'errors': []
-        }
-        
-        # Clean up old upload files (older than 7 days)
-        uploads_path = Path("uploads")
-        if uploads_path.exists():
-            cutoff_time = datetime.now().timestamp() - (7 * 24 * 3600)  # 7 days ago
-            
-            for file_path in uploads_path.rglob('*'):
-                if file_path.is_file():
-                    try:
-                        if file_path.stat().st_mtime < cutoff_time:
-                            file_size = file_path.stat().st_size
-                            file_path.unlink()
-                            cleanup_stats['files_deleted'] += 1
-                            cleanup_stats['size_freed_mb'] += file_size / (1024**2)
-                    except Exception as e:
-                        cleanup_stats['errors'].append(f"Failed to delete {file_path}: {e}")
-        
-        # TODO: Clean up old database records
-        # This would require database session setup
-        
-        logger.info(f"Cleanup completed: {cleanup_stats}")
-        return cleanup_stats
-        
-    except Exception as e:
-        logger.error(f"Cleanup task failed: {e}")
-        return {'error': str(e)}
-
-@celery_app.task(bind=True, name="tasks.memory_monitoring", queue="monitoring")
-def memory_monitoring_task(self):
-    """
-    Monitor system memory usage and trigger alerts if needed
-    """
-    try:
-        memory = psutil.virtual_memory()
-        cpu = psutil.cpu_percent(interval=1)
-        
-        monitoring_data = {
-            'timestamp': datetime.utcnow().isoformat(),
-            'memory_usage_percent': memory.percent,
-            'memory_available_gb': memory.available / (1024**3),
-            'cpu_usage_percent': cpu,
-            'status': 'healthy'
-        }
-        
-        # Determine status
-        if memory.percent > 90 or cpu > 95:
-            monitoring_data['status'] = 'critical'
-            logger.error(f"Critical resource usage: Memory: {memory.percent}%, CPU: {cpu}%")
-        elif memory.percent > 80 or cpu > 80:
-            monitoring_data['status'] = 'warning'
-            logger.warning(f"High resource usage: Memory: {memory.percent}%, CPU: {cpu}%")
-        
-        return monitoring_data
-        
-    except Exception as e:
-        logger.error(f"Memory monitoring failed: {e}")
-        return {'error': str(e)}
-
-# Enhanced schema detection with better error handling and memory management
-@celery_app.task(bind=True, name="tasks.enhanced_schema_detection", queue="data_processing")
-def enhanced_schema_detection_task(self, job_id: str, file_path: str):
-    """
-    Enhanced schema detection with memory management and streaming support
-    """
-    logger.info(f"[Job ID: {job_id}] Starting enhanced schema detection for file: {file_path}")
-    
-    try:
-        current_task.update_state(
+        # Update final progress
+        self.update_state(
             state='PROGRESS',
-            meta={'progress': 10, 'status': 'Initializing schema detection...'}
+            meta={'current': 95, 'total': 100, 'status': 'Processing complete, saving results...'}
         )
         
-        # Check file size
-        file_path_obj = Path(file_path)
-        file_size_gb = file_path_obj.stat().st_size / (1024**3)
+        # Save results to database
+        processing_service.save_processing_results(dataset_id, results)
         
-        if file_size_gb > 1.0:  # Large file
-            logger.info(f"[Job ID: {job_id}] Large file detected ({file_size_gb:.2f}GB), using sampling")
-            result = _detect_schema_from_sample(job_id, file_path)
-        else:
-            logger.info(f"[Job ID: {job_id}] Small file ({file_size_gb:.2f}GB), using full analysis")
-            result = _detect_schema_full_analysis(job_id, file_path)
+        logger.info(f"Dataset processing task {task_id} completed successfully")
         
-        current_task.update_state(
-            state='SUCCESS',
-            meta={
-                'progress': 100,
-                'status': 'Schema detection completed',
-                'result': result
-            }
+        return {
+            'status': 'success',
+            'dataset_id': dataset_id,
+            'results': results,
+            'processing_time': time.time() - self.request.timestamp,
+            'task_id': task_id
+        }
+        
+    except TaskRetryException as e:
+        logger.warning(f"Task {task_id} failed with retryable error: {e}")
+        raise self.retry(
+            countdown=exponential_backoff_retry_delay(self.request.retries),
+            exc=e
         )
-        
-        return result
-        
     except Exception as e:
-        logger.error(f"[Job ID: {job_id}] Enhanced schema detection failed: {e}")
-        current_task.update_state(
+        logger.error(f"Task {task_id} failed with unrecoverable error: {e}")
+        # Update task state with error
+        self.update_state(
             state='FAILURE',
-            meta={
-                'progress': 0,
-                'status': f'Schema detection failed: {str(e)}',
-                'error': str(e)
-            }
+            meta={'error': str(e), 'traceback': str(e.__traceback__)}
         )
         raise
+    finally:
+        if 'db' in locals():
+            db.close()
 
-def _detect_schema_from_sample(job_id: str, file_path: str) -> Dict[str, Any]:
-    """Detect schema from a sample of a large file"""
-    
-    logger.info(f"[Job ID: {job_id}] Using sampling for schema detection")
-    
-    # Load only first chunk for schema detection
-    file_extension = Path(file_path).suffix.lower()
-    
-    if file_extension == '.csv':
-        # Read first 1000 rows for schema detection
-        sample_df = pd.read_csv(file_path, nrows=1000)
-    elif file_extension == '.json':
-        # For JSON, read full file but limit processing
-        df_full = pd.read_json(file_path)
-        sample_df = df_full.head(1000)
-    elif file_extension in ['.xlsx', '.xls']:
-        sample_df = pd.read_excel(file_path, nrows=1000)
-    else:
-        raise ValueError(f"Unsupported file format: {file_extension}")
-    
-    # Analyze schema using AI engine
-    analyzer = DataQualityAnalyzer()
-    schema_info = analyzer.analyze_schema(sample_df)
-    
-    return {
-        "status": "SUCCESS",
-        "file": file_path,
-        "schema": schema_info,
-        "sample_rows": len(sample_df),
-        "method": "sampling"
-    }
 
-def _detect_schema_full_analysis(job_id: str, file_path: str) -> Dict[str, Any]:
-    """Detect schema from full file analysis"""
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=30,
+    autoretry_for=(TaskRetryException,),
+    retry_backoff=True,
+    retry_jitter=True,
+    time_limit=3600,  # 1 hour
+    soft_time_limit=3300,  # 55 minutes
+    queue='data_processing'
+)
+def clean_data(self, dataset_id: int, cleaning_rules: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Clean dataset data according to specified rules.
     
-    logger.info(f"[Job ID: {job_id}] Using full analysis for schema detection")
+    Args:
+        dataset_id: ID of the dataset to clean
+        cleaning_rules: Rules for data cleaning
     
-    # Load full file
-    file_extension = Path(file_path).suffix.lower()
+    Returns:
+        Cleaning results and statistics
+    """
+    task_id = self.request.id
+    logger.info(f"Starting data cleaning task {task_id} for dataset {dataset_id}")
     
-    if file_extension == '.csv':
-        df = pd.read_csv(file_path)
-    elif file_extension == '.json':
-        df = pd.read_json(file_path)
-    elif file_extension in ['.xlsx', '.xls']:
-        df = pd.read_excel(file_path)
-    elif file_extension == '.parquet':
-        df = pd.read_parquet(file_path)
-    else:
-        raise ValueError(f"Unsupported file format: {file_extension}")
-    
-    # Analyze schema using AI engine
-    analyzer = DataQualityAnalyzer()
-    schema_info = analyzer.analyze_schema(df)
-    
-    return {
-        "status": "SUCCESS", 
-        "file": file_path,
-        "schema": schema_info,
-        "total_rows": len(df),
-        "method": "full_analysis"
-    }
+    try:
+        self.update_state(
+            state='PROGRESS',
+            meta={'current': 0, 'total': 100, 'status': 'Starting data cleaning...'}
+        )
+        
+        db = next(get_sync_db())
+        processing_service = DataProcessingService(db)
+        
+        # Perform data cleaning
+        cleaning_results = processing_service.clean_data(
+            dataset_id=dataset_id,
+            rules=cleaning_rules,
+            progress_callback=lambda current, total, status: self.update_state(
+                state='PROGRESS',
+                meta={
+                    'current': int((current / total) * 100),
+                    'total': 100,
+                    'status': status
+                }
+            )
+        )
+        
+        logger.info(f"Data cleaning task {task_id} completed successfully")
+        
+        return {
+            'status': 'success',
+            'dataset_id': dataset_id,
+            'cleaning_results': cleaning_results,
+            'task_id': task_id
+        }
+        
+    except TaskRetryException as e:
+        logger.warning(f"Data cleaning task {task_id} failed with retryable error: {e}")
+        raise self.retry(
+            countdown=exponential_backoff_retry_delay(self.request.retries),
+            exc=e
+        )
+    except Exception as e:
+        logger.error(f"Data cleaning task {task_id} failed: {e}")
+        self.update_state(
+            state='FAILURE',
+            meta={'error': str(e)}
+        )
+        raise
+    finally:
+        if 'db' in locals():
+            db.close()
 
-# You can add more data processing tasks here
-# e.g., @celery_app.task(name="tasks.clean_data")
-# def clean_data_task(job_id: str, ...):
-#     pass 
+
+@celery_app.task(
+    bind=True,
+    max_retries=5,
+    default_retry_delay=120,
+    autoretry_for=(TaskRetryException,),
+    retry_backoff=True,
+    retry_jitter=True,
+    time_limit=7200,  # 2 hours
+    soft_time_limit=6600,  # 1 hour 50 minutes
+    queue='ai_processing'
+)
+def analyze_data_with_ai(self, dataset_id: int, analysis_type: str, ai_options: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Perform AI-powered data analysis.
+    
+    Args:
+        dataset_id: ID of the dataset to analyze
+        analysis_type: Type of analysis to perform
+        ai_options: AI analysis configuration
+    
+    Returns:
+        AI analysis results
+    """
+    task_id = self.request.id
+    logger.info(f"Starting AI analysis task {task_id} for dataset {dataset_id}")
+    
+    try:
+        self.update_state(
+            state='PROGRESS',
+            meta={'current': 0, 'total': 100, 'status': 'Initializing AI analysis...'}
+        )
+        
+        db = next(get_sync_db())
+        ai_service = AIProcessingService(db)
+        
+        # Perform AI analysis
+        analysis_results = ai_service.analyze_data(
+            dataset_id=dataset_id,
+            analysis_type=analysis_type,
+            options=ai_options,
+            progress_callback=lambda current, total, status: self.update_state(
+                state='PROGRESS',
+                meta={
+                    'current': int((current / total) * 100),
+                    'total': 100,
+                    'status': status
+                }
+            )
+        )
+        
+        logger.info(f"AI analysis task {task_id} completed successfully")
+        
+        return {
+            'status': 'success',
+            'dataset_id': dataset_id,
+            'analysis_type': analysis_type,
+            'analysis_results': analysis_results,
+            'task_id': task_id
+        }
+        
+    except TaskRetryException as e:
+        logger.warning(f"AI analysis task {task_id} failed with retryable error: {e}")
+        raise self.retry(
+            countdown=exponential_backoff_retry_delay(self.request.retries, base_delay=120),
+            exc=e
+        )
+    except Exception as e:
+        logger.error(f"AI analysis task {task_id} failed: {e}")
+        self.update_state(
+            state='FAILURE',
+            meta={'error': str(e)}
+        )
+        raise
+    finally:
+        if 'db' in locals():
+            db.close()
+
+
+@celery_app.task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=60,
+    autoretry_for=(TaskRetryException,),
+    retry_backoff=True,
+    retry_jitter=True,
+    time_limit=1800,  # 30 minutes
+    soft_time_limit=1500,  # 25 minutes
+    queue='export'
+)
+def export_data(self, dataset_id: int, export_format: str, export_options: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Export dataset in specified format.
+    
+    Args:
+        dataset_id: ID of the dataset to export
+        export_format: Format for export (csv, json, excel, etc.)
+        export_options: Export configuration options
+    
+    Returns:
+        Export results with file information
+    """
+    task_id = self.request.id
+    logger.info(f"Starting data export task {task_id} for dataset {dataset_id}")
+    
+    try:
+        self.update_state(
+            state='PROGRESS',
+            meta={'current': 0, 'total': 100, 'status': 'Preparing export...'}
+        )
+        
+        db = next(get_sync_db())
+        processing_service = DataProcessingService(db)
+        
+        # Export data
+        export_results = processing_service.export_data(
+            dataset_id=dataset_id,
+            format=export_format,
+            options=export_options,
+            progress_callback=lambda current, total, status: self.update_state(
+                state='PROGRESS',
+                meta={
+                    'current': int((current / total) * 100),
+                    'total': 100,
+                    'status': status
+                }
+            )
+        )
+        
+        logger.info(f"Data export task {task_id} completed successfully")
+        
+        return {
+            'status': 'success',
+            'dataset_id': dataset_id,
+            'export_format': export_format,
+            'export_results': export_results,
+            'task_id': task_id
+        }
+        
+    except TaskRetryException as e:
+        logger.warning(f"Data export task {task_id} failed with retryable error: {e}")
+        raise self.retry(
+            countdown=exponential_backoff_retry_delay(self.request.retries),
+            exc=e
+        )
+    except Exception as e:
+        logger.error(f"Data export task {task_id} failed: {e}")
+        self.update_state(
+            state='FAILURE',
+            meta={'error': str(e)}
+        )
+        raise
+    finally:
+        if 'db' in locals():
+            db.close()
+
+
+@celery_app.task(
+    bind=True,
+    max_retries=2,
+    default_retry_delay=30,
+    autoretry_for=(TaskRetryException,),
+    retry_backoff=True,
+    retry_jitter=True,
+    time_limit=600,  # 10 minutes
+    soft_time_limit=500,  # 8 minutes
+    queue='data_processing'
+)
+def validate_data(self, dataset_id: int, validation_rules: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Validate dataset against specified rules.
+    
+    Args:
+        dataset_id: ID of the dataset to validate
+        validation_rules: Rules for data validation
+    
+    Returns:
+        Validation results and statistics
+    """
+    task_id = self.request.id
+    logger.info(f"Starting data validation task {task_id} for dataset {dataset_id}")
+    
+    try:
+        self.update_state(
+            state='PROGRESS',
+            meta={'current': 0, 'total': 100, 'status': 'Starting validation...'}
+        )
+        
+        db = next(get_sync_db())
+        processing_service = DataProcessingService(db)
+        
+        # Validate data
+        validation_results = processing_service.validate_data(
+            dataset_id=dataset_id,
+            rules=validation_rules,
+            progress_callback=lambda current, total, status: self.update_state(
+                state='PROGRESS',
+                meta={
+                    'current': int((current / total) * 100),
+                    'total': 100,
+                    'status': status
+                }
+            )
+        )
+        
+        logger.info(f"Data validation task {task_id} completed successfully")
+        
+        return {
+            'status': 'success',
+            'dataset_id': dataset_id,
+            'validation_results': validation_results,
+            'task_id': task_id
+        }
+        
+    except TaskRetryException as e:
+        logger.warning(f"Data validation task {task_id} failed with retryable error: {e}")
+        raise self.retry(
+            countdown=exponential_backoff_retry_delay(self.request.retries),
+            exc=e
+        )
+    except Exception as e:
+        logger.error(f"Data validation task {task_id} failed: {e}")
+        self.update_state(
+            state='FAILURE',
+            meta={'error': str(e)}
+        )
+        raise
+    finally:
+        if 'db' in locals():
+            db.close()
+
+
+@celery_app.task(
+    bind=True,
+    max_retries=1,
+    default_retry_delay=60,
+    autoretry_for=(TaskRetryException,),
+    retry_backoff=True,
+    retry_jitter=True,
+    time_limit=3600,  # 1 hour
+    soft_time_limit=3300,  # 55 minutes
+    queue='data_processing'
+)
+def cleanup_expired_jobs(self) -> Dict[str, Any]:
+    """
+    Clean up expired jobs and old results.
+    
+    Returns:
+        Cleanup results and statistics
+    """
+    task_id = self.request.id
+    logger.info(f"Starting cleanup task {task_id}")
+    
+    try:
+        self.update_state(
+            state='PROGRESS',
+            meta={'current': 0, 'total': 100, 'status': 'Starting cleanup...'}
+        )
+        
+        db = next(get_sync_db())
+        processing_service = DataProcessingService(db)
+        
+        # Clean up expired jobs
+        cleanup_results = processing_service.cleanup_expired_jobs(
+            progress_callback=lambda current, total, status: self.update_state(
+                state='PROGRESS',
+                meta={
+                    'current': int((current / total) * 100),
+                    'total': 100,
+                    'status': status
+                }
+            )
+        )
+        
+        logger.info(f"Cleanup task {task_id} completed successfully")
+        
+        return {
+            'status': 'success',
+            'cleanup_results': cleanup_results,
+            'task_id': task_id
+        }
+        
+    except TaskRetryException as e:
+        logger.warning(f"Cleanup task {task_id} failed with retryable error: {e}")
+        raise self.retry(
+            countdown=exponential_backoff_retry_delay(self.request.retries),
+            exc=e
+        )
+    except Exception as e:
+        logger.error(f"Cleanup task {task_id} failed: {e}")
+        self.update_state(
+            state='FAILURE',
+            meta={'error': str(e)}
+        )
+        raise
+    finally:
+        if 'db' in locals():
+            db.close()
+
+
+# Task utility functions
+def get_task_status(task_id: str) -> Dict[str, Any]:
+    """
+    Get the status of a specific task.
+    
+    Args:
+        task_id: ID of the task to check
+    
+    Returns:
+        Task status and metadata
+    """
+    try:
+        result = celery_app.AsyncResult(task_id)
+        return {
+            'task_id': task_id,
+            'status': result.status,
+            'result': result.result if result.ready() else None,
+            'info': result.info if hasattr(result, 'info') else None,
+            'traceback': result.traceback if result.failed() else None
+        }
+    except Exception as e:
+        logger.error(f"Error getting task status for {task_id}: {e}")
+        return {
+            'task_id': task_id,
+            'status': 'ERROR',
+            'error': str(e)
+        }
+
+
+def cancel_task(task_id: str) -> Dict[str, Any]:
+    """
+    Cancel a running task.
+    
+    Args:
+        task_id: ID of the task to cancel
+    
+    Returns:
+        Cancellation result
+    """
+    try:
+        celery_app.control.revoke(task_id, terminate=True)
+        return {
+            'task_id': task_id,
+            'status': 'CANCELLED',
+            'message': 'Task cancelled successfully'
+        }
+    except Exception as e:
+        logger.error(f"Error cancelling task {task_id}: {e}")
+        return {
+            'task_id': task_id,
+            'status': 'ERROR',
+            'error': str(e)
+        } 

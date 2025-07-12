@@ -2,19 +2,17 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from app.core.config import settings
+from app.core.unified_config import settings
 import logging
 from typing import AsyncGenerator
 
 logger = logging.getLogger(__name__)
 
-# Create async engine for application
-ASYNC_SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI.replace("postgresql://", "postgresql+asyncpg://")
-async_engine = create_async_engine(ASYNC_SQLALCHEMY_DATABASE_URL)
+# Create async engine for application using unified config
+async_engine = create_async_engine(settings.ASYNC_DATABASE_URI)
 
-# Create sync engine for migrations using asyncpg
-SYNC_SQLALCHEMY_DATABASE_URL = settings.SQLALCHEMY_DATABASE_URI.replace("postgresql://", "postgresql+asyncpg://")
-engine = create_engine(SYNC_SQLALCHEMY_DATABASE_URL)
+# Create sync engine for migrations
+engine = create_engine(settings.DATABASE_URL)
 
 # Session makers
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -3,7 +3,7 @@ Shared Redis Client for the Application
 """
 import redis.asyncio as redis
 import logging
-from app.core.config import settings
+from app.core.unified_config import settings
 
 logger = logging.getLogger(__name__)
 
