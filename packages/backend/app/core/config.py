@@ -310,4 +310,4 @@ def get_feature_flag(feature: str) -> bool:
 
 def get_external_service_url(service: str) -> Optional[str]:
     """Get external service URL"""
-    return settings.get_external_service_url(service) 
+    return settings.get_external_service_url(service)

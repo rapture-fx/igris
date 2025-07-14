@@ -1,7 +1,8 @@
-/* Schlep-engine API - Compact & Elegant Theme */
+/* Schlep-engine API - Developer-First Theme */
+/* Enhanced for API-as-a-Service with better UX */
 
 /* Import modern fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 /* Global reset and base styles */
 * {
@@ -11,8 +12,16 @@
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
+  color: #1f2937;
+}
+
+/* Code font for better readability */
+.swagger-ui .microlight {
+  font-family: 'JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', monospace;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 /* Main container with glass morphism effect - More compact */
@@ -29,26 +38,38 @@ body {
   margin: 12px auto;
 }
 
-/* Header styling - More compact */
+/* Header styling - Enhanced for API-as-a-Service */
 .swagger-ui .info {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 32px 24px 24px;
+  padding: 40px 32px 32px;
   margin: 0;
   border-radius: 0;
   position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 
 .swagger-ui .info .title {
-  font-size: 2.2rem;
-  font-weight: 700;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.02em;
-  background: linear-gradient(45deg, #ffffff, #dbeafe);
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin: 0 0 12px 0;
+  letter-spacing: -0.03em;
+  background: linear-gradient(45deg, #ffffff, #f3f4f6);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  line-height: 1.2;
+  line-height: 1.1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.swagger-ui .info .description {
+  font-size: 1.1rem;
+  font-weight: 400;
+  opacity: 0.95;
+  margin: 0;
+  line-height: 1.6;
+  max-width: calc(100% - 160px);
+  color: #f9fafb;
 }
 
 .swagger-ui .info .description {

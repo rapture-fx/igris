@@ -474,4 +474,4 @@ def is_development() -> bool:
 
 def is_testing() -> bool:
     """Check if running in testing"""
-    return get_current_environment() == Environment.TESTING 
+    return get_current_environment() == Environment.TESTING

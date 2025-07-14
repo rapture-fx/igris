@@ -35,6 +35,11 @@ from app.api.v1 import (
     health, metrics, admin, advanced_ai, advanced_ml
 )
 
+# Import the new API-as-a-Service routers
+from app.api.v1.dpa_compliance import router as dpa_compliance_router
+from app.api.v1.api_status import router as api_status_router
+from app.api.v1.debug import router as debug_router
+
 # Setup logging
 setup_logging(
     log_level=getattr(settings, 'LOG_LEVEL', 'INFO'),
@@ -235,11 +240,16 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(data_processing.router, prefix="/api/v1/data", tags=["Data Processing"])
 app.include_router(ml_pipeline.router, prefix="/api/v1/ml", tags=["ML Pipeline"])
 app.include_router(storage.router, prefix="/api/v1/storage", tags=["Storage"])
-app.include_router(health.router, prefix="/api/v1", tags=["Health"])
-app.include_router(metrics.router, prefix="/api/v1", tags=["Metrics"])
+app.include_router(health.router, prefix="/api/v1", tags=["Health & Monitoring"])
+app.include_router(metrics.router, prefix="/api/v1", tags=["Health & Monitoring"])
 app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(advanced_ai.router, prefix="/api/v1/ai", tags=["Advanced AI"])
 app.include_router(advanced_ml.router, prefix="/api/v1/advanced-ml", tags=["Advanced ML"])
+app.include_router(dpa_compliance_router, prefix="/api/v1")
+
+# Include new API-as-a-Service routers
+app.include_router(api_status_router, prefix="/api/v1", tags=["API Status & Monitoring"])
+app.include_router(debug_router, prefix="/api/v1", tags=["Debug & Testing"])
 
 # Root endpoint
 @app.get("/", tags=["Root"])
@@ -364,4 +374,4 @@ if __name__ == "__main__":
         port=getattr(settings, 'PORT', 8000),
         reload=getattr(settings, 'ENVIRONMENT', 'development') == 'development',
         log_level=getattr(settings, 'LOG_LEVEL', 'INFO').lower()
-    ) 
+    )
