@@ -1,4 +1,4 @@
-name: 🚀 Deploy to Vercel
+name: Deploy to Vercel
 
 on:
   push:
@@ -15,38 +15,38 @@ jobs:
   # QUALITY CHECKS
   # =============================================================================
   quality-checks:
-    name: 🔍 Quality Checks  
+    name: Quality Checks  
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./packages/frontend
     
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
           cache-dependency-path: './packages/frontend/pnpm-lock.yaml'
 
-      - name: 📦 Install dependencies
+      - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 🔍 Type check
+      - name: Type check
         run: pnpm type-check
 
-      - name: 🧹 Lint check
+      - name: Lint check
         run: pnpm lint
 
-      - name: 🏗️ Build check
+      - name: Build check
         run: pnpm build
         env:
           NEXT_PUBLIC_API_URL: ${{ secrets.NEXT_PUBLIC_API_URL }}
@@ -56,26 +56,26 @@ jobs:
   # BACKEND TESTS
   # =============================================================================
   backend-tests:
-    name: 🧪 Backend Tests
+    name: Backend Tests
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🐍 Setup Python
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
 
-      - name: 📦 Install backend dependencies
+      - name: Install backend dependencies
         run: |
           cd packages/backend
           python -m pip install --upgrade pip
           pip install -r requirements.txt || echo "No requirements.txt found"
           pip install fastapi uvicorn pytest httpx
 
-      - name: 🧪 Run backend tests
+      - name: Run backend tests
         run: |
           cd packages/backend
           if [ -f "test_*.py" ] || [ -d "tests/" ]; then
@@ -87,9 +87,9 @@ jobs:
             sys.path.append('.')
             try:
                 from app.main import app
-                print('✅ Backend server imports successfully')
+                print('Backend server imports successfully')
             except Exception as e:
-                print(f'❌ Backend import failed: {e}')
+                print(f'Backend import failed: {e}')
                 sys.exit(1)
             "
           fi
@@ -98,7 +98,7 @@ jobs:
   # DEPLOY TO VERCEL
   # =============================================================================
   deploy:
-    name: 🚀 Deploy to Vercel
+    name: Deploy to Vercel
     runs-on: ubuntu-latest
     needs: [quality-checks, backend-tests]
     defaults:
@@ -106,55 +106,55 @@ jobs:
         working-directory: ./packages/frontend
     
     steps:
-      - name: 📥 Checkout code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup pnpm
+      - name: Setup pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
 
-      - name: 🔧 Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'pnpm'
           cache-dependency-path: './packages/frontend/pnpm-lock.yaml'
 
-      - name: 📦 Install Vercel CLI
+      - name: Install Vercel CLI
         run: pnpm add -g vercel@latest
 
-      - name: 🔗 Pull Vercel Environment Information
+      - name: Pull Vercel Environment Information
         run: vercel pull --yes --environment=${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }} --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: 🏗️ Build Project Artifacts
+      - name: Build Project Artifacts
         run: vercel build ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }}
 
-      - name: 🚀 Deploy Project Artifacts to Vercel
+      - name: Deploy Project Artifacts to Vercel
         id: deploy
         run: |
           url=$(vercel deploy --prebuilt ${{ github.ref == 'refs/heads/main' && '--prod' || '' }} --token=${{ secrets.VERCEL_TOKEN }})
           echo "deployment_url=$url" >> $GITHUB_OUTPUT
-          echo "🚀 Deployed to: $url"
+          echo "Deployed to: $url"
 
-      - name: 💬 Comment PR with deployment URL
+      - name: Comment PR with deployment URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
             const deploymentUrl = '${{ steps.deploy.outputs.deployment_url }}';
             const comment = `
-            ## 🚀 Deployment Preview Ready!
+            ## Deployment Preview Ready!
             
             **Preview URL:** ${deploymentUrl}
             
-            ### 📋 Deployment Details
+            ### Deployment Details
             - **Environment:** Preview
             - **Branch:** \`${{ github.head_ref }}\`
             - **Commit:** \`${{ github.sha }}\`
             - **Workflow:** [View Details](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})
             
-            ### 🧪 Testing Checklist
+            ### Testing Checklist
             - [ ] Authentication (Sign in/Sign up)
             - [ ] UI/UX components render correctly
             - [ ] API connections work
@@ -176,13 +176,13 @@ jobs:
   # HEALTH CHECK
   # =============================================================================
   health-check:
-    name: 🏥 Health Check
+    name: Health Check
     runs-on: ubuntu-latest
     needs: [deploy]
     if: github.ref == 'refs/heads/main'
     
     steps:
-      - name: 🏥 Check deployment health
+      - name: Check deployment health
         run: |
           echo "Waiting for deployment to be ready..."
           sleep 30
@@ -192,13 +192,13 @@ jobs:
           
           # Basic health check
           if curl -f -s "$PROD_URL" > /dev/null; then
-            echo "✅ Production deployment is healthy"
+            echo "Production deployment is healthy"
           else
-            echo "❌ Production deployment health check failed"
+            echo "Production deployment health check failed"
             exit 1
           fi
 
-      - name: 📊 Performance audit (optional)
+      - name: Performance audit (optional)
         run: |
           echo "Performance audit would go here"
           # You can add lighthouse CI or other performance tools here
@@ -207,18 +207,18 @@ jobs:
   # NOTIFICATIONS
   # =============================================================================
   notify:
-    name: 📢 Notify Team
+    name:  Notify Team
     runs-on: ubuntu-latest
     needs: [deploy]
     if: always()
     
     steps:
-      - name: 📢 Deployment notification
+      - name: Deployment notification
         run: |
           if [ "${{ needs.deploy.result }}" == "success" ]; then
-            echo "✅ Schlep-engine deployment successful!"
+            echo "Schlep-engine deployment successful!"
             # Add Slack/Discord/Email notification here if needed
           else
-            echo "❌ Schlep-engine deployment failed!"
+            echo "Schlep-engine deployment failed!"
             # Add failure notification here if needed
           fi 
