@@ -10,8 +10,8 @@
     "dev:clean": "pnpm --parallel --filter \"@Schlep-engine/*\" -- \"pnpm run clean && pnpm run dev\"",
     "build": "pnpm --parallel --filter \"@Schlep-engine/*\" build",
     "build:clean": "pnpm --parallel --filter \"@Schlep-engine/*\" -- \"pnpm run clean && pnpm run build\"",
-    "dev": "concurrently -n frontend,backend,admin -c magenta,cyan,green \"pnpm --filter @Schlep-engine/web dev\" \"cd packages/backend && pip install -r requirements.txt && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\" \"pnpm --filter @Schlep-engine/admin dev -p 3002\"",
-    "start": "concurrently -n frontend,backend,admin -c magenta,cyan,green \"pnpm --filter @Schlep-engine/web start\" \"cd packages/backend && uvicorn app.main:app --port 8000 --host 0.0.0.0\" \"pnpm --filter @Schlep-engine/admin start -p 3002\""
+    "dev": "concurrently -n backend,admin -c cyan,green \"cd packages/backend && pip install -r requirements.txt && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\" \"pnpm --filter @Schlep-engine/admin dev -p 3002\"",
+    "start": "concurrently -n backend,admin -c cyan,green \"cd packages/backend && uvicorn app.main:app --port 8000 --host 0.0.0.0\" \"pnpm --filter @Schlep-engine/admin start -p 3002\""
   },
   "devDependencies": {
     "concurrently": "^8.2.0"

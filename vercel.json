@@ -4,9 +4,6 @@
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "functions": {
-    "packages/frontend/src/app/api/**/*.ts": {
-      "runtime": "nodejs18.x"
-    },
     "packages/admin/src/app/api/**/*.ts": {
       "runtime": "nodejs18.x"
     }
