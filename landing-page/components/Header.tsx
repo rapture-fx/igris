@@ -1,110 +1,87 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 
 export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
-
-  const navItems = [
-    { name: 'Features', href: '#features' },
-    { name: 'How it Works', href: '#how-it-works' },
-    { name: 'Pricing', href: '#pricing' },
-    { name: 'Docs', href: '/docs' },
-  ]
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-      isScrolled ? 'glass-effect shadow-lg' : 'bg-transparent'
-    }`}>
-      <div className="max-w-7xl mx-auto container-padding">
-        <div className="flex items-center justify-between h-16">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-soft-blue to-blue-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">S</span>
-                </div>
-                <span className="ml-2 text-xl font-semibold text-gray-900">Schlep Engine</span>
-              </div>
-            </div>
+            <Link href="/" className="flex items-center space-x-2">
+              <img 
+                src="/assets/logo.svg" 
+                alt="Schlep Engine" 
+                className="h-8 w-8"
+              />
+              <span className="text-xl font-semibold text-gray-900">Schlep Engine</span>
+            </Link>
           </div>
 
-          <nav className="hidden md:block">
-            <div className="ml-10 flex items-baseline space-x-8">
-              {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-600 hover:text-soft-blue px-3 py-2 text-sm font-medium transition-colors duration-200"
-                >
-                  {item.name}
-                </a>
-              ))}
-            </div>
+          <nav className="hidden md:flex items-center space-x-8">
+            <Link 
+              href="/docs" 
+              className="text-gray-600 hover:text-[#1A5799] transition-colors duration-200"
+            >
+              Docs
+            </Link>
+            <Link 
+              href="/pricing" 
+              className="text-gray-600 hover:text-[#1A5799] transition-colors duration-200"
+            >
+              Pricing
+            </Link>
+            <Link
+              href="#get-started"
+              className="bg-[#1A5799] text-white px-6 py-2 rounded-lg hover:bg-[#1e3a8a] transition-colors duration-200 font-medium"
+            >
+              Try it for Free
+            </Link>
           </nav>
-
-          <div className="hidden md:flex items-center space-x-4">
-            <a
-              href="#"
-              className="text-gray-600 hover:text-soft-blue px-3 py-2 text-sm font-medium transition-colors duration-200"
-            >
-              Sign In
-            </a>
-            <a
-              href="#"
-              className="button-primary text-sm"
-            >
-              Get Started
-            </a>
-          </div>
 
           <div className="md:hidden">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="text-gray-600 hover:text-soft-blue p-2"
+              type="button"
+              className="text-gray-600 hover:text-gray-900"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              {mobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
             </button>
           </div>
         </div>
 
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-white rounded-lg shadow-lg mt-2">
-              {navItems.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-gray-600 hover:text-soft-blue block px-3 py-2 text-base font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
-              ))}
-              <div className="border-t border-gray-200 pt-4">
-                <a
-                  href="#"
-                  className="text-gray-600 hover:text-soft-blue block px-3 py-2 text-base font-medium"
-                >
-                  Sign In
-                </a>
-                <a
-                  href="#"
-                  className="button-primary text-sm ml-3 mt-2 inline-block"
-                >
-                  Get Started
-                </a>
-              </div>
+        {mobileMenuOpen && (
+          <div className="md:hidden absolute top-16 left-0 right-0 bg-white/95 backdrop-blur-lg border-b border-gray-100 px-4 py-4">
+            <div className="flex flex-col space-y-4">
+              <Link 
+                href="/docs" 
+                className="text-gray-600 hover:text-[#1A5799] transition-colors duration-200"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Docs
+              </Link>
+              <Link 
+                href="/pricing" 
+                className="text-gray-600 hover:text-[#1A5799] transition-colors duration-200"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+              <Link
+                href="#get-started"
+                className="bg-[#1A5799] text-white px-6 py-2 rounded-lg hover:bg-[#1e3a8a] transition-colors duration-200 font-medium text-center"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Try it for Free
+              </Link>
             </div>
           </div>
         )}
