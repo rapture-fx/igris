@@ -327,90 +327,10 @@ class UsageMetric(Base):
 
 # ==================== SECURITY MODELS ====================
 
-class EncryptedField(Base):
-    __tablename__ = "encrypted_fields"
+# EncryptedField is now defined in security_models.py to avoid duplication
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    field_name = Column(String, nullable=False)
-    encrypted_value = Column(Text, nullable=False)
-    encryption_key_id = Column(String)
-    
-    # Foreign keys for different entities
-    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
-    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
-    # Relationships
-    user = relationship("User", foreign_keys=[users_id], back_populates="encrypted_fields")
-    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="encrypted_fields")
-    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="encrypted_fields")
+# AuditTrail is now defined in security_models.py to avoid duplication
 
-class AuditTrail(Base):
-    __tablename__ = "audit_trail"
+# DataClassificationRecord is now defined in security_models.py to avoid duplication
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    event_type = Column(String, nullable=False)
-    event_data = Column(JSON, default={})
-    ip_address = Column(String)
-    user_agent = Column(String)
-    
-    # Foreign keys for different entities
-    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
-    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Relationships
-    user = relationship("User", foreign_keys=[users_id], back_populates="audit_trail")
-    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="audit_trail")
-    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="audit_trail")
-
-class DataClassificationRecord(Base):
-    __tablename__ = "data_classification_records"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    classification_level = Column(String, nullable=False)  # public, internal, confidential, restricted
-    classification_reason = Column(String)
-    data_type = Column(String)  # pii, phi, financial, etc.
-    detection_method = Column(String)  # automated, manual, ai
-    
-    # Foreign keys for different entities
-    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
-    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Relationships
-    user = relationship("User", foreign_keys=[users_id], back_populates="data_classification")
-    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="data_classification")
-    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="data_classification")
-
-class ComplianceEvent(Base):
-    __tablename__ = "compliance_events"
-
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    compliance_standard = Column(String, nullable=False)  # gdpr, hipaa, sox, etc.
-    event_type = Column(String, nullable=False)  # data_access, data_export, consent_given, etc.
-    event_details = Column(JSON, default={})
-    compliance_status = Column(String)  # compliant, non_compliant, requires_review
-    
-    # Foreign keys for different entities
-    users_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
-    organizations_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
-    data_investigations_id = Column(UUID(as_uuid=True), ForeignKey("data_investigations.id"))
-    
-    # Timestamps
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    
-    # Relationships
-    user = relationship("User", foreign_keys=[users_id], back_populates="compliance_events")
-    organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="compliance_events")
-    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="compliance_events") 
+# ComplianceEvent is now defined in security_models.py to avoid duplication 

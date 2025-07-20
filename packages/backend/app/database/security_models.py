@@ -45,6 +45,7 @@ class EncryptedField(Base):
     without modifying the original table structures.
     """
     __tablename__ = "encrypted_fields"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
@@ -105,6 +106,7 @@ class AuditTrail(Base):
     using AuditTrailMixin without modifying original tables.
     """
     __tablename__ = "audit_trail"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
@@ -118,7 +120,7 @@ class AuditTrail(Base):
     
     # Change tracking
     changes = Column(JSON, default=lambda: {})  # Before/after values
-    metadata = Column(JSON, default=lambda: {})  # Additional context
+    extra_metadata = Column(JSON, default=lambda: {})  # Additional context
     
     # Request context
     ip_address = Column(String)
@@ -168,6 +170,7 @@ class DataClassificationRecord(Base):
     original table structures.
     """
     __tablename__ = "data_classification_records"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
@@ -185,7 +188,7 @@ class DataClassificationRecord(Base):
     handling_instructions = Column(Text)
     
     # Additional metadata
-    metadata = Column(JSON, default=lambda: {})
+    extra_metadata = Column(JSON, default=lambda: {})
     tags = Column(JSON, default=lambda: [])  # Classification tags
     
     # Review and approval
@@ -233,6 +236,7 @@ class ComplianceEvent(Base):
     without modifying original table structures.
     """
     __tablename__ = "compliance_events"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
@@ -246,7 +250,7 @@ class ComplianceEvent(Base):
     description = Column(Text, nullable=False)
     
     # Event metadata
-    metadata = Column(JSON, default=lambda: {})
+    extra_metadata = Column(JSON, default=lambda: {})
     severity = Column(String, default="medium")  # low, medium, high, critical
     status = Column(String, default="open")  # open, investigating, resolved, closed
     
@@ -299,6 +303,7 @@ class SecurityPolicy(Base):
     models and records without modifying original tables.
     """
     __tablename__ = "security_policies"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
@@ -364,6 +369,7 @@ class SecurityPolicyAssignment(Base):
     without modifying original table structures.
     """
     __tablename__ = "security_policy_assignments"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
@@ -418,6 +424,7 @@ class DataRetentionSchedule(Base):
     retention policies without modifying original tables.
     """
     __tablename__ = "data_retention_schedules"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     

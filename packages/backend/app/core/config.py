@@ -48,7 +48,7 @@ class Settings(BaseSettings):
     CDN_URL: Optional[str] = Field(default=None, env="CDN_URL")
     
     # Security
-    SECRET_KEY: str = Field(default="your-secret-key-here", env="SECRET_KEY")
+    SECRET_KEY: str = Field(..., env="SECRET_KEY")
     ALGORITHM: str = Field(default="HS256", env="ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     
     # CORS
     ALLOWED_ORIGINS: list = Field(default=["http://localhost:3000"], env="ALLOWED_ORIGINS")
-    ALLOWED_HOSTS: list = Field(default=["*"], env="ALLOWED_HOSTS")
+    ALLOWED_HOSTS: list = Field(default=["localhost", "127.0.0.1"], env="ALLOWED_HOSTS")
     
     # Rate Limiting
     RATE_LIMIT_REQUESTS: int = Field(default=100, env="RATE_LIMIT_REQUESTS")

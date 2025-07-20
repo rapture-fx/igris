@@ -16,6 +16,8 @@ from prometheus_client import (
     generate_latest, CONTENT_TYPE_LATEST, CollectorRegistry
 )
 
+from app.core.config import settings
+
 logger = logging.getLogger(__name__)
 
 class MetricType(str, Enum):

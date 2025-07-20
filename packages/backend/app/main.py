@@ -27,8 +27,8 @@ from app.middleware.monitoring_middleware import create_monitoring_middleware
 from app.middleware.rate_limiting_middleware import RateLimitingMiddleware
 from app.middleware.audit_middleware import AuditMiddleware
 from app.middleware.encryption_middleware import EncryptionMiddleware
-from app.middleware.request_validation_middleware import RequestValidationMiddleware
-from app.middleware.csrf_middleware import CSRFMiddleware
+from app.middleware.request_validation_sanitization import RequestValidationSanitizationMiddleware
+from app.middleware.csrf_protection import CSRFProtectionMiddleware
 from app.database.connection import engine, Base
 from app.api.v1 import (
     auth, users, data_processing, ml_pipeline, storage, 
@@ -136,8 +136,8 @@ app = create_monitoring_middleware(app)
 app.add_middleware(RateLimitingMiddleware)
 app.add_middleware(AuditMiddleware)
 app.add_middleware(EncryptionMiddleware)
-app.add_middleware(RequestValidationMiddleware)
-app.add_middleware(CSRFMiddleware)
+app.add_middleware(RequestValidationSanitizationMiddleware)
+app.add_middleware(CSRFProtectionMiddleware)
 
 # Global exception handlers
 @app.exception_handler(RequestValidationError)
