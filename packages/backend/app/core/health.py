@@ -20,8 +20,9 @@ import logging
 
 from app.database.connection import get_db
 from app.core.config import settings
-from app.services.storage_service import StorageService
-from app.services.celery_service import CeleryService
+# TODO: Re-enable when services are implemented
+# from app.services.storage_service import StorageService
+# from app.services.celery_service import CeleryService
 
 logger = logging.getLogger(__name__)
 

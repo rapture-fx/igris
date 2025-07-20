@@ -17,8 +17,9 @@ from celery.utils.log import get_task_logger
 from app.core.celery_app import celery_app
 from app.core.unified_config import settings
 from app.database.connection import get_sync_db
-from app.services.data_processing_service import DataProcessingService
-from app.services.ai_processing_service import AIProcessingService
+# TODO: Re-enable when services are implemented
+# from app.services.data_processing_service import DataProcessingService
+# from app.services.ai_processing_service import AIProcessingService
 
 logger = get_task_logger(__name__)
 

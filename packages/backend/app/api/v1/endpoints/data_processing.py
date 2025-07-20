@@ -8,7 +8,8 @@ from app.database.connection import get_db
 from app.crud import crud_data_processing
 from app.schemas import data_processing as schemas_dp # Aliased
 from app.database.models import User # Using the SQLAlchemy User model
-from app.tasks.data_processing_tasks import schema_detection_task # Import the Celery task
+# TODO: Re-enable when task is implemented
+# from app.tasks.data_processing_tasks import schema_detection_task # Import the Celery task
 from app.core.error_decorators import handle_database_errors, handle_file_processing_errors
 
 # Placeholder for current_user dependency - replace with actual auth

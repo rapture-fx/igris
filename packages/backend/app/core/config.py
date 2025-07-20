@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: Optional[str] = Field(default=None, env="REDIS_PASSWORD")
     REDIS_DB: int = Field(default=0, env="REDIS_DB")
     REDIS_URL: Optional[str] = Field(default=None, env="REDIS_URL")
+    USE_REDIS_CACHE: bool = Field(default=False, env="USE_REDIS_CACHE")
     
     # Storage
     STORAGE_PROVIDER: str = Field(default="local", env="STORAGE_PROVIDER")

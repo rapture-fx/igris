@@ -95,7 +95,7 @@ class UnifiedAuthService:
     def __init__(self):
         self.max_failed_attempts = 5
         self.lockout_duration_seconds = 900  # 15 minutes
-        self.token_expire_minutes = settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
+        self.token_expire_minutes = settings.ACCESS_TOKEN_EXPIRE_MINUTES
         self.refresh_token_expire_days = 7
     
     # Password Management
@@ -266,7 +266,7 @@ class UnifiedAuthService:
         user = await self.get_user_by_email(db, email)
         
         if user and self.verify_password(password, user.hashed_password):
-        if not user.is_active:
+            if not user.is_active:
                 return AuthResult(success=False, status=AuthStatus.ACCOUNT_DISABLED, error_message="Account is disabled")
         
             # Success - clear any failed attempts
