@@ -41,7 +41,7 @@ export default function Benefits() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Why Choose Schlep-Engine?
+            Why Choose Schlep-engine?
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
             Built for data teams who need reliable, scalable data preparation without the hassle
@@ -56,8 +56,8 @@ export default function Benefits() {
                 key={index}
                 className="bg-white rounded-lg p-8 shadow-sm border border-gray-100 hover:shadow-md transition-shadow duration-200"
               >
-                <div className="w-12 h-12 bg-[#1A5799] bg-opacity-10 rounded-lg flex items-center justify-center mb-6">
-                  <Icon className="w-6 h-6 text-[#1A5799]" />
+                <div className="w-12 h-12 bg-[#468BE6] bg-opacity-10 rounded-lg flex items-center justify-center mb-6">
+                  <Icon className="w-6 h-6 text-[#468BE6]" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   {benefit.title}

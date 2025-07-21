@@ -42,11 +42,11 @@ export default function Footer() {
             <div className="lg:col-span-2">
               <div className="flex items-center mb-6">
                 <img 
-                  src="/assets/logo.svg" 
-                  alt="Schlep Engine" 
-                  className="h-8 w-8 mr-3"
+                  src="/Schlep Engine 14x11cm (2).svg" 
+                  alt="Schlep-engine" 
+                  className="h-10 w-auto mr-3"
                 />
-                <span className="text-xl font-bold">Schlep Engine</span>
+                <span className="text-xl font-bold">Schlep-engine</span>
               </div>
               <p className="text-gray-400 mb-8 leading-relaxed">
                 Transform messy data into ML-ready formats with AI-powered 
@@ -55,28 +55,28 @@ export default function Footer() {
               <div className="flex space-x-4">
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#1A5799] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="GitHub"
                 >
                   <Github className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#1A5799] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="Twitter"
                 >
                   <Twitter className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#1A5799] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#1A5799] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="Email"
                 >
                   <Mail className="w-5 h-5" />
@@ -112,10 +112,10 @@ export default function Footer() {
           <div className="mt-12 pt-8 border-t border-gray-800">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="text-gray-400 mb-4 md:mb-0 text-sm">
-                <p>&copy; 2024 Schlep Engine. All rights reserved.</p>
+                <p>&copy; 2024 Schlep-engine. All rights reserved.</p>
               </div>
               <div className="text-gray-400 text-sm">
-                <p>hello@schlepengine.com</p>
+                <p>hello@schlep-engine.com</p>
               </div>
             </div>
           </div>

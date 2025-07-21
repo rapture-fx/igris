@@ -9,7 +9,7 @@ export default function Testimonials() {
       role: "Data Scientist",
       company: "TechCorp",
       avatar: "SC",
-      content: "Schlep Engine reduced our data prep time from days to hours. The AI automatically caught issues we would have missed.",
+      content: "Schlep-engine reduced our data prep time from days to hours. The AI automatically caught issues we would have missed.",
       rating: 5
     },
     {
@@ -25,7 +25,7 @@ export default function Testimonials() {
       role: "CTO",
       company: "BioTech Labs", 
       avatar: "EW",
-      content: "As a CTO, data quality is crucial for our enterprise. Schlep Engine's security compliance and intelligent profiling made it an easy choice.",
+      content: "As a CTO, data quality is crucial for our enterprise. Schlep-engine's security compliance and intelligent profiling made it an easy choice.",
       rating: 5
     }
   ]
@@ -38,7 +38,7 @@ export default function Testimonials() {
             Loved by Data Teams Worldwide
           </h2>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Join thousands of data scientists, ML engineers, and researchers who trust Schlep Engine
+            Join thousands of data scientists, ML engineers, and researchers who trust Schlep-engine
           </p>
         </div>
 
@@ -49,7 +49,7 @@ export default function Testimonials() {
               className="bg-gray-50 rounded-lg p-8 border border-gray-100"
             >
               <div className="flex items-center mb-6">
-                <div className="w-12 h-12 bg-[#1A5799] rounded-full flex items-center justify-center mr-4">
+                <div className="w-12 h-12 bg-[#468BE6] rounded-full flex items-center justify-center mr-4">
                   <span className="text-white font-semibold text-sm">
                     {testimonial.avatar}
                   </span>

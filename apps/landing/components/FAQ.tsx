@@ -45,7 +45,7 @@ export default function FAQ() {
             Frequently Asked Questions
           </h2>
           <p className="text-xl text-gray-600">
-            Everything you need to know about Schlep Engine
+            Everything you need to know about Schlep-engine
           </p>
         </div>
 
@@ -80,7 +80,7 @@ export default function FAQ() {
         </div>
 
         <div className="mt-16 text-center">
-          <div className="bg-[#1A5799] bg-opacity-5 rounded-lg p-8">
+          <div className="bg-[#468BE6] bg-opacity-5 rounded-lg p-8">
             <h3 className="text-2xl font-bold text-gray-900 mb-4">
               Ready to Stop Wrestling with Data?
             </h3>
@@ -90,7 +90,7 @@ export default function FAQ() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="#get-started"
-                className="bg-[#1A5799] text-white px-8 py-3 rounded-lg hover:bg-[#1e3a8a] transition-colors duration-200 font-medium"
+                className="bg-[#468BE6] text-white px-8 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors duration-200 font-medium"
               >
                 Get Started for Free
               </a>

@@ -3,6 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --primary-blue: #468BE6;
+    --primary-blue-light: rgba(70, 139, 230, 0.1);
+    --primary-blue-dark: #3a7bd5;
+    --primary-blue-bg: rgba(70, 139, 230, 0.05);
+  }
+
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
@@ -27,7 +34,7 @@
   }
   
   .gradient-text {
-    background: linear-gradient(135deg, #007AFF 0%, #0056CC 100%);
+    background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -42,7 +49,12 @@
   }
   
   .button-primary {
-    @apply bg-soft-blue hover:bg-blue-600 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+    background: var(--primary-blue);
+    @apply hover:bg-blue-600 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
+  }
+  
+  .button-primary:hover {
+    background: var(--primary-blue-dark);
   }
   
   .button-secondary {
@@ -97,10 +109,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #007AFF;
+  background: var(--primary-blue);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #0056CC;
+  background: var(--primary-blue-dark);
 }

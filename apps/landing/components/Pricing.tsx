@@ -9,7 +9,7 @@ export default function Pricing() {
       name: "Starter",
       price: "$0",
       period: "/month",
-      description: "Perfect for trying out Schlep Engine",
+      description: "Perfect for trying out Schlep-engine",
       features: [
         "100 API calls/month",
         "Basic data cleaning",
@@ -72,13 +72,13 @@ export default function Pricing() {
               key={index}
               className={`relative bg-white rounded-lg p-8 shadow-sm border ${
                 plan.popular 
-                  ? 'border-[#1A5799] ring-2 ring-[#1A5799] ring-opacity-20 transform scale-105' 
+                  ? 'border-[#468BE6] ring-2 ring-[#468BE6] ring-opacity-20 transform scale-105' 
                   : 'border-gray-200'
               }`}
             >
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-[#1A5799] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center">
+                  <div className="bg-[#468BE6] text-white px-4 py-2 rounded-full text-sm font-medium flex items-center">
                     <Star className="w-4 h-4 mr-1" />
                     Popular
                   </div>
@@ -117,7 +117,7 @@ export default function Pricing() {
                 href={plan.ctaLink}
                 className={`w-full text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 inline-block ${
                   plan.popular
-                    ? 'bg-[#1A5799] hover:bg-[#1e3a8a] text-white'
+                    ? 'bg-[#468BE6] hover:bg-[#3a7bd5] text-white'
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
                 }`}
               >

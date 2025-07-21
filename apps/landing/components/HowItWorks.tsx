@@ -39,8 +39,8 @@ export default function HowItWorks() {
               const Icon = step.icon
               return (
                 <div key={index} className="flex-1 text-center relative">
-                  <div className="w-20 h-20 bg-[#1A5799] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <Icon className="w-10 h-10 text-[#1A5799]" />
+                  <div className="w-20 h-20 bg-[#468BE6] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <Icon className="w-10 h-10 text-[#468BE6]" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">
                     {step.title}
