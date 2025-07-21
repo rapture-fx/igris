@@ -65,7 +65,7 @@ const navigation = [
     children: [
       { name: 'Jupyter Notebooks', href: '/integrations/jupyter' },
       { name: 'Google Colab', href: '/integrations/colab' },
-      { name: 'AWS SageMaker', href: '/integrations/sagemaker' },
+      { name: 'AWS SageMaker', href: '/integrations/aws-sagemaker' },
       { name: 'Snowflake', href: '/integrations/snowflake' },
       { name: 'BigQuery', href: '/integrations/bigquery' },
       { name: 'Apache Airflow', href: '/integrations/airflow' },
@@ -129,21 +129,10 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:flex md:flex-shrink-0">
-      <div className="flex flex-col w-80">
-        <div className="flex flex-col h-0 flex-1 bg-white border-r border-gray-200">
-          <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-            <div className="flex items-center flex-shrink-0 px-4">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-schlep-blue to-schlep-purple rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">S</span>
-                </div>
-                <div className="ml-3">
-                  <h1 className="text-lg font-semibold text-gray-900">Schlep Engine</h1>
-                  <p className="text-sm text-gray-500">API Documentation</p>
-                </div>
-              </div>
-            </div>
-            <nav className="mt-8 flex-1 px-2 space-y-1">
+      <div className="flex flex-col w-72">
+        <div className="flex flex-col h-full bg-white">
+          <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
+            <nav className="flex-1 px-4 space-y-2">
               {navigation.map((item) => (
                 <div key={item.name}>
                   <div 
@@ -164,13 +153,13 @@ export function Sidebar() {
                     )}
                   </div>
                   {item.children && isExpanded(item.name) && (
-                    <div className="mt-1 space-y-1">
+                    <div className="mt-1 space-y-1 ml-4">
                       {item.children.map((child) => (
                         <Link
                           key={child.name}
                           href={child.href}
                           className={clsx(
-                            'sidebar-link ml-8',
+                            'sidebar-link',
                             isActive(child.href) && 'active'
                           )}
                         >

@@ -1,17 +1,73 @@
 'use client'
 
 import { MagnifyingGlassIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+
+// Define searchable content for documentation
+const searchData = [
+  { title: 'Introduction', url: '/introduction', content: 'Getting started with Schlep Engine' },
+  { title: 'API Reference', url: '/api-reference', content: 'Complete API documentation' },
+  { title: 'SDK Overview', url: '/sdks', content: 'Python JavaScript TypeScript SDKs' },
+  { title: 'Jupyter Integration', url: '/integrations/jupyter', content: 'Jupyter notebooks interactive data processing analysis' },
+  { title: 'AWS SageMaker Integration', url: '/integrations/aws-sagemaker', content: 'SageMaker machine learning deployment training' },
+  { title: 'ML Model Training', url: '/use-cases/ml-training', content: 'Machine learning training pipeline feature engineering' },
+  { title: 'E-commerce Analytics', url: '/use-cases/ecommerce', content: 'Customer segmentation inventory optimization recommendations' },
+  { title: 'Data Quality Monitoring', url: '/use-cases/quality-monitoring', content: 'Data validation quality checks monitoring' },
+  { title: 'Real-time Processing', url: '/use-cases/realtime', content: 'Real-time streaming data processing analytics' },
+]
 
 export function Header() {
   const [darkMode, setDarkMode] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [showResults, setShowResults] = useState(false)
+  const searchRef = useRef(null)
+
+  // Handle search functionality
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([])
+      setShowResults(false)
+      return
+    }
+
+    const query = searchQuery.toLowerCase()
+    const results = searchData.filter(item => 
+      item.title.toLowerCase().includes(query) || 
+      item.content.toLowerCase().includes(query)
+    ).slice(0, 5) // Limit to 5 results
+
+    setSearchResults(results)
+    setShowResults(true)
+  }, [searchQuery])
+
+  // Handle click outside to close search results
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setShowResults(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header className="bg-white shadow-sm border-b border-gray-200 w-full">
+      <div className="w-full px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <div className="md:hidden">
+            {/* Company Logo */}
+            <a href="/" className="flex items-center">
+              <img 
+                src="/schlep-logo.svg" 
+                alt="Schlep Engine" 
+                className="h-10 w-auto"
+              />
+            </a>
+            
+            <div className="md:hidden ml-4">
               <button className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
                 <span className="sr-only">Open menu</span>
                 <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -22,15 +78,53 @@ export function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
-            <div className="relative">
+            {/* Home Button - moved to right side */}
+            <a 
+              href="/" 
+              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              Home
+            </a>
+            
+            <div className="relative" ref={searchRef}>
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" />
               </div>
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search documentation..."
                 className="w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-schlep-blue focus:border-transparent"
+                onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
               />
+              
+              {showResults && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-80 overflow-y-auto">
+                  {searchResults.map((result, index) => (
+                    <a
+                      key={index}
+                      href={result.url}
+                      className="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
+                      onClick={() => {
+                        setShowResults(false)
+                        setSearchQuery('')
+                      }}
+                    >
+                      <div className="font-medium text-gray-900 text-sm">{result.title}</div>
+                      <div className="text-gray-500 text-xs mt-1 line-clamp-2">{result.content}</div>
+                    </a>
+                  ))}
+                </div>
+              )}
+              
+              {showResults && searchResults.length === 0 && searchQuery.length >= 2 && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  <div className="px-4 py-3 text-gray-500 text-sm">
+                    No results found for "{searchQuery}"
+                  </div>
+                </div>
+              )}
             </div>
             
             <button 
