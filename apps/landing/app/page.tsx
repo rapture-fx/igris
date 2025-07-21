@@ -1,5 +1,8 @@
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
+import NoCode from '@/components/NoCode'
+import Developer from '@/components/Developer'
+import Integrations from '@/components/Integrations'
 import Benefits from '@/components/Benefits'
 import HowItWorks from '@/components/HowItWorks'
 import Testimonials from '@/components/Testimonials'
@@ -12,6 +15,9 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <NoCode />
+        <Developer />
+        <Integrations />
         <Benefits />
         <HowItWorks />
         <Testimonials />
