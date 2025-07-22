@@ -129,9 +129,9 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:flex md:flex-shrink-0">
-      <div className="flex flex-col w-72">
+      <div className="flex flex-col w-60 h-full">
         <div className="flex flex-col h-full bg-white">
-          <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
+          <div className="flex-1 flex flex-col pt-20 pb-4 overflow-y-auto">
             <nav className="flex-1 px-6 space-y-6">
               {navigation.map((item) => (
                 <div key={item.name} className="mb-2">

@@ -2,6 +2,62 @@ import Link from 'next/link'
 import { ArrowRightIcon, ChartBarIcon, CpuChipIcon, ShieldCheckIcon, RocketLaunchIcon } from '@heroicons/react/24/outline'
 
 export default function Home() {
+  const formatCode = (code: string, language: string) => {
+    if (language === 'python') {
+      return code
+        .replace(/(from|import|def|class|if|else|elif|try|except|finally|with|as|return|yield|break|continue|pass|global|nonlocal|assert|del|lambda|and|or|not|in|is)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
+        .replace(/(True|False|None)\b/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
+        .replace(/(['"])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
+        .replace(/(#.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
+        .replace(/(\d+)/g, '<span style="color: #dc2626;">$1</span>')
+    } else if (language === 'javascript' || language === 'js') {
+      return code
+        .replace(/(const|let|var|function|class|if|else|for|while|do|switch|case|default|try|catch|finally|throw|return|break|continue|new|this|super|extends|import|export|from|async|await)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
+        .replace(/(true|false|null|undefined)\b/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
+        .replace(/(['"`])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
+        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
+        .replace(/(\d+)/g, '<span style="color: #dc2626;">$1</span>')
+    }
+    return code
+  }
+
+  const pythonCode = `# Install the SDK
+pip install schlep-engine
+
+# Import and authenticate
+from schlep_engine import SchlepClient
+
+client = SchlepClient(api_key="your_api_key")
+
+# Upload and process your data
+job = client.upload_csv("messy_data.csv")
+result = client.process(job.id, 
+    auto_clean=True,
+    ml_ready=True
+)
+
+# Export to your ML framework
+client.export_tensorflow(result.id)`
+
+  const jsCode = `// Install the SDK
+npm install @schlep-engine/js-sdk
+
+// Import and authenticate
+import { SchlepClient } from '@schlep-engine/js-sdk';
+
+const client = new SchlepClient({
+  apiKey: 'your_api_key'
+});
+
+// Upload and process your data
+const job = await client.uploadCSV('messy_data.csv');
+const result = await client.process(job.id, {
+  autoClean: true,
+  mlReady: true
+});
+
+// Download processed data
+const processedData = await client.download(result.id);`
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -111,52 +167,26 @@ export default function Home() {
           <div className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Python SDK</h3>
-              <div className="bg-gray-900 rounded-lg p-4 text-sm overflow-x-auto">
-                <pre className="text-gray-100">
-{`# Install the SDK
-pip install schlep-engine
-
-# Import and authenticate
-from schlep_engine import SchlepClient
-
-client = SchlepClient(api_key="your_api_key")
-
-# Upload and process your data
-job = client.upload_csv("messy_data.csv")
-result = client.process(job.id, 
-    auto_clean=True,
-    ml_ready=True
-)
-
-# Export to your ML framework
-client.export_tensorflow(result.id)`}
+              <div className="relative my-6">
+                <div className="mb-2 text-gray-600 text-sm font-medium">Python SDK</div>
+                <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
+                  <code 
+                    style={{fontSize: '18px', lineHeight: '1.7'}}
+                    dangerouslySetInnerHTML={{__html: formatCode(pythonCode, 'python')}}
+                  />
                 </pre>
               </div>
             </div>
 
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">JavaScript SDK</h3>
-              <div className="bg-gray-900 rounded-lg p-4 text-sm overflow-x-auto">
-                <pre className="text-gray-100">
-{`// Install the SDK
-npm install @schlep-engine/js-sdk
-
-// Import and authenticate
-import { SchlepClient } from '@schlep-engine/js-sdk';
-
-const client = new SchlepClient({
-  apiKey: 'your_api_key'
-});
-
-// Upload and process your data
-const job = await client.uploadCSV('messy_data.csv');
-const result = await client.process(job.id, {
-  autoClean: true,
-  mlReady: true
-});
-
-// Download processed data
-const processedData = await client.download(result.id);`}
+              <div className="relative my-6">
+                <div className="mb-2 text-gray-600 text-sm font-medium">JavaScript SDK</div>
+                <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
+                  <code 
+                    style={{fontSize: '18px', lineHeight: '1.7'}}
+                    dangerouslySetInnerHTML={{__html: formatCode(jsCode, 'javascript')}}
+                  />
                 </pre>
               </div>
             </div>

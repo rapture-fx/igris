@@ -20,14 +20,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased bg-gray-50/30">
-        <div className="min-h-screen">
-          <div className="container mx-auto px-4 max-w-7xl">
+        <div className="min-h-screen flex flex-col">
+          <div className="sticky top-0 z-50">
             <Header />
           </div>
-          <div className="flex container mx-auto px-4 max-w-7xl">
-            <Sidebar />
+          <div className="flex flex-1 h-screen">
+            <div className="sticky top-[4.5rem] h-[calc(100vh-4.5rem)]">
+              <Sidebar />
+            </div>
             <main className="flex-1 overflow-y-auto">
-              <div className="max-w-4xl mx-auto py-4 px-6">
+              <div className="w-full pt-20 pb-8 px-8">
                 {children}
               </div>
             </main>

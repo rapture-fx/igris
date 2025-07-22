@@ -26,7 +26,7 @@ export default function Hero() {
           </h1>
 
           <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Transform messy data into ML-ready formats with AI-powered preparation
+            Eliminate time wasted on data cleaning. Schlep-engine automates data profiling, transformation, and labeling via API. Focus on building models with scalable, intelligent preprocessing for production pipelines.
           </p>
 
           <div className="flex justify-center mb-16">

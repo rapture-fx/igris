@@ -13,6 +13,31 @@ export default function QuickStart() {
     setTimeout(() => setCopiedCode(null), 2000)
   }
 
+  const formatCode = (code: string, language: string) => {
+    if (language === 'python') {
+      return code
+        .replace(/(from|import|def|class|if|else|elif|try|except|finally|with|as|return|yield|break|continue|pass|global|nonlocal|assert|del|lambda|and|or|not|in|is)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
+        .replace(/(True|False|None)\b/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
+        .replace(/(['"])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
+        .replace(/(#.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
+        .replace(/(\d+)/g, '<span style="color: #dc2626;">$1</span>')
+    } else if (language === 'javascript' || language === 'js') {
+      return code
+        .replace(/(const|let|var|function|class|if|else|for|while|do|switch|case|default|try|catch|finally|throw|return|break|continue|new|this|super|extends|import|export|from|async|await)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
+        .replace(/(true|false|null|undefined)\b/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
+        .replace(/(['"`])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
+        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
+        .replace(/(\d+)/g, '<span style="color: #dc2626;">$1</span>')
+    } else if (language === 'bash' || language === 'shell') {
+      return code
+        .replace(/(curl|npm|pip|git|cd|ls|mkdir|cp|mv|rm|chmod|chown|grep|find|sed|awk|sort|uniq|head|tail|cat|less|more)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
+        .replace(/(-[a-zA-Z]+|--[a-zA-Z-]+)/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
+        .replace(/(['"])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
+        .replace(/(#.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
+    }
+    return code
+  }
+
   const pythonInstall = `pip install schlep-engine`
   
   const pythonCode = `from schlep_engine import SchlepClient
@@ -98,7 +123,7 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
   -H "Authorization: Bearer your_api_key_here"`
 
   return (
-    <div className="max-w-4xl">
+    <div className="max-w-4xl mx-auto px-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Quick Start Guide</h1>
         <p className="text-xl text-gray-600 mb-6">
@@ -154,22 +179,20 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">Python SDK</h3>
             <div className="relative">
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-sm">Terminal</span>
-                  <button
-                    onClick={() => copyToClipboard(pythonInstall, 'python-install')}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {copiedCode === 'python-install' ? (
-                      <CheckCircleIcon className="h-4 w-4" />
-                    ) : (
-                      <ClipboardDocumentIcon className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <pre className="text-green-400 text-sm">
-                  <code>{pythonInstall}</code>
+              <div className="relative my-6">
+                <div className="mb-2 text-gray-600 text-sm font-medium">Terminal</div>
+                <button
+                  onClick={() => copyToClipboard(pythonInstall, 'python-install')}
+                  className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100"
+                >
+                  {copiedCode === 'python-install' ? (
+                    <CheckCircleIcon className="h-4 w-4" />
+                  ) : (
+                    <ClipboardDocumentIcon className="h-4 w-4" />
+                  )}
+                </button>
+                <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
+                  <code style={{color: '#7c3aed', fontSize: '18px', fontWeight: '600'}}>{pythonInstall}</code>
                 </pre>
               </div>
             </div>
@@ -179,22 +202,20 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-3">JavaScript SDK</h3>
             <div className="relative">
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-sm">Terminal</span>
-                  <button
-                    onClick={() => copyToClipboard('npm install @schlep-engine/js-sdk', 'js-install')}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {copiedCode === 'js-install' ? (
-                      <CheckCircleIcon className="h-4 w-4" />
-                    ) : (
-                      <ClipboardDocumentIcon className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <pre className="text-green-400 text-sm">
-                  <code>npm install @schlep-engine/js-sdk</code>
+              <div className="relative my-6">
+                <div className="mb-2 text-gray-600 text-sm font-medium">Terminal</div>
+                <button
+                  onClick={() => copyToClipboard('npm install @schlep-engine/js-sdk', 'js-install')}
+                  className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100"
+                >
+                  {copiedCode === 'js-install' ? (
+                    <CheckCircleIcon className="h-4 w-4" />
+                  ) : (
+                    <ClipboardDocumentIcon className="h-4 w-4" />
+                  )}
+                </button>
+                <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
+                  <code style={{color: '#7c3aed', fontSize: '18px', fontWeight: '600'}}>npm install @schlep-engine/js-sdk</code>
                 </pre>
               </div>
             </div>
@@ -217,25 +238,24 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
               <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">Python</span>
               Complete Example
             </h3>
-            <div className="relative">
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-sm">main.py</span>
-                  <button
-                    onClick={() => copyToClipboard(pythonCode, 'python-code')}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {copiedCode === 'python-code' ? (
-                      <CheckCircleIcon className="h-4 w-4" />
-                    ) : (
-                      <ClipboardDocumentIcon className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <pre className="text-sm">
-                  <code className="text-gray-100">{pythonCode}</code>
-                </pre>
-              </div>
+            <div className="relative my-6">
+              <div className="mb-2 text-gray-600 text-sm font-medium">main.py</div>
+              <button
+                onClick={() => copyToClipboard(pythonCode, 'python-code')}
+                className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 z-10"
+              >
+                {copiedCode === 'python-code' ? (
+                  <CheckCircleIcon className="h-4 w-4" />
+                ) : (
+                  <ClipboardDocumentIcon className="h-4 w-4" />
+                )}
+              </button>
+              <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
+                <code 
+                  style={{fontSize: '18px', lineHeight: '1.7'}}
+                  dangerouslySetInnerHTML={{__html: formatCode(pythonCode, 'python')}}
+                />
+              </pre>
             </div>
           </div>
 
@@ -245,25 +265,24 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
               <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">JavaScript</span>
               Complete Example
             </h3>
-            <div className="relative">
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-sm">index.js</span>
-                  <button
-                    onClick={() => copyToClipboard(jsCode, 'js-code')}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {copiedCode === 'js-code' ? (
-                      <CheckCircleIcon className="h-4 w-4" />
-                    ) : (
-                      <ClipboardDocumentIcon className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <pre className="text-sm">
-                  <code className="text-gray-100">{jsCode}</code>
-                </pre>
-              </div>
+            <div className="relative my-6">
+              <div className="mb-2 text-gray-600 text-sm font-medium">index.js</div>
+              <button
+                onClick={() => copyToClipboard(jsCode, 'js-code')}
+                className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 z-10"
+              >
+                {copiedCode === 'js-code' ? (
+                  <CheckCircleIcon className="h-4 w-4" />
+                ) : (
+                  <ClipboardDocumentIcon className="h-4 w-4" />
+                )}
+              </button>
+              <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
+                <code 
+                  style={{fontSize: '18px', lineHeight: '1.7'}}
+                  dangerouslySetInnerHTML={{__html: formatCode(jsCode, 'javascript')}}
+                />
+              </pre>
             </div>
           </div>
 
@@ -273,25 +292,24 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
               <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">REST API</span>
               Raw HTTP Requests
             </h3>
-            <div className="relative">
-              <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-gray-400 text-sm">Terminal</span>
-                  <button
-                    onClick={() => copyToClipboard(curlCode, 'curl-code')}
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    {copiedCode === 'curl-code' ? (
-                      <CheckCircleIcon className="h-4 w-4" />
-                    ) : (
-                      <ClipboardDocumentIcon className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-                <pre className="text-sm">
-                  <code className="text-gray-100">{curlCode}</code>
-                </pre>
-              </div>
+            <div className="relative my-6">
+              <div className="mb-2 text-gray-600 text-sm font-medium">Terminal</div>
+              <button
+                onClick={() => copyToClipboard(curlCode, 'curl-code')}
+                className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 z-10"
+              >
+                {copiedCode === 'curl-code' ? (
+                  <CheckCircleIcon className="h-4 w-4" />
+                ) : (
+                  <ClipboardDocumentIcon className="h-4 w-4" />
+                )}
+              </button>
+              <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
+                <code 
+                  style={{fontSize: '18px', lineHeight: '1.7'}}
+                  dangerouslySetInnerHTML={{__html: formatCode(curlCode, 'bash')}}
+                />
+              </pre>
             </div>
           </div>
         </div>
@@ -304,8 +322,9 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
           After processing completes, you'll receive a response with data quality metrics and processing details:
         </p>
         
-        <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-          <pre className="text-sm text-gray-100">
+        <div className="relative my-6">
+          <div className="mb-2 text-gray-600 text-sm font-medium">JSON Response</div>
+          <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
 {`{
   "job_id": "job_123abc",
   "status": "completed",
