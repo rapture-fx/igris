@@ -132,17 +132,17 @@ export function Sidebar() {
       <div className="flex flex-col w-72">
         <div className="flex flex-col h-full bg-white">
           <div className="flex-1 flex flex-col pt-6 pb-4 overflow-y-auto">
-            <nav className="flex-1 px-4 space-y-2">
+            <nav className="flex-1 px-6 space-y-6">
               {navigation.map((item) => (
-                <div key={item.name}>
+                <div key={item.name} className="mb-2">
                   <div 
                     className={clsx(
-                      'sidebar-link cursor-pointer',
+                      'sidebar-link cursor-pointer font-bold text-base py-3',
                       isActive(item.href) && 'active'
                     )}
                     onClick={() => toggleExpanded(item.name)}
                   >
-                    <item.icon className="mr-3 h-5 w-5" />
+                    <item.icon className="mr-3 h-6 w-6" />
                     <span className="flex-1">{item.name}</span>
                     {item.children && (
                       isExpanded(item.name) ? (
@@ -153,13 +153,13 @@ export function Sidebar() {
                     )}
                   </div>
                   {item.children && isExpanded(item.name) && (
-                    <div className="mt-1 space-y-1 ml-4">
+                    <div className="mt-2 space-y-2 ml-6">
                       {item.children.map((child) => (
                         <Link
                           key={child.name}
                           href={child.href}
                           className={clsx(
-                            'sidebar-link',
+                            'sidebar-link font-normal text-[15px] py-2 pl-6',
                             isActive(child.href) && 'active'
                           )}
                         >

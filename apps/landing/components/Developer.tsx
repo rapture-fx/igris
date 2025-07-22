@@ -138,7 +138,7 @@ func main() {
 
             <div className="flex space-x-4">
               <Link 
-                href="/docs" 
+                href="http://localhost:3001" 
                 className="bg-[#468BE6] text-white px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium flex items-center space-x-2"
               >
                 <Book className="w-4 h-4" />

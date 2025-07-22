@@ -1,6 +1,6 @@
 'use client'
 
-import { MagnifyingGlassIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, SunIcon, MoonIcon, HomeIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect, useRef } from 'react'
 
 // Define searchable content for documentation
@@ -54,15 +54,15 @@ export function Header() {
   }, [])
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 w-full">
-      <div className="w-full px-6">
+    <header className="bg-white/95 backdrop-blur-sm shadow-sm border border-gray-200 rounded-lg mx-auto mt-6 mb-8 max-w-6xl">
+      <div className="px-6">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             {/* Company Logo */}
             <a href="/" className="flex items-center">
               <img 
                 src="/schlep-logo.svg" 
-                alt="Schlep Engine" 
+                alt="Schlep-engine" 
                 className="h-10 w-auto"
               />
             </a>
@@ -78,12 +78,13 @@ export function Header() {
           </div>
           
           <div className="flex items-center space-x-4">
-            {/* Home Button - moved to right side */}
+            {/* Home Icon Button */}
             <a 
-              href="/" 
-              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+              href="http://localhost:3000" 
+              className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+              title="Go to Home"
             >
-              Home
+              <HomeIcon className="h-5 w-5" />
             </a>
             
             <div className="relative" ref={searchRef}>
@@ -95,7 +96,8 @@ export function Header() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search documentation..."
-                className="w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-schlep-blue focus:border-transparent"
+                className="w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                style={{'--tw-ring-color': '#468BE6'} as React.CSSProperties}
                 onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
               />
               
@@ -153,7 +155,10 @@ export function Header() {
                 href="https://dashboard.schlepengine.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-schlep-blue hover:bg-schlep-purple transition-colors"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white transition-colors"
+                style={{backgroundColor: '#468BE6'}}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3a7bd5'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#468BE6'}
               >
                 Dashboard
               </a>

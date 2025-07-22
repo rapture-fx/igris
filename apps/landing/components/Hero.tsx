@@ -22,10 +22,7 @@ export default function Hero() {
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center">
           <h1 className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 leading-tight">
-            Stop Wrestling With{' '}
-            <span className="text-[#468BE6]">Messy Data</span>
-            <br className="hidden sm:block" />
-            Start Building AI
+            Transform your messy data into ML-ready formats with just a few API calls
           </h1>
 
           <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">

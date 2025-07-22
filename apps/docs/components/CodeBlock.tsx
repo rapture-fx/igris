@@ -50,3 +50,5 @@ export function CodeBlock({ code, language, title, showLineNumbers = false }: Co
     </div>
   )
 }
+
+export default CodeBlock;

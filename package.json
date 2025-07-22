@@ -13,6 +13,7 @@
     "dev:admin": "pnpm --filter @schlep-engine/admin dev -p 3002",
     "dev:landing": "pnpm --filter @schlep-engine/landing dev -p 3000",
     "dev:docs": "pnpm --filter @schlep-engine/docs dev -p 3001",
+    "dev:website": "concurrently \"pnpm dev:landing\" \"pnpm dev:docs\"",
     "build": "pnpm --parallel --filter \"@schlep-engine/*\" build",
     "build:clean": "pnpm --parallel --filter \"@schlep-engine/*\" -- \"pnpm run clean && pnpm run build\"",
     "start": "pnpm --parallel --filter \"@schlep-engine/*\" start",

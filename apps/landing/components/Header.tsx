@@ -24,7 +24,7 @@ export default function Header() {
 
           <nav className="hidden md:flex items-center space-x-8">
             <Link 
-              href="/docs" 
+              href="http://localhost:3001" 
               className="text-sm text-gray-600 hover:text-[#468BE6] transition-colors duration-200"
             >
               Docs
@@ -62,7 +62,7 @@ export default function Header() {
           <div className="md:hidden mt-4 pt-4 border-t border-gray-100">
             <div className="flex flex-col space-y-3">
               <Link 
-                href="/docs" 
+                href="http://localhost:3001" 
                 className="text-sm text-gray-600 hover:text-[#468BE6] transition-colors duration-200 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >

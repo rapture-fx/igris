@@ -1,5 +1,5 @@
 {
-  "name": "schlep-engine-landing",
+  "name": "@schlep-engine/landing",
   "version": "1.0.0",
   "private": true,
   "scripts": {
