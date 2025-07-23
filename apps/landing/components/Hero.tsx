@@ -21,11 +21,11 @@ export default function Hero() {
     <section className="pt-32 pb-16 bg-gradient-to-br from-blue-50/50 via-white to-blue-100/40 min-h-screen flex items-center">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center">
-          <h1 className="text-3xl md:text-5xl font-semibold text-gray-900 mb-6 leading-tight">
-            Transform your messy data into ML-ready formats with just a few API calls
+          <h1 className="text-2xl md:text-4xl font-semibold text-gray-900 mb-6 leading-tight">
+            Messy data to ML-ready in API calls.
           </h1>
 
-          <p className="text-lg md:text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-base md:text-lg text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
             Eliminate time wasted on data cleaning. Schlep-engine automates data profiling, transformation, and labeling via API. Focus on building models with scalable, intelligent preprocessing for production pipelines.
           </p>
 

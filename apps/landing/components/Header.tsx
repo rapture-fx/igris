@@ -16,9 +16,9 @@ export default function Header() {
               <img 
                 src="/Schlep Engine 14x11cm (2).svg" 
                 alt="Schlep-engine" 
-                className="h-8 w-auto"
+                className="h-10 w-auto"
               />
-              <span className="text-lg font-medium text-gray-900">Schlep-engine</span>
+              <span className="text-lg text-gray-900 font-medium" style={{fontFamily: '"DM Sans", sans-serif'}}>Schlep-engine</span>
             </Link>
           </div>
 

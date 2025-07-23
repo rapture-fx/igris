@@ -40,13 +40,13 @@ export default function Footer() {
         <div className="py-16">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
             <div className="lg:col-span-2">
-              <div className="flex items-center mb-6">
+              <div className="flex items-center mb-6" style={{gap: '0.5rem'}}>
                 <img 
-                  src="/Schlep Engine 14x11cm (2).svg" 
+                  src="/Schlep Engine 14x11cm (3).svg" 
                   alt="Schlep-engine" 
-                  className="h-10 w-auto mr-3"
+                  className="h-16 w-auto"
                 />
-                <span className="text-xl font-bold">Schlep-engine</span>
+                <span className="text-xl font-medium text-white" style={{fontFamily: '"DM Sans", sans-serif'}}>Schlep-engine</span>
               </div>
               <p className="text-gray-400 mb-8 leading-relaxed">
                 Transform messy data into ML-ready formats with AI-powered 
