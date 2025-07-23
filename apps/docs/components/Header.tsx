@@ -55,7 +55,7 @@ export function Header() {
 
   return (
     <header className="bg-white/95 backdrop-blur-sm w-full">
-      <div className="w-full pl-12 pr-6 pt-4">
+      <div className="w-full pl-16 pr-8 pt-4">
         <div className="flex items-center h-14">
           {/* Left side - Logo */}
           <div className="flex items-center">
@@ -139,9 +139,9 @@ export function Header() {
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white transition-colors"
-              style={{backgroundColor: '#468BE6'}}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3a7bd5'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#468BE6'}
+              style={{backgroundColor: '#1A5799'}}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#154A85'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1A5799'}
             >
               Dashboard
             </a>
