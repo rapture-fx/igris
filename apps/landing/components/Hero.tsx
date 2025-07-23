@@ -45,13 +45,13 @@ export default function Hero() {
           <div className="flex justify-center gap-3 mb-16">
             <Link
               href="#get-started"
-              className="bg-[#468BE6] text-white px-6 py-2.5 rounded-md hover:bg-[#3a7bd5] transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
+              className="bg-[#468BE6] text-white border border-transparent px-6 py-2.5 rounded-md hover:bg-[#3a7bd5] transition-all duration-200 font-medium text-sm shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_1px_3px_0_rgba(0,0,0,0.1)] hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_2px_6px_0_rgba(0,0,0,0.15)] backdrop-blur-sm"
             >
               Get Started for Free
             </Link>
             <Link
               href="http://localhost:3001"
-              className="bg-white text-[#468BE6] border border-[#468BE6] px-6 py-2.5 rounded-md hover:bg-[#468BE6] hover:text-white transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md"
+              className="bg-white/80 text-gray-800 border border-gray-200/60 px-6 py-2.5 rounded-md hover:bg-white hover:border-gray-300 transition-all duration-200 font-medium text-sm shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.1),0_1px_3px_0_rgba(0,0,0,0.1)] hover:shadow-[inset_0_-1px_0_0_rgba(0,0,0,0.1),0_2px_6px_0_rgba(0,0,0,0.15)] backdrop-blur-sm"
             >
               API Documentation
             </Link>
