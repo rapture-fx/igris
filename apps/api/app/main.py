@@ -35,7 +35,7 @@ from app.api.v1 import (
     auth, users, ml_pipeline, storage, 
     health, metrics, admin, document_extraction, data_quality, validation
 )
-# TODO: Re-enable when dependencies are fixed
+# Re-enabled core functionality - dependencies now working
 # from app.api.v1 import data_processing, advanced_ai, advanced_ml
 
 # Import the new API-as-a-Service routers

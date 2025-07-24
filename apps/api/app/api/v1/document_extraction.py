@@ -86,28 +86,59 @@ async def extract_pdf_data(
         
         logger.info(f"Processing PDF extraction {extraction_id} for file {file.filename}")
         
-        # For now, return mock data structure that would come from pdfplumber
-        # TODO: Implement actual PDF processing with pdfplumber
-        mock_tables = [
-            {
-                "table_id": f"table_{i+1}",
-                "page_number": i+1,
-                "headers": ["Column A", "Column B", "Column C"],
-                "rows": [
-                    ["Value 1", "Value 2", "Value 3"],
-                    ["Value 4", "Value 5", "Value 6"]
-                ],
-                "confidence": 0.95
-            } for i in range(2)
-        ]
-        
-        mock_metadata = {
-            "pages": 5,
-            "tables_found": 2,
-            "file_size_bytes": len(content),
-            "extraction_method": "pdfplumber",
-            "detected_encoding": "utf-8"
-        }
+        # Implement actual PDF processing with pdfplumber
+        try:
+            import pdfplumber
+            
+            # Process PDF with pdfplumber
+            extracted_tables = []
+            extracted_text = ""
+            
+            with pdfplumber.open(io.BytesIO(content)) as pdf:
+                for page_num, page in enumerate(pdf.pages, 1):
+                    # Extract text if requested
+                    if extraction_request.extract_text:
+                        page_text = page.extract_text()
+                        if page_text:
+                            extracted_text += f"\n--- Page {page_num} ---\n{page_text}\n"
+                    
+                    # Extract tables if requested
+                    if extraction_request.extract_tables:
+                        tables = page.extract_tables()
+                        for table_idx, table in enumerate(tables):
+                            if table and len(table) > 0:
+                                # Use first row as headers if it looks like headers
+                                headers = table[0] if table[0] else [f"Column_{i+1}" for i in range(len(table[0]) if table else 0)]
+                                rows = table[1:] if len(table) > 1 else []
+                                
+                                extracted_tables.append({
+                                    "table_id": f"page_{page_num}_table_{table_idx+1}",
+                                    "page_number": page_num,
+                                    "headers": headers,
+                                    "rows": rows,
+                                    "confidence": 0.95
+                                })
+            
+            # Create metadata
+            metadata = {
+                "pages": len(pdf.pages),
+                "tables_found": len(extracted_tables),
+                "file_size_bytes": len(content),
+                "extraction_method": "pdfplumber",
+                "detected_encoding": "utf-8"
+            }
+            
+        except ImportError:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="PDF processing library not available"
+            )
+        except Exception as pdf_error:
+            logger.error(f"PDF processing error: {pdf_error}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to process PDF: {str(pdf_error)}"
+            )
         
         processing_time = (datetime.utcnow() - start_time).total_seconds()
         
@@ -116,8 +147,9 @@ async def extract_pdf_data(
             extraction_id=extraction_id,
             filename=file.filename,
             file_type="pdf",
-            tables=mock_tables,
-            metadata=mock_metadata,
+            tables=extracted_tables,
+            text_content=extracted_text if extraction_request.extract_text else None,
+            metadata=metadata,
             processing_time=processing_time
         )
         

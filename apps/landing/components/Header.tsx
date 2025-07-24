@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { Menu, X } from 'lucide-react'
 
@@ -86,105 +86,96 @@ export default function Header() {
                   onMouseEnter={handleProductHover}
                   onMouseLeave={handleProductLeave}
                   style={{
-                    top: 'calc(100% + 1rem)',
-                    left: 0,
+                    top: 'calc(100% + 2rem)',
+                    left: '0px',
                     width: '290px'
                   }}
                 >
                   <div className="space-y-4">
-                    {/* Core Product */}
+                    {/* Processing Power */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Core Product</h3>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Processing Power</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer">
+                          <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">High-Performance Processing</h4>
+                            <p className="text-xs text-gray-600 mt-0.5">Process 50,000+ rows in 2.3s with automated optimization</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer">
+                          <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">Multi-format Support</h4>
+                            <p className="text-xs text-gray-600 mt-0.5">CSV, JSON, PDF, XLSX processing in unified workflows</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* API Endpoints */}
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">API Endpoints</h3>
                       <div className="space-y-2">
                         <Link 
-                          href="#data-processing-engine" 
-                          className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
+                          href="#document-extraction-api" 
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
                         >
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 group-hover:bg-green-600"></div>
+                          <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-green-600">Data Processing Engine</h4>
-                            <p className="text-xs text-gray-600 mt-0.5">Transform messy data to ML-ready datasets via API</p>
+                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">Document Extraction API</h4>
+                            <p className="text-xs text-gray-600 mt-0.5">PDF, DOCX, and scanned document processing via REST API</p>
                           </div>
                         </Link>
                         
                         <Link 
-                          href="#ai-analysis-platform" 
-                          className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
-                        >
-                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 group-hover:bg-green-600"></div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-green-600">AI Analysis Platform</h4>
-                            <p className="text-xs text-gray-600 mt-0.5">Intelligent data profiling and quality assessment</p>
-                          </div>
-                        </Link>
-                      </div>
-                    </div>
-
-                    {/* Recently Released Features */}
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Recently Released Features</h3>
-                      <div className="space-y-2">
-                        <Link 
                           href="#data-quality-api" 
-                          className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
                         >
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
                             <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">Data Quality API</h4>
-                            <p className="text-xs text-gray-600 mt-0.5">Automated assessment and cleaning with quality scoring</p>
+                            <p className="text-xs text-gray-600 mt-0.5">AI-powered data cleaning and validation with confidence scores</p>
                           </div>
                         </Link>
-                        
+
                         <Link 
                           href="#ml-pipeline-api" 
-                          className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
                         >
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
                             <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">ML Pipeline API</h4>
-                            <p className="text-xs text-gray-600 mt-0.5">Create, train, and deploy ML models via REST API</p>
-                          </div>
-                        </Link>
-                        
-                        <Link 
-                          href="#file-storage-api" 
-                          className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
-                        >
-                          <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">File Storage API</h4>
-                            <p className="text-xs text-gray-600 mt-0.5">Secure file upload, management, and sharing system</p>
+                            <p className="text-xs text-gray-600 mt-0.5">Train, deploy and manage ML models through simple API calls</p>
                           </div>
                         </Link>
                       </div>
                     </div>
 
-                    {/* In Beta */}
+                    {/* Recently Added */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
-                        In Beta
-                        <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full">BETA</span>
-                      </h3>
+                      <h3 className="text-sm font-semibold text-gray-900 mb-2">Recently Added</h3>
                       <div className="space-y-2">
                         <Link 
-                          href="#document-extraction" 
-                          className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
+                          href="#storage-api" 
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
                         >
-                          <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2 group-hover:bg-orange-500"></div>
+                          <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-orange-500">Document Extraction</h4>
-                            <p className="text-xs text-gray-600 mt-0.5">PDF, OCR, and document processing capabilities</p>
+                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">File Storage API</h4>
+                            <p className="text-xs text-gray-600 mt-0.5">Secure upload, management and sharing with metadata support</p>
                           </div>
                         </Link>
                         
                         <Link 
-                          href="#validation-benchmarking" 
-                          className="flex items-start space-x-3 p-2 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
+                          href="#validation-api" 
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 transition-colors duration-200 group cursor-pointer"
                         >
-                          <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-2 group-hover:bg-orange-500"></div>
+                          <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-orange-500">Validation & Benchmarking</h4>
-                            <p className="text-xs text-gray-600 mt-0.5">Data validation and competitive benchmarking tools</p>
+                            <h4 className="font-medium text-gray-900 text-sm group-hover:text-[#1A5799]">Validation API</h4>
+                            <p className="text-xs text-gray-600 mt-0.5">Real-world benchmarking and business impact measurement</p>
                           </div>
                         </Link>
                       </div>
@@ -192,8 +183,8 @@ export default function Header() {
                     
                     <div className="border-t border-gray-100 pt-2 mt-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500">Process 50,000+ rows in 2.3s</span>
-                        <span className="text-[#1A5799] font-medium">97% Quality Score</span>
+                        <span className="text-gray-500">480x faster • 25x cheaper</span>
+                        <span className="text-[#1A5799] font-medium">98.5% quality score</span>
                       </div>
                     </div>
                   </div>
@@ -235,6 +226,7 @@ export default function Header() {
             </button>
           </div>
         </div>
+
 
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pt-4 border-t border-gray-100">

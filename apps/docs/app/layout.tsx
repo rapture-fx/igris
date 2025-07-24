@@ -29,7 +29,7 @@ export default function RootLayout({
               <Sidebar />
             </div>
             <main className="flex-1 overflow-y-auto">
-              <div className="w-full pt-20 pb-8 px-8">
+              <div className="w-full pt-12 pb-6 px-6 max-w-4xl mx-auto">
                 {children}
               </div>
             </main>

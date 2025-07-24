@@ -1,8 +1,17 @@
 """
 Data Processing API Router
-Re-exports from endpoints/data_processing.py for compatibility
+Re-exports from endpoints for compatibility
 """
 
-from .endpoints.data_processing import router
+from fastapi import APIRouter
 
-__all__ = ['router']
+from .endpoints import data_processing, document_extraction, data_quality, ml_pipeline, storage, validation
+
+router = APIRouter()
+
+router.include_router(data_processing.router, prefix="/processing", tags=["Data Processing"])
+router.include_router(document_extraction.router, prefix="/extraction", tags=["Document Extraction"])
+router.include_router(data_quality.router, prefix="/quality", tags=["Data Quality"])
+router.include_router(ml_pipeline.router, prefix="/ml", tags=["ML Pipeline"])
+router.include_router(storage.router, prefix="/storage", tags=["File Storage"])
+router.include_router(validation.router, prefix="/validation", tags=["Validation"])
