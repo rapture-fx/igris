@@ -13,7 +13,7 @@
     "dev:admin": "pnpm --filter @schlep-engine/admin dev -p 3002",
     "dev:landing": "pnpm --filter @schlep-engine/landing dev -p 3000",
     "dev:docs": "pnpm --filter @schlep-engine/docs dev -p 3001",
-    "dev:website": "concurrently \"pnpm dev:landing\" \"pnpm dev:docs\"",
+    "dev:website": "./start-servers.sh",
     "dev:persistent": "./start-dev-server.sh start",
     "dev:stop": "./start-dev-server.sh stop",
     "dev:status": "./start-dev-server.sh status",

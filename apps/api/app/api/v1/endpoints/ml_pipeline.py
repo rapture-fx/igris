@@ -10,11 +10,16 @@ from pydantic import BaseModel, Field
 import logging
 import json
 import uuid
+import tempfile
+import os
 from datetime import datetime
 
 from app.database.connection import get_async_session
 from app.auth.unified_auth_system import get_current_user
 from app.core.error_decorators import handle_database_errors, handle_auth_errors
+from app.models.ml_pipeline import MLPipeline, MLPrediction
+from sqlalchemy import select
+# from app.core.cloud_storage import get_storage_client  # TODO: Implement cloud storage
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -65,27 +70,39 @@ async def create_ml_pipeline(
 ):
     """Create a new ML pipeline"""
     try:
-        pipeline_id = str(uuid.uuid4())
+        # Create new pipeline in database
+        pipeline = MLPipeline(
+            user_id=current_user.id,
+            name=config.name,
+            description=config.description,
+            model_type=config.model_type,
+            preprocessing_steps=config.preprocessing_steps,
+            feature_columns=config.feature_columns,
+            target_column=config.target_column,
+            hyperparameters=config.hyperparameters,
+            status="created"
+        )
         
-        # For now, just return a mock response
-        # In real implementation, this would create the pipeline in the database
-        # and initialize the ML workflow
+        db.add(pipeline)
+        await db.commit()
+        await db.refresh(pipeline)
         
-        logger.info(f"Creating ML pipeline {pipeline_id} for user {current_user.id}")
+        logger.info(f"Created ML pipeline {pipeline.id} for user {current_user.id}")
         
         return MLPipelineResponse(
             success=True,
             message="ML pipeline created successfully",
-            pipeline_id=pipeline_id,
+            pipeline_id=pipeline.id,
             data={
-                "name": config.name,
-                "model_type": config.model_type,
-                "status": "created",
-                "created_at": datetime.utcnow().isoformat()
+                "name": pipeline.name,
+                "model_type": pipeline.model_type,
+                "status": pipeline.status,
+                "created_at": pipeline.created_at.isoformat()
             }
         )
     except Exception as e:
         logger.error(f"Error creating ML pipeline: {e}")
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create ML pipeline"
@@ -198,11 +215,70 @@ async def train_ml_pipeline(
                     "test_samples": len(X_test)
                 }
             
-            # Save the model (in production, this would go to proper storage)
-            model_dir = f"models/{pipeline_id}"
-            os.makedirs(model_dir, exist_ok=True)
-            joblib.dump(model, f"{model_dir}/model.pkl")
-            joblib.dump(scaler, f"{model_dir}/scaler.pkl")
+            # Get or create pipeline record
+            result = await db.execute(select(MLPipeline).where(MLPipeline.id == pipeline_id))
+            pipeline = result.scalar_one_or_none()
+            
+            if not pipeline:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail="Pipeline not found"
+                )
+            
+            # Update pipeline status
+            pipeline.status = "training"
+            await db.commit()
+            
+            # Save models to cloud storage or local storage
+            try:
+                # storage_client = get_storage_client()  # TODO: Implement cloud storage
+                model_dir = f"ml_models/{current_user.id}/{pipeline_id}"
+                
+                # Save model to temporary files first
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pkl') as model_file:
+                    joblib.dump(model, model_file.name)
+                    model_path = f"{model_dir}/model.pkl"
+                    # In production, upload to cloud storage
+                    # For now, create local directory
+                    local_model_dir = f"storage/models/{current_user.id}/{pipeline_id}"
+                    os.makedirs(local_model_dir, exist_ok=True)
+                    joblib.dump(model, f"{local_model_dir}/model.pkl")
+                    
+                with tempfile.NamedTemporaryFile(delete=False, suffix='.pkl') as scaler_file:
+                    joblib.dump(scaler, scaler_file.name)
+                    scaler_path = f"{model_dir}/scaler.pkl"
+                    joblib.dump(scaler, f"{local_model_dir}/scaler.pkl")
+                    
+                # Update pipeline with model paths and results
+                pipeline.model_path = f"{local_model_dir}/model.pkl"
+                pipeline.scaler_path = f"{local_model_dir}/scaler.pkl"
+                pipeline.feature_names = feature_columns
+                pipeline.metrics = metrics
+                pipeline.status = "trained"
+                pipeline.trained_at = datetime.utcnow()
+                
+                await db.commit()
+                
+            except Exception as storage_error:
+                logger.error(f"Storage error: {storage_error}")
+                # Fall back to local storage
+                local_model_dir = f"storage/models/{current_user.id}/{pipeline_id}"
+                os.makedirs(local_model_dir, exist_ok=True)
+                
+                model_path = f"{local_model_dir}/model.pkl"
+                scaler_path = f"{local_model_dir}/scaler.pkl"
+                
+                joblib.dump(model, model_path)
+                joblib.dump(scaler, scaler_path)
+                
+                pipeline.model_path = model_path
+                pipeline.scaler_path = scaler_path
+                pipeline.feature_names = feature_columns
+                pipeline.metrics = metrics
+                pipeline.status = "trained"
+                pipeline.trained_at = datetime.utcnow()
+                
+                await db.commit()
             
             logger.info(f"Successfully trained {model_type} model with metrics: {metrics}")
             
@@ -223,6 +299,17 @@ async def train_ml_pipeline(
             
         except Exception as training_error:
             logger.error(f"Training error: {training_error}")
+            
+            # Update pipeline status to failed
+            try:
+                result = await db.execute(select(MLPipeline).where(MLPipeline.id == pipeline_id))
+                pipeline = result.scalar_one_or_none()
+                if pipeline:
+                    pipeline.status = "failed"
+                    await db.commit()
+            except Exception as db_error:
+                logger.error(f"Failed to update pipeline status: {db_error}")
+            
             return MLPipelineResponse(
                 success=False,
                 message=f"Training failed: {str(training_error)}",
@@ -251,18 +338,32 @@ async def get_pipeline_status(
 ):
     """Get ML pipeline status"""
     try:
-        # For now, return a mock status
-        # In real implementation, this would query the database for pipeline status
+        # Query pipeline from database
+        result = await db.execute(
+            select(MLPipeline).where(
+                MLPipeline.id == pipeline_id,
+                MLPipeline.user_id == current_user.id
+            )
+        )
+        pipeline = result.scalar_one_or_none()
+        
+        if not pipeline:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pipeline not found"
+            )
         
         return MLPipelineStatus(
-            pipeline_id=pipeline_id,
-            name="Sample Pipeline",
-            status="created",
-            model_type="classification",
-            created_at=datetime.utcnow().isoformat(),
-            updated_at=datetime.utcnow().isoformat(),
-            metrics=None
+            pipeline_id=pipeline.id,
+            name=pipeline.name,
+            status=pipeline.status,
+            model_type=pipeline.model_type,
+            created_at=pipeline.created_at.isoformat(),
+            updated_at=pipeline.updated_at.isoformat(),
+            metrics=pipeline.metrics
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error fetching pipeline status {pipeline_id}: {e}")
         raise HTTPException(
@@ -278,9 +379,26 @@ async def list_pipelines(
 ):
     """List user's ML pipelines"""
     try:
-        # For now, return empty list
-        # In real implementation, this would query user's pipelines from database
-        return []
+        # Query user's pipelines from database
+        result = await db.execute(
+            select(MLPipeline).where(MLPipeline.user_id == current_user.id)
+            .order_by(MLPipeline.created_at.desc())
+        )
+        pipelines = result.scalars().all()
+        
+        pipeline_list = []
+        for pipeline in pipelines:
+            pipeline_list.append(MLPipelineStatus(
+                pipeline_id=pipeline.id,
+                name=pipeline.name,
+                status=pipeline.status,
+                model_type=pipeline.model_type,
+                created_at=pipeline.created_at.isoformat(),
+                updated_at=pipeline.updated_at.isoformat(),
+                metrics=pipeline.metrics
+            ))
+            
+        return pipeline_list
     except Exception as e:
         logger.error(f"Error listing pipelines for user {current_user.id}: {e}")
         raise HTTPException(
@@ -296,25 +414,135 @@ async def make_prediction(
     db: AsyncSession = Depends(get_async_session)
 ):
     """Make prediction using trained ML pipeline"""
+    start_time = datetime.utcnow()
+    
     try:
         pipeline_id = prediction_request.pipeline_id
         input_data = prediction_request.input_data
         
-        # For now, return a mock prediction
-        # In real implementation, this would:
-        # 1. Load the trained model
-        # 2. Apply preprocessing to input data
-        # 3. Make prediction
-        # 4. Return result with confidence score
-        
-        logger.info(f"Making prediction with pipeline {pipeline_id}")
-        
-        return MLPredictionResponse(
-            success=True,
-            pipeline_id=pipeline_id,
-            prediction=0.85,  # Mock prediction
-            confidence=0.92   # Mock confidence
+        # Get pipeline from database
+        result = await db.execute(
+            select(MLPipeline).where(
+                MLPipeline.id == pipeline_id,
+                MLPipeline.user_id == current_user.id
+            )
         )
+        pipeline = result.scalar_one_or_none()
+        
+        if not pipeline:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pipeline not found"
+            )
+        
+        if pipeline.status != "trained" and pipeline.status != "deployed":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Pipeline is not trained. Current status: {pipeline.status}"
+            )
+        
+        # Load the trained model and scaler
+        try:
+            if not os.path.exists(pipeline.model_path) or not os.path.exists(pipeline.scaler_path):
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Model files not found"
+                )
+            
+            model = joblib.load(pipeline.model_path)
+            scaler = joblib.load(pipeline.scaler_path)
+            
+            # Prepare input data for prediction
+            import pandas as pd
+            from sklearn.preprocessing import LabelEncoder
+            
+            # Convert input data to DataFrame
+            if isinstance(input_data, dict):
+                df_input = pd.DataFrame([input_data])
+            else:
+                df_input = pd.DataFrame(input_data)
+            
+            # Ensure we have the expected features
+            expected_features = pipeline.feature_names
+            if not expected_features:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Pipeline feature names not available"
+                )
+            
+            # Check if all required features are present
+            missing_features = set(expected_features) - set(df_input.columns)
+            if missing_features:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Missing required features: {list(missing_features)}"
+                )
+            
+            # Select and order features correctly
+            df_input = df_input[expected_features]
+            
+            # Handle categorical variables (simple approach)
+            categorical_columns = df_input.select_dtypes(include=['object']).columns
+            for col in categorical_columns:
+                le = LabelEncoder()
+                # For prediction, we need to handle unknown categories
+                try:
+                    df_input[col] = le.fit_transform(df_input[col].astype(str))
+                except Exception:
+                    # If encoding fails, use ordinal encoding
+                    df_input[col] = pd.Categorical(df_input[col]).codes
+            
+            # Scale the features
+            X_scaled = scaler.transform(df_input)
+            
+            # Make prediction
+            if hasattr(model, 'predict_proba'):
+                # Classification model
+                prediction = model.predict(X_scaled)[0]
+                probabilities = model.predict_proba(X_scaled)[0]
+                confidence = float(max(probabilities))
+            else:
+                # Regression model
+                prediction = model.predict(X_scaled)[0]
+                confidence = 0.95  # Default confidence for regression
+            
+            # Convert numpy types to Python types for JSON serialization
+            if hasattr(prediction, 'item'):
+                prediction = prediction.item()
+            
+            processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            
+            # Save prediction to database
+            ml_prediction = MLPrediction(
+                pipeline_id=pipeline_id,
+                user_id=current_user.id,
+                input_data=input_data,
+                prediction_result={"prediction": prediction, "confidence": confidence},
+                confidence_score=confidence,
+                processing_time_ms=processing_time
+            )
+            
+            db.add(ml_prediction)
+            await db.commit()
+            
+            logger.info(f"Made prediction with pipeline {pipeline_id}: {prediction} (confidence: {confidence})")
+            
+            return MLPredictionResponse(
+                success=True,
+                pipeline_id=pipeline_id,
+                prediction=prediction,
+                confidence=confidence
+            )
+            
+        except Exception as model_error:
+            logger.error(f"Model prediction error: {model_error}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Prediction failed: {str(model_error)}"
+            )
+            
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error making prediction: {e}")
         return MLPredictionResponse(
@@ -362,13 +590,60 @@ async def deploy_pipeline(
 ):
     """Deploy ML pipeline for real-time predictions"""
     try:
-        # For now, just return success
-        # In real implementation, this would:
-        # 1. Validate pipeline is trained
-        # 2. Deploy to prediction service
-        # 3. Create API endpoint for predictions
+        # Get pipeline from database
+        result = await db.execute(
+            select(MLPipeline).where(
+                MLPipeline.id == pipeline_id,
+                MLPipeline.user_id == current_user.id
+            )
+        )
+        pipeline = result.scalar_one_or_none()
         
-        logger.info(f"Deploying ML pipeline {pipeline_id}")
+        if not pipeline:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Pipeline not found"
+            )
+        
+        if pipeline.status != "trained":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Pipeline must be trained before deployment. Current status: {pipeline.status}"
+            )
+        
+        # Validate model files exist
+        if not os.path.exists(pipeline.model_path) or not os.path.exists(pipeline.scaler_path):
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Model files not found. Please retrain the pipeline."
+            )
+        
+        # Test model loading to ensure it works
+        try:
+            model = joblib.load(pipeline.model_path)
+            scaler = joblib.load(pipeline.scaler_path)
+            logger.info(f"Successfully validated model files for pipeline {pipeline_id}")
+        except Exception as load_error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to load model files: {str(load_error)}"
+            )
+        
+        # Update pipeline deployment status
+        pipeline.status = "deployed"
+        pipeline.is_deployed = True
+        pipeline.deployed_at = datetime.utcnow()
+        pipeline.deployment_endpoint = f"/api/v1/ml-pipeline/predict"
+        pipeline.deployment_config = {
+            "endpoint_active": True,
+            "model_loaded": True,
+            "deployment_type": "api",
+            "max_requests_per_minute": 100
+        }
+        
+        await db.commit()
+        
+        logger.info(f"Successfully deployed ML pipeline {pipeline_id}")
         
         return MLPipelineResponse(
             success=True,
@@ -376,12 +651,16 @@ async def deploy_pipeline(
             pipeline_id=pipeline_id,
             data={
                 "status": "deployed",
-                "endpoint": f"/api/v1/ml/predict/{pipeline_id}",
-                "deployed_at": datetime.utcnow().isoformat()
+                "endpoint": pipeline.deployment_endpoint,
+                "deployed_at": pipeline.deployed_at.isoformat(),
+                "deployment_config": pipeline.deployment_config
             }
         )
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error deploying pipeline {pipeline_id}: {e}")
+        await db.rollback()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to deploy pipeline"

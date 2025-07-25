@@ -55,7 +55,7 @@ export function Header() {
 
   return (
     <header className="bg-white/95 backdrop-blur-sm w-full">
-      <div className="w-full pl-16 pr-8 pt-8">
+      <div className="w-full pl-16 pr-8 pt-8 pb-6">
         <div className="flex items-center h-14">
           {/* Left side - Logo */}
           <div className="flex items-center">

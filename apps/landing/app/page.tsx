@@ -1,5 +1,6 @@
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
+import AdditionalFeatures from '@/components/AdditionalFeatures'
 import NoCode from '@/components/NoCode'
 import Developer from '@/components/Developer'
 import Integrations from '@/components/Integrations'
@@ -15,6 +16,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <AdditionalFeatures />
         <NoCode />
         <Developer />
         <Integrations />
