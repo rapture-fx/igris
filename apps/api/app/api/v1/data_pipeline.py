@@ -19,7 +19,7 @@ import os
 from app.database.connection import get_db
 from app.database.models import User, DataInvestigation, ProcessingJob, JobStatus, DataSourceType
 from app.auth.dependencies import get_current_user
-from app.services.upload_service import upload_service
+from app.services.file_processor import file_upload_service
 from app.services.unified_data_processor import unified_processor
 
 logger = logging.getLogger(__name__)
@@ -82,29 +82,11 @@ async def upload_file(
     This is the first step in the data processing pipeline.
     """
     try:
-        # Validate file
-        if not file.filename:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="No file provided"
-            )
-        
-        # Check file type
-        file_ext = file.filename.split('.')[-1].lower()
-        allowed_types = ['csv', 'json', 'xlsx', 'xls', 'parquet', 'txt']
-        if file_ext not in allowed_types:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"File type '{file_ext}' not supported. Allowed: {', '.join(allowed_types)}"
-            )
-        
         # Save file
-        file_info = await upload_service.save_file(file)
+        file_info = await file_upload_service.save_file(file)
         
         # Determine data source type
-        data_source_type = DataSourceType.CSV if file_ext == 'csv' else DataSourceType.JSON
-        if file_ext in ['xlsx', 'xls']:
-            data_source_type = DataSourceType.EXCEL
+        data_source_type = file_upload_service._get_file_type(file.filename)
         
         # Create investigation
         investigation = DataInvestigation(
@@ -393,78 +375,7 @@ async def delete_investigation(
             detail="Failed to delete investigation"
         )
 
-# ==================== BACKGROUND PROCESSING ====================
 
-async def process_data_async(investigation_id: str, file_path: str):
-    """
-    Background task to process uploaded data
-    """
-    try:
-        from app.database.connection import get_db_session
-        
-        async with get_db_session() as db:
-            from sqlalchemy import select
-            
-            # Get investigation
-            result = await db.execute(
-                select(DataInvestigation).where(DataInvestigation.id == investigation_id)
-            )
-            investigation = result.scalar_one_or_none()
-            
-            if not investigation:
-                logger.error(f"Investigation {investigation_id} not found for processing")
-                return
-            
-            # Update status to running
-            investigation.status = JobStatus.RUNNING
-            investigation.progress_percentage = 10.0
-            await db.commit()
-            
-            # Process the file using unified processor
-            processing_result = await unified_processor.process_file(
-                file_path=file_path,
-                processing_options=investigation.analysis_config or {}
-            )
-            
-            # Update investigation with results
-            investigation.status = JobStatus.COMPLETED
-            investigation.progress_percentage = 100.0
-            investigation.quality_score = processing_result.get("quality_score", 0.0)
-            investigation.patterns_found = processing_result.get("patterns", [])
-            investigation.anomalies_detected = processing_result.get("anomalies", [])
-            investigation.recommendations = processing_result.get("recommendations", [])
-            investigation.schema_info = processing_result.get("schema", {})
-            
-            # Update data source config with statistics
-            investigation.data_source_config.update({
-                "total_records": processing_result.get("total_records", 0),
-                "columns": processing_result.get("total_columns", 0),
-                "processing_time": processing_result.get("processing_time", 0)
-            })
-            
-            await db.commit()
-            
-            logger.info(f"Successfully processed investigation {investigation_id}")
-            
-    except Exception as e:
-        logger.error(f"Background processing failed for {investigation_id}: {e}")
-        
-        # Update investigation with error status
-        try:
-            async with get_db_session() as db:
-                from sqlalchemy import select
-                
-                result = await db.execute(
-                    select(DataInvestigation).where(DataInvestigation.id == investigation_id)
-                )
-                investigation = result.scalar_one_or_none()
-                
-                if investigation:
-                    investigation.status = JobStatus.FAILED
-                    investigation.error_message = str(e)
-                    await db.commit()
-        except Exception as db_error:
-            logger.error(f"Failed to update error status: {db_error}")
 
 # ==================== QUICK INSIGHTS ENDPOINT ====================
 

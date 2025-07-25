@@ -28,7 +28,7 @@ from app.services.pipeline_orchestrator import (
     pipeline_orchestrator, PipelineConfig, DataSourceType, PipelineStage
 )
 from app.services.unified_data_processor import ProcessingMode
-from app.services.upload_service import upload_service
+from app.services.file_processor import file_upload_service
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/pipelines", tags=["Unified Pipeline"])

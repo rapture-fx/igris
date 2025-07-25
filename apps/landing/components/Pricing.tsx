@@ -118,6 +118,8 @@ export default function Pricing() {
                 className={`w-full text-center py-3 px-6 rounded-lg font-medium transition-colors duration-200 inline-block ${
                   plan.popular
                     ? 'bg-[#468BE6] hover:bg-[#3a7bd5] text-white'
+                    : plan.name === 'Enterprise'
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
                     : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
                 }`}
               >

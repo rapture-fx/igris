@@ -77,6 +77,8 @@ export default function Features() {
   }
 
   return (
+    // Visual Enhancement Suggestion: Consider adding a diagram or a short video here
+    // that visually explains how these features work together to prepare data for ML.
     <section id="features" className="section-padding bg-white">
       <div className="max-w-7xl mx-auto container-padding">
         <div className="text-center mb-16">

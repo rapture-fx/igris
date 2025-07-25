@@ -1,6 +1,8 @@
 import Header from '@/components/Header'
 import Hero from '@/components/Hero'
 import AdditionalFeatures from '@/components/AdditionalFeatures'
+import SecurityFeatures from '@/components/SecurityFeatures'
+import AudienceGuide from '@/components/AudienceGuide'
 import NoCode from '@/components/NoCode'
 import Developer from '@/components/Developer'
 import Integrations from '@/components/Integrations'
@@ -17,6 +19,8 @@ export default function HomePage() {
       <main>
         <Hero />
         <AdditionalFeatures />
+        <SecurityFeatures />
+        <AudienceGuide />
         <NoCode />
         <Developer />
         <Integrations />

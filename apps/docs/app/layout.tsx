@@ -28,7 +28,7 @@ export default function RootLayout({
             <div className="sticky top-[4.5rem] h-[calc(100vh-4.5rem)]">
               <Sidebar />
             </div>
-            <main className="flex-1 overflow-y-auto">
+            <main className="flex-1 overflow-y-auto bg-white">
               <div className="w-full pt-12 pb-6 px-6 max-w-4xl mx-auto">
                 {children}
               </div>

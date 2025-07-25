@@ -30,7 +30,7 @@ from app.database.ml_preparation_models import (
     DataPreparationPipeline, PreparationStage, DataQualityLevel, MLFrameworkType
 )
 from app.auth.dependencies import get_current_user
-from app.services.upload_service import upload_service
+from app.services.file_processor import file_upload_service
 from app.services.ml_preparation_engine import (
     ml_preparation_engine, PreparationConfig, PreparationResult
 )

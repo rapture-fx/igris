@@ -1,9 +1,13 @@
 'use client'
 
 import { Upload, Download, Zap, MousePointer } from 'lucide-react'
+import Link from 'next/link'
 
 export default function NoCode() {
   return (
+    // Visual Enhancement Suggestion: Consider adding a screenshot or a short demo video
+    // of the no-code interface in action, showing the drag-and-drop, point-and-click configuration,
+    // and the processing steps.
     <section className="py-20 bg-gradient-to-br from-blue-50/30 to-white">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
@@ -109,6 +113,12 @@ export default function NoCode() {
               <button className="w-full bg-[#468BE6] text-white py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium">
                 Process Data
               </button>
+              <Link 
+                href="/contact" 
+                className="w-full text-center border border-[#468BE6] text-[#468BE6] px-6 py-3 rounded-lg hover:bg-[#468BE6] hover:text-white transition-colors font-medium mt-4"
+              >
+                Request a Demo
+              </Link>
             </div>
           </div>
         </div>

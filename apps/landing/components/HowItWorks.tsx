@@ -22,6 +22,8 @@ export default function HowItWorks() {
   ]
 
   return (
+    // Visual Enhancement Suggestion: Consider adding a short demo video or an interactive walkthrough
+    // showing the 3 steps in action, from uploading data to exporting the ML-ready output.
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">

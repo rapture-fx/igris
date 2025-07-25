@@ -80,6 +80,8 @@ func main() {
   }
 
   return (
+    // Visual Enhancement Suggestion: Consider adding a diagram illustrating the API architecture
+    // or a short video demonstrating an API call and its result.
     <section className="py-20 bg-gray-900 text-white">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
@@ -136,7 +138,7 @@ func main() {
               </div>
             </div>
 
-            <div className="flex space-x-4">
+            <div className="flex flex-wrap gap-4">
               <Link 
                 href="http://localhost:3001" 
                 className="bg-[#468BE6] text-white px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium flex items-center space-x-2"
@@ -150,6 +152,12 @@ func main() {
               >
                 <Terminal className="w-4 h-4" />
                 <span>Try Playground</span>
+              </Link>
+              <Link 
+                href="/contact" 
+                className="bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition-colors font-medium flex items-center space-x-2"
+              >
+                <span>Request a Demo</span>
               </Link>
             </div>
           </div>

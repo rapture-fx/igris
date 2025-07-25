@@ -257,6 +257,52 @@ export default function Integrations() {
                 </div>
               </div>
             </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-[#468BE6]/10 p-2 rounded-lg">
+                  <BarChart3 className="w-5 h-5 text-[#468BE6]" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Customer Data Enrichment</h4>
+              </div>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  Import customer lists from CRM
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  Clean & standardize contact info
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  Append demographic/firmographic data
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-xl p-6">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="bg-[#468BE6]/10 p-2 rounded-lg">
+                  <Zap className="w-5 h-5 text-[#468BE6]" />
+                </div>
+                <h4 className="font-semibold text-gray-900">Marketing Campaign Optimization</h4>
+              </div>
+              <div className="space-y-2 text-sm text-gray-600">
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  Collect campaign performance data
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  Normalize and merge datasets
+                </div>
+                <div className="flex items-center">
+                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  Identify key segments for targeting
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

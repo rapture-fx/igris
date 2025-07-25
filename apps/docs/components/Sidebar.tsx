@@ -112,7 +112,7 @@ export function Sidebar() {
   return (
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-60">
-        <div className="flex flex-col bg-white">
+        <div className="flex flex-col bg-gray-50" style={{backgroundColor: '#f7f7f8'}}>
           <div className="flex-1 flex flex-col pt-20 pb-4 overflow-y-auto scrollbar-thin">
             <nav className="px-5 space-y-0">
               {navigation.map((item, index) => (
