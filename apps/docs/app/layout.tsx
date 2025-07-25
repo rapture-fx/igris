@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/Sidebar'
 import { Header } from '@/components/Header'
+import { TableOfContents } from '@/components/TableOfContents'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -25,12 +26,17 @@ export default function RootLayout({
             <Header />
           </div>
           <div className="flex flex-1 h-screen">
-            <div className="sticky top-[4.5rem] h-[calc(100vh-4.5rem)]">
+            <div className="sticky top-[0rem] h-[calc(100vh-0rem)]">
               <Sidebar />
             </div>
             <main className="flex-1 overflow-y-auto bg-white">
-              <div className="w-full pt-12 pb-6 px-6 max-w-4xl mx-auto">
-                {children}
+              <div className="flex-1 flex justify-center px-8">
+                <div className="flex w-full pt-12 pb-6 max-w-6xl gap-16">
+                  <div className="flex-1 min-w-0">
+                    {children}
+                  </div>
+                  <TableOfContents />
+                </div>
               </div>
             </main>
           </div>

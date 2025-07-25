@@ -1,5 +1,12 @@
 import type { Metadata } from 'next'
+import { DM_Sans } from 'next/font/google'
 import './globals.css'
+
+const dm_sans = DM_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '700'],
+  variable: '--font-dm-sans',
+})
 
 export const metadata: Metadata = {
   title: 'Schlep Engine - AI-Powered Data Preparation',
@@ -59,7 +66,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
+      <body className={`${dm_sans.variable} font-sans antialiased`}>
         {children}
       </body>
     </html>

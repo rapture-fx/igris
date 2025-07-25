@@ -58,15 +58,15 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
               <img 
-                src="/Schlep Engine 14x11cm (2).svg" 
+                src="/Schlep Engine 14x11cm new logo.svg" 
                 alt="Schlep-engine" 
                 className="h-10 w-auto"
               />
-              <span className="text-lg text-gray-900 font-medium" style={{fontFamily: '"DM Sans", sans-serif'}}>Schlep-engine</span>
+              <span className="text-lg" style={{fontFamily: '"DM Sans", sans-serif', color: '#1A5799', fontWeight: '700'}}>Schlep-engine</span>
             </Link>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-8 relative">
+          <nav className="hidden md:flex items-center justify-center space-x-8 relative flex-1">
             <div 
               ref={productLinkRef}
               onMouseEnter={handleProductHover}
@@ -203,14 +203,23 @@ export default function Header() {
             >
               Pricing
             </Link>
+            <Link 
+              href="/signin" 
+              className="text-sm text-gray-600 hover:text-[#468BE6] transition-colors duration-200"
+            >
+              Sign In
+            </Link>
+
+          </nav>
+
+          <div className="hidden md:flex items-center">
             <Link
               href="#get-started"
               className="bg-[#1A5799] text-white px-5 py-2.5 rounded-xl hover:bg-[#154A85] transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
             >
               Try it for Free
             </Link>
-
-          </nav>
+          </div>
 
           <div className="md:hidden">
             <button
@@ -251,6 +260,13 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
+              </Link>
+              <Link 
+                href="/signin" 
+                className="text-sm text-gray-600 hover:text-[#468BE6] transition-colors duration-200 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Sign In
               </Link>
               <Link
                 href="#get-started"

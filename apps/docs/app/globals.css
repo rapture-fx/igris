@@ -105,6 +105,16 @@
   display: none; /* WebKit */
 }
 
+/* Hide scrollbar for search results */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
 /* Group hover effect for better visual grouping */
 .group:hover .nav-link:not(.bg-blue-50) {
   color: #4b5563;

@@ -42,11 +42,11 @@ export default function Footer() {
             <div className="lg:col-span-2">
               <div className="flex items-center mb-6" style={{gap: '0.5rem'}}>
                 <img 
-                  src="/Schlep Engine 14x11cm (3).svg" 
+                  src="/Schlep Engine 14x11cm new logo.svg" 
                   alt="Schlep-engine" 
                   className="h-16 w-auto"
                 />
-                <span className="text-xl font-medium text-white" style={{fontFamily: '"DM Sans", sans-serif'}}>Schlep-engine</span>
+                <span className="text-xl" style={{fontFamily: '"DM Sans", sans-serif', color: '#1A5799', fontWeight: '700'}}>Schlep-engine</span>
               </div>
               <p className="text-gray-400 mb-8 leading-relaxed">
                 Transform messy data into ML-ready formats with AI-powered 

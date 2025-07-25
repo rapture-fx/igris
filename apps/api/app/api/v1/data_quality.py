@@ -19,6 +19,12 @@ import numpy as np
 from app.database.connection import get_async_session
 from app.auth.unified_auth_system import get_current_user
 from app.core.error_decorators import handle_database_errors, handle_auth_errors
+from app.services.data_quality_service import data_quality_service
+from app.services.file_processor import file_upload_service
+from app.services.advanced_data_cleaner import AdvancedDataCleaner
+from app.services.advanced_ml_engine import AdvancedMLEngine
+from app.database.models import DataQualityAssessment as DataQualityAssessmentModel
+from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -356,14 +362,14 @@ async def assess_data_quality(
             success=True,
             assessment_id=assessment_id,
             filename=file.filename,
-            total_rows=len(df),
-            total_columns=len(column_profiles),
-            overall_quality_score=round(overall_quality_score, 2),
+            total_rows=quality_assessment_result['total_rows'],
+            total_columns=quality_assessment_result['total_columns'],
+            overall_quality_score=quality_assessment_result['overall_quality_score'],
             column_profiles=column_profiles,
             issues_found=issues_found,
             recommendations=recommendations,
             bias_analysis=bias_analysis,
-            processing_time=processing_time
+            processing_time=quality_assessment_result['processing_time']
         )
         
     except HTTPException:
@@ -402,65 +408,63 @@ async def auto_clean_data(
     cleaning_id = str(uuid.uuid4())
     
     try:
-        # Parse cleaning options
-        try:
-            options = json.loads(cleaning_options)
-        except:
-            options = {
-                "remove_duplicates": True,
-                "handle_missing": "smart_impute",
-                "handle_outliers": "cap",
-                "normalize_text": True,
-                "validate_formats": True
-            }
+        options = json.loads(cleaning_options)
         
         logger.info(f"Processing auto data cleaning {cleaning_id} for file {file.filename}")
         
-        # For now, return mock cleaning results
-        # TODO: Implement actual data cleaning logic
-        mock_cleaning_actions = [
-            {
-                "action": "removed_duplicates",
-                "rows_affected": 23,
-                "description": "Removed exact duplicate rows"
-            },
-            {
-                "action": "imputed_missing_values",
-                "columns_affected": ["email", "age", "income"],
-                "method": "smart_imputation",
-                "values_imputed": 68,
-                "description": "Used median for age, mode for email domain, regression for income"
-            },
-            {
-                "action": "capped_outliers",
-                "columns_affected": ["age", "income"],
-                "outliers_capped": 14,
-                "description": "Capped extreme values to 95th percentile"
-            },
-            {
-                "action": "normalized_text",
-                "columns_affected": ["email"],
-                "description": "Standardized email formatting and fixed common typos"
-            }
-        ]
+        # Save file to a temporary location
+        file_info = await file_upload_service.save_uploaded_file(await file.read(), file.filename, str(current_user.id))
+        file_path = file_info['file_path']
+        file_type = file_info['file_type']
+
+        # Load data into DataFrame
+        if file_type == 'csv':
+            df = pd.read_csv(file_path)
+        elif file_type == 'json':
+            df = pd.read_json(file_path)
+        elif file_type == 'excel':
+            df = pd.read_excel(file_path)
+        elif file_type == 'parquet':
+            df = pd.read_parquet(file_path)
+        else:
+            raise ValueError("Unsupported file format for cleaning")
+
+        cleaner = AdvancedDataCleaner()
+        cleaned_df, cleaning_report = cleaner.comprehensive_clean(
+            df,
+            remove_duplicates=options.get("remove_duplicates", True),
+            impute_missing=options.get("handle_missing", "smart_impute"),
+            remove_outliers=options.get("handle_outliers", "cap")
+        )
         
-        mock_result = {
+        # Save cleaned data to a temporary file
+        cleaned_file_path = f"{file_path}_cleaned.{file_type}"
+        if file_type == 'csv':
+            cleaned_df.to_csv(cleaned_file_path, index=False)
+        elif file_type == 'json':
+            cleaned_df.to_json(cleaned_file_path, orient='records', indent=2)
+        elif file_type == 'excel':
+            cleaned_df.to_excel(cleaned_file_path, index=False)
+        elif file_type == 'parquet':
+            cleaned_df.to_parquet(cleaned_file_path, index=False)
+
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
+        
+        return {
             "success": True,
             "cleaning_id": cleaning_id,
             "filename": file.filename,
-            "original_rows": 1000,
-            "cleaned_rows": 977,  # after removing duplicates
-            "actions_performed": mock_cleaning_actions,
+            "original_rows": len(df),
+            "cleaned_rows": len(cleaned_df),
+            "actions_performed": cleaning_report.get("steps_performed", []),
             "quality_improvement": {
-                "before_score": 0.78,
-                "after_score": 0.94,
-                "improvement": 0.16
+                "before_score": cleaning_report.get("initial_quality", {}).get("overall_quality", 0.0),
+                "after_score": cleaning_report.get("final_quality", {}).get("overall_quality", 0.0),
+                "improvement": cleaning_report.get("quality_improvement", 0.0)
             },
-            "download_url": f"/api/v1/quality/download/{cleaning_id}",
-            "processing_time": (datetime.utcnow() - start_time).total_seconds()
+            "download_url": f"/api/v1/quality/download/{cleaning_id}?format={file_type}",
+            "processing_time": processing_time
         }
-        
-        return mock_result
         
     except Exception as e:
         logger.error(f"Error auto-cleaning data: {e}")
@@ -490,76 +494,65 @@ async def ai_feature_engineering(
     try:
         logger.info(f"Processing feature engineering {engineering_id} for {task_type} task")
         
-        # For now, return mock feature engineering results
-        # TODO: Implement actual feature engineering logic
-        mock_features_created = [
-            {
-                "feature_name": "age_group",
-                "feature_type": "categorical",
-                "source_column": "age",
-                "transformation": "binning",
-                "description": "Age grouped into Young (18-30), Middle (31-50), Senior (51+)"
-            },
-            {
-                "feature_name": "income_per_age",
-                "feature_type": "numerical",
-                "source_columns": ["income", "age"],
-                "transformation": "ratio",
-                "description": "Income divided by age as a productivity indicator"
-            },
-            {
-                "feature_name": "email_domain",
-                "feature_type": "categorical",
-                "source_column": "email",
-                "transformation": "extraction",
-                "description": "Extracted domain from email addresses"
-            },
-            {
-                "feature_name": "income_log",
-                "feature_type": "numerical",
-                "source_column": "income",
-                "transformation": "log_transform",
-                "description": "Log-transformed income to reduce skewness"
-            }
-        ]
+        # Save file to a temporary location
+        file_info = await file_upload_service.save_uploaded_file(await file.read(), file.filename, str(current_user.id))
+        file_path = file_info['file_path']
+        file_type = file_info['file_type']
+
+        # Load data into DataFrame
+        if file_type == 'csv':
+            df = pd.read_csv(file_path)
+        elif file_type == 'json':
+            df = pd.read_json(file_path)
+        elif file_type == 'excel':
+            df = pd.read_excel(file_path)
+        elif file_type == 'parquet':
+            df = pd.read_parquet(file_path)
+        else:
+            raise ValueError("Unsupported file format for feature engineering")
+
+        ml_engine = AdvancedMLEngine()
         
-        mock_encodings = [
-            {
-                "column": "email_domain",
-                "encoding_type": "target_encoding",
-                "categories_encoded": 15,
-                "description": "Target-encoded based on correlation with target variable"
-            },
-            {
-                "column": "age_group",
-                "encoding_type": "one_hot",
-                "categories_encoded": 3,
-                "description": "One-hot encoded age groups"
-            }
-        ]
+        # Perform feature engineering
+        engineered_df, engineering_report = ml_engine.perform_feature_engineering(
+            df,
+            target_column=target_column,
+            task_type=task_type
+        )
+
+        # Save engineered data to a temporary file
+        engineered_file_path = f"{file_path}_engineered.{file_type}"
+        if file_type == 'csv':
+            engineered_df.to_csv(engineered_file_path, index=False)
+        elif file_type == 'json':
+            engineered_df.to_json(engineered_file_path, orient='records', indent=2)
+        elif file_type == 'excel':
+            engineered_df.to_excel(engineered_file_path, index=False)
+        elif file_type == 'parquet':
+            engineered_df.to_parquet(engineered_file_path, index=False)
+
+        processing_time = (datetime.utcnow() - start_time).total_seconds()
         
-        mock_result = {
+        return {
             "success": True,
             "engineering_id": engineering_id,
             "filename": file.filename,
             "task_type": task_type,
             "target_column": target_column,
-            "original_features": 4,
-            "engineered_features": len(mock_features_created),
-            "total_features": 4 + len(mock_features_created),
-            "features_created": mock_features_created,
-            "encodings_applied": mock_encodings,
-            "ml_readiness_score": 0.92,
-            "recommended_frameworks": ["scikit-learn", "xgboost", "lightgbm"],
+            "original_features": engineering_report.get("original_features"),
+            "engineered_features": engineering_report.get("engineered_features"),
+            "total_features": engineering_report.get("total_features"),
+            "features_created": engineering_report.get("features_created"),
+            "encodings_applied": engineering_report.get("encodings_applied"),
+            "ml_readiness_score": engineering_report.get("ml_readiness_score"),
+            "recommended_frameworks": engineering_report.get("recommended_frameworks"),
             "download_formats": {
-                "csv": f"/api/v1/quality/download/{engineering_id}/csv",
-                "parquet": f"/api/v1/quality/download/{engineering_id}/parquet",
-                "sklearn_dataset": f"/api/v1/quality/download/{engineering_id}/sklearn"
+                "csv": f"/api/v1/quality/download/{engineering_id}?format=csv",
+                "parquet": f"/api/v1/quality/download/{engineering_id}?format=parquet",
+                "sklearn_dataset": f"/api/v1/quality/download/{engineering_id}?format=sklearn"
             },
-            "processing_time": (datetime.utcnow() - start_time).total_seconds()
+            "processing_time": processing_time
         }
-        
-        return mock_result
         
     except Exception as e:
         logger.error(f"Error in feature engineering: {e}")
@@ -570,17 +563,39 @@ async def ai_feature_engineering(
             "processing_time": (datetime.utcnow() - start_time).total_seconds()
         }
 
-@router.get("/assessments", response_model=List[Dict[str, Any]])
+@router.get("/assessments", response_model=List[DataQualityResult])
 @handle_auth_errors
+@handle_database_errors
 async def list_assessments(
     current_user = Depends(get_current_user),
     db: AsyncSession = Depends(get_async_session)
 ):
     """List user's data quality assessments"""
     try:
-        # For now, return empty list
-        # TODO: Implement database storage and retrieval
-        return []
+        result = await db.execute(
+            select(DataQualityAssessmentModel)
+            .where(DataQualityAssessmentModel.user_id == current_user.id)
+            .order_by(DataQualityAssessmentModel.created_at.desc())
+        )
+        assessments = result.scalars().all()
+        
+        return [
+            DataQualityResult(
+                success=True,
+                assessment_id=str(a.id),
+                filename=a.filename,
+                total_rows=a.total_rows,
+                total_columns=a.total_columns,
+                overall_quality_score=a.overall_quality_score,
+                column_profiles=[ColumnProfile(**p) for p in a.column_profiles],
+                issues_found=a.issues_found,
+                recommendations=a.recommendations,
+                bias_analysis=a.bias_analysis,
+                processing_time=a.processing_time,
+                error=a.error_message
+            )
+            for a in assessments
+        ]
     except Exception as e:
         logger.error(f"Error listing assessments: {e}")
         raise HTTPException(

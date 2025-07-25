@@ -380,6 +380,8 @@ async def delete_investigation(
 # ==================== QUICK INSIGHTS ENDPOINT ====================
 
 @router.get("/quick-insights/{investigation_id}")
+@handle_auth_errors
+@handle_database_errors
 async def get_quick_insights(
     investigation_id: str,
     current_user: User = Depends(get_current_user),

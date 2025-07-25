@@ -27,6 +27,7 @@ module.exports = {
         }
       },
       fontFamily: {
+        sans: ['var(--font-dm-sans)', 'sans-serif'],
         'sf': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'sans-serif'],
         'sf-text': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Segoe UI', 'sans-serif'],
       },
