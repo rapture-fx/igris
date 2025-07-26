@@ -58,9 +58,9 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
               <img 
-                src="/Schlep Engine 14x11cm new logo.svg" 
+                src="/Schlep Engine 14x11cm (4).svg" 
                 alt="Schlep-engine" 
-                className="h-10 w-auto"
+                className="h-12 w-auto"
               />
               <span className="text-lg" style={{fontFamily: '"DM Sans", sans-serif', color: '#1A5799', fontWeight: '700'}}>Schlep-engine</span>
             </Link>

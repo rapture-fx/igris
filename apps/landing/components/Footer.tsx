@@ -42,7 +42,7 @@ export default function Footer() {
             <div className="lg:col-span-2">
               <div className="flex items-center mb-6" style={{gap: '0.5rem'}}>
                 <img 
-                  src="/Schlep Engine 14x11cm new logo.svg" 
+                  src="/Schlep Engine 14x11cm (4).svg" 
                   alt="Schlep-engine" 
                   className="h-16 w-auto"
                 />

@@ -1,13 +1,31 @@
-name: Security Scanning Pipeline
+name: Enhanced Security Scanning & DevSecOps
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main, develop, staging ]
   pull_request:
     branches: [ main, develop ]
   schedule:
     # Run security scans daily at 2 AM UTC
     - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      scan_type:
+        description: 'Type of security scan to run'
+        required: true
+        default: 'full'
+        type: choice
+        options:
+        - full
+        - dependencies
+        - secrets
+        - containers
+        - infrastructure
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+  SECURITY_SCAN_TIMEOUT: '300'
 
 jobs:
   dependency-vulnerability-scan:
