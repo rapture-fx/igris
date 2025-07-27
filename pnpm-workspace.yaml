@@ -1,3 +1,7 @@
 packages:
-  - 'apps/*'
+  # Applications
+  - 'apps/backend'
+  - 'apps/web-*'
+  
+  # Shared packages
   - 'packages/*' 

@@ -1,0 +1,3 @@
+# Schlep-engine ML Service Dependencies
+# Heavy ML dependencies for separate service
+

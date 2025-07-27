@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schlep-engine-backend
+  labels:
+    app: schlep-engine-backend
+spec:
+  replicas: 1 # Start with 1, HPA will scale it
+  selector:
+    matchLabels:
+      app: schlep-engine-backend
+  template:
+    metadata:
+      labels:
+        app: schlep-engine-backend
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/your-org/schlep-engine-backend:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: schlep-engine-secrets
+        - configMapRef:
+            name: schlep-engine-config
+        resources:
+          requests:
+            cpu: "250m"
+            memory: "512Mi"
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 20
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schlep-engine-backend
+spec:
+  selector:
+    app: schlep-engine-backend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000 
