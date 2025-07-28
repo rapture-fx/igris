@@ -79,7 +79,7 @@ export default function Features() {
   return (
     // Visual Enhancement Suggestion: Consider adding a diagram or a short video here
     // that visually explains how these features work together to prepare data for ML.
-    <section id="features" className="section-padding bg-white dark:bg-slate-950 transition-colors duration-300">
+    <section id="features" className="section-padding bg-black">
       <div className="max-w-7xl mx-auto container-padding">
         <div className="text-center mb-16">
           <motion.div
@@ -126,7 +126,7 @@ export default function Features() {
             <motion.div
               key={index}
               variants={itemVariants}
-              className="group relative bg-white dark:bg-slate-900 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-slate-700 card-hover"
+              className="group relative bg-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700 card-hover"
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6`}>
                 <feature.icon className="w-6 h-6 text-white" />

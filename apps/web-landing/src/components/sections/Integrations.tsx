@@ -83,13 +83,13 @@ export default function Integrations() {
   }
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-20 bg-black">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-6">
             <span className="text-[#468BE6]">Integrations</span> Everywhere
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-300 max-w-3xl mx-auto">
             Connect Schlep Engine with your favorite tools and platforms. 
             Build powerful data pipelines without the complexity.
           </p>
@@ -106,7 +106,7 @@ export default function Integrations() {
                 className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                   activeCategory === key
                     ? 'bg-[#468BE6] text-white shadow-md'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
                 }`}
               >
                 <IconComponent className="w-5 h-5" />
@@ -121,7 +121,7 @@ export default function Integrations() {
           {categories[activeCategory as keyof typeof categories].integrations.map((integration, index) => (
             <div
               key={index}
-              className="bg-white border border-gray-200 rounded-xl p-6 hover:border-[#468BE6]/30 hover:shadow-lg transition-all duration-200 group"
+              className="bg-gray-900 border border-gray-700 rounded-xl p-6 hover:border-[#468BE6]/30 hover:shadow-lg transition-all duration-200 group"
             >
               <div className="flex items-center space-x-4 mb-3">
                 <div className="text-2xl">{integration.logo}</div>
@@ -189,7 +189,7 @@ export default function Integrations() {
           </h3>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <BarChart3 className="w-5 h-5 text-[#468BE6]" />
@@ -212,7 +212,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <Zap className="w-5 h-5 text-[#468BE6]" />
@@ -235,7 +235,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <Database className="w-5 h-5 text-[#468BE6]" />
@@ -258,7 +258,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <BarChart3 className="w-5 h-5 text-[#468BE6]" />
@@ -281,7 +281,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6">
+            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <Zap className="w-5 h-5 text-[#468BE6]" />

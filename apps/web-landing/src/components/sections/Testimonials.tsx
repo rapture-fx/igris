@@ -31,13 +31,13 @@ export default function Testimonials() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section className="py-16 md:py-24 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Loved by Data Teams Worldwide
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Join thousands of data scientists, ML engineers, and researchers who trust Schlep-engine
           </p>
         </div>
@@ -46,7 +46,7 @@ export default function Testimonials() {
           {testimonials.map((testimonial, index) => (
             <div
               key={index}
-              className="bg-gray-50 rounded-lg p-8 border border-gray-100"
+              className="bg-gray-900 rounded-lg p-8 border border-gray-700"
             >
               <div className="flex items-center mb-6">
                 <div className="w-12 h-12 bg-[#468BE6] rounded-full flex items-center justify-center mr-4">
@@ -55,10 +55,10 @@ export default function Testimonials() {
                   </span>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-gray-900">
+                  <h4 className="font-semibold text-white">
                     {testimonial.name}
                   </h4>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-gray-400">
                     {testimonial.role}, {testimonial.company}
                   </p>
                 </div>
@@ -72,7 +72,7 @@ export default function Testimonials() {
 
               <div className="relative">
                 <Quote className="absolute -top-2 -left-2 w-8 h-8 text-gray-300" />
-                <p className="text-gray-700 leading-relaxed pl-6">
+                <p className="text-gray-300 leading-relaxed pl-6">
                   "{testimonial.content}"
                 </p>
               </div>

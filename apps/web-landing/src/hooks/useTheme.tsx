@@ -20,15 +20,15 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true)
     
-    // Check localStorage first, then system preference
-    const savedTheme = localStorage.getItem('schlep-theme') as Theme | null
+    // Check localStorage first, then default to dark
+    const savedTheme = localStorage.getItem('schlep-landing-theme') as Theme | null
     if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
       setThemeState(savedTheme)
     } else {
       // Default to dark mode (dark mode first approach)
       const initialTheme: Theme = 'dark'
       setThemeState(initialTheme)
-      localStorage.setItem('schlep-theme', initialTheme)
+      localStorage.setItem('schlep-landing-theme', initialTheme)
     }
   }, [])
 
@@ -39,7 +39,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const root = document.documentElement
     root.classList.remove('light', 'dark')
     root.classList.add(theme)
-    localStorage.setItem('schlep-theme', theme)
+    localStorage.setItem('schlep-landing-theme', theme)
   }, [theme, mounted])
 
   const setTheme = (newTheme: Theme) => {

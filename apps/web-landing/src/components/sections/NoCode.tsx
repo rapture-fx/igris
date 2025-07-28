@@ -8,13 +8,13 @@ export default function NoCode() {
     // Visual Enhancement Suggestion: Consider adding a screenshot or a short demo video
     // of the no-code interface in action, showing the drag-and-drop, point-and-click configuration,
     // and the processing steps.
-    <section className="py-20 bg-gradient-to-br from-blue-50/30 to-white">
+    <section className="py-20 bg-black">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-6">
+          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-6">
             For <span className="text-[#468BE6]">No-Code Users</span>
           </h2>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-300 max-w-3xl mx-auto">
             Clean and prepare your data without writing a single line of code. 
             Our intuitive interface makes data transformation accessible to everyone.
           </p>
@@ -27,10 +27,10 @@ export default function NoCode() {
                 <Upload className="w-6 h-6 text-[#468BE6]" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-white mb-2">
                   Simple Upload
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-300">
                   Drag and drop your CSV, Excel, or JSON files. No technical setup required.
                 </p>
               </div>
@@ -41,10 +41,10 @@ export default function NoCode() {
                 <MousePointer className="w-6 h-6 text-[#468BE6]" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-white mb-2">
                   Point & Click Configuration
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-300">
                   Select transformations, handle missing values, and configure outputs with visual tools.
                 </p>
               </div>
@@ -55,10 +55,10 @@ export default function NoCode() {
                 <Zap className="w-6 h-6 text-[#468BE6]" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-white mb-2">
                   AI-Powered Processing
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-300">
                   Our AI automatically detects data patterns and suggests optimal transformations.
                 </p>
               </div>
@@ -69,17 +69,17 @@ export default function NoCode() {
                 <Download className="w-6 h-6 text-[#468BE6]" />
               </div>
               <div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <h3 className="text-xl font-semibold text-white mb-2">
                   Ready-to-Use Output
                 </h3>
-                <p className="text-gray-600">
+                <p className="text-gray-300">
                   Download clean data in formats ready for Excel, Tableau, or any analytics tool.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-lg p-8 border">
+          <div className="bg-gray-900 rounded-2xl shadow-lg p-8 border">
             <div className="space-y-6">
               <div className="border-2 border-dashed border-[#468BE6]/30 rounded-lg p-8 text-center bg-[#468BE6]/5">
                 <Upload className="w-12 h-12 text-[#468BE6] mx-auto mb-4" />
@@ -124,12 +124,12 @@ export default function NoCode() {
         </div>
 
         <div className="bg-gradient-to-r from-[#468BE6]/10 to-blue-100/50 rounded-2xl p-8 text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+          <h3 className="text-xl font-semibold text-white mb-4">
             Popular No-Code Integrations
           </h3>
           <div className="flex flex-wrap justify-center gap-6">
             {['Zapier', 'Airtable', 'Google Sheets', 'Notion', 'Tableau', 'Power BI'].map((tool) => (
-              <div key={tool} className="bg-white px-4 py-2 rounded-lg shadow-sm border">
+              <div key={tool} className="bg-gray-900 px-4 py-2 rounded-lg shadow-sm border">
                 <span className="text-sm font-medium text-gray-700">{tool}</span>
               </div>
             ))}

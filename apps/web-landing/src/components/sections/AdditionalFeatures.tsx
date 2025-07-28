@@ -51,14 +51,14 @@ const features = [
 
 export default function AdditionalFeatures() {
   return (
-    <section className="py-20 sm:py-24 lg:py-32 bg-gray-50">
+    <section className="py-20 sm:py-24 lg:py-32 bg-black">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="lg:text-center">
           <h2 className="text-base font-semibold leading-7 text-[#1A5799]">Beyond the Core</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+          <p className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl">
             Explore the Full Power of Schlep-engine
           </p>
-          <p className="mt-6 text-lg leading-8 text-gray-600">
+          <p className="mt-6 text-lg leading-8 text-gray-300">
             Schlep-engine offers a comprehensive suite of features designed to streamline your data operations,
             from advanced AI capabilities to robust security and seamless integrations.
           </p>
@@ -68,13 +68,13 @@ export default function AdditionalFeatures() {
           <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
             {features.map((feature) => (
               <div key={feature.name} className="relative pl-16">
-                <dt className="text-base font-semibold leading-7 text-gray-900">
+                <dt className="text-base font-semibold leading-7 text-white">
                   <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1A5799]">
                     <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   {feature.name}
                 </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-600">{feature.description}</dd>
+                <dd className="mt-2 text-base leading-7 text-gray-300">{feature.description}</dd>
               </div>
             ))}
           </dl>

@@ -38,13 +38,13 @@ export default function FAQ() {
   }
 
   return (
-    <section className="py-16 md:py-24 bg-gray-50">
+    <section className="py-16 md:py-24 bg-black">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Frequently Asked Questions
           </h2>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-gray-300">
             Everything you need to know about Schlep-engine
           </p>
         </div>
@@ -53,24 +53,24 @@ export default function FAQ() {
           {faqs.map((faq, index) => (
             <div
               key={index}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden"
+              className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden"
             >
               <button
-                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-50 transition-colors duration-200"
+                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-gray-800 transition-colors duration-200"
                 onClick={() => toggleFAQ(index)}
               >
-                <span className="font-semibold text-gray-900">
+                <span className="font-semibold text-white">
                   {faq.question}
                 </span>
                 {openIndex === index ? (
-                  <ChevronUp className="w-5 h-5 text-gray-500" />
+                  <ChevronUp className="w-5 h-5 text-gray-400" />
                 ) : (
-                  <ChevronDown className="w-5 h-5 text-gray-500" />
+                  <ChevronDown className="w-5 h-5 text-gray-400" />
                 )}
               </button>
               {openIndex === index && (
                 <div className="px-6 pb-4">
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-gray-300 leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>
@@ -80,11 +80,11 @@ export default function FAQ() {
         </div>
 
         <div className="mt-16 text-center">
-          <div className="bg-[#468BE6] bg-opacity-5 rounded-lg p-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">
+          <div className="bg-gray-900 rounded-lg p-8 border border-gray-700">
+            <h3 className="text-2xl font-bold text-white mb-4">
               Ready to Stop Wrestling with Data?
             </h3>
-            <p className="text-gray-600 mb-6">
+            <p className="text-gray-300 mb-6">
               Join thousands of data teams who've accelerated their AI projects
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -96,7 +96,7 @@ export default function FAQ() {
               </a>
               <a
                 href="http://localhost:3001"
-                className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 font-medium"
+                className="border border-gray-600 text-gray-300 px-8 py-3 rounded-lg hover:bg-gray-800 transition-colors duration-200 font-medium"
               >
                 View Documentation
               </a>

@@ -55,13 +55,13 @@ export default function Pricing() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-gray-50 dark:bg-slate-900 transition-colors duration-300">
+    <section className="py-16 md:py-24 bg-black">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-slate-50 mb-4 transition-colors duration-300">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Simple, Transparent Pricing
           </h2>
-          <p className="text-xl text-gray-600 dark:text-slate-300 max-w-2xl mx-auto transition-colors duration-300">
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
             Start free and scale as you grow. All plans include our core AI-powered data preparation features.
           </p>
         </div>
@@ -70,10 +70,10 @@ export default function Pricing() {
           {plans.map((plan, index) => (
             <div
               key={index}
-              className={`relative bg-white dark:bg-slate-900 rounded-lg p-8 shadow-sm border transition-colors duration-300 ${
+              className={`relative bg-gray-900 rounded-lg p-8 shadow-sm border ${
                 plan.popular 
-                  ? 'border-[#468BE6] dark:border-[#468BE6] ring-2 ring-[#468BE6] ring-opacity-20 transform scale-105' 
-                  : 'border-gray-200 dark:border-slate-700'
+                  ? 'border-[#468BE6] ring-2 ring-[#468BE6] ring-opacity-20 transform scale-105' 
+                  : 'border-gray-700'
               }`}
             >
               {plan.popular && (
@@ -86,18 +86,18 @@ export default function Pricing() {
               )}
 
               <div className="text-center mb-8">
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-slate-50 mb-2 transition-colors duration-300">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-slate-50 mb-2 ">
                   {plan.name}
                 </h3>
-                <p className="text-gray-600 dark:text-slate-300 mb-6 text-sm transition-colors duration-300">
+                <p className="text-gray-300 mb-6 text-sm ">
                   {plan.description}
                 </p>
                 <div className="flex items-baseline justify-center">
-                  <span className="text-4xl font-bold text-gray-900 dark:text-slate-50 transition-colors duration-300">
+                  <span className="text-4xl font-bold text-white">
                     {plan.price}
                   </span>
                   {plan.period && (
-                    <span className="text-gray-600 dark:text-slate-300 ml-2 transition-colors duration-300"
+                    <span className="text-gray-300 ml-2 ">
                       {plan.period}
                     </span>
                   )}
@@ -108,7 +108,7 @@ export default function Pricing() {
                 {plan.features.map((feature, featureIndex) => (
                   <li key={featureIndex} className="flex items-start">
                     <Check className="w-5 h-5 text-[#10b981] mr-3 mt-0.5 flex-shrink-0" />
-                    <span className="text-gray-700 dark:text-slate-300 text-sm transition-colors duration-300">{feature}</span>
+                    <span className="text-gray-300 text-sm ">{feature}</span>
                   </li>
                 ))}
               </ul>
@@ -120,7 +120,7 @@ export default function Pricing() {
                     ? 'bg-[#468BE6] hover:bg-[#3a7bd5] text-white'
                     : plan.name === 'Enterprise'
                     ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
-                    : 'bg-gray-100 hover:bg-gray-200 text-gray-900'
+                    : 'bg-gray-800 hover:bg-gray-700 text-white'
                 }`}
               >
                 {plan.cta}

@@ -82,7 +82,7 @@ func main() {
   return (
     // Visual Enhancement Suggestion: Consider adding a diagram illustrating the API architecture
     // or a short video demonstrating an API call and its result.
-    <section className="py-20 bg-gray-900 text-white">
+    <section className="py-20 bg-black text-white">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold mb-6">

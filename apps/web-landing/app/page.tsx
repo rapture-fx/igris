@@ -11,13 +11,15 @@ import HowItWorks from '../src/components/sections/HowItWorks'
 import Testimonials from '../src/components/sections/Testimonials'
 import FAQ from '../src/components/sections/FAQ'
 import Footer from '../src/components/sections/Footer'
+import GridBackground from '../src/components/ui/GridBackground'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-900 transition-colors duration-300">
+    <div className="min-h-screen bg-black">
       <Header />
       <main>
         <Hero />
+        <GridBackground />
         <Benefits />
         <HowItWorks />
         <AudienceGuide />

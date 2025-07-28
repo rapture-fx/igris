@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Eye, EyeOff } from 'lucide-react'
-import ThemeToggle from '../../src/components/ui/ThemeToggle'
 
 export default function SignIn() {
   const [showPassword, setShowPassword] = useState(false)
@@ -27,12 +26,7 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
-      {/* Theme Toggle - Fixed position */}
-      <div className="fixed top-6 right-6 z-50">
-        <ThemeToggle />
-      </div>
-      
+    <div className="min-h-screen bg-black">
       <div className="flex min-h-screen">
         {/* Left Column - Form */}
         <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-20 xl:px-24 bg-white dark:bg-slate-950 transition-colors duration-300">

@@ -53,7 +53,7 @@ const securityFeatures = [
 
 export default function SecurityFeatures() {
   return (
-    <section className="py-20 sm:py-24 lg:py-32 bg-white">
+    <section className="py-20 sm:py-24 lg:py-32 bg-black">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="lg:text-center mb-16">
           <motion.h2
@@ -70,7 +70,7 @@ export default function SecurityFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl"
+            className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl"
           >
             Your Data, Secured with Confidence
           </motion.p>
@@ -79,7 +79,7 @@ export default function SecurityFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-6 text-lg leading-8 text-gray-600"
+            className="mt-6 text-lg leading-8 text-gray-300"
           >
             Schlep-engine is built from the ground up with security as a core principle, 
             ensuring your sensitive data is protected by industry-leading controls and compliance.
@@ -97,13 +97,13 @@ export default function SecurityFeatures() {
                 transition={{ duration: 0.5 }}
                 className="relative pl-16"
               >
-                <dt className="text-base font-semibold leading-7 text-gray-900">
+                <dt className="text-base font-semibold leading-7 text-white">
                   <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-[#468BE6]">
                     <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   {feature.name}
                 </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-600">{feature.description}</dd>
+                <dd className="mt-2 text-base leading-7 text-gray-300">{feature.description}</dd>
               </motion.div>
             ))}
           </dl>

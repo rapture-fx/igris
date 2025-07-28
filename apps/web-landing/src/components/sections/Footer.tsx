@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import { Github, Twitter, Linkedin, Mail } from 'lucide-react'
 
 export default function Footer() {
   const footerSections = [
@@ -35,7 +34,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-gray-900 dark:bg-zinc-950 text-white transition-colors duration-300">
+    <footer className="bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-16">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
@@ -44,51 +43,21 @@ export default function Footer() {
                 <img 
                   src="/Schlep Engine laest logo design.svg" 
                   alt="Schlep Engine - AI-Powered Data Preparation" 
-                  className="h-16 w-auto"
+                  className="h-10 w-auto"
                 />
                 <span className="text-xl" style={{fontFamily: '"DM Sans", sans-serif', color: 'white', fontWeight: '700'}}>Schlep-engine</span>
               </div>
-              <p className="text-gray-400 dark:text-slate-400 mb-8 leading-relaxed transition-colors duration-300">
+              <p className="text-gray-400 mb-8 leading-relaxed">
                 Transform messy data into ML-ready formats with AI-powered 
                 data preparation. Trusted by thousands of data teams worldwide.
               </p>
-              <div className="flex space-x-4">
-                <a
-                  href="#"
-                  className="w-10 h-10 bg-gray-800 dark:bg-slate-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
-                  aria-label="GitHub"
-                >
-                  <Github className="w-5 h-5" />
-                </a>
-                <a
-                  href="#"
-                  className="w-10 h-10 bg-gray-800 dark:bg-slate-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
-                  aria-label="Twitter"
-                >
-                  <Twitter className="w-5 h-5" />
-                </a>
-                <a
-                  href="#"
-                  className="w-10 h-10 bg-gray-800 dark:bg-slate-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
-                  aria-label="LinkedIn"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </a>
-                <a
-                  href="#"
-                  className="w-10 h-10 bg-gray-800 dark:bg-slate-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
-                  aria-label="Email"
-                >
-                  <Mail className="w-5 h-5" />
-                </a>
-              </div>
             </div>
 
             <div className="lg:col-span-3">
               <div className="grid grid-cols-3 gap-8">
                 {footerSections.map((section, index) => (
                   <div key={index}>
-                    <h3 className="text-lg font-semibold mb-6 text-white dark:text-slate-50 transition-colors duration-300">
+                    <h3 className="text-lg font-semibold mb-6 text-white">
                       {section.title}
                     </h3>
                     <ul className="space-y-4">
@@ -96,7 +65,7 @@ export default function Footer() {
                         <li key={linkIndex}>
                           <Link
                             href={link.href}
-                            className="text-gray-400 dark:text-slate-400 hover:text-white dark:hover:text-slate-50 transition-colors duration-200 text-sm"
+                            className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
                           >
                             {link.name}
                           </Link>
@@ -109,12 +78,12 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-800 dark:border-slate-800 transition-colors duration-300">
+          <div className="mt-12 pt-8 border-t border-gray-800">
             <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="text-gray-400 dark:text-slate-400 mb-4 md:mb-0 text-sm transition-colors duration-300">
+              <div className="text-gray-400 mb-4 md:mb-0 text-sm">
                 <p>&copy; 2024 Schlep-engine. All rights reserved.</p>
               </div>
-              <div className="text-gray-400 dark:text-slate-400 text-sm transition-colors duration-300">
+              <div className="text-gray-400 text-sm">
                 <p>hello@schlep-engine.com</p>
               </div>
             </div>
