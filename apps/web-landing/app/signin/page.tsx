@@ -27,7 +27,7 @@ export default function SignIn() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-zinc-900 transition-colors duration-300">
+    <div className="min-h-screen bg-gray-50 dark:bg-slate-950 transition-colors duration-300">
       {/* Theme Toggle - Fixed position */}
       <div className="fixed top-6 right-6 z-50">
         <ThemeToggle />
@@ -35,7 +35,7 @@ export default function SignIn() {
       
       <div className="flex min-h-screen">
         {/* Left Column - Form */}
-        <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-20 xl:px-24 bg-white dark:bg-zinc-900 transition-colors duration-300">
+        <div className="flex-1 flex flex-col justify-center px-6 py-12 lg:px-20 xl:px-24 bg-white dark:bg-slate-950 transition-colors duration-300">
           <div className="mx-auto w-full max-w-sm lg:w-96">
             {/* Logo */}
             <div className="flex items-center mb-8">
@@ -51,10 +51,10 @@ export default function SignIn() {
 
             {/* Header */}
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-zinc-50 mb-2 transition-colors duration-300">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-slate-50 mb-2 transition-colors duration-300">
                 Welcome back
               </h2>
-              <p className="text-gray-600 dark:text-zinc-300 transition-colors duration-300">
+              <p className="text-gray-600 dark:text-slate-300 transition-colors duration-300">
                 Sign in to your account to continue
               </p>
             </div>
@@ -62,7 +62,7 @@ export default function SignIn() {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2 transition-colors duration-300">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 transition-colors duration-300">
                   Email address
                 </label>
                 <input
@@ -73,13 +73,13 @@ export default function SignIn() {
                   required
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-zinc-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#1A5799] dark:focus:ring-[#468BE6] focus:border-transparent transition-colors duration-300"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1A5799] dark:focus:ring-[#468BE6] focus:border-transparent transition-colors duration-300"
                   placeholder="Enter your email"
                 />
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-zinc-300 mb-2 transition-colors duration-300">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2 transition-colors duration-300">
                   Password
                 </label>
                 <div className="relative">
@@ -91,7 +91,7 @@ export default function SignIn() {
                     required
                     value={formData.password}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-zinc-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-zinc-500 bg-white dark:bg-zinc-800 text-gray-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[#1A5799] dark:focus:ring-[#468BE6] focus:border-transparent transition-colors duration-300"
+                    className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-slate-600 rounded-lg shadow-sm placeholder-gray-400 dark:placeholder-slate-500 bg-white dark:bg-slate-800 text-gray-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1A5799] dark:focus:ring-[#468BE6] focus:border-transparent transition-colors duration-300"
                     placeholder="Enter your password"
                   />
                   <button
@@ -100,9 +100,9 @@ export default function SignIn() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+                      <EyeOff className="h-4 w-4 text-gray-400 dark:text-slate-500 transition-colors duration-300" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400 dark:text-zinc-500" />
+                      <Eye className="h-4 w-4 text-gray-400 dark:text-slate-500 transition-colors duration-300" />
                     )}
                   </button>
                 </div>
@@ -114,9 +114,9 @@ export default function SignIn() {
                     id="remember-me"
                     name="remember-me"
                     type="checkbox"
-                    className="h-4 w-4 text-[#1A5799] dark:text-[#468BE6] focus:ring-[#1A5799] dark:focus:ring-[#468BE6] border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 rounded transition-colors duration-300"
+                    className="h-4 w-4 text-[#1A5799] dark:text-[#468BE6] focus:ring-[#1A5799] dark:focus:ring-[#468BE6] border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 rounded transition-colors duration-300"
                   />
-                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-zinc-300 transition-colors duration-300">
+                  <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700 dark:text-slate-300 transition-colors duration-300">
                     Remember me
                   </label>
                 </div>
@@ -134,14 +134,14 @@ export default function SignIn() {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#1A5799] dark:bg-[#468BE6] hover:bg-[#154A85] dark:hover:bg-[#3a7bd5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A5799] dark:focus:ring-[#468BE6] focus:ring-offset-gray-50 dark:focus:ring-offset-zinc-900 transition-colors duration-300"
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#1A5799] dark:bg-[#468BE6] hover:bg-[#154A85] dark:hover:bg-[#3a7bd5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#1A5799] dark:focus:ring-[#468BE6] focus:ring-offset-gray-50 dark:focus:ring-offset-slate-950 transition-colors duration-300"
                 >
                   Sign in
                 </button>
               </div>
 
               <div className="text-center">
-                <p className="text-sm text-gray-600 dark:text-zinc-300 transition-colors duration-300">
+                <p className="text-sm text-gray-600 dark:text-slate-300 transition-colors duration-300">
                   Don't have an account?{' '}
                   <Link
                     href="/signup"
@@ -157,7 +157,7 @@ export default function SignIn() {
 
         {/* Right Column - Image */}
         <div className="hidden lg:block relative flex-1">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#1A5799] to-[#468BE6] dark:from-[#154A85] dark:to-[#3a7bd5] transition-colors duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1A5799] to-[#468BE6] dark:from-slate-800 dark:to-slate-700 transition-colors duration-300">
             <div className="h-full flex items-center justify-center p-12">
               <div className="text-center text-white">
                 {/* Placeholder content - replace with actual image */}

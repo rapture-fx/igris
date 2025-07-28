@@ -58,10 +58,10 @@ export function TableOfContents() {
     return (
       <div className="hidden xl:block w-64 flex-shrink-0">
         <div className="sticky top-20 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto">
-          <div className="bg-gray-50/50 rounded-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-900 mb-3">On this page</h3>
+          <div className="bg-gray-50/50 dark:bg-zinc-800/50 rounded-lg p-4 transition-colors duration-300">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100 mb-3 transition-colors duration-300">On this page</h3>
             <div className="space-y-2">
-              <div className="text-sm text-gray-500 italic">Loading table of contents...</div>
+              <div className="text-sm text-gray-500 dark:text-zinc-400 italic transition-colors duration-300">Loading table of contents...</div>
             </div>
           </div>
         </div>
@@ -79,8 +79,8 @@ export function TableOfContents() {
   return (
     <div className="hidden xl:block w-64 flex-shrink-0">
       <div className="sticky top-20 h-fit max-h-[calc(100vh-6rem)] overflow-y-auto">
-        <div className="bg-gray-50/50 rounded-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-900 mb-3">On this page</h3>
+        <div className="bg-gray-50/50 dark:bg-zinc-800/50 rounded-lg p-4 transition-colors duration-300">
+          <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100 mb-3 transition-colors duration-300">On this page</h3>
           <nav className="space-y-1">
             {tocItems.map((item) => (
               <button
@@ -93,8 +93,8 @@ export function TableOfContents() {
                   'pl-9'
                 } ${
                   activeId === item.id
-                    ? 'text-[#1A5799] font-medium'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? 'text-[#1A5799] dark:text-[#468BE6] font-medium transition-colors duration-300'
+                    : 'text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-zinc-100 transition-colors duration-300'
                 }`}
               >
                 <div className="flex items-center">

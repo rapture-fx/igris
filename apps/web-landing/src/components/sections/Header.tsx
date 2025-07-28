@@ -54,7 +54,7 @@ export default function Header() {
 
   return (
     <header className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-7xl px-8">
-      <div className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md border border-gray-200/50 dark:border-zinc-700/50 rounded-2xl shadow-lg px-6 py-4 relative transition-colors duration-300">
+      <div className="bg-gray-900/90 dark:bg-zinc-950/90 backdrop-blur-md border border-gray-600/50 dark:border-slate-700/50 rounded-2xl shadow-lg px-6 py-4 relative transition-colors duration-300">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-3">
@@ -63,7 +63,7 @@ export default function Header() {
                 alt="Schlep Engine - AI-Powered Data Preparation" 
                 className="h-12 w-auto"
               />
-              <span className="text-lg" style={{fontFamily: '"DM Sans", sans-serif', color: '#1A5799', fontWeight: '700'}}>Schlep-engine</span>
+              <span className="text-lg" style={{fontFamily: '"DM Sans", sans-serif', color: 'white', fontWeight: '700'}}>Schlep-engine</span>
             </Link>
           </div>
 
@@ -75,7 +75,7 @@ export default function Header() {
               onClick={handleProductClick}
               className="cursor-pointer relative"
             >
-              <span className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#1A5799] dark:hover:text-[#468BE6] transition-colors duration-200">
+              <span className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] dark:hover:text-[#468BE6] transition-colors duration-200">
                 Product
               </span>
               
@@ -83,7 +83,7 @@ export default function Header() {
               {showProductPanel && (
                 <div 
                   ref={panelRef}
-                  className="absolute bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-gray-200/50 dark:border-zinc-700/50 rounded-lg shadow-xl p-4 z-50 transition-colors duration-300"
+                  className="absolute bg-gray-800/95 dark:bg-slate-950/95 backdrop-blur-md border border-gray-600/50 dark:border-slate-700/50 rounded-lg shadow-xl p-4 z-50 transition-colors duration-300"
                   onMouseEnter={handleProductHover}
                   onMouseLeave={handleProductLeave}
                   style={{
@@ -95,21 +95,21 @@ export default function Header() {
                   <div className="space-y-4">
                     {/* Processing Power */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100 mb-2">Processing Power</h3>
+                      <h3 className="text-sm font-semibold text-white dark:text-slate-50 mb-2 transition-colors duration-300">Processing Power</h3>
                       <div className="space-y-2">
-                        <div className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 dark:hover:bg-zinc-800/80 transition-colors duration-200 group cursor-pointer">
+                        <div className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-700/80 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer">
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-[#1A5799] dark:group-hover:text-[#468BE6]">High-Performance Processing</h4>
-                            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">Process 50,000+ rows in 2.3s with automated optimization</p>
+                            <h4 className="font-medium text-white dark:text-slate-50 text-sm group-hover:text-[#468BE6] dark:group-hover:text-[#468BE6]">High-Performance Processing</h4>
+                            <p className="text-xs text-gray-300 dark:text-slate-400 mt-0.5">Process 50,000+ rows in 2.3s with automated optimization</p>
                           </div>
                         </div>
                         
-                        <div className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 dark:hover:bg-zinc-800/80 transition-colors duration-200 group cursor-pointer">
+                        <div className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-700/80 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer">
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-[#1A5799] dark:group-hover:text-[#468BE6]">Multi-format Support</h4>
-                            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">CSV, JSON, PDF, XLSX processing in unified workflows</p>
+                            <h4 className="font-medium text-white dark:text-slate-50 text-sm group-hover:text-[#468BE6] dark:group-hover:text-[#468BE6]">Multi-format Support</h4>
+                            <p className="text-xs text-gray-300 dark:text-slate-400 mt-0.5">CSV, JSON, PDF, XLSX processing in unified workflows</p>
                           </div>
                         </div>
                       </div>
@@ -117,38 +117,38 @@ export default function Header() {
 
                     {/* API Endpoints */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100 mb-2">API Endpoints</h3>
+                      <h3 className="text-sm font-semibold text-white dark:text-slate-50 mb-2">API Endpoints</h3>
                       <div className="space-y-2">
                         <Link 
                           href="#document-extraction-api" 
-                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 dark:hover:bg-zinc-800/80 transition-colors duration-200 group cursor-pointer"
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-700/80 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer"
                         >
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-[#1A5799] dark:group-hover:text-[#468BE6]">Document Extraction API</h4>
-                            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">PDF, DOCX, and scanned document processing via REST API</p>
+                            <h4 className="font-medium text-white dark:text-slate-50 text-sm group-hover:text-[#468BE6] dark:group-hover:text-[#468BE6]">Document Extraction API</h4>
+                            <p className="text-xs text-gray-300 dark:text-slate-400 mt-0.5">PDF, DOCX, and scanned document processing via REST API</p>
                           </div>
                         </Link>
                         
                         <Link 
                           href="#data-quality-api" 
-                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 dark:hover:bg-zinc-800/80 transition-colors duration-200 group cursor-pointer"
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-700/80 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer"
                         >
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-[#1A5799] dark:group-hover:text-[#468BE6]">Data Quality API</h4>
-                            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">AI-powered data cleaning and validation with confidence scores</p>
+                            <h4 className="font-medium text-white dark:text-slate-50 text-sm group-hover:text-[#468BE6] dark:group-hover:text-[#468BE6]">Data Quality API</h4>
+                            <p className="text-xs text-gray-300 dark:text-slate-400 mt-0.5">AI-powered data cleaning and validation with confidence scores</p>
                           </div>
                         </Link>
 
                         <Link 
                           href="#ml-pipeline-api" 
-                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 dark:hover:bg-zinc-800/80 transition-colors duration-200 group cursor-pointer"
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-700/80 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer"
                         >
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-[#1A5799] dark:group-hover:text-[#468BE6]">ML Pipeline API</h4>
-                            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">Train, deploy and manage ML models through simple API calls</p>
+                            <h4 className="font-medium text-white dark:text-slate-50 text-sm group-hover:text-[#468BE6] dark:group-hover:text-[#468BE6]">ML Pipeline API</h4>
+                            <p className="text-xs text-gray-300 dark:text-slate-400 mt-0.5">Train, deploy and manage ML models through simple API calls</p>
                           </div>
                         </Link>
                       </div>
@@ -156,35 +156,35 @@ export default function Header() {
 
                     {/* Recently Added */}
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-zinc-100 mb-2">Recently Added</h3>
+                      <h3 className="text-sm font-semibold text-white dark:text-slate-50 mb-2">Recently Added</h3>
                       <div className="space-y-2">
                         <Link 
                           href="#storage-api" 
-                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 dark:hover:bg-zinc-800/80 transition-colors duration-200 group cursor-pointer"
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-700/80 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer"
                         >
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-[#1A5799] dark:group-hover:text-[#468BE6]">File Storage API</h4>
-                            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">Secure upload, management and sharing with metadata support</p>
+                            <h4 className="font-medium text-white dark:text-slate-50 text-sm group-hover:text-[#468BE6] dark:group-hover:text-[#468BE6]">File Storage API</h4>
+                            <p className="text-xs text-gray-300 dark:text-slate-400 mt-0.5">Secure upload, management and sharing with metadata support</p>
                           </div>
                         </Link>
                         
                         <Link 
                           href="#validation-api" 
-                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-50/80 dark:hover:bg-zinc-800/80 transition-colors duration-200 group cursor-pointer"
+                          className="flex items-start space-x-3 p-1 rounded-md hover:bg-gray-700/80 dark:hover:bg-slate-800/80 transition-colors duration-200 group cursor-pointer"
                         >
                           <div className="w-1.5 h-1.5 bg-[#1A5799] rounded-full mt-2 group-hover:bg-[#154A85]"></div>
                           <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-[#1A5799] dark:group-hover:text-[#468BE6]">Validation API</h4>
-                            <p className="text-xs text-gray-600 dark:text-zinc-400 mt-0.5">Real-world benchmarking and business impact measurement</p>
+                            <h4 className="font-medium text-white dark:text-slate-50 text-sm group-hover:text-[#468BE6] dark:group-hover:text-[#468BE6]">Validation API</h4>
+                            <p className="text-xs text-gray-300 dark:text-slate-400 mt-0.5">Real-world benchmarking and business impact measurement</p>
                           </div>
                         </Link>
                       </div>
                     </div>
                     
-                    <div className="border-t border-gray-100 dark:border-zinc-700 pt-2 mt-3">
+                    <div className="border-t border-gray-600 dark:border-zinc-700 pt-2 mt-3">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-gray-500 dark:text-zinc-400">480x faster • 25x cheaper</span>
+                        <span className="text-gray-300 dark:text-slate-400">480x faster • 25x cheaper</span>
                         <span className="text-[#1A5799] dark:text-[#468BE6] font-medium">98.5% quality score</span>
                       </div>
                     </div>
@@ -194,19 +194,19 @@ export default function Header() {
             </div>
             <Link 
               href="http://localhost:3001" 
-              className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#468BE6] transition-colors duration-200"
+              className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] transition-colors duration-200"
             >
               Docs
             </Link>
             <Link 
               href="/pricing" 
-              className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#468BE6] transition-colors duration-200"
+              className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] transition-colors duration-200"
             >
               Pricing
             </Link>
             <Link 
               href="/signin" 
-              className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#468BE6] transition-colors duration-200"
+              className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] transition-colors duration-200"
             >
               Sign In
             </Link>
@@ -227,7 +227,7 @@ export default function Header() {
             <ThemeToggle />
             <button
               type="button"
-              className="text-gray-600 dark:text-zinc-300 hover:text-gray-900 dark:hover:text-zinc-100"
+              className="text-gray-300 dark:text-slate-300 hover:text-gray-100 dark:hover:text-slate-100 transition-colors duration-300"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? (
@@ -241,32 +241,32 @@ export default function Header() {
 
 
         {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pt-4 border-t border-gray-100 dark:border-zinc-700">
+          <div className="md:hidden mt-4 pt-4 border-t border-gray-600 dark:border-slate-700 transition-colors duration-300">
             <div className="flex flex-col space-y-3">
               <Link 
                 href="#product" 
-                className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
+                className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Product
               </Link>
               <Link 
                 href="http://localhost:3001" 
-                className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
+                className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Docs
               </Link>
               <Link 
                 href="/pricing" 
-                className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
+                className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
               </Link>
               <Link 
                 href="/signin" 
-                className="text-sm text-gray-600 dark:text-zinc-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
+                className="text-sm text-gray-300 dark:text-slate-300 hover:text-[#468BE6] transition-colors duration-200 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Sign In

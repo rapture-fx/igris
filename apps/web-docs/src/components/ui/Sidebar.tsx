@@ -112,15 +112,15 @@ export function Sidebar() {
   return (
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-60">
-        <div className="flex flex-col bg-gray-50" style={{backgroundColor: '#f7f7f8'}}>
+        <div className="flex flex-col bg-gray-50 dark:bg-slate-900 transition-colors duration-300" style={{backgroundColor: '#f7f7f8'}}>
           <div className="flex-1 flex flex-col pt-4 pb-4 overflow-y-auto scrollbar-thin">
             <nav className="px-5 space-y-0">
               {navigation.map((item, index) => (
-                <div key={item.name} className={clsx("group", index > 0 && "border-t border-gray-100 pt-5 mt-5")}>
+                <div key={item.name} className={clsx("group", index > 0 && "border-t border-gray-100 dark:border-slate-700 pt-5 mt-5 transition-colors duration-300")}>
                   {/* Category Header - Non-clickable */}
                   <div className="flex items-center py-2 mb-3">
-                    <item.icon className="mr-2.5 h-4 w-4 text-gray-500" />
-                    <span className="text-sm font-semibold text-gray-800 tracking-normal">
+                    <item.icon className="mr-2.5 h-4 w-4 text-gray-500 dark:text-slate-400 transition-colors duration-300" />
+                    <span className="text-sm font-semibold text-gray-800 dark:text-slate-200 tracking-normal transition-colors duration-300">
                       {item.name}
                     </span>
                   </div>
@@ -135,8 +135,8 @@ export function Sidebar() {
                           className={clsx(
                             'nav-link flex items-center py-1.5 px-2.5 text-xs rounded-md transition-all duration-200 relative',
                             isActive(child.href) 
-                              ? 'bg-blue-50 text-blue-600 font-medium border-l-3 border-blue-500 -ml-0.5 shadow-sm' 
-                              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:border-l-3 hover:border-gray-200 hover:-ml-0.5'
+                              ? 'bg-blue-50 dark:bg-slate-800/50 text-blue-600 dark:text-blue-400 font-medium border-l-3 border-blue-500 dark:border-blue-400 -ml-0.5 shadow-sm transition-colors duration-300' 
+                              : 'text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-slate-100 hover:bg-gray-50 dark:hover:bg-slate-800 hover:border-l-3 hover:border-gray-200 dark:hover:border-slate-600 hover:-ml-0.5 transition-colors duration-300'
                           )}
                         >
                           {child.name}

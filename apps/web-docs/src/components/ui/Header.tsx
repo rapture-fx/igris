@@ -148,7 +148,7 @@ export function Header() {
               </a>
               
               <div className="md:hidden ml-4">
-                <button className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100">
+                <button className="p-2 rounded-md text-gray-400 dark:text-zinc-500 hover:text-gray-500 dark:hover:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-300">
                   <span className="sr-only">Open menu</span>
                   <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -167,12 +167,12 @@ export function Header() {
               >
                 <div className={`relative ${
                   isSearchFocused 
-                    ? 'bg-white shadow-2xl rounded-xl border-2 border-gray-300' 
-                    : 'bg-white/70 border border-gray-300 rounded-lg hover:bg-white/90'
+                    ? 'bg-white dark:bg-zinc-800 shadow-2xl rounded-xl border-2 border-gray-300 dark:border-zinc-600' 
+                    : 'bg-white/70 dark:bg-zinc-800/70 border border-gray-300 dark:border-zinc-600 rounded-lg hover:bg-white/90 dark:hover:bg-zinc-800/90'
                 } transition-all duration-300`}>
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <MagnifyingGlassIcon className={`h-5 w-5 transition-colors ${
-                      isSearchFocused ? 'text-gray-500' : 'text-gray-400'
+                      isSearchFocused ? 'text-gray-500 dark:text-zinc-400' : 'text-gray-400 dark:text-zinc-500'
                     }`} />
                   </div>
                   <input
@@ -183,20 +183,20 @@ export function Header() {
                     onFocus={handleSearchFocus}
                     onBlur={handleSearchBlur}
                     placeholder="Search documentation..."
-                    className={`w-full pl-12 pr-20 py-3 bg-transparent text-sm placeholder-gray-500 focus:outline-none transition-all duration-300 ${
-                      isSearchFocused ? 'text-gray-900' : 'text-gray-700'
+                    className={`w-full pl-12 pr-20 py-3 bg-transparent text-sm placeholder-gray-500 dark:placeholder-zinc-500 focus:outline-none transition-all duration-300 ${
+                      isSearchFocused ? 'text-gray-900 dark:text-zinc-100' : 'text-gray-700 dark:text-zinc-300'
                     }`}
                   />
                   <div className="absolute inset-y-0 right-0 pr-4 flex items-center space-x-2">
                     {isSearchFocused && (
                       <button
                         onClick={closeSearch}
-                        className="p-1 rounded-md text-gray-400 hover:text-gray-600 transition-colors"
+                        className="p-1 rounded-md text-gray-400 dark:text-zinc-500 hover:text-gray-600 dark:hover:text-zinc-400 transition-colors duration-300"
                       >
                         <XMarkIcon className="h-4 w-4" />
                       </button>
                     )}
-                    <span className="text-gray-400 text-xs font-semibold bg-gray-100 px-2 py-1 rounded">
+                    <span className="text-gray-400 dark:text-zinc-500 text-xs font-semibold bg-gray-100 dark:bg-zinc-700 px-2 py-1 rounded transition-colors duration-300">
                       ⌘K
                     </span>
                   </div>
@@ -204,13 +204,13 @@ export function Header() {
                 
                 {/* Enhanced Search Results */}
                 {showResults && (
-                  <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md border border-gray-200 rounded-xl shadow-2xl z-50 max-h-[70vh] overflow-hidden">
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-zinc-800/95 backdrop-blur-md border border-gray-200 dark:border-zinc-700 rounded-xl shadow-2xl z-50 max-h-[70vh] overflow-hidden transition-colors duration-300">
                     {searchResults.length > 0 ? (
                       <div className="overflow-y-auto max-h-[70vh] scrollbar-hide">
                         {Object.entries(groupedResults).map(([category, items]) => (
                           <div key={category} className="border-b border-gray-100 last:border-b-0">
-                            <div className="bg-gray-50/50 backdrop-blur-sm px-4 py-2 border-b border-gray-100">
-                              <h3 className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                            <div className="bg-gray-50/50 dark:bg-zinc-700/50 backdrop-blur-sm px-4 py-2 border-b border-gray-100 dark:border-zinc-600 transition-colors duration-300">
+                              <h3 className="text-xs font-semibold text-gray-600 dark:text-zinc-300 uppercase tracking-wide transition-colors duration-300">
                                 {category}
                               </h3>
                             </div>
@@ -218,20 +218,20 @@ export function Header() {
                               <a
                                 key={`${category}-${index}`}
                                 href={result.url}
-                                className="block px-4 py-3 hover:bg-gray-50/50 border-b border-gray-50 last:border-b-0 transition-colors group"
+                                className="block px-4 py-3 hover:bg-gray-50/50 dark:hover:bg-zinc-700/50 border-b border-gray-50 dark:border-zinc-700 last:border-b-0 transition-colors duration-300 group"
                                 onClick={closeSearch}
                               >
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1">
-                                    <div className="font-medium text-gray-900 text-sm group-hover:text-gray-600 transition-colors">
+                                    <div className="font-medium text-gray-900 dark:text-zinc-100 text-sm group-hover:text-gray-600 dark:group-hover:text-zinc-300 transition-colors duration-300">
                                       {result.title}
                                     </div>
-                                    <div className="text-gray-500 text-xs mt-1 line-clamp-2">
+                                    <div className="text-gray-500 dark:text-zinc-400 text-xs mt-1 line-clamp-2 transition-colors duration-300">
                                       {result.content}
                                     </div>
                                   </div>
                                   <div className="ml-3 flex-shrink-0">
-                                    <svg className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="h-4 w-4 text-gray-400 dark:text-zinc-500 group-hover:text-gray-600 dark:group-hover:text-zinc-400 transition-colors duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                     </svg>
                                   </div>
@@ -243,13 +243,13 @@ export function Header() {
                       </div>
                     ) : searchQuery.length >= 1 ? (
                       <div className="px-4 py-8 text-center">
-                        <div className="text-gray-400 mb-2">
+                        <div className="text-gray-400 dark:text-zinc-500 mb-2 transition-colors duration-300">
                           <MagnifyingGlassIcon className="h-8 w-8 mx-auto mb-2" />
                         </div>
-                        <div className="text-gray-500 text-sm">
+                        <div className="text-gray-500 dark:text-zinc-400 text-sm transition-colors duration-300">
                           No results found for "{searchQuery}"
                         </div>
-                        <div className="text-gray-400 text-xs mt-1">
+                        <div className="text-gray-400 dark:text-zinc-500 text-xs mt-1 transition-colors duration-300">
                           Try adjusting your search terms
                         </div>
                       </div>

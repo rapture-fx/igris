@@ -29,9 +29,9 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'sans-serif'],
-        'sf': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'Segoe UI', 'sans-serif'],
-        'sf-text': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'Segoe UI', 'sans-serif'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif'],
+        'sf': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'system-ui', 'sans-serif'],
+        'sf-text': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'system-ui', 'sans-serif'],
       },
       fontSize: {
         'hero': ['clamp(2.5rem, 5vw, 4rem)', { lineHeight: '1.1' }],
