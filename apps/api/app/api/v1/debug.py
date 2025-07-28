@@ -20,8 +20,8 @@ import asyncio
 import logging
 
 from app.database.connection import get_db
-from app.core.api_reliability import get_circuit_breaker, CircuitBreakerConfig
-from app.core.metrics import metrics_collector
+from app.core.api_reliability import get_circuit_breaker, CircuitBreakerConfig, circuit_breakers
+from app.core.config import settings
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/debug", tags=["Debug & Testing"])

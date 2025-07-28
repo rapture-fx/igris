@@ -14,8 +14,9 @@ Comprehensive reliability features for API-as-a-Service:
 import asyncio
 import time
 import logging
+import json
 from typing import Dict, Any, Optional, Callable, List, Union
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from enum import Enum
 from datetime import datetime, timedelta
 import functools
@@ -23,6 +24,11 @@ import random
 
 from fastapi import HTTPException, status
 from prometheus_client import Counter, Histogram, Gauge
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+from circuit_breaker import CircuitBreaker as ExternalCircuitBreaker
+from hystrix.decorators import circuit_breaker as hystrix_breaker
+
+from app.core.redis_client import get_redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +43,8 @@ class CircuitBreakerConfig:
     recovery_timeout: int = 60  # seconds
     expected_exception: type = Exception
     monitor_interval: int = 10  # seconds
+    redis_key_prefix: str = "circuit_breaker"
+    persistence_enabled: bool = True
 
 @dataclass
 class RetryConfig:
@@ -54,7 +62,7 @@ class TimeoutConfig:
     per_endpoint_timeouts: Dict[str, float] = field(default_factory=dict)
 
 class CircuitBreaker:
-    """Circuit breaker pattern implementation"""
+    """Circuit breaker pattern implementation with Redis persistence"""
     
     def __init__(self, name: str, config: CircuitBreakerConfig):
         self.name = name
@@ -63,6 +71,7 @@ class CircuitBreaker:
         self.failure_count = 0
         self.last_failure_time = None
         self.success_count = 0
+        self.redis_key = f"{config.redis_key_prefix}:{name}"
         
         # Metrics
         self.failure_counter = Counter(
@@ -75,13 +84,22 @@ class CircuitBreaker:
             'Circuit breaker state',
             ['circuit_name']
         )
+        
+        # Initialize from Redis if persistence is enabled
+        if config.persistence_enabled:
+            asyncio.create_task(self._load_state_from_redis())
     
     async def call(self, func: Callable, *args, **kwargs) -> Any:
         """Execute function with circuit breaker protection"""
+        # Load current state from Redis if persistence is enabled
+        if self.config.persistence_enabled:
+            await self._load_state_from_redis()
+        
         if self.state == CircuitState.OPEN:
             if self._should_attempt_reset():
                 self.state = CircuitState.HALF_OPEN
                 logger.info(f"Circuit {self.name} attempting reset")
+                await self._save_state_to_redis()
             else:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -90,14 +108,14 @@ class CircuitBreaker:
         
         try:
             result = await func(*args, **kwargs)
-            self._on_success()
+            await self._on_success()
             return result
             
         except Exception as e:
-            self._on_failure()
+            await self._on_failure()
             raise
     
-    def _on_success(self):
+    async def _on_success(self):
         """Handle successful execution"""
         self.failure_count = 0
         if self.state == CircuitState.HALF_OPEN:
@@ -105,8 +123,12 @@ class CircuitBreaker:
             logger.info(f"Circuit {self.name} reset to closed")
         self.success_count += 1
         self.state_gauge.labels(circuit_name=self.name).set(0)  # Closed state
+        
+        # Save state to Redis
+        if self.config.persistence_enabled:
+            await self._save_state_to_redis()
     
-    def _on_failure(self):
+    async def _on_failure(self):
         """Handle failed execution"""
         self.failure_count += 1
         self.last_failure_time = datetime.utcnow()
@@ -116,6 +138,10 @@ class CircuitBreaker:
             self.state = CircuitState.OPEN
             self.state_gauge.labels(circuit_name=self.name).set(2)  # Open state
             logger.warning(f"Circuit {self.name} opened after {self.failure_count} failures")
+        
+        # Save state to Redis
+        if self.config.persistence_enabled:
+            await self._save_state_to_redis()
     
     def _should_attempt_reset(self) -> bool:
         """Check if circuit should attempt reset"""
@@ -123,9 +149,46 @@ class CircuitBreaker:
             return True
         
         return (datetime.utcnow() - self.last_failure_time).total_seconds() >= self.config.recovery_timeout
+    
+    async def _save_state_to_redis(self):
+        """Save circuit breaker state to Redis"""
+        try:
+            redis_client = await get_redis_client()
+            if redis_client:
+                state_data = {
+                    'state': self.state.value,
+                    'failure_count': self.failure_count,
+                    'success_count': self.success_count,
+                    'last_failure_time': self.last_failure_time.isoformat() if self.last_failure_time else None,
+                    'config': asdict(self.config)
+                }
+                await redis_client.setex(
+                    self.redis_key, 
+                    self.config.recovery_timeout * 2,  # TTL = 2x recovery timeout
+                    json.dumps(state_data, default=str)
+                )
+        except Exception as e:
+            logger.warning(f"Failed to save circuit breaker state to Redis: {e}")
+    
+    async def _load_state_from_redis(self):
+        """Load circuit breaker state from Redis"""
+        try:
+            redis_client = await get_redis_client()
+            if redis_client:
+                state_json = await redis_client.get(self.redis_key)
+                if state_json:
+                    state_data = json.loads(state_json)
+                    self.state = CircuitState(state_data['state'])
+                    self.failure_count = state_data['failure_count']
+                    self.success_count = state_data['success_count']
+                    if state_data['last_failure_time']:
+                        self.last_failure_time = datetime.fromisoformat(state_data['last_failure_time'])
+                    logger.debug(f"Loaded circuit breaker state from Redis for {self.name}")
+        except Exception as e:
+            logger.warning(f"Failed to load circuit breaker state from Redis: {e}")
 
 class RetryHandler:
-    """Intelligent retry logic with exponential backoff"""
+    """Intelligent retry logic with exponential backoff using tenacity"""
     
     def __init__(self, config: RetryConfig):
         self.config = config
@@ -149,49 +212,52 @@ class RetryHandler:
         *args, 
         **kwargs
     ) -> Any:
-        """Execute function with retry logic"""
-        last_exception = None
+        """Execute function with retry logic using tenacity"""
         start_time = time.time()
         
-        for attempt in range(self.config.max_attempts):
+        @retry(
+            stop=stop_after_attempt(self.config.max_attempts),
+            wait=wait_exponential(
+                multiplier=self.config.base_delay,
+                max=self.config.max_delay,
+                exp_base=self.config.exponential_base
+            ),
+            retry=retry_if_exception_type(Exception),
+            reraise=True
+        )
+        async def _execute_with_tenacity():
             try:
                 result = await func(*args, **kwargs)
-                
-                # Record success metrics
-                duration = time.time() - start_time
-                self.retry_duration.labels(operation=operation_name).observe(duration)
-                
-                if attempt > 0:
-                    self.retry_counter.labels(
-                        operation=operation_name, 
-                        status="success"
-                    ).inc()
-                
                 return result
-                
             except Exception as e:
-                last_exception = e
                 self.retry_counter.labels(
                     operation=operation_name, 
                     status="failure"
                 ).inc()
-                
-                if attempt < self.config.max_attempts - 1:
-                    delay = self._calculate_delay(attempt)
-                    logger.warning(
-                        f"Retry {attempt + 1}/{self.config.max_attempts} for {operation_name} "
-                        f"after {delay:.2f}s delay: {str(e)}"
-                    )
-                    await asyncio.sleep(delay)
+                logger.warning(f"Retry attempt failed for {operation_name}: {str(e)}")
+                raise
         
-        # All retries failed
-        duration = time.time() - start_time
-        self.retry_duration.labels(operation=operation_name).observe(duration)
-        
-        raise last_exception or Exception(f"Operation {operation_name} failed after {self.config.max_attempts} attempts")
+        try:
+            result = await _execute_with_tenacity()
+            
+            # Record success metrics
+            duration = time.time() - start_time
+            self.retry_duration.labels(operation=operation_name).observe(duration)
+            self.retry_counter.labels(
+                operation=operation_name, 
+                status="success"
+            ).inc()
+            
+            return result
+            
+        except Exception as e:
+            # All retries failed
+            duration = time.time() - start_time
+            self.retry_duration.labels(operation=operation_name).observe(duration)
+            raise e
     
     def _calculate_delay(self, attempt: int) -> float:
-        """Calculate delay with exponential backoff and optional jitter"""
+        """Calculate delay with exponential backoff and optional jitter (legacy method)"""
         delay = min(
             self.config.base_delay * (self.config.exponential_base ** attempt),
             self.config.max_delay

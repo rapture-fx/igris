@@ -4,6 +4,7 @@ import './globals.css'
 import { Sidebar } from '@/components/Sidebar'
 import { Header } from '@/components/Header'
 import { TableOfContents } from '@/components/TableOfContents'
+import { ThemeProvider } from '@/hooks/useTheme'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -19,28 +20,30 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className="antialiased bg-gray-50/30">
-        <div className="min-h-screen flex flex-col">
-          <div className="sticky top-0 z-50">
-            <Header />
-          </div>
-          <div className="flex flex-1 h-screen">
-            <div className="sticky top-[0rem] h-[calc(100vh-0rem)]">
-              <Sidebar />
+    <html lang="en" className="dark">
+      <body className="antialiased bg-gray-50/30 dark:bg-zinc-900 transition-colors duration-300">
+        <ThemeProvider>
+          <div className="min-h-screen flex flex-col">
+            <div className="sticky top-0 z-50">
+              <Header />
             </div>
-            <main className="flex-1 overflow-y-auto bg-white">
-              <div className="flex-1 flex justify-center px-8">
-                <div className="flex w-full pt-12 pb-6 max-w-6xl gap-16">
-                  <div className="flex-1 min-w-0">
-                    {children}
-                  </div>
-                  <TableOfContents />
-                </div>
+            <div className="flex flex-1 h-screen">
+              <div className="sticky top-[0rem] h-[calc(100vh-0rem)]">
+                <Sidebar />
               </div>
-            </main>
+              <main className="flex-1 overflow-y-auto bg-white dark:bg-zinc-900 transition-colors duration-300">
+                <div className="flex-1 flex justify-center px-8">
+                  <div className="flex w-full pt-12 pb-6 max-w-6xl gap-16">
+                    <div className="flex-1 min-w-0">
+                      {children}
+                    </div>
+                    <TableOfContents />
+                  </div>
+                </div>
+              </main>
+            </div>
           </div>
-        </div>
+        </ThemeProvider>
       </body>
     </html>
   )

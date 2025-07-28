@@ -1,0 +1,124 @@
+groups:
+  - name: schlep_engine_debug_service
+    rules:
+      - alert: CircuitBreakerOpen
+        expr: circuit_breaker_state == 2
+        for: 1m
+        labels:
+          severity: critical
+          service: debug
+        annotations:
+          summary: "Circuit breaker {{ $labels.circuit_name }} is open"
+          description: "Circuit breaker {{ $labels.circuit_name }} has been open for more than 1 minute, indicating service degradation."
+
+      - alert: HighCircuitBreakerFailureRate
+        expr: rate(circuit_breaker_failures_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "High circuit breaker failure rate for {{ $labels.circuit_name }}"
+          description: "Circuit breaker {{ $labels.circuit_name }} is failing at a rate of {{ $value }} failures per second."
+
+      - alert: ServiceUnhealthy
+        expr: service_status == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: debug
+        annotations:
+          summary: "Service {{ $labels.service }} is unhealthy"
+          description: "Service {{ $labels.service }} has been unhealthy for more than 30 seconds."
+
+      - alert: HighHealthCheckDuration
+        expr: histogram_quantile(0.95, health_check_duration_seconds_bucket) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "High health check duration for {{ $labels.service }}"
+          description: "95th percentile health check duration for {{ $labels.service }} is {{ $value }}s, which is above the 5s threshold."
+
+      - alert: HighRetryRate
+        expr: rate(retry_attempts_total{status="failure"}[5m]) > 1
+        for: 3m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "High retry failure rate for {{ $labels.operation }}"
+          description: "Operation {{ $labels.operation }} is failing and retrying at a rate of {{ $value }} per second."
+
+      - alert: HighTimeoutRate
+        expr: rate(request_timeouts_total[5m]) > 0.01
+        for: 2m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "High request timeout rate for {{ $labels.endpoint }}"
+          description: "Endpoint {{ $labels.endpoint }} is timing out at a rate of {{ $value }} per second."
+
+      - alert: DatabaseConnectionFailure
+        expr: service_status{service="database"} == 0
+        for: 15s
+        labels:
+          severity: critical
+          service: debug
+        annotations:
+          summary: "Database connection failure"
+          description: "Database connection has been failing for more than 15 seconds."
+
+      - alert: RedisConnectionFailure
+        expr: service_status{service="redis"} == 0
+        for: 15s
+        labels:
+          severity: critical
+          service: debug
+        annotations:
+          summary: "Redis connection failure"
+          description: "Redis connection has been failing for more than 15 seconds."
+
+      - alert: SystemResourcesHigh
+        expr: service_status{service="system"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "System resources are critically high"
+          description: "System resources (CPU, Memory, or Disk) have been critically high for more than 5 minutes."
+
+  - name: schlep_engine_debug_service_degradation
+    rules:
+      - alert: ServiceDegraded
+        expr: increase(circuit_breaker_failures_total[10m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "Service degradation detected for {{ $labels.circuit_name }}"
+          description: "Circuit breaker {{ $labels.circuit_name }} has recorded {{ $value }} failures in the last 10 minutes."
+
+      - alert: HealthCheckFailureSpike
+        expr: increase(health_check_total{status!="healthy"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "Health check failure spike for {{ $labels.service }}"
+          description: "Service {{ $labels.service }} has had {{ $value }} health check failures in the last 5 minutes."
+
+      - alert: CachePerformanceDegradation
+        expr: rate(cache_misses_total[5m]) / rate(cache_hits_total[5m]) > 0.5
+        for: 10m
+        labels:
+          severity: warning
+          service: debug
+        annotations:
+          summary: "Cache performance degradation"
+          description: "Cache miss rate is {{ $value | humanizePercentage }}, indicating potential performance issues."

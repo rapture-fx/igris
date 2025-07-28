@@ -22,7 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_, or_
 import pandas as pd
 
-from app.database.connection import get_db_session
+from app.database.connection import get_db
 from app.database.ml_preparation_models import (
     DataPreparationPipeline, PreparationStep, DataQualityAssessment,
     PreparationStage, DataQualityLevel

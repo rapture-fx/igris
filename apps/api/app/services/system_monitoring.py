@@ -26,7 +26,7 @@ import redis
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, and_
 
-from app.database.connection import get_db_session
+from app.database.connection import get_db
 from app.database.ml_preparation_models import (
     DataPreparationPipeline, PreparationStage, DataQualityLevel
 )

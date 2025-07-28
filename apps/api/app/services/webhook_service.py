@@ -26,7 +26,7 @@ from enum import Enum
 import aiohttp
 from urllib.parse import urlparse
 
-from app.database.connection import get_db_session
+from app.database.connection import get_db
 from app.database.models import User, Workspace
 from app.database.ml_preparation_models import DataPreparationPipeline, PreparationStage
 from app.core.config import settings

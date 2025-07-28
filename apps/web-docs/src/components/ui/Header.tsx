@@ -3,6 +3,7 @@
 import React from 'react'
 import { MagnifyingGlassIcon, HomeIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect, useRef } from 'react'
+import ThemeToggle from './ThemeToggle'
 
 // Define comprehensive searchable content for documentation
 const searchData = [
@@ -133,15 +134,15 @@ export function Header() {
         />
       )}
       
-      <header className="relative w-full backdrop-blur-sm z-50" style={{backgroundColor: '#f7f7f8'}}>
+      <header className="relative w-full backdrop-blur-sm z-50 bg-[#f7f7f8] dark:bg-zinc-800/95 border-b border-gray-200 dark:border-zinc-700 transition-colors duration-300">
         <div className="w-full px-4 py-4">
           <div className="flex items-center h-12">
             {/* Left side - Logo */}
             <div className="flex items-center flex-shrink-0">
               <a href="/" className="flex items-center">
                 <img 
-                  src="/Schlep Engine 14x11cm (4).svg" 
-                  alt="Schlep-engine" 
+                  src="/Schlep Engine laest logo design.svg" 
+                  alt="Schlep Engine - AI-Powered Data Preparation" 
                   className="h-12 w-auto"
                 />
               </a>
@@ -260,9 +261,11 @@ export function Header() {
             
             {/* Right side - Actions */}
             <div className="flex items-center space-x-3 flex-shrink-0">
+              <ThemeToggle />
+              
               <a 
                 href="http://localhost:3000" 
-                className="p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 transition-colors"
+                className="p-2 rounded-md text-gray-400 dark:text-zinc-500 hover:text-gray-500 dark:hover:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 transition-colors duration-300"
                 title="Go to Home"
               >
                 <HomeIcon className="h-5 w-5" />
@@ -272,10 +275,7 @@ export function Header() {
                 href="https://dashboard.schlepengine.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white transition-colors"
-                style={{backgroundColor: '#1A5799'}}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#154A85'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#1A5799'}
+                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-[#1A5799] dark:bg-[#468BE6] hover:bg-[#154A85] dark:hover:bg-[#3a7bd5] transition-colors duration-300"
               >
                 Dashboard
               </a>

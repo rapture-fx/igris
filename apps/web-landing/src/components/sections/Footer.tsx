@@ -35,48 +35,48 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer className="bg-gray-900 dark:bg-zinc-950 text-white transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-16">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
             <div className="lg:col-span-2">
               <div className="flex items-center mb-6" style={{gap: '0.5rem'}}>
                 <img 
-                  src="/Schlep Engine 14x11cm (4).svg" 
-                  alt="Schlep-engine" 
+                  src="/Schlep Engine laest logo design.svg" 
+                  alt="Schlep Engine - AI-Powered Data Preparation" 
                   className="h-16 w-auto"
                 />
-                <span className="text-xl" style={{fontFamily: '"DM Sans", sans-serif', color: '#1A5799', fontWeight: '700'}}>Schlep-engine</span>
+                <span className="text-xl" style={{fontFamily: '"DM Sans", sans-serif', color: '#468BE6', fontWeight: '700'}}>Schlep-engine</span>
               </div>
-              <p className="text-gray-400 mb-8 leading-relaxed">
+              <p className="text-gray-400 dark:text-zinc-400 mb-8 leading-relaxed">
                 Transform messy data into ML-ready formats with AI-powered 
                 data preparation. Trusted by thousands of data teams worldwide.
               </p>
               <div className="flex space-x-4">
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 dark:bg-zinc-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="GitHub"
                 >
                   <Github className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 dark:bg-zinc-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="Twitter"
                 >
                   <Twitter className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 dark:bg-zinc-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="LinkedIn"
                 >
                   <Linkedin className="w-5 h-5" />
                 </a>
                 <a
                   href="#"
-                  className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
+                  className="w-10 h-10 bg-gray-800 dark:bg-zinc-800 rounded-lg flex items-center justify-center hover:bg-[#468BE6] transition-colors duration-200"
                   aria-label="Email"
                 >
                   <Mail className="w-5 h-5" />
@@ -88,7 +88,7 @@ export default function Footer() {
               <div className="grid grid-cols-3 gap-8">
                 {footerSections.map((section, index) => (
                   <div key={index}>
-                    <h3 className="text-lg font-semibold mb-6">
+                    <h3 className="text-lg font-semibold mb-6 text-white dark:text-zinc-100">
                       {section.title}
                     </h3>
                     <ul className="space-y-4">
@@ -96,7 +96,7 @@ export default function Footer() {
                         <li key={linkIndex}>
                           <Link
                             href={link.href}
-                            className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                            className="text-gray-400 dark:text-zinc-400 hover:text-white dark:hover:text-zinc-100 transition-colors duration-200 text-sm"
                           >
                             {link.name}
                           </Link>
@@ -109,12 +109,12 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-800">
+          <div className="mt-12 pt-8 border-t border-gray-800 dark:border-zinc-800">
             <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="text-gray-400 mb-4 md:mb-0 text-sm">
+              <div className="text-gray-400 dark:text-zinc-400 mb-4 md:mb-0 text-sm">
                 <p>&copy; 2024 Schlep-engine. All rights reserved.</p>
               </div>
-              <div className="text-gray-400 text-sm">
+              <div className="text-gray-400 dark:text-zinc-400 text-sm">
                 <p>hello@schlep-engine.com</p>
               </div>
             </div>

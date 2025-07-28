@@ -46,6 +46,12 @@ sentry-sdk[fastapi]==1.38.0
 psutil==5.9.6
 httpx==0.25.2
 
+# Reliability and circuit breaking
+tenacity==8.2.3
+circuit-breaker==1.4.0
+hystrix-py==0.4.2
+grafana-api==1.0.3
+
 # Logging and monitoring
 structlog==23.2.0
 python-json-logger==2.0.7

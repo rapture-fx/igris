@@ -33,7 +33,14 @@ from app.database.connection import engine, Base
 # Import only core working modules for now
 from app.api.v1 import (
     auth, users, ml_pipeline, storage, 
-    health, metrics, admin, document_extraction, data_quality, validation
+    health, metrics, admin, document_extraction, validation
+    # data_quality,  # Temporarily disabled due to syntax error in file_processor.py
+)
+
+# Import safe API services to enable
+from app.api.v1 import (
+    analytics, billing, community, enterprise, marketplace,
+    security_admin, semantic_insights, websocket_manager, partner
 )
 # Re-enabled core functionality - dependencies now working
 # from app.api.v1 import data_processing, advanced_ai, advanced_ml
@@ -41,7 +48,7 @@ from app.api.v1 import (
 # Import the new API-as-a-Service routers
 # TODO: Re-enable when dependencies are fixed
 # from app.api.v1.dpa_compliance import router as dpa_compliance_router
-# from app.api.v1.debug import router as debug_router
+from app.api.v1.debug import router as debug_router
 from app.api.v1.api_status import router as api_status_router
 
 # Setup logging
@@ -251,7 +258,7 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(ml_pipeline.router, prefix="/api/v1/ml", tags=["ML Pipeline"])
 app.include_router(storage.router, prefix="/api/v1/storage", tags=["Storage"])
 app.include_router(document_extraction.router, prefix="/api/v1/extract", tags=["Document Extraction"])
-app.include_router(data_quality.router, prefix="/api/v1/quality", tags=["Data Quality & Preparation"])
+# app.include_router(data_quality.router, prefix="/api/v1/quality", tags=["Data Quality & Preparation"])  # Temporarily disabled
 app.include_router(validation.router, prefix="/api/v1/validation", tags=["Use Case Validation"])
 app.include_router(health.router, prefix="/api/v1", tags=["Health & Monitoring"])
 app.include_router(metrics.router, prefix="/api/v1", tags=["Health & Monitoring"])
@@ -265,7 +272,18 @@ app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 
 # Include new API-as-a-Service routers
 app.include_router(api_status_router, prefix="/api/v1", tags=["API Status & Monitoring"])
-# app.include_router(debug_router, prefix="/api/v1", tags=["Debug & Testing"])
+app.include_router(debug_router, prefix="/api/v1", tags=["Debug & Testing"])
+
+# Include safe API services
+app.include_router(analytics.router, prefix="/api/v1/analytics", tags=["Analytics & Monitoring"])
+app.include_router(billing.router, prefix="/api/v1/billing", tags=["Billing & Usage"])
+app.include_router(community.router, prefix="/api/v1/community", tags=["Community Features"])
+app.include_router(enterprise.router, tags=["Enterprise Features"])  # Already has prefix in router
+app.include_router(marketplace.router, prefix="/api/v1/marketplace", tags=["Marketplace"])
+app.include_router(security_admin.router, prefix="/api/v1/security-admin", tags=["Security Administration"])
+app.include_router(semantic_insights.router, prefix="/api/v1/semantic", tags=["Semantic Insights"])
+app.include_router(websocket_manager.router, prefix="/api/v1/websocket", tags=["WebSocket Manager"])
+app.include_router(partner.router, prefix="/api/v1/partner", tags=["Partner APIs"])
 
 # Root endpoint
 @app.get("/", tags=["Root"])

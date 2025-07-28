@@ -1,6 +1,6 @@
 packages:
-  # Applications
-  - 'apps/backend'
+  # Applications  
+  - 'apps/api'
   - 'apps/web-*'
   
   # Shared packages

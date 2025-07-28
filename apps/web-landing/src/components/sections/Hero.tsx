@@ -23,7 +23,7 @@ export default function Hero() {
     <section className="pt-20 pb-16 bg-gradient-to-br from-blue-50/50 via-white to-blue-100/40 min-h-screen flex items-center relative overflow-hidden">
       {/* Subtle grid background */}
       <div 
-        className="absolute inset-0 opacity-[0.12]"
+        className="absolute inset-0 opacity-[0.12] -z-10 pointer-events-none"
         style={{
           backgroundImage: `
             linear-gradient(rgba(59, 130, 246, 0.6) 1px, transparent 1px),

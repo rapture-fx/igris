@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 from app.services.semantic_layer import semantic_layer
-from app.core.database import get_db_session
+from app.database.connection import get_db
 from app.auth.dependencies import get_current_user
 from app.database.models import User
 

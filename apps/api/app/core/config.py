@@ -83,6 +83,28 @@ class Settings(BaseSettings):
     RATE_LIMIT_REQUESTS: int = Field(default=100, env="RATE_LIMIT_REQUESTS")
     RATE_LIMIT_WINDOW: int = Field(default=60, env="RATE_LIMIT_WINDOW")
     
+    # Circuit Breaker Configuration
+    CIRCUIT_BREAKER_STORAGE: str = Field(default="redis", env="CIRCUIT_BREAKER_STORAGE")
+    CIRCUIT_BREAKER_FAILURE_THRESHOLD: int = Field(default=5, env="CIRCUIT_BREAKER_FAILURE_THRESHOLD")
+    CIRCUIT_BREAKER_RECOVERY_TIMEOUT: int = Field(default=60, env="CIRCUIT_BREAKER_RECOVERY_TIMEOUT")
+    CIRCUIT_BREAKER_REDIS_TTL: int = Field(default=120, env="CIRCUIT_BREAKER_REDIS_TTL")
+    
+    # Health Check Configuration
+    HEALTH_CHECK_INTERVAL: int = Field(default=30, env="HEALTH_CHECK_INTERVAL")
+    HEALTH_CHECK_TIMEOUT: int = Field(default=10, env="HEALTH_CHECK_TIMEOUT")
+    HEALTH_CHECK_CRITICAL_SERVICES: list = Field(default=["database", "redis"], env="HEALTH_CHECK_CRITICAL_SERVICES")
+    
+    # Reliability and Retry Configuration
+    RETRY_MAX_ATTEMPTS: int = Field(default=3, env="RETRY_MAX_ATTEMPTS")
+    RETRY_BASE_DELAY: float = Field(default=1.0, env="RETRY_BASE_DELAY")
+    RETRY_MAX_DELAY: float = Field(default=60.0, env="RETRY_MAX_DELAY")
+    RETRY_EXPONENTIAL_BASE: float = Field(default=2.0, env="RETRY_EXPONENTIAL_BASE")
+    
+    # Request Timeout Configuration
+    REQUEST_TIMEOUT_DEFAULT: float = Field(default=30.0, env="REQUEST_TIMEOUT_DEFAULT")
+    REQUEST_TIMEOUT_SHORT: float = Field(default=5.0, env="REQUEST_TIMEOUT_SHORT")
+    REQUEST_TIMEOUT_LONG: float = Field(default=120.0, env="REQUEST_TIMEOUT_LONG")
+    
     # File Upload
     MAX_FILE_SIZE: int = Field(default=100 * 1024 * 1024, env="MAX_FILE_SIZE")  # 100MB
     ALLOWED_FILE_TYPES: list = Field(default=["csv", "json", "xlsx", "parquet"], env="ALLOWED_FILE_TYPES")

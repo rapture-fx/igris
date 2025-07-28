@@ -12,7 +12,7 @@ Key Features:
 - Performance metrics and alerts
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks
+from fastapi import APIRouter, Depends, HTTPException, status, BackgroundTasks, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
@@ -88,7 +88,7 @@ class WebhookConfigResponse(BaseModel):
 @router.get("/time-savings", response_model=TimeSavingsResponse)
 async def get_time_savings(
     workspace_id: Optional[str] = None,
-    days: int = Field(default=30, ge=1, le=365),
+    days: int = Query(default=30, ge=1, le=365),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -132,7 +132,7 @@ async def get_time_savings(
 @router.get("/team-productivity", response_model=TeamProductivityResponse)
 async def get_team_productivity(
     workspace_id: str,
-    days: int = Field(default=30, ge=1, le=365),
+    days: int = Query(default=30, ge=1, le=365),
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):

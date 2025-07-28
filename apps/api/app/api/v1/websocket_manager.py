@@ -19,7 +19,7 @@ from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
 
-from app.auth.dependencies import get_current_user_ws
+from app.auth.dependencies import get_current_user
 from app.database.models import User
 
 logger = logging.getLogger(__name__)
