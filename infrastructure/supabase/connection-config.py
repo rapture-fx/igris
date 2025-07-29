@@ -20,10 +20,10 @@ class SupabaseConfig:
         self.supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
         self.redis_url = os.getenv("REDIS_URL")
         
-        # ML-optimized connection settings
-        self.max_connections = int(os.getenv("DB_MAX_CONNECTIONS", "80"))
-        self.pool_size = int(os.getenv("DB_POOL_SIZE", "20"))
-        self.max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "40"))
+        # Cost-optimized connection settings for Supabase Free tier
+        self.max_connections = int(os.getenv("DB_MAX_CONNECTIONS", "20"))  # Reduced for free tier
+        self.pool_size = int(os.getenv("DB_POOL_SIZE", "5"))              # Conservative pool size
+        self.max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "10"))       # Limited overflow
         self.pool_timeout = int(os.getenv("DB_POOL_TIMEOUT", "30"))
         self.pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "3600"))  # 1 hour
         

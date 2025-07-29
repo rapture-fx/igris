@@ -25,8 +25,8 @@ import random
 from fastapi import HTTPException, status
 from prometheus_client import Counter, Histogram, Gauge
 from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
-from circuit_breaker import CircuitBreaker as ExternalCircuitBreaker
-from hystrix.decorators import circuit_breaker as hystrix_breaker
+# from pybreaker import CircuitBreaker as ExternalCircuitBreaker
+# from pyhystrix.decorators import circuit_breaker as hystrix_breaker
 
 from app.core.redis_client import get_redis_client
 

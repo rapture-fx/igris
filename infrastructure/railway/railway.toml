@@ -55,6 +55,7 @@ interval = "60s"
 retries = 3
 
 [resources]
-# Growth tier optimized for ML workloads
-cpu = "4"        # 4 vCPUs for ML processing
-memory = "8192"  # 8GB RAM for ML models and data processing
+# Starter tier - cost optimized for initial deployment
+cpu = "1"        # 1 vCPU - sufficient for initial workload
+memory = "2048"  # 2GB RAM - adequate for basic ML processing
+# Upgrade to Growth tier (4 vCPUs, 8GB RAM) when traffic increases

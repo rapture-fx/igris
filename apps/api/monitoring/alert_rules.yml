@@ -122,3 +122,122 @@ groups:
         annotations:
           summary: "Cache performance degradation"
           description: "Cache miss rate is {{ $value | humanizePercentage }}, indicating potential performance issues."
+
+  # Cost Monitoring Alerts - Integrated with existing infrastructure
+  - name: schlep_engine_cost_monitoring
+    rules:
+      # Overall Budget Alerts
+      - alert: MonthlyBudgetThreshold80Percent
+        expr: sum(cost_current_month_dollars) >= 116
+        for: 5m
+        labels:
+          severity: warning
+          service: cost_monitoring
+          alert_type: budget
+        annotations:
+          summary: "Monthly budget utilization at 80% threshold"
+          description: "Total monthly cost of ${{ $value }} has reached 80% of the $145 budget. Current utilization: {{ $value / 145 * 100 | humanizePercentage }}%"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      - alert: MonthlyBudgetThreshold90Percent
+        expr: sum(cost_current_month_dollars) >= 130.5
+        for: 2m
+        labels:
+          severity: critical
+          service: cost_monitoring
+          alert_type: budget
+        annotations:
+          summary: "Monthly budget utilization at 90% threshold - CRITICAL"
+          description: "Total monthly cost of ${{ $value }} has reached 90% of the $145 budget. Immediate cost optimization required!"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      - alert: MonthlyBudgetExceeded
+        expr: sum(cost_current_month_dollars) > 145
+        for: 1m
+        labels:
+          severity: critical
+          service: cost_monitoring
+          alert_type: budget_exceeded
+        annotations:
+          summary: "MONTHLY BUDGET EXCEEDED"
+          description: "Total monthly cost of ${{ $value }} has exceeded the $145 budget by ${{ $value - 145 | humanize }}. Emergency cost reduction measures required!"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/emergency-cost-reduction"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      # Service-Specific Budget Alerts
+      - alert: ServiceBudgetThreshold80Percent
+        expr: cost_budget_utilization_percent >= 80
+        for: 5m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+          alert_type: service_budget
+        annotations:
+          summary: "{{ $labels.service }} budget at 80% threshold"
+          description: "{{ $labels.service }} budget utilization at {{ $value }}%"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/service-cost-optimization"
+
+      - alert: ServiceBudgetExceeded
+        expr: cost_budget_utilization_percent > 100
+        for: 2m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+          alert_type: service_budget_exceeded
+        annotations:
+          summary: "Service budget exceeded for {{ $labels.service }}"
+          description: "{{ $labels.service }} has exceeded its budget with {{ $value }}% utilization"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/emergency-cost-reduction"
+
+      # Usage-Based Alerts
+      - alert: APIRequestsApproachingLimit
+        expr: api_requests_monthly >= 40000
+        for: 10m
+        labels:
+          severity: warning
+          service: api
+          alert_type: usage_limit
+        annotations:
+          summary: "API requests approaching monthly limit"
+          description: "Monthly API requests ({{ $value }}) are at {{ $value / 50000 * 100 | humanizePercentage }}% of the 50,000 limit"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/api-rate-limiting"
+
+      - alert: StorageApproachingLimit
+        expr: storage_used_gb >= 80
+        for: 10m
+        labels:
+          severity: warning
+          service: storage
+          alert_type: usage_limit
+        annotations:
+          summary: "Storage usage approaching limit"
+          description: "Storage usage ({{ $value }}GB) is at {{ $value / 100 * 100 | humanizePercentage }}% of the 100GB limit"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/storage-management"
+
+      # Cost Forecast Alerts
+      - alert: MonthlyForecastExceedsBudget
+        expr: sum(cost_forecast_month_dollars) > 145
+        for: 15m
+        labels:
+          severity: warning
+          service: cost_monitoring
+          alert_type: forecast
+        annotations:
+          summary: "Monthly cost forecast exceeds budget"
+          description: "Based on current usage trends, projected monthly cost of ${{ $value }} will exceed the $145 budget by ${{ $value - 145 | humanize }}"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-forecasting"
+
+      # Rapid cost increases
+      - alert: RapidCostIncrease
+        expr: increase(cost_current_month_dollars[1h]) > 5
+        for: 5m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+          alert_type: rapid_increase
+        annotations:
+          summary: "Rapid cost increase detected for {{ $labels.service }}"
+          description: "{{ $labels.service }} cost increased by ${{ $value }} in the last hour"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-spike-investigation"

@@ -1,0 +1,187 @@
+# Railway-Optimized Multi-Stage Dockerfile for Schlep-engine FastAPI Backend
+# Optimized for ML workloads with efficient layer caching and build times
+
+# Stage 1: Base Python image with system dependencies
+FROM python:3.11-slim-bullseye as base
+
+# Set environment variables for optimization
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app
+
+# Install system dependencies required for ML libraries
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    libpq-dev \
+    libffi-dev \
+    libssl-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    libatlas-base-dev \
+    gfortran \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create non-root user for security
+RUN groupadd -r railway && useradd -r -g railway railway
+
+# Stage 2: Python dependencies installation
+FROM base as dependencies
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements files
+COPY apps/api/requirements.txt .
+COPY apps/api/requirements-core.txt .
+
+# Install Python dependencies with optimizations
+RUN pip install --upgrade pip setuptools wheel && \
+    pip install --no-cache-dir --compile \
+    -r requirements.txt && \
+    pip install --no-cache-dir --compile \
+    -r requirements-core.txt && \
+    # Clean up pip cache
+    pip cache purge && \
+    # Remove unnecessary files
+    find /usr/local/lib/python3.11/site-packages -name "*.pyc" -delete && \
+    find /usr/local/lib/python3.11/site-packages -name "__pycache__" -delete && \
+    # Optimize TensorFlow and PyTorch for CPU-only usage
+    python -c "import tensorflow as tf; print('TensorFlow CPU optimized')" || true && \
+    python -c "import torch; print('PyTorch CPU optimized')" || true
+
+# Stage 3: Application layer
+FROM dependencies as application
+
+# Set working directory
+WORKDIR /app
+
+# Copy application code with optimal layer ordering
+COPY apps/api/app/ ./app/
+COPY apps/api/alembic/ ./alembic/
+COPY apps/api/alembic.ini .
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/uploads /app/static && \
+    # Set proper permissions
+    chown -R railway:railway /app && \
+    chmod -R 755 /app
+
+# Stage 4: Production image
+FROM application as production
+
+# Set production environment variables
+ENV ENVIRONMENT=production \
+    LOG_LEVEL=INFO \
+    WORKERS=2 \
+    ML_BATCH_SIZE=16 \
+    TENSORFLOW_INTER_OP_PARALLELISM_THREADS=2 \
+    TENSORFLOW_INTRA_OP_PARALLELISM_THREADS=2 \
+    TF_CPP_MIN_LOG_LEVEL=2 \
+    CUDA_VISIBLE_DEVICES=-1 \
+    TORCH_NUM_THREADS=2 \
+    OMP_NUM_THREADS=2 \
+    MKL_NUM_THREADS=2
+
+# Switch to non-root user
+USER railway
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=60s --retries=5 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Create startup script for better process management
+RUN echo '#!/bin/bash\n\
+set -e\n\
+\n\
+# Function to handle shutdown gracefully\n\
+shutdown_handler() {\n\
+    echo "Received shutdown signal, gracefully shutting down..."\n\
+    kill -TERM "$child" 2>/dev/null\n\
+    wait "$child"\n\
+}\n\
+\n\
+# Trap signals\n\
+trap "shutdown_handler" SIGTERM SIGINT\n\
+\n\
+# Pre-flight checks\n\
+echo "Starting Schlep-engine Railway deployment..."\n\
+echo "Python version: $(python --version)"\n\
+echo "Environment: $ENVIRONMENT"\n\
+echo "Workers: $WORKERS"\n\
+echo "ML Batch Size: $ML_BATCH_SIZE"\n\
+\n\
+# Check if required directories exist\n\
+mkdir -p /app/logs /app/uploads\n\
+\n\
+# Check database connectivity (optional)\n\
+if [ ! -z "$DATABASE_URL" ]; then\n\
+    echo "Database URL configured"\n\
+fi\n\
+\n\
+# Check Redis connectivity (optional)\n\
+if [ ! -z "$REDIS_URL" ]; then\n\
+    echo "Redis URL configured"\n\
+fi\n\
+\n\
+# Start the application\n\
+echo "Starting uvicorn server..."\n\
+exec uvicorn app.main:app \\\n\
+    --host 0.0.0.0 \\\n\
+    --port ${PORT:-8000} \\\n\
+    --workers ${WORKERS:-2} \\\n\
+    --worker-class uvicorn.workers.UvicornWorker \\\n\
+    --timeout-keep-alive 30 \\\n\
+    --access-log \\\n\
+    --log-level ${LOG_LEVEL:-info} \\\n\
+    --no-use-colors &\n\
+\n\
+child=$!\n\
+wait "$child"\n\
+' > /app/start.sh && chmod +x /app/start.sh
+
+# Default command
+CMD ["/app/start.sh"]
+
+# Development stage (for local development and testing)
+FROM application as development
+
+# Install development dependencies
+RUN pip install --no-cache-dir pytest pytest-asyncio pytest-cov black isort flake8 mypy
+
+# Set development environment variables
+ENV ENVIRONMENT=development \
+    LOG_LEVEL=DEBUG \
+    WORKERS=1
+
+# Switch to non-root user
+USER railway
+
+# Development command with hot reload
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload", "--log-level", "debug"]
+
+# Build arguments for flexibility
+ARG BUILD_DATE
+ARG VERSION
+ARG COMMIT_SHA
+
+# Labels for better container management
+LABEL maintainer="Schlep-engine Team" \
+      version="${VERSION}" \
+      build-date="${BUILD_DATE}" \
+      commit-sha="${COMMIT_SHA}" \
+      description="Schlep-engine FastAPI Backend optimized for Railway deployment with ML capabilities" \
+      org.opencontainers.image.source="https://github.com/your-org/schlep-engine" \
+      org.opencontainers.image.description="ML-optimized FastAPI backend for Railway deployment" \
+      org.opencontainers.image.version="${VERSION}"

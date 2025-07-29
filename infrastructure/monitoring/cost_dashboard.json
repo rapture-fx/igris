@@ -1,0 +1,977 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Schlep Engine - Cost Monitoring Dashboard",
+    "tags": ["cost", "monitoring", "budget", "infrastructure"],
+    "timezone": "UTC",
+    "refresh": "5m",
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["5m", "10m", "30m", "1h", "2h", "1d"],
+      "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Monthly Budget Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(cost_current_month_dollars)",
+            "legendFormat": "Current Month Total",
+            "refId": "A"
+          },
+          {
+            "expr": "145",
+            "legendFormat": "Monthly Budget",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "displayMode": "list",
+              "orientation": "horizontal"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 116
+                },
+                {
+                  "color": "red",
+                  "value": 130
+                }
+              ]
+            },
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Budget Utilization",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "(sum(cost_current_month_dollars) / 145) * 100",
+            "legendFormat": "Budget Utilization %",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "orientation": "auto",
+          "textMode": "auto",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 95
+                }
+              ]
+            },
+            "unit": "percent",
+            "min": 0,
+            "max": 120
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Service Cost Breakdown",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "cost_current_month_dollars",
+            "legendFormat": "{{ service }}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "pieType": "pie",
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "displayMode": "visible",
+            "placement": "bottom"
+          },
+          "displayLabels": ["name", "value", "percent"]
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              }
+            },
+            "mappings": [],
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Daily Cost Trend",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(cost_daily_dollars)",
+            "legendFormat": "Daily Cost",
+            "refId": "A"
+          },
+          {
+            "expr": "4.83",
+            "legendFormat": "Daily Budget Target",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          },
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 80
+                }
+              ]
+            },
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Service Budget Utilization",
+        "type": "barchart",
+        "targets": [
+          {
+            "expr": "cost_budget_utilization_percent",
+            "legendFormat": "{{ service }}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "orientation": "horizontal",
+          "xTickLabelRotation": 0,
+          "xTickLabelSpacing": 0
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "fillOpacity": 80,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineWidth": 1
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 95
+                }
+              ]
+            },
+            "unit": "percent",
+            "max": 120,
+            "min": 0
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Cost Forecast vs Budget",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(cost_forecast_month_dollars)",
+            "legendFormat": "Forecasted Monthly Cost",
+            "refId": "A"
+          },
+          {
+            "expr": "145",
+            "legendFormat": "Monthly Budget",
+            "refId": "B"
+          },
+          {
+            "expr": "sum(cost_current_month_dollars)",
+            "legendFormat": "Current Month Cost",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "options": {
+          "tooltip": {
+            "mode": "multi"
+          },
+          "legend": {
+            "calcs": ["lastNotNull"],
+            "displayMode": "table",
+            "placement": "bottom"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "none",
+              "lineInterpolation": "linear",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "line"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 145
+                },
+                {
+                  "color": "red",
+                  "value": 160
+                }
+              ]
+            },
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Usage Metrics Overview",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "api_requests_monthly",
+            "legendFormat": "API Requests",
+            "refId": "A",
+            "format": "table"
+          },
+          {
+            "expr": "storage_used_gb",
+            "legendFormat": "Storage Used (GB)",
+            "refId": "B",
+            "format": "table"
+          },
+          {
+            "expr": "database_active_connections",
+            "legendFormat": "DB Connections",
+            "refId": "C",
+            "format": "table"
+          },
+          {
+            "expr": "redis_memory_used_mb",
+            "legendFormat": "Redis Memory (MB)",
+            "refId": "D",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "options": {
+          "showHeader": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "color-background"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 95
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "API Requests"
+              },
+              "properties": [
+                {
+                  "id": "max",
+                  "value": 50000
+                },
+                {
+                  "id": "unit",
+                  "value": "short"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Storage Used (GB)"
+              },
+              "properties": [
+                {
+                  "id": "max",
+                  "value": 100
+                },
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "DB Connections"
+              },
+              "properties": [
+                {
+                  "id": "max",
+                  "value": 100
+                },
+                {
+                  "id": "unit",
+                  "value": "short"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Redis Memory (MB)"
+              },
+              "properties": [
+                {
+                  "id": "max",
+                  "value": 512
+                },
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 8,
+        "title": "Supabase Metrics",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "cost_current_month_dollars{service=\"supabase\"}",
+            "legendFormat": "Supabase Cost",
+            "refId": "A"
+          },
+          {
+            "expr": "database_active_connections",
+            "legendFormat": "Active DB Connections",
+            "refId": "B"
+          },
+          {
+            "expr": "storage_used_gb{service=\"supabase\"}",
+            "legendFormat": "Storage Used (GB)",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 32},
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineWidth": 1,
+              "pointSize": 5,
+              "showPoints": "never",
+              "spanNulls": false
+            },
+            "mappings": [],
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*Cost.*"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "currencyUSD"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "title": "Railway Backend Metrics",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "cost_current_month_dollars{service=\"railway_backend\"}",
+            "legendFormat": "Railway Backend Cost",
+            "refId": "A"
+          },
+          {
+            "expr": "cpu_usage_percent{service=\"railway_backend\"}",
+            "legendFormat": "CPU Usage %",
+            "refId": "B"
+          },
+          {
+            "expr": "memory_usage_percent{service=\"railway_backend\"}",
+            "legendFormat": "Memory Usage %",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 32},
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineWidth": 1,
+              "pointSize": 5,
+              "showPoints": "never",
+              "spanNulls": false
+            },
+            "mappings": [],
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*Cost.*"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "currencyUSD"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*Usage.*"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                },
+                {
+                  "id": "max",
+                  "value": 100
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 10,
+        "title": "AWS S3/CloudFront Metrics",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "cost_current_month_dollars{service=\"aws_s3_cloudfront\"}",
+            "legendFormat": "AWS Cost",
+            "refId": "A"
+          },
+          {
+            "expr": "s3_storage_gb{service=\"aws_s3_cloudfront\"}",
+            "legendFormat": "S3 Storage (GB)",
+            "refId": "B"
+          },
+          {
+            "expr": "cloudfront_requests{service=\"aws_s3_cloudfront\"}",
+            "legendFormat": "CloudFront Requests",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 32},
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "lineWidth": 1,
+              "pointSize": 5,
+              "showPoints": "never",
+              "spanNulls": false
+            },
+            "mappings": [],
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*Cost.*"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "currencyUSD"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byRegexp",
+                "options": ".*Storage.*"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "bytes"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 11,
+        "title": "Active Cost Alerts",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "ALERTS{alertname=~\".*Cost.*|.*Budget.*\"}",
+            "legendFormat": "",
+            "refId": "A",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 40},
+        "options": {
+          "showHeader": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "color-background"
+            },
+            "mappings": [
+              {
+                "options": {
+                  "0": {
+                    "text": "OK"
+                  },
+                  "1": {
+                    "text": "FIRING"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "red",
+                  "value": 1
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Monthly Cost History",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(cost_current_month_dollars)",
+            "legendFormat": "Total Monthly Cost",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 48},
+        "options": {
+          "tooltip": {
+            "mode": "single"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "continuous-GrYlRd"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "drawStyle": "line",
+              "fillOpacity": 20,
+              "gradientMode": "hue",
+              "lineInterpolation": "smooth",
+              "lineWidth": 2,
+              "pointSize": 5,
+              "showPoints": "auto",
+              "spanNulls": false,
+              "thresholdsStyle": {
+                "mode": "line"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 116
+                },
+                {
+                  "color": "red",
+                  "value": 145
+                }
+              ]
+            },
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 13,
+        "title": "Cost Per Service Breakdown",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "cost_current_month_dollars",
+            "legendFormat": "",
+            "refId": "A",
+            "format": "table"
+          },
+          {
+            "expr": "cost_budget_utilization_percent",
+            "legendFormat": "",
+            "refId": "B",
+            "format": "table"
+          },
+          {
+            "expr": "cost_forecast_month_dollars",
+            "legendFormat": "",
+            "refId": "C",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 48},
+        "options": {
+          "showHeader": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "custom": {
+              "align": "auto",
+              "displayMode": "color-background"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": null
+                },
+                {
+                  "color": "yellow",
+                  "value": 80
+                },
+                {
+                  "color": "red",
+                  "value": 95
+                }
+              ]
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Current Cost"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "currencyUSD"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Budget Utilization"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "percent"
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Forecast"
+              },
+              "properties": [
+                {
+                  "id": "unit",
+                  "value": "currencyUSD"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "name": "Cost Alerts",
+          "datasource": "Prometheus",
+          "enable": true,
+          "expr": "ALERTS{alertname=~\".*Cost.*|.*Budget.*\"}",
+          "iconColor": "red",
+          "tags": ["cost", "budget"]
+        }
+      ]
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "service",
+          "type": "query",
+          "datasource": "Prometheus",
+          "query": "label_values(cost_current_month_dollars, service)",
+          "refresh": 1,
+          "includeAll": true,
+          "allValue": ".*",
+          "multi": true
+        },
+        {
+          "name": "timerange",
+          "type": "interval",
+          "query": "1h,6h,12h,1d,7d,30d",
+          "current": {
+            "text": "1h",
+            "value": "1h"
+          }
+        }
+      ]
+    },
+    "links": [
+      {
+        "title": "Cost Optimization Runbook",
+        "url": "https://docs.schlep-engine.com/runbooks/cost-management",
+        "type": "absolute"
+      },
+      {
+        "title": "Infrastructure Monitoring",
+        "url": "/d/infrastructure/infrastructure-monitoring",
+        "type": "dashboard"
+      }
+    ]
+  }
+}
