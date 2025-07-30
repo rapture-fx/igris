@@ -24,13 +24,13 @@ export default function HowItWorks() {
   return (
     // Visual Enhancement Suggestion: Consider adding a short demo video or an interactive walkthrough
     // showing the 3 steps in action, from uploading data to exporting the ML-ready output.
-    <section className="py-16 md:py-24 bg-black">
+    <section className="py-16 md:py-24 bg-[#161616]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-beige-secondary mb-4">
             From Messy to ML-Ready in 3 Steps
           </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-beige-secondary max-w-2xl mx-auto">
             Transform your data pipeline from hours of manual work to minutes of automated processing
           </p>
         </div>
@@ -44,16 +44,16 @@ export default function HowItWorks() {
                   <div className="w-20 h-20 bg-[#468BE6] bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-6">
                     <Icon className="w-10 h-10 text-[#468BE6]" />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-3">
+                  <h3 className="text-xl font-semibold text-beige-secondary mb-3">
                     {step.title}
                   </h3>
-                  <p className="text-gray-300 leading-relaxed">
+                  <p className="text-beige-secondary leading-relaxed">
                     {step.description}
                   </p>
                   
                   {index < steps.length - 1 && (
                     <div className="hidden md:block absolute top-10 -right-4 transform translate-x-1/2">
-                      <ArrowRight className="w-6 h-6 text-gray-400" />
+                      <ArrowRight className="w-6 h-6 text-beige-secondary" />
                     </div>
                   )}
                 </div>
@@ -64,7 +64,7 @@ export default function HowItWorks() {
 
         <div className="mt-16 text-center">
           <div className="bg-gray-800 rounded-lg p-8 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-white mb-6">
+            <h3 className="text-2xl font-bold text-beige-secondary mb-6">
               See it in action
             </h3>
             <div className="bg-gray-900 rounded-lg p-6 text-left">

@@ -53,7 +53,7 @@ const securityFeatures = [
 
 export default function SecurityFeatures() {
   return (
-    <section className="py-20 sm:py-24 lg:py-32 bg-black">
+    <section className="py-20 sm:py-24 lg:py-32 bg-[#161616]">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="lg:text-center mb-16">
           <motion.h2
@@ -97,13 +97,13 @@ export default function SecurityFeatures() {
                 transition={{ duration: 0.5 }}
                 className="relative pl-16"
               >
-                <dt className="text-base font-semibold leading-7 text-white">
+                <dt className="text-base font-semibold leading-7 text-beige-secondary">
                   <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-[#468BE6]">
                     <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   {feature.name}
                 </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-300">{feature.description}</dd>
+                <dd className="mt-2 text-base leading-7 text-beige-secondary">{feature.description}</dd>
               </motion.div>
             ))}
           </dl>
@@ -117,10 +117,10 @@ export default function SecurityFeatures() {
           className="mt-20 text-center"
         >
           <div className="bg-gradient-to-r from-[#468BE6]/10 to-blue-100/50 rounded-2xl p-8 max-w-3xl mx-auto border border-[#468BE6]/20">
-            <h3 className="text-xl font-semibold text-gray-900 mb-4">
+            <h3 className="text-xl font-semibold text-beige-secondary mb-4">
               Compliance & Certifications
             </h3>
-            <div className="flex flex-wrap justify-center gap-6 text-gray-700 font-medium">
+            <div className="flex flex-wrap justify-center gap-6 text-beige-secondary font-medium">
               <div className="flex items-center space-x-2">
                 <ShieldCheck className="w-5 h-5 text-green-600" />
                 <span>SOC 2 Type II Ready</span>
@@ -134,7 +134,7 @@ export default function SecurityFeatures() {
                 <span>ISO 27001 (85% Ready)</span>
               </div>
             </div>
-            <p className="mt-6 text-gray-600 text-sm">
+            <p className="mt-6 text-beige-secondary text-sm">
               We are committed to maintaining the highest security standards and regularly undergo third-party audits.
             </p>
           </div>

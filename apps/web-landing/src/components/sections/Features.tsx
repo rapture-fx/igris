@@ -79,7 +79,7 @@ export default function Features() {
   return (
     // Visual Enhancement Suggestion: Consider adding a diagram or a short video here
     // that visually explains how these features work together to prepare data for ML.
-    <section id="features" className="section-padding bg-black">
+    <section id="features" className="section-padding bg-custom-gray">
       <div className="max-w-7xl mx-auto container-padding">
         <div className="text-center mb-16">
           <motion.div
@@ -136,7 +136,7 @@ export default function Features() {
                 {feature.title}
               </h3>
               
-              <p className="text-gray-600 dark:text-slate-300 leading-relaxed transition-colors duration-300">
+              <p className="text-beige-secondary leading-relaxed transition-colors duration-300">
                 {feature.description}
               </p>
 

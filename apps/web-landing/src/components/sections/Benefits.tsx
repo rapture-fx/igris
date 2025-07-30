@@ -37,52 +37,48 @@ export default function Benefits() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-black">
+    <section className="py-16 md:py-24 bg-[#161616] text-beige-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Why Choose Schlep-engine?
+          <h2 className="text-3xl md:text-4xl font-bold text-beige-secondary mb-4">
+            Data ready for what's next
           </h2>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto">
+          <p className="text-xl text-beige-secondary max-w-2xl mx-auto">
             Built for data teams who need reliable, scalable data preparation without the hassle
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {benefits.map((benefit, index) => {
-            const Icon = benefit.icon
-            return (
-              <div 
-                key={index}
-                className="bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-600 hover:shadow-md transition-shadow duration-200"
-              >
-                <div className="w-12 h-12 bg-[#468BE6] bg-opacity-10 rounded-lg flex items-center justify-center mb-6">
-                  <Icon className="w-6 h-6 text-[#468BE6]" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* Left Column - Benefits List */}
+          <div className="space-y-8">
+            {benefits.map((benefit, index) => {
+              const Icon = benefit.icon
+              return (
+                <div 
+                  key={index}
+                  className="group p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-zinc-900 hover:shadow-lg"
+                >
+                  <div>
+                    <h3 className="text-xl font-semibold text-beige-secondary mb-0.5">
+                      {benefit.title}
+                    </h3>
+                    <div className="w-full h-0.5 bg-[#1f1f1f] mb-2"></div>
+                    <p className="text-beige-secondary leading-relaxed text-xs">
+                      {benefit.description}
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3">
-                  {benefit.title}
-                </h3>
-                <p className="text-gray-300 leading-relaxed">
-                  {benefit.description}
-                </p>
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
 
-        <div className="mt-16 text-center">
-          <div className="bg-gray-800 rounded-lg p-8 shadow-sm border border-gray-600 max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold text-white mb-4">
-              Trusted by companies at
-            </h3>
-            <div className="flex justify-center items-center space-x-8 opacity-60">
-              <div className="text-gray-400 font-semibold">scikit-learn</div>
-              <div className="text-gray-400 font-semibold">TensorFlow</div>
-              <div className="text-gray-400 font-semibold">PyTorch</div>
-              <div className="text-gray-400 font-semibold">pandas</div>
-            </div>
+          {/* Right Column - Empty for now */}
+          <div>
+            {/* Content for the right column will go here */}
           </div>
         </div>
+
+        
       </div>
     </section>
   )

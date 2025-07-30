@@ -16,12 +16,25 @@ SessionLocal: Optional[sessionmaker] = None
 AsyncSessionLocal: Optional[async_sessionmaker] = None
 
 try:
-    # Create async engine for application using unified config
+    # Create async engine for application using unified config with security hardening
     async_engine = create_async_engine(
         settings.ASYNC_DATABASE_URI,
         echo=settings.ENVIRONMENT == "development",  # Enable SQL logging in dev
         pool_pre_ping=True,  # Verify connections before use
         pool_recycle=3600,   # Recycle connections every hour
+        # Security hardening
+        connect_args={
+            "sslmode": "require" if settings.is_production else "prefer",
+            "sslcert": "/app/certs/client-cert.pem" if settings.is_production else None,
+            "sslkey": "/app/certs/client-key.pem" if settings.is_production else None,
+            "sslrootcert": "/app/certs/ca-cert.pem" if settings.is_production else None,
+            "application_name": f"schlep-engine-{settings.ENVIRONMENT}",
+            "connect_timeout": 10,
+            "command_timeout": 30,
+        } if settings.is_production else {
+            "sslmode": "prefer",
+            "application_name": f"schlep-engine-{settings.ENVIRONMENT}",
+        }
     )
     
     # Create sync engine for migrations (build sync URL without query params)

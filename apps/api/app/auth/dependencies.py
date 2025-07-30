@@ -13,6 +13,7 @@ Features:
 - Backward compatibility
 """
 
+import logging
 from typing import Optional, Dict, Any
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -22,6 +23,8 @@ from app.database.connection import get_db
 from app.database.models import User
 from app.auth.unified_service import unified_auth_service
 from app.auth.unified_interface import SecurityLevel, AuthError
+
+logger = logging.getLogger(__name__)
 
 # Security scheme for JWT tokens
 security = HTTPBearer(auto_error=False)
@@ -220,10 +223,18 @@ async def get_api_key_user(
         return None
     
     try:
-        # This would use the API key authentication method
-        # Implementation depends on the API key storage mechanism
-        return None  # Placeholder - implement when API key auth is ready
-    except Exception:
+        from app.auth.api_key_manager import get_api_key_manager
+        
+        # Use the secure API key manager
+        api_key_manager = get_api_key_manager()
+        user = await api_key_manager.authenticate_api_key(db, api_key)
+        
+        if user:
+            return user
+        
+        return None
+    except Exception as e:
+        logger.error(f"API key authentication failed: {e}")
         return None
 
 

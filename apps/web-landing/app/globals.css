@@ -9,6 +9,7 @@
     --primary-blue-light: rgba(70, 139, 230, 0.1);
     --primary-blue-dark: #3a7bd5;
     --primary-blue-bg: rgba(70, 139, 230, 0.05);
+    --custom-gray: 22 22 22;
     
     /* Light Theme Variables */
     --background: 255 255 255;
@@ -71,7 +72,7 @@
   }
   
   body {
-    @apply bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-50 transition-colors duration-300;
+    @apply bg-custom-gray text-gray-900 dark:text-slate-50 transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
     background-color: rgb(var(--background));
     color: rgb(var(--foreground));

@@ -26,6 +26,16 @@ const navigation = [
     ],
   },
   {
+    name: 'Getting Started',
+    href: '/getting-started',
+    icon: RocketLaunchIcon,
+    children: [
+      { name: 'Overview', href: '/getting-started' },
+      { name: 'Authentication', href: '/getting-started/authentication' },
+      { name: 'Rate Limits', href: '/getting-started/rate-limits' },
+    ],
+  },
+  {
     name: 'API Reference',
     href: '/api-reference',
     icon: CodeBracketIcon,
@@ -33,14 +43,6 @@ const navigation = [
       { name: 'Overview', href: '/api-reference' },
       { name: 'Authentication', href: '/api-reference/authentication' },
       { name: 'Data Upload', href: '/api-reference/upload' },
-      { name: 'Smart Profiling', href: '/api-reference/profiling' },
-      { name: 'Data Processing', href: '/api-reference/processing' },
-      { name: 'Auto-Labeling', href: '/api-reference/labeling' },
-      { name: 'Data Export', href: '/api-reference/export' },
-      { name: 'Jobs & Status', href: '/api-reference/jobs' },
-      { name: 'Webhooks', href: '/api-reference/webhooks' },
-      { name: 'Rate Limits', href: '/api-reference/rate-limits' },
-      { name: 'Error Handling', href: '/api-reference/errors' },
     ],
   },
   {
@@ -48,11 +50,9 @@ const navigation = [
     href: '/sdks',
     icon: CubeIcon,
     children: [
+      { name: 'Overview', href: '/sdks' },
       { name: 'Python SDK', href: '/sdks/python' },
       { name: 'JavaScript SDK', href: '/sdks/javascript' },
-      { name: 'R Package', href: '/sdks/r' },
-      { name: 'CLI Tool', href: '/sdks/cli' },
-      { name: 'REST API', href: '/sdks/rest' },
     ],
   },
   {
@@ -61,13 +61,7 @@ const navigation = [
     icon: BookOpenIcon,
     children: [
       { name: 'Jupyter Notebooks', href: '/integrations/jupyter' },
-      { name: 'Google Colab', href: '/integrations/colab' },
       { name: 'AWS SageMaker', href: '/integrations/aws-sagemaker' },
-      { name: 'Snowflake', href: '/integrations/snowflake' },
-      { name: 'BigQuery', href: '/integrations/bigquery' },
-      { name: 'Apache Airflow', href: '/integrations/airflow' },
-      { name: 'dbt', href: '/integrations/dbt' },
-      { name: 'CI/CD Pipelines', href: '/integrations/cicd' },
     ],
   },
   {
@@ -77,27 +71,7 @@ const navigation = [
     children: [
       { name: 'ML Model Training', href: '/use-cases/ml-training' },
       { name: 'Data Quality Monitoring', href: '/use-cases/quality-monitoring' },
-      { name: 'Pipeline Preprocessing', href: '/use-cases/pipeline-preprocessing' },
-      { name: 'Multi-source Harmonization', href: '/use-cases/harmonization' },
-      { name: 'Real-time Processing', href: '/use-cases/realtime' },
       { name: 'E-commerce Analytics', href: '/use-cases/ecommerce' },
-      { name: 'Healthcare Data', href: '/use-cases/healthcare' },
-      { name: 'Financial Services', href: '/use-cases/fintech' },
-    ],
-  },
-  {
-    name: 'Advanced Features',
-    href: '/advanced',
-    icon: CommandLineIcon,
-    children: [
-      { name: 'Custom Transformations', href: '/advanced/custom-transformations' },
-      { name: 'Business Logic Rules', href: '/advanced/business-rules' },
-      { name: 'Batch Processing', href: '/advanced/batch-processing' },
-      { name: 'Scheduling', href: '/advanced/scheduling' },
-      { name: 'Data Lineage', href: '/advanced/lineage' },
-      { name: 'Audit Trails', href: '/advanced/audit' },
-      { name: 'Custom Models', href: '/advanced/custom-models' },
-      { name: 'Performance Tuning', href: '/advanced/performance' },
     ],
   },
 ]

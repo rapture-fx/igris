@@ -53,6 +53,15 @@ class Settings(BaseSettings):
     ALGORITHM: str = Field(default="HS256", env="ALGORITHM")
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(default=30, env="ACCESS_TOKEN_EXPIRE_MINUTES")
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(default=7, env="REFRESH_TOKEN_EXPIRE_DAYS")
+    JWT_SECRET_KEY: str = Field(..., env="JWT_SECRET_KEY", alias="SECRET_KEY")
+    JWT_ALGORITHM: str = Field(default="HS256", env="JWT_ALGORITHM", alias="ALGORITHM")
+    
+    # OAuth Configuration
+    GOOGLE_CLIENT_ID: str = Field(..., env="GOOGLE_CLIENT_ID")
+    GOOGLE_CLIENT_SECRET: str = Field(..., env="GOOGLE_CLIENT_SECRET")
+    GITHUB_CLIENT_ID: str = Field(..., env="GITHUB_CLIENT_ID")
+    GITHUB_CLIENT_SECRET: str = Field(..., env="GITHUB_CLIENT_SECRET")
+    OAUTH_REDIRECT_URI: str = Field(default="http://localhost:8000/api/v1/auth/oauth/callback", env="OAUTH_REDIRECT_URI")
     
     # Monitoring
     SENTRY_DSN: Optional[str] = Field(default=None, env="SENTRY_DSN")

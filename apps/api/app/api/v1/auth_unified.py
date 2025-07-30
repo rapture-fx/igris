@@ -21,8 +21,10 @@ from app.auth.unified_auth_system import (
     get_admin_user,
     unified_auth_service
 )
+from app.auth.oauth_service import oauth_service
 from app.database.connection import get_async_session
 from app.core.error_decorators import handle_auth_errors, handle_database_errors
+from app.core.rate_limiting import rate_limiter
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -165,11 +167,15 @@ async def refresh_token(
 
 @router.get("/me", response_model=Dict[str, Any])
 async def get_current_user_info(
-    current_user = Depends(get_current_active_user)
+    current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_session)
 ):
     """
     Get current authenticated user information
     """
+    # Get available authentication methods
+    auth_methods = await unified_auth_service.get_user_auth_methods(db, current_user)
+    
     return {
         "id": str(current_user.id),
         "email": current_user.email,
@@ -180,6 +186,9 @@ async def get_current_user_info(
         "is_verified": current_user.is_verified,
         "is_active": current_user.is_active,
         "organization_id": str(current_user.organization_id) if current_user.organization_id else None,
+        "oauth_provider": current_user.oauth_provider.value if current_user.oauth_provider else None,
+        "is_oauth_user": await unified_auth_service.is_oauth_user(current_user),
+        "auth_methods": auth_methods,
         "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
         "last_login": current_user.last_login.isoformat() if current_user.last_login else None
     }
@@ -216,7 +225,14 @@ async def auth_status():
             "Role-based authorization",
             "Account lockout protection",
             "Password strength validation",
-            "Organization support"
+            "Organization support",
+            "OAuth 2.0 authentication",
+            "Google OAuth integration",
+            "GitHub OAuth integration"
+        ],
+        "oauth_providers": [
+            "google",
+            "github"
         ]
     }
 
@@ -288,6 +304,149 @@ async def update_user_role(
         "user_id": str(user.id),
         "new_role": new_role
     }
+
+# OAuth 2.0 endpoints
+@router.get("/oauth/{provider}/authorize")
+@rate_limiter(max_calls=5, time_window=60)  # 5 authorization attempts per minute
+@handle_auth_errors
+async def oauth_authorize(
+    provider: str,
+    request: Request
+):
+    """
+    Start OAuth 2.0 authorization flow
+    
+    Supported providers: google, github
+    """
+    try:
+        # Construct redirect URI
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/api/v1/auth/oauth/{provider}/callback"
+        
+        # Get authorization URL
+        auth_url, state = await oauth_service.get_authorization_url(provider, redirect_uri)
+        
+        return {
+            "authorization_url": auth_url,
+            "state": state,
+            "provider": provider,
+            "redirect_uri": redirect_uri
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"OAuth authorization error for {provider}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to start OAuth authorization")
+
+@router.get("/oauth/{provider}/callback", response_model=TokenResponse)
+@rate_limiter(max_calls=10, time_window=60)  # 10 callback attempts per minute
+@handle_auth_errors
+async def oauth_callback(
+    provider: str,
+    code: str,
+    state: str,
+    request: Request,
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Handle OAuth 2.0 callback
+    
+    This endpoint is called by the OAuth provider after user authorization
+    """
+    try:
+        # Construct redirect URI (must match the one used in authorization)
+        base_url = str(request.base_url).rstrip("/")
+        redirect_uri = f"{base_url}/api/v1/auth/oauth/{provider}/callback"
+        
+        # Handle OAuth callback
+        auth_result = await oauth_service.handle_oauth_callback(
+            provider, code, state, redirect_uri, db
+        )
+        
+        if not auth_result.success:
+            logger.warning(f"OAuth callback failed for {provider}: {auth_result.error_message}")
+            
+            if auth_result.status == AuthStatus.ACCOUNT_LOCKED:
+                raise HTTPException(status_code=423, detail=auth_result.error_message)
+            elif auth_result.status == AuthStatus.ACCOUNT_DISABLED:
+                raise HTTPException(status_code=403, detail=auth_result.error_message)
+            else:
+                raise HTTPException(status_code=401, detail=auth_result.error_message)
+        
+        logger.info(f"OAuth login successful for user {auth_result.user.email} via {provider}")
+        
+        return TokenResponse(
+            access_token=auth_result.access_token,
+            refresh_token=auth_result.refresh_token,
+            token_type="bearer",
+            expires_in=auth_result.metadata.get("expires_in", 1800),
+            user={
+                "id": str(auth_result.user.id),
+                "email": auth_result.user.email,
+                "username": auth_result.user.username,
+                "first_name": auth_result.user.first_name,
+                "last_name": auth_result.user.last_name,
+                "role": auth_result.user.role.value if auth_result.user.role else "user",
+                "is_verified": auth_result.user.is_verified,
+                "organization_id": str(auth_result.user.organization_id) if auth_result.user.organization_id else None,
+                "oauth_provider": auth_result.metadata.get("oauth_provider")
+            }
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"OAuth callback error for {provider}: {str(e)}")
+        raise HTTPException(status_code=500, detail="OAuth authentication failed")
+
+@router.get("/oauth/accounts")
+async def get_oauth_accounts(
+    current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Get OAuth accounts linked to current user
+    """
+    try:
+        oauth_accounts = await oauth_service.get_user_oauth_accounts(db, current_user.id)
+        
+        return {
+            "oauth_accounts": oauth_accounts,
+            "total": len(oauth_accounts)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error getting OAuth accounts for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve OAuth accounts")
+
+@router.delete("/oauth/{provider}/unlink")
+async def unlink_oauth_account(
+    provider: str,
+    current_user = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_async_session)
+):
+    """
+    Unlink an OAuth account from current user
+    """
+    try:
+        success = await oauth_service.unlink_oauth_account(db, current_user.id, provider)
+        
+        if not success:
+            raise HTTPException(status_code=404, detail=f"No {provider} OAuth account found")
+        
+        logger.info(f"User {current_user.email} unlinked {provider} OAuth account")
+        
+        return {
+            "message": f"Successfully unlinked {provider} OAuth account",
+            "provider": provider
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error unlinking OAuth account for user {current_user.id}: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to unlink OAuth account")
 
 # Legacy compatibility endpoints
 @router.get("/legacy/status")

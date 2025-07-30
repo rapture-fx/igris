@@ -55,7 +55,7 @@ export default function Pricing() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-black">
+    <section className="py-16 md:py-24 bg-[#161616]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -120,7 +120,7 @@ export default function Pricing() {
                     ? 'bg-[#468BE6] hover:bg-[#3a7bd5] text-white'
                     : plan.name === 'Enterprise'
                     ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg'
-                    : 'bg-gray-800 hover:bg-gray-700 text-white'
+                    : 'bg-gray-800 hover:bg-gray-700 text-beige-secondary'
                 }`}
               >
                 {plan.cta}

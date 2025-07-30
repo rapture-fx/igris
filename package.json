@@ -12,7 +12,7 @@
     "dev:backend": "cd apps/api && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0",
     "dev:admin": "pnpm --filter @schlep-engine/admin dev",
     "dev:landing": "pnpm --filter @schlep-engine/web-landing dev",
-    "dev:docs": "pnpm --filter @schlep-engine/web-docs dev",
+    "dev:docs": "cd apps/web-docs && npm run dev",
     "dev:website": "./start-servers.sh",
     "dev:persistent": "./start-dev-server.sh start",
     "dev:stop": "./start-dev-server.sh stop",

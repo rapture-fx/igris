@@ -83,10 +83,10 @@ export default function Integrations() {
   }
 
   return (
-    <section className="py-20 bg-black">
+    <section className="py-20 bg-[#161616]">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-6">
+          <h2 className="text-3xl md:text-4xl font-semibold text-beige-secondary mb-6">
             <span className="text-[#468BE6]">Integrations</span> Everywhere
           </h2>
           <p className="text-lg text-gray-300 max-w-3xl mx-auto">
@@ -169,13 +169,13 @@ export default function Integrations() {
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/docs/integrations"
-              className="bg-[#468BE6] text-white px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium"
+              className="bg-[#468BE6] text-beige-secondary px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium"
             >
               View Integration Docs
             </Link>
             <Link
               href="/contact"
-              className="border border-[#468BE6] text-[#468BE6] px-6 py-3 rounded-lg hover:bg-[#468BE6] hover:text-white transition-colors font-medium"
+              className="border border-[#468BE6] text-[#468BE6] px-6 py-3 rounded-lg hover:bg-[#468BE6] hover:text-beige-secondary transition-colors font-medium"
             >
               Request Custom Integration
             </Link>
@@ -184,7 +184,7 @@ export default function Integrations() {
 
         {/* Popular Workflows */}
         <div className="mt-20">
-          <h3 className="text-2xl font-semibold text-gray-900 text-center mb-12">
+          <h3 className="text-2xl font-semibold text-beige-secondary text-center mb-12">
             Popular Integration Workflows
           </h3>
           
@@ -194,9 +194,9 @@ export default function Integrations() {
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <BarChart3 className="w-5 h-5 text-[#468BE6]" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Analytics Pipeline</h4>
+                <h4 className="font-semibold text-beige-secondary">Analytics Pipeline</h4>
               </div>
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-beige-secondary">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
                   Upload data from S3/Google Drive
@@ -217,9 +217,9 @@ export default function Integrations() {
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <Zap className="w-5 h-5 text-[#468BE6]" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Automated Workflow</h4>
+                <h4 className="font-semibold text-beige-secondary">Automated Workflow</h4>
               </div>
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-beige-secondary">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
                   Zapier triggers on new data
@@ -240,9 +240,9 @@ export default function Integrations() {
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <Database className="w-5 h-5 text-[#468BE6]" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Data Warehouse</h4>
+                <h4 className="font-semibold text-beige-secondary">Data Warehouse</h4>
               </div>
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-beige-secondary">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
                   Extract from multiple sources
@@ -263,9 +263,9 @@ export default function Integrations() {
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <BarChart3 className="w-5 h-5 text-[#468BE6]" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Customer Data Enrichment</h4>
+                <h4 className="font-semibold text-beige-secondary">Customer Data Enrichment</h4>
               </div>
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-beige-secondary">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
                   Import customer lists from CRM
@@ -286,9 +286,9 @@ export default function Integrations() {
                 <div className="bg-[#468BE6]/10 p-2 rounded-lg">
                   <Zap className="w-5 h-5 text-[#468BE6]" />
                 </div>
-                <h4 className="font-semibold text-gray-900">Marketing Campaign Optimization</h4>
+                <h4 className="font-semibold text-beige-secondary">Marketing Campaign Optimization</h4>
               </div>
-              <div className="space-y-2 text-sm text-gray-600">
+              <div className="space-y-2 text-sm text-beige-secondary">
                 <div className="flex items-center">
                   <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
                   Collect campaign performance data

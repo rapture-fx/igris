@@ -5,35 +5,27 @@ import { MagnifyingGlassIcon, HomeIcon, XMarkIcon } from '@heroicons/react/24/ou
 import { useState, useEffect, useRef } from 'react'
 import ThemeToggle from './ThemeToggle'
 
-// Define comprehensive searchable content for documentation
+// Define searchable content for existing documentation pages only
 const searchData = [
-  { title: 'Introduction', url: '/introduction', content: 'Getting started with Schlep Engine - Your AI-powered data processing platform', category: 'Getting Started' },
-  { title: 'Quick Start Guide', url: '/quickstart', content: 'Get up and running with Schlep Engine in minutes', category: 'Getting Started' },
-  { title: 'Installation', url: '/installation', content: 'Install Schlep Engine SDK and CLI tools', category: 'Getting Started' },
-  { title: 'API Reference', url: '/api-reference', content: 'Complete API documentation with endpoints and examples', category: 'API' },
-  { title: 'Authentication', url: '/auth', content: 'API keys, OAuth, and authentication methods', category: 'API' },
-  { title: 'Rate Limits', url: '/rate-limits', content: 'API rate limiting and usage guidelines', category: 'API' },
-  { title: 'SDK Overview', url: '/sdks', content: 'Python JavaScript TypeScript SDKs and libraries', category: 'SDKs' },
+  { title: 'Introduction', url: '/introduction', content: 'Getting started with schlep-engine - Your AI-powered data processing platform', category: 'Introduction' },
+  { title: 'Quick Start Guide', url: '/introduction/quickstart', content: 'Get up and running with schlep-engine in minutes', category: 'Introduction' },
+  { title: 'API Keys', url: '/introduction/api-keys', content: 'Get your API keys and authentication setup', category: 'Introduction' },
+  { title: 'First API Call', url: '/introduction/first-call', content: 'Make your first API call to schlep-engine', category: 'Introduction' },
+  { title: 'Pricing', url: '/introduction/pricing', content: 'Pricing plans and billing information', category: 'Introduction' },
+  { title: 'Getting Started', url: '/getting-started', content: 'Getting started guide and setup instructions', category: 'Getting Started' },
+  { title: 'Authentication', url: '/getting-started/authentication', content: 'Authentication methods and security', category: 'Getting Started' },
+  { title: 'Rate Limits', url: '/getting-started/rate-limits', content: 'API rate limiting and usage guidelines', category: 'Getting Started' },
+  { title: 'API Reference', url: '/api-reference', content: 'Complete API documentation with endpoints and examples', category: 'API Reference' },
+  { title: 'API Authentication', url: '/api-reference/authentication', content: 'API authentication methods and examples', category: 'API Reference' },
+  { title: 'Data Upload', url: '/api-reference/upload', content: 'Upload and process your data files', category: 'API Reference' },
+  { title: 'SDK Overview', url: '/sdks', content: 'SDKs and libraries for different programming languages', category: 'SDKs' },
   { title: 'Python SDK', url: '/sdks/python', content: 'Python SDK documentation and examples', category: 'SDKs' },
   { title: 'JavaScript SDK', url: '/sdks/javascript', content: 'JavaScript/Node.js SDK documentation', category: 'SDKs' },
-  { title: 'TypeScript SDK', url: '/sdks/typescript', content: 'TypeScript SDK with full type definitions', category: 'SDKs' },
   { title: 'Jupyter Integration', url: '/integrations/jupyter', content: 'Jupyter notebooks interactive data processing analysis', category: 'Integrations' },
   { title: 'AWS SageMaker Integration', url: '/integrations/aws-sagemaker', content: 'SageMaker machine learning deployment training', category: 'Integrations' },
-  { title: 'Google Colab', url: '/integrations/colab', content: 'Using Schlep Engine in Google Colab notebooks', category: 'Integrations' },
-  { title: 'Pandas Integration', url: '/integrations/pandas', content: 'Seamless integration with Pandas DataFrames', category: 'Integrations' },
   { title: 'ML Model Training', url: '/use-cases/ml-training', content: 'Machine learning training pipeline feature engineering', category: 'Use Cases' },
   { title: 'E-commerce Analytics', url: '/use-cases/ecommerce', content: 'Customer segmentation inventory optimization recommendations', category: 'Use Cases' },
   { title: 'Data Quality Monitoring', url: '/use-cases/quality-monitoring', content: 'Data validation quality checks monitoring', category: 'Use Cases' },
-  { title: 'Real-time Processing', url: '/use-cases/realtime', content: 'Real-time streaming data processing analytics', category: 'Use Cases' },
-  { title: 'Document Processing', url: '/features/document-processing', content: 'PDF, DOCX, and document extraction capabilities', category: 'Features' },
-  { title: 'Data Cleaning', url: '/features/data-cleaning', content: 'Automated data cleaning and preprocessing', category: 'Features' },
-  { title: 'Format Conversion', url: '/features/format-conversion', content: 'Convert between CSV, JSON, Parquet, and more', category: 'Features' },
-  { title: 'Batch Processing', url: '/features/batch-processing', content: 'Process large datasets efficiently', category: 'Features' },
-  { title: 'Troubleshooting', url: '/troubleshooting', content: 'Common issues and solutions', category: 'Support' },
-  { title: 'FAQ', url: '/faq', content: 'Frequently asked questions and answers', category: 'Support' },
-  { title: 'Community', url: '/community', content: 'Join our community forums and discussions', category: 'Support' },
-  { title: 'Pricing', url: '/pricing', content: 'Pricing plans and billing information', category: 'Account' },
-  { title: 'Limits & Quotas', url: '/limits', content: 'Usage limits and quota information', category: 'Account' },
 ]
 
 export function Header() {

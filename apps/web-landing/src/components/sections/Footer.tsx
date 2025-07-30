@@ -7,10 +7,13 @@ export default function Footer() {
     {
       title: "Product",
       links: [
-        { name: "Features", href: "#features" },
-        { name: "Pricing", href: "/pricing" },
-        { name: "Documentation", href: "/docs" },
-        { name: "API Status", href: "#status" }
+        { name: "High-Performance Processing", href: "#high-performance-processing" },
+        { name: "Multi-format Support", href: "#multi-format-support" },
+        { name: "Document Extraction API", href: "#document-extraction-api" },
+        { name: "Data Quality API", href: "#data-quality-api" },
+        { name: "ML Pipeline API", href: "#ml-pipeline-api" },
+        { name: "File Storage API", href: "#storage-api" },
+        { name: "Validation API", href: "#validation-api" },
       ]
     },
     {
@@ -23,49 +26,69 @@ export default function Footer() {
       ]
     },
     {
+      title: "Guide",
+      links: [
+        { name: "Getting Started", href: "#getting-started" },
+        { name: "API Reference", href: "#api-reference" },
+        { name: "Tutorials", href: "#tutorials" },
+        { name: "Best Practices", href: "#best-practices" }
+      ]
+    },
+    {
+      title: "Integration",
+      links: [
+        { name: "AWS SageMaker", href: "#aws-sagemaker" },
+        { name: "Google Cloud AI", href: "#google-cloud-ai" },
+        { name: "Azure ML", href: "#azure-ml" },
+        { name: "Jupyter Notebooks", href: "#jupyter" },
+        { name: "TensorFlow", href: "#tensorflow" },
+        { name: "PyTorch", href: "#pytorch" },
+        { name: "scikit-learn", href: "#scikit-learn" },
+        { name: "Databricks", href: "#databricks" },
+        { name: "Snowflake", href: "#snowflake" }
+      ]
+    },
+    {
+      title: "Security",
+      links: [
+        { name: "Security Overview", href: "#security-overview" },
+        { name: "Data Encryption", href: "#data-encryption" },
+        { name: "Access Control", href: "#access-control" },
+        { name: "Compliance", href: "#compliance" },
+        { name: "Audit Logs", href: "#audit-logs" },
+        { name: "Vulnerability Reports", href: "#vulnerability-reports" }
+      ]
+    },
+    {
       title: "Legal",
       links: [
         { name: "Privacy Policy", href: "#privacy" },
         { name: "Terms of Service", href: "#terms" },
-        { name: "Security", href: "#security" },
         { name: "Contact", href: "#contact" }
       ]
     }
   ]
 
   return (
-    <footer className="bg-black text-white">
+    <footer className="bg-[#161616] text-beige-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12">
-            <div className="lg:col-span-2">
-              <div className="flex items-center mb-6" style={{gap: '0.5rem'}}>
-                <img 
-                  src="/Schlep Engine laest logo design.svg" 
-                  alt="Schlep Engine - AI-Powered Data Preparation" 
-                  className="h-10 w-auto"
-                />
-                <span className="text-xl" style={{fontFamily: '"DM Sans", sans-serif', color: 'white', fontWeight: '700'}}>Schlep-engine</span>
-              </div>
-              <p className="text-gray-400 mb-8 leading-relaxed">
-                Transform messy data into ML-ready formats with AI-powered 
-                data preparation. Trusted by thousands of data teams worldwide.
-              </p>
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
+            
 
-            <div className="lg:col-span-3">
-              <div className="grid grid-cols-3 gap-8">
+            <div className="lg:col-span-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-7xl mx-auto">
                 {footerSections.map((section, index) => (
                   <div key={index}>
-                    <h3 className="text-lg font-semibold mb-6 text-white">
+                    <h3 className="text-lg font-semibold mb-4 text-beige-secondary">
                       {section.title}
                     </h3>
-                    <ul className="space-y-4">
+                    <ul className="space-y-2">
                       {section.links.map((link, linkIndex) => (
                         <li key={linkIndex}>
                           <Link
                             href={link.href}
-                            className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                            className="text-beige-secondary hover:text-white transition-colors duration-200 text-sm"
                           >
                             {link.name}
                           </Link>
@@ -80,12 +103,10 @@ export default function Footer() {
 
           <div className="mt-12 pt-8 border-t border-gray-800">
             <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="text-gray-400 mb-4 md:mb-0 text-sm">
+              <div className="text-beige-secondary mb-4 md:mb-0 text-sm">
                 <p>&copy; 2024 Schlep-engine. All rights reserved.</p>
               </div>
-              <div className="text-gray-400 text-sm">
-                <p>hello@schlep-engine.com</p>
-              </div>
+              
             </div>
           </div>
         </div>

@@ -45,7 +45,7 @@ npm start
 - **Hero**: Compelling headline with animated code example
 - **Features**: Six key features with icons and descriptions
 - **How It Works**: Three-step process with code examples
-- **Testimonials**: Customer reviews and social proof
+
 - **Pricing**: Three pricing tiers with feature comparison
 - **Footer**: Complete footer with links and contact info
 

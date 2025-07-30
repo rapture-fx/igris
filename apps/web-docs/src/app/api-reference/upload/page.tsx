@@ -1,4 +1,4 @@
-import { EndpointCard } from '@/components/EndpointCard'
+import { EndpointCard } from '@/components/ui/EndpointCard'
 
 export default function UploadApiPage() {
   return (

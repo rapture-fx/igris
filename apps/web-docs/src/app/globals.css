@@ -38,7 +38,7 @@
   }
   
   body {
-    @apply bg-white dark:bg-slate-950 text-gray-900 dark:text-slate-50 antialiased transition-colors duration-300;
+    @apply bg-[#161616] dark:bg-[#161616] text-gray-900 dark:text-slate-50 antialiased transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
     font-size: 11px;
     line-height: 1.4;

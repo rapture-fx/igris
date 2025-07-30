@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, JSON, ForeignKey, Float, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Text, Boolean, JSON, ForeignKey, Float, Enum, Index
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -38,13 +38,19 @@ class SessionStatus(str, enum.Enum):
     REVOKED = "revoked"
     SUSPICIOUS = "suspicious"
 
+class OAuthProvider(str, enum.Enum):
+    GOOGLE = "google"
+    GITHUB = "github"
+    FACEBOOK = "facebook"
+    MICROSOFT = "microsoft"
+
 class User(Base):
     __tablename__ = "users"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     email = Column(String, unique=True, index=True, nullable=False)
     username = Column(String, unique=True, index=True, nullable=False)
-    hashed_password = Column(String, nullable=False)
+    hashed_password = Column(String, nullable=True)  # Nullable for OAuth users
     first_name = Column(String)
     last_name = Column(String)
     role = Column(Enum(UserRole), default=UserRole.ANALYST)
@@ -52,6 +58,14 @@ class User(Base):
     is_verified = Column(Boolean, default=False)
     organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
     avatar_url = Column(String)
+    
+    # OAuth fields
+    oauth_provider = Column(Enum(OAuthProvider), nullable=True)
+    oauth_provider_id = Column(String, nullable=True)  # Provider's user ID
+    oauth_access_token = Column(String, nullable=True)  # Encrypted OAuth access token
+    oauth_refresh_token = Column(String, nullable=True)  # Encrypted OAuth refresh token
+    oauth_token_expires_at = Column(DateTime(timezone=True), nullable=True)
+    oauth_profile_data = Column(JSON, nullable=True)  # Store additional profile info from OAuth provider
     
     # Enhanced security fields
     mfa_enabled = Column(Boolean, default=False)
@@ -82,6 +96,36 @@ class User(Base):
     audit_trail = relationship("AuditTrail", foreign_keys="[AuditTrail.users_id]", back_populates="user")
     data_classification = relationship("DataClassificationRecord", foreign_keys="[DataClassificationRecord.users_id]", back_populates="user")
     compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.users_id]", back_populates="user")
+    
+    # OAuth relationships
+    oauth_accounts = relationship("OAuthAccount", back_populates="user")
+
+class OAuthAccount(Base):
+    """OAuth account linking table for multiple OAuth providers per user"""
+    __tablename__ = "oauth_accounts"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    provider = Column(Enum(OAuthProvider), nullable=False)
+    provider_user_id = Column(String, nullable=False)
+    provider_username = Column(String, nullable=True)
+    access_token = Column(String, nullable=True)  # Encrypted
+    refresh_token = Column(String, nullable=True)  # Encrypted
+    token_expires_at = Column(DateTime(timezone=True), nullable=True)
+    profile_data = Column(JSON, nullable=True)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    last_used_at = Column(DateTime(timezone=True))
+    
+    # Relationships
+    user = relationship("User", back_populates="oauth_accounts")
+    
+    # Unique constraint per provider per user
+    __table_args__ = (
+        Index('ix_oauth_provider_user', 'provider', 'provider_user_id', unique=True),
+    )
 
 class Organization(Base):
     __tablename__ = "organizations"

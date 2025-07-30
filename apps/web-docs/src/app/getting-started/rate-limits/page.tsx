@@ -1,4 +1,4 @@
-import { CodeBlock } from '@/components/CodeBlock'
+import { CodeBlock } from '@/components/ui/CodeBlock'
 import { ClockIcon, ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 
 export default function RateLimitsPage() {

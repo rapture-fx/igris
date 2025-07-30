@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import os
 from uuid import uuid4
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
@@ -50,7 +51,7 @@ async def seed_data():
                     id=uuid4(),
                     email=admin_email,
                     username="admin",
-                    hashed_password=get_password_hash("adminpassword"),
+                    hashed_password=get_password_hash(os.getenv("ADMIN_PASSWORD", "temp_admin_pass_123!")),
                     first_name="Admin",
                     last_name="User",
                     role="ADMIN",

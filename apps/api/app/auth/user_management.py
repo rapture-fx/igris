@@ -48,7 +48,9 @@ class UserTier(Enum):
 
 class AuthConfig:
     # JWT Configuration
-    JWT_SECRET = os.getenv("JWT_SECRET", "your_super_secure_jwt_secret_key_change_in_production")
+    JWT_SECRET = os.getenv("JWT_SECRET")
+    if not JWT_SECRET:
+        raise ValueError("JWT_SECRET environment variable is required and must be set")
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRATION_HOURS = 24
     

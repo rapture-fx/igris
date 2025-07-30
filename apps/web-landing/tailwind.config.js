@@ -10,6 +10,8 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        'custom-gray': '#1F1F1F',
+        'beige-secondary': '#f6f1ec',
         primary: {
           50: '#eff6ff',
           100: '#dbeafe',

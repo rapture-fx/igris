@@ -2,7 +2,7 @@
 
 export default function GridBackground() {
   return (
-    <div className="relative w-full h-24 sm:h-32 md:h-40 lg:h-48 overflow-hidden bg-black">
+    <div className="relative w-full h-24 sm:h-32 md:h-40 lg:h-48 overflow-hidden bg-[#161616]">
       {/* Base grid pattern - very subtle */}
       <div 
         className="absolute inset-0 opacity-[0.06]"

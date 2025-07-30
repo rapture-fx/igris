@@ -82,7 +82,7 @@ func main() {
   return (
     // Visual Enhancement Suggestion: Consider adding a diagram illustrating the API architecture
     // or a short video demonstrating an API call and its result.
-    <section className="py-20 bg-black text-white">
+    <section className="py-20 bg-[#161616] text-beige-secondary">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold mb-6">
@@ -247,7 +247,7 @@ func main() {
           </div>
           <Link 
             href="/pricing" 
-            className="inline-flex items-center space-x-2 bg-[#468BE6] text-white px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium"
+            className="inline-flex items-center space-x-2 bg-[#468BE6] text-beige-secondary px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium"
           >
             <span>View Enterprise Plans</span>
           </Link>

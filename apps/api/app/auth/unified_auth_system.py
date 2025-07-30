@@ -265,18 +265,30 @@ class UnifiedAuthService:
         
         user = await self.get_user_by_email(db, email)
         
-        if user and self.verify_password(password, user.hashed_password):
-            if not user.is_active:
-                return AuthResult(success=False, status=AuthStatus.ACCOUNT_DISABLED, error_message="Account is disabled")
-        
-            # Success - clear any failed attempts
-            await self.clear_failed_attempts(email)
+        if user:
+            # Check if this is an OAuth-only user (no password set)
+            if not user.hashed_password and user.oauth_provider:
+                return AuthResult(
+                    success=False, 
+                    status=AuthStatus.INVALID_CREDENTIALS, 
+                    error_message=f"This account uses {user.oauth_provider.value} OAuth authentication. Please sign in with {user.oauth_provider.value}."
+                )
             
-            return AuthResult(success=True, status=AuthStatus.SUCCESS, user=user)
-        else:
-            # Failure - record failed attempt
-            if user: # Only record attempt if user exists
+            # Regular password authentication
+            if user.hashed_password and self.verify_password(password, user.hashed_password):
+                if not user.is_active:
+                    return AuthResult(success=False, status=AuthStatus.ACCOUNT_DISABLED, error_message="Account is disabled")
+            
+                # Success - clear any failed attempts
+                await self.clear_failed_attempts(email)
+                
+                return AuthResult(success=True, status=AuthStatus.SUCCESS, user=user)
+            else:
+                # Wrong password - record failed attempt
                 await self.record_failed_attempt(email)
+                return AuthResult(success=False, status=AuthStatus.INVALID_CREDENTIALS, error_message="Invalid email or password")
+        else:
+            # User not found
             return AuthResult(success=False, status=AuthStatus.INVALID_CREDENTIALS, error_message="Invalid email or password")
     
     async def login_user(self, db: AsyncSession, login_data: UserLoginRequest) -> AuthResult:
@@ -357,6 +369,43 @@ class UnifiedAuthService:
         required_level = role_hierarchy.get(required_role, 0)
         
         return user_level >= required_level
+    
+    # OAuth Integration Methods
+    async def is_oauth_user(self, user: User) -> bool:
+        """Check if user is OAuth-only (no password set)"""
+        return user.oauth_provider is not None and user.hashed_password is None
+    
+    async def can_use_password_auth(self, user: User) -> bool:
+        """Check if user can authenticate with password"""
+        return user.hashed_password is not None
+    
+    async def get_user_auth_methods(self, db: AsyncSession, user: User) -> List[str]:
+        """Get available authentication methods for a user"""
+        methods = []
+        
+        # Check for password authentication
+        if user.hashed_password:
+            methods.append("password")
+        
+        # Check for OAuth providers
+        if user.oauth_provider:
+            methods.append(f"oauth_{user.oauth_provider.value}")
+        
+        # Check for linked OAuth accounts
+        from app.database.models import OAuthAccount
+        from sqlalchemy import select
+        
+        result = await db.execute(
+            select(OAuthAccount.provider).where(OAuthAccount.user_id == user.id)
+        )
+        linked_providers = result.scalars().all()
+        
+        for provider in linked_providers:
+            oauth_method = f"oauth_{provider.value}"
+            if oauth_method not in methods:
+                methods.append(oauth_method)
+        
+        return methods
 
 # Dependency injection
 async def get_current_user(

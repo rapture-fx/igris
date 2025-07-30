@@ -17,7 +17,7 @@ export SCHLEP_API_KEY="your-api-key-here"`
 pip install schlep-engine
 
 # Or use curl directly
-curl -X POST https://api.schlepengine.com/v1/transform`
+curl -X POST https://api.schlep-engine.com/v1/transform`
     },
     {
       title: "Transform Data",
@@ -40,21 +40,21 @@ print(f"Download URL: {result.download_url}")`
       icon: BookOpen,
       title: "API Reference",
       description: "Complete API documentation with examples",
-      link: "/api-docs",
+      link: "/docs/api-reference",
       external: false
     },
     {
       icon: Code,
       title: "SDKs & Libraries",
       description: "Python, JavaScript, and Go SDKs",
-      link: "#sdks",
+      link: "/docs/sdks/python",
       external: false
     },
     {
       icon: Zap,
       title: "Integration Guides",
       description: "Connect with popular ML platforms",
-      link: "#integrations",
+      link: "/docs/integrations/jupyter",
       external: false
     }
   ]
@@ -70,7 +70,7 @@ print(f"Download URL: {result.download_url}")`
                 Documentation
               </h1>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Everything you need to integrate Schlep Engine into your ML pipeline
+                Everything you need to integrate schlep-engine into your ML pipeline
               </p>
             </div>
 
@@ -135,11 +135,11 @@ print(f"Download URL: {result.download_url}")`
                 Need Help?
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                Our team is here to help you get started with Schlep Engine
+                Our team is here to help you get started with schlep-engine
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <a
-                  href="/api-docs"
+                  href="/docs/api-reference"
                   className="bg-[#1A5799] text-white px-8 py-3 rounded-lg hover:bg-[#1e3a8a] transition-colors duration-200 font-medium"
                 >
                   View Full API Docs

@@ -19,6 +19,8 @@ import mimetypes
 from fastapi import UploadFile, HTTPException
 import aiofiles
 
+from app.security.file_upload_validator import get_file_upload_validator, ValidationResult
+
 # Cloud storage imports (will be conditional)
 try:
     import boto3
@@ -56,10 +58,18 @@ class FileUploadService:
     async def upload_file(self, file: UploadFile, user_id: str) -> Dict[str, Any]:
         """Upload file with validation and metadata extraction"""
         try:
-            # Validate file
-            validation_result = await self._validate_file(file)
-            if not validation_result['valid']:
-                raise HTTPException(status_code=400, detail=validation_result['error'])
+            # Security validation using secure validator
+            validator = get_file_upload_validator()
+            validation_result = await validator.validate_file(file)
+            
+            if validation_result.status == ValidationResult.REJECTED:
+                error_details = "; ".join(validation_result.errors)
+                raise HTTPException(status_code=400, detail=f"File rejected: {error_details}")
+            
+            if validation_result.status == ValidationResult.QUARANTINED:
+                warning_details = "; ".join(validation_result.warnings)
+                logger.warning(f"Quarantined file upload: {warning_details}")
+                raise HTTPException(status_code=422, detail=f"File quarantined: {warning_details}")
             
             # Generate unique file identifier
             file_id = self._generate_file_id(file.filename, user_id)
