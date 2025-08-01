@@ -12,15 +12,8 @@ from app.database.models import User # Using the SQLAlchemy User model
 # from app.tasks.data_processing_tasks import schema_detection_task # Import the Celery task
 from app.core.error_decorators import handle_database_errors, handle_file_processing_errors
 
-# Placeholder for current_user dependency - replace with actual auth
-async def get_current_active_user() -> User:
-    # This is a placeholder. In a real app, this would come from your auth system.
-    # For now, returning a dummy user or raising an error if no user context is available.
-    # Depending on how you want to handle this for now, you might fetch a default user
-    # or ensure tests mock this appropriately.
-    # For basic CRUD, we might not need user for all ops, but create usually does.
-    # Returning a dummy User object with a UUID id for now.
-    return User(id=uuid.uuid4(), email="test@example.com", username="testuser", role="analyst", is_active=True)
+# Import proper authentication dependency
+from app.auth.dependencies import get_current_active_user
 
 router = APIRouter()
 

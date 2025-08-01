@@ -317,35 +317,19 @@ function AuthPageContent() {
             )}
           </div>
         </div>
-
-        {/* Right Column - Image */}
+        
+        {/* Right Column */}
         <div className="hidden lg:block relative flex-1">
-          <div className="absolute inset-0 bg-[#161616]">
+          <div className="absolute inset-0 bg-[#111111]">
             <div className="h-full flex items-center justify-center p-12">
-              <div className="text-center style={{color: '#fcfcf7'}}">
-                {/* Placeholder content - replace with actual image */}
-                <div className="w-96 h-96 bg-white/10 rounded-2xl flex items-center justify-center mb-8">
-                  <div className="text-center">
-                    <div className="w-24 h-24 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                      <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                    <p className="text-lg font-medium">Streamlined Access</p>
-                  </div>
-                </div>
-                <h3 className="text-2xl font-bold mb-4">
-                  Transform your data processing workflow
-                </h3>
-                <p className="text-lg style={{color: '#fcfcf7'}}/80 max-w-md">
-                  Join thousands of data teams who trust Schlep-engine for their AI-powered data preparation needs.
-                </p>
+              <div className="text-center" style={{color: '#fcfcf7'}}>
+                {/* Image removed */}
               </div>
             </div>
           </div>
-          </div>
         </div>
       </div>
+    </div>
   )
 }
 

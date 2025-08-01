@@ -5,23 +5,58 @@ from passlib.context import CryptContext
 from app.core.api_config import settings
 import secrets
 import hashlib
+import os
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# JWT settings
-ALGORITHM = "HS256"
+# JWT settings - Use RS256 for production security
+ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))  # Shorter for security
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    """Create JWT access token"""
+    """Create JWT access token with enhanced security"""
     to_encode = data.copy()
+    
+    # Use shorter expiry for security
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    # Add security claims
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.utcnow(),  # Issued at
+        "iss": "schlep-engine",   # Issuer
+        "aud": "schlep-engine-api"  # Audience
+    })
+    
+    # Use environment variable for secret key
+    secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
+    if not secret_key or secret_key == "__CHANGE_ME_GENERATE_SECURE_SECRET_KEY__":
+        raise ValueError("SECRET_KEY must be set to a secure value")
+    
+    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def create_refresh_token(data: dict) -> str:
+    """Create refresh token for token renewal"""
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    
+    to_encode.update({
+        "exp": expire,
+        "iat": datetime.utcnow(),
+        "type": "refresh"
+    })
+    
+    secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
+    if not secret_key or secret_key == "__CHANGE_ME_GENERATE_SECURE_SECRET_KEY__":
+        raise ValueError("SECRET_KEY must be set to a secure value")
+    
+    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
     return encoded_jwt
 
 def verify_token(token: str):

@@ -148,15 +148,41 @@ app.add_middleware(
     allowed_hosts=getattr(settings, 'ALLOWED_HOSTS', ['*'])
 )
 
-# TODO: Fix monitoring middleware - temporarily disabled
-# app = create_monitoring_middleware(app)
+# Add monitoring middleware
+app = create_monitoring_middleware(app)
 
-# TODO: Add security middleware when dependencies are fixed
-# app.add_middleware(RateLimitingMiddleware)
-# app.add_middleware(AuditMiddleware)
-# app.add_middleware(EncryptionMiddleware)
-# app.add_middleware(RequestValidationSanitizationMiddleware)
-# app.add_middleware(CSRFProtectionMiddleware)
+# Add security middleware (re-enabled with error handling)
+try:
+    app.add_middleware(RequestValidationSanitizationMiddleware)
+    logger.info("Request validation middleware enabled")
+except Exception as e:
+    logger.warning(f"Failed to enable request validation middleware: {e}")
+
+try:
+    app.add_middleware(RateLimitingMiddleware)
+    logger.info("Rate limiting middleware enabled")
+except Exception as e:
+    logger.warning(f"Failed to enable rate limiting middleware: {e}")
+
+try:
+    app.add_middleware(AuditMiddleware)
+    logger.info("Audit middleware enabled")
+except Exception as e:
+    logger.warning(f"Failed to enable audit middleware: {e}")
+
+# TODO: Re-enable when encryption dependencies are resolved
+# try:
+#     app.add_middleware(EncryptionMiddleware)
+#     logger.info("Encryption middleware enabled")
+# except Exception as e:
+#     logger.warning(f"Failed to enable encryption middleware: {e}")
+
+# TODO: Re-enable CSRF protection for production
+# try:
+#     app.add_middleware(CSRFProtectionMiddleware)
+#     logger.info("CSRF protection middleware enabled")
+# except Exception as e:
+#     logger.warning(f"Failed to enable CSRF protection middleware: {e}")
 
 # Global exception handlers
 @app.exception_handler(RequestValidationError)
