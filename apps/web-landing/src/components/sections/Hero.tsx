@@ -20,8 +20,8 @@ export default function Hero() {
 
   return (
     <>
-    <section className="pt-20 pb-16 bg-[#111111] min-h-screen flex items-center relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+    <section className="pt-64 pb-16 bg-[#111111] min-h-screen flex items-center relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-0 sm:px-0 lg:px-0">
         <div className="text-center">
           <h1 className="text-3xl md:text-5xl font-semibold text-beige-secondary mb-4 leading-tight">
             Messy data to ML-ready in API calls.
@@ -46,6 +46,7 @@ export default function Hero() {
               API Documentation
             </Link>
           </div>
+          <img src="/Hero Prop.svg" alt="Hero Prop" className="mx-auto mt-0 w-full h-auto" style={{ maskImage: 'linear-gradient(to right, transparent, black 20%, black 80%, transparent)', maskSize: '100% 100%' }} />
         </div>
       </div>
     </section>
