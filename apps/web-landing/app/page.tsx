@@ -1,4 +1,5 @@
 import Header from '../src/components/sections/Header'
+import AudienceTabs from '../src/components/sections/AudienceTabs'
 import Hero from '../src/components/sections/Hero'
 import AdditionalFeatures from '../src/components/sections/AdditionalFeatures'
 import SecurityFeatures from '../src/components/sections/SecurityFeatures'
@@ -21,9 +22,7 @@ export default function HomePage() {
         <Hero />
         <Benefits />
         <HowItWorks />
-        <AudienceGuide />
-        <NoCode />
-        <Developer />
+        <AudienceTabs />
         <AdditionalFeatures />
         <SecurityFeatures />
         <Integrations />

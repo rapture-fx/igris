@@ -305,14 +305,14 @@ class UnifiedSettings(BaseSettings):
     
     # ==================== EXTERNAL SERVICES ====================
     
-    # Stripe (if using)
-    STRIPE_API_KEY: str = Field(
+    # LemonSqueezy (if using)
+    LEMONSQUEEZY_API_KEY: str = Field(
         default="",
-        description="Stripe API key"
+        description="LemonSqueezy API key"
     )
-    STRIPE_WEBHOOK_SECRET: str = Field(
+    LEMONSQUEEZY_WEBHOOK_SECRET: str = Field(
         default="",
-        description="Stripe webhook secret"
+        description="LemonSqueezy webhook secret"
     )
     
     # AI Model Settings

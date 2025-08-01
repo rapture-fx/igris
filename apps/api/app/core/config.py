@@ -123,6 +123,11 @@ class Settings(BaseSettings):
     MAX_LOGIN_ATTEMPTS: int = Field(default=5, env="MAX_LOGIN_ATTEMPTS")
     LOCKOUT_DURATION_MINUTES: int = Field(default=15, env="LOCKOUT_DURATION_MINUTES")
     
+    # LemonSqueezy Configuration
+    LEMONSQUEEZY_API_KEY: Optional[str] = Field(default=None, env="LEMONSQUEEZY_API_KEY")
+    LEMONSQUEEZY_WEBHOOK_SECRET: Optional[str] = Field(default=None, env="LEMONSQUEEZY_WEBHOOK_SECRET")
+    LEMONSQUEEZY_STORE_ID: Optional[str] = Field(default=None, env="LEMONSQUEEZY_STORE_ID")
+    
     # Feature Flags
     ENABLE_ADVANCED_AI: bool = Field(default=True, env="ENABLE_ADVANCED_AI")
     ENABLE_ML_PIPELINE: bool = Field(default=True, env="ENABLE_ML_PIPELINE")

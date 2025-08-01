@@ -140,9 +140,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_PER_MINUTE: int = 60
     RATE_LIMIT_PER_HOUR: int = 1000
     
-    # Stripe
-    STRIPE_API_KEY: str = os.getenv("STRIPE_API_KEY", "")
-    STRIPE_WEBHOOK_SECRET: str = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+    # LemonSqueezy
+    LEMONSQUEEZY_API_KEY: str = os.getenv("LEMONSQUEEZY_API_KEY", "")
+    LEMONSQUEEZY_WEBHOOK_SECRET: str = os.getenv("LEMONSQUEEZY_WEBHOOK_SECRET", "")
     
     # AI Model Settings
     MODEL_PATH: str = os.getenv("MODEL_PATH", "models/")

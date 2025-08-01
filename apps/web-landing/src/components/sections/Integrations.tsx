@@ -83,7 +83,7 @@ export default function Integrations() {
   }
 
   return (
-    <section className="py-20 bg-[#161616]">
+    <section className="py-20 bg-[#111111]">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold text-beige-secondary mb-6">

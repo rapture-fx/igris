@@ -1,8 +1,11 @@
 'use client'
 
 import { Clock, Brain, Target, Shield, Zap, Key } from 'lucide-react'
+import { useState } from 'react'
 
 export default function Benefits() {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
   const benefits = [
     {
       icon: Clock,
@@ -37,7 +40,7 @@ export default function Benefits() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-[#161616] text-beige-secondary">
+    <section className="py-16 md:py-24 bg-[#111111] text-beige-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-beige-secondary mb-4">
@@ -48,7 +51,7 @@ export default function Benefits() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start mb-20">
           {/* Left Column - Benefits List */}
           <div className="space-y-8">
             {benefits.map((benefit, index) => {
@@ -56,16 +59,18 @@ export default function Benefits() {
               return (
                 <div 
                   key={index}
-                  className="group p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-zinc-900 hover:shadow-lg"
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                  className={`group p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-[#161616] hover:shadow-lg ${hoveredIndex !== null && hoveredIndex !== index ? 'opacity-50' : ''}`}
                 >
                   <div>
                     <h3 className="text-xl font-semibold text-beige-secondary mb-0.5">
                       {benefit.title}
                     </h3>
-                    <div className="w-full h-0.5 bg-[#1f1f1f] mb-2"></div>
                     <p className="text-beige-secondary leading-relaxed text-xs">
                       {benefit.description}
                     </p>
+                    <div className="w-full h-0.5 bg-[#1f1f1f] mt-2"></div>
                   </div>
                 </div>
               )

@@ -86,35 +86,57 @@ All API endpoints require authentication using an API key.
 
 ## Usage & Billing
 
-**Usage-based pricing**:
-- **Data Processing**: $0.01 per 1,000 records
-- **ML Operations**: $0.10 per ML job
-- **Storage**: $0.05 per GB/month
-- **API Calls**: Included in plan limits
+**Powered by LemonSqueezy** for transparent, usage-based pricing:
+- **Data Processing**: $0.01 per 1,000 records processed
+- **ML Operations**: $0.10 per ML job execution
+- **Storage**: $0.05 per GB/month (5GB free)
+- **API Calls**: $0.001 per request (1,000 free/month)
 
-**Real-time usage tracking**:
+**Real-time usage tracking** via `/api/v1/billing/usage`:
 ```json
 {
   "usage": {
-    "records_processed": 15000,
-    "ml_jobs": 5,
-    "storage_gb": 2.5,
-    "api_calls": 1250
+    "total_requests": 5420,
+    "data_processed": 85000000,
+    "storage_used": 2500000000,
+    "ml_operations": 245,
+    "cost": 24.50,
+    "period": "2024-01-01 to 2024-01-31",
+    "currency": "USD"
   }
 }
 ```
 
+**Subscription management**:
+```bash
+# Get subscription details
+curl -X GET "https://api.schlep-engine.com/api/v1/billing/subscription/{subscription_id}" \
+  -H "X-API-Key: your_api_key_here"
+
+# Get billing overview
+curl -X GET "https://api.schlep-engine.com/api/v1/billing/overview/{customer_id}" \
+  -H "X-API-Key: your_api_key_here"
+```
+
 ## Webhooks
 
-Configure webhooks to receive real-time notifications:
+Configure webhooks to receive real-time notifications for both **data processing** and **billing events**:
 
-**Events**:
+**Data Processing Events**:
 - `job.completed` - Data processing job finished
 - `job.failed` - Job failed with error details
 - `usage.alert` - Approaching usage limits
 - `security.breach` - Security event detected
 
-**Example webhook payload**:
+**LemonSqueezy Billing Events** (via `/api/v1/webhooks/lemonsqueezy/webhook`):
+- `subscription_created` - New subscription activated
+- `subscription_updated` - Subscription status changed
+- `subscription_cancelled` - Subscription cancelled
+- `subscription_payment_success` - Payment processed successfully
+- `subscription_payment_failed` - Payment failed
+- `order_refunded` - Order was refunded
+
+**Example data processing webhook payload**:
 ```json
 {
   "event": "job.completed",
@@ -124,6 +146,25 @@ Configure webhooks to receive real-time notifications:
     "status": "completed",
     "records_processed": 5000,
     "processing_time": 45.2
+  }
+}
+```
+
+**Example LemonSqueezy webhook payload**:
+```json
+{
+  "meta": {
+    "event_name": "subscription_payment_success",
+    "webhook_id": "wh_123"
+  },
+  "data": {
+    "id": "sub_456",
+    "attributes": {
+      "customer_id": "cust_789",
+      "status": "active",
+      "total": 2500,
+      "currency": "USD"
+    }
   }
 }
 ```
@@ -280,8 +321,12 @@ result <- client$upload_file("data.csv")
             "description": "Real-time notifications and event handling"
         },
         {
-            "name": "Usage & Billing",
-            "description": "Usage tracking and billing information"
+            "name": "LemonSqueezy Webhooks",
+            "description": "LemonSqueezy billing and subscription webhook handlers"
+        },
+        {
+            "name": "Billing & Usage",
+            "description": "LemonSqueezy-powered usage tracking and billing information"
         },
         {
             "name": "Enterprise",

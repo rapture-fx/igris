@@ -60,27 +60,35 @@ export default function Footer() {
       ]
     },
     {
-      title: "Legal",
+      title: "Legal and Compliance",
       links: [
         { name: "Privacy Policy", href: "#privacy" },
         { name: "Terms of Service", href: "#terms" },
-        { name: "Contact", href: "#contact" }
+        { name: "Contact", href: "#contact" },
+        { name: "SOC2", href: "#" },
+        { name: "GDPR", href: "#" },
+        { name: "HIPAA", href: "#" },
+        { name: "PCI DSS", href: "#" },
+        { name: "ISO/IEC 27001:2013", href: "#" },
+        { name: "NIST Cybersecurity Framework", href: "#" },
+        { name: "CCPA", href: "#" },
+        { name: "FedRAMP", href: "#" }
       ]
     }
   ]
 
   return (
-    <footer className="bg-[#161616] text-beige-secondary">
+    <footer className="bg-[#111111] text-beige-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-16">
           <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
             
 
-            <div className="lg:col-span-6">
+            <div className="lg:col-span-12">
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-7xl mx-auto">
                 {footerSections.map((section, index) => (
                   <div key={index}>
-                    <h3 className="text-lg font-semibold mb-4 text-beige-secondary">
+                    <h3 className="text-base font-semibold mb-4 text-beige-secondary">
                       {section.title}
                     </h3>
                     <ul className="space-y-2">
@@ -88,7 +96,7 @@ export default function Footer() {
                         <li key={linkIndex}>
                           <Link
                             href={link.href}
-                            className="text-beige-secondary hover:text-white transition-colors duration-200 text-sm"
+                            className="text-xs text-beige-secondary hover:text-white transition-colors duration-200"
                           >
                             {link.name}
                           </Link>
@@ -101,7 +109,7 @@ export default function Footer() {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-800">
+          <div className="mt-12 pt-8 border-t border-[#2a2a2a]">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="text-beige-secondary mb-4 md:mb-0 text-sm">
                 <p>&copy; 2024 Schlep-engine. All rights reserved.</p>

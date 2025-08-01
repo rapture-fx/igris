@@ -1,12 +1,23 @@
 from sqlalchemy.orm import Session
-from app.models.api_usage import APIUsage
 from app.core.database import get_db
 from datetime import datetime
 import asyncio
 from app.core.api_config import settings
-import stripe
+import httpx
+import json
+import logging
+from typing import Optional
 
-stripe.api_key = settings.STRIPE_API_KEY
+# Import models directly from database.models to avoid circular imports
+from app.database.models import ApiKey as APIKey
+
+# Configure logging
+logger = logging.getLogger(__name__)
+
+# LemonSqueezy API configuration
+LEMONSQUEEZY_API_BASE = "https://api.lemonsqueezy.com/v1"
+LEMONSQUEEZY_API_KEY = settings.LEMONSQUEEZY_API_KEY
+RATE_LIMIT_PER_MINUTE = 300  # LemonSqueezy rate limit
 
 async def track_api_usage(
     api_key: str,
@@ -20,16 +31,17 @@ async def track_api_usage(
     if not db:
         db = next(get_db())
     
-    # Create usage record
-    usage = APIUsage(
-        api_key=api_key,
-        operation=operation,
-        units=units,
-        timestamp=datetime.utcnow()
-    )
-    
-    db.add(usage)
-    db.commit()
+    # Create usage record (using a simple tracking approach)
+    # Note: You may need to create an APIUsage model if detailed tracking is needed
+    try:
+        # For now, we'll just update the usage count on the API key
+        api_key_record = db.query(APIKey).filter(APIKey.key_hash == api_key).first()
+        if api_key_record:
+            api_key_record.usage_count = (api_key_record.usage_count or 0) + units
+            db.commit()
+    except Exception as e:
+        logger.warning(f"Could not update usage count for API key: {e}")
+        # Continue with billing update even if local tracking fails
     
     # Update billing in background
     asyncio.create_task(update_billing(api_key, operation, units))
@@ -40,32 +52,156 @@ async def update_billing(
     units: int
 ) -> None:
     """
-    Update billing information in Stripe based on API usage.
+    Update billing information in LemonSqueezy based on API usage.
     """
     try:
         # Get subscription for API key
         db = next(get_db())
-        subscription = db.query(APIKey).filter(
-            APIKey.key == api_key
-        ).first().subscription
+        api_key_record = db.query(APIKey).filter(
+            APIKey.key_hash == api_key
+        ).first()
         
-        if not subscription or not subscription.stripe_subscription_id:
+        if not api_key_record:
+            logger.warning(f"API key not found: {api_key}")
             return
         
-        # Get usage-based price ID from subscription
-        price_id = subscription.usage_price_id
+        # Check if API key has associated LemonSqueezy subscription
+        if not api_key_record.lemonsqueezy_subscription_id:
+            # Try to get subscription from user's organization
+            if api_key_record.user and api_key_record.user.organization:
+                org_subscription_id = api_key_record.user.organization.lemonsqueezy_subscription_id
+                if org_subscription_id:
+                    # Report usage using organization's subscription
+                    await _report_usage_to_lemonsqueezy(
+                        org_subscription_id,
+                        operation,
+                        units
+                    )
+                    return
+            
+            logger.warning(f"No LemonSqueezy subscription ID found for API key: {api_key}")
+            return
         
-        # Report usage to Stripe
-        stripe.SubscriptionItem.create_usage_record(
-            subscription.stripe_subscription_item_id,
-            quantity=units,
-            timestamp=int(datetime.utcnow().timestamp()),
-            action='increment'
+        # Report usage to LemonSqueezy using API key's subscription
+        await _report_usage_to_lemonsqueezy(
+            api_key_record.lemonsqueezy_subscription_id,
+            operation,
+            units
         )
         
     except Exception as e:
         # Log error but don't fail the request
-        print(f"Error updating billing: {str(e)}")
+        logger.error(f"Error updating billing for API key {api_key}: {str(e)}")
+
+
+async def _report_usage_to_lemonsqueezy(
+    subscription_id: str,
+    operation: str,
+    units: int
+) -> None:
+    """
+    Report usage to LemonSqueezy API with rate limiting protection.
+    """
+    if not LEMONSQUEEZY_API_KEY:
+        logger.warning("LemonSqueezy API key not configured")
+        return
+    
+    headers = {
+        "Authorization": f"Bearer {LEMONSQUEEZY_API_KEY}",
+        "Accept": "application/vnd.api+json",
+        "Content-Type": "application/vnd.api+json"
+    }
+    
+    usage_data = {
+        "data": {
+            "type": "usage-records",
+            "attributes": {
+                "quantity": units,
+                "action": "increment",
+                "created_at": datetime.utcnow().isoformat()
+            },
+            "relationships": {
+                "subscription": {
+                    "data": {
+                        "type": "subscriptions",
+                        "id": subscription_id
+                    }
+                }
+            }
+        }
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                f"{LEMONSQUEEZY_API_BASE}/usage-records",
+                headers=headers,
+                json=usage_data
+            )
+            
+            # Check rate limiting
+            if response.status_code == 429:
+                logger.warning(f"LemonSqueezy rate limit exceeded. Headers: {response.headers}")
+                # Could implement retry logic here
+                return
+            
+            if response.status_code >= 400:
+                logger.error(f"LemonSqueezy API error: {response.status_code} - {response.text}")
+                return
+            
+            logger.debug(f"Successfully reported usage to LemonSqueezy: {units} units for operation {operation}")
+            
+    except Exception as e:
+        logger.error(f"Failed to report usage to LemonSqueezy: {str(e)}")
+
+
+async def get_lemonsqueezy_subscription_usage(
+    subscription_id: str,
+    start_date: Optional[datetime] = None,
+    end_date: Optional[datetime] = None
+) -> dict:
+    """
+    Get usage summary from LemonSqueezy for a subscription.
+    """
+    if not LEMONSQUEEZY_API_KEY:
+        logger.warning("LemonSqueezy API key not configured")
+        return {}
+    
+    headers = {
+        "Authorization": f"Bearer {LEMONSQUEEZY_API_KEY}",
+        "Accept": "application/vnd.api+json"
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Build query parameters for date filtering
+            params = {}
+            if start_date:
+                params['filter[created_at][gte]'] = start_date.isoformat()
+            if end_date:
+                params['filter[created_at][lte]'] = end_date.isoformat()
+            
+            response = await client.get(
+                f"{LEMONSQUEEZY_API_BASE}/subscriptions/{subscription_id}/usage-records",
+                headers=headers,
+                params=params
+            )
+            
+            if response.status_code == 429:
+                logger.warning("LemonSqueezy rate limit exceeded when fetching usage")
+                return {"error": "rate_limit_exceeded"}
+            
+            if response.status_code >= 400:
+                logger.error(f"LemonSqueezy API error: {response.status_code} - {response.text}")
+                return {"error": "api_error"}
+            
+            data = response.json()
+            return data.get('data', [])
+            
+    except Exception as e:
+        logger.error(f"Failed to fetch usage from LemonSqueezy: {str(e)}")
+        return {"error": "request_failed"}
+
 
 def get_usage_summary(
     api_key: str,
@@ -75,27 +211,42 @@ def get_usage_summary(
 ) -> dict:
     """
     Get usage summary for an API key within a date range.
+    Note: This is a simplified version. For detailed tracking, implement an APIUsage model.
     """
-    usage = db.query(APIUsage).filter(
-        APIUsage.api_key == api_key,
-        APIUsage.timestamp >= start_date,
-        APIUsage.timestamp <= end_date
-    ).all()
-    
-    summary = {
-        "total_operations": len(usage),
-        "total_units": sum(u.units for u in usage),
-        "operations": {}
-    }
-    
-    # Group by operation type
-    for u in usage:
-        if u.operation not in summary["operations"]:
-            summary["operations"][u.operation] = {
-                "count": 0,
-                "units": 0
+    try:
+        # Get API key record
+        api_key_record = db.query(APIKey).filter(
+            APIKey.key_hash == api_key
+        ).first()
+        
+        if not api_key_record:
+            return {
+                "total_operations": 0,
+                "total_units": 0,
+                "operations": {},
+                "error": "API key not found"
             }
-        summary["operations"][u.operation]["count"] += 1
-        summary["operations"][u.operation]["units"] += u.units
-    
-    return summary 
+        
+        # Return basic summary from API key record
+        # For more detailed tracking, you would query an APIUsage table
+        summary = {
+            "total_operations": 1,  # Placeholder
+            "total_units": api_key_record.usage_count or 0,
+            "operations": {
+                "api_usage": {
+                    "count": 1,
+                    "units": api_key_record.usage_count or 0
+                }
+            }
+        }
+        
+        return summary
+        
+    except Exception as e:
+        logger.error(f"Error getting usage summary for API key {api_key}: {e}")
+        return {
+            "total_operations": 0,
+            "total_units": 0,
+            "operations": {},
+            "error": str(e)
+        } 

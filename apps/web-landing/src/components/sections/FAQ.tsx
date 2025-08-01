@@ -6,7 +6,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react'
 export default function FAQ() {
 
   return (
-    <section className="py-16 md:py-24 bg-[#161616]">
+    <section className="py-16 md:py-24 bg-[#111111]">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mt-16 text-center">
           <div>

@@ -40,7 +40,8 @@ from app.api.v1 import (
 # Import safe API services to enable
 from app.api.v1 import (
     analytics, billing, community, enterprise, marketplace,
-    security_admin, semantic_insights, websocket_manager, partner, cost_monitoring
+    security_admin, semantic_insights, websocket_manager, partner, cost_monitoring,
+    lemonsqueezy_webhooks
 )
 # Re-enabled core functionality - dependencies now working
 # from app.api.v1 import data_processing, advanced_ai, advanced_ml
@@ -285,6 +286,7 @@ app.include_router(semantic_insights.router, prefix="/api/v1/semantic", tags=["S
 app.include_router(websocket_manager.router, prefix="/api/v1/websocket", tags=["WebSocket Manager"])
 app.include_router(partner.router, prefix="/api/v1/partner", tags=["Partner APIs"])
 app.include_router(cost_monitoring.router, prefix="/api/v1/cost", tags=["Cost Monitoring"])
+app.include_router(lemonsqueezy_webhooks.router, prefix="/api/v1/webhooks", tags=["LemonSqueezy Webhooks"])
 
 # Root endpoint
 @app.get("/", tags=["Root"])

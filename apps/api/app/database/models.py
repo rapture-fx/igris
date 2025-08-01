@@ -91,11 +91,11 @@ class User(Base):
     user_sessions = relationship("UserSession", back_populates="user")
     password_reset_tokens = relationship("PasswordResetToken", back_populates="user")
     
-    # Security relationships (optional - for security models)
-    encrypted_fields = relationship("EncryptedField", foreign_keys="[EncryptedField.users_id]", back_populates="user")
-    audit_trail = relationship("AuditTrail", foreign_keys="[AuditTrail.users_id]", back_populates="user")
-    data_classification = relationship("DataClassificationRecord", foreign_keys="[DataClassificationRecord.users_id]", back_populates="user")
-    compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.users_id]", back_populates="user")
+    # Security relationships (commented out until security models are properly defined)
+    # encrypted_fields = relationship("EncryptedField", foreign_keys="[EncryptedField.users_id]", back_populates="user")
+    # audit_trail = relationship("AuditTrail", foreign_keys="[AuditTrail.users_id]", back_populates="user")
+    # data_classification = relationship("DataClassificationRecord", foreign_keys="[DataClassificationRecord.users_id]", back_populates="user")
+    # compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.users_id]", back_populates="user")
     
     # OAuth relationships
     oauth_accounts = relationship("OAuthAccount", back_populates="user")
@@ -136,6 +136,8 @@ class Organization(Base):
     domain = Column(String)
     subscription_plan = Column(String, default="free")  # free, pro, enterprise
     subscription_status = Column(String, default="active")
+    lemonsqueezy_subscription_id = Column(String)  # LemonSqueezy subscription ID
+    lemonsqueezy_customer_id = Column(String)  # LemonSqueezy customer ID
     settings = Column(JSON, default={})
     
     # Timestamps
@@ -184,6 +186,7 @@ class ApiKey(Base):
     expires_at = Column(DateTime(timezone=True))
     rate_limit = Column(Integer)  # Requests per minute
     usage_count = Column(Integer, default=0)
+    lemonsqueezy_subscription_id = Column(String)  # Associated LemonSqueezy subscription
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

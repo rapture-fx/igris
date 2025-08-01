@@ -20,7 +20,7 @@ export default function Hero() {
 
   return (
     <>
-    <section className="pt-20 pb-16 bg-[#161616] min-h-screen flex items-center relative overflow-hidden">
+    <section className="pt-20 pb-16 bg-[#111111] min-h-screen flex items-center relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="text-center">
           <h1 className="text-3xl md:text-5xl font-semibold text-beige-secondary mb-4 leading-tight">

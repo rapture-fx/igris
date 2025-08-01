@@ -53,7 +53,7 @@ const securityFeatures = [
 
 export default function SecurityFeatures() {
   return (
-    <section className="py-20 sm:py-24 lg:py-32 bg-[#161616]">
+    <section className="py-20 sm:py-24 lg:py-32 bg-[#111111]">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="lg:text-center mb-16">
           <motion.h2
