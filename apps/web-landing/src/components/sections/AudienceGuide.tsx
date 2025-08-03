@@ -7,13 +7,13 @@ import { Code, MousePointerClick } from 'lucide-react'
 export default function AudienceGuide() {
   return (
     <section className="py-16 md:py-24 bg-[#111111] text-beige-secondary">
-      <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-3xl md:text-4xl font-bold text-beige-secondary mb-6"
+          className="text-3xl md:text-4xl font-bold text-beige-secondary mb-6 text-left"
         >
           Who are you building for?
         </motion.h2>
@@ -22,7 +22,7 @@ export default function AudienceGuide() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-xl text-beige-secondary mb-10"
+          className="text-xl text-beige-secondary mb-10 text-left"
         >
           Schlep-engine empowers both technical and non-technical users to transform data effortlessly.
           Choose your path below:

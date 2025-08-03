@@ -87,10 +87,28 @@ class UnifiedSettings(BaseSettings):
     
     # ==================== DATABASE SETTINGS ====================
     
-    # Database connection - all from environment variables
+    # Database connection - supports both traditional PostgreSQL and Supabase
     DATABASE_URL: str = Field(
         default="postgresql://postgres:postgres@localhost:5432/schlep_engine_dev",
         description="Database connection URL"
+    )
+    
+    # Supabase Configuration (for hybrid architecture)
+    SUPABASE_URL: str = Field(
+        default="",
+        description="Supabase project URL (e.g., https://xyz.supabase.co)"
+    )
+    SUPABASE_ANON_KEY: str = Field(
+        default="",
+        description="Supabase anonymous key"
+    )
+    SUPABASE_SERVICE_KEY: str = Field(
+        default="",
+        description="Supabase service role key"
+    )
+    SUPABASE_JWT_SECRET: str = Field(
+        default="",
+        description="Supabase JWT secret"
     )
     
     # Database connection components (for backward compatibility)
@@ -128,11 +146,24 @@ class UnifiedSettings(BaseSettings):
     @property
     def ASYNC_DATABASE_URI(self) -> str:
         """Generate async database URI with connection pooling"""
+        # If DATABASE_URL is already set (like from Supabase), use it
+        if self.DATABASE_URL and self.DATABASE_URL != "postgresql://postgres:postgres@localhost:5432/schlep_engine_dev":
+            # Convert postgresql:// to postgresql+asyncpg:// for SQLAlchemy async
+            if self.DATABASE_URL.startswith("postgresql://"):
+                return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
+            return self.DATABASE_URL
+        
+        # Fallback to component-based construction
         return (
             f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
             f"{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
             f"?pool_size={self.DB_POOL_SIZE}&max_overflow={self.DB_MAX_OVERFLOW}"
         )
+    
+    @property
+    def is_supabase_enabled(self) -> bool:
+        """Check if Supabase configuration is available"""
+        return bool(self.SUPABASE_URL and self.SUPABASE_ANON_KEY and self.SUPABASE_SERVICE_KEY)
     
     # ==================== REDIS SETTINGS ====================
     

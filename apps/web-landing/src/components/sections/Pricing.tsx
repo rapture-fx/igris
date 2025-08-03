@@ -138,7 +138,7 @@ export default function Pricing() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Universal Benefits */}
         <div className="bg-gray-900 rounded-lg p-8 mb-12 shadow-lg border border-gray-700">
-          <h3 className="text-2xl font-bold text-beige-secondary mb-4 text-center">On all plans</h3>
+          <h3 className="text-2xl font-bold text-beige-secondary mb-4 text-left">On all plans</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-beige-secondary text-center">
             <p className="flex items-center justify-center"><Check className="w-5 h-5 text-green-500 mr-2" /> Upgrade anytime</p>
             <p className="flex items-center justify-center"><Check className="w-5 h-5 text-green-500 mr-2" /> Downgrade anytime</p>

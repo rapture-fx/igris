@@ -28,11 +28,11 @@ export default function HowItWorks() {
   return (
     <section className="py-20 md:py-32 bg-[#111111]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-beige-secondary mb-4">
+        <div className="mb-16">
+          <h2 className="text-3xl md:text-4xl font-semibold text-beige-secondary mb-4 text-left">
             From Messy to ML-Ready in 3 Steps
           </h2>
-          <p className="text-xl text-beige-secondary max-w-2xl mx-auto">
+          <p className="text-xl text-beige-secondary max-w-2xl text-left">
             Transform your data pipeline from hours of manual work to minutes of automated processing
           </p>
         </div>

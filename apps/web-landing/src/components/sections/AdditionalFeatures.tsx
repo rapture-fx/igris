@@ -53,12 +53,12 @@ export default function AdditionalFeatures() {
   return (
     <section className="py-20 sm:py-24 lg:py-32 bg-[#111111] text-beige-secondary">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="lg:text-center">
-          <h2 className="text-base font-semibold leading-7 text-[#1A5799]">Beyond the Core</h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-beige-secondary sm:text-4xl">
+        <div className="lg:text-left">
+          <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-left">Beyond the Core</h2>
+          <p className="mt-2 text-3xl font-semibold tracking-tight text-beige-secondary sm:text-4xl text-left">
             Explore the Full Power of Schlep-engine
           </p>
-          <p className="mt-6 text-lg leading-8 text-beige-secondary">
+          <p className="mt-6 text-lg leading-8 text-beige-secondary text-left">
             Schlep-engine offers a comprehensive suite of features designed to streamline your data operations,
             from advanced AI capabilities to robust security and seamless integrations.
           </p>
@@ -69,7 +69,7 @@ export default function AdditionalFeatures() {
             {features.map((feature) => (
               <div key={feature.name} className="relative pl-16">
                 <dt className="text-base font-semibold leading-7 text-beige-secondary">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-[#1A5799]">
+                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg">
                     <feature.icon className="h-6 w-6 text-beige-secondary" aria-hidden="true" />
                   </div>
                   {feature.name}

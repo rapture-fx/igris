@@ -55,13 +55,13 @@ export default function SecurityFeatures() {
   return (
     <section className="py-20 sm:py-24 lg:py-32 bg-[#111111]">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="lg:text-center mb-16">
+        <div className="lg:text-left mb-16">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-base font-semibold leading-7 text-[#1A5799]"
+            className="text-base font-semibold leading-7 text-[#1A5799] text-left"
           >
             Enterprise-Grade Protection
           </motion.h2>
@@ -70,7 +70,7 @@ export default function SecurityFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-2 text-3xl font-bold tracking-tight text-white sm:text-4xl"
+            className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl text-left"
           >
             Your Data, Secured with Confidence
           </motion.p>
@@ -79,7 +79,7 @@ export default function SecurityFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-6 text-lg leading-8 text-gray-300"
+            className="mt-6 text-lg leading-8 text-gray-300 text-left"
           >
             Schlep-engine is built from the ground up with security as a core principle, 
             ensuring your sensitive data is protected by industry-leading controls and compliance.
@@ -98,7 +98,7 @@ export default function SecurityFeatures() {
                 className="relative pl-16"
               >
                 <dt className="text-base font-semibold leading-7 text-beige-secondary">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg bg-[#468BE6]">
+                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg">
                     <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
                   </div>
                   {feature.name}
@@ -116,7 +116,7 @@ export default function SecurityFeatures() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-20 text-center"
         >
-          <div className="bg-gradient-to-r from-[#468BE6]/10 to-blue-100/50 rounded-2xl p-8 max-w-3xl mx-auto border border-[#468BE6]/20">
+          <div className="bg-[#161616] rounded-2xl p-8 max-w-3xl mx-auto border border-[#161616]">
             <h3 className="text-xl font-semibold text-beige-secondary mb-4">
               Compliance & Certifications
             </h3>

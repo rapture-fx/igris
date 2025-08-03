@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, Zap, Database, BarChart3, Cloud, Globe, Code } from 'lucide-react'
+import { ChevronRight, Zap, Database, BarChart3, Cloud, Globe, Code, Users, Megaphone } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Integrations() {
@@ -85,102 +85,66 @@ export default function Integrations() {
   return (
     <section className="py-20 bg-[#111111]">
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold text-beige-secondary mb-6">
-            <span className="text-[#468BE6]">Integrations</span> Everywhere
+        <div className="mb-16">
+          <h2 className="text-3xl md:text-4xl font-semibold text-[#fcfcf7] mb-6 text-left">
+            Integrations Everywhere
           </h2>
-          <p className="text-lg text-gray-300 max-w-3xl mx-auto">
+          <p className="text-lg text-gray-300 max-w-3xl text-left">
             Connect Schlep Engine with your favorite tools and platforms. 
             Build powerful data pipelines without the complexity.
           </p>
         </div>
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap justify-center gap-4 mb-12">
-          {Object.entries(categories).map(([key, category]) => {
-            const IconComponent = category.icon
-            return (
-              <button
-                key={key}
-                onClick={() => setActiveCategory(key)}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  activeCategory === key
-                    ? 'bg-[#468BE6] text-white shadow-md'
-                    : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                }`}
-              >
-                <IconComponent className="w-5 h-5" />
-                <span>{category.title}</span>
-              </button>
-            )
-          })}
-        </div>
-
-        {/* Integration Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-16">
-          {categories[activeCategory as keyof typeof categories].integrations.map((integration, index) => (
-            <div
-              key={index}
-              className="bg-gray-900 border border-gray-700 rounded-xl p-6 hover:border-[#468BE6]/30 hover:shadow-lg transition-all duration-200 group"
-            >
-              <div className="flex items-center space-x-4 mb-3">
-                <div className="text-2xl">{integration.logo}</div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 group-hover:text-[#468BE6] transition-colors">
-                    {integration.name}
-                  </h3>
-                </div>
-                <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#468BE6] transition-colors" />
-              </div>
-              <p className="text-sm text-gray-600">{integration.description}</p>
+        <div className="flex flex-col md:flex-row gap-12">
+          {/* Left Column: Category Tabs */}
+          <div className="md:w-1/4">
+            <div className="flex flex-col gap-4">
+              {Object.entries(categories).map(([key, category]) => {
+                const IconComponent = category.icon
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActiveCategory(key)}
+                    className={`flex items-center justify-start space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
+                      activeCategory === key
+                        ? 'bg-[#161616] text-white shadow-md'
+                        : 'bg-transparent text-gray-300 hover:bg-[#161616]'
+                    }`}
+                  >
+                    <IconComponent className="w-5 h-5" />
+                    <span className="text-left">{category.title}</span>
+                  </button>
+                )
+              })}
             </div>
-          ))}
+          </div>
+
+          {/* Right Column: Integration Grid */}
+          <div className="md:w-3/4">
+            <div className="flex flex-col gap-4">
+              {categories[activeCategory as keyof typeof categories].integrations.map((integration, index) => (
+                <div
+                  key={index}
+                  className="p-4 transition-all duration-200 group"
+                >
+                  <div className="flex items-center space-x-4 mb-1">
+                    <div className="text-xl">{integration.logo}</div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-200 group-hover:text-[#468BE6] transition-colors">
+                        {integration.name}
+                      </h3>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-400">{integration.description}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Integration Stats */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#468BE6] mb-2">500+</div>
-            <div className="text-gray-600">Integrations</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#468BE6] mb-2">99.9%</div>
-            <div className="text-gray-600">Uptime SLA</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#468BE6] mb-2">&lt;2s</div>
-            <div className="text-gray-600">Avg Response</div>
-          </div>
-          <div className="text-center">
-            <div className="text-3xl font-bold text-[#468BE6] mb-2">24/7</div>
-            <div className="text-gray-600">Support</div>
-          </div>
-        </div>
+        
 
-        {/* Custom Integration CTA */}
-        <div className="bg-gradient-to-r from-[#468BE6]/10 to-blue-100/50 rounded-2xl p-8 text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            Need a Custom Integration?
-          </h3>
-          <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Can't find the integration you need? Our team can build custom connectors for your specific tools and workflows. 
-            Contact us to discuss your requirements.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link
-              href="/docs/integrations"
-              className="bg-[#468BE6] text-beige-secondary px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium"
-            >
-              View Integration Docs
-            </Link>
-            <Link
-              href="/contact"
-              className="border border-[#468BE6] text-[#468BE6] px-6 py-3 rounded-lg hover:bg-[#468BE6] hover:text-beige-secondary transition-colors font-medium"
-            >
-              Request Custom Integration
-            </Link>
-          </div>
-        </div>
+        
 
         {/* Popular Workflows */}
         <div className="mt-20">
@@ -189,116 +153,106 @@ export default function Integrations() {
           </h3>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+            <div className="bg-[#161616] border border-[#161616] rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-[#468BE6]/10 p-2 rounded-lg">
-                  <BarChart3 className="w-5 h-5 text-[#468BE6]" />
-                </div>
+                <BarChart3 className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-beige-secondary">Analytics Pipeline</h4>
               </div>
-              <div className="space-y-2 text-sm text-beige-secondary">
+              <div className="space-y-2 text-sm text-gray-400">
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Upload data from S3/Google Drive
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Clean & transform with Schlep Engine
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Push to Tableau/Power BI
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+            <div className="bg-[#161616] border border-[#161616] rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-[#468BE6]/10 p-2 rounded-lg">
-                  <Zap className="w-5 h-5 text-[#468BE6]" />
-                </div>
+                <Zap className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-beige-secondary">Automated Workflow</h4>
               </div>
-              <div className="space-y-2 text-sm text-beige-secondary">
+              <div className="space-y-2 text-sm text-gray-400">
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Zapier triggers on new data
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Process via API automatically
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Notify team via Slack
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+            <div className="bg-[#161616] border border-[#161616] rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-[#468BE6]/10 p-2 rounded-lg">
-                  <Database className="w-5 h-5 text-[#468BE6]" />
-                </div>
+                <Database className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-beige-secondary">Data Warehouse</h4>
               </div>
-              <div className="space-y-2 text-sm text-beige-secondary">
+              <div className="space-y-2 text-sm text-gray-400">
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Extract from multiple sources
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Transform for consistency
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Load to Snowflake/BigQuery
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+            <div className="bg-[#161616] border border-[#161616] rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-[#468BE6]/10 p-2 rounded-lg">
-                  <BarChart3 className="w-5 h-5 text-[#468BE6]" />
-                </div>
+                <Users className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-beige-secondary">Customer Data Enrichment</h4>
               </div>
-              <div className="space-y-2 text-sm text-beige-secondary">
+              <div className="space-y-2 text-sm text-gray-400">
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Import customer lists from CRM
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Clean & standardize contact info
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Append demographic/firmographic data
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-900 border border-gray-700 rounded-xl p-6">
+            <div className="bg-[#161616] border border-[#161616] rounded-xl p-6">
               <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-[#468BE6]/10 p-2 rounded-lg">
-                  <Zap className="w-5 h-5 text-[#468BE6]" />
-                </div>
+                <Megaphone className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-beige-secondary">Marketing Campaign Optimization</h4>
               </div>
-              <div className="space-y-2 text-sm text-beige-secondary">
+              <div className="space-y-2 text-sm text-gray-400">
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Collect campaign performance data
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Normalize and merge datasets
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-[#468BE6] rounded-full mr-2"></span>
+                  <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
                   Identify key segments for targeting
                 </div>
               </div>

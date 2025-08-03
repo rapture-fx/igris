@@ -12,11 +12,11 @@ export default function AudienceTabs() {
     <>
       <section className="py-20 bg-[#111111] text-beige-secondary">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-beige-secondary mb-4">
+          <div className="mb-12">
+            <h2 className="text-3xl md:text-4xl font-semibold text-beige-secondary mb-4 text-left">
               Who are you building for?
             </h2>
-            <p className="text-xl text-beige-secondary max-w-2xl mx-auto">
+            <p className="text-xl text-beige-secondary max-w-2xl text-left">
               Schlep-engine empowers both technical and non-technical users to transform data effortlessly.
             </p>
           </div>
@@ -151,23 +151,7 @@ export default function AudienceTabs() {
             </div>
           )}
 
-          {/* Common CTA for both sections */}
-          <div className="mt-20 bg-gradient-to-r from-[#468BE6]/10 to-blue-100/50 rounded-2xl p-8 text-center">
-            <h3 className="text-xl font-semibold text-beige-secondary mb-4">
-              Ready to Transform Your Data?
-            </h3>
-            <p className="text-beige-secondary mb-6 max-w-2xl mx-auto">
-              Whether you're a developer building complex pipelines or a business user needing quick insights,
-              Schlep-engine has the tools to simplify your data preparation.
-            </p>
-            <Link 
-              href="#get-started" 
-              className="inline-flex items-center space-x-2 bg-[#468BE6] text-beige-secondary px-6 py-3 rounded-lg hover:bg-[#3a7bd5] transition-colors font-medium"
-            >
-              <span>Get Started for Free</span>
-              <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
+          
         </div>
       </section>
     </>

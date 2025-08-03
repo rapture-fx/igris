@@ -30,12 +30,7 @@ export default function FAQ() {
               >
                 Get Started for Free
               </a>
-              <a
-                href="http://localhost:3001"
-                className="bg-beige-secondary text-custom-gray px-5 py-2.5 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
-              >
-                View Documentation
-              </a>
+              
             </div>
           </div>
         </div>

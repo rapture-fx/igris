@@ -10,6 +10,7 @@ import Integrations from '../src/components/sections/Integrations'
 import Benefits from '../src/components/sections/Benefits'
 import HowItWorks from '../src/components/sections/HowItWorks'
 import Testimonials from '../src/components/sections/Testimonials'
+import LatestUpdate from '../src/components/sections/LatestUpdate'
 import FAQ from '../src/components/sections/FAQ'
 import Footer from '../src/components/sections/Footer'
 import GridBackground from '../src/components/ui/GridBackground'
@@ -27,6 +28,7 @@ export default function HomePage() {
         <SecurityFeatures />
         <Integrations />
         
+        <LatestUpdate />
         <FAQ />
         
       </main>

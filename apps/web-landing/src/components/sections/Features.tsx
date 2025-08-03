@@ -81,7 +81,7 @@ export default function Features() {
     // that visually explains how these features work together to prepare data for ML.
     <section id="features" className="section-padding bg-custom-gray">
       <div className="max-w-7xl mx-auto container-padding">
-        <div className="text-center mb-16">
+        <div className="mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -98,7 +98,7 @@ export default function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-section font-bold text-gray-900 dark:text-slate-50 mb-6 transition-colors duration-300"
+            className="text-section font-bold text-gray-900 dark:text-slate-50 mb-6 transition-colors duration-300 text-left"
           >
             Everything you need to prepare data for ML
           </motion.h2>
@@ -108,7 +108,7 @@ export default function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="text-xl text-gray-600 dark:text-slate-300 max-w-3xl mx-auto transition-colors duration-300"
+            className="text-xl text-gray-600 dark:text-slate-300 max-w-3xl transition-colors duration-300 text-left"
           >
             From messy spreadsheets to production-ready datasets. Our AI-powered platform 
             handles the heavy lifting so you can focus on building amazing models.
