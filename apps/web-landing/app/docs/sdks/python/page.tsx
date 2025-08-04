@@ -200,9 +200,9 @@ client = se.Client.from_config()`}</code></pre>
                 
                 <ul className="list-disc list-inside space-y-2 mb-8">
                   <li>Python 3.7 or higher</li>
-                  <li>requests >= 2.25.0</li>
-                  <li>pandas >= 1.3.0 (optional, for DataFrame support)</li>
-                  <li>jupyter >= 1.0.0 (optional, for notebook features)</li>
+                  <li>requests {'>='} 2.25.0</li>
+                  <li>pandas {'>='} 1.3.0 (optional, for DataFrame support)</li>
+                  <li>jupyter {'>='} 1.0.0 (optional, for notebook features)</li>
                 </ul>
 
                 <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mt-8">

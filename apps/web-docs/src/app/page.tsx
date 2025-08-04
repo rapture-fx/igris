@@ -59,7 +59,7 @@ const result = await client.process(job.id, {
 // Download processed data
 const processedData = await client.download(result.id);`
   return (
-    <div className="min-h-screen bg-[#161616]">
+    <div className="min-h-screen bg-[#111111]">
       {/* Hero Section */}
       <div className="relative isolate px-6 pt-14 lg:px-8">
         <div className="mx-auto max-w-4xl py-16 sm:py-24">
@@ -91,7 +91,7 @@ const processedData = await client.download(result.id);`
       </div>
 
       {/* Key Benefits */}
-      <div className="py-16 sm:py-24 bg-[#161616]">
+      <div className="py-16 sm:py-24 bg-[#111111]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -153,7 +153,7 @@ const processedData = await client.download(result.id);`
       </div>
 
       {/* Quick Start Code Example */}
-      <div className="py-16 sm:py-24 bg-[#161616]">
+      <div className="py-16 sm:py-24 bg-[#111111]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -195,7 +195,7 @@ const processedData = await client.download(result.id);`
       </div>
 
       {/* Core Capabilities */}
-      <div className="py-16 sm:py-24 bg-[#161616]">
+      <div className="py-16 sm:py-24 bg-[#111111]">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -236,7 +236,7 @@ const processedData = await client.download(result.id);`
       </div>
 
       {/* Call to Action */}
-      <div className="bg-[#161616] py-16 sm:py-24">
+      <div className="bg-[#111111] py-16 sm:py-24">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="mx-auto max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">

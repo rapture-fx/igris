@@ -7,6 +7,23 @@ import HeroGridBackground from '../ui/HeroGridBackground'
 
 export default function Hero() {
   const [copied, setCopied] = useState(false)
+  
+  // Diagnostic logging for Hero section
+  React.useEffect(() => {
+    console.log('🔍 Hero Component Mounted')
+    console.log('🔍 Hero classes: min-h-screen pt-32 pb-16')
+    
+    const heroElement = document.querySelector('section')
+    if (heroElement) {
+      const rect = heroElement.getBoundingClientRect()
+      console.log('🔍 Hero dimensions:', {
+        width: rect.width,
+        height: rect.height,
+        top: rect.top,
+        paddingTop: window.getComputedStyle(heroElement).paddingTop
+      })
+    }
+  }, [])
 
   const copyToClipboard = () => {
     const codeText = `curl -X POST https://api.schlep-engine.com/v1/process \
@@ -20,11 +37,8 @@ export default function Hero() {
   }
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#111111] pt-60 pb-16">
-      {/* Layer 1: Background Grid */}
-      <div className="absolute inset-0 z-0">
-        <HeroGridBackground />
-      </div>
+    <section className="relative min-h-screen overflow-hidden bg-[#111111] pt-32 pb-16">
+      
 
       {/* Layer 2: SVG Image */}
       <div className="absolute bottom-0 left-0 w-full z-10 pointer-events-none">
@@ -40,14 +54,14 @@ export default function Hero() {
       </div>
 
       {/* Layer 3: Content */}
-      <div className="relative z-20 mx-auto max-w-7xl px-0 sm:px-0 lg:px-0">
-        <div className="text-center">
+      <div className="relative z-20 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="text-center pt-20">
           <h1 className="text-3xl md:text-5xl font-semibold text-beige-secondary mb-2 leading-tight py-8">
             Messy data to ML-ready in API calls.
           </h1>
           <p className="text-base md:text-lg text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
             Accelerate your machine learning workflows.<br />
-            Schlep-engine simplifies complex data handling through a unified API.
+            Simplifies complex data handling through a unified API.
           </p>
           <div className="flex justify-center gap-3">
             <Link

@@ -1,7 +1,7 @@
 import Header from '@/src/components/sections/Header'
 import Footer from '@/src/components/sections/Footer'
 import Link from 'next/link'
-import { CodeBracketIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
+import { Code, ArrowRight } from 'lucide-react'
 
 export default function SDKsPage() {
   const sdks = [
@@ -69,7 +69,7 @@ const result = await client.processData(data);`
                         className="inline-flex items-center gap-2 bg-[#1A5799] text-white px-4 py-2 rounded-lg hover:bg-[#1e3a8a] transition-colors"
                       >
                         View Docs
-                        <ArrowRightIcon className="h-4 w-4" />
+                        <ArrowRight className="h-4 w-4" />
                       </Link>
                     </div>
 
@@ -106,7 +106,7 @@ const result = await client.processData(data);`
 
               <div className="mt-16 bg-blue-50 rounded-lg p-8">
                 <div className="text-center">
-                  <CodeBracketIcon className="mx-auto h-12 w-12 text-blue-600 mb-4" />
+                  <Code className="mx-auto h-12 w-12 text-blue-600 mb-4" />
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
                     Need Another Language?
                   </h2>
@@ -119,7 +119,7 @@ const result = await client.processData(data);`
                       className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       View REST API
-                      <ArrowRightIcon className="h-4 w-4" />
+                      <ArrowRight className="h-4 w-4" />
                     </Link>
                     <Link
                       href="/contact"

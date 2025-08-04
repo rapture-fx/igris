@@ -5,7 +5,7 @@
 
 PID_FILE="/tmp/schlep-engine-dev.pid"
 LOG_FILE="/tmp/schlep-engine-dev.log"
-APP_DIR="/Users/wira/Wira Cursor/Schlep-engine/apps/landing"
+APP_DIR="/Users/wira/Wira Cursor/Schlep-engine/apps/web-landing"
 
 # Function to check if server is running
 is_running() {

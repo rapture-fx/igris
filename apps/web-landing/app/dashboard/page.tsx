@@ -13,6 +13,7 @@ import {
   Settings, 
   User, 
   HelpCircle,
+  Layers,
   LogOut,
   Home,
   Workflow,
@@ -360,7 +361,8 @@ export default function UserDashboard() {
     {
       title: 'Dashboard',
       items: [
-        { name: 'Overview', icon: Home, id: 'overview', active: activeSection === 'overview' }
+        { name: 'Overview', icon: Home, id: 'overview', active: activeSection === 'overview' },
+        { name: 'Project', icon: Layers, id: 'project', active: activeSection === 'project' }
       ]
     },
     {
@@ -384,7 +386,8 @@ export default function UserDashboard() {
     {
       title: 'Account',
       items: [
-        { name: 'Billing & Usage', icon: CreditCard, id: 'billing', active: activeSection === 'billing' }
+        { name: 'Billing & Usage', icon: CreditCard, id: 'billing', active: activeSection === 'billing' },
+        { name: 'Settings', icon: Settings, id: 'settings', active: activeSection === 'settings' }
       ]
     }
   ]
@@ -447,14 +450,30 @@ export default function UserDashboard() {
             <p className="text-gray-400">Developer tools and integrations for Schlep Engine</p>
           </div>
         )
+      case 'project':
+        return (
+          <div className="text-center py-12">
+            <Layers className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">Project Overview</h3>
+            <p className="text-gray-400">Manage your project settings and details</p>
+          </div>
+        )
+      case 'settings':
+        return (
+          <div className="text-center py-12">
+            <Settings className="w-12 h-12 text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-white mb-2">Settings</h3>
+            <p className="text-gray-400">Manage your account settings</p>
+          </div>
+        )
       default:
         // Overview content (existing dashboard content)
         return (
           <div className="max-w-5xl mx-auto space-y-8">
             {/* Quick Stats */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-[#468BE6]/50 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-[#468BE6]/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#468BE6]/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-[#468BE6]/50 transition-all duration-500 transform hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#468BE6]/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
                 <div className="relative flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-sm font-medium mb-2">Active Jobs</p>
@@ -475,8 +494,8 @@ export default function UserDashboard() {
                 </div>
               </div>
               
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-green-500/50 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-green-500/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-green-500/50 transition-all duration-500 transform hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
                 <div className="relative flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-sm font-medium mb-2">API Calls (24h)</p>
@@ -497,8 +516,8 @@ export default function UserDashboard() {
                 </div>
               </div>
               
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-yellow-500/50 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-yellow-500/50 transition-all duration-500 transform hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
                 <div className="relative flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-sm font-medium mb-2">Avg Response</p>
@@ -519,8 +538,8 @@ export default function UserDashboard() {
                 </div>
               </div>
               
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-500 transform hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/10">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-500 transform hover:scale-105">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
                 <div className="relative flex items-start justify-between">
                   <div>
                     <p className="text-gray-400 text-sm font-medium mb-2">Data Quality</p>
@@ -546,7 +565,7 @@ export default function UserDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Active Jobs */}
               <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden hover:border-[#468BE6]/30 transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#468BE6]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-[#468BE6]/5 to-transparent opacity-0 transition-opacity duration-500"></div>
                 <div className="relative p-6 border-b border-gray-800/50">
                   <div className="flex items-center justify-between">
                     <div>
@@ -609,8 +628,8 @@ export default function UserDashboard() {
               </div>
 
               {/* Quick Actions */}
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden hover:border-emerald-500/30 transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500"></div>
                 <div className="relative p-6 border-b border-gray-800/50">
                   <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                     Quick Actions
@@ -681,8 +700,8 @@ export default function UserDashboard() {
 
             {/* Billing & Usage Section */}
             {billingUsage && (
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden hover:border-emerald-500/30 transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500">
+                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500"></div>
                 <div className="relative p-6 border-b border-gray-800/50">
                   <div className="flex items-center justify-between">
                     <div>
@@ -797,26 +816,22 @@ export default function UserDashboard() {
       </div>
 
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] border-r border-gray-800/50 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] border-r border-[#1d1d1d] backdrop-blur-xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
         <div className="flex flex-col h-full pt-4">
-          {/* Logo */}
-          <div className="flex items-center justify-between h-20 px-6">
-            <div className="flex items-center space-x-3">
-              <Link href="/">
-                <img 
-                  src="/Schlep Engine laest logo design.svg" 
-                  alt="Schlep Engine" 
-                  className="h-14 w-auto"
-                />
-              </Link>
+          {/* User Profile */}
+          <div className="p-4">
+            <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-[#161616] text-[#fcfcf7] hover:text-[#fcfcf7] transition-colors cursor-pointer">
+              <div className="w-8 h-8 bg-gradient-to-r from-[#468BE6] to-[#3a7bd5] rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">John Doe</p>
+                <p className="text-xs text-gray-400">Developer</p>
+              </div>
             </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-2 rounded-lg hover:bg-gray-800/50 transition-colors"
-            >
-              <X className="w-5 h-5 text-gray-400" />
-            </button>
           </div>
+
+          
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-6">
@@ -829,13 +844,14 @@ export default function UserDashboard() {
                   {section.items.map((item) => (
                     <button
                       key={item.name}
-                      onClick={() => setActiveSection(item.id)}
-                      className={`w-full flex items-center space-x-3 px-2 py-1 rounded-xl transition-all duration-200 group ${
+                      onClick={() => {
+                        setActiveSection(item.id)
+                      }}
+                      className={`w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200 group ${
                         item.active
-                          ? 'bg-[#161616] border border-[#1d1d1d] text-[#fcfcf7]'
-                          : 'hover:bg-[#161616] text-[#fcfcf7] hover:text-[#fcfcf7]'
-                      }`}
-                    >
+                          ? 'bg-[#222222] border border-[#1d1d1d] text-[#fcfcf7] shadow-inner'
+                          : 'hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 text-[#fcfcf7] hover:text-[#fcfcf7]'
+                      }`}>
                       <item.icon className={`w-5 h-5 ${item.active ? 'text-[#fcfcf7]' : 'group-hover:text-[#fcfcf7]'}`} />
                       <span className="text-sm">{item.name}</span>
                     </button>
@@ -845,22 +861,10 @@ export default function UserDashboard() {
             ))}
           </nav>
 
-          {/* User Section */}
+          {/* User Section Bottom Links */}
           <div className="p-4 border-t border-gray-800/50">
-            <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-gray-800/50 transition-colors cursor-pointer">
-              <div className="w-8 h-8 bg-gradient-to-r from-[#468BE6] to-[#3a7bd5] rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-white">John Doe</p>
-                <p className="text-xs text-gray-400">Developer</p>
-              </div>
-            </div>
             <div className="mt-2 space-y-1">
-              <a href="/settings" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-400 hover:text-white">
-                <Settings className="w-4 h-4" />
-                <span className="text-sm">Settings</span>
-              </a>
+              
               <a href="/help" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-400 hover:text-white">
                 <HelpCircle className="w-4 h-4" />
                 <span className="text-sm">Help</span>
@@ -894,10 +898,10 @@ export default function UserDashboard() {
               <div className="mr-auto ml-2">
                 <button
                   onClick={() => setShowSearchModal(true)}
-                  className="w-full max-w-xl px-3 py-1 rounded-lg bg-[#1a1a1a] border border-gray-800 text-[#fcfcf7] flex items-center justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#1d1d1d]"
+                  className="w-full max-w-xl px-3 py-1 rounded-lg bg-[#1a1a1a] border border-[#1d1d1d] text-[#fcfcf7] flex items-center justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/20"
                 >
-                  <Search className="w-5 h-5 text-gray-400 mr-2" />
-                  <span className="text-xs text-gray-400">⌘K</span>
+                  <Search className="w-5 h-5 text-[#fcfcf7] mr-2" />
+                  <span className="text-xs text-[#fcfcf7]">⌘K</span>
                 </button>
               </div>
               <div className="flex items-center space-x-4">
@@ -927,7 +931,7 @@ export default function UserDashboard() {
               type="text"
               placeholder="Search..."
               autoFocus
-              className="w-full px-3 py-1 rounded-lg bg-[#1a1a1a] border border-gray-800 text-[#fcfcf7] focus:outline-none focus:ring-2 focus:ring-[#1d1d1d]"
+              className="w-full px-3 py-1 rounded-lg bg-[#1a1a1a] border border-[#1d1d1d] text-[#fcfcf7] focus:outline-none focus:ring-2 focus:ring-white/20"
             />
           </div>
         </div>

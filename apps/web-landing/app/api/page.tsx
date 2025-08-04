@@ -192,7 +192,7 @@ export default function APIPlayground() {
     }
   }
 
-  const categories = [...new Set(endpoints.map(e => e.category))]
+  const categories = Array.from(new Set(endpoints.map(e => e.category)))
 
   return (
     <div className="min-h-screen bg-[#0f0f0f]">

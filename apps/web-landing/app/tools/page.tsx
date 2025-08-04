@@ -322,7 +322,7 @@ COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
 # Set environment variables
-ENV SCHLEP_API_KEY=${SCHLEP_API_KEY}
+ENV SCHLEP_API_KEY=\${SCHLEP_API_KEY}
 ENV PROCESSOR_TYPE=custom_nlp
 
 # Health check

@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Mail, Github, ArrowRight, Chrome } from 'lucide-react'
-import { checkEmailExists, initiateOAuthLogin, signInWithPassword, registerUser, type ApiError } from '@/lib/auth'
+import { checkEmailExists, initiateOAuthLogin, loginWithCredentials, registerUser, type ApiError } from '@/lib/auth'
 import { AuthWrapper } from '@/src/components/AuthWrapper'
 
 function AuthPageContent() {
@@ -49,7 +49,7 @@ function AuthPageContent() {
     setError('')
 
     try {
-      await signInWithPassword(email, password)
+      await loginWithCredentials({ email, password })
       router.push('/dashboard') // Redirect to dashboard on successful login
     } catch (error) {
       const apiError = error as ApiError
@@ -65,7 +65,13 @@ function AuthPageContent() {
     setError('')
 
     try {
-      await registerUser(email, password, fullName)
+      const [firstName, lastName] = fullName.split(' ')
+      await registerUser({ 
+        firstName: firstName || fullName, 
+        lastName: lastName || '', 
+        email, 
+        password 
+      })
       router.push('/dashboard') // Redirect to dashboard on successful registration
     } catch (error) {
       const apiError = error as ApiError

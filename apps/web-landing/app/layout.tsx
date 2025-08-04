@@ -60,7 +60,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="font-sans antialiased overflow-x-hidden bg-[#111111]">
+      <body className="font-sans antialiased overflow-x-hidden bg-[#111111] min-h-screen">
         <ThemeProvider>
           {children}
         </ThemeProvider>

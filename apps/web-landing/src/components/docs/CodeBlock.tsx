@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ClipboardDocumentIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { Copy, Check } from 'lucide-react'
 
 interface CodeBlockProps {
   code: string
@@ -67,9 +67,9 @@ export function CodeBlock({ code, language, title, showLineNumbers = false }: Co
           className="absolute top-4 right-4 p-2 rounded-md bg-white hover:bg-gray-100 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 shadow-sm border border-gray-200"
         >
           {copied ? (
-            <CheckCircleIcon className="h-4 w-4" />
+            <Check className="h-4 w-4" />
           ) : (
-            <ClipboardDocumentIcon className="h-4 w-4" />
+            <Copy className="h-4 w-4" />
           )}
         </button>
         <pre className="p-6 overflow-x-auto font-mono text-sm leading-relaxed">

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Header from '@/src/components/sections/Header'
 import Footer from '@/src/components/sections/Footer'
-import { CodeBracketIcon, ArrowRightIcon, CloudArrowUpIcon, CpuChipIcon, DocumentArrowDownIcon, ClockIcon } from '@heroicons/react/24/outline'
+import { Code, ArrowRight, Upload, Cpu, Download, Clock } from 'lucide-react'
 
 export default function ApiReferencePage() {
   const endpoints = [
@@ -10,35 +10,35 @@ export default function ApiReferencePage() {
       path: '/v1/upload',
       description: 'Upload datasets for processing',
       href: '/docs/api-reference/upload',
-      icon: CloudArrowUpIcon,
+      icon: Upload,
     },
     {
       method: 'POST',
       path: '/v1/profile',
       description: 'Generate intelligent data profiles',
       href: '/docs/api-reference/profiling',
-      icon: CpuChipIcon,
+      icon: Cpu,
     },
     {
       method: 'POST',
       path: '/v1/process',
       description: 'Transform and clean your data',
       href: '/docs/api-reference/processing',
-      icon: CpuChipIcon,
+      icon: Cpu,
     },
     {
       method: 'GET',
       path: '/v1/jobs/{id}',
       description: 'Monitor processing status',
       href: '/docs/api-reference/jobs',
-      icon: ClockIcon,
+      icon: Clock,
     },
     {
       method: 'GET',
       path: '/v1/download/{id}',
       description: 'Download processed datasets',
       href: '/docs/api-reference/export',
-      icon: DocumentArrowDownIcon,
+      icon: Download,
     },
   ]
 
@@ -62,7 +62,7 @@ export default function ApiReferencePage() {
                     className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
                   >
                     Quick Start Guide
-                    <ArrowRightIcon className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" />
                   </Link>
                   <Link
                     href="/docs/api-reference/authentication"
@@ -90,7 +90,7 @@ export default function ApiReferencePage() {
                     className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-800 text-sm font-medium"
                   >
                     Learn about authentication
-                    <ArrowRightIcon className="h-3 w-3" />
+                    <ArrowRight className="h-3 w-3" />
                   </Link>
                 </div>
               </section>
@@ -149,7 +149,7 @@ export default function ApiReferencePage() {
                           <p className="text-gray-600">{endpoint.description}</p>
                         </div>
                         <div className="flex-shrink-0">
-                          <ArrowRightIcon className="h-5 w-5 text-gray-400" />
+                          <ArrowRight className="h-5 w-5 text-gray-400" />
                         </div>
                       </div>
                     </Link>

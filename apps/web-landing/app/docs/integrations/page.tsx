@@ -1,7 +1,7 @@
 import Header from '@/src/components/sections/Header'
 import Footer from '@/src/components/sections/Footer'
 import Link from 'next/link'
-import { CubeIcon, ArrowRightIcon, BeakerIcon, CloudIcon, CommandLineIcon } from '@heroicons/react/24/outline'
+import { Package, ArrowRight, Beaker, Cloud, Terminal } from 'lucide-react'
 
 export default function IntegrationsPage() {
   const integrations = [
@@ -9,7 +9,7 @@ export default function IntegrationsPage() {
       name: "Jupyter Notebooks",
       description: "Interactive data processing with widgets, visualizations, and seamless pandas integration.",
       href: "/docs/integrations/jupyter",
-      icon: BeakerIcon,
+      icon: Beaker,
       category: "Development",
       features: ["Interactive widgets", "Progress visualization", "Pandas integration", "Real-time debugging"],
       complexity: "Beginner"
@@ -18,7 +18,7 @@ export default function IntegrationsPage() {
       name: "AWS SageMaker",
       description: "Deploy and scale your data processing pipelines on AWS with SageMaker Processing Jobs and endpoints.",
       href: "/docs/integrations/aws-sagemaker",
-      icon: CloudIcon,
+      icon: Cloud,
       category: "Cloud Platform",
       features: ["Processing Jobs", "Model training", "Auto-scaling endpoints", "Batch inference"],
       complexity: "Advanced"
@@ -30,25 +30,25 @@ export default function IntegrationsPage() {
       name: "Apache Airflow",
       description: "Orchestrate data processing workflows with Airflow operators and sensors.",
       category: "Workflow",
-      icon: CommandLineIcon
+      icon: Terminal
     },
     {
       name: "Google Colab",
       description: "Enhanced Jupyter integration with Google Colab's collaborative features.",
       category: "Development",
-      icon: BeakerIcon
+      icon: Beaker
     },
     {
       name: "Databricks",
       description: "Integrate with Databricks notebooks and MLflow for end-to-end ML workflows.",
       category: "Platform",
-      icon: CubeIcon
+      icon: Package
     },
     {
       name: "Docker",
       description: "Containerized processing with pre-built Docker images and Kubernetes support.",
       category: "Infrastructure",
-      icon: CubeIcon
+      icon: Package
     }
   ]
 
@@ -105,7 +105,7 @@ export default function IntegrationsPage() {
                           className="inline-flex items-center gap-2 bg-[#1A5799] text-white px-4 py-2 rounded-lg hover:bg-[#1e3a8a] transition-colors flex-shrink-0"
                         >
                           View Guide
-                          <ArrowRightIcon className="h-4 w-4" />
+                          <ArrowRight className="h-4 w-4" />
                         </Link>
                       </div>
 
@@ -151,7 +151,7 @@ export default function IntegrationsPage() {
 
               <div className="bg-blue-50 rounded-lg p-8">
                 <div className="text-center">
-                  <CubeIcon className="mx-auto h-12 w-12 text-blue-600 mb-4" />
+                  <Package className="mx-auto h-12 w-12 text-blue-600 mb-4" />
                   <h2 className="text-2xl font-bold text-gray-900 mb-4">
                     Need a Custom Integration?
                   </h2>
@@ -164,7 +164,7 @@ export default function IntegrationsPage() {
                       className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
                     >
                       Request Integration
-                      <ArrowRightIcon className="h-4 w-4" />
+                      <ArrowRight className="h-4 w-4" />
                     </Link>
                     <Link
                       href="/docs/api-reference"
@@ -182,21 +182,21 @@ export default function IntegrationsPage() {
                 </h2>
                 <div className="grid md:grid-cols-3 gap-6">
                   <div className="text-center p-6">
-                    <BeakerIcon className="mx-auto h-8 w-8 text-blue-600 mb-4" />
+                    <Beaker className="mx-auto h-8 w-8 text-blue-600 mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Development Tools</h3>
                     <p className="text-gray-600 text-sm">
                       Jupyter, Colab, IDEs, and other development environments for interactive data processing.
                     </p>
                   </div>
                   <div className="text-center p-6">
-                    <CloudIcon className="mx-auto h-8 w-8 text-green-600 mb-4" />
+                    <Cloud className="mx-auto h-8 w-8 text-green-600 mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Cloud Platforms</h3>
                     <p className="text-gray-600 text-sm">
                       AWS, GCP, Azure, and other cloud services for scalable data processing and ML workflows.
                     </p>
                   </div>
                   <div className="text-center p-6">
-                    <CommandLineIcon className="mx-auto h-8 w-8 text-purple-600 mb-4" />
+                    <Terminal className="mx-auto h-8 w-8 text-purple-600 mb-4" />
                     <h3 className="text-lg font-semibold text-gray-900 mb-2">Workflow Tools</h3>
                     <p className="text-gray-600 text-sm">
                       Airflow, Prefect, and other orchestration tools for automating data processing pipelines.
