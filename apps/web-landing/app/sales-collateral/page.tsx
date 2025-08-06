@@ -12,7 +12,14 @@ export default function SalesCollateralPage() {
     laborCostPerHour: ''
   })
 
-  const [roiResults, setRoiResults] = useState(null)
+  const [roiResults, setRoiResults] = useState<{
+    totalSavings: number;
+    costs: number;
+    roi: number;
+    paybackMonths: number;
+    improvements: any; // Allow flexible improvements structure
+    savings: any; // Allow flexible savings structure
+  } | null>(null)
 
   const handleRoiCalculation = () => {
     const transactions = parseInt(roiInputs.monthlyTransactions) || 0

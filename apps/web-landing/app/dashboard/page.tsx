@@ -37,6 +37,8 @@ import {
   Info,
   ExternalLink,
   ChevronRight,
+  ChevronDown,
+  ChevronLeft,
   CreditCard,
   DollarSign,
   Search
@@ -114,6 +116,17 @@ export default function UserDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSearchModal, setShowSearchModal] = useState(false)
+  const [chartView, setChartView] = useState('api_calls')
+  const [showPreviousPeriod, setShowPreviousPeriod] = useState(false)
+  const [showViewDropdown, setShowViewDropdown] = useState(false)
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false)
+  const [timePeriod, setTimePeriod] = useState('7d')
+  const [selectedStartDate, setSelectedStartDate] = useState<Date | null>(null)
+  const [selectedEndDate, setSelectedEndDate] = useState<Date | null>(null)
+  const [currentMonth, setCurrentMonth] = useState<Date | null>(null)
+  const [isSelectingRange, setIsSelectingRange] = useState(false)
+  const [dropdownPosition, setDropdownPosition] = useState<'bottom' | 'top'>('bottom')
+  const [mockData, setMockData] = useState<any[]>([])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -123,12 +136,24 @@ export default function UserDashboard() {
       }
       if (event.key === 'Escape') {
         setShowSearchModal(false)
+        setShowViewDropdown(false)
+        setShowTimeDropdown(false)
+      }
+    }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element
+      if (!target.closest('.dropdown-container')) {
+        setShowViewDropdown(false)
+        setShowTimeDropdown(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('click', handleClickOutside)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('click', handleClickOutside)
     }
   }, [])
 
@@ -310,15 +335,15 @@ export default function UserDashboard() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'running':
-        return <Activity className="w-4 h-4 text-blue-500 animate-pulse" />
+        return <Activity className="w-4 h-4 text-blue-500 animate-pulse" />;
       case 'completed':
-        return <CheckCircle className="w-4 h-4 text-green-500" />
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'failed':
-        return <XCircle className="w-4 h-4 text-red-500" />
+        return <XCircle className="w-4 h-4 text-red-500" />;
       case 'queued':
-        return <Clock className="w-4 h-4 text-gray-500" />
+        return <Clock className="w-4 h-4 text-gray-500" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-500" />
+        return <Clock className="w-4 h-4 text-gray-500" />;
     }
   }
 
@@ -329,29 +354,347 @@ export default function UserDashboard() {
     }, 1000)
   }
 
+  // Calendar helper functions
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric', 
+      year: 'numeric' 
+    })
+  }
+
+  const getDaysInMonth = (date: Date | null) => {
+    if (!date) return []
+    const year = date.getFullYear()
+    const month = date.getMonth()
+    const firstDay = new Date(year, month, 1)
+    const lastDay = new Date(year, month + 1, 0)
+    const daysInMonth = lastDay.getDate()
+    const startingDayOfWeek = firstDay.getDay()
+    
+    const days = []
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null)
+    }
+    
+    // Add days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day))
+    }
+    
+    return days;
+  }
+
+  const isDateInRange = (date: Date) => {
+    if (!selectedStartDate || !selectedEndDate) return false;
+    return date >= selectedStartDate && date <= selectedEndDate;
+  }
+
+  const isDateSelected = (date: Date) => {
+    if (!selectedStartDate && !selectedEndDate) return false;
+    if (selectedStartDate && date.getTime() === selectedStartDate.getTime()) return true;
+    if (selectedEndDate && date.getTime() === selectedEndDate.getTime()) return true;
+    return false;
+  }
+
+  const handleDateClick = (date: Date) => {
+    if (!isSelectingRange) {
+      // First click - set start date
+      setSelectedStartDate(date)
+      setSelectedEndDate(null)
+      setIsSelectingRange(true)
+    } else {
+      // Second click - set end date
+      if (selectedStartDate && date < selectedStartDate) {
+        // If end date is before start date, swap them
+        setSelectedEndDate(selectedStartDate)
+        setSelectedStartDate(date)
+      } else {
+        setSelectedEndDate(date)
+      }
+      setIsSelectingRange(false)
+      setTimePeriod('custom')
+    }
+  }
+
+  const applyPresetPeriod = (preset: string) => {
+    const now = new Date()
+    let startDate: Date
+    let endDate = now
+
+    switch (preset) {
+      case '1h':
+        startDate = new Date(now.getTime() - 60 * 60 * 1000);
+        break;
+      case '24h':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case '7d':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case '30d':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        break;
+      case '90d':
+        startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+        break;
+      default:
+        return;
+    }
+
+    setSelectedStartDate(startDate);
+    setSelectedEndDate(endDate);
+    setTimePeriod(preset);
+    setIsSelectingRange(false);
+  }
+
+  const handleTimeDropdownToggle = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (!showTimeDropdown) {
+      const button = event.currentTarget
+      const rect = button.getBoundingClientRect()
+      const viewportHeight = window.innerHeight
+      const dropdownHeight = 400 // Approximate height of the calendar dropdown
+      
+      // Check if there's enough space below the button
+      const spaceBelow = viewportHeight - rect.bottom
+      const spaceAbove = rect.top
+      
+      // Position dropdown above if there's not enough space below
+      if (spaceBelow < dropdownHeight && spaceAbove > dropdownHeight) {
+        setDropdownPosition('top')
+      } else {
+        setDropdownPosition('bottom')
+      }
+    }
+    
+    setShowTimeDropdown(!showTimeDropdown)
+  }
+
+  // Mock data generation with deterministic seed
+  const generateMockData = () => {
+    // Use a simple seeded random for consistent results
+    let seed = 42
+    const seededRandom = () => {
+      seed = (seed * 9301 + 49297) % 233280
+      return seed / 233280;
+    }
+
+    const now = new Date()
+    const data = []
+    
+    // Generate 24 hours of data points (every hour)
+    for (let i = 23; i >= 0; i--) {
+      const timestamp = new Date(now.getTime() - i * 60 * 60 * 1000)
+      const hour = timestamp.getHours()
+      
+      // Create realistic patterns
+      const baseApiCalls = 150 + Math.sin(hour * Math.PI / 12) * 50 // Peak around noon
+      const baseResponseTime = 200 + Math.sin(hour * Math.PI / 8) * 100 // Higher at peak hours
+      const baseQuality = 95 + Math.sin(hour * Math.PI / 16) * 3 // Slight variation
+      
+      data.push({
+        timestamp,
+        successfulCalls: Math.floor(baseApiCalls + seededRandom() * 20),
+        failedCalls: Math.floor(5 + seededRandom() * 10),
+        responseTime: Math.floor(baseResponseTime + seededRandom() * 50),
+        dataQuality: Math.floor(baseQuality + seededRandom() * 2),
+        // Previous period data (slightly different)
+        prevSuccessfulCalls: Math.floor(baseApiCalls * 0.9 + seededRandom() * 15),
+        prevFailedCalls: Math.floor(3 + seededRandom() * 8),
+        prevResponseTime: Math.floor(baseResponseTime * 1.1 + seededRandom() * 40),
+        prevDataQuality: Math.floor(baseQuality - 1 + seededRandom() * 2)
+      })
+    }
+    
+    return data;
+  }
+
+  // Initialize mock data and current month in useEffect to prevent hydration errors
+  useEffect(() => {
+    setMockData(generateMockData());
+    setCurrentMonth(new Date());
+  }, [chartView, timePeriod]); // Regenerate when view or time period changes
+
+  // Chart rendering helper
+  const renderChart = () => {
+    // Don't render if no data available (prevents hydration errors)
+    if (!mockData || mockData.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-full text-gray-500">
+          <div className="animate-pulse">Loading chart...</div>
+        </div>
+      );
+    }
+
+    const width = 100; // Will be converted to viewBox percentage
+    const height = 60; // px - adjusted for better proportions
+    const padding = 5; // Reduced padding for edge-to-edge lines
+    
+    const getChartData = () => {
+      switch (chartView) {
+        case 'api_calls':
+          return {
+            primary: mockData.map(d => d.successfulCalls),
+            secondary: mockData.map(d => d.failedCalls),
+            prevPrimary: showPreviousPeriod ? mockData.map(d => d.prevSuccessfulCalls) : null,
+            prevSecondary: showPreviousPeriod ? mockData.map(d => d.prevFailedCalls) : null,
+            maxValue: Math.max(...mockData.map(d => Math.max(d.successfulCalls, d.failedCalls)))
+          };
+        case 'response_time':
+          return {
+            primary: mockData.map(d => d.responseTime),
+            secondary: null,
+            prevPrimary: showPreviousPeriod ? mockData.map(d => d.prevResponseTime) : null,
+            prevSecondary: null,
+            maxValue: Math.max(...mockData.map(d => d.responseTime))
+          };
+        case 'data_quality':
+          return {
+            primary: mockData.map(d => d.dataQuality),
+            secondary: null,
+            prevPrimary: showPreviousPeriod ? mockData.map(d => d.prevDataQuality) : null,
+            prevSecondary: null,
+            maxValue: 100
+          };
+        case 'all_metrics':
+          return {
+            primary: mockData.map(d => d.successfulCalls),
+            secondary: mockData.map(d => d.failedCalls),
+            tertiary: mockData.map(d => d.responseTime / 10), // Scale down for visibility
+            quaternary: mockData.map(d => d.dataQuality),
+            maxValue: Math.max(...mockData.map(d => Math.max(d.successfulCalls, d.failedCalls)))
+          };
+        default:
+          return { primary: [], secondary: null, maxValue: 1 };
+      }
+    };
+
+    const chartData = getChartData();
+    const { primary, secondary, prevPrimary, prevSecondary, tertiary, quaternary, maxValue } = chartData;
+
+    const createPath = (data: number[], max: number, color: string, isDashed = false) => {
+      if (!data || data.length === 0) return null;
+      
+      const points = data.map((value, index) => {
+        const x = (index / (data.length - 1)) * width; // Edge to edge
+        const y = height - (value / max) * (height - padding * 2) - padding;
+        return `${x},${y}`;
+      }).join(' ');
+      
+      return (
+        <polyline
+          key={`${color}-${isDashed}`}
+          fill="none"
+          stroke={color}
+          strokeWidth="0.8"
+          points={points}
+          className="transition-all duration-300"
+        />
+      );
+    };
+
+    return (
+      <div className="relative w-full h-full">
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible">
+          {/* Grid lines */}
+          {[0, 0.25, 0.5, 0.75, 1].map(ratio => (
+            <line
+              key={ratio}
+              x1={0}
+              y1={height - ratio * (height - padding * 2) - padding}
+              x2={width}
+              y2={height - ratio * (height - padding * 2) - padding}
+              stroke="#374151"
+              strokeWidth="0.5"
+              opacity={0.3}
+            />
+          ))}
+          
+          {/* Threshold lines */}
+          {chartView === 'response_time' && maxValue > 2000 && (
+            <line
+              x1={0}
+              y1={height - (2000 / maxValue) * (height - padding * 2) - padding}
+              x2={width}
+              y2={height - (2000 / maxValue) * (height - padding * 2) - padding}
+              stroke="#fbbf24"
+              strokeWidth="1"
+              strokeDasharray="2,2"
+              opacity={0.8}
+            />
+          )}
+          
+          {chartView === 'data_quality' && (
+            <line
+              x1={0}
+              y1={height - (95 / maxValue) * (height - padding * 2) - padding}
+              x2={width}
+              y2={height - (95 / maxValue) * (height - padding * 2) - padding}
+              stroke="#10b981"
+              strokeWidth="1"
+              strokeDasharray="2,2"
+              opacity={0.8}
+            />
+          )}
+
+          {/* Data lines */}
+          {createPath(primary, maxValue, '#5f598d')}
+          {secondary && createPath(secondary, maxValue, '#3d0404')}
+          {tertiary && createPath(tertiary, maxValue, '#f59e0b')}
+          {quaternary && createPath(quaternary, 100, '#10b981')}
+          
+          {/* Previous period lines (solid) */}
+          {prevPrimary && createPath(prevPrimary, maxValue, '#6b7280')}
+          {prevSecondary && createPath(prevSecondary, maxValue, '#6b7280')}
+          
+        </svg>
+
+        {/* Y-axis labels */}
+        <div className="absolute -left-10 top-0 h-full flex flex-col justify-between text-xs text-gray-500 py-2">
+          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue)}</span>
+          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue * 0.75)}</span>
+          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue * 0.5)}</span>
+          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue * 0.25)}</span>
+          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">0</span>
+        </div>
+
+        {/* X-axis labels */}
+        <div className="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-gray-500 px-0">
+          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">24h ago</span>
+          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">18h ago</span>
+          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">12h ago</span>
+          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">6h ago</span>
+          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">Now</span>
+        </div>
+      </div>
+    );
+  };
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'success':
-        return <CheckCircle className="w-4 h-4 text-green-500" />
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
       case 'warning':
-        return <AlertTriangle className="w-4 h-4 text-yellow-500" />
+        return <AlertTriangle className="w-4 h-4 text-yellow-500" />;
       case 'error':
-        return <XCircle className="w-4 h-4 text-red-500" />
+        return <XCircle className="w-4 h-4 text-red-500" />;
       default:
-        return <Info className="w-4 h-4 text-blue-500" />
+        return <Info className="w-4 h-4 text-blue-500" />;
     }
   }
 
   const getSystemStatusColor = (status: string) => {
     switch (status) {
       case 'operational':
-        return 'text-green-400 bg-green-900/20'
+        return 'text-green-400 bg-green-900/20';
       case 'degraded':
-        return 'text-yellow-400 bg-yellow-900/20'
+        return 'text-yellow-400 bg-yellow-900/20';
       case 'down':
-        return 'text-red-400 bg-red-900/20'
+        return 'text-red-400 bg-red-900/20';
       default:
-        return 'text-gray-400 bg-gray-900/20'
+        return 'text-gray-400 bg-gray-900/20';
     }
   }
 
@@ -399,9 +742,9 @@ export default function UserDashboard() {
   const renderContent = () => {
     switch (activeSection) {
       case 'data':
-        return <DataProcessingSection />
+        return <DataProcessingSection />;
       case 'billing':
-        return <BillingSection />
+        return <BillingSection />;
       case 'pipelines':
         return (
           <div className="text-center py-12">
@@ -409,7 +752,7 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">Pipeline Builder</h3>
             <p className="text-gray-400">Create and manage your data processing workflows</p>
           </div>
-        )
+        );
       case 'explorer':
         return (
           <div className="text-center py-12">
@@ -417,7 +760,7 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">Data Explorer</h3>
             <p className="text-gray-400">Interactive data profiling and analysis</p>
           </div>
-        )
+        );
       case 'jobs':
         return (
           <div className="text-center py-12">
@@ -425,7 +768,7 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">Jobs & Monitoring</h3>
             <p className="text-gray-400">Monitor and manage your data processing jobs</p>
           </div>
-        )
+        );
       case 'api':
         return (
           <div className="text-center py-12">
@@ -433,7 +776,7 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">API Playground</h3>
             <p className="text-gray-400">Test and explore Schlep Engine APIs interactively</p>
           </div>
-        )
+        );
       case 'models':
         return (
           <div className="text-center py-12">
@@ -441,7 +784,7 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">ML Models</h3>
             <p className="text-gray-400">Manage and deploy your machine learning models</p>
           </div>
-        )
+        );
       case 'tools':
         return (
           <div className="text-center py-12">
@@ -449,7 +792,7 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">SDK & CLI Tools</h3>
             <p className="text-gray-400">Developer tools and integrations for Schlep Engine</p>
           </div>
-        )
+        );
       case 'project':
         return (
           <div className="text-center py-12">
@@ -457,7 +800,7 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">Project Overview</h3>
             <p className="text-gray-400">Manage your project settings and details</p>
           </div>
-        )
+        );
       case 'settings':
         return (
           <div className="text-center py-12">
@@ -465,349 +808,43 @@ export default function UserDashboard() {
             <h3 className="text-lg font-semibold text-white mb-2">Settings</h3>
             <p className="text-gray-400">Manage your account settings</p>
           </div>
-        )
+        );
       default:
-        // Overview content (existing dashboard content)
         return (
-          <div className="max-w-5xl mx-auto space-y-8">
-            {/* Quick Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-[#468BE6]/50 transition-all duration-500 transform hover:scale-105">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#468BE6]/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
-                <div className="relative flex items-start justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">Active Jobs</p>
-                    <p className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
-                      {activeJobs.filter(job => job.status === 'running').length}
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      <span className="text-xs text-green-400">Running</span>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-[#468BE6] rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-                    <div className="relative bg-gradient-to-br from-[#468BE6] to-[#3a7bd5] rounded-xl p-3">
-                      <Activity className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-green-500/50 transition-all duration-500 transform hover:scale-105">
-                <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
-                <div className="relative flex items-start justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">API Calls (24h)</p>
-                    <p className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
-                      5,373
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-green-400">+12.5%</span>
-                      <span className="text-xs text-gray-500">vs yesterday</span>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-green-500 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-                    <div className="relative bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-3">
-                      <BarChart3 className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-yellow-500/50 transition-all duration-500 transform hover:scale-105">
-                <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
-                <div className="relative flex items-start justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">Avg Response</p>
-                    <p className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
-                      245ms
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-yellow-400">Fast</span>
-                      <span className="text-xs text-gray-500">{'< 500ms target'}</span>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-yellow-500 rounded-xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-                    <div className="relative bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl p-3">
-                      <Zap className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-500 transform hover:scale-105">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-2xl opacity-0 transition-opacity duration-500"></div>
-                <div className="relative flex items-start justify-between">
-                  <div>
-                    <p className="text-gray-400 text-sm font-medium mb-2">Data Quality</p>
-                    <p className="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent mb-2">
-                      92.3%
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                      <span className="text-xs text-emerald-400">Excellent</span>
-                    </div>
-                  </div>
-                  <div className="relative">
-                    <div className="absolute inset-0 bg-emerald-500 rounded-xl blur-lg opacity-20 transition-opacity duration-500"></div>
-                    <div className="relative bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl p-3">
-                      <CheckCircle className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Recent Activity & Quick Actions */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Active Jobs */}
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden hover:border-[#468BE6]/30 transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#468BE6]/5 to-transparent opacity-0 transition-opacity duration-500"></div>
-                <div className="relative p-6 border-b border-gray-800/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                        Active Jobs
-                      </h2>
-                      <p className="text-gray-400 mt-1">Monitor your running pipelines</p>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-[#468BE6] rounded-lg blur-lg opacity-20"></div>
-                      <div className="relative bg-gradient-to-br from-[#468BE6]/20 to-[#468BE6]/10 rounded-lg p-2">
-                        <Workflow className="w-5 h-5 text-[#468BE6]" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="relative p-6">
-                  <div className="space-y-4">
-                    {activeJobs.map((job) => (
-                      <div key={job.id} className="group/job relative bg-gradient-to-r from-[#0f0f0f] to-[#1a1a1a] border border-gray-800/50 rounded-lg p-4 hover:border-[#468BE6]/50 transition-all duration-300">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center space-x-3">
-                            <div className="relative">
-                              {getStatusIcon(job.status)}
-                              {job.status === 'running' && (
-                                <div className="absolute inset-0 bg-blue-500 rounded-full blur-sm opacity-30 animate-pulse"></div>
-                              )}
-                            </div>
-                            <div>
-                              <h3 className="text-sm font-semibold text-white group-hover/job:text-[#468BE6] transition-colors">
-                                {job.name}
-                              </h3>
-                              <p className="text-xs text-gray-400 font-mono">{job.endpoint}</p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <span className="text-xs font-medium text-gray-300">{job.duration}</span>
-                          </div>
-                        </div>
-                        {job.status === 'running' && (
-                          <div className="relative">
-                            <div className="w-full bg-gray-800 rounded-full h-2">
-                              <div 
-                                className="bg-gradient-to-r from-[#468BE6] to-[#3a7bd5] h-2 rounded-full transition-all duration-500 relative overflow-hidden"
-                                style={{ width: `${job.progress}%` }}
-                              >
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                              </div>
-                            </div>
-                            <div className="flex justify-between mt-1">
-                              <span className="text-xs text-gray-500">Progress</span>
-                              <span className="text-xs font-medium text-[#468BE6]">{job.progress}%</span>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500"></div>
-                <div className="relative p-6 border-b border-gray-800/50">
-                  <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                    Quick Actions
-                  </h2>
-                  <p className="text-gray-400 mt-1">Get started with common tasks</p>
-                </div>
-                <div className="relative p-6">
-                  <div className="grid grid-cols-2 gap-4">
-                    <button 
-                      onClick={() => setActiveSection('data')}
-                      className="group/action relative bg-gradient-to-br from-[#468BE6]/10 to-[#468BE6]/5 border border-[#468BE6]/20 rounded-xl p-4 hover:border-[#468BE6]/50 transition-all duration-300 transform hover:scale-105"
-                    >
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-[#468BE6] rounded-lg blur-lg opacity-20 group-hover/action:opacity-40 transition-opacity duration-300"></div>
-                        <div className="relative bg-gradient-to-br from-[#468BE6] to-[#3a7bd5] rounded-lg p-3 mb-3 w-fit">
-                          <Upload className="w-5 h-5 text-white" />
-                        </div>
-                      </div>
-                      <h3 className="text-sm font-semibold text-white mb-1">Upload Data</h3>
-                      <p className="text-xs text-gray-400">Start a new project</p>
-                    </button>
-                    
-                    <button 
-                      onClick={() => setActiveSection('pipelines')}
-                      className="group/action relative bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 border border-emerald-500/20 rounded-xl p-4 hover:border-emerald-500/50 transition-all duration-300 transform hover:scale-105"
-                    >
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-emerald-500 rounded-lg blur-lg opacity-20 group-hover/action:opacity-40 transition-opacity duration-300"></div>
-                        <div className="relative bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg p-3 mb-3 w-fit">
-                          <Workflow className="w-5 h-5 text-white" />
-                        </div>
-                      </div>
-                      <h3 className="text-sm font-semibold text-white mb-1">New Pipeline</h3>
-                      <p className="text-xs text-gray-400">Create workflow</p>
-                    </button>
-
-                    <button 
-                      onClick={() => setActiveSection('explorer')}
-                      className="group/action relative bg-gradient-to-br from-purple-500/10 to-purple-500/5 border border-purple-500/20 rounded-xl p-4 hover:border-purple-500/50 transition-all duration-300 transform hover:scale-105"
-                    >
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-purple-500 rounded-lg blur-lg opacity-20 group-hover/action:opacity-40 transition-opacity duration-300"></div>
-                        <div className="relative bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg p-3 mb-3 w-fit">
-                          <BarChart3 className="w-5 h-5 text-white" />
-                        </div>
-                      </div>
-                      <h3 className="text-sm font-semibold text-white mb-1">View Analytics</h3>
-                      <p className="text-xs text-gray-400">Data insights</p>
-                    </button>
-
-                    <button 
-                      onClick={() => setActiveSection('api')}
-                      className="group/action relative bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border border-yellow-500/20 rounded-xl p-4 hover:border-yellow-500/50 transition-all duration-300 transform hover:scale-105"
-                    >
-                      <div className="relative">
-                        <div className="absolute inset-0 bg-yellow-500 rounded-lg blur-lg opacity-20 transition-opacity duration-300"></div>
-                        <div className="relative bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-lg p-3 mb-3 w-fit">
-                          <FileText className="w-5 h-5 text-white" />
-                        </div>
-                      </div>
-                      <h3 className="text-sm font-semibold text-white mb-1">Documentation</h3>
-                      <p className="text-xs text-gray-400">API reference</p>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Billing & Usage Section */}
-            {billingUsage && (
-              <div className="group relative bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] border border-gray-800/50 rounded-2xl overflow-hidden transition-all duration-500">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 transition-opacity duration-500"></div>
-                <div className="relative p-6 border-b border-gray-800/50">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                        Billing & Usage
-                      </h2>
-                      <p className="text-gray-400 mt-1">Current billing period: {billingUsage.period}</p>
-                    </div>
-                    <div className="relative">
-                      <div className="absolute inset-0 bg-emerald-500 rounded-lg blur-lg opacity-20"></div>
-                      <div className="relative bg-gradient-to-br from-emerald-500/20 to-emerald-500/10 rounded-lg p-2">
-                        <DollarSign className="w-6 h-6 text-emerald-400" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="relative p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                    {/* Current Cost */}
-                    <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] border border-gray-800/50 rounded-xl p-4">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                        <span className="text-sm text-gray-400">Current Cost</span>
-                      </div>
-                      <p className="text-2xl font-bold text-white">${billingUsage.currentCost}</p>
-                      <p className="text-xs text-gray-500 mt-1">of ${billingUsage.limit} limit</p>
-                    </div>
-
-                    {/* API Calls */}
-                    <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] border border-gray-800/50 rounded-xl p-4">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <span className="text-sm text-gray-400">API Calls</span>
-                      </div>
-                      <p className="text-2xl font-bold text-white">{billingUsage.apiCalls.toLocaleString()}</p>
-                      <p className="text-xs text-blue-400 mt-1">+12% vs last month</p>
-                    </div>
-
-                    {/* Data Processed */}
-                    <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] border border-gray-800/50 rounded-xl p-4">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <span className="text-sm text-gray-400">Data Processed</span>
-                      </div>
-                      <p className="text-2xl font-bold text-white">{billingUsage.dataProcessed}GB</p>
-                      <p className="text-xs text-purple-400 mt-1">This month</p>
-                    </div>
-
-                    {/* ML Inferences */}
-                    <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] border border-gray-800/50 rounded-xl p-4">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                        <span className="text-sm text-gray-400">ML Inferences</span>
-                      </div>
-                      <p className="text-2xl font-bold text-white">{billingUsage.mlInferences.toLocaleString()}</p>
-                      <p className="text-xs text-yellow-400 mt-1">Auto-labeling calls</p>
-                    </div>
-                  </div>
-
-                  {/* Usage Progress Bar */}
-                  <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] border border-gray-800/50 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-white">Budget Usage</span>
-                      <span className="text-sm text-gray-400">{billingUsage.percentUsed}% used</span>
-                    </div>
-                    <div className="relative">
-                      <div className="w-full bg-gray-800 rounded-full h-3">
-                        <div 
-                          className="bg-gradient-to-r from-emerald-500 to-emerald-400 h-3 rounded-full transition-all duration-500 relative overflow-hidden"
-                          style={{ width: `${billingUsage.percentUsed}%` }}
-                        >
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-between mt-2 text-xs text-gray-500">
-                      <span>$0</span>
-                      <span className="text-emerald-400">Current: ${billingUsage.currentCost}</span>
-                      <span>${billingUsage.limit}</span>
-                    </div>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-4 mt-6">
-                    <button 
-                      onClick={() => setActiveSection('billing')}
-                      className="flex-1 inline-flex items-center justify-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:shadow-lg hover:shadow-emerald-500/25 transition-all duration-300 transform hover:scale-105"
-                    >
-                      <CreditCard className="w-4 h-4 mr-2" />
-                      View Detailed Billing
-                    </button>
-                    <button className="inline-flex items-center px-4 py-2 bg-white/10 text-white border border-white/20 rounded-lg transition-all duration-300">
-                      <Download className="w-4 h-4 mr-2" />
-                      Export Usage
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
+          <div className="text-center py-12">
+            <h3 className="text-lg font-semibold text-white mb-2">Dashboard Overview</h3>
+            <p className="text-gray-400">Welcome to your dashboard</p>
           </div>
         );
     }
   };
 
+  const getBreadcrumbs = () => {
+    const breadcrumbs = []
+    const section = navigationSections.find(s => s.items.some(i => i.id === activeSection))
+    if (section) {
+      breadcrumbs.push({ name: section.title, href: '#' })
+      const item = section.items.find(i => i.id === activeSection)
+      if (item) {
+        breadcrumbs.push({ name: item.name, href: '#' })
+      }
+    }
+    return breadcrumbs
+  }
+
+  const breadcrumbs = getBreadcrumbs()
+
   return (
-    <div className="min-h-screen bg-[#111111] flex max-w-7xl mx-auto">
+    <div className="h-screen bg-[#111111] flex max-w-7xl mx-auto overflow-hidden">
+      <style jsx>{`
+        main::-webkit-scrollbar {
+          display: none;
+        }
+        .sidebar-button:focus, .sidebar-button:focus-visible {
+          outline: none !important;
+          box-shadow: none !important;
+        }
+      `}</style>
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0">
@@ -816,13 +853,13 @@ export default function UserDashboard() {
       </div>
 
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] border-r border-[#1d1d1d] backdrop-blur-xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] border-r border-[#111111] backdrop-blur-xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col`}>
         <div className="flex flex-col h-full pt-4">
           {/* User Profile */}
           <div className="p-4">
-            <div className="flex items-center space-x-3 p-3 rounded-xl hover:bg-[#161616] text-[#fcfcf7] hover:text-[#fcfcf7] transition-colors cursor-pointer">
-              <div className="w-8 h-8 bg-gradient-to-r from-[#468BE6] to-[#3a7bd5] rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-white" />
+            <div className="flex items-center space-x-3 p-3 rounded-xl text-[#fcfcf7]">
+              <div className="w-12 h-12 bg-[#222222] rounded-full flex items-center justify-center">
+                <User className="w-8 h-8 text-white" />
               </div>
               <div>
                 <p className="text-sm font-medium text-white">John Doe</p>
@@ -831,15 +868,19 @@ export default function UserDashboard() {
             </div>
           </div>
 
-          
-
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-6">
             {navigationSections.map((section) => (
               <div key={section.title} className="space-y-2">
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">
-                  {section.title}
-                </h3>
+                {section.title === 'Dashboard' || section.title === 'Data & Processing' || section.title === 'Development' || section.title === 'Account' ? (
+                  <div className="py-2">
+                    <hr className="border-t-2 border-[#161616]" />
+                  </div>
+                ) : (
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">
+                    {section.title}
+                  </h3>
+                )}
                 <div className="space-y-1">
                   {section.items.map((item) => (
                     <button
@@ -847,29 +888,37 @@ export default function UserDashboard() {
                       onClick={() => {
                         setActiveSection(item.id)
                       }}
-                      className={`w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200 group ${
+                      className={`sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200 group ${
                         item.active
                           ? 'bg-[#222222] border border-[#1d1d1d] text-[#fcfcf7] shadow-inner'
-                          : 'hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 text-[#fcfcf7] hover:text-[#fcfcf7]'
+                          : 'text-gray-400 hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 hover:text-[#fcfcf7]'
                       }`}>
-                      <item.icon className={`w-5 h-5 ${item.active ? 'text-[#fcfcf7]' : 'group-hover:text-[#fcfcf7]'}`} />
+                      <item.icon className={`w-5 h-5 ${item.active ? 'text-[#fcfcf7]' : 'text-gray-400 group-hover:text-[#fcfcf7]'}`} />
                       <span className="text-sm">{item.name}</span>
                     </button>
                   ))}
+                  {section.title === 'Dashboard' && (
+                    <button
+                      onClick={() => setShowSearchModal(true)}
+                      className="sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200 group text-gray-400 hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 hover:text-[#fcfcf7]"
+                    >
+                      <Search className="w-5 h-5 text-gray-400 group-hover:text-[#fcfcf7]" />
+                      <span className="text-sm">Search</span>
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
           </nav>
 
           {/* User Section Bottom Links */}
-          <div className="p-4 border-t border-gray-800/50">
+          <div className="p-4">
             <div className="mt-2 space-y-1">
-              
-              <a href="/help" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-400 hover:text-white">
+              <a href="/help" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-gray-400 hover:text-[#fcfcf7]">
                 <HelpCircle className="w-4 h-4" />
                 <span className="text-sm">Help</span>
               </a>
-              <button className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-gray-400 hover:text-white w-full">
+              <button className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-gray-400 hover:text-[#fcfcf7] w-full">
                 <LogOut className="w-4 h-4" />
                 <span className="text-sm">Sign Out</span>
               </button>
@@ -879,42 +928,47 @@ export default function UserDashboard() {
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 h-full">
         {/* Top Header */}
-        <header className="relative bg-[#111111] backdrop-blur-sm h-20">
+        <header className="flex-shrink-0 bg-[#111111] h-20">
           <div className="px-6 h-full flex items-center">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center space-x-4">
+                {/* Mobile Menu Button */}
                 <button
                   onClick={() => setSidebarOpen(true)}
                   className="lg:hidden p-2 rounded-lg hover:bg-gray-800/50 transition-colors"
                 >
                   <Menu className="w-5 h-5 text-gray-400" />
                 </button>
-                <div>
-                  
-                </div>
-              </div>
-              <div className="mr-auto ml-2">
-                <button
-                  onClick={() => setShowSearchModal(true)}
-                  className="w-full max-w-xl px-3 py-1 rounded-lg bg-[#1a1a1a] border border-[#1d1d1d] text-[#fcfcf7] flex items-center justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/20"
-                >
-                  <Search className="w-5 h-5 text-[#fcfcf7] mr-2" />
-                  <span className="text-xs text-[#fcfcf7]">⌘K</span>
-                </button>
-              </div>
-              <div className="flex items-center space-x-4">
-                
-                
+
+                {/* Breadcrumbs */}
+                <nav className="hidden md:flex items-center space-x-2 text-sm text-gray-400">
+                  {breadcrumbs.map((crumb, index) => (
+                    <div key={crumb.name} className="flex items-center space-x-2">
+                      {index > 0 && <ChevronRight className="w-4 h-4" />}
+                      <a href={crumb.href} className="hover:text-white transition-colors">
+                        {crumb.name}
+                      </a>
+                    </div>
+                  ))}
+                </nav>
               </div>
             </div>
           </div>
         </header>
 
         {/* Dashboard Content */}
-        <main className="flex-1 pl-12 pr-6 overflow-auto bg-[#111111]">
-          {renderContent()}
+        <main 
+          className="flex-1 pl-6 pr-6 bg-[#161616] overflow-y-auto rounded-t-2xl"
+          style={{
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          <div className="py-6">
+            {renderContent()}
+          </div>
         </main>
       </div>
 
