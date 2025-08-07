@@ -44,6 +44,9 @@ import {
   Search
 } from 'lucide-react'
 
+import ChartAreaInteractive from './components/ChartAreaInteractive'
+import WorkingChart from './components/WorkingChart'
+
 interface JobStatus {
   id: string
   name: string
@@ -116,6 +119,7 @@ export default function UserDashboard() {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showSearchModal, setShowSearchModal] = useState(false)
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [chartView, setChartView] = useState('api_calls')
   const [showPreviousPeriod, setShowPreviousPeriod] = useState(false)
   const [showViewDropdown, setShowViewDropdown] = useState(false)
@@ -814,6 +818,7 @@ export default function UserDashboard() {
           <div className="text-center py-12">
             <h3 className="text-lg font-semibold text-white mb-2">Dashboard Overview</h3>
             <p className="text-gray-400">Welcome to your dashboard</p>
+            <WorkingChart />
           </div>
         );
     }
@@ -886,7 +891,11 @@ export default function UserDashboard() {
                     <button
                       key={item.name}
                       onClick={() => {
-                        setActiveSection(item.id)
+                        if (item.id === 'settings') {
+                          setShowSettingsModal(true)
+                        } else {
+                          setActiveSection(item.id)
+                        }
                       }}
                       className={`sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200 group ${
                         item.active
@@ -987,6 +996,16 @@ export default function UserDashboard() {
               autoFocus
               className="w-full px-3 py-1 rounded-lg bg-[#1a1a1a] border border-[#1d1d1d] text-[#fcfcf7] focus:outline-none focus:ring-2 focus:ring-white/20"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={() => setShowSettingsModal(false)}>
+          <div className="relative z-51 w-full max-w-xl bg-[#1a1a1a] border border-[#1d1d1d] rounded-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-white mb-4">Settings</h3>
+            <p className="text-gray-400">Manage your account settings here.</p>
           </div>
         </div>
       )}
