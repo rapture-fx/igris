@@ -1,4 +1,4 @@
-import { CodeBlock } from '../../components/ui/CodeBlock'
+import { CodeBlock } from '@/components/ui/CodeBlock'
 
 export default function SageMakerIntegration() {
   return (

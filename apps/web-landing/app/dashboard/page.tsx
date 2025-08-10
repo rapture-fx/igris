@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import dynamic from 'next/dynamic'
+import DataProcessingSection from './components/DataProcessingSection'
+import BillingSection from './components/BillingSection'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { 
@@ -739,9 +740,7 @@ export default function UserDashboard() {
     }
   ]
 
-  // Dynamic imports for sections
-  const DataProcessingSection = dynamic(() => import('./components/DataProcessingSection'), { ssr: false })
-  const BillingSection = dynamic(() => import('./components/BillingSection'), { ssr: false })
+  // Components are now imported directly above to prevent loading delays
 
   const renderContent = () => {
     switch (activeSection) {
@@ -840,14 +839,20 @@ export default function UserDashboard() {
   const breadcrumbs = getBreadcrumbs()
 
   return (
-    <div className="h-screen bg-[#111111] flex max-w-7xl mx-auto overflow-hidden">
+    <div className="h-screen bg-[#111111] flex w-full overflow-hidden">
       <style jsx>{`
         main::-webkit-scrollbar {
           display: none;
         }
-        .sidebar-button:focus, .sidebar-button:focus-visible {
+        .sidebar-button:focus-visible {
+          outline: 2px solid rgba(255, 255, 255, 0.2) !important;
+          outline-offset: 2px !important;
+        }
+        .sidebar-button:focus:not(:focus-visible) {
           outline: none !important;
-          box-shadow: none !important;
+        }
+        .sidebar-button:active {
+          transform: scale(0.98);
         }
       `}</style>
       {/* Animated Background */}
@@ -875,17 +880,16 @@ export default function UserDashboard() {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-6">
-            {navigationSections.map((section) => (
+            {navigationSections.map((section, sectionIndex) => (
               <div key={section.title} className="space-y-2">
-                {section.title === 'Dashboard' || section.title === 'Data & Processing' || section.title === 'Development' || section.title === 'Account' ? (
+                {sectionIndex > 0 && (
                   <div className="py-2">
-                    <hr className="border-t-2 border-[#161616]" />
+                    <hr className="border-t border-[#161616]" />
                   </div>
-                ) : (
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 mb-3">
-                    {section.title}
-                  </h3>
                 )}
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 mb-3">
+                  {section.title}
+                </h3>
                 <div className="space-y-1">
                   {section.items.map((item) => (
                     <button
@@ -897,19 +901,19 @@ export default function UserDashboard() {
                           setActiveSection(item.id)
                         }
                       }}
-                      className={`sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200 group ${
-                        item.active
-                          ? 'bg-[#222222] border border-[#1d1d1d] text-[#fcfcf7] shadow-inner'
-                          : 'text-gray-400 hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 hover:text-[#fcfcf7]'
+                      className={`sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-150 group border ${
+                        activeSection === item.id
+                          ? 'bg-[#222222] border-[#1d1d1d] text-[#fcfcf7] shadow-inner'
+                          : 'text-gray-400 hover:bg-[#161616] hover:text-[#fcfcf7] active:bg-[#1a1a1a] border-transparent'
                       }`}>
-                      <item.icon className={`w-5 h-5 ${item.active ? 'text-[#fcfcf7]' : 'text-gray-400 group-hover:text-[#fcfcf7]'}`} />
+                      <item.icon className={`w-5 h-5 ${activeSection === item.id ? 'text-[#fcfcf7]' : 'text-gray-400 group-hover:text-[#fcfcf7]'}`} />
                       <span className="text-sm">{item.name}</span>
                     </button>
                   ))}
                   {section.title === 'Dashboard' && (
                     <button
                       onClick={() => setShowSearchModal(true)}
-                      className="sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-200 group text-gray-400 hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 hover:text-[#fcfcf7]"
+                      className="sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-150 group border border-transparent text-gray-400 hover:bg-[#161616] hover:text-[#fcfcf7] active:bg-[#1a1a1a]"
                     >
                       <Search className="w-5 h-5 text-gray-400 group-hover:text-[#fcfcf7]" />
                       <span className="text-sm">Search</span>
@@ -922,13 +926,16 @@ export default function UserDashboard() {
 
           {/* User Section Bottom Links */}
           <div className="p-4">
+            <div className="py-2">
+              <hr className="border-t border-[#161616]" />
+            </div>
             <div className="mt-2 space-y-1">
-              <a href="/help" className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-gray-400 hover:text-[#fcfcf7]">
-                <HelpCircle className="w-4 h-4" />
+              <a href="/help" className="sidebar-button flex items-center space-x-3 px-4 py-2 rounded-xl border border-transparent hover:bg-[#161616] active:bg-[#1a1a1a] transition-all duration-150 text-gray-400 hover:text-[#fcfcf7]">
+                <HelpCircle className="w-5 h-5" />
                 <span className="text-sm">Help</span>
               </a>
-              <button className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-[#161616] hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 text-gray-400 hover:text-[#fcfcf7] w-full">
-                <LogOut className="w-4 h-4" />
+              <button className="sidebar-button flex items-center space-x-3 px-4 py-2 rounded-xl border border-transparent hover:bg-[#161616] active:bg-[#1a1a1a] transition-all duration-150 text-gray-400 hover:text-[#fcfcf7] w-full">
+                <LogOut className="w-5 h-5" />
                 <span className="text-sm">Sign Out</span>
               </button>
             </div>
