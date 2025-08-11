@@ -1,0 +1,112 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staging-celery-worker
+  namespace: schlep-staging
+  labels:
+    app: schlep-celery-worker
+    environment: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: schlep-celery-worker
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: schlep-celery-worker
+        environment: staging
+    spec:
+      containers:
+      - name: celery-worker
+        image: schlep-engine/backend:staging
+        command: ["celery"]
+        args: ["-A", "app.tasks.celery_app", "worker", "--loglevel=info", "--concurrency=4"]
+        envFrom:
+        - configMapRef:
+            name: schlep-staging-config
+        - secretRef:
+            name: schlep-staging-secrets
+        env:
+        - name: STAGING_CELERY_BROKER_URL
+          value: "redis://:$(STAGING_REDIS_PASSWORD)@staging-redis:6379/0"
+        - name: STAGING_CELERY_RESULT_BACKEND
+          value: "redis://:$(STAGING_REDIS_PASSWORD)@staging-redis:6379/0"
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/schlep-engine
+        - name: app-uploads
+          mountPath: /app/uploads
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - celery
+            - -A
+            - app.tasks.celery_app
+            - inspect
+            - ping
+          initialDelaySeconds: 60
+          periodSeconds: 30
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+      - name: app-uploads
+        persistentVolumeClaim:
+          claimName: staging-uploads-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staging-celery-beat
+  namespace: schlep-staging
+  labels:
+    app: schlep-celery-beat
+    environment: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schlep-celery-beat
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: schlep-celery-beat
+        environment: staging
+    spec:
+      containers:
+      - name: celery-beat
+        image: schlep-engine/backend:staging
+        command: ["celery"]
+        args: ["-A", "app.tasks.celery_app", "beat", "--loglevel=info"]
+        envFrom:
+        - configMapRef:
+            name: schlep-staging-config
+        - secretRef:
+            name: schlep-staging-secrets
+        env:
+        - name: STAGING_CELERY_BROKER_URL
+          value: "redis://:$(STAGING_REDIS_PASSWORD)@staging-redis:6379/0"
+        - name: STAGING_CELERY_RESULT_BACKEND
+          value: "redis://:$(STAGING_REDIS_PASSWORD)@staging-redis:6379/0"
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/schlep-engine
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+      volumes:
+      - name: app-logs
+        emptyDir: {} 

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: schlep-staging
+  labels:
+    name: schlep-staging
+    environment: staging
+    app: schlep-engine
+  annotations:
+    description: "Staging environment for Schlep-engine"
+    owner: "devops-team" 

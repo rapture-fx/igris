@@ -1,0 +1,47 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: schlep-staging
+  namespace: schlep-staging
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - secret.yaml
+  - postgresql.yaml
+  - redis.yaml
+  - backend.yaml
+  - celery.yaml
+  - monitoring.yaml
+  - ingress.yaml
+  - hpa.yaml
+
+commonLabels:
+  app: schlep-engine
+  environment: staging
+  version: v1.0.0
+
+commonAnnotations:
+  description: "Staging environment for Schlep-engine"
+  owner: "devops-team"
+  managed-by: "kustomize"
+
+images:
+  - name: schlep-engine/backend
+    newTag: staging
+
+configMapGenerator:
+  - name: schlep-staging-config
+    behavior: merge
+    literals:
+      - ENVIRONMENT=staging
+      - APP_VERSION=1.0.0
+
+secretGenerator:
+  - name: schlep-staging-secrets
+    behavior: merge
+    literals:
+      - STAGING_DB_PASSWORD=staging_secure_password
+      - STAGING_REDIS_PASSWORD=staging_redis_password
+      - STAGING_SECRET_KEY=staging_secret_key_for_application 
