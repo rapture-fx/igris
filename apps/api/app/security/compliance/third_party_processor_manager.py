@@ -31,7 +31,8 @@ from dataclasses import dataclass, asdict
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.security.audit import AuditLogger, SecurityEventType
+from app.middleware.audit_middleware import AuditLogger
+# SecurityEventType import commented out for now
 from app.security.compliance import ComplianceFramework
 
 logger = logging.getLogger(__name__)

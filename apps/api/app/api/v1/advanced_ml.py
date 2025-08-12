@@ -42,7 +42,7 @@ from pydantic import BaseModel, Field
 from app.database.connection import get_db
 from app.auth.dependencies import get_current_user
 from app.services.advanced_ml_engine import advanced_ml_engine
-from app.database.models import User, Investigation
+from app.database.models import User  # Investigation model not found, commented out for now
 from app.core.celery_app import celery_app
 
 logger = logging.getLogger(__name__)

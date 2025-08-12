@@ -39,7 +39,8 @@ from sqlalchemy import and_, or_
 
 from app.database.models import User, Organization
 from app.security.compliance import ComplianceFramework
-from app.security.audit import AuditLogger, SecurityEventType
+from app.middleware.audit_middleware import AuditLogger
+# SecurityEventType import commented out for now
 
 logger = logging.getLogger(__name__)
 

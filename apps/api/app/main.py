@@ -147,8 +147,8 @@ app.add_middleware(
     allowed_hosts=getattr(settings, 'ALLOWED_HOSTS', ['*'])
 )
 
-# Add monitoring middleware
-app = create_monitoring_middleware(app)
+# Add monitoring middleware - temporarily disabled due to middleware conflicts
+# app = create_monitoring_middleware(app)
 
 # Add security middleware (re-enabled with error handling)
 try:

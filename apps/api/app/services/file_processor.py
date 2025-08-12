@@ -292,7 +292,68 @@ class DataProcessor:
                 'file_path': file_path
             }
     
-    async def _parse_csv(self, file_path: str, metadata: Dict[str, Any]) -> Dict[str, Any]:        """Parse CSV file with intelligent parameter detection"""        try:            # Use detected delimiter from metadata if available            delimiter = metadata.get('detected_delimiter', ',')                        # Try to read the file in chunks            chunk_iter = pd.read_csv(file_path, delimiter=delimiter, chunksize=10000, engine='pyarrow')                        df_chunks = []            for chunk in chunk_iter:                df_chunks.append(chunk)                        full_df = pd.concat(df_chunks, ignore_index=True)                        return {                'status': 'success',                'dataframe_info': self._get_dataframe_info(full_df),                'sample_data': full_df.head(10).to_dict(orient='records'),                'parsing_params': {                    'delimiter': delimiter,                    'encoding': 'utf-8'                }            }                        except Exception as e:            # Try alternative approaches            logger.warning(f"Standard CSV parsing failed, trying alternatives: {e}")                        # Try different delimiters            for alt_delimiter in [';', '	', '|']:                try:                    df = pd.read_csv(file_path, delimiter=alt_delimiter)                    return {                        'status': 'success',                        'dataframe_info': self._get_dataframe_info(df),                        'sample_data': df.head(10).to_dict(orient='records'),                        'parsing_params': {                            'delimiter': alt_delimiter,                            'encoding': 'utf-8'                        }                    }                except:                    continue                        # Try different encodings            for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:                try:                    df = pd.read_csv(file_path, encoding=encoding)                    return {                        'status': 'success',                        'dataframe_info': self._get_dataframe_info(df),                        'sample_data': df.head(10).to_dict(orient='records'),                        'parsing_params': {                            'delimiter': ',',                            'encoding': encoding                        }                    }                except:                    continue                        raise ValueError("Could not parse CSV with any standard parameters")
+    async def _parse_csv(self, file_path: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
+        """Parse CSV file with intelligent parameter detection"""
+        try:
+            # Use detected delimiter from metadata if available
+            delimiter = metadata.get('detected_delimiter', ',')
+            
+            # Try to read the file in chunks
+            chunk_iter = pd.read_csv(file_path, delimiter=delimiter, chunksize=10000, engine='pyarrow')
+            
+            df_chunks = []
+            for chunk in chunk_iter:
+                df_chunks.append(chunk)
+            
+            full_df = pd.concat(df_chunks, ignore_index=True)
+            
+            return {
+                'status': 'success',
+                'dataframe_info': self._get_dataframe_info(full_df),
+                'sample_data': full_df.head(10).to_dict(orient='records'),
+                'parsing_params': {
+                    'delimiter': delimiter,
+                    'encoding': 'utf-8'
+                }
+            }
+            
+        except Exception as e:
+            # Try alternative approaches
+            logger.warning(f"Standard CSV parsing failed, trying alternatives: {e}")
+            
+            # Try different delimiters
+            for alt_delimiter in [';', '\t', '|']:
+                try:
+                    df = pd.read_csv(file_path, delimiter=alt_delimiter)
+                    return {
+                        'status': 'success',
+                        'dataframe_info': self._get_dataframe_info(df),
+                        'sample_data': df.head(10).to_dict(orient='records'),
+                        'parsing_params': {
+                            'delimiter': alt_delimiter,
+                            'encoding': 'utf-8'
+                        }
+                    }
+                except:
+                    continue
+            
+            # Try different encodings
+            for encoding in ['latin-1', 'cp1252', 'iso-8859-1']:
+                try:
+                    df = pd.read_csv(file_path, encoding=encoding)
+                    return {
+                        'status': 'success',
+                        'dataframe_info': self._get_dataframe_info(df),
+                        'sample_data': df.head(10).to_dict(orient='records'),
+                        'parsing_params': {
+                            'delimiter': ',',
+                            'encoding': encoding
+                        }
+                    }
+                except:
+                    continue
+            
+            raise ValueError("Could not parse CSV with any standard parameters")
     
     async def _parse_json(self, file_path: str) -> Dict[str, Any]:
         """Parse JSON file"""
@@ -594,106 +655,4 @@ class ProcessingJobManager:
 
 # Global instances
 file_upload_service = FileUploadService(storage_type="local", local_dir="./uploads")
-job_manager = ProcessingJobManager()
-
-    async def analyze_file(self, file_path: str, file_type: str) -> Dict[str, Any]:
-        """Analyze uploaded file and extract basic information"""
-        try:
-            if file_type == 'csv':
-                df = pd.read_csv(file_path)
-            elif file_type == 'json':
-                with open(file_path, 'r') as f:
-                    data = json.load(f)
-                if isinstance(data, list):
-                    df = pd.DataFrame(data)
-                else:
-                    df = pd.DataFrame([data])
-            elif file_type in ['xlsx', 'xls']:
-                df = pd.read_excel(file_path)
-            else:
-                raise ValueError(f"Unsupported file type: {file_type}")
-            
-            # Basic analysis
-            analysis = {
-                "rows": len(df),
-                "columns": len(df.columns),
-                "column_names": df.columns.tolist(),
-                "data_types": df.dtypes.astype(str).to_dict(),
-                "missing_values": df.isnull().sum().to_dict(),
-                "sample_data": df.head(5).to_dict('records'),
-                "memory_usage": df.memory_usage(deep=True).sum(),
-                "numeric_columns": df.select_dtypes(include=['number']).columns.tolist(),
-                "categorical_columns": df.select_dtypes(include=['object']).columns.tolist(),
-            }
-            
-            # Data quality score (simple calculation)
-            total_cells = len(df) * len(df.columns)
-            missing_cells = df.isnull().sum().sum()
-            quality_score = max(0, (total_cells - missing_cells) / total_cells * 100) if total_cells > 0 else 0
-            
-            analysis["quality_score"] = round(quality_score, 2)
-            
-            return analysis
-            
-        except Exception as e:
-            return {
-                "error": str(e),
-                "analysis_failed": True
-            }
-    
-    async def create_data_investigation(self, db: AsyncSession, file_info: Dict[str, Any], 
-                                      analysis: Dict[str, Any], user_id: str) -> str:
-        """Create a data investigation record"""
-        investigation = DataInvestigation(
-            id=uuid.uuid4(),
-            name=f"Analysis of {file_info['original_filename']}",
-            description=f"Automated analysis of uploaded file: {file_info['original_filename']}",
-            workspace_id=None,  # We'll handle workspaces later
-            created_by_id=user_id,
-            data_source_type=DataSourceType(file_info['file_type']),
-            data_source_config={
-                "file_path": file_info['file_path'],
-                "original_filename": file_info['original_filename'],
-                "file_size": file_info['file_size']
-            },
-            schema_info=analysis,
-            quality_score=analysis.get('quality_score', 0),
-            status=JobStatus.COMPLETED if not analysis.get('analysis_failed') else JobStatus.FAILED,
-            progress_percentage=100.0,
-            created_at=datetime.utcnow(),
-            completed_at=datetime.utcnow()
-        )
-        
-        db.add(investigation)
-        await db.commit()
-        await db.refresh(investigation)
-        
-        return str(investigation.id)
-    
-    async def process_upload(self, file_content: bytes, filename: str, user_id: str) -> Dict[str, Any]:
-        """Complete upload processing pipeline"""
-        try:
-            # Save file
-            file_info = await self.save_uploaded_file(file_content, filename, user_id)
-            
-            # Analyze file
-            analysis = await self.analyze_file(file_info['file_path'], file_info['file_type'])
-            
-            # Create database record
-            async with get_db() as db:
-                investigation_id = await self.create_data_investigation(db, file_info, analysis, user_id)
-            
-            return {
-                "success": True,
-                "file_info": file_info,
-                "analysis": analysis,
-                "investigation_id": investigation_id,
-                "message": "File uploaded and analyzed successfully"
-            }
-            
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e),
-                "message": "Failed to process upload"
-            } 
+job_manager = ProcessingJobManager() 

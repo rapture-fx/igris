@@ -34,8 +34,8 @@ from app.security.compliance.legal_workflow import (
 from app.security.compliance.third_party_processor_manager import (
     ThirdPartyProcessorManager, ThirdPartyProcessor, ProcessorStatus, RiskLevel
 )
-from app.security.audit import AuditLogger
-from app.security.compliance.compliance_framework import ComplianceFramework
+from app.middleware.audit_middleware import AuditLogger
+from app.security.compliance import ComplianceFramework
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dpa", tags=["DPA Compliance"])
