@@ -55,7 +55,7 @@ flake8==6.1.0
 mypy==1.7.1
 
 # Documentation
-mkdocs==1.5.3
+mkdocs==1.6.1
 mkdocs-material==9.4.8
 
 # Utilities
