@@ -1,0 +1,604 @@
+---
+# Real-Time Workloads Configuration for Schlep Engine
+# Optimized Kubernetes deployments for <100ms response times
+
+# Namespace for real-time workloads
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: schlep-engine-realtime
+  labels:
+    workload-type: real-time
+    performance-tier: high
+
+---
+# Priority Class for Real-Time Workloads
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: realtime-priority
+value: 1000
+globalDefault: false
+description: "High priority class for real-time workloads"
+
+---
+# ConfigMap for Real-Time Application Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: realtime-app-config
+  namespace: schlep-engine-realtime
+data:
+  # Cache Configuration
+  REDIS_L1_HOST: "schlep-engine-l1-cache.schlep-engine-realtime.svc.cluster.local"
+  REDIS_L1_PORT: "6379"
+  REDIS_L2_HOST: "schlep-engine-l2-cache.schlep-engine-realtime.svc.cluster.local"
+  REDIS_L2_PORT: "6379"
+  
+  # Database Configuration
+  DB_PRIMARY_HOST: "schlep-engine-realtime-primary.cluster-xxxxx.us-west-2.rds.amazonaws.com"
+  DB_READ_REPLICA_1: "schlep-engine-realtime-read-1.xxxxx.us-west-2.rds.amazonaws.com"
+  DB_READ_REPLICA_2: "schlep-engine-realtime-read-2.xxxxx.us-west-2.rds.amazonaws.com"
+  DB_PROXY_HOST: "schlep-engine-realtime-proxy.proxy-xxxxx.us-west-2.rds.amazonaws.com"
+  DB_PORT: "5432"
+  
+  # Connection Pool Settings
+  DB_POOL_SIZE: "50"
+  DB_POOL_MAX_OVERFLOW: "20"
+  DB_POOL_TIMEOUT: "5"
+  DB_POOL_RECYCLE: "3600"
+  
+  # Performance Settings
+  RESPONSE_TIME_TARGET: "100"  # milliseconds
+  MAX_REQUEST_TIMEOUT: "30000"  # 30 seconds
+  
+  # Event Streaming
+  KAFKA_BOOTSTRAP_SERVERS: "schlep-engine-events-bootstrap.xxxxx.kafka.us-west-2.amazonaws.com:9092"
+  KAFKA_SECURITY_PROTOCOL: "SSL"
+  
+  # Circuit Breaker Settings
+  CIRCUIT_BREAKER_FAILURE_THRESHOLD: "5"
+  CIRCUIT_BREAKER_RECOVERY_TIMEOUT: "30"
+  CIRCUIT_BREAKER_EXPECTED_RECOVERY_TIME: "10"
+
+---
+# Real-Time API Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realtime-api
+  namespace: schlep-engine-realtime
+  labels:
+    app: realtime-api
+    component: api
+    performance-tier: high
+spec:
+  replicas: 10  # High replica count for performance
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 50%  # Fast rollouts
+      maxUnavailable: 10%
+  selector:
+    matchLabels:
+      app: realtime-api
+  template:
+    metadata:
+      labels:
+        app: realtime-api
+        component: api
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8000"
+        prometheus.io/path: "/metrics"
+    spec:
+      priorityClassName: realtime-priority
+      terminationGracePeriodSeconds: 5  # Fast termination
+      
+      # Node affinity for high-performance nodes
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: instance-type
+                operator: In
+                values: ["c6i.xlarge", "c6i.2xlarge", "c6i.4xlarge"]  # Compute-optimized
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values: ["realtime-api"]
+              topologyKey: kubernetes.io/hostname
+      
+      containers:
+      - name: api
+        image: schlep-engine/api:realtime-latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        - containerPort: 8080
+          name: metrics
+        
+        # Environment Configuration
+        envFrom:
+        - configMapRef:
+            name: realtime-app-config
+        - secretRef:
+            name: realtime-app-secrets
+        
+        env:
+        - name: ENVIRONMENT
+          value: "realtime"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: WORKERS
+          value: "4"  # Optimized for container resources
+        - name: WORKER_CLASS
+          value: "uvicorn.workers.UvicornWorker"
+        - name: MAX_REQUESTS
+          value: "10000"
+        - name: MAX_REQUESTS_JITTER
+          value: "1000"
+        - name: PRELOAD_APP
+          value: "true"
+        
+        # Resource allocation for high performance
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+            ephemeral-storage: "1Gi"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+            ephemeral-storage: "2Gi"
+        
+        # Health checks optimized for speed
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 2
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 2
+          timeoutSeconds: 1
+          failureThreshold: 2
+        
+        # Startup probe for faster startup
+        startupProbe:
+          httpGet:
+            path: /health/startup
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 1
+          timeoutSeconds: 1
+          failureThreshold: 30
+        
+        # Security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+          capabilities:
+            drop:
+            - ALL
+
+---
+# Horizontal Pod Autoscaler for Real-Time API
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: realtime-api-hpa
+  namespace: schlep-engine-realtime
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: realtime-api
+  minReplicas: 10
+  maxReplicas: 50  # High max for traffic spikes
+  metrics:
+  # CPU-based scaling
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60  # Conservative for consistent performance
+  
+  # Memory-based scaling
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 70
+  
+  # Custom metrics for response time
+  - type: Pods
+    pods:
+      metric:
+        name: http_request_duration_p95
+      target:
+        type: AverageValue
+        averageValue: "80m"  # 80ms target
+  
+  # Request rate based scaling
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"  # 100 RPS per pod
+  
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 30  # Fast scale up
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 30
+      - type: Pods
+        value: 5
+        periodSeconds: 30
+      selectPolicy: Max
+    scaleDown:
+      stabilizationWindowSeconds: 300  # Slower scale down for stability
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+
+---
+# Vertical Pod Autoscaler for Real-Time API
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: realtime-api-vpa
+  namespace: schlep-engine-realtime
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: realtime-api
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+    - containerName: api
+      minAllowed:
+        cpu: "500m"
+        memory: "1Gi"
+      maxAllowed:
+        cpu: "2000m"
+        memory: "4Gi"
+      controlledResources: ["cpu", "memory"]
+
+---
+# Service for Real-Time API
+apiVersion: v1
+kind: Service
+metadata:
+  name: realtime-api-service
+  namespace: schlep-engine-realtime
+  labels:
+    app: realtime-api
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    service.beta.kubernetes.io/aws-load-balancer-connection-idle-timeout: "60"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: realtime-api
+  sessionAffinity: None  # Stateless for better load distribution
+
+---
+# Pod Disruption Budget
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: realtime-api-pdb
+  namespace: schlep-engine-realtime
+spec:
+  minAvailable: 80%  # High availability requirement
+  selector:
+    matchLabels:
+      app: realtime-api
+
+---
+# Network Policy for Real-Time Workloads
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: realtime-api-network-policy
+  namespace: schlep-engine-realtime
+spec:
+  podSelector:
+    matchLabels:
+      app: realtime-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-realtime
+    ports:
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to: []  # Allow all egress for external services
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+    - protocol: TCP
+      port: 9092  # Kafka
+
+---
+# Real-Time Cache Worker Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-worker
+  namespace: schlep-engine-realtime
+  labels:
+    app: cache-worker
+    component: cache
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: cache-worker
+  template:
+    metadata:
+      labels:
+        app: cache-worker
+        component: cache
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      priorityClassName: realtime-priority
+      
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: instance-type
+                operator: In
+                values: ["r6i.large", "r6i.xlarge"]  # Memory-optimized for cache
+      
+      containers:
+      - name: cache-worker
+        image: schlep-engine/cache-worker:latest
+        ports:
+        - containerPort: 8080
+          name: metrics
+        
+        envFrom:
+        - configMapRef:
+            name: realtime-app-config
+        - secretRef:
+            name: realtime-app-secrets
+        
+        env:
+        - name: WORKER_TYPE
+          value: "cache"
+        - name: CACHE_PREFETCH_ENABLED
+          value: "true"
+        - name: CACHE_WARMING_INTERVAL
+          value: "300"  # 5 minutes
+        
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 30
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+
+---
+# Event Stream Processor Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-stream-processor
+  namespace: schlep-engine-realtime
+  labels:
+    app: event-stream-processor
+    component: streaming
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: event-stream-processor
+  template:
+    metadata:
+      labels:
+        app: event-stream-processor
+        component: streaming
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      priorityClassName: realtime-priority
+      
+      containers:
+      - name: stream-processor
+        image: schlep-engine/stream-processor:latest
+        ports:
+        - containerPort: 8080
+          name: metrics
+        
+        envFrom:
+        - configMapRef:
+            name: realtime-app-config
+        - secretRef:
+            name: realtime-app-secrets
+        
+        env:
+        - name: KAFKA_CONSUMER_GROUP
+          value: "realtime-processors"
+        - name: KAFKA_AUTO_OFFSET_RESET
+          value: "latest"
+        - name: KAFKA_ENABLE_AUTO_COMMIT
+          value: "false"
+        - name: PROCESSING_BATCH_SIZE
+          value: "100"
+        - name: PROCESSING_TIMEOUT_MS
+          value: "1000"
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+        
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+
+---
+# ServiceMonitor for Prometheus Scraping
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: realtime-workloads
+  namespace: schlep-engine-realtime
+  labels:
+    app: realtime-monitoring
+spec:
+  selector:
+    matchLabels:
+      app: realtime-api
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 2s  # High frequency scraping
+    scrapeTimeout: 1s
+
+---
+# Ingress for Real-Time API
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: realtime-api-ingress
+  namespace: schlep-engine-realtime
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "5"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/rate-limit: "1000"  # Requests per second
+    nginx.ingress.kubernetes.io/rate-limit-window: "1s"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,X-CustomHeader,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Authorization"
+spec:
+  tls:
+  - hosts:
+    - api-realtime.schlep-engine.com
+    secretName: realtime-api-tls
+  rules:
+  - host: api-realtime.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: realtime-api-service
+            port:
+              number: 80
+
+---
+# Secret for Real-Time Application (template)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: realtime-app-secrets
+  namespace: schlep-engine-realtime
+type: Opaque
+stringData:
+  # Database credentials
+  DB_PASSWORD: "REPLACE_WITH_ACTUAL_PASSWORD"
+  DB_USERNAME: "REPLACE_WITH_ACTUAL_USERNAME"
+  
+  # Redis credentials
+  REDIS_L1_PASSWORD: "REPLACE_WITH_ACTUAL_PASSWORD"
+  REDIS_L2_PASSWORD: "REPLACE_WITH_ACTUAL_PASSWORD"
+  
+  # Kafka credentials
+  KAFKA_SASL_USERNAME: "REPLACE_WITH_ACTUAL_USERNAME"
+  KAFKA_SASL_PASSWORD: "REPLACE_WITH_ACTUAL_PASSWORD"
+  
+  # API keys and tokens
+  JWT_SECRET_KEY: "REPLACE_WITH_ACTUAL_JWT_SECRET"
+  API_SECRET_KEY: "REPLACE_WITH_ACTUAL_API_SECRET"

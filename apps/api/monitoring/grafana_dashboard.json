@@ -1,0 +1,206 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Schlep-engine Debug Service Monitoring",
+    "tags": ["debug", "reliability", "circuit-breaker", "health-checks"],
+    "style": "dark",
+    "timezone": "browser",
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 0,
+    "links": [],
+    "panels": [
+      {
+        "datasource": "Prometheus",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 80}
+              ]
+            }
+          },
+          "overrides": []
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "id": 1,
+        "options": {
+          "legend": {"displayMode": "list", "placement": "bottom"},
+          "tooltip": {"mode": "single", "sort": "none"}
+        },
+        "targets": [
+          {
+            "expr": "rate(circuit_breaker_failures_total[5m])",
+            "interval": "",
+            "legendFormat": "Circuit Breaker Failures - {{circuit_name}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Circuit Breaker Failure Rate",
+        "type": "timeseries"
+      },
+      {
+        "datasource": "Prometheus",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "Closed"}}, "type": "value"},
+              {"options": {"1": {"text": "Half-Open"}}, "type": "value"},
+              {"options": {"2": {"text": "Open"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 2}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "id": 2,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "targets": [
+          {
+            "expr": "circuit_breaker_state",
+            "interval": "",
+            "legendFormat": "{{circuit_name}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Circuit Breaker States",
+        "type": "stat"
+      },
+      {
+        "datasource": "Prometheus",
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "Unhealthy"}}, "type": "value"},
+              {"options": {"1": {"text": "Healthy"}}, "type": "value"}
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+        "id": 3,
+        "options": {
+          "colorMode": "background",
+          "graphMode": "none",
+          "justifyMode": "center",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": "",
+            "values": false
+          },
+          "textMode": "auto"
+        },
+        "targets": [
+          {
+            "expr": "service_status",
+            "interval": "",
+            "legendFormat": "{{service}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Service Health Status",
+        "type": "stat"
+      },
+      {
+        "datasource": "Prometheus",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "id": 4,
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, health_check_duration_seconds_bucket)",
+            "interval": "",
+            "legendFormat": "95th percentile - {{service}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.50, health_check_duration_seconds_bucket)",
+            "interval": "",
+            "legendFormat": "50th percentile - {{service}}",
+            "refId": "B"
+          }
+        ],
+        "title": "Health Check Duration",
+        "type": "timeseries"
+      },
+      {
+        "datasource": "Prometheus",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "id": 5,
+        "targets": [
+          {
+            "expr": "rate(retry_attempts_total[5m])",
+            "interval": "",
+            "legendFormat": "{{operation}} - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Retry Attempts Rate",
+        "type": "timeseries"
+      },
+      {
+        "datasource": "Prometheus",
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 24},
+        "id": 6,
+        "targets": [
+          {
+            "expr": "rate(request_timeouts_total[5m])",
+            "interval": "",
+            "legendFormat": "{{endpoint}} - {{timeout_type}}",
+            "refId": "A"
+          }
+        ],
+        "title": "Request Timeout Rate",
+        "type": "timeseries"
+      }
+    ],
+    "time": {"from": "now-1h", "to": "now"},
+    "timepicker": {},
+    "timezone": "",
+    "title": "Schlep-engine Debug Service Monitoring",
+    "uid": "debug-service-monitoring",
+    "version": 1,
+    "weekStart": ""
+  }
+}

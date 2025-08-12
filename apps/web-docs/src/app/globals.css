@@ -1,0 +1,368 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary-blue: #468BE6;
+  --primary-blue-light: rgba(70, 139, 230, 0.1);
+  --primary-blue-dark: #3a7bd5;
+  --primary-blue-bg: rgba(70, 139, 230, 0.05);
+  --color-primary: #468BE6;
+  --color-primary-hover: #3a7bd5;
+  --color-secondary: #6b7280;
+  --color-background: #ffffff;
+  --color-surface: #f9fafb;
+  --color-border: #e5e7eb;
+  --color-text-primary: #111827;
+  --color-text-secondary: #6b7280;
+  --color-accent: #10b981;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #60a5fa;
+    --color-primary-hover: #3b82f6;
+    --color-secondary: #9ca3af;
+    --color-background: #020617;  /* slate-950 */
+    --color-surface: #0f172a;     /* slate-900 */
+    --color-border: #334155;      /* slate-700 */
+    --color-text-primary: #f8fafc; /* slate-50 */
+    --color-text-secondary: #cbd5e1; /* slate-300 */
+    --color-accent: #34d399;
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  body {
+    @apply bg-[#161616] dark:bg-[#161616] text-gray-900 dark:text-slate-50 antialiased transition-colors duration-300;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+    font-size: 11px;
+    line-height: 1.4;
+    color: var(--color-text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Apply Apple system font to headings with smaller sizes */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    @apply text-gray-900 dark:text-slate-50 transition-colors duration-300;
+  }
+
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.125rem; }
+  h4 { font-size: 1rem; }
+  h5 { font-size: 0.875rem; }
+  h6 { font-size: 0.75rem; }
+
+  * {
+    @apply border-gray-200 dark:border-zinc-700;
+  }
+  
+  p, li, div {
+    @apply text-gray-900 dark:text-slate-50 transition-colors duration-300;
+  }
+}
+
+/* Enhanced Sidebar Styles - Balanced Font Sizes */
+.nav-link {
+  position: relative;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  transition: all 0.15s ease-out;
+  letter-spacing: -0.01em;
+}
+
+.nav-link:hover {
+  transform: translateX(1px);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Active state with enhanced styling */
+.nav-link.bg-blue-50 {
+  position: relative;
+  background-color: rgba(70, 139, 230, 0.08) !important;
+  color: var(--primary-blue) !important;
+  font-weight: 500 !important;
+}
+
+/* Custom border-l-3 utility */
+.border-l-3 {
+  border-left-width: 3px;
+}
+
+/* Scrollbar styling for sidebar */
+.scrollbar-thin {
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-thin::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+/* Hide scrollbar for search results */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* WebKit */
+}
+
+/* Group hover effect for better visual grouping */
+.group:hover .nav-link:not(.bg-blue-50) {
+  color: #4b5563;
+}
+
+/* Remove sidebar border if any */
+.md\:flex-shrink-0 > .flex-col {
+  border-right: none !important;
+}
+
+/* Main content compactness */
+.prose {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.prose h1 {
+  font-size: 1.35rem !important;
+  margin-bottom: 0.4rem !important;
+}
+
+.prose h2 {
+  font-size: 1.1rem !important;
+  margin-bottom: 0.3rem !important;
+}
+
+.prose h3 {
+  font-size: 1rem !important;
+  margin-bottom: 0.2rem !important;
+}
+
+.prose p, .prose li {
+  font-size: 13px !important;
+  margin-bottom: 0.3rem !important;
+}
+
+.prose > div {
+  margin-bottom: 0.5rem !important;
+}
+
+/* Code block improvements (already light themed, syntax highlighting present) */
+.prose {
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+  max-width: none !important;
+}
+
+.prose h1 {
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
+  margin-bottom: 0.4rem !important;
+  margin-top: 0 !important;
+}
+
+.prose h2 {
+  font-size: 1.125rem !important;
+  font-weight: 600 !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.3rem !important;
+}
+
+.prose h3 {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  margin-top: 0.875rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.prose p {
+  margin-bottom: 0.4rem !important;
+  font-size: 10px !important;
+}
+
+.prose ul {
+  margin-bottom: 0.4rem !important;
+  margin-top: 0.25rem !important;
+}
+
+.prose li {
+  margin-bottom: 0.05rem !important;
+  font-size: 10px !important;
+}
+
+.prose > div {
+  margin-bottom: 0.75rem !important;
+}
+
+.prose table {
+  font-size: 11px !important;
+}
+
+.prose th, .prose td {
+  padding: 0.4rem 0.6rem !important;
+}
+
+@layer components {
+  .code-block {
+    @apply text-gray-900 p-3 rounded-lg overflow-x-auto;
+    background-color: #f5f5f5;
+    font-family: 'SF Mono', 'SFMono-Regular', Monaco, 'Menlo', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 10px;
+    line-height: 1.4;
+    border: none;
+    box-shadow: none;
+  }
+
+  /* Enhanced code blocks with dark mode support */
+  pre {
+    background-color: #f5f5f5 !important;
+    color: #374151 !important;
+    padding: 0.75rem !important;
+    border-radius: 6px !important;
+    font-family: 'SF Mono', 'SFMono-Regular', Monaco, 'Menlo', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 10px !important;
+    line-height: 1.4 !important;
+    border: none !important;
+    box-shadow: none !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .dark pre {
+    background-color: #0f172a !important;  /* slate-900 */
+    color: #f8fafc !important;             /* slate-50 */
+  }
+
+  /* Inline code styling */
+  code {
+    background-color: #f3f4f6 !important;
+    color: #374151 !important;
+    padding: 0.125rem 0.25rem !important;
+    border-radius: 3px !important;
+    font-family: 'SF Mono', 'SFMono-Regular', Monaco, 'Menlo', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
+    font-size: 0.75em !important;
+    border: none !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .dark code {
+    background-color: #1e293b !important; /* slate-800 */
+    color: #cbd5e1 !important;             /* slate-300 */
+  }
+  
+  /* Remove borders from all code containers */
+  .prose pre {
+    border: none !important;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
+  }
+  
+  .endpoint-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .endpoint-badge.get {
+    @apply bg-green-100 text-green-800;
+  }
+  
+  .endpoint-badge.post {
+    @apply bg-blue-100 text-blue-800;
+  }
+  
+  .endpoint-badge.put {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+  
+  .endpoint-badge.delete {
+    @apply bg-red-100 text-red-800;
+  }
+  
+}
+
+/* Enhanced syntax highlighting - Light mode with vibrant colors */
+pre code .token.comment,
+pre code .token.prolog,
+pre code .token.doctype,
+pre code .token.cdata {
+  color: #6a737d !important;
+  font-style: italic !important;
+}
+
+pre code .token.punctuation {
+  color: #24292e !important;
+}
+
+pre code .token.property,
+pre code .token.tag,
+pre code .token.constant,
+pre code .token.symbol,
+pre code .token.deleted {
+  color: #0550ae !important;
+  font-weight: 600 !important;
+}
+
+pre code .token.boolean,
+pre code .token.number {
+  color: #0a3069 !important;
+  font-weight: 600 !important;
+}
+
+pre code .token.selector,
+pre code .token.attr-name,
+pre code .token.string,
+pre code .token.char,
+pre code .token.builtin,
+pre code .token.inserted {
+  color: #0a3069 !important;
+}
+
+pre code .token.operator,
+pre code .token.entity,
+pre code .token.url,
+pre code .language-css .token.string,
+pre code .style .token.string,
+pre code .token.variable {
+  color: #c4621a !important;
+  font-weight: 500 !important;
+}
+
+pre code .token.atrule,
+pre code .token.attr-value,
+pre code .token.function,
+pre code .token.class-name {
+  color: #8250df !important;
+  font-weight: 600 !important;
+}
+
+pre code .token.keyword {
+  color: #cf222e !important;
+  font-weight: 700 !important;
+}
+
+pre code .token.regex,
+pre code .token.important {
+  color: #c4621a !important;
+  font-weight: 600 !important;
+}
+
+pre code .token.namespace {
+  color: #8250df !important;
+}
+
+/* Fallback for any missed syntax elements */
+pre code {
+  color: #24292f !important;
+}

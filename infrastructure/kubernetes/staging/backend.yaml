@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staging-backend
+  namespace: schlep-staging
+  labels:
+    app: schlep-backend
+    environment: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: schlep-backend
+      environment: staging
+  template:
+    metadata:
+      labels:
+        app: schlep-backend
+        environment: staging
+    spec:
+      containers:
+      - name: backend
+        image: schlep-engine/backend:staging
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - configMapRef:
+            name: schlep-staging-config
+        - secretRef:
+            name: schlep-staging-secrets
+        env:
+        - name: STAGING_CELERY_BROKER_URL
+          value: "redis://:$(STAGING_REDIS_PASSWORD)@staging-redis:6379/0"
+        - name: STAGING_CELERY_RESULT_BACKEND
+          value: "redis://:$(STAGING_REDIS_PASSWORD)@staging-redis:6379/0"
+        volumeMounts:
+        - name: app-logs
+          mountPath: /var/log/schlep-engine
+        - name: app-uploads
+          mountPath: /app/uploads
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health/simple
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health/simple
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: app-logs
+        emptyDir: {}
+      - name: app-uploads
+        persistentVolumeClaim:
+          claimName: staging-uploads-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: staging-backend
+  namespace: schlep-staging
+  labels:
+    app: schlep-backend
+    environment: staging
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+  selector:
+    app: schlep-backend
+    environment: staging
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: staging-uploads-pvc
+  namespace: schlep-staging
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi 
