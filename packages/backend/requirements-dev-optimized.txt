@@ -43,7 +43,7 @@ python-dotenv==1.0.0      # Shared with core
 
 # Development utilities
 ipython==8.17.2           # Better REPL
-rich==13.7.0               # Beautiful terminal output
+rich==14.1.0               # Beautiful terminal output
 click==8.1.7               # CLI tools
 
 # Jupyter for data exploration (optional)
