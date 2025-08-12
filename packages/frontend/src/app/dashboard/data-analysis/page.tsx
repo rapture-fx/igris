@@ -29,7 +29,7 @@ export default function DataAnalysisPage() {
     setIsRefreshing(false)
   }
 
-  const selectedInvestigation = investigations?.find(inv => inv.id === selectedInvestigationId)
+  const selectedInvestigation = (investigations as any[] || []).find(inv => inv.id === selectedInvestigationId)
 
   return (
     <div className="space-y-6">
@@ -71,7 +71,7 @@ export default function DataAnalysisPage() {
             </Button>
                   </div>
           <InvestigationList 
-            investigations={investigations || []}
+            investigations={(investigations as any[]) || []}
             selectedId={selectedInvestigationId}
             onSelect={setSelectedInvestigationId}
             isLoading={isLoadingInvestigations}

@@ -301,7 +301,7 @@ export default function DataSourcesPage() {
             </div>
             <div>
               <p className="text-gray-500">Last Sync</p>
-              <p className="font-semibold text-gray-900">{getTimeAgo(source.last_sync)}</p>
+              <p className="font-semibold text-gray-900">{getTimeAgo(new Date(source.last_sync))}</p>
             </div>
             <div>
               <p className="text-gray-500">Size</p>
@@ -355,7 +355,7 @@ export default function DataSourcesPage() {
           </div>
           <div className="text-center">
             <p className="text-gray-500">Last Sync</p>
-            <p className="font-semibold text-gray-900">{getTimeAgo(source.last_sync)}</p>
+            <p className="font-semibold text-gray-900">{getTimeAgo(new Date(source.last_sync))}</p>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
