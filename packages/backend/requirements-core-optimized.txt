@@ -10,7 +10,7 @@ pydantic-settings==2.1.0
 
 # Database & ORM
 sqlalchemy==2.0.31
-alembic==1.13.2
+alembic==1.16.4
 asyncpg==0.29.0           # PostgreSQL async driver
 aiomysql==0.2.0           # MySQL async driver (if needed)
 
