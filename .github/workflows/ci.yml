@@ -1,0 +1,136 @@
+name: 🔄 Continuous Integration
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  backend-tests:
+    name: 🐍 Backend Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: 📦 Install backend dependencies
+      run: |
+        cd apps/api
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio pytest-cov
+
+    - name: 🧪 Run backend tests
+      run: |
+        cd apps/api
+        if [ -d "tests" ]; then
+          pytest tests/ -v --cov=app --cov-report=xml
+        else
+          echo "No tests directory found, creating basic health test"
+          python -c "
+import sys
+sys.path.append('.')
+from app.main import app
+from fastapi.testclient import TestClient
+client = TestClient(app)
+response = client.get('/health')
+assert response.status_code == 200
+print('✅ Basic health test passed')
+"
+        fi
+      env:
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: 📊 Upload coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: apps/api/coverage.xml
+        flags: backend
+
+  frontend-tests:
+    name: ⚛️ Frontend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: 🔧 Setup Node.js 18
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'pnpm'
+
+    - name: 📦 Install dependencies
+      run: pnpm install
+
+    - name: 🧹 Lint check
+      run: pnpm run lint
+
+    - name: 🔍 Type check
+      run: pnpm run type-check
+
+    - name: 🏗️ Build check
+      run: pnpm run build
+
+  security-scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔒 Run Semgrep
+      uses: returntocorp/semgrep-action@v1
+      with:
+        config: >-
+          p/security-audit
+          p/secrets
+        outputFormat: text
+        outputFile: semgrep-results.txt
+
+    - name: 📊 Upload security results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-scan-results
+        path: semgrep-results.txt
