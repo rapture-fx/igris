@@ -16,7 +16,7 @@ aiomysql==0.2.0           # MySQL async driver (if needed)
 
 # Authentication & Security
 cryptography==41.0.0
-python-jose[cryptography]==3.3.0
+python-jose[cryptography]==3.5.0
 passlib[bcrypt]==1.7.4
 pyotp==2.9.0              # 2FA support
 
