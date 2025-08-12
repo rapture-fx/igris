@@ -7,7 +7,7 @@ pydantic-settings==2.1.0
 # Database dependencies
 sqlalchemy==2.0.23
 alembic==1.13.1
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.10
 redis==5.0.1
 
 # Authentication and security
