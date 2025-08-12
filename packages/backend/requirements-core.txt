@@ -19,7 +19,7 @@ psutil==5.9.6
 pydantic-settings==2.1.0
 pyotp==2.9.0
 python-dotenv==1.0.0
-python-multipart==0.0.6
+python-multipart==0.0.20
 redis==4.6.0
 scipy==1.11.4
 sqlalchemy==2.0.23
