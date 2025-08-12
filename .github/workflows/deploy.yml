@@ -1,0 +1,95 @@
+name: 🚀 Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: 🚀 Deploy to Production VPS
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔐 Setup SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+    - name: 📦 Create deployment package
+      run: |
+        tar -czf deployment.tar.gz \
+          --exclude='.git' \
+          --exclude='node_modules' \
+          --exclude='.next' \
+          --exclude='__pycache__' \
+          --exclude='*.log' \
+          .
+
+    - name: 📤 Upload to VPS
+      run: |
+        scp -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          deployment.tar.gz root@45.77.44.216:/tmp/
+
+    - name: 🚀 Deploy on VPS
+      run: |
+        ssh -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          root@45.77.44.216 << 'EOF'
+          
+          # Stop services
+          systemctl stop schlep-backend || true
+          systemctl stop schlep-frontend || true
+          
+          # Backup current deployment
+          if [ -d "/opt/schlep-engine" ]; then
+            mv /opt/schlep-engine /opt/schlep-engine.backup.$(date +%Y%m%d_%H%M%S)
+          fi
+          
+          # Extract new deployment
+          mkdir -p /opt/schlep-engine
+          cd /opt/schlep-engine
+          tar -xzf /tmp/deployment.tar.gz
+          
+          # Install backend dependencies
+          cd /opt/schlep-engine/apps/api
+          python3 -m pip install -r requirements.txt
+          
+          # Install frontend dependencies
+          cd /opt/schlep-engine
+          npm install -g pnpm
+          pnpm install
+          pnpm run build
+          
+          # Start services
+          systemctl start schlep-backend
+          systemctl start schlep-frontend
+          systemctl enable schlep-backend
+          systemctl enable schlep-frontend
+          
+          # Health check
+          sleep 10
+          curl -f http://localhost:8000/health || exit 1
+          
+          echo "✅ Deployment completed successfully"
+        EOF
+
+    - name: 🏥 Post-deployment health check
+      run: |
+        sleep 30
+        curl -f http://45.77.44.216:8000/health || exit 1
+        echo "✅ Production health check passed"
+
+    - name: 📢 Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Deployment to VPS successful!"
+        else
+          echo "❌ Deployment to VPS failed!"
+        fi
