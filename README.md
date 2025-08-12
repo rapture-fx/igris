@@ -1,10 +1,10 @@
-# Schlep Engine Monorepo
+# Schlep Engine
 
-> The Data Schlep Handler. We handle the schlep so you don't have to.
+> Messy data to ML-Ready in API calls.
 
 A comprehensive monorepo containing all Schlep Engine applications, packages, and infrastructure.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 schlep-engine/
@@ -37,7 +37,7 @@ schlep-engine/
 └── .github/                       # GitHub workflows and templates
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -60,7 +60,7 @@ schlep-engine/
    ```bash
    # Start all services
    pnpm dev
-   
+
    # Or start individual services
    pnpm dev:api      # API backend on :8000
    pnpm dev:admin    # Admin dashboard on :3002
@@ -73,7 +73,7 @@ schlep-engine/
    docker-compose up -d
    ```
 
-## 📦 Available Scripts
+## Available Scripts
 
 ### Root Level Commands
 - `pnpm dev` - Start all applications in development mode
@@ -90,7 +90,7 @@ schlep-engine/
 - `pnpm dev:landing` - Start landing page only
 - `pnpm dev:docs` - Start API documentation only
 
-## 🏛️ Architecture
+## Architecture
 
 ### Applications (`apps/`)
 
@@ -128,7 +128,7 @@ schlep-engine/
 - Shared TypeScript type definitions
 - API interfaces and common types
 
-## 🛠️ Development
+## Development
 
 ### Adding a New Application
 
@@ -151,7 +151,7 @@ schlep-engine/
 - **Prettier:** Consistent code formatting
 - **Husky:** Pre-commit hooks for quality checks
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Deployment
 
@@ -168,14 +168,14 @@ See `docs/deployment/` for detailed deployment guides:
 - **Terraform:** Infrastructure as Code
 - **Monitoring:** Prometheus, Grafana, and custom metrics
 
-## 📚 Documentation
+## Documentation
 
 - [Development Guide](./docs/development/DEVELOPMENT.md)
 - [API Reference](./docs/api/)
 - [Architecture Overview](./docs/architecture/)
 - [Deployment Guides](./docs/deployment/)
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -183,11 +183,11 @@ See `docs/deployment/` for detailed deployment guides:
 4. Add tests if applicable
 5. Submit a pull request
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+## Support
 
 - **Documentation:** [docs/](./docs/)
 - **Issues:** [GitHub Issues](https://github.com/your-org/schlep-engine/issues)

@@ -5,7 +5,8 @@ Re-exports from endpoints for compatibility
 
 from fastapi import APIRouter
 
-from .endpoints import data_processing, document_extraction, data_quality, ml_pipeline, storage, validation
+from .endpoints import data_processing, document_extraction, validation
+from . import data_quality, ml_pipeline, storage
 
 router = APIRouter()
 

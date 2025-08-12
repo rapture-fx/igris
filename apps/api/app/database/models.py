@@ -6,6 +6,9 @@ from app.database.connection import Base
 import uuid
 import enum
 
+# Import from ml_preparation_models
+from app.database.ml_preparation_models import DataQualityAssessment
+
 class UserRole(str, enum.Enum):
     ADMIN = "admin"
     ANALYST = "analyst"

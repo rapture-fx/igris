@@ -21,8 +21,8 @@ from pydantic import BaseModel, Field
 
 from ...auth.dependencies import get_current_user
 from ...database import get_db
-from ...models.api_usage import APIUsage
-from ...models.jobs import Job
+# from ...models.api_usage import APIUsage  # Model not found, commented out for now
+# from ...models.jobs import Job  # Model not found, commented out for now
 from ...core.config import settings
 
 router = APIRouter()

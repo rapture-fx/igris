@@ -1,5 +1,5 @@
 {
-  "name": "@schlep-engine/admin",
+  "name": "@schlep-engine/web-admin",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@schlep-engine/types": "workspace:*",
-    "@supabase/supabase-js": "^2.39.0",
     "@tanstack/react-query": "^5.51.1",
     "@tanstack/react-query-devtools": "^5.51.1",
     "axios": "^1.10.0",

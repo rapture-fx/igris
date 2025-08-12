@@ -250,6 +250,9 @@ def calculate_retention_date(event_type: SecurityEventType) -> datetime:
     policy = RETENTION_POLICIES.get(event_type, {"days": 2555})
     return datetime.utcnow() + timedelta(days=policy["days"])
 
+# Import AuditLogger from middleware for now
+from app.middleware.audit_middleware import AuditLogger
+
 # Future class imports will be added here
 # from .audit_logger import AuditLogger
 # from .compliance_reporter import ComplianceReporter

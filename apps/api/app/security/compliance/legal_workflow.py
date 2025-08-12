@@ -29,7 +29,8 @@ import uuid
 import logging
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.security.audit import AuditLogger, SecurityEventType
+from app.middleware.audit_middleware import AuditLogger
+# SecurityEventType import commented out for now
 from app.security.compliance.dpa_manager import DPAWorkflowStep, DPAStatus
 
 logger = logging.getLogger(__name__)

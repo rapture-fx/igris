@@ -10,52 +10,54 @@ services:
       context: ./apps/api
       dockerfile: Dockerfile.api
     ports:
-      - "8000:8000"
+      - "3001:3001"
     environment:
       - ENVIRONMENT=development
+      - HOST=0.0.0.0
+      - PORT=3001
     volumes:
       - ./apps/api:/app
     depends_on:
       - postgres
       - redis
 
-  # Admin Dashboard
+  # Admin Dashboard (web-admin)
   admin:
     build:
-      context: ./apps/admin
+      context: ./apps/web-admin
       dockerfile: Dockerfile
     ports:
-      - "3002:3000"
+      - "3002:3002"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
     volumes:
-      - ./apps/admin:/app
+      - ./apps/web-admin:/app
       - /app/node_modules
 
   # Landing Page
   landing:
     build:
-      context: ./apps/landing
+      context: ./apps/web-landing
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
     volumes:
-      - ./apps/landing:/app
+      - ./apps/web-landing:/app
       - /app/node_modules
 
   # API Documentation
   docs:
     build:
-      context: ./apps/docs
+      context: ./apps/web-docs
       dockerfile: Dockerfile
     ports:
-      - "3001:3000"
+      - "3003:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
     volumes:
-      - ./apps/docs:/app
+      - ./apps/web-docs:/app
       - /app/node_modules
 
   # PostgreSQL Database

@@ -32,7 +32,7 @@ except ImportError as e:
 from app.database.connection import get_async_session
 from app.auth.unified_auth_system import get_current_user
 from app.core.error_decorators import handle_database_errors, handle_auth_errors
-from app.models.ml_pipeline import DocumentExtraction
+# DocumentExtraction model will be defined inline
 from sqlalchemy import select
 
 logger = logging.getLogger(__name__)
