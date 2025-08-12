@@ -1,0 +1,573 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: schlep-engine
+  labels:
+    name: schlep-engine
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schlep-engine-config
+  namespace: schlep-engine
+data:
+  # Backend configuration
+  DATABASE_URL: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/schlep_engine"
+  REDIS_URL: "redis://redis:6379"
+  SECRET_KEY: "${SECRET_KEY}"
+  ALGORITHM: "HS256"
+  ACCESS_TOKEN_EXPIRE_MINUTES: "30"
+  REFRESH_TOKEN_EXPIRE_DAYS: "7"
+  
+  # Frontend configuration
+  NEXT_PUBLIC_API_URL: "https://api.schlep-engine.com"
+  NEXT_PUBLIC_APP_ENV: "production"
+  
+  # Storage configuration
+  STORAGE_PROVIDER: "gcs"
+  GCS_BUCKET_NAME: "schlep-engine-storage"
+  GCS_PROJECT_ID: "${GCS_PROJECT_ID}"
+  
+  # Monitoring configuration
+  PROMETHEUS_ENABLED: "true"
+  GRAFANA_ENABLED: "true"
+  
+  # Security configuration
+  CORS_ORIGINS: "https://schlep-engine.com,https://www.schlep-engine.com"
+  RATE_LIMIT_REQUESTS: "100"
+  RATE_LIMIT_WINDOW: "60"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: schlep-engine-secrets
+  namespace: schlep-engine
+type: Opaque
+data:
+  # These should be base64 encoded in production
+  POSTGRES_PASSWORD: "${POSTGRES_PASSWORD_B64}"
+  SECRET_KEY: "${SECRET_KEY_B64}"
+  GCS_CREDENTIALS: "${GCS_CREDENTIALS_B64}"
+  JWT_SECRET: "${JWT_SECRET_B64}"
+  API_KEY_SECRET: "${API_KEY_SECRET_B64}"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schlep-engine-backend
+  namespace: schlep-engine
+  labels:
+    app: schlep-engine-backend
+    version: v1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: schlep-engine-backend
+  template:
+    metadata:
+      labels:
+        app: schlep-engine-backend
+        version: v1
+    spec:
+      containers:
+      - name: backend
+        image: ghcr.io/schlep-engine/backend:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: DATABASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: REDIS_URL
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: schlep-engine-secrets
+              key: SECRET_KEY
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: schlep-engine-secrets
+              key: JWT_SECRET
+        - name: API_KEY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: schlep-engine-secrets
+              key: API_KEY_SECRET
+        - name: GCS_CREDENTIALS
+          valueFrom:
+            secretKeyRef:
+              name: schlep-engine-secrets
+              key: GCS_CREDENTIALS
+        - name: STORAGE_PROVIDER
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: STORAGE_PROVIDER
+        - name: GCS_BUCKET_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: GCS_BUCKET_NAME
+        - name: GCS_PROJECT_ID
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: GCS_PROJECT_ID
+        - name: CORS_ORIGINS
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: CORS_ORIGINS
+        - name: RATE_LIMIT_REQUESTS
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: RATE_LIMIT_REQUESTS
+        - name: RATE_LIMIT_WINDOW
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: RATE_LIMIT_WINDOW
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+      volumes:
+      - name: uploads
+        emptyDir: {}
+      imagePullSecrets:
+      - name: ghcr-secret
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schlep-engine-frontend
+  namespace: schlep-engine
+  labels:
+    app: schlep-engine-frontend
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: schlep-engine-frontend
+  template:
+    metadata:
+      labels:
+        app: schlep-engine-frontend
+        version: v1
+    spec:
+      containers:
+      - name: frontend
+        image: ghcr.io/schlep-engine/frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NEXT_PUBLIC_APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_APP_ENV
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      imagePullSecrets:
+      - name: ghcr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schlep-engine-backend-service
+  namespace: schlep-engine
+spec:
+  selector:
+    app: schlep-engine-backend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schlep-engine-frontend-service
+  namespace: schlep-engine
+spec:
+  selector:
+    app: schlep-engine-frontend
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: schlep-engine-ingress
+  namespace: schlep-engine
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+spec:
+  tls:
+  - hosts:
+    - schlep-engine.com
+    - www.schlep-engine.com
+    - api.schlep-engine.com
+    secretName: schlep-engine-tls
+  rules:
+  - host: schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-frontend-service
+            port:
+              number: 80
+  - host: www.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-frontend-service
+            port:
+              number: 80
+  - host: api.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-backend-service
+            port:
+              number: 80
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: schlep-engine-backend-hpa
+  namespace: schlep-engine
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: schlep-engine-backend
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: schlep-engine-frontend-hpa
+  namespace: schlep-engine
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: schlep-engine-frontend
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: schlep-engine-backend-pdb
+  namespace: schlep-engine
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: schlep-engine-backend
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: schlep-engine-frontend-pdb
+  namespace: schlep-engine
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: schlep-engine-frontend
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: schlep-engine-network-policy
+  namespace: schlep-engine
+spec:
+  podSelector:
+    matchLabels:
+      app: schlep-engine-backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine
+    ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL
+    - protocol: TCP
+      port: 6379  # Redis
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443   # HTTPS for external APIs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: schlep-engine-postgres-pvc
+  namespace: schlep-engine
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: schlep-engine-postgres
+  namespace: schlep-engine
+spec:
+  serviceName: schlep-engine-postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schlep-engine-postgres
+  template:
+    metadata:
+      labels:
+        app: schlep-engine-postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "schlep_engine"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: schlep-engine-secrets
+              key: POSTGRES_PASSWORD
+        - name: POSTGRES_USER
+          value: "postgres"
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - pg_isready
+            - -U
+            - postgres
+          initialDelaySeconds: 5
+          periodSeconds: 5
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schlep-engine-postgres
+  namespace: schlep-engine
+spec:
+  selector:
+    app: schlep-engine-postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schlep-engine-redis
+  namespace: schlep-engine
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schlep-engine-redis
+  template:
+    metadata:
+      labels:
+        app: schlep-engine-redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:7-alpine
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - ping
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schlep-engine-redis
+  namespace: schlep-engine
+spec:
+  selector:
+    app: schlep-engine-redis
+  ports:
+  - protocol: TCP
+    port: 6379
+    targetPort: 6379
+  type: ClusterIP 

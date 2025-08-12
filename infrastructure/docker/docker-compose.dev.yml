@@ -1,0 +1,90 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: schlep-engine-postgres-dev
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=schlep-engine
+      - POSTGRES_USER=schlep-engine
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./packages/backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - schlep-engine-network-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schlep-engine -d schlep-engine"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: schlep-engine-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_dev:/data
+    networks:
+      - schlep-engine-network-dev
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./packages/backend
+      dockerfile: Dockerfile.api
+      args:
+        - REQUIREMENTS_FILE=requirements.txt
+    container_name: schlep-engine-api-dev
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://schlep-engine:password@postgres:5432/schlep-engine
+      - REDIS_URL=redis://redis:6379/0
+      - ENVIRONMENT=development
+      - BACKEND_CORS_ORIGINS=["http://localhost:3001","http://localhost:3002"]
+    volumes:
+      - ./packages/backend:/app
+    networks:
+      - schlep-engine-network-dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+  admin:
+    build:
+      context: .
+      dockerfile: ./packages/admin/Dockerfile
+    container_name: schlep-engine-admin-dev
+    ports:
+      - "3002:3002"
+    volumes:
+      - ./packages/admin:/app
+      - /app/node_modules
+    networks:
+      - schlep-engine-network-dev
+    depends_on:
+      - backend
+    restart: unless-stopped
+    command: pnpm --filter @schlep-engine/admin dev -p 3002
+
+volumes:
+  postgres_data_dev:
+  redis_data_dev:
+
+networks:
+  schlep-engine-network-dev:
+    driver: bridge

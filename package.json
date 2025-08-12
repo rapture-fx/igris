@@ -1,24 +1,37 @@
 {
-  "name": "Schlep-engine-monorepo",
+  "name": "schlep-engine-monorepo",
   "version": "0.1.0",
   "private": true,
   "description": "Schlep-engine - The Data Schlep Handler. We handle the schlep so you don't have to",
   "workspaces": [
+    "apps/*",
     "packages/*"
   ],
   "scripts": {
-    "dev:clean": "pnpm --parallel --filter \"@Schlep-engine/*\" -- \"pnpm run clean && pnpm run dev\"",
-    "build": "pnpm --parallel --filter \"@Schlep-engine/*\" build",
-    "build:clean": "pnpm --parallel --filter \"@Schlep-engine/*\" -- \"pnpm run clean && pnpm run build\"",
-    "dev": "concurrently -n frontend,backend,admin -c magenta,cyan,green \"pnpm --filter @Schlep-engine/web dev\" \"cd packages/backend && pip install -r requirements.txt && pip install --quiet aiomysql && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0\" \"pnpm --filter @Schlep-engine/admin dev -p 3002\"",
-    "start": "concurrently -n frontend,backend,admin -c magenta,cyan,green \"pnpm --filter @Schlep-engine/web start\" \"cd packages/backend && uvicorn app.main:app --port 8000 --host 0.0.0.0\" \"pnpm --filter @Schlep-engine/admin start -p 3002\""
+    "dev": "pnpm --parallel --filter \"@schlep-engine/*\" dev",
+    "dev:backend": "cd apps/api && uvicorn app.main:app --reload --port 8000 --host 0.0.0.0",
+    "dev:admin": "pnpm --filter @schlep-engine/admin dev",
+    "dev:landing": "pnpm --filter @schlep-engine/web-landing dev",
+    "dev:docs": "pnpm --filter @schlep-engine/web-docs dev",
+    "dev:website": "./start-servers.sh",
+    "dev:persistent": "./start-dev-server.sh start",
+    "dev:stop": "./start-dev-server.sh stop",
+    "dev:status": "./start-dev-server.sh status",
+    "dev:restart": "./start-dev-server.sh restart",
+    "build": "pnpm --parallel --filter \"@schlep-engine/*\" build",
+    "build:clean": "pnpm --parallel --filter \"@schlep-engine/*\" -- \"pnpm run clean && pnpm run build\"",
+    "start": "pnpm --parallel --filter \"@schlep-engine/*\" start",
+    "clean": "pnpm --parallel --filter \"@schlep-engine/*\" clean",
+    "lint": "pnpm --parallel --filter \"@schlep-engine/*\" lint",
+    "test": "pnpm --parallel --filter \"@schlep-engine/*\" test",
+    "type-check": "pnpm --parallel --filter \"@schlep-engine/*\" type-check"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/Schlep-engine"
+    "url": "https://github.com/wiramahendra/Schlep-engine"
   },
   "keywords": [
     "data-processing",
@@ -30,7 +43,7 @@
     "data-pipeline"
   ],
   "author": "Schlep-engine Team",
-  "homepage": "https://Schlep-engine.com",
+  "homepage": "https://schlep-engine.com",
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.2",
     "@radix-ui/react-collapsible": "^1.1.11",

@@ -1,0 +1,166 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: staging
+    service: schlep-engine
+
+rule_files:
+  - "staging_rules.yml"
+
+scrape_configs:
+  # Schlep-engine Backend
+  - job_name: 'schlep-engine-backend'
+    static_configs:
+      - targets: ['staging-backend:8000']
+    metrics_path: '/api/v1/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    honor_labels: true
+    metrics_path: '/api/v1/metrics'
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+  # Schlep-engine Health Check
+  - job_name: 'schlep-engine-health'
+    static_configs:
+      - targets: ['staging-backend:8000']
+    metrics_path: '/api/v1/health'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    honor_labels: true
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+  # PostgreSQL Database
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['staging-db:5432']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['staging-redis:6379']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+  # Celery Workers
+  - job_name: 'celery-workers'
+    static_configs:
+      - targets: ['staging-celery-worker:8000']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: '/api/v1/metrics'
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+  # Nginx
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['staging-nginx:80']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /nginx_status
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+  # Node Exporter (if available)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    scheme: http
+    tls_config:
+      insecure_skip_verify: true
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - staging-alertmanager:9093
+      scheme: http
+      timeout: 10s
+      api_version: v1
+
+# Recording rules for staging environment
+groups:
+  - name: staging_recording_rules
+    rules:
+      # HTTP request rate
+      - record: http_requests_total_rate
+        expr: rate(http_requests_total[5m])
+        labels:
+          environment: staging
+
+      # Error rate
+      - record: http_requests_errors_rate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m])
+        labels:
+          environment: staging
+
+      # Response time 95th percentile
+      - record: http_request_duration_95th_percentile
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+        labels:
+          environment: staging
+
+      # Database connection pool usage
+      - record: database_connections_usage_ratio
+        expr: database_connections_active / database_connections_total
+        labels:
+          environment: staging
+
+      # Redis memory usage
+      - record: redis_memory_usage_ratio
+        expr: redis_memory_used_bytes / redis_memory_max_bytes
+        labels:
+          environment: staging
+
+      # Celery task success rate
+      - record: celery_task_success_rate
+        expr: rate(ml_jobs_completed_total{status="completed"}[5m]) / rate(ml_jobs_created_total[5m])
+        labels:
+          environment: staging
+
+      # System resource usage
+      - record: system_cpu_usage_avg
+        expr: avg(system_cpu_usage_percent)
+        labels:
+          environment: staging
+
+      - record: system_memory_usage_avg
+        expr: avg(system_memory_usage_bytes)
+        labels:
+          environment: staging
+
+      - record: system_disk_usage_avg
+        expr: avg(system_disk_usage_bytes)
+        labels:
+          environment: staging 

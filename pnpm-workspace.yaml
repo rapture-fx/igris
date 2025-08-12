@@ -1,0 +1,7 @@
+packages:
+  # Applications  
+  - 'apps/api'
+  - 'apps/web-*'
+  
+  # Shared packages
+  - 'packages/*' 

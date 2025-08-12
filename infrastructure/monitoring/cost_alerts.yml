@@ -1,0 +1,419 @@
+groups:
+  - name: cost_monitoring_alerts
+    rules:
+      # Overall Budget Alerts
+      - alert: MonthlyBudgetThreshold80Percent
+        expr: sum(cost_current_month_dollars) >= 116
+        for: 5m
+        labels:
+          severity: warning
+          service: cost_monitoring
+          alert_type: budget
+        annotations:
+          summary: "Monthly budget utilization at 80% threshold"
+          description: "Total monthly cost of ${{ $value }} has reached 80% of the $145 budget. Current utilization: {{ $value | humanizePercentage }}%"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      - alert: MonthlyBudgetThreshold90Percent
+        expr: sum(cost_current_month_dollars) >= 130.5
+        for: 2m
+        labels:
+          severity: critical
+          service: cost_monitoring
+          alert_type: budget
+        annotations:
+          summary: "Monthly budget utilization at 90% threshold - CRITICAL"
+          description: "Total monthly cost of ${{ $value }} has reached 90% of the $145 budget. Immediate cost optimization required!"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      - alert: MonthlyBudgetExceeded
+        expr: sum(cost_current_month_dollars) > 145
+        for: 1m
+        labels:
+          severity: critical
+          service: cost_monitoring
+          alert_type: budget_exceeded
+        annotations:
+          summary: "MONTHLY BUDGET EXCEEDED"
+          description: "Total monthly cost of ${{ $value }} has exceeded the $145 budget by ${{ $value | humanize }}. Emergency cost reduction measures required!"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/emergency-cost-reduction"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      # Daily Budget Alerts
+      - alert: DailyBudgetExceeded
+        expr: sum(cost_daily_dollars) > 4.83
+        for: 10m
+        labels:
+          severity: warning
+          service: cost_monitoring
+          alert_type: daily_budget
+        annotations:
+          summary: "Daily budget threshold exceeded"
+          description: "Daily cost of ${{ $value }} exceeds the target of $4.83/day. Monthly projection: ${{ $value | humanize }}0"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
+
+      # Service-Specific Budget Alerts
+      - alert: SupabaseBudgetThreshold80Percent
+        expr: cost_current_month_dollars{service="supabase"} >= 20
+        for: 5m
+        labels:
+          severity: warning
+          service: supabase
+          alert_type: service_budget
+        annotations:
+          summary: "Supabase budget at 80% threshold"
+          description: "Supabase monthly cost of ${{ $value }} has reached 80% of the $25 budget"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/supabase-cost-optimization"
+
+      - alert: RailwayBackendBudgetThreshold80Percent
+        expr: cost_current_month_dollars{service="railway_backend"} >= 40
+        for: 5m
+        labels:
+          severity: warning
+          service: railway_backend
+          alert_type: service_budget
+        annotations:
+          summary: "Railway Backend budget at 80% threshold"
+          description: "Railway Backend monthly cost of ${{ $value }} has reached 80% of the $50 budget"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/railway-cost-optimization"
+
+      - alert: VercelAdminBudgetThreshold80Percent
+        expr: cost_current_month_dollars{service="vercel_admin"} >= 16
+        for: 5m
+        labels:
+          severity: warning
+          service: vercel_admin
+          alert_type: service_budget
+        annotations:
+          summary: "Vercel Admin budget at 80% threshold"
+          description: "Vercel Admin monthly cost of ${{ $value }} has reached 80% of the $20 budget"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/vercel-cost-optimization"
+
+      - alert: AWSBudgetThreshold80Percent
+        expr: cost_current_month_dollars{service="aws_s3_cloudfront"} >= 20
+        for: 5m
+        labels:
+          severity: warning
+          service: aws_s3_cloudfront
+          alert_type: service_budget
+        annotations:
+          summary: "AWS S3/CloudFront budget at 80% threshold"
+          description: "AWS S3/CloudFront monthly cost of ${{ $value }} has reached 80% of the $25 budget"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/aws-cost-optimization"
+
+      - alert: RailwayRedisBudgetThreshold80Percent
+        expr: cost_current_month_dollars{service="railway_redis"} >= 9.6
+        for: 5m
+        labels:
+          severity: warning
+          service: railway_redis
+          alert_type: service_budget
+        annotations:
+          summary: "Railway Redis budget at 80% threshold"
+          description: "Railway Redis monthly cost of ${{ $value }} has reached 80% of the $12 budget"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/redis-cost-optimization"
+
+      # Cost Forecast Alerts
+      - alert: MonthlyForecastExceedsBudget
+        expr: cost_forecast_month_dollars > 145
+        for: 15m
+        labels:
+          severity: warning
+          service: cost_monitoring
+          alert_type: forecast
+        annotations:
+          summary: "Monthly cost forecast exceeds budget"
+          description: "Based on current usage trends, projected monthly cost of ${{ $value }} will exceed the $145 budget"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-forecasting"
+
+      # Usage-Based Alerts
+      - alert: APIRequestsApproachingLimit
+        expr: api_requests_monthly >= 40000
+        for: 10m
+        labels:
+          severity: warning
+          service: api
+          alert_type: usage_limit
+        annotations:
+          summary: "API requests approaching monthly limit"
+          description: "Monthly API requests ({{ $value }}) are at 80% of the 50,000 limit"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/api-rate-limiting"
+
+      - alert: StorageApproachingLimit
+        expr: storage_used_gb >= 80
+        for: 10m
+        labels:
+          severity: warning
+          service: storage
+          alert_type: usage_limit
+        annotations:
+          summary: "Storage usage approaching limit"
+          description: "Storage usage ({{ $value }}GB) is at 80% of the 100GB limit"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/storage-management"
+
+      - alert: DatabaseConnectionsHigh
+        expr: database_active_connections >= 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+          alert_type: usage_limit
+        annotations:
+          summary: "Database connections approaching limit"
+          description: "Active database connections ({{ $value }}) are at 80% of the 100 connection limit"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/database-optimization"
+
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_mb >= 410
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+          alert_type: usage_limit
+        annotations:
+          summary: "Redis memory usage approaching limit"
+          description: "Redis memory usage ({{ $value }}MB) is at 80% of the 512MB limit"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/redis-optimization"
+
+  - name: cost_monitoring_critical_alerts
+    rules:
+      # Critical service overages
+      - alert: ServiceBudgetExceeded
+        expr: cost_budget_utilization_percent > 100
+        for: 2m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+          alert_type: service_budget_exceeded
+        annotations:
+          summary: "Service budget exceeded for {{ $labels.service }}"
+          description: "{{ $labels.service }} has exceeded its monthly budget with {{ $value }}% utilization"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/emergency-cost-reduction"
+
+      # Rapid cost increases
+      - alert: RapidCostIncrease
+        expr: increase(cost_current_month_dollars[1h]) > 5
+        for: 5m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+          alert_type: rapid_increase
+        annotations:
+          summary: "Rapid cost increase detected for {{ $labels.service }}"
+          description: "{{ $labels.service }} cost increased by ${{ $value }} in the last hour"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-spike-investigation"
+
+      # End of month budget projection
+      - alert: EndOfMonthBudgetProjection
+        expr: (day_of_month() > 25) and (cost_forecast_month_dollars > 145)
+        for: 30m
+        labels:
+          severity: warning
+          service: cost_monitoring
+          alert_type: month_end_projection
+        annotations:
+          summary: "End of month budget projection exceeds limit"
+          description: "With {{ 31 - day_of_month() }} days remaining, projected monthly cost is ${{ $value }}"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/month-end-cost-management"
+
+  - name: cost_monitoring_informational_alerts
+    rules:
+      # Daily cost reports
+      - alert: DailyCostReport
+        expr: hour() == 8 and minute() < 5  # 8 AM daily
+        for: 1m
+        labels:
+          severity: info
+          service: cost_monitoring
+          alert_type: daily_report
+        annotations:
+          summary: "Daily cost monitoring report"
+          description: "Daily cost report: Current month total ${{ sum(cost_current_month_dollars) }}, yesterday ${{ sum(cost_daily_dollars) }}"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      # Weekly cost summaries
+      - alert: WeeklyCostSummary
+        expr: day_of_week() == 1 and hour() == 9 and minute() < 5  # Monday 9 AM
+        for: 1m
+        labels:
+          severity: info
+          service: cost_monitoring
+          alert_type: weekly_summary
+        annotations:
+          summary: "Weekly cost monitoring summary"
+          description: "Weekly cost summary: Current month ${{ sum(cost_current_month_dollars) }}, budget utilization {{ sum(cost_budget_utilization_percent) }}%"
+          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+
+      # Cost optimization opportunities
+      - alert: CostOptimizationOpportunity
+        expr: cost_budget_utilization_percent < 50
+        for: 24h
+        labels:
+          severity: info
+          service: "{{ $labels.service }}"
+          alert_type: optimization_opportunity
+        annotations:
+          summary: "Cost optimization opportunity for {{ $labels.service }}"
+          description: "{{ $labels.service }} is using only {{ $value }}% of its budget - consider rightsizing"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-optimization"
+
+# AlertManager routing configuration
+route:
+  group_by: ['alertname', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 24h
+  receiver: 'cost-monitoring-team'
+  routes:
+    - match:
+        severity: critical
+      receiver: 'cost-critical-alerts'
+      group_wait: 10s
+      group_interval: 1m
+      repeat_interval: 1h
+    
+    - match:
+        alert_type: budget_exceeded
+      receiver: 'cost-emergency-alerts'
+      group_wait: 5s
+      group_interval: 30s
+      repeat_interval: 15m
+    
+    - match:
+        severity: info
+      receiver: 'cost-daily-reports'
+      group_wait: 1m
+      group_interval: 24h
+      repeat_interval: 7d
+
+receivers:
+  - name: 'cost-monitoring-team'
+    email_configs:
+      - to: 'devops@schlep-engine.com'
+        subject: 'Cost Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          Alert: {{ .GroupLabels.alertname }}
+          Service: {{ .GroupLabels.service }}
+          Severity: {{ .CommonLabels.severity }}
+          
+          {{ range .Alerts }}
+          Summary: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          
+          {{ if .Annotations.dashboard_url }}
+          Dashboard: {{ .Annotations.dashboard_url }}
+          {{ end }}
+          {{ if .Annotations.runbook_url }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '{{ .SlackWebhookURL }}'
+        channel: '#cost-monitoring'
+        title: 'Cost Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          Service: {{ .Labels.service }}
+          {{ .Annotations.description }}
+          {{ end }}
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+
+  - name: 'cost-critical-alerts'
+    email_configs:
+      - to: 'alerts@schlep-engine.com'
+        subject: 'CRITICAL Cost Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          🚨 CRITICAL COST ALERT 🚨
+          
+          Alert: {{ .GroupLabels.alertname }}
+          Service: {{ .GroupLabels.service }}
+          
+          {{ range .Alerts }}
+          Summary: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          
+          Immediate action required!
+          
+          {{ if .Annotations.dashboard_url }}
+          Dashboard: {{ .Annotations.dashboard_url }}
+          {{ end }}
+          {{ if .Annotations.runbook_url }}
+          Runbook: {{ .Annotations.runbook_url }}
+          {{ end }}
+          {{ end }}
+    
+    slack_configs:
+      - api_url: '{{ .SlackWebhookURL }}'
+        channel: '#cost-alerts-critical'
+        title: '🚨 CRITICAL Cost Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *{{ .Annotations.summary }}*
+          Service: {{ .Labels.service }}
+          {{ .Annotations.description }}
+          
+          @channel Immediate attention required!
+          {{ end }}
+        color: 'danger'
+    
+    pagerduty_configs:
+      - routing_key: '{{ .PagerDutyRoutingKey }}'
+        description: 'Critical Cost Alert: {{ .GroupLabels.alertname }}'
+
+  - name: 'cost-emergency-alerts'
+    email_configs:
+      - to: 'emergency@schlep-engine.com'
+        subject: '🔥 EMERGENCY: Budget Exceeded'
+        body: |
+          🔥 EMERGENCY COST ALERT 🔥
+          
+          THE MONTHLY BUDGET HAS BEEN EXCEEDED!
+          
+          {{ range .Alerts }}
+          {{ .Annotations.description }}
+          {{ end }}
+          
+          Emergency cost reduction measures must be implemented immediately.
+    
+    slack_configs:
+      - api_url: '{{ .SlackWebhookURL }}'
+        channel: '#cost-emergency'
+        title: '🔥 EMERGENCY: Budget Exceeded'
+        text: |
+          {{ range .Alerts }}
+          {{ .Annotations.description }}
+          
+          @here Emergency response required!
+          {{ end }}
+        color: 'danger'
+
+  - name: 'cost-daily-reports'
+    email_configs:
+      - to: 'finance@schlep-engine.com'
+        subject: 'Daily Cost Report - {{ .GroupLabels.alertname }}'
+        body: |
+          Daily Cost Monitoring Report
+          
+          {{ range .Alerts }}
+          {{ .Annotations.description }}
+          {{ end }}
+          
+          View detailed dashboard: https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring
+
+# Inhibit rules to prevent alert spam
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['service', 'alert_type']
+  
+  - source_match:
+      alert_type: 'budget_exceeded'
+    target_match:
+      alert_type: 'budget'
+    equal: ['service']

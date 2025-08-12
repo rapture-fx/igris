@@ -1,0 +1,31 @@
+# Additional requirements for enhanced document extraction and ML pipeline features
+
+# Document Processing
+pdfplumber>=0.9.0
+python-docx>=0.8.11
+openpyxl>=3.1.0
+pytesseract>=0.3.10
+Pillow>=10.0.0
+pdf2image>=3.1.0
+
+# Machine Learning & Data Science
+scikit-learn>=1.3.0
+joblib>=1.3.0
+pandas>=2.0.0
+numpy>=1.24.0
+scipy>=1.11.0
+
+# Advanced Data Cleaning & Analysis
+imbalanced-learn>=0.11.0  # For handling imbalanced datasets
+feature-engine>=1.6.0     # Advanced feature engineering
+datacleaner>=0.1.7        # Data validation utilities
+
+# Statistical Analysis
+statsmodels>=0.14.0       # Statistical modeling
+seaborn>=0.12.0           # Statistical visualization
+
+# Additional utilities
+python-multipart>=0.0.6  # For file uploads
+
+# Note: These packages should be added to the main requirements.txt
+# This file is for reference and documentation purposes
