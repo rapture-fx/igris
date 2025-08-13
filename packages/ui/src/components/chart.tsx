@@ -69,11 +69,11 @@ interface ChartTooltipProps {
 const ChartTooltip = ({ 
   labelFormatter, 
   formatter, 
-  nameKey,
-  labelKey,
+  nameKey: _nameKey,
+  labelKey: _labelKey,
   ...props 
 }: ChartTooltipProps) => {
-  const { config } = useChart()
+  const { config: _config } = useChart()
 
   return (
     <Tooltip
@@ -91,8 +91,8 @@ ChartTooltip.displayName = "ChartTooltip"
 
 // ChartTooltipContent component (simplified)
 const ChartTooltipContent = ({ 
-  labelFormatter,
-  indicator = "dot",
+  labelFormatter: _labelFormatter,
+  indicator: _indicator = "dot",
   ...props 
 }: {
   labelFormatter?: (value: any) => React.ReactNode
