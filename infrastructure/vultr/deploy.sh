@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# SCHLEP ENGINE - HETZNER PRODUCTION DEPLOYMENT SCRIPT
+# SCHLEP ENGINE - VULTR PRODUCTION DEPLOYMENT SCRIPT
 # =============================================================================
 
 set -e  # Exit on any error
@@ -16,8 +16,8 @@ NC='\033[0m' # No Color
 PROJECT_NAME="schlep-engine"
 DEPLOY_USER="deploy"
 DEPLOY_PATH="/home/$DEPLOY_USER/$PROJECT_NAME"
-ENV_FILE="$DEPLOY_PATH/infrastructure/hetzner/.env.production"
-COMPOSE_FILE="$DEPLOY_PATH/infrastructure/hetzner/docker-compose.production.yml"
+ENV_FILE="$DEPLOY_PATH/infrastructure/vultr/.env.production"
+COMPOSE_FILE="$DEPLOY_PATH/infrastructure/vultr/docker-compose.production.yml"
 
 # Functions
 log() {

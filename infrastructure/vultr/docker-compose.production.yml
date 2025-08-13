@@ -58,7 +58,7 @@ services:
   api:
     build:
       context: ../../
-      dockerfile: infrastructure/hetzner/Dockerfile.api
+      dockerfile: infrastructure/vultr/Dockerfile.api
     container_name: schlep-api
     restart: unless-stopped
     environment:
@@ -140,7 +140,7 @@ services:
   web-admin:
     build:
       context: ../../
-      dockerfile: infrastructure/hetzner/Dockerfile.web-admin
+      dockerfile: infrastructure/vultr/Dockerfile.web-admin
     container_name: schlep-web-admin
     restart: unless-stopped
     environment:
@@ -161,7 +161,7 @@ services:
   web-landing:
     build:
       context: ../../
-      dockerfile: infrastructure/hetzner/Dockerfile.web-landing
+      dockerfile: infrastructure/vultr/Dockerfile.web-landing
     container_name: schlep-web-landing
     restart: unless-stopped
     environment:
@@ -182,7 +182,7 @@ services:
   web-docs:
     build:
       context: ../../
-      dockerfile: infrastructure/hetzner/Dockerfile.web-docs
+      dockerfile: infrastructure/vultr/Dockerfile.web-docs
     container_name: schlep-web-docs
     restart: unless-stopped
     environment:
