@@ -48,9 +48,6 @@ importers:
       '@schlep-engine/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@supabase/supabase-js':
-        specifier: ^2.39.0
-        version: 2.53.0
       '@tanstack/react-query':
         specifier: ^5.51.1
         version: 5.81.5(react@18.2.0)
@@ -588,9 +585,21 @@ importers:
       '@types/react-dom':
         specifier: ^18
         version: 18.3.1
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.0.0
+        version: 6.21.0(@typescript-eslint/parser@6.21.0(eslint@8.57.1)(typescript@5.7.2))(eslint@8.57.1)(typescript@5.7.2)
+      '@typescript-eslint/parser':
+        specifier: ^6.0.0
+        version: 6.21.0(eslint@8.57.1)(typescript@5.7.2)
       eslint:
         specifier: ^8
         version: 8.57.1
+      eslint-plugin-react:
+        specifier: ^7.33.0
+        version: 7.37.5(eslint@8.57.1)
+      eslint-plugin-react-hooks:
+        specifier: ^4.6.0
+        version: 4.6.2(eslint@8.57.1)
       typescript:
         specifier: ^5
         version: 5.7.2

@@ -1,25 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '@/hooks/useAuth'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { 
-  Server, 
-  Database, 
-  Wifi, 
   AlertTriangle, 
   CheckCircle, 
   XCircle, 
   RefreshCw,
   Clock,
-  Activity,
-  Shield,
-  Settings,
-  Terminal,
-  Globe,
-  Lock,
-  ArrowLeft
+  Terminal
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -62,9 +52,9 @@ export default function SystemStatusPage() {
     if (isAuthenticated && user?.role === 'admin') {
       checkSystemHealth()
     }
-  }, [isAuthenticated, user])
+  }, [isAuthenticated, user, checkSystemHealth])
 
-  const checkSystemHealth = async () => {
+  const checkSystemHealth = useCallback(async () => {
     try {
       setIsRefreshing(true)
       
@@ -108,7 +98,7 @@ export default function SystemStatusPage() {
     } finally {
       setIsRefreshing(false)
     }
-  }
+  }, [])
 
   const testBackendAPI = async (): Promise<ServiceStatus> => {
     try {
