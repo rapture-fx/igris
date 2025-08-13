@@ -174,18 +174,21 @@ docker-compose -f infrastructure/vultr/docker-compose.production.yml up -d
 
 ### Production Deployment
 
-See `docs/deployment/` for detailed deployment guides:
+**Current Setup**: Vultr VPS + Cloudflare CDN
 
-- [Vercel Deployment](./docs/deployment/VERCEL_DEPLOYMENT.md)
-- [Backend Deployment](./docs/deployment/BACKEND_DEPLOYMENT.md)
-- [Kubernetes Deployment](./docs/deployment/API_AS_A_SERVICE_DEPLOYMENT.md)
+See deployment guides:
+
+- [Vultr + Cloudflare Deployment](./DEPLOY_VULTR_CLOUDFLARE.md) ⭐ **Current**
+- [Alternative: Backend Deployment](./docs/deployment/BACKEND_DEPLOYMENT.md)
+- [Alternative: Kubernetes Deployment](./docs/deployment/API_AS_A_SERVICE_DEPLOYMENT.md)
 
 ### Infrastructure
 
+- **Vultr VPS:** AMD EPYC processors, NVMe SSD (45.77.44.216)
+- **Cloudflare CDN:** Global edge network, SSL, DDoS protection
 - **Docker:** Containerization for all services
-- **Kubernetes:** Production orchestration
-- **Terraform:** Infrastructure as Code
-- **Monitoring:** Prometheus, Grafana, and custom metrics
+- **Nginx:** Reverse proxy and load balancing
+- **PostgreSQL + Redis:** Database and caching layer
 
 ## Documentation
 
