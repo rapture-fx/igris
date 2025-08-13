@@ -25,18 +25,18 @@ is_running() {
 start_server() {
     echo "Starting Schlep Engine dev server..."
     cd "$APP_DIR"
-    
+
     # Start server in background with nohup to survive shell exits
     nohup npm run dev > "$LOG_FILE" 2>&1 &
     PID=$!
     echo $PID > "$PID_FILE"
-    
+
     # Wait a moment and check if it started successfully
     sleep 3
     if ps -p "$PID" > /dev/null 2>&1; then
-        echo "✅ Server started successfully with PID: $PID"
-        echo "📝 Logs: $LOG_FILE"
-        echo "🌐 URL: http://localhost:3000"
+        echo "Server started successfully with PID: $PID"
+        echo "Logs: $LOG_FILE"
+        echo "URL: http://localhost:3000"
         return 0
     else
         echo "❌ Failed to start server"
@@ -52,9 +52,9 @@ stop_server() {
         echo "Stopping server (PID: $PID)..."
         kill "$PID"
         rm -f "$PID_FILE"
-        echo "✅ Server stopped"
+        echo " Server stopped"
     else
-        echo "ℹ️ Server is not running"
+        echo " Server is not running"
     fi
 }
 
@@ -69,10 +69,10 @@ restart_server() {
 status_server() {
     if is_running; then
         PID=$(cat "$PID_FILE")
-        echo "✅ Server is running (PID: $PID)"
-        echo "🌐 URL: http://localhost:3000"
-        echo "📝 Logs: $LOG_FILE"
-        
+        echo "Server is running (PID: $PID)"
+        echo "URL: http://localhost:3000"
+        echo "Logs: $LOG_FILE"
+
         # Show last few log lines
         echo ""
         echo "Recent logs:"
@@ -86,7 +86,7 @@ status_server() {
 case "${1:-start}" in
     start)
         if is_running; then
-            echo "⚠️ Server is already running"
+            echo "Server is already running"
             status_server
         else
             start_server
