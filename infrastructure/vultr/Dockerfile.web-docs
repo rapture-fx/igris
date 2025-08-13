@@ -1,4 +1,4 @@
-# Production Dockerfile for Admin Dashboard
+# Production Dockerfile for Documentation
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed
@@ -6,8 +6,8 @@ FROM base AS deps
 WORKDIR /app
 
 # Copy package files
-COPY apps/web-admin/package*.json ./
-COPY apps/web-admin/yarn.lock* ./
+COPY apps/web-docs/package*.json ./
+COPY apps/web-docs/yarn.lock* ./
 
 # Install dependencies
 RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
@@ -17,7 +17,7 @@ RUN if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY apps/web-admin/ .
+COPY apps/web-docs/ .
 COPY packages/ ../packages/
 
 # Build application
@@ -47,13 +47,13 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
-EXPOSE 3002
+EXPOSE 3000
 
-ENV PORT 3002
+ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3002/ || exit 1
+    CMD curl -f http://localhost:3000/api/health || exit 1
 
 CMD ["node", "server.js"]
