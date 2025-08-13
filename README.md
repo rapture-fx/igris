@@ -1,16 +1,16 @@
-# 🚀 Schlep Engine
+# Schlep Engine
 
 > **Messy data to ML-Ready in API calls.**
 
 A comprehensive data processing and ML pipeline platform built with FastAPI and Next.js. Transform unstructured data into ML-ready datasets through powerful APIs and an intuitive admin dashboard.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 schlep-engine/
 ├── apps/                          # Applications
 │   ├── api/                       # FastAPI backend (Python) - Port 3001
-│   ├── web-admin/                 # Admin dashboard (Next.js) - Port 3002  
+│   ├── web-admin/                 # Admin dashboard (Next.js) - Port 3002
 │   ├── web-landing/               # Landing page (Next.js) - Port 3000
 │   └── web-docs/                  # Documentation (Next.js) - Port 3003
 ├── packages/                      # Shared packages
@@ -29,16 +29,16 @@ schlep-engine/
 └── scripts/                       # Automation scripts
 ```
 
-## 🌐 **Live Production Deployment**
+## **Live Production Deployment**
 
-- **🏠 Landing Page**: https://schlep-engine.com
-- **⚡ API Backend**: https://api.schlep-engine.com
-- **🔧 Admin Dashboard**: https://admin.schlep-engine.com  
-- **📚 Documentation**: https://docs.schlep-engine.com
+- ** Landing Page**: https://schlep-engine.com
+- ** API Backend**: https://api.schlep-engine.com
+- ** Admin Dashboard**: https://admin.schlep-engine.com
+- ** Documentation**: https://docs.schlep-engine.com
 
 **Infrastructure**: Vultr VPS + Cloudflare CDN + SSL
 
-## ⚡ Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -47,7 +47,7 @@ schlep-engine/
 - **Docker** and **Docker Compose** (deployment)
 - **PostgreSQL 15+** and **Redis 7+** (databases)
 
-### 🚀 Production Deployment (Vultr VPS)
+### Production Deployment (Vultr VPS)
 
 **Ready to deploy?** Follow the complete deployment guide:
 
@@ -60,9 +60,9 @@ cd /root/schlep-engine
 docker-compose -f infrastructure/vultr/docker-compose.production.yml up -d
 ```
 
-📖 **Full Guide**: [`DEPLOY_VULTR_CLOUDFLARE.md`](./DEPLOY_VULTR_CLOUDFLARE.md)
+**Full Guide**: [`DEPLOY_VULTR_CLOUDFLARE.md`](./DEPLOY_VULTR_CLOUDFLARE.md)
 
-### 💻 Local Development
+### Local Development
 
 1. **Clone and install dependencies:**
    ```bash
