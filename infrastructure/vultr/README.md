@@ -25,7 +25,7 @@
 ### **Step 2: Initial Server Setup**
 ```bash
 # Upload server setup script
-scp infrastructure/hetzner/server-setup.sh root@YOUR_SERVER_IP:/root/
+scp infrastructure/vultr/server-setup.sh root@YOUR_SERVER_IP:/root/
 
 # SSH into server and run setup
 ssh root@YOUR_SERVER_IP
@@ -40,7 +40,7 @@ ssh deploy@YOUR_SERVER_IP
 
 # Edit environment file
 cd schlep-engine
-nano infrastructure/hetzner/.env.production
+nano infrastructure/vultr/.env.production
 
 # Generate secrets (use these in .env.production)
 openssl rand -hex 32  # SECRET_KEY
@@ -49,26 +49,26 @@ openssl rand -base64 32 # DATABASE PASSWORD
 ```
 
 ### **Step 4: Setup Cloudflare**
-Follow instructions in: `infrastructure/hetzner/cloudflare-setup.md`
+Follow instructions in: `infrastructure/vultr/cloudflare-setup.md`
 
 ### **Step 5: Deploy Application**
 ```bash
 # Make deploy script executable
-chmod +x infrastructure/hetzner/deploy.sh
+chmod +x infrastructure/vultr/deploy.sh
 
 # Run deployment
-./infrastructure/hetzner/deploy.sh
+./infrastructure/vultr/deploy.sh
 ```
 
 ### **Step 6: Install Claude Code**
-Follow instructions in: `infrastructure/hetzner/claude-code-setup.md`
+Follow instructions in: `infrastructure/vultr/claude-code-setup.md`
 
 ---
 
 ## 📁 **FILE STRUCTURE**
 
 ```
-infrastructure/hetzner/
+infrastructure/vultr/
 ├── README.md                           # This file
 ├── DEPLOYMENT_GUIDE.md                 # Detailed step-by-step guide
 ├── cloudflare-setup.md                 # Cloudflare configuration
@@ -128,7 +128,7 @@ Internet
     ↓
 Cloudflare CDN (Free SSL, DDoS protection, Caching)
     ↓
-Hetzner VPS (€4/month)
+Vultr VPS ($5-10/month)
     ↓
 Nginx (Reverse Proxy, Load Balancer)
     ↓
@@ -150,12 +150,12 @@ Nginx (Reverse Proxy, Load Balancer)
 
 | Solution | Monthly Cost | Performance | Control | Complexity |
 |----------|-------------|-------------|---------|------------|
-| **Hetzner + Cloudflare** | **€4-20** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
+| **Vultr + Cloudflare** | **$5-25** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ |
 | Railway + Supabase | $85+ | ⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 | AWS EKS | $400-600 | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
 | Vercel + PlanetScale | $60-120 | ⭐⭐⭐⭐ | ⭐⭐ | ⭐⭐ |
 
-**Winner**: Hetzner + Cloudflare (Best value, performance, and control)
+**Winner**: Vultr + Cloudflare (Best value, performance, and control)
 
 ---
 
@@ -212,7 +212,7 @@ free -h
 **SSL issues**:
 ```bash
 # Verify certificates
-openssl x509 -in infrastructure/hetzner/ssl/cloudflare.crt -text -noout
+openssl x509 -in infrastructure/vultr/ssl/cloudflare.crt -text -noout
 
 # Check nginx config
 docker exec schlep-nginx nginx -t
@@ -224,11 +224,11 @@ docker exec schlep-nginx nginx -t
 docker exec schlep-postgres psql -U schlep_user -d schlep_engine -c "SELECT 1;"
 
 # Check environment file
-grep DATABASE_URL infrastructure/hetzner/.env.production
+grep DATABASE_URL infrastructure/vultr/.env.production
 ```
 
 ### **Emergency Contacts**
-- **Hetzner Support**: 24/7 ticket system
+- **Vultr Support**: 24/7 ticket system
 - **Cloudflare Support**: Community forums
 - **Claude Code**: AI assistant available 24/7
 

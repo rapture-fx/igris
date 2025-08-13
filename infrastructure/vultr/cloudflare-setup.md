@@ -58,18 +58,18 @@ CNAME   docs      schlep-engine.com          Auto    ✅ Proxied
 
 **Save certificates on your server**:
 ```bash
-# On your Hetzner server
-sudo mkdir -p /home/deploy/schlep-engine/infrastructure/hetzner/ssl
+# On your Vultr server
+sudo mkdir -p /home/deploy/schlep-engine/infrastructure/vultr/ssl
 
 # Copy the certificate content to:
-sudo nano /home/deploy/schlep-engine/infrastructure/hetzner/ssl/cloudflare.crt
+sudo nano /home/deploy/schlep-engine/infrastructure/vultr/ssl/cloudflare.crt
 
 # Copy the private key content to:
-sudo nano /home/deploy/schlep-engine/infrastructure/hetzner/ssl/cloudflare.key
+sudo nano /home/deploy/schlep-engine/infrastructure/vultr/ssl/cloudflare.key
 
 # Set proper permissions
-sudo chown -R deploy:deploy /home/deploy/schlep-engine/infrastructure/hetzner/ssl
-sudo chmod 600 /home/deploy/schlep-engine/infrastructure/hetzner/ssl/*
+sudo chown -R deploy:deploy /home/deploy/schlep-engine/infrastructure/vultr/ssl
+sudo chmod 600 /home/deploy/schlep-engine/infrastructure/vultr/ssl/*
 ```
 
 ## Step 6: Security Settings

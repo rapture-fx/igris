@@ -1,4 +1,4 @@
-# 🤖 Claude Code Setup on Hetzner Server
+# 🤖 Claude Code Setup on Vultr Server
 
 ## Why Claude Code on Your Server?
 
@@ -50,7 +50,7 @@ cat > .claude-code.json << 'EOF'
   "workingDirectory": "/home/deploy/schlep-engine",
   "environment": "production",
   "context": {
-    "deployment": "hetzner",
+    "deployment": "vultr",
     "architecture": "docker-compose",
     "services": [
       "postgres",
@@ -63,10 +63,10 @@ cat > .claude-code.json << 'EOF'
     ]
   },
   "shortcuts": {
-    "deploy": "./infrastructure/hetzner/deploy.sh",
-    "logs": "docker-compose -f infrastructure/hetzner/docker-compose.production.yml logs -f",
-    "status": "docker-compose -f infrastructure/hetzner/docker-compose.production.yml ps",
-    "restart": "docker-compose -f infrastructure/hetzner/docker-compose.production.yml restart"
+    "deploy": "./infrastructure/vultr/deploy.sh",
+    "logs": "docker-compose -f infrastructure/vultr/docker-compose.production.yml logs -f",
+    "status": "docker-compose -f infrastructure/vultr/docker-compose.production.yml ps",
+    "restart": "docker-compose -f infrastructure/vultr/docker-compose.production.yml restart"
   }
 }
 EOF
@@ -152,7 +152,7 @@ cat > .claude-production-context.md << 'EOF'
 # Schlep Engine Production Environment
 
 ## Server Details
-- **Provider**: Hetzner Cloud
+- **Provider**: Vultr Cloud
 - **OS**: Ubuntu 22.04 LTS
 - **Instance**: CX11 (1 vCPU, 2GB RAM, 20GB SSD)
 - **Location**: Nuremberg, Germany
@@ -172,15 +172,15 @@ cat > .claude-production-context.md << 'EOF'
 
 ## Key Paths
 - **Project**: /home/deploy/schlep-engine
-- **Logs**: /home/deploy/schlep-engine/infrastructure/hetzner/logs
+- **Logs**: /home/deploy/schlep-engine/infrastructure/vultr/logs
 - **Backups**: /home/deploy/schlep-engine/backups
-- **SSL**: /home/deploy/schlep-engine/infrastructure/hetzner/ssl
+- **SSL**: /home/deploy/schlep-engine/infrastructure/vultr/ssl
 
 ## Common Commands
-- **Deploy**: ./infrastructure/hetzner/deploy.sh
-- **Logs**: docker-compose -f infrastructure/hetzner/docker-compose.production.yml logs -f
-- **Status**: docker-compose -f infrastructure/hetzner/docker-compose.production.yml ps
-- **Backup**: ./infrastructure/hetzner/deploy.sh backup
+- **Deploy**: ./infrastructure/vultr/deploy.sh
+- **Logs**: docker-compose -f infrastructure/vultr/docker-compose.production.yml logs -f
+- **Status**: docker-compose -f infrastructure/vultr/docker-compose.production.yml ps
+- **Backup**: ./infrastructure/vultr/deploy.sh backup
 
 ## Monitoring
 - **System Status**: system-status
@@ -197,7 +197,7 @@ EOF
 mkdir -p ~/.claude-code/prompts
 
 cat > ~/.claude-code/prompts/deploy.txt << 'EOF'
-You are helping manage a production Schlep Engine deployment on Hetzner Cloud.
+You are helping manage a production Schlep Engine deployment on Vultr Cloud.
 
 Please:
 1. Check current service status

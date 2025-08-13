@@ -1,7 +1,7 @@
 #!/bin/bash
 # =============================================================================
-# HETZNER SERVER INITIAL SETUP SCRIPT
-# Run this script on a fresh Ubuntu 22.04 Hetzner VPS
+# VULTR SERVER INITIAL SETUP SCRIPT
+# Run this script on a fresh Ubuntu 22.04 Vultr VPS
 # =============================================================================
 
 set -e  # Exit on any error
@@ -228,14 +228,14 @@ if [ ! -d "$PROJECT_NAME" ]; then
     cd $PROJECT_NAME
     
     # Create necessary directories
-    mkdir -p infrastructure/hetzner/ssl
-    mkdir -p infrastructure/hetzner/backups
-    mkdir -p infrastructure/hetzner/logs
+    mkdir -p infrastructure/vultr/ssl
+    mkdir -p infrastructure/vultr/backups
+    mkdir -p infrastructure/vultr/logs
     
     # Copy environment template
-    if [ -f infrastructure/hetzner/.env.production.template ]; then
-        cp infrastructure/hetzner/.env.production.template infrastructure/hetzner/.env.production
-        echo "IMPORTANT: Edit infrastructure/hetzner/.env.production with your actual values!"
+    if [ -f infrastructure/vultr/.env.production.template ]; then
+        cp infrastructure/vultr/.env.production.template infrastructure/vultr/.env.production
+        echo "IMPORTANT: Edit infrastructure/vultr/.env.production with your actual values!"
     fi
 else
     echo "Repository already exists, pulling latest changes..."
@@ -251,7 +251,7 @@ setup_log_rotation() {
     log "Setting up log rotation..."
     
     cat > /etc/logrotate.d/schlep-engine << EOF
-/home/$DEPLOY_USER/$PROJECT_NAME/infrastructure/hetzner/logs/*.log {
+/home/$DEPLOY_USER/$PROJECT_NAME/infrastructure/vultr/logs/*.log {
     daily
     rotate 7
     compress
@@ -305,12 +305,12 @@ create_deployment_aliases() {
 cat >> /home/deploy/.bashrc << 'ALIASES'
 
 # Schlep Engine aliases
-alias sl-deploy='cd /home/deploy/schlep-engine && ./infrastructure/hetzner/deploy.sh'
-alias sl-logs='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/hetzner/docker-compose.production.yml logs -f'
-alias sl-status='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/hetzner/docker-compose.production.yml ps'
-alias sl-restart='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/hetzner/docker-compose.production.yml restart'
-alias sl-stop='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/hetzner/docker-compose.production.yml stop'
-alias sl-backup='cd /home/deploy/schlep-engine && ./infrastructure/hetzner/deploy.sh backup'
+alias sl-deploy='cd /home/deploy/schlep-engine && ./infrastructure/vultr/deploy.sh'
+alias sl-logs='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/vultr/docker-compose.production.yml logs -f'
+alias sl-status='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/vultr/docker-compose.production.yml ps'
+alias sl-restart='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/vultr/docker-compose.production.yml restart'
+alias sl-stop='cd /home/deploy/schlep-engine && docker-compose -f infrastructure/vultr/docker-compose.production.yml stop'
+alias sl-backup='cd /home/deploy/schlep-engine && ./infrastructure/vultr/deploy.sh backup'
 alias sl-update='cd /home/deploy/schlep-engine && git pull origin main'
 
 # System aliases
@@ -364,23 +364,23 @@ show_summary() {
     echo "                        SETUP COMPLETE!"
     echo "============================================================================="
     echo ""
-    echo "Your Hetzner server is now ready for Schlep Engine deployment!"
+    echo "Your Vultr server is now ready for Schlep Engine deployment!"
     echo ""
     echo "Next steps:"
     echo ""
     echo "1. EDIT ENVIRONMENT FILE:"
     echo "   su - $DEPLOY_USER"
     echo "   cd $PROJECT_NAME"
-    echo "   nano infrastructure/hetzner/.env.production"
+    echo "   nano infrastructure/vultr/.env.production"
     echo ""
     echo "2. CONFIGURE CLOUDFLARE:"
-    echo "   Follow instructions in infrastructure/hetzner/cloudflare-setup.md"
+    echo "   Follow instructions in infrastructure/vultr/cloudflare-setup.md"
     echo ""
     echo "3. DEPLOY APPLICATION:"
-    echo "   ./infrastructure/hetzner/deploy.sh"
+    echo "   ./infrastructure/vultr/deploy.sh"
     echo ""
     echo "4. INSTALL CLAUDE CODE:"
-    echo "   Follow instructions in infrastructure/hetzner/claude-code-setup.md"
+    echo "   Follow instructions in infrastructure/vultr/claude-code-setup.md"
     echo ""
     echo "Useful commands (as deploy user):"
     echo "   sl-deploy    - Deploy/update the application"

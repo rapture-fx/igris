@@ -19,8 +19,7 @@ schlep-engine/
 │   └── utils/                     # Shared utilities
 ├── infrastructure/                # Deployment configurations
 │   ├── vultr/                     # Vultr VPS deployment (Production)
-│   ├── hetzner/                   # Hetzner VPS deployment
-│   ├── hybrid/                    # Railway + Supabase setup
+│   ├── hybrid/                    # Railway + Supabase setup (Legacy)
 │   └── monitoring/                # Observability configs
 ├── docs/                          # Documentation
 │   ├── development/               # Development guides
