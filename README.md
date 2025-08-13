@@ -1,74 +1,89 @@
-# Schlep Engine
+# 🚀 Schlep Engine
 
-> Messy data to ML-Ready in API calls.
+> **Messy data to ML-Ready in API calls.**
 
-A comprehensive monorepo containing all Schlep Engine applications, packages, and infrastructure.
+A comprehensive data processing and ML pipeline platform built with FastAPI and Next.js. Transform unstructured data into ML-ready datasets through powerful APIs and an intuitive admin dashboard.
 
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 schlep-engine/
-├── apps/                          # All applications
-│   ├── api/                       # Main API backend (FastAPI)
-│   ├── admin/                     # Admin dashboard (Next.js)
-│   ├── landing/                   # Landing page (Next.js)
-│   └── docs/                      # API documentation (Next.js)
-├── packages/                      # Shared packages and libraries
+├── apps/                          # Applications
+│   ├── api/                       # FastAPI backend (Python) - Port 3001
+│   ├── web-admin/                 # Admin dashboard (Next.js) - Port 3002  
+│   ├── web-landing/               # Landing page (Next.js) - Port 3000
+│   └── web-docs/                  # Documentation (Next.js) - Port 3003
+├── packages/                      # Shared packages
 │   ├── ui/                        # Shared UI components
-│   ├── utils/                     # Shared utilities
-│   └── types/                     # Shared TypeScript types
-├── infrastructure/                # Infrastructure and deployment
-│   ├── docker/                    # Docker configurations
-│   ├── k8s/                       # Kubernetes manifests
-│   ├── terraform/                 # Terraform configurations
-│   └── monitoring/                # Monitoring configurations
-├── scripts/                       # Build and deployment scripts
-│   ├── build/                     # Build scripts
-│   ├── deploy/                    # Deployment scripts
-│   └── dev/                       # Development scripts
-├── docs/                          # Project documentation
-│   ├── api/                       # API documentation
-│   ├── deployment/                # Deployment guides
+│   ├── types/                     # TypeScript type definitions
+│   └── utils/                     # Shared utilities
+├── infrastructure/                # Deployment configurations
+│   ├── vultr/                     # Vultr VPS deployment (Production)
+│   ├── hetzner/                   # Hetzner VPS deployment
+│   ├── hybrid/                    # Railway + Supabase setup
+│   └── monitoring/                # Observability configs
+├── docs/                          # Documentation
 │   ├── development/               # Development guides
-│   └── architecture/              # Architecture documentation
-├── tools/                         # Development tools and utilities
-│   ├── generators/                # Code generators
-│   └── validators/                # Validation tools
-└── .github/                       # GitHub workflows and templates
+│   ├── deployment/                # Deployment guides
+│   └── architecture/              # Architecture docs
+└── scripts/                       # Automation scripts
 ```
 
-## Quick Start
+## 🌐 **Live Production Deployment**
+
+- **🏠 Landing Page**: https://schlep-engine.com
+- **⚡ API Backend**: https://api.schlep-engine.com
+- **🔧 Admin Dashboard**: https://admin.schlep-engine.com  
+- **📚 Documentation**: https://docs.schlep-engine.com
+
+**Infrastructure**: Vultr VPS + Cloudflare CDN + SSL
+
+## ⚡ Quick Start
 
 ### Prerequisites
 
-- Node.js 18+ and pnpm
-- Python 3.9+ and pip
-- Docker and Docker Compose
-- PostgreSQL 15+
-- Redis 7+
+- **Node.js 18+** and **pnpm** (frontend development)
+- **Python 3.11+** and **pip** (backend development)
+- **Docker** and **Docker Compose** (deployment)
+- **PostgreSQL 15+** and **Redis 7+** (databases)
 
-### Development Setup
+### 🚀 Production Deployment (Vultr VPS)
+
+**Ready to deploy?** Follow the complete deployment guide:
+
+```bash
+# 1. Set up Cloudflare DNS (already done for schlep-engine.com)
+# 2. Deploy to Vultr VPS
+scp -r . root@YOUR_VPS_IP:/root/schlep-engine/
+ssh root@YOUR_VPS_IP
+cd /root/schlep-engine
+docker-compose -f infrastructure/vultr/docker-compose.production.yml up -d
+```
+
+📖 **Full Guide**: [`DEPLOY_VULTR_CLOUDFLARE.md`](./DEPLOY_VULTR_CLOUDFLARE.md)
+
+### 💻 Local Development
 
 1. **Clone and install dependencies:**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/your-org/schlep-engine.git
    cd schlep-engine
    pnpm install
    ```
 
-2. **Start the development environment:**
+2. **Start development servers:**
    ```bash
    # Start all services
    pnpm dev
 
    # Or start individual services
-   pnpm dev:api      # API backend on :8000
-   pnpm dev:admin    # Admin dashboard on :3002
-   pnpm dev:landing  # Landing page on :3000
-   pnpm dev:docs     # API docs on :3001
+   pnpm dev:api      # FastAPI backend → localhost:3001
+   pnpm dev:admin    # Admin dashboard → localhost:3002
+   pnpm dev:landing  # Landing page → localhost:3000
+   pnpm dev:docs     # Documentation → localhost:3003
    ```
 
-3. **Using Docker:**
+3. **Using Docker for local development:**
    ```bash
    docker-compose up -d
    ```
@@ -92,27 +107,31 @@ schlep-engine/
 
 ## Architecture
 
-### Applications (`apps/`)
+### 🏗️ Applications (`apps/`)
 
 #### API Backend (`apps/api/`)
-- **Framework:** FastAPI (Python)
-- **Port:** 8000
-- **Purpose:** Main API server handling data processing, authentication, and business logic
+- **Framework:** FastAPI (Python 3.11)
+- **Port:** 3001 (Production) / 3001 (Development)
+- **Features:** JWT Authentication, PostgreSQL + Redis, ML Pipeline, Document Processing
+- **URL:** https://api.schlep-engine.com
 
-#### Admin Dashboard (`apps/admin/`)
-- **Framework:** Next.js (React)
+#### Admin Dashboard (`apps/web-admin/`)
+- **Framework:** Next.js 14 (React 18)
 - **Port:** 3002
-- **Purpose:** Administrative interface for managing users, data, and system configuration
+- **Features:** Custom FastAPI auth integration, User management, System monitoring
+- **URL:** https://admin.schlep-engine.com
 
-#### Landing Page (`apps/landing/`)
-- **Framework:** Next.js (React)
+#### Landing Page (`apps/web-landing/`)
+- **Framework:** Next.js 14 (React 18)
 - **Port:** 3000
-- **Purpose:** Public-facing marketing website and user onboarding
+- **Features:** Marketing site, User onboarding, Product showcase
+- **URL:** https://schlep-engine.com
 
-#### API Documentation (`apps/docs/`)
-- **Framework:** Next.js (React)
-- **Port:** 3001
-- **Purpose:** Interactive API documentation and developer resources
+#### Documentation (`apps/web-docs/`)
+- **Framework:** Next.js 14 (React 18)
+- **Port:** 3003
+- **Features:** API docs, Integration guides, Developer resources
+- **URL:** https://docs.schlep-engine.com
 
 ### Shared Packages (`packages/`)
 
