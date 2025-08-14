@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm build",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "functions": {
+    "packages/admin/src/app/api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/admin/(.*)",
+      "destination": "/packages/admin/$1"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+} 
