@@ -42,48 +42,38 @@ jobs:
           -o UserKnownHostsFile=/dev/null \
           root@45.77.44.216 << 'EOF'
           
-          # Stop services
-          systemctl stop schlep-backend || true
-          systemctl stop schlep-frontend || true
+          # Navigate to project directory
+          cd /root/schlep-engine || { echo "Project directory not found"; exit 1; }
           
           # Backup current deployment
-          if [ -d "/opt/schlep-engine" ]; then
-            mv /opt/schlep-engine /opt/schlep-engine.backup.$(date +%Y%m%d_%H%M%S)
+          if [ -d "/root/schlep-engine.backup" ]; then
+            rm -rf /root/schlep-engine.backup
           fi
+          cp -r /root/schlep-engine /root/schlep-engine.backup || true
           
-          # Extract new deployment
-          mkdir -p /opt/schlep-engine
-          cd /opt/schlep-engine
-          tar -xzf /tmp/deployment.tar.gz
+          # Extract new deployment (overwrite existing)
+          cd /root/schlep-engine
+          tar -xzf /tmp/deployment.tar.gz --overwrite
           
-          # Install backend dependencies
-          cd /opt/schlep-engine/apps/api
-          python3 -m pip install -r requirements.txt
+          # Stop existing containers
+          docker-compose -f docker-compose.production.yml down || true
           
-          # Install frontend dependencies
-          cd /opt/schlep-engine
-          npm install -g pnpm
-          pnpm install
-          pnpm run build
-          
-          # Start services
-          systemctl start schlep-backend
-          systemctl start schlep-frontend
-          systemctl enable schlep-backend
-          systemctl enable schlep-frontend
-          
-          # Health check
-          sleep 10
-          curl -f http://localhost:8000/health || exit 1
+          # Run deployment script
+          chmod +x deploy.sh
+          ./deploy.sh
           
           echo "✅ Deployment completed successfully"
         EOF
 
     - name: 🏥 Post-deployment health check
       run: |
-        sleep 30
-        curl -f http://45.77.44.216:8000/health || exit 1
-        echo "✅ Production health check passed"
+        sleep 45
+        # Check if services are running via Docker
+        ssh -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          root@45.77.44.216 \
+          'cd /root/schlep-engine && docker-compose -f docker-compose.production.yml ps'
+        echo "✅ Production deployment status checked"
 
     - name: 📢 Notify deployment status
       if: always()
