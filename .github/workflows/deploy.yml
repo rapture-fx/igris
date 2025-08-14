@@ -34,6 +34,7 @@ jobs:
     
     - name: Install Frontend dependencies
       run: |
+<<<<<<< HEAD
         cd apps/web-frontend
         npm install
     
@@ -41,6 +42,34 @@ jobs:
       run: |
         cd apps/web-frontend
         npm run build
+=======
+        ssh -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          root@45.77.44.216 << 'EOF'
+          
+          # Navigate to project directory
+          cd /root/schlep-engine || { echo "Project directory not found"; exit 1; }
+          
+          # Backup current deployment
+          if [ -d "/root/schlep-engine.backup" ]; then
+            rm -rf /root/schlep-engine.backup
+          fi
+          cp -r /root/schlep-engine /root/schlep-engine.backup || true
+          
+          # Extract new deployment (overwrite existing)
+          cd /root/schlep-engine
+          tar -xzf /tmp/deployment.tar.gz --overwrite
+          
+          # Stop existing containers
+          docker-compose -f docker-compose.production.yml down || true
+          
+          # Run deployment script
+          chmod +x deploy.sh
+          ./deploy.sh
+          
+          echo "✅ Deployment completed successfully"
+        EOF
+>>>>>>> 56abb6bac7071482e03cabc54dfbd2969d14bff2
 
   deploy-staging:
     if: github.event_name == 'pull_request'
@@ -84,5 +113,24 @@ jobs:
           
     - name: Run Health Check
       run: |
+<<<<<<< HEAD
         sleep 30
         curl -f http://${{ secrets.PROD_HOST }}:8000/health || exit 1
+=======
+        sleep 45
+        # Check if services are running via Docker
+        ssh -o StrictHostKeyChecking=no \
+          -o UserKnownHostsFile=/dev/null \
+          root@45.77.44.216 \
+          'cd /root/schlep-engine && docker-compose -f docker-compose.production.yml ps'
+        echo "✅ Production deployment status checked"
+
+    - name: 📢 Notify deployment status
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Deployment to VPS successful!"
+        else
+          echo "❌ Deployment to VPS failed!"
+        fi
+>>>>>>> 56abb6bac7071482e03cabc54dfbd2969d14bff2
