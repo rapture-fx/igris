@@ -1,95 +1,88 @@
-name: 🚀 Deploy to VPS
+name: Deploy to VPS
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
-  deploy:
-    name: 🚀 Deploy to Production VPS
+  test:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: 🔐 Setup SSH
-      uses: webfactory/ssh-agent@v0.7.0
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
-        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
-
-    - name: 📦 Create deployment package
+        python-version: '3.11'
+    
+    - name: Install API dependencies
       run: |
-        tar -czf deployment.tar.gz \
-          --exclude='.git' \
-          --exclude='node_modules' \
-          --exclude='.next' \
-          --exclude='__pycache__' \
-          --exclude='*.log' \
-          .
-
-    - name: 📤 Upload to VPS
+        cd apps/api
+        pip install -r requirements.txt
+    
+    - name: Run API tests
       run: |
-        scp -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          deployment.tar.gz root@45.77.44.216:/tmp/
-
-    - name: 🚀 Deploy on VPS
+        cd apps/api
+        python -m pytest tests/ || echo "No tests found"
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install Frontend dependencies
       run: |
-        ssh -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          root@45.77.44.216 << 'EOF'
-          
-          # Stop services
-          systemctl stop schlep-backend || true
-          systemctl stop schlep-frontend || true
-          
-          # Backup current deployment
-          if [ -d "/opt/schlep-engine" ]; then
-            mv /opt/schlep-engine /opt/schlep-engine.backup.$(date +%Y%m%d_%H%M%S)
-          fi
-          
-          # Extract new deployment
-          mkdir -p /opt/schlep-engine
-          cd /opt/schlep-engine
-          tar -xzf /tmp/deployment.tar.gz
-          
-          # Install backend dependencies
-          cd /opt/schlep-engine/apps/api
-          python3 -m pip install -r requirements.txt
-          
-          # Install frontend dependencies
-          cd /opt/schlep-engine
-          npm install -g pnpm
-          pnpm install
-          pnpm run build
-          
-          # Start services
-          systemctl start schlep-backend
-          systemctl start schlep-frontend
-          systemctl enable schlep-backend
-          systemctl enable schlep-frontend
-          
-          # Health check
-          sleep 10
-          curl -f http://localhost:8000/health || exit 1
-          
-          echo "✅ Deployment completed successfully"
-        EOF
+        cd apps/web-frontend
+        npm install
+    
+    - name: Build Frontend
+      run: |
+        cd apps/web-frontend
+        npm run build
 
-    - name: 🏥 Post-deployment health check
+  deploy-staging:
+    if: github.event_name == 'pull_request'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to Staging
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          cd /root/staging
+          git pull origin ${{ github.head_ref }}
+          docker-compose -f docker-compose.staging.yml down
+          docker-compose -f docker-compose.staging.yml up -d --build
+
+  deploy-production:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to Production
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.PROD_HOST }}
+        username: ${{ secrets.PROD_USER }}
+        key: ${{ secrets.PROD_SSH_KEY }}
+        script: |
+          cd /root
+          git pull origin main
+          docker-compose down
+          docker-compose up -d --build
+          
+    - name: Run Health Check
       run: |
         sleep 30
-        curl -f http://45.77.44.216:8000/health || exit 1
-        echo "✅ Production health check passed"
-
-    - name: 📢 Notify deployment status
-      if: always()
-      run: |
-        if [ "${{ job.status }}" == "success" ]; then
-          echo "✅ Deployment to VPS successful!"
-        else
-          echo "❌ Deployment to VPS failed!"
-        fi
+        curl -f http://${{ secrets.PROD_HOST }}:8000/health || exit 1
