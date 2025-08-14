@@ -46,7 +46,7 @@ jobs:
           type=sha
 
     - name: 🏗️ Build and push Backend image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./apps/api
         file: ./apps/api/Dockerfile
@@ -94,7 +94,7 @@ jobs:
           type=sha
 
     - name: 🏗️ Build and push ${{ matrix.app }} image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./apps/${{ matrix.app }}
         file: ./apps/${{ matrix.app }}/Dockerfile
