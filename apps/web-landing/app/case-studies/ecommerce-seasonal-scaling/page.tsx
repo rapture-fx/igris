@@ -3,8 +3,8 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowLeft, CheckCircle, TrendingUp, ShoppingCart, Clock, DollarSign, AlertTriangle, BarChart, Zap, Users } from 'lucide-react'
-import Header from '@/src/components/sections/Header'
-import Footer from '@/src/components/sections/Footer'
+import Header from '@/components/sections/Header'
+import Footer from '@/components/sections/Footer'
 
 export default function SeasonalScalingCaseStudyPage() {
   return (

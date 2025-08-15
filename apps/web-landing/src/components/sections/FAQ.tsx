@@ -14,11 +14,7 @@ export default function FAQ() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="mt-16 text-center">
           <div>
-            <img 
-              src="/Schlep Engine laest logo design.svg" 
-              alt="Schlep Engine Logo" 
-              className="h-40 w-auto mx-auto mb-10"
-            />
+            
             <h3 className="text-4xl font-bold text-beige-secondary mb-10">
               Accelerate your machine learning workflows.
             </h3>

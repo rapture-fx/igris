@@ -1,0 +1,310 @@
+name: Deployment Notifications
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Production (Vultr VPS)", "Deploy to Staging"]
+    types:
+      - completed
+
+jobs:
+  notify-success:
+    name: Notify Deployment Success
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    steps:
+      - name: Send Slack Success Notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,workflow,ref
+          custom_payload: |
+            {
+              "text": "✅ Deployment Successful",
+              "attachments": [
+                {
+                  "color": "good",
+                  "title": "Schlep Engine Deployment",
+                  "fields": [
+                    {
+                      "title": "Environment",
+                      "value": "${{ contains(github.event.workflow_run.name, 'Production') && 'Production (Vultr VPS)' || 'Staging' }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit",
+                      "value": "${{ github.event.workflow_run.head_sha }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Author",
+                      "value": "${{ github.event.workflow_run.actor.login }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.event.workflow_run.head_branch }}",
+                      "short": true
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "🌐 Visit Site",
+                      "url": "${{ contains(github.event.workflow_run.name, 'Production') && 'https://schlep-engine.com' || 'https://staging.schlep-engine.com' }}"
+                    },
+                    {
+                      "type": "button", 
+                      "text": "🔗 API",
+                      "url": "${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.schlep-engine.com' || 'https://api-staging.schlep-engine.com' }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": "📊 View Logs",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Send Discord Success Notification
+        if: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: |
+            ✅ **Deployment Successful**
+            
+            **Environment:** ${{ contains(github.event.workflow_run.name, 'Production') && 'Production (Vultr VPS)' || 'Staging' }}
+            **Commit:** `${{ github.event.workflow_run.head_sha }}`
+            **Author:** ${{ github.event.workflow_run.actor.login }}
+            **Branch:** ${{ github.event.workflow_run.head_branch }}
+            
+            🌐 [Visit Site](${{ contains(github.event.workflow_run.name, 'Production') && 'https://schlep-engine.com' || 'https://staging.schlep-engine.com' }})
+            🔗 [API Docs](${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.schlep-engine.com/docs' || 'https://api-staging.schlep-engine.com/docs' }})
+            📊 [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Send Email Success Notification
+        if: ${{ secrets.EMAIL_USERNAME && vars.NOTIFICATION_EMAIL }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "✅ Schlep Engine Deployment Successful"
+          to: ${{ vars.NOTIFICATION_EMAIL }}
+          from: Schlep Engine CI/CD <${{ secrets.EMAIL_USERNAME }}>
+          html_body: |
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .header { background: #28a745; color: white; padding: 20px; border-radius: 8px; }
+                    .content { margin: 20px 0; }
+                    .info { background: #f8f9fa; padding: 15px; border-radius: 6px; margin: 10px 0; }
+                    .button { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>✅ Deployment Successful</h2>
+                    <p>Schlep Engine has been successfully deployed!</p>
+                </div>
+                
+                <div class="content">
+                    <div class="info">
+                        <h3>Deployment Details</h3>
+                        <p><strong>Environment:</strong> ${{ contains(github.event.workflow_run.name, 'Production') && 'Production (Vultr VPS)' || 'Staging' }}</p>
+                        <p><strong>Commit:</strong> ${{ github.event.workflow_run.head_sha }}</p>
+                        <p><strong>Author:</strong> ${{ github.event.workflow_run.actor.login }}</p>
+                        <p><strong>Branch:</strong> ${{ github.event.workflow_run.head_branch }}</p>
+                        <p><strong>Time:</strong> ${{ github.event.workflow_run.created_at }}</p>
+                    </div>
+                    
+                    <div class="info">
+                        <h3>Services</h3>
+                        <p>All services are now live and accessible:</p>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://schlep-engine.com' || 'https://staging.schlep-engine.com' }}" class="button">🌐 Landing Page</a>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.schlep-engine.com' || 'https://api-staging.schlep-engine.com' }}" class="button">🔗 API Backend</a>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://admin.schlep-engine.com' || 'https://admin-staging.schlep-engine.com' }}" class="button">👤 Admin Dashboard</a>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://docs.schlep-engine.com' || 'https://docs-staging.schlep-engine.com' }}" class="button">📚 Documentation</a>
+                    </div>
+                    
+                    <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" class="button">📊 View Deployment Logs</a></p>
+                </div>
+            </body>
+            </html>
+
+  notify-failure:
+    name: Notify Deployment Failure
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+
+    steps:
+      - name: Send Slack Failure Notification
+        if: ${{ secrets.SLACK_WEBHOOK_URL }}
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          fields: repo,message,commit,author,workflow,ref
+          custom_payload: |
+            {
+              "text": "❌ Deployment Failed",
+              "attachments": [
+                {
+                  "color": "danger",
+                  "title": "Schlep Engine Deployment Failed",
+                  "fields": [
+                    {
+                      "title": "Environment",
+                      "value": "${{ contains(github.event.workflow_run.name, 'Production') && 'Production (Vultr VPS)' || 'Staging' }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Commit",
+                      "value": "${{ github.event.workflow_run.head_sha }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Author",
+                      "value": "${{ github.event.workflow_run.actor.login }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Branch",
+                      "value": "${{ github.event.workflow_run.head_branch }}",
+                      "short": true
+                    }
+                  ],
+                  "actions": [
+                    {
+                      "type": "button",
+                      "text": "📊 View Logs",
+                      "url": "https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": "🔧 Troubleshoot",
+                      "url": "https://github.com/${{ github.repository }}/blob/main/.github/CICD_SETUP.md#-troubleshooting-common-issues"
+                    }
+                  ]
+                }
+              ]
+            }
+
+      - name: Send Discord Failure Notification
+        if: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        uses: Ilshidur/action-discord@master
+        with:
+          args: |
+            ❌ **Deployment Failed**
+            
+            **Environment:** ${{ contains(github.event.workflow_run.name, 'Production') && 'Production (Vultr VPS)' || 'Staging' }}
+            **Commit:** `${{ github.event.workflow_run.head_sha }}`
+            **Author:** ${{ github.event.workflow_run.actor.login }}
+            **Branch:** ${{ github.event.workflow_run.head_branch }}
+            
+            📊 [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
+            🔧 [Troubleshooting Guide](https://github.com/${{ github.repository }}/blob/main/.github/CICD_SETUP.md#-troubleshooting-common-issues)
+            
+            @here Please investigate the deployment failure.
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+      - name: Send Email Failure Notification
+        if: ${{ secrets.EMAIL_USERNAME && vars.NOTIFICATION_EMAIL }}
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "❌ URGENT: Schlep Engine Deployment Failed"
+          to: ${{ vars.NOTIFICATION_EMAIL }}
+          from: Schlep Engine CI/CD <${{ secrets.EMAIL_USERNAME }}>
+          html_body: |
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; margin: 20px; }
+                    .header { background: #dc3545; color: white; padding: 20px; border-radius: 8px; }
+                    .content { margin: 20px 0; }
+                    .error { background: #f8d7da; color: #721c24; padding: 15px; border-radius: 6px; margin: 10px 0; border: 1px solid #f5c6cb; }
+                    .button { display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h2>❌ Deployment Failed</h2>
+                    <p>Schlep Engine deployment has failed and requires immediate attention!</p>
+                </div>
+                
+                <div class="content">
+                    <div class="error">
+                        <h3>🚨 Action Required</h3>
+                        <p>The deployment to <strong>${{ contains(github.event.workflow_run.name, 'Production') && 'Production (Vultr VPS)' || 'Staging' }}</strong> has failed.</p>
+                        <p>Please investigate and resolve the issue immediately.</p>
+                    </div>
+                    
+                    <div class="error">
+                        <h3>Failure Details</h3>
+                        <p><strong>Environment:</strong> ${{ contains(github.event.workflow_run.name, 'Production') && 'Production (Vultr VPS)' || 'Staging' }}</p>
+                        <p><strong>Commit:</strong> ${{ github.event.workflow_run.head_sha }}</p>
+                        <p><strong>Author:</strong> ${{ github.event.workflow_run.actor.login }}</p>
+                        <p><strong>Branch:</strong> ${{ github.event.workflow_run.head_branch }}</p>
+                        <p><strong>Time:</strong> ${{ github.event.workflow_run.created_at }}</p>
+                    </div>
+                    
+                    <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" class="button">📊 View Deployment Logs</a></p>
+                    <p><a href="https://github.com/${{ github.repository }}/blob/main/.github/CICD_SETUP.md#-troubleshooting-common-issues" class="button">🔧 Troubleshooting Guide</a></p>
+                </div>
+            </body>
+            </html>
+
+      - name: Create GitHub Issue for Failed Deployment
+        if: ${{ contains(github.event.workflow_run.name, 'Production') }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `🚨 Production Deployment Failed - ${context.payload.workflow_run.head_sha.substring(0, 7)}`,
+              body: `## 🚨 Production Deployment Failure
+              
+              **Environment:** Production (Vultr VPS)
+              **Commit:** \`${{ github.event.workflow_run.head_sha }}\`
+              **Author:** ${{ github.event.workflow_run.actor.login }}
+              **Branch:** ${{ github.event.workflow_run.head_branch }}
+              **Workflow Run:** ${{ github.event.workflow_run.id }}
+              
+              ### 📊 Logs
+              [View deployment logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
+              
+              ### 🔧 Next Steps
+              1. Review the deployment logs for error details
+              2. Check VPS connectivity and resources
+              3. Verify environment variables and secrets
+              4. Test deployment in staging first
+              5. Consider rolling back if necessary
+              
+              ### 📚 Resources
+              - [Troubleshooting Guide](.github/CICD_SETUP.md#-troubleshooting-common-issues)
+              - [Deployment Runbook](infrastructure/vultr/README.md)
+              
+              **Priority:** High
+              **Assignees:** Please assign to on-call engineer
+              
+              ---
+              _Auto-generated by deployment failure notification_`,
+              labels: ['bug', 'deployment', 'production', 'urgent'],
+              assignees: process.env.GITHUB_REPOSITORY_OWNER ? [process.env.GITHUB_REPOSITORY_OWNER] : []
+            });

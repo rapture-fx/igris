@@ -10,7 +10,7 @@ import HowItWorks from '../src/components/sections/HowItWorks'
 import LatestUpdate from '../src/components/sections/LatestUpdate'
 import FAQ from '../src/components/sections/FAQ'
 import Footer from '../src/components/sections/Footer'
-import GridBackground from '../src/components/ui/GridBackground'
+import GridBackground from '@/components/ui/GridBackground'
 
 export default function HomePage() {
   return (

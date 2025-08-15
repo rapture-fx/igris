@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { Play, Copy, Download, Upload, Settings, Zap } from 'lucide-react'
-import Header from '@/src/components/sections/Header'
-import Footer from '@/src/components/sections/Footer'
+import Header from '@/components/sections/Header'
+import Footer from '@/components/sections/Footer'
 
 export default function PlaygroundPage() {
   const [activeEndpoint, setActiveEndpoint] = useState('transform')

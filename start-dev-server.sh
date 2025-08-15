@@ -5,7 +5,7 @@
 
 PID_FILE="/tmp/schlep-engine-dev.pid"
 LOG_FILE="/tmp/schlep-engine-dev.log"
-APP_DIR="/Users/wira/Wira Cursor/Schlep-engine/apps/web-landing"
+APP_DIR="/Users/wira/Desktop/schlep-engine/apps/web-landing"
 
 # Function to check if server is running
 is_running() {
@@ -27,7 +27,7 @@ start_server() {
     cd "$APP_DIR"
 
     # Start server in background with nohup to survive shell exits
-    nohup npm run dev > "$LOG_FILE" 2>&1 &
+    nohup pnpm --filter @schlep-engine/web-landing dev > "$LOG_FILE" 2>&1 &
     PID=$!
     echo $PID > "$PID_FILE"
 
