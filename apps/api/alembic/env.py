@@ -8,9 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncEngine
 
 from alembic import context
 
-# Import your models here
+# Import database connection
 from app.database.connection import Base
-from app.database.models import *  # This imports all models
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -70,10 +69,9 @@ async def run_async_migrations() -> None:
 
     connectable = AsyncEngine(
         engine_from_config(
-            config.get_section(config.config_ini_section),
+            config.get_section(config.config_ini_section, {}),
             prefix="sqlalchemy.",
             poolclass=pool.NullPool,
-            future=True,
         )
     )
 

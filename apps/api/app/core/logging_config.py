@@ -18,6 +18,9 @@ from app.core.config import settings
 
 # Context variables for request tracking
 request_id_var: ContextVar[Optional[str]] = ContextVar('request_id', default=None)
+correlation_id_var: ContextVar[Optional[str]] = ContextVar('correlation_id', default=None)
+trace_id_var: ContextVar[Optional[str]] = ContextVar('trace_id', default=None)
+span_id_var: ContextVar[Optional[str]] = ContextVar('span_id', default=None)
 user_id_var: ContextVar[Optional[str]] = ContextVar('user_id', default=None)
 session_id_var: ContextVar[Optional[str]] = ContextVar('session_id', default=None)
 
@@ -36,12 +39,27 @@ class StructuredFormatter(logging.Formatter):
             "line": record.lineno,
             "process_id": record.process,
             "thread_id": record.thread,
+            "service": "schlep-engine-api",
+            "version": getattr(settings, 'APP_VERSION', '1.0.0'),
+            "environment": getattr(settings, 'ENVIRONMENT', 'development'),
         }
         
         # Add request context if available
         request_id = request_id_var.get()
         if request_id:
             log_entry["request_id"] = request_id
+        
+        correlation_id = correlation_id_var.get()
+        if correlation_id:
+            log_entry["correlation_id"] = correlation_id
+        
+        trace_id = trace_id_var.get()
+        if trace_id:
+            log_entry["trace_id"] = trace_id
+        
+        span_id = span_id_var.get()
+        if span_id:
+            log_entry["span_id"] = span_id
         
         user_id = user_id_var.get()
         if user_id:
@@ -73,6 +91,18 @@ class RequestContextFilter(logging.Filter):
         request_id = request_id_var.get()
         if request_id:
             record.request_id = request_id
+        
+        correlation_id = correlation_id_var.get()
+        if correlation_id:
+            record.correlation_id = correlation_id
+        
+        trace_id = trace_id_var.get()
+        if trace_id:
+            record.trace_id = trace_id
+        
+        span_id = span_id_var.get()
+        if span_id:
+            record.span_id = span_id
         
         user_id = user_id_var.get()
         if user_id:
@@ -430,6 +460,68 @@ def log_error(error: Exception, context: Optional[Dict[str, Any]] = None, user_i
             }
         }
     )
+
+# Correlation ID and tracing utilities
+def generate_correlation_id() -> str:
+    """Generate a new correlation ID"""
+    return str(uuid.uuid4())
+
+def generate_trace_id() -> str:
+    """Generate a new trace ID"""
+    return str(uuid.uuid4())
+
+def generate_span_id() -> str:
+    """Generate a new span ID"""
+    return str(uuid.uuid4())[:16]
+
+def set_correlation_id(correlation_id: str) -> None:
+    """Set correlation ID for current context"""
+    correlation_id_var.set(correlation_id)
+
+def set_trace_id(trace_id: str) -> None:
+    """Set trace ID for current context"""
+    trace_id_var.set(trace_id)
+
+def set_span_id(span_id: str) -> None:
+    """Set span ID for current context"""
+    span_id_var.set(span_id)
+
+def set_request_id(request_id: str) -> None:
+    """Set request ID for current context"""
+    request_id_var.set(request_id)
+
+def set_user_id(user_id: str) -> None:
+    """Set user ID for current context"""
+    user_id_var.set(user_id)
+
+def set_session_id(session_id: str) -> None:
+    """Set session ID for current context"""
+    session_id_var.set(session_id)
+
+def get_correlation_id() -> Optional[str]:
+    """Get current correlation ID"""
+    return correlation_id_var.get()
+
+def get_trace_id() -> Optional[str]:
+    """Get current trace ID"""
+    return trace_id_var.get()
+
+def get_span_id() -> Optional[str]:
+    """Get current span ID"""
+    return span_id_var.get()
+
+def get_request_id() -> Optional[str]:
+    """Get current request ID"""
+    return request_id_var.get()
+
+def clear_request_context() -> None:
+    """Clear all request context variables"""
+    request_id_var.set(None)
+    correlation_id_var.set(None)
+    trace_id_var.set(None)
+    span_id_var.set(None)
+    user_id_var.set(None)
+    session_id_var.set(None)
 
 # Initialize logging on module import
 setup_logging(

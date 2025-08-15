@@ -1,0 +1,466 @@
+{
+  "dashboards": [
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Schlep Engine - Application Overview",
+        "tags": ["schlep-engine", "overview", "application"],
+        "style": "dark",
+        "timezone": "browser",
+        "editable": true,
+        "refresh": "30s",
+        "time": {"from": "now-1h", "to": "now"},
+        "panels": [
+          {
+            "title": "HTTP Request Rate",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total[5m])) by (method, status_code)",
+                "legendFormat": "{{method}} - {{status_code}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "reqps",
+                "custom": {"drawStyle": "line"}
+              }
+            }
+          },
+          {
+            "title": "HTTP Response Time",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+                "legendFormat": "95th percentile - {{endpoint}}"
+              },
+              {
+                "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint))",
+                "legendFormat": "50th percentile - {{endpoint}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            }
+          },
+          {
+            "title": "Error Rate",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(rate(http_requests_total{status_code=~\"4..|5..\"}[5m])) / sum(rate(http_requests_total[5m])) * 100",
+                "legendFormat": "Error Rate %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": 0},
+                    {"color": "yellow", "value": 1},
+                    {"color": "red", "value": 5}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "Active Users",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(users_online)",
+                "legendFormat": "Online Users"
+              },
+              {
+                "expr": "sum(users_active)",
+                "legendFormat": "Active Users"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short",
+                "colorMode": "background"
+              }
+            }
+          },
+          {
+            "title": "Database Query Performance",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(database_query_duration_seconds_bucket[5m])) by (le, operation))",
+                "legendFormat": "95th percentile - {{operation}}"
+              },
+              {
+                "expr": "rate(database_queries_total{status=\"error\"}[5m])",
+                "legendFormat": "Error Rate - {{operation}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Schlep Engine - Business Metrics",
+        "tags": ["schlep-engine", "business", "data-quality", "jobs"],
+        "style": "dark",
+        "timezone": "browser",
+        "editable": true,
+        "refresh": "1m",
+        "time": {"from": "now-24h", "to": "now"},
+        "panels": [
+          {
+            "title": "Data Processing Jobs",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(data_files_processed_total[1h])) by (processing_status)",
+                "legendFormat": "{{processing_status}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "jobs/hour"
+              }
+            }
+          },
+          {
+            "title": "Job Processing Time",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(job_processing_time_seconds_bucket[5m])) by (le, job_type))",
+                "legendFormat": "95th percentile - {{job_type}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "s"
+              }
+            }
+          },
+          {
+            "title": "Data Quality Scores",
+            "type": "gauge",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "avg(data_quality_score) by (quality_dimension)",
+                "legendFormat": "{{quality_dimension}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "min": 0,
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "yellow", "value": 70},
+                    {"color": "green", "value": 90}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "ML Model Performance",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "avg(model_prediction_accuracy) by (model_name)",
+                "legendFormat": "Accuracy - {{model_name}}"
+              },
+              {
+                "expr": "histogram_quantile(0.95, sum(rate(model_inference_time_seconds_bucket[5m])) by (le, model_name))",
+                "legendFormat": "Inference Time - {{model_name}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent"
+              }
+            }
+          },
+          {
+            "title": "Revenue and Subscriptions",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+            "targets": [
+              {
+                "expr": "sum(revenue_total)",
+                "legendFormat": "Total Revenue"
+              },
+              {
+                "expr": "sum(subscriptions_active)",
+                "legendFormat": "Active Subscriptions"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "currencyUSD",
+                "colorMode": "background"
+              }
+            }
+          },
+          {
+            "title": "API Usage by Plan Type",
+            "type": "piechart",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+            "targets": [
+              {
+                "expr": "sum(api_calls_total) by (plan_type)",
+                "legendFormat": "{{plan_type}}"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Schlep Engine - Security & Errors",
+        "tags": ["schlep-engine", "security", "errors", "alerts"],
+        "style": "dark",
+        "timezone": "browser",
+        "editable": true,
+        "refresh": "30s",
+        "time": {"from": "now-1h", "to": "now"},
+        "panels": [
+          {
+            "title": "Security Events",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(security_events_total[5m])) by (event_type, severity)",
+                "legendFormat": "{{event_type}} - {{severity}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "events/s",
+                "custom": {"drawStyle": "bars"}
+              }
+            }
+          },
+          {
+            "title": "Authentication Failures",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "sum(rate(auth_failed_attempts_total[5m])) by (reason)",
+                "legendFormat": "{{reason}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "failures/s"
+              }
+            }
+          },
+          {
+            "title": "Error Rate by Component",
+            "type": "heatmap",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(rate(data_processing_errors_total[5m])) by (error_type, file_type)",
+                "legendFormat": "{{error_type}} - {{file_type}}"
+              }
+            ]
+          },
+          {
+            "title": "Rate Limit Hits",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(rate(api_rate_limit_hits_total[5m])) by (endpoint, user_type)",
+                "legendFormat": "{{endpoint}} - {{user_type}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "hits/s"
+              }
+            }
+          },
+          {
+            "title": "Top Errors (Last Hour)",
+            "type": "table",
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+            "targets": [
+              {
+                "expr": "topk(10, sum by (error_type, component) (increase(errors_total[1h])))",
+                "format": "table",
+                "instant": true
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "custom": {
+                  "align": "left",
+                  "displayMode": "basic"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Schlep Engine - Infrastructure",
+        "tags": ["schlep-engine", "infrastructure", "system", "resources"],
+        "style": "dark",
+        "timezone": "browser",
+        "editable": true,
+        "refresh": "30s",
+        "time": {"from": "now-1h", "to": "now"},
+        "panels": [
+          {
+            "title": "CPU Usage",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+            "targets": [
+              {
+                "expr": "avg(system_cpu_usage_percent)",
+                "legendFormat": "CPU Usage %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "max": 100,
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": 0},
+                    {"color": "yellow", "value": 70},
+                    {"color": "red", "value": 90}
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "title": "Memory Usage",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+            "targets": [
+              {
+                "expr": "avg(system_memory_usage_bytes{type=\"used\"}) / avg(system_memory_usage_bytes{type=\"total\"}) * 100",
+                "legendFormat": "Memory Usage %"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percent",
+                "max": 100
+              }
+            }
+          },
+          {
+            "title": "Database Connections",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+            "targets": [
+              {
+                "expr": "sum(database_connections_active)",
+                "legendFormat": "Active Connections"
+              },
+              {
+                "expr": "sum(rate(database_connections_total[5m]))",
+                "legendFormat": "Connection Rate"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "short"
+              }
+            }
+          },
+          {
+            "title": "Cache Performance",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+            "targets": [
+              {
+                "expr": "avg(cache_hit_ratio) by (cache_type)",
+                "legendFormat": "Hit Ratio - {{cache_type}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "percentunit",
+                "max": 1
+              }
+            }
+          },
+          {
+            "title": "Storage Usage",
+            "type": "stat",
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+            "targets": [
+              {
+                "expr": "sum(storage_usage_bytes) by (storage_provider)",
+                "legendFormat": "{{storage_provider}}"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "bytes",
+                "colorMode": "background"
+              }
+            }
+          },
+          {
+            "title": "Network I/O",
+            "type": "timeseries",
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+            "targets": [
+              {
+                "expr": "rate(system_network_bytes_total{direction=\"sent\"}[5m])",
+                "legendFormat": "Sent"
+              },
+              {
+                "expr": "rate(system_network_bytes_total{direction=\"received\"}[5m])",
+                "legendFormat": "Received"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "Bps"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

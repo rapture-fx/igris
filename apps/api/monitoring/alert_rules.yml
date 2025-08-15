@@ -241,3 +241,261 @@ groups:
           summary: "Rapid cost increase detected for {{ $labels.service }}"
           description: "{{ $labels.service }} cost increased by ${{ $value }} in the last hour"
           runbook_url: "https://docs.schlep-engine.com/runbooks/cost-spike-investigation"
+
+  # Application Performance Alerts
+  - name: schlep_engine_application_performance
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(http_requests_total{status_code=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+          category: performance
+        annotations:
+          summary: "High HTTP error rate detected"
+          description: "HTTP error rate is {{ $value | humanizePercentage }}%, above the 5% threshold"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/high-error-rate"
+          dashboard_url: "https://grafana.schlep-engine.com/d/application-overview"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, endpoint)) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          category: performance
+        annotations:
+          summary: "Slow API response time on {{ $labels.endpoint }}"
+          description: "95th percentile response time is {{ $value }}s, above the 5s threshold"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/slow-response-time"
+
+      - alert: HighMemoryUsage
+        expr: avg(system_memory_usage_bytes{type="used"}) / avg(system_memory_usage_bytes{type="total"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+          category: performance
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value | humanizePercentage }}%, above the 85% threshold"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/high-memory-usage"
+
+      - alert: HighCPUUsage
+        expr: avg(system_cpu_usage_percent) > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+          category: performance
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}%, above the 80% threshold for 10 minutes"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/high-cpu-usage"
+
+  # Business Logic Alerts
+  - name: schlep_engine_business_metrics
+    rules:
+      - alert: LowDataQualityScore
+        expr: avg(data_quality_score) by (dataset_id, quality_dimension) < 70
+        for: 15m
+        labels:
+          severity: warning
+          service: data_processing
+          category: data_quality
+        annotations:
+          summary: "Low data quality score for {{ $labels.dataset_id }}"
+          description: "Data quality score for {{ $labels.quality_dimension }} is {{ $value }}%, below the 70% threshold"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/data-quality-issues"
+          dashboard_url: "https://grafana.schlep-engine.com/d/business-metrics"
+
+      - alert: HighJobFailureRate
+        expr: sum(rate(data_files_processed_total{processing_status="failed"}[1h])) / sum(rate(data_files_processed_total[1h])) * 100 > 10
+        for: 30m
+        labels:
+          severity: warning
+          service: data_processing
+          category: business
+        annotations:
+          summary: "High job failure rate detected"
+          description: "Job failure rate is {{ $value | humanizePercentage }}%, above the 10% threshold"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/job-failures"
+
+      - alert: MLModelAccuracyDrop
+        expr: avg(model_prediction_accuracy) by (model_name) < 0.8
+        for: 1h
+        labels:
+          severity: warning
+          service: ml_pipeline
+          category: business
+        annotations:
+          summary: "ML model accuracy drop for {{ $labels.model_name }}"
+          description: "Model {{ $labels.model_name }} accuracy is {{ $value | humanizePercentage }}%, below the 80% threshold"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/ml-model-degradation"
+
+      - alert: LowUserEngagement
+        expr: avg(user_session_duration_seconds) < 300
+        for: 2h
+        labels:
+          severity: info
+          service: user_analytics
+          category: business
+        annotations:
+          summary: "Low user engagement detected"
+          description: "Average session duration is {{ $value }}s, below the 5-minute threshold"
+          impact: "Potential user experience issues or product engagement problems"
+
+  # Security Alerts
+  - name: schlep_engine_security
+    rules:
+      - alert: HighAuthenticationFailures
+        expr: sum(rate(auth_failed_attempts_total[5m])) > 10
+        for: 2m
+        labels:
+          severity: high
+          service: authentication
+          category: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failures at {{ $value }} attempts per second, indicating potential brute force attack"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/authentication-attacks"
+
+      - alert: SecurityEventSpike
+        expr: sum(rate(security_events_total{severity="critical"}[5m])) > 1
+        for: 1m
+        labels:
+          severity: critical
+          service: security
+          category: security
+        annotations:
+          summary: "Critical security events detected"
+          description: "{{ $value }} critical security events per second detected"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/security-incidents"
+
+      - alert: SuspiciousAPIUsage
+        expr: sum(rate(api_rate_limit_hits_total[5m])) by (user_type) > 50
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          category: security
+        annotations:
+          summary: "Suspicious API usage pattern for {{ $labels.user_type }}"
+          description: "Rate limit hits at {{ $value }} per second for {{ $labels.user_type }} users"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/suspicious-api-usage"
+
+  # Database and Infrastructure Alerts
+  - name: schlep_engine_infrastructure
+    rules:
+      - alert: DatabaseConnectionPoolExhausted
+        expr: sum(database_connections_active) / 50 * 100 > 90
+        for: 5m
+        labels:
+          severity: critical
+          service: database
+          category: infrastructure
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "{{ $value | humanizePercentage }}% of database connections in use"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/database-connections"
+
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, sum(rate(database_query_duration_seconds_bucket[5m])) by (le, operation)) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: database
+          category: performance
+        annotations:
+          summary: "Slow database queries for {{ $labels.operation }}"
+          description: "95th percentile query time is {{ $value }}s for {{ $labels.operation }}"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/slow-queries"
+
+      - alert: LowCacheHitRatio
+        expr: avg(cache_hit_ratio) by (cache_type) < 0.8
+        for: 15m
+        labels:
+          severity: warning
+          service: cache
+          category: performance
+        annotations:
+          summary: "Low cache hit ratio for {{ $labels.cache_type }}"
+          description: "Cache hit ratio is {{ $value | humanizePercentage }}%, below the 80% threshold"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/cache-performance"
+
+      - alert: HighStorageUsage
+        expr: sum(storage_usage_bytes) by (storage_provider) / 1024 / 1024 / 1024 > 80
+        for: 30m
+        labels:
+          severity: warning
+          service: storage
+          category: infrastructure
+        annotations:
+          summary: "High storage usage for {{ $labels.storage_provider }}"
+          description: "Storage usage is {{ $value }}GB, approaching capacity limits"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/storage-management"
+
+  # Service Health Alerts
+  - name: schlep_engine_service_health
+    rules:
+      - alert: ServiceDown
+        expr: up == 0
+        for: 30s
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 30 seconds"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/service-down"
+
+      - alert: HealthCheckFailing
+        expr: avg(up) by (job) < 0.8
+        for: 2m
+        labels:
+          severity: warning
+          category: infrastructure
+        annotations:
+          summary: "Health check failing for {{ $labels.job }}"
+          description: "{{ $labels.job }} health check success rate is {{ $value | humanizePercentage }}%"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/health-check-failures"
+
+  # Data Pipeline Alerts
+  - name: schlep_engine_data_pipelines
+    rules:
+      - alert: PipelineExecutionFailure
+        expr: increase(pipeline_execution_time_seconds_count{status="failed"}[1h]) > 0
+        for: 5m
+        labels:
+          severity: high
+          service: data_pipeline
+          category: business
+        annotations:
+          summary: "Data pipeline {{ $labels.pipeline_name }} execution failed"
+          description: "Pipeline {{ $labels.pipeline_name }} stage {{ $labels.stage }} has failed"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/pipeline-failures"
+
+      - alert: LowDataThroughput
+        expr: avg(pipeline_data_throughput_records_per_second) by (pipeline_name) < 100
+        for: 15m
+        labels:
+          severity: warning
+          service: data_pipeline
+          category: performance
+        annotations:
+          summary: "Low data throughput for {{ $labels.pipeline_name }}"
+          description: "Pipeline {{ $labels.pipeline_name }} throughput is {{ $value }} records/second"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/low-throughput"
+
+      - alert: HighPipelineErrorRate
+        expr: avg(pipeline_error_rate) by (pipeline_name) > 0.05
+        for: 10m
+        labels:
+          severity: warning
+          service: data_pipeline
+          category: business
+        annotations:
+          summary: "High error rate for pipeline {{ $labels.pipeline_name }}"
+          description: "Pipeline {{ $labels.pipeline_name }} error rate is {{ $value | humanizePercentage }}%"
+          runbook_url: "https://docs.schlep-engine.com/runbooks/pipeline-errors"
