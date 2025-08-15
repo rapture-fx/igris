@@ -97,7 +97,7 @@ function RegisterPageContent() {
             {/* Logo */}
             <div className="flex items-center mb-8">
               <img 
-                src="/Schlep Engine laest logo design.svg" 
+                src="/assets/Schlep Engine logo.svg" 
                 alt="Schlep Engine - AI-Powered Data Preparation" 
                 className="h-10 w-auto"
               />

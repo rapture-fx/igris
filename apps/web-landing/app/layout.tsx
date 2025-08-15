@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { ThemeProvider } from '../src/hooks/useTheme'
+import { ThemeProvider } from '@/hooks/useTheme'
 
 export const metadata: Metadata = {
   title: 'schlep-engine - AI-Powered Data Preparation',

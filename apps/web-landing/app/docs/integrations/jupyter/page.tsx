@@ -1,5 +1,5 @@
-import Header from '@/src/components/sections/Header'
-import Footer from '@/src/components/sections/Footer'
+import Header from '@/components/sections/Header'
+import Footer from '@/components/sections/Footer'
 import { CodeBlock } from '@/src/components/docs/CodeBlock'
 import Link from 'next/link'
 

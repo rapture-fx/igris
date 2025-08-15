@@ -1,0 +1,399 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [develop, staging]
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+  # Allow manual triggers
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - preview
+
+env:
+  STAGING_HOST: ${{ secrets.STAGING_HOST }}
+  STAGING_USER: ${{ secrets.STAGING_USER }}
+  DEPLOY_PATH: /home/deploy/schlep-engine-staging
+  DOCKER_REGISTRY: ghcr.io
+  IMAGE_NAME: schlep-engine
+
+jobs:
+  # ==================================================
+  # TESTING STAGE (Same as production but faster)
+  # ==================================================
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'pnpm'
+          cache-dependency-path: '**/pnpm-lock.yaml'
+
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies
+        run: |
+          cd apps/api
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          cd ../..
+          pnpm install --frozen-lockfile
+
+      - name: Run linting
+        run: |
+          cd apps/api
+          python -m flake8 app/ --max-line-length=100 --ignore=E501,W503
+          python -m black --check app/
+          cd ../..
+          pnpm run lint
+
+      - name: Run unit tests
+        working-directory: apps/api
+        env:
+          TESTING: true
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          python -m pytest tests/unit/ -v --cov=app --cov-report=xml
+
+      - name: Run integration tests
+        working-directory: apps/api
+        env:
+          TESTING: true
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379/0
+        run: |
+          python -m pytest tests/integration/ -v
+
+      - name: Run frontend tests
+        working-directory: apps/web-landing
+        run: |
+          pnpm test --passWithNoTests
+
+  # ==================================================
+  # BUILD STAGE
+  # ==================================================
+  build:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push staging images
+        run: |
+          # Build API image
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-api:staging \
+                       -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-api:staging-${{ github.sha }} \
+                       apps/api/
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-api:staging
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-api:staging-${{ github.sha }}
+          
+          # Build frontend images
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-landing:staging \
+                       apps/web-landing/
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-landing:staging
+          
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-admin:staging \
+                       apps/web-admin/
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-admin:staging
+          
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-docs:staging \
+                       apps/web-docs/
+          docker push ${{ env.DOCKER_REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}-docs:staging
+
+  # ==================================================
+  # DEPLOY TO STAGING
+  # ==================================================
+  deploy-staging:
+    name: Deploy to Staging Environment
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to staging
+        run: |
+          # Create deployment package
+          mkdir -p staging-deploy
+          cp infrastructure/vultr/docker-compose.staging.yml staging-deploy/
+          cp -r infrastructure/vultr/nginx staging-deploy/
+          
+          # Create staging environment file
+          cat > staging-deploy/.env.staging << EOF
+          ENVIRONMENT=staging
+          DEBUG=true
+          TESTING=false
+          
+          # Database
+          POSTGRES_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}
+          DATABASE_URL=postgresql://schlep_user:${{ secrets.STAGING_DB_PASSWORD }}@postgres:5432/schlep_engine_staging
+          
+          # Redis
+          REDIS_URL=redis://redis:6379/0
+          
+          # API Keys
+          SECRET_KEY=${{ secrets.STAGING_SECRET_KEY }}
+          JWT_SECRET_KEY=${{ secrets.STAGING_JWT_SECRET }}
+          
+          # External Services (use test/sandbox versions)
+          OPENAI_API_KEY=${{ secrets.STAGING_OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY=${{ secrets.STAGING_ANTHROPIC_API_KEY }}
+          
+          # Domain configuration
+          FRONTEND_URL=https://staging.schlep-engine.com
+          API_URL=https://api-staging.schlep-engine.com
+          EOF
+          
+          # Upload to staging server
+          rsync -avz --progress staging-deploy/ \
+            ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }}:/tmp/staging-deploy/
+
+      - name: Execute staging deployment
+        run: |
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'ENDSSH'
+            set -e
+            
+            echo "🚀 Deploying to staging environment..."
+            
+            # Create staging directory
+            sudo mkdir -p ${{ env.DEPLOY_PATH }}
+            sudo chown -R ${{ secrets.STAGING_USER }}:${{ secrets.STAGING_USER }} ${{ env.DEPLOY_PATH }}
+            
+            # Copy deployment files
+            cp -r /tmp/staging-deploy/* ${{ env.DEPLOY_PATH }}/
+            cd ${{ env.DEPLOY_PATH }}
+            
+            # Login to registry
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ${{ env.DOCKER_REGISTRY }} -u ${{ github.actor }} --password-stdin
+            
+            # Stop existing services
+            docker-compose -f docker-compose.staging.yml down || true
+            
+            # Pull latest staging images
+            docker-compose -f docker-compose.staging.yml pull
+            
+            # Start services
+            docker-compose -f docker-compose.staging.yml up -d
+            
+            echo "✅ Staging deployment completed!"
+          ENDSSH
+
+      - name: Verify staging deployment
+        run: |
+          sleep 30
+          
+          # Check staging API
+          if curl -f -s "https://api-staging.schlep-engine.com/health" | jq -e '.status' > /dev/null; then
+            echo "✅ Staging API health check passed"
+          else
+            echo "❌ Staging API health check failed"
+            exit 1
+          fi
+
+  # ==================================================
+  # PREVIEW DEPLOYMENT (for PRs)
+  # ==================================================
+  deploy-preview:
+    name: Deploy Preview Environment
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.event_name == 'pull_request'
+    environment: preview
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create preview deployment
+        run: |
+          echo "🔍 Creating preview deployment for PR #${{ github.event.number }}"
+          
+          # For now, we'll just create a preview comment
+          # In the future, this could deploy to a preview environment
+          
+      - name: Comment PR with preview info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔍 Preview Deployment
+              
+              **Status:** Tests passed ✅
+              **Commit:** \`${{ github.event.pull_request.head.sha }}\`
+              
+              Preview deployment will be available once this PR is merged to staging.
+              
+              **Next Steps:**
+              - Merge to \`develop\` branch to deploy to staging
+              - Staging URL: https://staging.schlep-engine.com
+              
+              ---
+              _Automated comment by GitHub Actions_`
+            })
+
+  # ==================================================
+  # PERFORMANCE TESTING
+  # ==================================================
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        working-directory: apps/api
+        run: |
+          pip install -r requirements.txt
+          pip install aiohttp matplotlib
+
+      - name: Run performance tests against staging
+        working-directory: apps/api
+        run: |
+          # Run load tests against staging environment
+          python app/testing/advanced_load_tests.py \
+            --url https://api-staging.schlep-engine.com \
+            --users 10 \
+            --duration 60 \
+            --output performance-results/
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-test-results
+          path: apps/api/performance-results/
+
+  # ==================================================
+  # SECURITY SCANNING
+  # ==================================================
+  security-scan:
+    name: Security Scan (Staging)
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/staging'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run OWASP ZAP scan
+        uses: zaproxy/action-full-scan@v0.7.0
+        with:
+          target: 'https://staging.schlep-engine.com'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
+
+  # ==================================================
+  # CLEANUP
+  # ==================================================
+  cleanup:
+    name: Cleanup Old Deployments
+    runs-on: ubuntu-latest
+    needs: [deploy-staging]
+    if: always()
+
+    steps:
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.STAGING_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.STAGING_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Cleanup old images and containers
+        run: |
+          ssh ${{ secrets.STAGING_USER }}@${{ secrets.STAGING_HOST }} << 'ENDSSH'
+            # Remove old Docker images (keep last 3)
+            docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.ID}}" | grep staging | tail -n +4 | awk '{print $3}' | xargs -r docker rmi || true
+            
+            # Remove unused volumes
+            docker volume prune -f || true
+            
+            # Remove dangling images
+            docker image prune -f || true
+            
+            echo "✅ Cleanup completed"
+          ENDSSH

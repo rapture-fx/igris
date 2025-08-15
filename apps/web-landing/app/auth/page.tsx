@@ -3,9 +3,10 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Mail, Github, ArrowRight, Chrome } from 'lucide-react'
 import { checkEmailExists, initiateOAuthLogin, loginWithCredentials, registerUser, type ApiError } from '@/lib/auth'
-import { AuthWrapper } from '@/src/components/AuthWrapper'
+import { AuthWrapper } from '../../src/components/AuthWrapper'
 
 function AuthPageContent() {
   const router = useRouter()
@@ -99,19 +100,20 @@ function AuthPageContent() {
         {/* Left Column - Form */}
         <div className="flex-1 flex flex-col justify-center px-12 py-24 lg:px-32 xl:px-48 bg-[#111111]">
           <div className="mx-auto w-full max-w-sm lg:w-96">
-            {/* Logo */}
-            <div className="flex items-center mb-8">
-              <Link href="/">
-                <img 
-                  src="/Schlep Engine laest logo design.svg" 
-                  alt="Schlep Engine - AI-Powered Data Preparation" 
-                  className="h-16 w-auto cursor-pointer"
-                />
-              </Link>
-            </div>
+            
 
             {/* Header */}
             <div className="mb-8">
+              <div className="flex items-center mb-4">
+                <Image 
+                  src="/Schlep Engine logo.svg" 
+                  alt="Schlep Engine" 
+                  width={40} 
+                  height={40}
+                  className="mr-3"
+                />
+                <span className="text-xl font-semibold text-[#fcfcf7]">Schlep-engine</span>
+              </div>
               <h2 className="text-3xl font-bold style={{color: '#fcfcf7'}} mb-2">
                 Welcome to Schlep-engine
               </h2>

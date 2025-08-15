@@ -96,6 +96,12 @@ pull_latest_code() {
     # Pull latest changes
     git pull origin main
     
+    # Update environment file if GitHub Actions provided one
+    if [ -f "/tmp/schlep-engine-deploy/.env.production" ]; then
+        log "Using environment file from GitHub Actions..."
+        cp /tmp/schlep-engine-deploy/.env.production .env.production
+    fi
+    
     success "Code updated to latest version"
 }
 

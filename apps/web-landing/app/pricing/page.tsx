@@ -1,7 +1,7 @@
-import Header from '@/src/components/sections/Header'
-import Pricing from '@/src/components/sections/Pricing'
-import FAQ from '@/src/components/sections/FAQ'
-import Footer from '@/src/components/sections/Footer'
+import Header from '@/components/sections/Header'
+import Pricing from '@/components/sections/Pricing'
+import FAQ from '@/components/sections/FAQ'
+import Footer from '@/components/sections/Footer'
 import { Check, Calculator } from 'lucide-react'
 
 export default function PricingPage() {

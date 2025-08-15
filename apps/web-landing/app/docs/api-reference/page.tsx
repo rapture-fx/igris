@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import Header from '@/src/components/sections/Header'
-import Footer from '@/src/components/sections/Footer'
+import Header from '@/components/sections/Header'
+import Footer from '@/components/sections/Footer'
 import { Code, ArrowRight, Upload, Cpu, Download, Clock } from 'lucide-react'
 
 export default function ApiReferencePage() {

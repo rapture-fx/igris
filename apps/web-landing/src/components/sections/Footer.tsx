@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 
 export default function Footer() {
   const footerSections = [
@@ -22,30 +23,11 @@ export default function Footer() {
         { name: "Blog", href: "#blog" },
         { name: "Case Studies", href: "#cases" },
         { name: "Help Center", href: "#help" },
-        { name: "Community", href: "#community" }
-      ]
-    },
-    {
-      title: "Guide",
-      links: [
+        { name: "Community", href: "#community" },
         { name: "Getting Started", href: "#getting-started" },
         { name: "API Reference", href: "#api-reference" },
         { name: "Tutorials", href: "#tutorials" },
         { name: "Best Practices", href: "#best-practices" }
-      ]
-    },
-    {
-      title: "Integration",
-      links: [
-        { name: "AWS SageMaker", href: "#aws-sagemaker" },
-        { name: "Google Cloud AI", href: "#google-cloud-ai" },
-        { name: "Azure ML", href: "#azure-ml" },
-        { name: "Jupyter Notebooks", href: "#jupyter" },
-        { name: "TensorFlow", href: "#tensorflow" },
-        { name: "PyTorch", href: "#pytorch" },
-        { name: "scikit-learn", href: "#scikit-learn" },
-        { name: "Databricks", href: "#databricks" },
-        { name: "Snowflake", href: "#snowflake" }
       ]
     },
     {
@@ -60,7 +42,7 @@ export default function Footer() {
       ]
     },
     {
-      title: "Legal and Compliance",
+      title: "Compliance",
       links: [
         { name: "Privacy Policy", href: "#privacy" },
         { name: "Terms of Service", href: "#terms" },
@@ -81,32 +63,44 @@ export default function Footer() {
     <footer className="bg-[#111111] text-beige-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-16">
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-12">
-            
-
-            <div className="lg:col-span-12">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-7xl mx-auto">
-                {footerSections.map((section, index) => (
-                  <div key={index}>
-                    <h3 className="text-base font-semibold mb-4 text-beige-secondary">
-                      {section.title}
-                    </h3>
-                    <ul className="space-y-2">
-                      {section.links.map((link, linkIndex) => (
-                        <li key={linkIndex}>
-                          <Link
-                            href={link.href}
-                            className="text-xs text-beige-secondary hover:text-white transition-colors duration-200"
-                          >
-                            {link.name}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-7xl mx-auto">
+            {/* Brand Column */}
+            <div className="lg:col-span-2">
+              <div className="flex flex-col">
+                <div className="flex items-center mb-4">
+                  <Image 
+                    src="/Schlep Engine logo.svg" 
+                    alt="Schlep-engine" 
+                    width={32} 
+                    height={32}
+                    className="mr-2"
+                  />
+                  <h3 className="text-base font-semibold text-beige-secondary">Schlep-engine</h3>
+                </div>
+                <p className="text-xs text-gray-400">Messy data to ML-ready in API calls</p>
               </div>
             </div>
+
+            {/* Footer Sections */}
+            {footerSections.map((section, index) => (
+              <div key={index} className="lg:col-span-1">
+                <h3 className="text-base font-semibold mb-4 text-beige-secondary">
+                  {section.title}
+                </h3>
+                <ul className="space-y-2">
+                  {section.links.map((link, linkIndex) => (
+                    <li key={linkIndex}>
+                      <Link
+                        href={link.href}
+                        className="text-xs text-beige-secondary hover:text-white transition-colors duration-200"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
           <div className="mt-12 pt-8 border-t border-[#2a2a2a]">

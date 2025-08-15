@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Menu, X, ChevronRight } from 'lucide-react'
 
 export default function Header() {
@@ -138,13 +139,15 @@ export default function Header() {
       <div>
         <div className="flex justify-between items-center">
             <div className="flex items-center flex-1">
-              <Link href="/" className="flex items-center space-x-3">
-                <img 
-                  src="/assets/Schlep Engine logo.svg" 
-                  alt="schlep-engine - AI-Powered Data Preparation" 
-                  className="h-12 w-auto"
+              <Link href="/" className="flex items-center">
+                <Image 
+                  src="/Schlep Engine logo.svg" 
+                  alt="Schlep Engine" 
+                  width={32} 
+                  height={32}
+                  className="mr-2"
                 />
-                <span className="text-lg" style={{fontFamily: '"DM Sans", sans-serif', color: '#f6f1ec', fontWeight: '700'}}>Schlep-engine</span>
+                <span className="text-lg font-semibold text-[#fcfcf7]">Schlep-engine</span>
               </Link>
             </div>
 
@@ -177,7 +180,7 @@ export default function Header() {
                       
                       <div className="grid grid-cols-3 mt-4">
                         {/* Column 1: Core Data APIs */}
-                        <div className="relative border-r border-[#1d1d1d]">
+                        <div className="relative">
                           <div className="w-fit mx-auto space-y-3 pr-6">
                             <h4 className="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Core Data</h4>
                             
@@ -234,7 +237,7 @@ export default function Header() {
                         </div>
 
                         {/* Column 2: ML & Advanced APIs */}
-                        <div className="relative border-r border-[#1d1d1d]">
+                        <div className="relative">
                           <div className="w-fit mx-auto space-y-3 px-6">
                             <h4 className="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">ML & Advanced</h4>
                             
