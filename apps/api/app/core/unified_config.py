@@ -184,6 +184,16 @@ class UnifiedSettings(BaseSettings):
         description="Redis database number"
     )
     
+    # Redis performance settings
+    REDIS_MAX_CONNECTIONS: int = Field(
+        default=50,
+        description="Maximum Redis connections"
+    )
+    REDIS_CONNECTION_TIMEOUT: int = Field(
+        default=5,
+        description="Redis connection timeout in seconds"
+    )
+    
     # ==================== JWT SETTINGS ====================
     
     JWT_SECRET_KEY: str = Field(
@@ -365,6 +375,56 @@ class UnifiedSettings(BaseSettings):
     PROMETHEUS_MULTIPROC_DIR: str = Field(
         default="/tmp",
         description="Prometheus multiprocess directory"
+    )
+    
+    # ==================== PERFORMANCE SETTINGS ====================
+    
+    # Data processing optimization
+    LARGE_FILE_THRESHOLD_MB: int = Field(
+        default=100,
+        description="Threshold for switching to streaming mode (MB)"
+    )
+    DEFAULT_CHUNK_SIZE: int = Field(
+        default=10000,
+        description="Default chunk size for streaming processing"
+    )
+    MAX_CACHE_SIZE: int = Field(
+        default=1000,
+        description="Maximum number of items in memory cache"
+    )
+    MISSING_VALUE_THRESHOLD: float = Field(
+        default=0.8,
+        description="Threshold for dropping columns with missing values"
+    )
+    
+    # Performance monitoring
+    PERFORMANCE_MONITORING_INTERVAL: int = Field(
+        default=60,
+        description="Performance monitoring interval in seconds"
+    )
+    SLOW_QUERY_THRESHOLD: float = Field(
+        default=1.0,
+        description="Slow query threshold in seconds"
+    )
+    
+    # Memory management
+    MEMORY_WARNING_THRESHOLD: float = Field(
+        default=80.0,
+        description="Memory usage warning threshold (percentage)"
+    )
+    MEMORY_CRITICAL_THRESHOLD: float = Field(
+        default=95.0,
+        description="Memory usage critical threshold (percentage)"
+    )
+    
+    # CPU management
+    CPU_WARNING_THRESHOLD: float = Field(
+        default=75.0,
+        description="CPU usage warning threshold (percentage)"
+    )
+    CPU_CRITICAL_THRESHOLD: float = Field(
+        default=90.0,
+        description="CPU usage critical threshold (percentage)"
     )
     
     # ==================== FEATURE FLAGS ====================

@@ -1,8 +1,8 @@
 {
   "dashboard": {
     "id": null,
-    "title": "Schlep-engine Debug Service Monitoring",
-    "tags": ["debug", "reliability", "circuit-breaker", "health-checks"],
+    "title": "Schlep Engine Comprehensive Monitoring",
+    "tags": ["schlep-engine", "api", "monitoring", "performance", "business-metrics"],
     "style": "dark",
     "timezone": "browser",
     "editable": true,
