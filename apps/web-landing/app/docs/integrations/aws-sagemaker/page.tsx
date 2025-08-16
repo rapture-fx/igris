@@ -1,6 +1,6 @@
 import Header from '@/components/sections/Header'
 import Footer from '@/components/sections/Footer'
-import { CodeBlock } from '@/src/components/docs/CodeBlock'
+import { CodeBlock } from '@/components/docs/CodeBlock'
 import Link from 'next/link'
 
 export default function SageMakerIntegration() {

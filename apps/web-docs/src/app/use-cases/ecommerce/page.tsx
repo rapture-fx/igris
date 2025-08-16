@@ -1,5 +1,5 @@
 import React from 'react';
-import CodeBlock from '../../../components/CodeBlock';
+import { CodeBlock } from '../../../components/ui/CodeBlock';
 
 export default function EcommerceUseCase() {
   return (

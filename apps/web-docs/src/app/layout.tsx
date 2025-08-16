@@ -31,7 +31,7 @@ export default function RootLayout({
               <div className="sticky top-[0rem] h-[calc(100vh-0rem)]">
                 <Sidebar />
               </div>
-              <main className="flex-1 overflow-y-auto bg-[#161616] dark:bg-[#161616] transition-colors duration-300">
+              <main className="flex-1 overflow-y-auto bg-[#161616] transition-colors duration-300">
                 <div className="flex-1 flex justify-center px-8">
                   <div className="flex w-full pt-12 pb-6 max-w-6xl gap-16">
                     <div className="flex-1 min-w-0">

@@ -7,6 +7,7 @@ import ThemeToggle from './ThemeToggle'
 
 // Define searchable content for existing documentation pages only
 const searchData = [
+  { title: 'Unified Documentation', url: '/unified', content: 'Complete unified documentation experience with interactive features, search, and professional design', category: 'Unified' },
   { title: 'Introduction', url: '/introduction', content: 'Getting started with schlep-engine - Your AI-powered data processing platform', category: 'Introduction' },
   { title: 'Quick Start Guide', url: '/introduction/quickstart', content: 'Get up and running with schlep-engine in minutes', category: 'Introduction' },
   { title: 'API Keys', url: '/introduction/api-keys', content: 'Get your API keys and authentication setup', category: 'Introduction' },
@@ -253,6 +254,13 @@ export function Header() {
             
             {/* Right side - Actions */}
             <div className="flex items-center space-x-3 flex-shrink-0">
+              <a
+                href="/unified"
+                className="inline-flex items-center px-3 py-1.5 border border-blue-600 text-xs font-medium rounded-md text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-900/20 transition-colors duration-300"
+              >
+                Unified Docs
+              </a>
+              
               <ThemeToggle />
               
               <a 
