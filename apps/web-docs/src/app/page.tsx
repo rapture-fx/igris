@@ -60,6 +60,25 @@ const result = await client.process(job.id, {
 const processedData = await client.download(result.id);`
   return (
     <div className="min-h-screen bg-[#111111]">
+      {/* New Unified Docs Banner */}
+      <div className="bg-blue-600">
+        <div className="mx-auto max-w-7xl px-6 py-3 lg:px-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <span className="text-white text-sm font-medium">
+                🚀 New: Unified Documentation Experience
+              </span>
+              <Link
+                href="/unified"
+                className="ml-3 text-blue-100 hover:text-white text-sm underline"
+              >
+                Try it now →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <div className="relative isolate px-6 pt-14 lg:px-8">
         <div className="mx-auto max-w-4xl py-16 sm:py-24">
@@ -73,17 +92,17 @@ const processedData = await client.download(result.id);`
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Link
-                href="/introduction"
+                href="/unified"
                 className="rounded-md bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 transition-colors flex items-center gap-2"
               >
-                Get Started
+                Unified Documentation
                 <ArrowRightIcon className="h-4 w-4" />
               </Link>
               <Link
-                href="/api-reference"
+                href="/introduction"
                 className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600 transition-colors"
               >
-                View API Reference <span aria-hidden="true">→</span>
+                Classic Docs <span aria-hidden="true">→</span>
               </Link>
             </div>
           </div>

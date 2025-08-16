@@ -524,6 +524,17 @@ export default function Header() {
                           </div>
                         </Link>
                       </div>
+                      
+                      <div className="pt-3 mt-6 border-t border-[#1d1d1d]">
+                        <div className="text-left space-y-2">
+                          <Link href="http://localhost:3003/unified" className="block text-[#fcfcf7] hover:text-gray-400 text-xs">
+                            Complete Documentation →
+                          </Link>
+                          <Link href="http://localhost:3003" className="block text-[#fcfcf7] hover:text-gray-400 text-xs">
+                            See full API Reference →
+                          </Link>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
