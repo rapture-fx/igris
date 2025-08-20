@@ -15,7 +15,7 @@ echo "Starting landing page on port 3000..."
 LANDING_PID=$!
 
 # Start docs
-echo "Starting docs on port 3001..."
+echo "Starting docs on port 3003..."
 (cd "apps/web-docs" && pnpm dev > docs.log 2>&1) &
 DOCS_PID=$!
 
@@ -43,8 +43,8 @@ else
     echo "❌ Landing page failed to start"
 fi
 
-if curl -s http://localhost:3001 > /dev/null 2>&1; then
-    echo "Docs running: http://localhost:3001"
+if curl -s http://localhost:3003 > /dev/null 2>&1; then
+    echo "Docs running: http://localhost:3003"
 else
     echo "❌ Docs failed to start"
 fi
@@ -58,7 +58,7 @@ fi
 echo ""
 echo "Servers started! Access your applications:"
 echo "   Landing Page: http://localhost:3000"
-echo "   Documentation: http://localhost:3001"
+echo "   Documentation: http://localhost:3003"
 echo "   Admin Dashboard: http://localhost:3002"
 echo "   API Backend: http://localhost:8000"
 echo ""

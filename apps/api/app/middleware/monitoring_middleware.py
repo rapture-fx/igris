@@ -90,3 +90,8 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
             "total_errors": self.error_count,
             "error_rate": self.error_count / max(self.request_count, 1)
         }
+
+
+def create_monitoring_middleware():
+    """Factory function to create monitoring middleware"""
+    return MonitoringMiddleware

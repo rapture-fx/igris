@@ -38,7 +38,7 @@
   }
   
   body {
-    @apply bg-[#161616] dark:bg-[#161616] text-gray-900 dark:text-slate-50 antialiased transition-colors duration-300;
+    @apply bg-white text-gray-900 antialiased transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
     font-size: 11px;
     line-height: 1.4;
@@ -52,7 +52,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    @apply text-gray-900 dark:text-slate-50 transition-colors duration-300;
+    @apply text-gray-900 transition-colors duration-300;
   }
 
   h1 { font-size: 1.5rem; }
@@ -63,11 +63,11 @@
   h6 { font-size: 0.75rem; }
 
   * {
-    @apply border-gray-200 dark:border-zinc-700;
+    @apply border-gray-200;
   }
   
   p, li, div {
-    @apply text-gray-900 dark:text-slate-50 transition-colors duration-300;
+    @apply text-gray-900 transition-colors duration-300 text-left;
   }
 }
 
@@ -129,92 +129,168 @@
   border-right: none !important;
 }
 
-/* Main content compactness */
+/* Main content sizing to match sidebar */
 .prose {
   font-size: 12px !important;
-  line-height: 1.5 !important;
+  line-height: 1.4 !important;
   max-width: none !important;
   padding: 0 !important;
   margin: 0 !important;
+  text-align: left !important;
+  justify-content: flex-start !important;
 }
 
-.prose h1 {
-  font-size: 1.35rem !important;
-  margin-bottom: 0.4rem !important;
-}
-
-.prose h2 {
-  font-size: 1.1rem !important;
-  margin-bottom: 0.3rem !important;
-}
-
-.prose h3 {
-  font-size: 1rem !important;
-  margin-bottom: 0.2rem !important;
-}
-
-.prose p, .prose li {
-  font-size: 13px !important;
-  margin-bottom: 0.3rem !important;
-}
-
-.prose > div {
-  margin-bottom: 0.5rem !important;
-}
-
-/* Code block improvements (already light themed, syntax highlighting present) */
-.prose {
-  font-size: 10px !important;
+/* Apply consistent small text size to all main content */
+main {
+  font-size: 12px !important;
   line-height: 1.4 !important;
+}
+
+main p, main div, main span, main li, main a, main button {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Force smaller text on all text elements */
+main * {
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+/* Override any large text classes */
+main .text-xl,
+main .text-lg,
+main .text-base,
+main .text-sm,
+main .text-xs {
+  font-size: 12px !important;
+}
+
+/* Override specific large text sizes */
+main .text-3xl,
+main .text-2xl,
+main .text-xl {
+  font-size: 14px !important; /* Slightly larger for headings */
+  font-weight: 600 !important;
+}
+
+/* Ensure all content gets small text */
+main [class*="text-"] {
+  font-size: 12px !important;
+}
+
+/* Override specific problematic elements */
+main h2.text-2xl,
+main h3.text-xl,
+main code.text-lg,
+main pre.text-sm {
+  font-size: 12px !important;
+}
+
+/* Override all headings to be consistent */
+main h1, main h2, main h3, main h4, main h5, main h6 {
+  font-size: 14px !important;
+  line-height: 1.4 !important;
+  font-weight: 600 !important;
+}
+
+/* Override code elements */
+main code {
+  font-size: 11px !important;
+}
+
+/* Override pre elements */
+main pre {
+  font-size: 11px !important;
+}
+
+/* Add proper spacing between sidebar and main content */
+main {
+  margin-left: 0 !important;
+  padding-left: 3.5rem !important; /* 56px spacing - more padding */
+  padding-top: 0.5rem !important; /* Reduce top padding */
+}
+
+main > div {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Override max-width and centering on content pages */
+main .max-w-4xl {
+  max-width: none !important;
+  margin-left: 0 !important;
+  margin-right: auto !important;
+  padding-left: 0 !important;
+}
+
+/* Ensure all content starts from the left edge but with proper spacing */
+main .mx-auto {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Force all content containers to align with breadcrumb */
+main > div > div {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* Specifically target common content wrapper classes */
+main [class*="max-w"],
+main [class*="mx-auto"],
+main [class*="container"] {
+  margin-left: 0 !important;
+  padding-left: 0 !important;
   max-width: none !important;
 }
 
 .prose h1 {
-  font-size: 1.25rem !important;
+  font-size: 1.5rem !important;
   font-weight: 700 !important;
-  margin-bottom: 0.4rem !important;
+  margin-bottom: 0.5rem !important;
   margin-top: 0 !important;
 }
 
 .prose h2 {
-  font-size: 1.125rem !important;
+  font-size: 1.25rem !important;
   font-weight: 600 !important;
-  margin-top: 1rem !important;
-  margin-bottom: 0.3rem !important;
+  margin-top: 1.5rem !important;
+  margin-bottom: 0.5rem !important;
 }
 
 .prose h3 {
-  font-size: 1rem !important;
+  font-size: 1.125rem !important;
   font-weight: 600 !important;
-  margin-top: 0.875rem !important;
-  margin-bottom: 0.25rem !important;
+  margin-top: 1rem !important;
+  margin-bottom: 0.4rem !important;
 }
 
 .prose p {
-  margin-bottom: 0.4rem !important;
-  font-size: 10px !important;
+  margin-bottom: 0.75rem !important;
+  font-size: 12px !important;
 }
 
 .prose ul {
-  margin-bottom: 0.4rem !important;
-  margin-top: 0.25rem !important;
+  margin-bottom: 0.75rem !important;
+  margin-top: 0.5rem !important;
 }
 
 .prose li {
-  margin-bottom: 0.05rem !important;
-  font-size: 10px !important;
+  margin-bottom: 0.25rem !important;
+  font-size: 12px !important;
 }
 
 .prose > div {
-  margin-bottom: 0.75rem !important;
+  margin-bottom: 1rem !important;
 }
 
 .prose table {
-  font-size: 11px !important;
+  font-size: 12px !important;
 }
 
 .prose th, .prose td {
-  padding: 0.4rem 0.6rem !important;
+  padding: 0.5rem 0.75rem !important;
 }
 
 @layer components {
@@ -228,9 +304,9 @@
     box-shadow: none;
   }
 
-  /* Enhanced code blocks with dark mode support */
+  /* Enhanced code blocks with sidebar background color */
   pre {
-    background-color: #f5f5f5 !important;
+    background-color: #f9fafb !important;
     color: #374151 !important;
     padding: 0.75rem !important;
     border-radius: 6px !important;
@@ -249,19 +325,19 @@
 
   /* Inline code styling */
   code {
-    background-color: #f3f4f6 !important;
-    color: #374151 !important;
-    padding: 0.125rem 0.25rem !important;
-    border-radius: 3px !important;
+    background-color: transparent !important;
+    color: inherit !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
     font-family: 'SF Mono', 'SFMono-Regular', Monaco, 'Menlo', 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace !important;
     font-size: 0.75em !important;
     border: none !important;
-    transition: background-color 0.3s ease, color 0.3s ease;
+    transition: none;
   }
   
   .dark code {
-    background-color: #1e293b !important; /* slate-800 */
-    color: #cbd5e1 !important;             /* slate-300 */
+    background-color: transparent !important;
+    color: inherit !important;
   }
   
   /* Remove borders from all code containers */
@@ -292,77 +368,148 @@
   
 }
 
-/* Enhanced syntax highlighting - Light mode with vibrant colors */
-pre code .token.comment,
-pre code .token.prolog,
-pre code .token.doctype,
-pre code .token.cdata {
-  color: #6a737d !important;
+/* Subtle syntax highlighting for light background */
+.api-code-block pre code .token.comment,
+.api-code-block pre code .token.prolog,
+.api-code-block pre code .token.doctype,
+.api-code-block pre code .token.cdata {
+  color: #6b7280 !important; /* gray-500 */
   font-style: italic !important;
 }
 
-pre code .token.punctuation {
-  color: #24292e !important;
+.api-code-block pre code .token.string,
+.api-code-block pre code .token.char,
+.api-code-block pre code .token.attr-value {
+  color: #059669 !important; /* emerald-600 */
 }
 
-pre code .token.property,
-pre code .token.tag,
-pre code .token.constant,
-pre code .token.symbol,
-pre code .token.deleted {
-  color: #0550ae !important;
-  font-weight: 600 !important;
+.api-code-block pre code .token.number,
+.api-code-block pre code .token.boolean {
+  color: #dc2626 !important; /* red-600 */
 }
 
-pre code .token.boolean,
-pre code .token.number {
-  color: #0a3069 !important;
-  font-weight: 600 !important;
+.api-code-block pre code .token.property,
+.api-code-block pre code .token.tag,
+.api-code-block pre code .token.selector {
+  color: #2563eb !important; /* blue-600 */
 }
 
-pre code .token.selector,
-pre code .token.attr-name,
-pre code .token.string,
-pre code .token.char,
-pre code .token.builtin,
-pre code .token.inserted {
-  color: #0a3069 !important;
-}
-
-pre code .token.operator,
-pre code .token.entity,
-pre code .token.url,
-pre code .language-css .token.string,
-pre code .style .token.string,
-pre code .token.variable {
-  color: #c4621a !important;
+.api-code-block pre code .token.keyword,
+.api-code-block pre code .token.operator {
+  color: #7c3aed !important; /* violet-600 */
   font-weight: 500 !important;
 }
 
-pre code .token.atrule,
-pre code .token.attr-value,
-pre code .token.function,
-pre code .token.class-name {
-  color: #8250df !important;
-  font-weight: 600 !important;
+.api-code-block pre code .token.function,
+.api-code-block pre code .token.class-name {
+  color: #ea580c !important; /* orange-600 */
 }
 
-pre code .token.keyword {
-  color: #cf222e !important;
-  font-weight: 700 !important;
+.api-code-block pre code .token.punctuation {
+  color: #4b5563 !important; /* gray-600 */
 }
 
-pre code .token.regex,
-pre code .token.important {
-  color: #c4621a !important;
-  font-weight: 600 !important;
+/* Default text color for API code blocks */
+.api-code-block pre code {
+  color: #374151 !important; /* gray-700 */
 }
 
-pre code .token.namespace {
-  color: #8250df !important;
+/* For regular (non-API) code blocks, keep plain text */
+pre:not(.api-code-block pre) code .token.comment,
+pre:not(.api-code-block pre) code .token.prolog,
+pre:not(.api-code-block pre) code .token.doctype,
+pre:not(.api-code-block pre) code .token.cdata,
+pre:not(.api-code-block pre) code .token.punctuation,
+pre:not(.api-code-block pre) code .token.property,
+pre:not(.api-code-block pre) code .token.tag,
+pre:not(.api-code-block pre) code .token.constant,
+pre:not(.api-code-block pre) code .token.symbol,
+pre:not(.api-code-block pre) code .token.deleted,
+pre:not(.api-code-block pre) code .token.boolean,
+pre:not(.api-code-block pre) code .token.number,
+pre:not(.api-code-block pre) code .token.selector,
+pre:not(.api-code-block pre) code .token.attr-name,
+pre:not(.api-code-block pre) code .token.string,
+pre:not(.api-code-block pre) code .token.char,
+pre:not(.api-code-block pre) code .token.builtin,
+pre:not(.api-code-block pre) code .token.inserted,
+pre:not(.api-code-block pre) code .token.operator,
+pre:not(.api-code-block pre) code .token.entity,
+pre:not(.api-code-block pre) code .token.url,
+pre:not(.api-code-block pre) code .language-css .token.string,
+pre:not(.api-code-block pre) code .style .token.string,
+pre:not(.api-code-block pre) code .token.variable,
+pre:not(.api-code-block pre) code .token.atrule,
+pre:not(.api-code-block pre) code .token.attr-value,
+pre:not(.api-code-block pre) code .token.function,
+pre:not(.api-code-block pre) code .token.class-name,
+pre:not(.api-code-block pre) code .token.keyword,
+pre:not(.api-code-block pre) code .token.regex,
+pre:not(.api-code-block pre) code .token.important,
+pre:not(.api-code-block pre) code .token.namespace {
+  color: inherit !important;
+  font-weight: normal !important;
+  font-style: normal !important;
 }
 
-/* Fallback for any missed syntax elements */
-pre code {
-  color: #24292f !important;
+/* Override any remaining token styling for non-API blocks */
+pre:not(.api-code-block pre) code span[class*="token"] {
+  color: inherit !important;
+  font-weight: normal !important;
+  font-style: normal !important;
+}
+
+/* API Layout code blocks - override global styles */
+.api-code-block {
+  background-color: #f9fafb !important;
+  color: #374151 !important;
+}
+
+.api-code-block pre {
+  background-color: #f9fafb !important;
+  color: #374151 !important;
+}
+
+.api-code-block code {
+  color: #374151 !important;
+  background-color: transparent !important;
+}
+
+.api-code-block * {
+  background-color: #f9fafb !important;
+  color: #374151 !important;
+}
+
+/* Force sidebar font on syntax highlighter */
+.api-code-block pre,
+.api-code-block code,
+.api-code-block pre *,
+.api-code-block code * {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  letter-spacing: -0.01em !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* Base URL font styling */
+.base-url-code {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  line-height: 1.4 !important;
+  letter-spacing: -0.01em !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  color: #374151 !important;
+}
+
+/* Clean code blocks without complex syntax highlighting */
+.language-python, .language-javascript, .language-bash, .language-r, .language-text {
+  color: #374151 !important;
+  font-family: 'Menlo', 'Monaco', 'Cascadia Code', 'Courier New', monospace !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
 }

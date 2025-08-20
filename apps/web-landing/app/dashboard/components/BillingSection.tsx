@@ -140,13 +140,13 @@ export default function BillingSection() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'paid':
-        return 'text-green-400 bg-green-900/20 border-green-700'
+        return 'text-green-600 bg-green-100 border-green-300'
       case 'pending':
-        return 'text-yellow-400 bg-yellow-900/20 border-yellow-700'
+        return 'text-yellow-600 bg-yellow-100 border-yellow-300'
       case 'overdue':
-        return 'text-red-400 bg-red-900/20 border-red-700'
+        return 'text-red-600 bg-red-100 border-red-300'
       default:
-        return 'text-gray-400 bg-gray-900/20 border-gray-700'
+        return 'text-gray-600 bg-gray-100 border-gray-300'
     }
   }
 
@@ -164,11 +164,11 @@ export default function BillingSection() {
   const getAlertColor = (severity: string) => {
     switch (severity) {
       case 'error':
-        return 'border-red-700 bg-red-900/20'
+        return 'border-red-300 bg-red-100'
       case 'warning':
-        return 'border-yellow-700 bg-yellow-900/20'
+        return 'border-yellow-300 bg-yellow-100'
       default:
-        return 'border-blue-700 bg-blue-900/20'
+        return 'border-blue-300 bg-blue-100'
     }
   }
 
@@ -188,11 +188,11 @@ export default function BillingSection() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Billing & Usage</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Billing & Usage</h1>
           <p className="text-gray-400 mt-1">Manage your subscription and monitor usage</p>
         </div>
         <div className="flex items-center space-x-4">
-          <button className="inline-flex items-center px-4 py-2 bg-[#1a1a1a] text-gray-300 border border-gray-700 rounded-lg hover:bg-[#2a2a2a] transition-colors">
+          <button className="inline-flex items-center px-4 py-2 bg-white text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
             <Download className="w-4 h-4 mr-2" />
             Export Data
           </button>
@@ -238,7 +238,7 @@ export default function BillingSection() {
               <DollarSign className="w-4 h-4 text-green-400" />
               <span className="text-sm text-gray-400">Current Cost</span>
             </div>
-            <p className="text-2xl font-bold text-white">${billingData.currentPeriod.totalCost}</p>
+            <p className="text-2xl font-bold text-gray-800">${billingData.currentPeriod.totalCost}</p>
           </div>
 
           <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
@@ -246,7 +246,7 @@ export default function BillingSection() {
               <TrendingUp className="w-4 h-4 text-blue-400" />
               <span className="text-sm text-gray-400">Projected</span>
             </div>
-            <p className="text-2xl font-bold text-white">${billingData.currentPeriod.projectedCost}</p>
+            <p className="text-2xl font-bold text-gray-800">${billingData.currentPeriod.projectedCost}</p>
           </div>
 
           <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
@@ -254,7 +254,7 @@ export default function BillingSection() {
               <AlertTriangle className="w-4 h-4 text-yellow-400" />
               <span className="text-sm text-gray-400">Budget Limit</span>
             </div>
-            <p className="text-2xl font-bold text-white">${billingData.currentPeriod.budgetLimit}</p>
+            <p className="text-2xl font-bold text-gray-800">${billingData.currentPeriod.budgetLimit}</p>
           </div>
 
           <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
@@ -262,7 +262,7 @@ export default function BillingSection() {
               <BarChart3 className="w-4 h-4 text-purple-400" />
               <span className="text-sm text-gray-400">Budget Used</span>
             </div>
-            <p className="text-2xl font-bold text-white">{billingData.currentPeriod.percentUsed}%</p>
+            <p className="text-2xl font-bold text-gray-800">{billingData.currentPeriod.percentUsed}%</p>
           </div>
         </div>
 

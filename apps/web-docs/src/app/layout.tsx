@@ -1,12 +1,9 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
 import './globals.css'
 import { Sidebar } from '@/components/ui/Sidebar'
 import { Header } from '@/components/ui/Header'
-import { TableOfContents } from '@/components/ui/TableOfContents'
 import { ThemeProvider } from '@/hooks/useTheme'
-
-const inter = Inter({ subsets: ['latin'] })
+import { SearchComponent } from '@/components/ui/SearchComponent'
 
 export const metadata: Metadata = {
   title: 'Schlep-engine API Documentation',
@@ -20,27 +17,28 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="antialiased bg-[#161616] dark:bg-[#161616] transition-colors duration-300">
+    <html lang="en">
+      <body className="antialiased bg-white transition-colors duration-300">
         <ThemeProvider>
-          <div className="min-h-screen flex flex-col">
-            <div className="sticky top-0 z-50">
-              <Header />
-            </div>
-            <div className="flex flex-1 h-screen">
-              <div className="sticky top-[0rem] h-[calc(100vh-0rem)]">
+          <div className="min-h-screen bg-white">
+            <div className="w-full flex">
+              <div className="w-64 h-screen sticky top-0 z-40">
                 <Sidebar />
               </div>
-              <main className="flex-1 overflow-y-auto bg-[#161616] transition-colors duration-300">
-                <div className="flex-1 flex justify-center px-8">
-                  <div className="flex w-full pt-12 pb-6 max-w-6xl gap-16">
-                    <div className="flex-1 min-w-0">
-                      {children}
-                    </div>
-                    <TableOfContents />
-                  </div>
+              <div className="flex-1">
+                <div className="sticky top-0 z-50">
+                  <Header />
                 </div>
-              </main>
+                <main className="flex-1 overflow-y-auto bg-white transition-colors duration-300">
+                  <div className="pt-8 pb-6 pr-6 w-full flex flex-col items-start -ml-0">
+                    {children}
+                  </div>
+                </main>
+              </div>
+            </div>
+            {/* Global search component - rendered at root level */}
+            <div className="fixed inset-0 pointer-events-none z-[10000]">
+              <SearchComponent />
             </div>
           </div>
         </ThemeProvider>

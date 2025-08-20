@@ -68,13 +68,13 @@ export default function Hero() {
               href="/dashboard"
               className="bg-[#1A5799] text-beige-secondary px-5 py-2.5 rounded-xl hover:bg-[#154A85] transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
             >
-              Get Started for Free
+              Get Started
             </Link>
             <Link
-              href="http://localhost:3001"
+              href="http://localhost:3003/api-reference"
               className="bg-beige-secondary text-custom-gray px-5 py-2.5 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
             >
-              API Documentation
+              API Reference
             </Link>
           </div>
         </div>

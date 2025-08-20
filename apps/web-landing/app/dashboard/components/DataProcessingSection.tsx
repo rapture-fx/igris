@@ -103,15 +103,15 @@ export default function DataProcessingSection() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ready':
-        return 'text-green-400 bg-green-900/20 border-green-700'
+        return 'text-green-600 bg-green-100 border-green-300'
       case 'processing':
-        return 'text-blue-400 bg-blue-900/20 border-blue-700'
+        return 'text-blue-600 bg-blue-100 border-blue-300'
       case 'error':
-        return 'text-red-400 bg-red-900/20 border-red-700'
+        return 'text-red-600 bg-red-100 border-red-300'
       case 'validating':
-        return 'text-yellow-400 bg-yellow-900/20 border-yellow-700'
+        return 'text-yellow-600 bg-yellow-100 border-yellow-300'
       default:
-        return 'text-gray-400 bg-gray-900/20 border-gray-700'
+        return 'text-gray-600 bg-gray-100 border-gray-300'
     }
   }
 
@@ -157,7 +157,7 @@ export default function DataProcessingSection() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Data Processing</h1>
+          <h1 className="text-2xl font-bold text-gray-800">Data Processing</h1>
           <p className="text-gray-400 mt-1">Upload, validate, and manage your datasets</p>
         </div>
         <div className="flex items-center space-x-4">
@@ -176,9 +176,9 @@ export default function DataProcessingSection() {
 
       {/* Upload Progress */}
       {isUploading && (
-        <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-white">Uploading Dataset</h3>
+            <h3 className="text-lg font-semibold text-gray-800">Uploading Dataset</h3>
             <span className="text-sm text-gray-400">{Math.round(uploadProgress)}%</span>
           </div>
           <div className="w-full bg-gray-800 rounded-full h-2">
@@ -191,7 +191,7 @@ export default function DataProcessingSection() {
       )}
 
       {/* Search and Filters */}
-      <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center space-x-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -213,7 +213,7 @@ export default function DataProcessingSection() {
       {/* Datasets Grid */}
       <div className="space-y-6">
         {filteredDatasets.map((dataset) => (
-          <div key={dataset.id} className="bg-[#161616] border border-gray-800 rounded-xl p-6">
+          <div key={dataset.id} className="bg-white border border-gray-200 rounded-xl p-6">
             <div className="flex items-start justify-between">
               <div className="flex items-start space-x-4">
                 <div className="p-3 bg-[#0f0f0f] border border-gray-800 rounded-lg">
@@ -221,7 +221,7 @@ export default function DataProcessingSection() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-white">{dataset.name}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800">{dataset.name}</h3>
                     <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(dataset.status)}`}>
                       {dataset.status}
                     </span>
@@ -283,7 +283,7 @@ export default function DataProcessingSection() {
       {filteredDatasets.length === 0 && (
         <div className="text-center py-12">
           <Database className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">No datasets found</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-2">No datasets found</h3>
           <p className="text-gray-400">Upload your first dataset to get started</p>
         </div>
       )}
