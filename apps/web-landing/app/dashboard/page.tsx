@@ -658,20 +658,20 @@ export default function UserDashboard() {
 
         {/* Y-axis labels */}
         <div className="absolute -left-10 top-0 h-full flex flex-col justify-between text-xs text-gray-500 py-2">
-          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue)}</span>
-          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue * 0.75)}</span>
-          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue * 0.5)}</span>
-          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">{Math.round(maxValue * 0.25)}</span>
-          <span className="text-right bg-[#0f0f0f] px-1 rounded text-xs">0</span>
+          <span className="text-right bg-gray-100 px-1 rounded text-xs">{Math.round(maxValue)}</span>
+          <span className="text-right bg-gray-100 px-1 rounded text-xs">{Math.round(maxValue * 0.75)}</span>
+          <span className="text-right bg-gray-100 px-1 rounded text-xs">{Math.round(maxValue * 0.5)}</span>
+          <span className="text-right bg-gray-100 px-1 rounded text-xs">{Math.round(maxValue * 0.25)}</span>
+          <span className="text-right bg-gray-100 px-1 rounded text-xs">0</span>
         </div>
 
         {/* X-axis labels */}
         <div className="absolute -bottom-6 left-0 w-full flex justify-between text-xs text-gray-500 px-0">
-          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">24h ago</span>
-          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">18h ago</span>
-          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">12h ago</span>
-          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">6h ago</span>
-          <span className="bg-[#1a1a1a] px-1 py-0.5 rounded text-xs">Now</span>
+          <span className="bg-gray-200 px-1 py-0.5 rounded text-xs">24h ago</span>
+          <span className="bg-gray-200 px-1 py-0.5 rounded text-xs">18h ago</span>
+          <span className="bg-gray-200 px-1 py-0.5 rounded text-xs">12h ago</span>
+          <span className="bg-gray-200 px-1 py-0.5 rounded text-xs">6h ago</span>
+          <span className="bg-gray-200 px-1 py-0.5 rounded text-xs">Now</span>
         </div>
       </div>
     );
@@ -693,13 +693,13 @@ export default function UserDashboard() {
   const getSystemStatusColor = (status: string) => {
     switch (status) {
       case 'operational':
-        return 'text-green-400 bg-green-900/20';
+        return 'text-green-600 bg-green-100';
       case 'degraded':
-        return 'text-yellow-400 bg-yellow-900/20';
+        return 'text-yellow-600 bg-yellow-100';
       case 'down':
-        return 'text-red-400 bg-red-900/20';
+        return 'text-red-600 bg-red-100';
       default:
-        return 'text-gray-400 bg-gray-900/20';
+        return 'text-gray-600 bg-gray-100';
     }
   }
 
@@ -752,71 +752,71 @@ export default function UserDashboard() {
         return (
           <div className="text-center py-12">
             <Workflow className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Pipeline Builder</h3>
-            <p className="text-gray-400">Create and manage your data processing workflows</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Pipeline Builder</h3>
+            <p className="text-gray-600">Create and manage your data processing workflows</p>
           </div>
         );
       case 'explorer':
         return (
           <div className="text-center py-12">
             <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Data Explorer</h3>
-            <p className="text-gray-400">Interactive data profiling and analysis</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Data Explorer</h3>
+            <p className="text-gray-600">Interactive data profiling and analysis</p>
           </div>
         );
       case 'jobs':
         return (
           <div className="text-center py-12">
             <Activity className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Jobs & Monitoring</h3>
-            <p className="text-gray-400">Monitor and manage your data processing jobs</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Jobs & Monitoring</h3>
+            <p className="text-gray-600">Monitor and manage your data processing jobs</p>
           </div>
         );
       case 'api':
         return (
           <div className="text-center py-12">
             <Terminal className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">API Playground</h3>
-            <p className="text-gray-400">Test and explore Schlep Engine APIs interactively</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">API Playground</h3>
+            <p className="text-gray-600">Test and explore Schlep Engine APIs interactively</p>
           </div>
         );
       case 'models':
         return (
           <div className="text-center py-12">
             <Zap className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">ML Models</h3>
-            <p className="text-gray-400">Manage and deploy your machine learning models</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">ML Models</h3>
+            <p className="text-gray-600">Manage and deploy your machine learning models</p>
           </div>
         );
       case 'tools':
         return (
           <div className="text-center py-12">
             <FileText className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">SDK & CLI Tools</h3>
-            <p className="text-gray-400">Developer tools and integrations for Schlep Engine</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">SDK & CLI Tools</h3>
+            <p className="text-gray-600">Developer tools and integrations for Schlep Engine</p>
           </div>
         );
       case 'project':
         return (
           <div className="text-center py-12">
             <Layers className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Project Overview</h3>
-            <p className="text-gray-400">Manage your project settings and details</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Project Overview</h3>
+            <p className="text-gray-600">Manage your project settings and details</p>
           </div>
         );
       case 'settings':
         return (
           <div className="text-center py-12">
             <Settings className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">Settings</h3>
-            <p className="text-gray-400">Manage your account settings</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Settings</h3>
+            <p className="text-gray-600">Manage your account settings</p>
           </div>
         );
       default:
         return (
           <div className="text-center py-12">
-            <h3 className="text-lg font-semibold text-white mb-2">Dashboard Overview</h3>
-            <p className="text-gray-400">Welcome to your dashboard</p>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">Dashboard Overview</h3>
+            <p className="text-gray-600">Welcome to your dashboard</p>
             <WorkingChart />
           </div>
         );
@@ -839,7 +839,7 @@ export default function UserDashboard() {
   const breadcrumbs = getBreadcrumbs()
 
   return (
-    <div className="h-screen bg-[#111111] flex w-full overflow-hidden">
+    <div className="h-screen bg-white flex w-full overflow-hidden">
       <style jsx>{`
         main::-webkit-scrollbar {
           display: none;
@@ -863,17 +863,17 @@ export default function UserDashboard() {
       </div>
 
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-[#111111] border-r border-[#111111] backdrop-blur-xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col`}>
+      <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-gray-50 border-r border-gray-200 backdrop-blur-xl transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 lg:flex lg:flex-col`}>
         <div className="flex flex-col h-full pt-4">
           {/* User Profile */}
           <div className="p-4">
-            <div className="flex items-center space-x-3 p-3 rounded-xl text-[#fcfcf7]">
-              <div className="w-12 h-12 bg-[#222222] rounded-full flex items-center justify-center">
+            <div className="flex items-center space-x-3 p-3 rounded-xl text-gray-800">
+              <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                 <User className="w-8 h-8 text-white" />
               </div>
               <div>
-                <p className="text-sm font-medium text-white">John Doe</p>
-                <p className="text-xs text-gray-400">Developer</p>
+                <p className="text-sm font-medium text-gray-800">John Doe</p>
+                <p className="text-xs text-gray-500">Developer</p>
               </div>
             </div>
           </div>
@@ -884,7 +884,7 @@ export default function UserDashboard() {
               <div key={section.title} className="space-y-2">
                 {sectionIndex > 0 && (
                   <div className="py-2">
-                    <hr className="border-t border-[#161616]" />
+                    <hr className="border-t border-gray-200" />
                   </div>
                 )}
                 <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-2 mb-3">
@@ -903,19 +903,19 @@ export default function UserDashboard() {
                       }}
                       className={`sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-150 group border ${
                         activeSection === item.id
-                          ? 'bg-[#222222] border-[#1d1d1d] text-[#fcfcf7] shadow-inner'
-                          : 'text-gray-400 hover:bg-[#161616] hover:text-[#fcfcf7] active:bg-[#1a1a1a] border-transparent'
+                          ? 'bg-blue-500 border-blue-600 text-white shadow-inner'
+                          : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100 border-transparent'
                       }`}>
-                      <item.icon className={`w-5 h-5 ${activeSection === item.id ? 'text-[#fcfcf7]' : 'text-gray-400 group-hover:text-[#fcfcf7]'}`} />
+                      <item.icon className={`w-5 h-5 ${activeSection === item.id ? 'text-white' : 'text-gray-600 group-hover:text-blue-700'}`} />
                       <span className="text-sm">{item.name}</span>
                     </button>
                   ))}
                   {section.title === 'Dashboard' && (
                     <button
                       onClick={() => setShowSearchModal(true)}
-                      className="sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-150 group border border-transparent text-gray-400 hover:bg-[#161616] hover:text-[#fcfcf7] active:bg-[#1a1a1a]"
+                      className="sidebar-button w-full flex items-center space-x-3 px-4 py-2 rounded-xl transition-all duration-150 group border border-transparent text-gray-600 hover:bg-blue-50 hover:text-blue-700 active:bg-blue-100"
                     >
-                      <Search className="w-5 h-5 text-gray-400 group-hover:text-[#fcfcf7]" />
+                      <Search className="w-5 h-5 text-gray-600 group-hover:text-blue-700" />
                       <span className="text-sm">Search</span>
                     </button>
                   )}
@@ -927,14 +927,14 @@ export default function UserDashboard() {
           {/* User Section Bottom Links */}
           <div className="p-4">
             <div className="py-2">
-              <hr className="border-t border-[#161616]" />
+              <hr className="border-t border-gray-200" />
             </div>
             <div className="mt-2 space-y-1">
-              <a href="/help" className="sidebar-button flex items-center space-x-3 px-4 py-2 rounded-xl border border-transparent hover:bg-[#161616] active:bg-[#1a1a1a] transition-all duration-150 text-gray-400 hover:text-[#fcfcf7]">
+              <a href="/help" className="sidebar-button flex items-center space-x-3 px-4 py-2 rounded-xl border border-transparent hover:bg-blue-50 active:bg-blue-100 transition-all duration-150 text-gray-600 hover:text-blue-700">
                 <HelpCircle className="w-5 h-5" />
                 <span className="text-sm">Help</span>
               </a>
-              <button className="sidebar-button flex items-center space-x-3 px-4 py-2 rounded-xl border border-transparent hover:bg-[#161616] active:bg-[#1a1a1a] transition-all duration-150 text-gray-400 hover:text-[#fcfcf7] w-full">
+              <button className="sidebar-button flex items-center space-x-3 px-4 py-2 rounded-xl border border-transparent hover:bg-blue-50 active:bg-blue-100 transition-all duration-150 text-gray-600 hover:text-blue-700 w-full">
                 <LogOut className="w-5 h-5" />
                 <span className="text-sm">Sign Out</span>
               </button>
@@ -946,7 +946,7 @@ export default function UserDashboard() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0 h-full">
         {/* Top Header */}
-        <header className="flex-shrink-0 bg-[#111111] h-20">
+        <header className="flex-shrink-0 bg-white border-b border-gray-200 h-20">
           <div className="px-6 h-full flex items-center">
             <div className="flex items-center justify-between w-full">
               <div className="flex items-center space-x-4">
@@ -955,15 +955,15 @@ export default function UserDashboard() {
                   onClick={() => setSidebarOpen(true)}
                   className="lg:hidden p-2 rounded-lg hover:bg-gray-800/50 transition-colors"
                 >
-                  <Menu className="w-5 h-5 text-gray-400" />
+                  <Menu className="w-5 h-5 text-gray-600" />
                 </button>
 
                 {/* Breadcrumbs */}
-                <nav className="hidden md:flex items-center space-x-2 text-sm text-gray-400">
+                <nav className="hidden md:flex items-center space-x-2 text-sm text-gray-600">
                   {breadcrumbs.map((crumb, index) => (
                     <div key={crumb.name} className="flex items-center space-x-2">
                       {index > 0 && <ChevronRight className="w-4 h-4" />}
-                      <a href={crumb.href} className="hover:text-white transition-colors">
+                      <a href={crumb.href} className="hover:text-blue-700 transition-colors">
                         {crumb.name}
                       </a>
                     </div>
@@ -976,7 +976,7 @@ export default function UserDashboard() {
 
         {/* Dashboard Content */}
         <main 
-          className="flex-1 pl-6 pr-6 bg-[#161616] overflow-y-auto rounded-t-2xl"
+          className="flex-1 pl-6 pr-6 bg-gray-50 overflow-y-auto rounded-t-2xl"
           style={{
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
@@ -1001,7 +1001,7 @@ export default function UserDashboard() {
               type="text"
               placeholder="Search..."
               autoFocus
-              className="w-full px-3 py-1 rounded-lg bg-[#1a1a1a] border border-[#1d1d1d] text-[#fcfcf7] focus:outline-none focus:ring-2 focus:ring-white/20"
+              className="w-full px-3 py-1 rounded-lg bg-gray-200 border border-gray-300 text-gray-800 focus:outline-none focus:ring-2 focus:ring-white/20"
             />
           </div>
         </div>
@@ -1010,9 +1010,9 @@ export default function UserDashboard() {
       {/* Settings Modal */}
       {showSettingsModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm" onClick={() => setShowSettingsModal(false)}>
-          <div className="relative z-51 w-full max-w-xl bg-[#1a1a1a] border border-[#1d1d1d] rounded-lg p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-white mb-4">Settings</h3>
-            <p className="text-gray-400">Manage your account settings here.</p>
+          <div className="relative z-51 w-full max-w-xl bg-gray-200 border border-gray-300 rounded-lg p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Settings</h3>
+            <p className="text-gray-600">Manage your account settings here.</p>
           </div>
         </div>
       )}

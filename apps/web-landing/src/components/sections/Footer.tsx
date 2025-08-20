@@ -77,7 +77,6 @@ export default function Footer() {
                   />
                   <h3 className="text-base font-semibold text-beige-secondary">Schlep-engine</h3>
                 </div>
-                <p className="text-xs text-gray-400">Messy data to ML-ready in API calls</p>
               </div>
             </div>
 

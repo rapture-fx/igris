@@ -31,24 +31,26 @@ def log_slow_query(query_time: float, statement: str):
         query_performance_metrics["slow_queries"] += 1
         logger.warning(f"Slow query detected ({query_time:.3f}s): {statement[:100]}...")
 
-@event.listens_for(create_engine, "before_cursor_execute")
-def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    """Start timing queries"""
-    context._query_start_time = time.time()
+def setup_performance_monitoring(engine_instance):
+    """Set up performance monitoring for an engine instance"""
+    @event.listens_for(engine_instance, "before_cursor_execute")
+    def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        """Start timing queries"""
+        context._query_start_time = time.time()
 
-@event.listens_for(create_engine, "after_cursor_execute")
-def receive_after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
-    """End timing queries and log performance"""
-    total_time = time.time() - context._query_start_time
-    query_performance_metrics["total_queries"] += 1
-    
-    # Update average query time
-    current_avg = query_performance_metrics["avg_query_time"]
-    count = query_performance_metrics["total_queries"]
-    query_performance_metrics["avg_query_time"] = (current_avg * (count - 1) + total_time) / count
-    
-    # Log slow queries
-    log_slow_query(total_time, statement)
+    @event.listens_for(engine_instance, "after_cursor_execute")
+    def receive_after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        """End timing queries and log performance"""
+        total_time = time.time() - context._query_start_time
+        query_performance_metrics["total_queries"] += 1
+        
+        # Update average query time
+        current_avg = query_performance_metrics["avg_query_time"]
+        count = query_performance_metrics["total_queries"]
+        query_performance_metrics["avg_query_time"] = (current_avg * (count - 1) + total_time) / count
+        
+        # Log slow queries
+        log_slow_query(total_time, statement)
 
 try:
     # Performance-optimized connection arguments
@@ -108,6 +110,10 @@ try:
     # Session makers
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     AsyncSessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=async_engine)
+    
+    # Set up performance monitoring
+    if engine:
+        setup_performance_monitoring(engine)
     
     logger.info("Database engines initialized successfully")
     

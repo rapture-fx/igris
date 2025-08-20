@@ -471,73 +471,12 @@ export default function Header() {
                     </div>
                   )}
                 </div>
-                <div 
-                  ref={docsLinkRef}
-                  onMouseEnter={handleDocsHover}
-                  onMouseLeave={handleDocsLeave}
-                  onClick={handleDocsClick}
-                  className="cursor-pointer relative"
+                <Link 
+                  href="http://localhost:3003" 
+                  className="text-sm text-gray-300 hover:text-gray-400 transition-colors duration-200"
                 >
-                  <span className="text-sm text-gray-300 hover:text-gray-400 transition-colors duration-200">
-                    Docs
-                  </span>
-                  {showDocsPanel && (
-                    <div 
-                      ref={docsPanelRef}
-                      className="absolute bg-[#111111] backdrop-blur-md border border-[#161616] rounded-lg shadow-2xl p-5 z-50"
-                      onMouseEnter={handleDocsHover}
-                      onMouseLeave={handleDocsLeave}
-                      style={{
-                        top: 'calc(100% + 2.2rem)',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: '260px'
-                      }}
-                    >
-                      <div className="w-fit mx-auto space-y-3">
-                        <h4 className="text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Documentation</h4>
-                        <Link 
-                          href="/docs" 
-                          className="flex items-start rounded-md hover:bg-[#161616] transition-colors duration-200 group cursor-pointer p-2"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <h5 className="text-beige-secondary text-xs group-hover:text-gray-400">Getting Started</h5>
-                            <p className="text-xs text-gray-500">A comprehensive guide to get you started.</p>
-                          </div>
-                        </Link>
-                        <Link 
-                          href="/docs/api-reference" 
-                          className="flex items-start rounded-md hover:bg-[#161616] transition-colors duration-200 group cursor-pointer p-2"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <h5 className="text-beige-secondary text-xs group-hover:text-gray-400">API Reference</h5>
-                            <p className="text-xs text-gray-500">In-depth documentation for our API.</p>
-                          </div>
-                        </Link>
-                        <Link 
-                          href="/docs/api-reference/industry-endpoints" 
-                          className="flex items-start rounded-md hover:bg-[#161616] transition-colors duration-200 group cursor-pointer p-2"
-                        >
-                          <div className="flex-1 min-w-0">
-                            <h5 className="text-beige-secondary text-xs group-hover:text-gray-400">Industry Endpoints</h5>
-                            <p className="text-xs text-gray-500">Specialized APIs for specific industries.</p>
-                          </div>
-                        </Link>
-                      </div>
-                      
-                      <div className="pt-3 mt-6 border-t border-[#1d1d1d]">
-                        <div className="text-left space-y-2">
-                          <Link href="http://localhost:3003/unified" className="block text-[#fcfcf7] hover:text-gray-400 text-xs">
-                            Complete Documentation →
-                          </Link>
-                          <Link href="http://localhost:3003" className="block text-[#fcfcf7] hover:text-gray-400 text-xs">
-                            See full API Reference →
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  Docs
+                </Link>
                 <Link 
                   href="/pricing" 
                   className="text-sm text-gray-300 hover:text-gray-400 transition-colors duration-200"
