@@ -98,7 +98,7 @@ async function processData() {
 processData().catch(console.error);`
 
   const curlCode = `# 1. Upload your dataset
-curl -X POST "https://api.schlepengine.com/v1/upload" \\
+curl -X POST "https://api.schlep-engine.com/v1/upload" \\
   -H "Authorization: Bearer your_api_key_here" \\
   -H "Content-Type: multipart/form-data" \\
   -F "file=@your_dataset.csv" \\
@@ -107,7 +107,7 @@ curl -X POST "https://api.schlepengine.com/v1/upload" \\
 # Response: {"job_id": "job_123abc", "status": "processing"}
 
 # 2. Process the data
-curl -X POST "https://api.schlepengine.com/v1/process" \\
+curl -X POST "https://api.schlep-engine.com/v1/process" \\
   -H "Authorization: Bearer your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -119,7 +119,7 @@ curl -X POST "https://api.schlepengine.com/v1/process" \\
   }'
 
 # 3. Check status and download
-curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
+curl -X GET "https://api.schlep-engine.com/v1/jobs/job_123abc/result" \\
   -H "Authorization: Bearer your_api_key_here"`
 
   return (
@@ -339,7 +339,7 @@ curl -X GET "https://api.schlepengine.com/v1/jobs/job_123abc/result" \\
     "normalized_formats",
     "detected_outliers"
   ],
-  "download_url": "https://api.schlepengine.com/v1/download/result_xyz789",
+  "download_url": "https://api.schlep-engine.com/v1/download/result_xyz789",
   "expires_at": "2024-01-20T10:30:00Z"
 }`}
           </pre>

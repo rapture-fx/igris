@@ -48,7 +48,7 @@ export default function AuthenticationPage() {
 
             <CodeBlock
               code={`curl -H "Authorization: Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc" \\
-  https://api.schlepengine.com/v1/profile/upload_123`}
+  https://api.schlep-engine.com/v1/profile/upload_123`}
               language="bash"
               title="cURL"
             />
@@ -121,7 +121,7 @@ headers = {"Authorization": f"Bearer {api_key}"}
 
 # Make authenticated request
 response = requests.get(
-    "https://api.schlepengine.com/v1/profile/upload_123",
+    "https://api.schlep-engine.com/v1/profile/upload_123",
     headers=headers
 )
 
@@ -151,7 +151,7 @@ const headers = {
 async function getProfile(uploadId) {
     try {
         const response = await fetch(
-            \`https://api.schlepengine.com/v1/profile/\${uploadId}\`,
+            \`https://api.schlep-engine.com/v1/profile/\${uploadId}\`,
             { headers }
         );
         
@@ -178,14 +178,14 @@ getProfile('upload_123');`}
                 <CodeBlock
                   code={`# GET request with authentication
 curl -H "Authorization: Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc" \\
-  https://api.schlepengine.com/v1/profile/upload_123
+  https://api.schlep-engine.com/v1/profile/upload_123
 
 # POST request with authentication
 curl -X POST \\
   -H "Authorization: Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc" \\
   -H "Content-Type: application/json" \\
   -d '{"upload_id": "upload_123", "target_format": "tensorflow"}' \\
-  https://api.schlepengine.com/v1/process`}
+  https://api.schlep-engine.com/v1/process`}
                   language="bash"
                   title="cURL Examples"
                 />

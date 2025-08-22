@@ -71,7 +71,7 @@ export default function GettingStartedPage() {
               code={`import requests
 
 # Upload your data
-response = requests.post('https://api.schlepengine.com/v1/upload', 
+response = requests.post('https://api.schlep-engine.com/v1/upload', 
     headers={'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'},
     files={'file': open('customer_data.csv', 'rb')}
 )
@@ -81,7 +81,7 @@ print(f"Upload ID: {upload_result['upload_id']}")
 
 # Get data profile
 profile_response = requests.get(
-    f"https://api.schlepengine.com/v1/profile/{upload_result['upload_id']}",
+    f"https://api.schlep-engine.com/v1/profile/{upload_result['upload_id']}",
     headers={'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'}
 )
 
@@ -107,7 +107,7 @@ print(f"Recommended transformations: {len(profile['recommendations'])}")`}
             <CodeBlock
               code={`# Start data processing
 process_response = requests.post(
-    'https://api.schlepengine.com/v1/process',
+    'https://api.schlep-engine.com/v1/process',
     headers={'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'},
     json={
         'upload_id': upload_result['upload_id'],
@@ -123,7 +123,7 @@ print(f"Status: {job['status']}")
 
 # Check processing status
 status_response = requests.get(
-    f"https://api.schlepengine.com/v1/jobs/{job['job_id']}",
+    f"https://api.schlep-engine.com/v1/jobs/{job['job_id']}",
     headers={'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'}
 )
 

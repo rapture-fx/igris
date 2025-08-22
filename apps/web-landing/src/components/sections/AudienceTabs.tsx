@@ -10,13 +10,13 @@ export default function AudienceTabs() {
 
   return (
     <>
-      <section className="py-20 bg-[#111111] text-beige-secondary">
+      <section className="py-20 bg-white text-gray-900">
         <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
           <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-semibold text-beige-secondary mb-4 text-left">
+            <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 text-left">
               Who are you building for?
             </h2>
-            <p className="text-xl text-beige-secondary max-w-2xl text-left">
+            <p className="text-xl text-gray-700 max-w-2xl text-left">
               Schlep-engine empowers both technical and non-technical users to transform data effortlessly.
             </p>
           </div>
@@ -24,7 +24,7 @@ export default function AudienceTabs() {
           
 
           <div className="grid lg:grid-cols-2 gap-12 items-start">
-              <div className="rounded-2xl p-8 border border-gray-700 bg-gray-900 space-y-8">
+              <div className="rounded-2xl p-8 border border-gray-200 bg-gray-50 space-y-8">
                 <div className="flex items-start space-x-4">
                   <div className="bg-[#468BE6]/20 p-3 rounded-lg">
                     <Terminal className="w-6 h-6 text-[#468BE6]" />
@@ -33,7 +33,7 @@ export default function AudienceTabs() {
                     <h3 className="text-xl font-semibold mb-2">
                       RESTful API
                     </h3>
-                    <p className="text-gray-300">
+                    <p className="text-gray-600">
                       Simple HTTP endpoints with comprehensive documentation. Get started in minutes.
                     </p>
                   </div>
@@ -47,7 +47,7 @@ export default function AudienceTabs() {
                     <h3 className="text-xl font-semibold mb-2">
                       Multiple SDKs
                     </h3>
-                    <p className="text-gray-300">
+                    <p className="text-gray-600">
                       Native libraries for Python, JavaScript, Go, and more. Type-safe and well-documented.
                     </p>
                   </div>
@@ -61,7 +61,7 @@ export default function AudienceTabs() {
                     <h3 className="text-xl font-semibold mb-2">
                       High Performance
                     </h3>
-                    <p className="text-gray-300">
+                    <p className="text-gray-600">
                       Process large datasets in seconds. Built on modern infrastructure with auto-scaling.
                     </p>
                   </div>
@@ -91,16 +91,16 @@ export default function AudienceTabs() {
                 </div>
               </div>
 
-              <div className="rounded-2xl p-8 border border-gray-700 bg-gray-900 space-y-8">
+              <div className="rounded-2xl p-8 border border-gray-200 bg-gray-50 space-y-8">
                 <div className="flex items-start space-x-4">
                   <div className="bg-[#468BE6]/10 p-3 rounded-lg">
                     <Upload className="w-6 h-6 text-[#468BE6]" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-beige-secondary mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       Simple Upload
                     </h3>
-                    <p className="text-beige-secondary">
+                    <p className="text-gray-700">
                       Drag and drop your CSV, Excel, or JSON files. No technical setup required.
                     </p>
                   </div>
@@ -111,10 +111,10 @@ export default function AudienceTabs() {
                     <MousePointer className="w-6 h-6 text-[#468BE6]" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-beige-secondary mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       Point & Click Configuration
                     </h3>
-                    <p className="text-beige-secondary">
+                    <p className="text-gray-700">
                       Select transformations, handle missing values, and configure outputs with visual tools.
                     </p>
                   </div>
@@ -125,10 +125,10 @@ export default function AudienceTabs() {
                     <Zap className="w-6 h-6 text-[#468BE6]" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-beige-secondary mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       AI-Powered Processing
                     </h3>
-                    <p className="text-beige-secondary">
+                    <p className="text-gray-700">
                       Our AI automatically detects data patterns and suggests optimal transformations.
                     </p>
                   </div>
@@ -139,10 +139,10 @@ export default function AudienceTabs() {
                     <Download className="w-6 h-6 text-[#468BE6]" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-beige-secondary mb-2">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
                       Ready-to-Use Output
                     </h3>
-                    <p className="text-beige-secondary">
+                    <p className="text-gray-700">
                       Download clean data in formats ready for Excel, Tableau, or any analytics tool.
                     </p>
                   </div>

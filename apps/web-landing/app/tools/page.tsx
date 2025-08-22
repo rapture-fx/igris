@@ -202,22 +202,22 @@ schlep data batch-upload ./datasets/*.csv --parallel 4`
         'Pagination'
       ],
       codeExample: `# Authentication
-curl -X POST "https://api.schlepengine.com/v1/auth" \\
+curl -X POST "https://api.schlep-engine.com/v1/auth" \\
   -H "Content-Type: application/json" \\
   -d '{"api_key": "your_api_key"}'
 
 # Upload dataset
-curl -X POST "https://api.schlepengine.com/v1/data/upload" \\
+curl -X POST "https://api.schlep-engine.com/v1/data/upload" \\
   -H "Authorization: Bearer $TOKEN" \\
   -F "file=@data.csv" \\
   -F "name=Customer Data"
 
 # Get dataset status
-curl -X GET "https://api.schlepengine.com/v1/data/$DATASET_ID/status" \\
+curl -X GET "https://api.schlep-engine.com/v1/data/$DATASET_ID/status" \\
   -H "Authorization: Bearer $TOKEN"
 
 # Start ML auto-labeling
-curl -X POST "https://api.schlepengine.com/v1/ml/auto-label" \\
+curl -X POST "https://api.schlep-engine.com/v1/ml/auto-label" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -227,7 +227,7 @@ curl -X POST "https://api.schlepengine.com/v1/ml/auto-label" \\
   }'
 
 # Webhook endpoint example
-curl -X POST "https://api.schlepengine.com/v1/webhooks" \\
+curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{

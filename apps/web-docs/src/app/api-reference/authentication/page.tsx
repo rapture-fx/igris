@@ -1,131 +1,270 @@
-export default function AuthenticationPage() {
+import { ApiLayout } from '@/components/ui/ApiLayout'
+
+export default function AuthenticationApiPage() {
+  const codeExamples = [
+    {
+      language: 'curl',
+      label: 'cURL',
+      code: `# Login
+curl -X POST https://api.schlep-engine.com/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{ 
+    "email": "your@email.com",
+    "password": "your_password"
+  }'
+
+# Register
+curl -X POST https://api.schlep-engine.com/api/v1/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{ 
+    "email": "new@email.com",
+    "password": "new_password",
+    "username": "new_user"
+  }'`
+    },
+    {
+      language: 'python',
+      label: 'Python',
+      code: `import requests
+
+# Login
+login_data = {
+    "email": "your@email.com",
+    "password": "your_password"
+}
+response = requests.post("https://api.schlep-engine.com/api/v1/auth/login", json=login_data)
+print(response.json())
+
+# Register
+register_data = {
+    "email": "new@email.com",
+    "password": "new_password",
+    "username": "new_user"
+}
+response = requests.post("https://api.schlep-engine.com/api/v1/auth/register", json=register_data)
+print(response.json())`
+    },
+    {
+      language: 'javascript',
+      label: 'JavaScript',
+      code: `// Login
+fetch('https://api.schlep-engine.com/api/v1/auth/login', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ email: 'your@email.com', password: 'your_password' }) 
+}).then(res => res.json()).then(console.log);
+
+// Register
+fetch('https://api.schlep-engine.com/api/v1/auth/register', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ email: 'new@email.com', password: 'new_password', username: 'new_user' }) 
+}).then(res => res.json()).then(console.log);`
+    }
+  ]
+
   return (
-    <div className="max-w-4xl mx-auto p-8">
-      <h1 className="text-4xl font-bold mb-8 text-gray-900">
-        Authentication
-      </h1>
-      
-      <div className="prose prose-lg max-w-none">
-        <p className="text-xl text-gray-600 mb-8">
-          Learn how to authenticate with the Schlep Engine API using API keys and tokens.
-        </p>
-
-        <h2 className="text-3xl font-semibold mt-12 mb-6">API Key Authentication</h2>
-        
-        <p>All API requests must be authenticated using your API key in the Authorization header:</p>
-        
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8 overflow-x-auto">
-          <pre className="text-sm text-gray-900"><code>{`Authorization: Bearer YOUR_API_KEY`}</code></pre>
+    <ApiLayout 
+      title="Authentication API"
+      description="Manage users, authentication, and authorization."
+      codeExamples={codeExamples}
+    >
+      <section className="mb-12" id="login">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">User Login</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
+            <code className="text-sm">/api/v1/auth/login</code>
+          </div>
+          <p className="text-gray-600 mb-4">Authenticate a user and receive access and refresh tokens.</p>
         </div>
+      </section>
 
-        <h3 className="text-2xl font-semibold mt-8 mb-4">Example Request</h3>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 overflow-x-auto">
-          <pre className="text-sm text-gray-900"><code>{`curl -X GET "https://api.schlepengine.com/v1/uploads" \\
-  -H "Authorization: Bearer se_1234567890abcdef" \\
-  -H "Content-Type: application/json"`}</code></pre>
+      <section className="mb-12" id="register">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">User Registration</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
+            <code className="text-sm">/api/v1/auth/register</code>
+          </div>
+          <p className="text-gray-600 mb-4">Create a new user account.</p>
         </div>
+      </section>
 
-        <h2 className="text-3xl font-semibold mt-12 mb-6">Authentication Errors</h2>
-        
-        <div className="space-y-4 mb-8">
-          <div className="border-l-4 border-red-400 bg-red-50 p-4">
-            <h3 className="text-lg font-semibold text-red-800 mb-2">401 Unauthorized</h3>
-            <p className="text-red-700 text-sm">Missing or invalid API key</p>
-            <div className="mt-2">
-              <code className="text-xs text-red-800 bg-red-100 px-2 py-1 rounded">
-                {"{ \"error\": \"Invalid API key\" }"}
-              </code>
+      <section className="mb-12" id="oauth-authentication">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">OAuth Authentication</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <p className="text-gray-600 mb-6">
+            Authenticate users using OAuth providers like Google and GitHub for seamless SSO integration.
+          </p>
+          
+          <div className="mb-6">
+            <h4 className="font-semibold text-gray-900 mb-2">Initiate OAuth Flow:</h4>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+              <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/authorize</code>
+            </div>
+            <p className="text-gray-600 text-sm mb-4">Redirect users to OAuth provider for authentication. Supported providers: <code>google</code>, <code>github</code></p>
+            
+            <div className="bg-white p-4 rounded border mb-4">
+              <h5 className="font-medium mb-2">Query Parameters:</h5>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li><code>redirect_uri</code> - URL to redirect after authentication</li>
+                <li><code>state</code> - Optional state parameter for security</li>
+              </ul>
             </div>
           </div>
           
-          <div className="border-l-4 border-yellow-400 bg-yellow-50 p-4">
-            <h3 className="text-lg font-semibold text-yellow-800 mb-2">403 Forbidden</h3>
-            <p className="text-yellow-700 text-sm">API key doesn't have required permissions</p>
-            <div className="mt-2">
-              <code className="text-xs text-yellow-800 bg-yellow-100 px-2 py-1 rounded">
-                {"{ \"error\": \"Insufficient permissions\" }"}
-              </code>
+          <div>
+            <h4 className="font-semibold text-gray-900 mb-2">Complete OAuth Flow:</h4>
+            <div className="flex items-center gap-2 mb-2">
+              <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
+              <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/callback</code>
+            </div>
+            <p className="text-gray-600 text-sm mb-4">Handle OAuth callback and create user session.</p>
+            
+            <div className="bg-white p-4 rounded border">
+              <h5 className="font-medium mb-2">Request Body:</h5>
+              <pre className="text-sm text-gray-600 overflow-x-auto">
+{`{
+  "code": "oauth_authorization_code",
+  "state": "optional_state_parameter"
+}`}
+              </pre>
+              
+              <h5 className="font-medium mb-2 mt-4">Response:</h5>
+              <pre className="text-sm text-gray-600 overflow-x-auto">
+{`{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer",
+  "expires_in": 1800,
+  "user": {
+    "id": "user_123456",
+    "email": "user@company.com",
+    "provider": "google",
+    "is_verified": true
+  }
+}`}
+              </pre>
             </div>
           </div>
         </div>
+      </section>
 
-        <h2 className="text-3xl font-semibold mt-12 mb-6">SDK Authentication</h2>
-        
-        <h3 className="text-2xl font-semibold mt-8 mb-4">Python SDK</h3>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 overflow-x-auto">
-          <pre className="text-sm text-gray-900"><code>{`import schlep_engine as se
-
-# Method 1: Direct initialization
-client = se.Client(api_key="se_1234567890abcdef")
-
-# Method 2: Environment variable
-import os
-client = se.Client(api_key=os.getenv("SCHLEP_API_KEY"))
-
-# Method 3: Configuration file
-client = se.Client.from_config("config.json")`}</code></pre>
+      <section className="mb-12" id="refresh">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Refresh Token</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
+            <code className="text-sm">/api/v1/auth/refresh</code>
+          </div>
+          <p className="text-gray-600 mb-4">Obtain a new access token using a refresh token.</p>
         </div>
+      </section>
 
-        <h3 className="text-2xl font-semibold mt-8 mb-4">JavaScript SDK</h3>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8 overflow-x-auto">
-          <pre className="text-sm text-gray-900"><code>{`import SchlepEngine from 'schlep-engine';
-
-// Method 1: Direct initialization
-const client = new SchlepEngine({
-  apiKey: 'se_1234567890abcdef'
-});
-
-// Method 2: Environment variable
-const client = new SchlepEngine({
-  apiKey: process.env.SCHLEP_API_KEY
-});`}</code></pre>
+      <section className="mb-12" id="me">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get Current User</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+            <code className="text-sm">/api/v1/auth/me</code>
+          </div>
+          <p className="text-gray-600 mb-4">Get information about the currently authenticated user.</p>
         </div>
+      </section>
 
-        <h2 className="text-3xl font-semibold mt-12 mb-6">Security Best Practices</h2>
-        
-        <ul className="list-disc list-inside space-y-2 mb-8">
-          <li>Never expose API keys in client-side code or public repositories</li>
-          <li>Use environment variables to store API keys securely</li>
-          <li>Rotate API keys regularly (quarterly recommended)</li>
-          <li>Use different API keys for different environments</li>
-          <li>Monitor API key usage in your dashboard</li>
-          <li>Revoke compromised keys immediately</li>
-        </ul>
-
-        <h2 className="text-3xl font-semibold mt-12 mb-6">Testing Authentication</h2>
-        
-        <p>Use the health endpoint to verify your authentication:</p>
-        
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 overflow-x-auto">
-          <pre className="text-sm text-gray-900"><code>{`curl -X GET "https://api.schlepengine.com/v1/health" \\
-  -H "Authorization: Bearer YOUR_API_KEY"`}</code></pre>
+      <section className="mb-12" id="logout">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">User Logout</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
+            <code className="text-sm">/api/v1/auth/logout</code>
+          </div>
+          <p className="text-gray-600 mb-4">Log out the current user.</p>
         </div>
+      </section>
 
-        <p>Successful response:</p>
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8 overflow-x-auto">
-          <pre className="text-sm text-gray-900"><code>{`{
-  "status": "healthy",
-  "authenticated": true,
-  "plan": "pro",
-  "rate_limit": {
-    "remaining": 599,
-    "reset_at": "2024-01-15T11:00:00Z"
-  }
-}`}</code></pre>
+      <section className="mb-12" id="status">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Authentication Status</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+            <code className="text-sm">/api/v1/auth/status</code>
+          </div>
+          <p className="text-gray-600 mb-4">Get the status of the authentication system.</p>
         </div>
+      </section>
 
-        <div className="bg-blue-50 border-l-4 border-blue-400 p-6 mt-8">
-          <h3 className="text-lg font-semibold text-blue-800 mb-2">
-            Need an API Key?
-          </h3>
-          <p className="text-blue-700 mb-4">
-            Get started with a free API key by signing up for a Schlep Engine account.
-          </p>
-          <a href="/introduction/api-keys" className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 transition-colors">
-            Learn How to Get API Keys →
-          </a>
+      <section className="mb-12" id="list-users">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">List Users (Admin)</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+            <code className="text-sm">/api/v1/auth/admin/users</code>
+          </div>
+          <p className="text-gray-600 mb-4">List all users. Requires admin privileges.</p>
         </div>
-      </div>
-    </div>
+      </section>
+
+      <section className="mb-12" id="update-user-role">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Update User Role (Admin)</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-orange-200 text-orange-800">PUT</span>
+            <code className="text-sm">/api/v1/auth/admin/users/{'{user_id}'}/role</code>
+          </div>
+          <p className="text-gray-600 mb-4">Update the role of a specific user. Requires admin privileges.</p>
+        </div>
+      </section>
+
+      <section className="mb-12" id="oauth-authorization">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">OAuth 2.0 Authorization</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/authorize</code>
+          </div>
+          <p className="text-gray-600 mb-4">Start the OAuth 2.0 authorization flow for a given provider (e.g., google, github).</p>
+        </div>
+      </section>
+
+      <section className="mb-12" id="oauth-callback">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">OAuth 2.0 Callback</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/callback</code>
+          </div>
+          <p className="text-gray-600 mb-4">Handle the callback from the OAuth 2.0 provider.</p>
+        </div>
+      </section>
+
+      <section className="mb-12" id="oauth-accounts">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get OAuth Accounts</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+            <code className="text-sm">/api/v1/auth/oauth/accounts</code>
+          </div>
+          <p className="text-gray-600 mb-4">Get the OAuth accounts linked to the current user.</p>
+        </div>
+      </section>
+
+      <section className="mb-12" id="unlink-oauth">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Unlink OAuth Account</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-red-200 text-red-800">DELETE</span>
+            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/unlink</code>
+          </div>
+          <p className="text-gray-600 mb-4">Unlink an OAuth account from the current user.</p>
+        </div>
+      </section>
+    </ApiLayout>
   )
 }
