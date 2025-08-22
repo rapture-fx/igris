@@ -6,20 +6,23 @@ export default function ErrorHandlingPage() {
     {
       language: 'curl',
       label: 'cURL',
-      code: `# Example error response
-curl -X GET "https://api.schlep-engine.com/api/v1/invalid-endpoint" \\
-  -H "Authorization: Bearer invalid_key"
+      code: `# Example: Trigger a validation error
+curl -X POST "https://api.schlep-engine.com/api/v1/data-processing" \\
+  -H "Authorization: Bearer sk_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{}'
 
-# Response (404 Not Found):
+# Response (400 Bad Request):
 {
   "error_id": "err_1642694400_1234",
-  "error_code": "ENDPOINT_NOT_FOUND",
-  "message": "The requested endpoint does not exist",
+  "error_code": "VALIDATION_ERROR",
+  "message": "Request validation failed",
   "category": "validation",
   "severity": "medium",
-  "user_message": "Please check the endpoint URL and try again",
-  "suggested_action": "Verify the endpoint path in our API documentation",
-  "documentation_url": "https://docs.schlep-engine.com/api-reference",
+  "user_message": "Please check your request data and try again",
+  "suggested_action": "Verify required fields are present and properly formatted",
+  "documentation_url": "https://docs.schlep-engine.com/api-reference/data-processing",
+  "details": ["Field 'file_id' is required", "Field 'operation' must be one of: clean, analyze, transform"],
   "timestamp": "2024-01-20T10:30:00Z"
 }`
     },
@@ -27,116 +30,213 @@ curl -X GET "https://api.schlep-engine.com/api/v1/invalid-endpoint" \\
       language: 'python',
       label: 'Python',
       code: `import requests
-from requests.exceptions import HTTPError
+import time
+from requests.exceptions import HTTPError, ConnectionError, Timeout
 
-def handle_api_error(response):
-    """Handle API errors with proper error parsing"""
-    if response.status_code >= 400:
+class ApiErrorHandler:
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.base_url = "https://api.schlep-engine.com"
+    
+    def handle_error(self, response):
+        """Comprehensive error handling for API responses"""
         try:
             error_data = response.json()
             error_id = error_data.get('error_id')
             error_code = error_data.get('error_code')
             message = error_data.get('user_message', error_data.get('message'))
             
-            print(f"API Error [{error_code}]: {message}")
-            print(f"Error ID: {error_id}")
+            print(f"❌ API Error [{error_code}]: {message}")
+            print(f"🔍 Error ID: {error_id}")
             
-            # Handle specific error codes
+            # Handle specific error types
             if error_code == "RATE_LIMIT_EXCEEDED":
                 retry_after = error_data.get('retry_after', 60)
-                print(f"Rate limited. Retry after {retry_after} seconds")
-                return retry_after
+                print(f"⏱️  Rate limited. Waiting {retry_after} seconds...")
+                return {'action': 'retry', 'wait': retry_after}
+                
             elif error_code == "AUTHENTICATION_FAILED":
-                print("Please check your API key")
-                return None
+                print("🔑 Authentication failed. Check your API key.")
+                return {'action': 'abort'}
+                
             elif error_code == "VALIDATION_ERROR":
-                print("Request validation failed:")
-                for field_error in error_data.get('details', []):
-                    print(f"  - {field_error}")
-                    
+                print("📝 Request validation failed:")
+                for detail in error_data.get('details', []):
+                    print(f"   • {detail}")
+                return {'action': 'fix_request'}
+                
+            elif error_code == "INSUFFICIENT_PERMISSIONS":
+                print("🚫 Insufficient permissions for this operation.")
+                return {'action': 'upgrade_plan'}
+                
+            else:
+                print(f"🔧 Suggested action: {error_data.get('suggested_action', 'Contact support')}")
+                return {'action': 'manual_review'}
+                
         except ValueError:
-            print(f"HTTP {response.status_code}: {response.text}")
+            print(f"💥 HTTP {response.status_code}: Unable to parse error response")
+            print(f"Raw response: {response.text[:200]}...")
+            return {'action': 'manual_review'}
     
-    return None
+    def safe_request(self, method, endpoint, **kwargs):
+        """Make API request with comprehensive error handling"""
+        url = f"{self.base_url}{endpoint}"
+        headers = kwargs.get('headers', {})
+        headers['Authorization'] = f"Bearer {self.api_key}"
+        kwargs['headers'] = headers
+        
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = requests.request(method, url, **kwargs)
+                
+                if response.status_code < 400:
+                    return response.json()
+                
+                # Handle error
+                error_info = self.handle_error(response)
+                
+                if error_info['action'] == 'retry' and attempt < max_retries - 1:
+                    time.sleep(error_info.get('wait', 60))
+                    continue
+                else:
+                    raise HTTPError(f"API request failed: {response.status_code}")
+                    
+            except (ConnectionError, Timeout) as e:
+                print(f"🌐 Network error (attempt {attempt + 1}): {e}")
+                if attempt < max_retries - 1:
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+                raise
+        
+        raise HTTPError("Max retries exceeded")
 
 # Usage example
+handler = ApiErrorHandler("sk_your_api_key")
+
 try:
-    response = requests.get(
-        "https://api.schlep-engine.com/api/v1/metrics",
-        headers={"Authorization": "Bearer sk_your_api_key"}
-    )
-    response.raise_for_status()
-    data = response.json()
-except requests.exceptions.HTTPError:
-    retry_after = handle_api_error(response)`
+    result = handler.safe_request('POST', '/api/v1/data-processing', 
+                                json={'file_id': 'file_123', 'operation': 'clean'})
+    print("✅ Success:", result)
+except Exception as e:
+    print(f"💥 Final error: {e}")`
     },
     {
       language: 'javascript',
       label: 'JavaScript',
-      code: `async function handleApiError(response) {
-  if (!response.ok) {
+      code: `class ApiErrorHandler {
+  constructor(apiKey) {
+    this.apiKey = apiKey;
+    this.baseUrl = 'https://api.schlep-engine.com';
+  }
+  
+  async handleError(response) {
     try {
       const errorData = await response.json();
-      const errorId = errorData.error_id;
-      const errorCode = errorData.error_code;
-      const message = errorData.user_message || errorData.message;
+      const { error_id, error_code, user_message, message, details, suggested_action } = errorData;
       
-      console.error(\`API Error [\${errorCode}]: \${message}\`);
-      console.error(\`Error ID: \${errorId}\`);
+      console.error(\`❌ API Error [\${error_code}]: \${user_message || message}\`);
+      console.error(\`🔍 Error ID: \${error_id}\`);
       
-      // Handle specific error codes
-      switch (errorCode) {
+      // Handle specific error types
+      switch (error_code) {
         case 'RATE_LIMIT_EXCEEDED':
           const retryAfter = errorData.retry_after || 60;
-          console.log(\`Rate limited. Retry after \${retryAfter} seconds\`);
-          return { shouldRetry: true, retryAfter };
+          console.log(\`⏱️  Rate limited. Waiting \${retryAfter} seconds...\`);
+          return { action: 'retry', wait: retryAfter };
           
         case 'AUTHENTICATION_FAILED':
-          console.error('Please check your API key');
-          return { shouldRetry: false };
+          console.error('🔑 Authentication failed. Check your API key.');
+          return { action: 'abort' };
           
         case 'VALIDATION_ERROR':
-          console.error('Request validation failed:');
-          errorData.details?.forEach(error => {
-            console.error(\`  - \${error}\`);
-          });
-          return { shouldRetry: false };
+          console.error('📝 Request validation failed:');
+          details?.forEach(detail => console.error(\`   • \${detail}\`));
+          return { action: 'fix_request' };
+          
+        case 'INSUFFICIENT_PERMISSIONS':
+          console.error('🚫 Insufficient permissions for this operation.');
+          return { action: 'upgrade_plan' };
           
         default:
-          return { shouldRetry: false };
+          console.error(\`🔧 Suggested action: \${suggested_action || 'Contact support'}\`);
+          return { action: 'manual_review' };
       }
     } catch (parseError) {
-      console.error(\`HTTP \${response.status}: \${response.statusText}\`);
+      console.error(\`💥 HTTP \${response.status}: Unable to parse error response\`);
+      const text = await response.text().catch(() => 'Unable to read response');
+      console.error(\`Raw response: \${text.substring(0, 200)}...\`);
+      return { action: 'manual_review' };
     }
   }
   
-  return { shouldRetry: false };
+  async safeRequest(method, endpoint, options = {}) {
+    const url = \`\${this.baseUrl}\${endpoint}\`;
+    const headers = {
+      'Authorization': \`Bearer \${this.apiKey}\`,
+      'Content-Type': 'application/json',
+      ...options.headers
+    };
+    
+    const maxRetries = 3;
+    
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, {
+          method,
+          headers,
+          ...options
+        });
+        
+        if (response.ok) {
+          return await response.json();
+        }
+        
+        // Handle error
+        const errorInfo = await this.handleError(response);
+        
+        if (errorInfo.action === 'retry' && attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, errorInfo.wait * 1000));
+          continue;
+        } else {
+          throw new Error(\`API request failed: \${response.status}\`);
+        }
+        
+      } catch (networkError) {
+        console.error(\`🌐 Network error (attempt \${attempt + 1}): \${networkError.message}\`);
+        if (attempt < maxRetries - 1) {
+          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          continue;
+        }
+        throw networkError;
+      }
+    }
+    
+    throw new Error('Max retries exceeded');
+  }
 }
 
 // Usage example
-async function makeApiCall() {
+const handler = new ApiErrorHandler('sk_your_api_key');
+
+async function processData() {
   try {
-    const response = await fetch('https://api.schlep-engine.com/api/v1/metrics', {
-      headers: { 'Authorization': 'Bearer sk_your_api_key' }
+    const result = await handler.safeRequest('POST', '/api/v1/data-processing', {
+      body: JSON.stringify({
+        file_id: 'file_123',
+        operation: 'clean'
+      })
     });
     
-    if (!response.ok) {
-      const errorInfo = await handleApiError(response);
-      if (errorInfo.shouldRetry) {
-        // Implement retry logic here
-        setTimeout(() => makeApiCall(), errorInfo.retryAfter * 1000);
-        return;
-      }
-      throw new Error('API request failed');
-    }
-    
-    const data = await response.json();
-    return data;
+    console.log('✅ Success:', result);
+    return result;
   } catch (error) {
-    console.error('Request failed:', error);
+    console.error('💥 Final error:', error.message);
     throw error;
   }
-}`
+}
+
+processData();`
     }
   ]
 

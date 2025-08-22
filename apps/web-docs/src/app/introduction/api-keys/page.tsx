@@ -36,7 +36,7 @@ export default function ApiKeysPage() {
         <p>Include your API key in the Authorization header of your requests:</p>
         
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 overflow-x-auto">
-          <pre className="text-sm text-gray-900"><code>{`curl -X POST "https://api.schlepengine.com/v1/upload" \\
+          <pre className="text-sm text-gray-900"><code>{`curl -X POST "https://api.schlep-engine.com/v1/upload" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"data": "your data here"}'`}</code></pre>

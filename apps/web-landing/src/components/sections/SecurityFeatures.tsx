@@ -53,7 +53,7 @@ const securityFeatures = [
 
 export default function SecurityFeatures() {
   return (
-    <section className="py-20 sm:py-24 lg:py-32 bg-[#111111]">
+    <section className="py-20 sm:py-24 lg:py-32 bg-white">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="lg:text-left mb-16">
           <motion.h2
@@ -70,7 +70,7 @@ export default function SecurityFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl text-left"
+            className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl text-left"
           >
             Your Data, Secured with Confidence
           </motion.p>
@@ -79,7 +79,7 @@ export default function SecurityFeatures() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mt-6 text-lg leading-8 text-gray-300 text-left"
+            className="mt-6 text-lg leading-8 text-gray-700 text-left"
           >
             Schlep-engine is built from the ground up with security as a core principle, 
             ensuring your sensitive data is protected by industry-leading controls and compliance.
@@ -97,13 +97,13 @@ export default function SecurityFeatures() {
                 transition={{ duration: 0.5 }}
                 className="relative pl-16"
               >
-                <dt className="text-base font-semibold leading-7 text-beige-secondary">
+                <dt className="text-base font-semibold leading-7 text-gray-900">
                   <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg">
-                    <feature.icon className="h-6 w-6 text-white" aria-hidden="true" />
+                    <feature.icon className="h-6 w-6 text-gray-700" aria-hidden="true" />
                   </div>
                   {feature.name}
                 </dt>
-                <dd className="mt-2 text-base leading-7 text-beige-secondary">{feature.description}</dd>
+                <dd className="mt-2 text-base leading-7 text-gray-700">{feature.description}</dd>
               </motion.div>
             ))}
           </dl>
@@ -116,11 +116,11 @@ export default function SecurityFeatures() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-20 text-center"
         >
-          <div className="bg-[#161616] rounded-2xl p-8 max-w-3xl mx-auto border border-[#161616]">
-            <h3 className="text-xl font-semibold text-beige-secondary mb-4">
+          <div className="bg-gray-50 rounded-2xl p-8 max-w-3xl mx-auto border border-gray-200">
+            <h3 className="text-xl font-semibold text-gray-900 mb-4">
               Compliance & Certifications
             </h3>
-            <div className="flex flex-wrap justify-center gap-6 text-beige-secondary font-medium">
+            <div className="flex flex-wrap justify-center gap-6 text-gray-900 font-medium">
               <div className="flex items-center space-x-2">
                 <ShieldCheck className="w-5 h-5 text-green-600" />
                 <span>SOC 2 Type II Ready</span>
@@ -134,7 +134,7 @@ export default function SecurityFeatures() {
                 <span>ISO 27001 (85% Ready)</span>
               </div>
             </div>
-            <p className="mt-6 text-beige-secondary text-sm">
+            <p className="mt-6 text-gray-700 text-sm">
               We are committed to maintaining the highest security standards and regularly undergo third-party audits.
             </p>
           </div>

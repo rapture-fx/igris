@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import { ThemeProvider } from '@/hooks/useTheme'
 
 export const metadata: Metadata = {
   title: 'schlep-engine - AI-Powered Data Preparation',
@@ -61,9 +60,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="light">
       <body className="font-sans antialiased overflow-x-hidden bg-white min-h-screen">
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   )

@@ -60,7 +60,7 @@ print(f"Cleaned {len(clean_df)} rows with {result.quality_score}% quality")`}</c
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 overflow-x-auto">
           <pre className="text-sm text-gray-900"><code>{`client = se.Client(
     api_key="your-api-key",
-    base_url="https://api.schlepengine.com",  # optional
+    base_url="https://api.schlep-engine.com",  # optional
     timeout=30,  # optional
     retry_attempts=3  # optional
 )`}</code></pre>
@@ -174,12 +174,12 @@ result = client.process_dataframe(df, show_progress=True)`}</code></pre>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-8 overflow-x-auto">
           <pre className="text-sm text-gray-900"><code>{`# Environment variables
 export SCHLEP_API_KEY=your-api-key
-export SCHLEP_BASE_URL=https://api.schlepengine.com
+export SCHLEP_BASE_URL=https://api.schlep-engine.com
 
 # Config file (~/.schlep/config.json)
 {
   "api_key": "your-api-key",
-  "base_url": "https://api.schlepengine.com",
+  "base_url": "https://api.schlep-engine.com",
   "timeout": 30
 }
 

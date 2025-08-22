@@ -11,6 +11,9 @@ const nextConfig = {
     // Also ignore TypeScript errors during builds temporarily
     ignoreBuildErrors: true,
   },
+  experimental: {
+    forceSwcTransforms: true,
+  },
   async redirects() {
     return [
       {

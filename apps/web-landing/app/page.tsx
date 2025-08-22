@@ -14,7 +14,7 @@ import GridBackground from '@/components/ui/GridBackground'
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-[#111111]">
+    <div className="min-h-screen bg-white">
       <Header />
       <main>
         <Hero />

@@ -11,17 +11,17 @@ BACKEND_PID=$!
 
 # Start landing page
 echo "Starting landing page on port 3000..."
-(cd "apps/web-landing" && pnpm dev > landing.log 2>&1) &
+(cd "apps/web-landing" && /Users/wira/.nvm/versions/node/v24.3.0/bin/pnpm run dev > landing.log 2>&1) &
 LANDING_PID=$!
 
 # Start docs
 echo "Starting docs on port 3003..."
-(cd "apps/web-docs" && pnpm dev > docs.log 2>&1) &
+(cd "apps/web-docs" && /Users/wira/.nvm/versions/node/v24.3.0/bin/pnpm run dev > docs.log 2>&1) &
 DOCS_PID=$!
 
 # Start admin
 echo "Starting admin on port 3002..."
-(cd "apps/web-admin" && pnpm dev > admin.log 2>&1) &
+(cd "apps/web-admin" && /Users/wira/.nvm/versions/node/v24.3.0/bin/pnpm run dev > admin.log 2>&1) &
 ADMIN_PID=$!
 
 echo "Waiting for servers to start..."

@@ -60,7 +60,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-[#111111] text-beige-secondary">
+    <footer className="bg-gray-900 text-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-16">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-7xl mx-auto">
@@ -75,7 +75,7 @@ export default function Footer() {
                     height={32}
                     className="mr-2"
                   />
-                  <h3 className="text-base font-semibold text-beige-secondary">Schlep-engine</h3>
+                  <h3 className="text-base font-semibold text-gray-100">Schlep-engine</h3>
                 </div>
               </div>
             </div>
@@ -83,7 +83,7 @@ export default function Footer() {
             {/* Footer Sections */}
             {footerSections.map((section, index) => (
               <div key={index} className="lg:col-span-1">
-                <h3 className="text-base font-semibold mb-4 text-beige-secondary">
+                <h3 className="text-base font-semibold mb-4 text-gray-100">
                   {section.title}
                 </h3>
                 <ul className="space-y-2">
@@ -91,7 +91,7 @@ export default function Footer() {
                     <li key={linkIndex}>
                       <Link
                         href={link.href}
-                        className="text-xs text-beige-secondary hover:text-white transition-colors duration-200"
+                        className="text-xs text-gray-300 hover:text-white transition-colors duration-200"
                       >
                         {link.name}
                       </Link>
@@ -102,9 +102,9 @@ export default function Footer() {
             ))}
           </div>
 
-          <div className="mt-12 pt-8 border-t border-[#2a2a2a]">
+          <div className="mt-12 pt-8 border-t border-gray-700">
             <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="text-beige-secondary mb-4 md:mb-0 text-sm">
+              <div className="text-gray-300 mb-4 md:mb-0 text-sm">
                 <p>&copy; 2024 Schlep-engine. All rights reserved.</p>
               </div>
               

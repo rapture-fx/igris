@@ -36,8 +36,8 @@ boto3==1.34.0
 numpy==2.3.2
 pandas==2.0.3
 scikit-learn==1.7.1
-tensorflow==2.15.0
-torch==2.1.1
+# tensorflow==2.15.0
+# torch==2.1.1
 transformers==4.36.0
 
 # Document processing

@@ -6,50 +6,142 @@ export default function ApiKeysPage() {
     {
       language: 'curl',
       label: 'cURL',
-      code: `# Using API key in Authorization header
-curl -X GET "https://api.schlep-engine.com/api/v1/metrics" \\
-  -H "Authorization: Bearer sk_1234567890abcdef..."
+      code: `# Test your API key by getting user info
+curl -X GET "https://api.schlep-engine.com/api/v1/user" \\
+  -H "Authorization: Bearer sk_your_api_key"
 
-# Using X-API-Key header (alternative)
-curl -X GET "https://api.schlep-engine.com/api/v1/metrics" \\
-  -H "X-API-Key: sk_1234567890abcdef..."`
+# Create a new API key
+curl -X POST "https://api.schlep-engine.com/api/v1/api-keys" \\
+  -H "Authorization: Bearer sk_your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "name": "Production API Key",
+    "type": "secret",
+    "permissions": ["read", "write"],
+    "expires_at": "2024-12-31T23:59:59Z"
+  }'`
     },
     {
       language: 'python',
       label: 'Python',
       code: `import requests
+import os
 
-# Set your API key
-api_key = "sk_1234567890abcdef..."
+# Get API key from environment variable (recommended)
+api_key = os.getenv('SCHLEP_ENGINE_API_KEY')
 
-# Using Authorization header (recommended)
-headers = {
-    "Authorization": f"Bearer {api_key}",
-    "Content-Type": "application/json"
-}
+# Test API key validity
+def test_api_key(api_key):
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json"
+    }
+    
+    response = requests.get(
+        "https://api.schlep-engine.com/api/v1/user",
+        headers=headers
+    )
+    
+    if response.status_code == 200:
+        user_data = response.json()
+        print(f"✅ API key valid for user: {user_data['email']}")
+        return True
+    else:
+        print(f"❌ API key invalid: {response.status_code}")
+        return False
 
-response = requests.get(
-    "https://api.schlep-engine.com/api/v1/metrics",
-    headers=headers
-)
+# Create a new API key
+def create_api_key(name, key_type="secret", permissions=None):
+    if permissions is None:
+        permissions = ["read", "write"]
+    
+    headers = {"Authorization": f"Bearer {api_key}"}
+    data = {
+        "name": name,
+        "type": key_type,
+        "permissions": permissions
+    }
+    
+    response = requests.post(
+        "https://api.schlep-engine.com/api/v1/api-keys",
+        headers=headers,
+        json=data
+    )
+    
+    if response.status_code == 201:
+        key_data = response.json()
+        print(f"New API key created: {key_data['key_id']}")
+        return key_data
+    else:
+        print(f"Failed to create key: {response.text}")
+        return None
 
-print(response.json())`
+# Test the key
+test_api_key(api_key)`
     },
     {
       language: 'javascript',
       label: 'JavaScript',
-      code: `// Using fetch with Authorization header
-const apiKey = 'sk_1234567890abcdef...';
+      code: `// Get API key from environment variable
+const apiKey = process.env.SCHLEP_ENGINE_API_KEY;
 
-const response = await fetch('https://api.schlep-engine.com/api/v1/metrics', {
-  headers: {
-    'Authorization': \`Bearer \${apiKey}\`,
-    'Content-Type': 'application/json'
+// Test API key validity
+async function testApiKey(apiKey) {
+  try {
+    const response = await fetch('https://api.schlep-engine.com/api/v1/user', {
+      headers: {
+        'Authorization': \`Bearer \${apiKey}\`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    if (response.ok) {
+      const userData = await response.json();
+      console.log(\`✅ API key valid for user: \${userData.email}\`);
+      return true;
+    } else {
+      console.log(\`❌ API key invalid: \${response.status}\`);
+      return false;
+    }
+  } catch (error) {
+    console.error('Error testing API key:', error);
+    return false;
   }
-});
+}
 
-const data = await response.json();
-console.log(data);`
+// Create a new API key
+async function createApiKey(name, keyType = 'secret', permissions = ['read', 'write']) {
+  try {
+    const response = await fetch('https://api.schlep-engine.com/api/v1/api-keys', {
+      method: 'POST',
+      headers: {
+        'Authorization': \`Bearer \${apiKey}\`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name,
+        type: keyType,
+        permissions
+      })
+    });
+    
+    if (response.ok) {
+      const keyData = await response.json();
+      console.log(\`New API key created: \${keyData.key_id}\`);
+      return keyData;
+    } else {
+      const error = await response.text();
+      console.log(\`Failed to create key: \${error}\`);
+      return null;
+    }
+  } catch (error) {
+    console.error('Error creating API key:', error);
+    return null;
+  }
+}
+
+// Test the key
+testApiKey(apiKey);`
     }
   ]
 

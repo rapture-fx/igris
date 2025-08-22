@@ -13,9 +13,9 @@ export default function UploadApiPage() {
       <div className="space-y-8">
         <EndpointCard
           method="POST"
-          path="/upload"
+          path="/api/v1/storage/upload"
           title="Upload File"
-          description="Upload a data file (CSV, JSON, Excel) for processing. Returns an upload ID that can be used to track the file and start processing jobs."
+          description="Upload a data file (CSV, JSON, Excel) for processing. Returns a file ID that can be used to track the file and start processing jobs."
           parameters={[
             {
               name: "file",
@@ -45,8 +45,9 @@ export default function UploadApiPage() {
               description: "File uploaded successfully",
               example: `{
   "success": true,
+  "message": "File uploaded successfully",
   "data": {
-    "upload_id": "upload_1234567890",
+    "file_id": "file_1234567890",
     "filename": "customer_data.csv",
     "size": 1048576,
     "format": "csv",
@@ -97,7 +98,7 @@ export default function UploadApiPage() {
             }
           ]}
           examples={{
-            curl: `curl -X POST https://api.schlepengine.com/v1/upload \\
+            curl: `curl -X POST https://api.schlep-engine.com/api/v1/storage/upload \\
   -H "Authorization: Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc" \\
   -F "file=@customer_data.csv" \\
   -F "name=Customer Data Q4 2023" \\
@@ -107,7 +108,7 @@ export default function UploadApiPage() {
 # Upload file
 with open('customer_data.csv', 'rb') as f:
     response = requests.post(
-        'https://api.schlepengine.com/v1/upload',
+        'https://api.schlep-engine.com/api/v1/storage/upload',
         headers={
             'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'
         },
@@ -129,7 +130,7 @@ formData.append('file', fileInput.files[0]);
 formData.append('name', 'Customer Data Q4 2023');
 formData.append('tags', '["customer", "sales", "q4"]');
 
-fetch('https://api.schlepengine.com/v1/upload', {
+fetch('https://api.schlep-engine.com/api/v1/storage/upload', {
   method: 'POST',
   headers: {
     'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'
@@ -149,7 +150,7 @@ fetch('https://api.schlepengine.com/v1/upload', {
 
         <EndpointCard
           method="GET"
-          path="/uploads"
+          path="/api/v1/storage/files"
           title="List Uploads"
           description="Get a list of all uploaded files with their status and metadata."
           parameters={[
@@ -189,9 +190,9 @@ fetch('https://api.schlepengine.com/v1/upload', {
               example: `{
   "success": true,
   "data": {
-    "uploads": [
+    "files": [
       {
-        "upload_id": "upload_1234567890",
+        "upload_id": "file_1234567890",
         "filename": "customer_data.csv",
         "name": "Customer Data Q4 2023",
         "size": 1048576,
@@ -215,12 +216,12 @@ fetch('https://api.schlepengine.com/v1/upload', {
             }
           ]}
           examples={{
-            curl: `curl -X GET "https://api.schlepengine.com/v1/uploads?limit=10&status=completed" \\
+            curl: `curl -X GET "https://api.schlep-engine.com/api/v1/storage/files?limit=10&status=completed" \\
   -H "Authorization: Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc"`,
             python: `import requests
 
 response = requests.get(
-    'https://api.schlepengine.com/v1/uploads',
+    'https://api.schlep-engine.com/api/v1/storage/files',
     headers={'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'},
     params={
         'limit': 10,
@@ -238,7 +239,7 @@ for upload in uploads:
   tags: 'customer,sales'
 });
 
-fetch(\`https://api.schlepengine.com/v1/uploads?\${params}\`, {
+fetch(\`https://api.schlep-engine.com/api/v1/storage/files?\${params}\`, {
   headers: {
     'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'
   }
@@ -254,7 +255,7 @@ fetch(\`https://api.schlepengine.com/v1/uploads?\${params}\`, {
 
         <EndpointCard
           method="GET"
-          path="/uploads/{upload_id}"
+          path="/api/v1/storage/files/{file_id}"
           title="Get Upload Details"
           description="Get detailed information about a specific upload including metadata, status, and file information."
           parameters={[
@@ -263,7 +264,7 @@ fetch(\`https://api.schlepengine.com/v1/uploads?\${params}\`, {
               type: "string",
               required: true,
               description: "The unique identifier of the upload",
-              example: "upload_1234567890"
+              example: "file_1234567890"
             }
           ]}
           responses={[
@@ -272,8 +273,9 @@ fetch(\`https://api.schlepengine.com/v1/uploads?\${params}\`, {
               description: "Upload details retrieved successfully",
               example: `{
   "success": true,
+  "message": "File uploaded successfully",
   "data": {
-    "upload_id": "upload_1234567890",
+    "file_id": "file_1234567890",
     "filename": "customer_data.csv",
     "name": "Customer Data Q4 2023",
     "size": 1048576,
@@ -307,12 +309,12 @@ fetch(\`https://api.schlepengine.com/v1/uploads?\${params}\`, {
             }
           ]}
           examples={{
-            curl: `curl -X GET https://api.schlepengine.com/v1/uploads/upload_1234567890 \\
+            curl: `curl -X GET https://api.schlep-engine.com/api/v1/storage/files/file_1234567890 \\
   -H "Authorization: Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc"`,
             python: `import requests
 
 response = requests.get(
-    'https://api.schlepengine.com/v1/uploads/upload_1234567890',
+    'https://api.schlep-engine.com/api/v1/storage/files/file_1234567890',
     headers={'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'}
 )
 
@@ -324,7 +326,7 @@ if response.status_code == 200:
     print(f"Columns: {upload['columns']}")
 else:
     print(f"Error: {response.text}")`,
-            javascript: `fetch('https://api.schlepengine.com/v1/uploads/upload_1234567890', {
+            javascript: `fetch('https://api.schlep-engine.com/api/v1/storage/files/file_1234567890', {
   headers: {
     'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'
   }
@@ -346,7 +348,7 @@ else:
 
         <EndpointCard
           method="DELETE"
-          path="/uploads/{upload_id}"
+          path="/api/v1/storage/files/{file_id}"
           title="Delete Upload"
           description="Permanently delete an uploaded file and all associated data. This action cannot be undone."
           parameters={[
@@ -355,7 +357,7 @@ else:
               type: "string",
               required: true,
               description: "The unique identifier of the upload to delete",
-              example: "upload_1234567890"
+              example: "file_1234567890"
             }
           ]}
           responses={[
@@ -365,7 +367,7 @@ else:
               example: `{
   "success": true,
   "data": {
-    "upload_id": "upload_1234567890",
+    "upload_id": "file_1234567890",
     "deleted_at": "2024-01-15T10:30:00Z",
     "message": "Upload and all associated data deleted successfully"
   }
@@ -385,12 +387,12 @@ else:
             }
           ]}
           examples={{
-            curl: `curl -X DELETE https://api.schlepengine.com/v1/uploads/upload_1234567890 \\
+            curl: `curl -X DELETE https://api.schlep-engine.com/api/v1/storage/files/file_1234567890 \\
   -H "Authorization: Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc"`,
             python: `import requests
 
 response = requests.delete(
-    'https://api.schlepengine.com/v1/uploads/upload_1234567890',
+    'https://api.schlep-engine.com/api/v1/storage/files/file_1234567890',
     headers={'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'}
 )
 
@@ -398,7 +400,7 @@ if response.status_code == 200:
     print("Upload deleted successfully")
 else:
     print(f"Error: {response.text}")`,
-            javascript: `fetch('https://api.schlepengine.com/v1/uploads/upload_1234567890', {
+            javascript: `fetch('https://api.schlep-engine.com/api/v1/storage/files/file_1234567890', {
   method: 'DELETE',
   headers: {
     'Authorization': 'Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc'

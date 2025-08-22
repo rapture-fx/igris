@@ -44,16 +44,16 @@ console.log(\`Upload ID: \${result.uploadId}\`);
 const status = await client.getUploadStatus(result.uploadId);
 console.log(\`Status: \${status.processingStatus}\`);`;
 
-  const healthCheckCurl = `curl -X GET "https://api.schlepengine.com/v1/health" \\
+  const healthCheckCurl = `curl -X GET "https://api.schlep-engine.com/v1/health" \\
   -H "Authorization: Bearer YOUR_API_KEY"`;
 
-  const uploadCurl = `curl -X POST "https://api.schlepengine.com/v1/upload" \\
+  const uploadCurl = `curl -X POST "https://api.schlep-engine.com/v1/upload" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: multipart/form-data" \\
   -F "file=@sample-data.csv" \\
   -F "name=My First Upload"`;
 
-  const statusCheckCurl = `curl -X GET "https://api.schlepengine.com/v1/uploads/upload_abc123/status" \\
+  const statusCheckCurl = `curl -X GET "https://api.schlep-engine.com/v1/uploads/upload_abc123/status" \\
   -H "Authorization: Bearer YOUR_API_KEY"`;
 
   const csvSample = `name,age,email,city

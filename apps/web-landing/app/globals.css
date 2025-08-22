@@ -38,40 +38,6 @@
     --glass-border: rgba(255, 255, 255, 0.2);
   }
 
-  .dark {
-    /* Dark Theme Variables - Much Deeper Colors */
-    --background: 2 6 23;        /* slate-950 */
-    --foreground: 248 250 252;   /* slate-50 */
-    --card: 15 23 42;            /* slate-900 */
-    --card-foreground: 248 250 252;
-    --popover: 15 23 42;
-    --popover-foreground: 248 250 252;
-    --primary: 70 139 230;
-    --primary-foreground: 255 255 255;
-    --secondary: 30 41 59;       /* slate-800 */
-    --secondary-foreground: 248 250 252;
-    --muted: 30 41 59;           /* slate-800 */
-    --muted-foreground: 148 163 184;  /* slate-400 */
-    --accent: 30 41 59;
-    --accent-foreground: 248 250 252;
-    --destructive: 239 68 68;
-    --destructive-foreground: 255 255 255;
-    --border: 51 65 85;          /* slate-700 */
-    --input: 30 41 59;           /* slate-800 */
-    --ring: 70 139 230;
-    
-    /* Dark Glass Effect */
-    --glass-bg: rgba(15, 23, 42, 0.8);
-    --glass-border: rgba(255, 255, 255, 0.1);
-
-    /* Chart Colors */
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-  }
-
   html {
     scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
@@ -79,10 +45,8 @@
   }
   
   body {
-    @apply bg-custom-gray text-gray-900 dark:text-slate-50 transition-colors duration-300;
+    @apply bg-white text-gray-900 transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
-    background-color: rgb(var(--background));
-    color: rgb(var(--foreground));
   }
   
   /* Ensure all text elements use Apple fonts and adapt to dark mode */
@@ -101,40 +65,20 @@
     color: rgb(17 24 39);
   }
   
-  .dark .text-gray-900:not(.no-auto-dark) {
-    color: rgb(244 244 245);
-  }
-  
   .text-gray-800:not(.no-auto-dark) {
     color: rgb(31 41 55);
-  }
-  
-  .dark .text-gray-800:not(.no-auto-dark) {
-    color: rgb(228 228 231);
   }
   
   .text-gray-700:not(.no-auto-dark) {
     color: rgb(55 65 81);
   }
   
-  .dark .text-gray-700:not(.no-auto-dark) {
-    color: rgb(212 212 216);
-  }
-  
   .text-gray-600:not(.no-auto-dark) {
     color: rgb(75 85 99);
   }
   
-  .dark .text-gray-600:not(.no-auto-dark) {
-    color: rgb(161 161 170);
-  }
-  
   .text-gray-500:not(.no-auto-dark) {
     color: rgb(107 114 128);
-  }
-  
-  .dark .text-gray-500:not(.no-auto-dark) {
-    color: rgb(113 113 122);
   }
   
   /* Auto dark mode for backgrounds */
@@ -142,24 +86,12 @@
     background-color: rgb(255 255 255);
   }
   
-  .dark .bg-white:not(.no-auto-dark) {
-    background-color: rgb(15 23 42);    /* slate-900 */
-  }
-  
   .bg-gray-50:not(.no-auto-dark) {
     background-color: rgb(249 250 251);
   }
   
-  .dark .bg-gray-50:not(.no-auto-dark) {
-    background-color: rgb(30 41 59);    /* slate-800 */
-  }
-  
   .bg-gray-100:not(.no-auto-dark) {
     background-color: rgb(243 244 246);
-  }
-  
-  .dark .bg-gray-100:not(.no-auto-dark) {
-    background-color: rgb(51 65 85);    /* slate-700 */
   }
 }
 
@@ -200,7 +132,7 @@
   }
   
   .button-secondary {
-    @apply bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-900 dark:text-slate-50 font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-200 dark:border-slate-600;
+    @apply bg-white hover:bg-gray-50 text-gray-900 font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-200;
   }
   
   .card-hover {
@@ -248,10 +180,6 @@
 
 ::-webkit-scrollbar-track {
   background: #f1f1f1;
-}
-
-.dark ::-webkit-scrollbar-track {
-  background: #0f172a;
 }
 
 ::-webkit-scrollbar-thumb {

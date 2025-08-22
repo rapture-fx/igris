@@ -30,15 +30,15 @@ services:
       timeout: 10s
       retries: 3
 
-  frontend:
+  web-landing:
     build:
-      context: ./apps/web-frontend
+      context: ./apps/web-landing
       dockerfile: Dockerfile
     ports:
-      - "127.0.0.1:3000:3000"  # Bind to localhost only
+      - "127.0.0.1:3000:3000"
     environment:
       - NODE_ENV=production
-      - VITE_API_URL=https://your-domain.com/api
+      - NEXT_PUBLIC_API_URL=https://api.schlep-engine.com
     networks:
       - schlep-engine
     restart: unless-stopped
@@ -47,6 +47,60 @@ services:
       options:
         max-size: "100m"
         max-file: "5"
+
+  web-admin:
+    build:
+      context: ./apps/web-admin
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3002:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://api.schlep-engine.com
+    networks:
+      - schlep-engine
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  web-docs:
+    build:
+      context: ./apps/web-docs
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:3003:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=https://api.schlep-engine.com
+    networks:
+      - schlep-engine
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "5"
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - api
+      - web-landing
+      - web-admin
+      - web-docs
+    networks:
+      - schlep-engine
+    restart: unless-stopped
 
   postgres:
     image: postgres:15-alpine

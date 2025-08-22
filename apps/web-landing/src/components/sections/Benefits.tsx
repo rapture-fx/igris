@@ -40,13 +40,13 @@ export default function Benefits() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-[#111111] text-beige-secondary">
+    <section className="py-16 md:py-24 bg-white text-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold text-beige-secondary mb-4 text-left">
+          <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 text-left">
             Data ready for what's next
           </h2>
-          <p className="text-xl text-beige-secondary max-w-2xl text-left">
+          <p className="text-xl text-gray-700 max-w-2xl text-left">
             Built for data teams who need reliable, scalable data preparation without the hassle
           </p>
         </div>
@@ -61,16 +61,16 @@ export default function Benefits() {
                   key={index}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
-                  className={`group p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-[#161616] hover:shadow-lg ${hoveredIndex !== null && hoveredIndex !== index ? 'opacity-50' : ''}`}
+                  className={`group p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50 hover:shadow-lg ${hoveredIndex !== null && hoveredIndex !== index ? 'opacity-50' : ''}`}
                 >
                   <div>
-                    <h3 className="text-xl font-semibold text-beige-secondary mb-0.5">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-0.5">
                       {benefit.title}
                     </h3>
-                    <p className="text-beige-secondary leading-relaxed text-xs">
+                    <p className="text-gray-700 leading-relaxed text-xs">
                       {benefit.description}
                     </p>
-                    <div className="w-full h-0.5 bg-[#1f1f1f] mt-2"></div>
+                    <div className="w-full h-0.5 bg-gray-200 mt-2"></div>
                   </div>
                 </div>
               )

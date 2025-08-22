@@ -66,7 +66,7 @@ export default function APIPlayground() {
           rows: 150000,
           columns: 12
         },
-        example: `curl -X POST "https://api.schlepengine.com/v1/data/upload" \\
+        example: `curl -X POST "https://api.schlep-engine.com/v1/data/upload" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -F "file=@data.csv"`
       },
@@ -86,7 +86,7 @@ export default function APIPlayground() {
           issues: [],
           processing_time: '2m 34s'
         },
-        example: `curl -X GET "https://api.schlepengine.com/v1/data/ds_123456789/status" \\
+        example: `curl -X GET "https://api.schlep-engine.com/v1/data/ds_123456789/status" \\
   -H "Authorization: Bearer YOUR_API_KEY"`
       },
       {
@@ -106,7 +106,7 @@ export default function APIPlayground() {
           estimated_time: '5-10 minutes',
           records_to_label: 150000
         },
-        example: `curl -X POST "https://api.schlepengine.com/v1/ml/auto-label" \\
+        example: `curl -X POST "https://api.schlep-engine.com/v1/ml/auto-label" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"dataset_id": "ds_123456789", "model": "classification_v2"}'`
@@ -134,7 +134,7 @@ export default function APIPlayground() {
           page: 1,
           limit: 50
         },
-        example: `curl -X GET "https://api.schlepengine.com/v1/pipelines?status=running" \\
+        example: `curl -X GET "https://api.schlep-engine.com/v1/pipelines?status=running" \\
   -H "Authorization: Bearer YOUR_API_KEY"`
       },
       {
@@ -153,7 +153,7 @@ export default function APIPlayground() {
           pipeline_id: 'pipe_123',
           estimated_duration: '15 minutes'
         },
-        example: `curl -X POST "https://api.schlepengine.com/v1/pipelines/pipe_123/run" \\
+        example: `curl -X POST "https://api.schlep-engine.com/v1/pipelines/pipe_123/run" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{"input_dataset": "ds_123456789"}'`

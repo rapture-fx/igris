@@ -182,7 +182,7 @@ def make_request_with_backoff(url, headers, max_retries=3):
 
 # Usage
 response = make_request_with_backoff(
-    "https://api.schlepengine.com/v1/profile/upload_123",
+    "https://api.schlep-engine.com/v1/profile/upload_123",
     {"Authorization": "Bearer sk_test_4eC39HqLyjWDarjtT1zdp7dc"}
 )`}
                   language="python"
@@ -310,7 +310,7 @@ profiles = response.json()["profiles"]`}
 
 // Usage
 const client = new RateLimitedClient('sk_test_4eC39HqLyjWDarjtT1zdp7dc');
-const response = await client.makeRequest('https://api.schlepengine.com/v1/profile/upload_123');`}
+const response = await client.makeRequest('https://api.schlep-engine.com/v1/profile/upload_123');`}
               language="javascript"
               title="JavaScript Rate Limiting Client"
             />
