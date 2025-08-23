@@ -14,8 +14,12 @@ import {
   Filter,
   Search,
   RefreshCw,
-  BarChart3
+  BarChart3,
+  TrendingUp,
+  Activity,
+  X
 } from 'lucide-react'
+import { dataProcessingApi } from '@/lib/api'
 
 interface Dataset {
   id: string

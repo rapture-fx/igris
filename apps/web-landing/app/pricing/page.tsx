@@ -17,6 +17,7 @@ export default function PricingPage() {
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
                 Simplifies complex data handling
               </h1>
+              <p className="text-center text-gray-600 mb-8">All options include Core Data Processing, API and Usage, Integration, Security Compliance, and Support.</p>
               
             </div>
 

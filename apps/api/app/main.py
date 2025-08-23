@@ -50,6 +50,8 @@ from app.api.v1 import data_processing, advanced_ai, advanced_ml
 from app.api.v1.dpa_compliance import router as dpa_compliance_router
 from app.api.v1.debug import router as debug_router
 from app.api.v1.api_status import router as api_status_router
+from app.api.v1.industry_solutions import router as industry_solutions_router
+from app.api.v1.feedback_learning import router as feedback_learning_router
 
 # Setup logging
 setup_logging(
@@ -313,6 +315,8 @@ app.include_router(websocket_manager.router, prefix="/api/v1/websocket", tags=["
 app.include_router(partner.router, prefix="/api/v1/partner", tags=["Partner APIs"])
 app.include_router(cost_monitoring.router, prefix="/api/v1/cost", tags=["Cost Monitoring"])
 app.include_router(lemonsqueezy_webhooks.router, prefix="/api/v1/webhooks", tags=["LemonSqueezy Webhooks"])
+app.include_router(feedback_learning_router, prefix="/api/v1/feedback", tags=["Feedback Learning"])
+app.include_router(industry_solutions_router, prefix="/api/v1/industry", tags=["Industry Solutions"])
 
 # Root endpoint
 @app.get("/", tags=["Root"])

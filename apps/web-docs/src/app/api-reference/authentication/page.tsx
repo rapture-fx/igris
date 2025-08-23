@@ -216,7 +216,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-orange-200 text-orange-800">PUT</span>
-            <code className="text-sm">/api/v1/auth/admin/users/{'{user_id}'}/role</code>
+            <code className="text-sm">/api/v1/auth/admin/users/{{'{user_id}'}}/role</code>
           </div>
           <p className="text-gray-600 mb-4">Update the role of a specific user. Requires admin privileges.</p>
         </div>
@@ -227,7 +227,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/authorize</code>
+            <code className="text-sm">/api/v1/auth/oauth/{{'{provider}'}}/authorize</code>
           </div>
           <p className="text-gray-600 mb-4">Start the OAuth 2.0 authorization flow for a given provider (e.g., google, github).</p>
         </div>
@@ -238,7 +238,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/callback</code>
+            <code className="text-sm">/api/v1/auth/oauth/{{'{provider}'}}/callback</code>
           </div>
           <p className="text-gray-600 mb-4">Handle the callback from the OAuth 2.0 provider.</p>
         </div>
@@ -260,7 +260,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-red-200 text-red-800">DELETE</span>
-            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/unlink</code>
+            <code className="text-sm">/api/v1/auth/oauth/{{'{provider}'}}/unlink</code>
           </div>
           <p className="text-gray-600 mb-4">Unlink an OAuth account from the current user.</p>
         </div>

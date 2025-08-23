@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 import { registerUser, tokenStorage, type ApiError } from '@/lib/auth'
-import { AuthWrapper } from '../../../src/components/AuthWrapper'
+import { AuthWrapper } from '@/components/AuthWrapper'
 
 function RegisterPageContent() {
   const router = useRouter()

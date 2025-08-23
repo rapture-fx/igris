@@ -54,7 +54,7 @@ const securityFeatures = [
 export default function SecurityFeatures() {
   return (
     <section className="py-20 sm:py-24 lg:py-32 bg-white">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-6 lg:px-8">
         <div className="lg:text-left mb-16">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
