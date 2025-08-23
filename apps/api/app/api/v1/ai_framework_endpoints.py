@@ -23,8 +23,8 @@ import json
 from app.database.connection import get_db
 from app.database.models import User, DataInvestigation
 from app.api.v1.auth_unified import get_current_user
-from app.services.ai_framework_integration import (
-    AIFrameworkIntegrator, MLFramework, TaskType, ExportConfig, DataSplit
+from app.services.ml_framework_integration import (
+    ml_framework_integration, MLFrameworkType, TaskType, ExportConfiguration, DataFormat, ModelServingConfig
 )
 from app.services.advanced_auto_labeler import (
     AdvancedAutoLabeler, LabelingTask, FewShotExample, ConfidenceLevel
@@ -35,7 +35,6 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 # Initialize services
-framework_integrator = AIFrameworkIntegrator()
 auto_labeler = AdvancedAutoLabeler()
 
 # ==================== REQUEST/RESPONSE MODELS ====================

@@ -30,7 +30,7 @@ from app.database.ml_preparation_models import (
     MLFrameworkType
 )
 from app.services.ai_data_intelligence_processor import AIDataIntelligenceProcessor
-from app.services.ai_framework_integration import AIFrameworkIntegrator
+from app.services.ml_framework_integration import ml_framework_integration, MLFrameworkType, ExportConfiguration, TaskType, DataFormat
 from app.database.connection import get_db_session
 
 logger = logging.getLogger(__name__)

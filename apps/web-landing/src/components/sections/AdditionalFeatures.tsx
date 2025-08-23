@@ -52,7 +52,7 @@ const features = [
 export default function AdditionalFeatures() {
   return (
     <section className="py-20 sm:py-24 lg:py-32 bg-gray-50 text-gray-900">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-6 lg:px-8">
         <div className="lg:text-left">
           <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-left">Beyond the Core</h2>
           <p className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 sm:text-4xl text-left">

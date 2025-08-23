@@ -11,7 +11,7 @@ from pathlib import Path
 
 from app.services.unified_data_processor import unified_processor, ProcessingMode
 from app.services.ml_preparation_engine import ml_preparation_engine, PreparationConfig
-from app.services.ai_framework_integration import AIFrameworkIntegrator
+from app.services.ml_framework_integration import ml_framework_integration, MLFrameworkType, ExportConfiguration, TaskType, DataFormat
 from app.services.data_connectors import DatabaseConnector, CloudStorageConnector, APIConnector
 from app.services.system_monitoring import system_monitor
 from app.services.webhook_service import webhook_service, WebhookEventType

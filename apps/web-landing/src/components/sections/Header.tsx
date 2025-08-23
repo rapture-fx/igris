@@ -4,20 +4,20 @@ import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, X, ChevronRight } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showProductPanel, setShowProductPanel] = useState(false)
   const [showApiPanel, setShowApiPanel] = useState(false)
-  const [showSolutionPanel, setShowSolutionPanel] = useState(false)
   const [showDocsPanel, setShowDocsPanel] = useState(false)
   const [isClicked, setIsClicked] = useState(false)
+  const pathname = usePathname()
+  const [scrolled, setScrolled] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
   const productLinkRef = useRef<HTMLDivElement>(null)
   const apiPanelRef = useRef<HTMLDivElement>(null)
   const apiLinkRef = useRef<HTMLDivElement>(null)
-  const solutionPanelRef = useRef<HTMLDivElement>(null)
-  const solutionLinkRef = useRef<HTMLDivElement>(null)
   const docsPanelRef = useRef<HTMLDivElement>(null)
   const docsLinkRef = useRef<HTMLDivElement>(null)
   
@@ -57,24 +57,6 @@ export default function Header() {
     setShowApiPanel(true)
   }
 
-  const handleSolutionHover = () => {
-    if (!isClicked) {
-      setShowSolutionPanel(true)
-    }
-  }
-
-  const handleSolutionLeave = () => {
-    if (!isClicked) {
-      setShowSolutionPanel(false)
-    }
-  }
-
-  const handleSolutionClick = (e: React.MouseEvent) => {
-    e.preventDefault()
-    setIsClicked(true)
-    setShowSolutionPanel(true)
-  }
-
   const handleDocsHover = () => {
     if (!isClicked) {
       setShowDocsPanel(true)
@@ -106,15 +88,6 @@ export default function Header() {
         setIsClicked(false)
       }
       if (
-        solutionPanelRef.current &&
-        !solutionPanelRef.current.contains(event.target as Node) &&
-        solutionLinkRef.current &&
-        !solutionLinkRef.current.contains(event.target as Node)
-      ) {
-        setShowSolutionPanel(false)
-        setIsClicked(false)
-      }
-      if (
         docsPanelRef.current &&
         !docsPanelRef.current.contains(event.target as Node) &&
         docsLinkRef.current &&
@@ -125,32 +98,48 @@ export default function Header() {
       }
     }
 
-    if (showApiPanel || showSolutionPanel || showDocsPanel || isClicked) {
+    if (showApiPanel || showDocsPanel || isClicked) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [showApiPanel, showSolutionPanel, showDocsPanel, isClicked])
+  }, [showApiPanel, showDocsPanel, isClicked])
+
+  // Scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 0) {
+        setScrolled(true);
+      } else {
+        setScrolled(false);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
 
   return (
     <header 
-      className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-6xl backdrop-blur-md rounded-2xl shadow-lg px-6 py-4 bg-white border border-gray-200"
+      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white ${scrolled ? 'scrolled' : ''}`}
     >
-      <div>
-        <div className="flex justify-between items-center">
-            <div className="flex items-center flex-1">
+      <div className="max-w-[1300px] mx-auto">
+        <div className="flex items-center">
+            <div className="flex items-center">
               <Link href="/" className="flex items-center">
                 <Image 
                   src="/Schlep Engine lightmode.svg" 
                   alt="Schlep Engine" 
-                  width={32} 
-                  height={32}
+                  width={40} 
+                  height={40}
                   className="mr-2"
                 />
                 <span className="text-lg font-semibold text-gray-900">Schlep-engine</span>
               </Link>
             </div>
 
-            <nav className="hidden md:flex items-center justify-center space-x-8 relative flex-1">
+            <nav className="hidden md:flex items-center justify-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
                 <div 
                   ref={apiLinkRef}
                   onMouseEnter={handleApiHover}
@@ -158,9 +147,9 @@ export default function Header() {
                   onClick={handleApiClick}
                   className="cursor-pointer relative"
                 >
-                  <span className="text-sm text-gray-700 hover:text-gray-900 transition-colors duration-200">
+                  <Link href="/" className={`text-sm transition-colors duration-200 ${pathname === '/' ? 'font-bold text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}>
                     Platform
-                  </span>
+                  </Link>
                   
                   {/* API panel positioned relative to API link */}
                   {showApiPanel && (
@@ -361,141 +350,31 @@ export default function Header() {
                     </div>
                   )}
                 </div>
-                <div 
-                  ref={solutionLinkRef}
-                  onMouseEnter={handleSolutionHover}
-                  onMouseLeave={handleSolutionLeave}
-                  onClick={handleSolutionClick}
-                  className="cursor-pointer relative"
-                >
-                  <span className="text-sm text-gray-700 hover:text-gray-900 transition-colors duration-200">
-                    Solution
-                  </span>
-                  {showSolutionPanel && (
-                    <div 
-                      ref={solutionPanelRef}
-                      className="absolute bg-white backdrop-blur-md border border-gray-200 rounded-lg shadow-2xl p-5 z-50"
-                      onMouseEnter={handleSolutionHover}
-                      onMouseLeave={handleSolutionLeave}
-                      style={{
-                        top: 'calc(100% + 2.2rem)',
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: '520px'
-                      }}
-                    >
-                      <div className="grid grid-cols-2 mt-4">
-                        {/* Column 1: Use Cases */}
-                        <div className="relative border-r border-gray-200">
-                          <div className="w-fit mx-auto space-y-3 pr-6">
-                            <h4 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Use Cases</h4>
-                            
-                            <Link 
-                              href="/docs/use-cases/ml-training" 
-                              className="flex items-start rounded-md hover:bg-gray-50 transition-colors duration-200 group cursor-pointer p-2"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h5 className="text-gray-900 text-xs group-hover:text-gray-700">ML Training</h5>
-                                <p className="text-xs text-gray-600">Prepare data for machine learning models.</p>
-                              </div>
-                            </Link>
-
-                            <Link 
-                              href="/docs/use-cases/ecommerce" 
-                              className="flex items-start rounded-md hover:bg-gray-50 transition-colors duration-200 group cursor-pointer p-2"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h5 className="text-gray-900 text-xs group-hover:text-gray-700">E-commerce Analytics</h5>
-                                <p className="text-xs text-gray-600">Customer insights and inventory optimization.</p>
-                              </div>
-                            </Link>
-
-                            <Link 
-                              href="/docs/use-cases/quality-monitoring" 
-                              className="flex items-start rounded-md hover:bg-gray-50 transition-colors duration-200 group cursor-pointer p-2"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h5 className="text-gray-900 text-xs group-hover:text-gray-700">Quality Monitoring</h5>
-                                <p className="text-xs text-gray-600">Monitor and validate data quality.</p>
-                              </div>
-                            </Link>
-                          </div>
-                        </div>
-
-                        {/* Column 2: Industry */}
-                        <div className="relative">
-                          <div className="w-fit mx-auto space-y-3 pl-6">
-                            <h4 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">Industry</h4>
-                            
-                            <Link 
-                              href="/industries/financial-services" 
-                              className="flex items-start rounded-md hover:bg-gray-50 transition-colors duration-200 group cursor-pointer p-2"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h5 className="text-gray-900 text-xs group-hover:text-gray-700">Financial Services</h5>
-                                <p className="text-xs text-gray-600">Empower financial services with clean data.</p>
-                              </div>
-                            </Link>
-
-                            <Link 
-                              href="/industries/ecommerce" 
-                              className="flex items-start rounded-md hover:bg-gray-50 transition-colors duration-200 group cursor-pointer p-2"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h5 className="text-gray-900 text-xs group-hover:text-gray-700">E-commerce</h5>
-                                <p className="text-xs text-gray-600">Optimize retail operations and analytics.</p>
-                              </div>
-                            </Link>
-
-                            <Link 
-                              href="/industries/manufacturing" 
-                              className="flex items-start rounded-md hover:bg-gray-50 transition-colors duration-200 group cursor-pointer p-2"
-                            >
-                              <div className="flex-1 min-w-0">
-                                <h5 className="text-gray-900 text-xs group-hover:text-gray-700">Manufacturing</h5>
-                                <p className="text-xs text-gray-600">Improve manufacturing with sensor data.</p>
-                              </div>
-                            </Link>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-3 mt-12">
-                        <div className="text-left">
-                          <Link href="/sales-collateral" className="text-gray-900 hover:text-gray-700 text-xs">
-                            View case studies & ROI calculator →
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
                 <Link 
-                  href="http://localhost:3003" 
+                  href="/solutions" 
+                  className={`text-sm transition-colors duration-200 ${pathname === '/solutions' ? 'font-bold text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}>
+                  Solution
+                </Link>
+                <Link 
+                  href="http://localhost:3003/api-reference" 
                   className="text-sm text-gray-700 hover:text-gray-900 transition-colors duration-200"
                 >
                   Docs
                 </Link>
                 <Link 
                   href="/pricing" 
-                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors duration-200"
-                >
+                  className={`text-sm transition-colors duration-200 ${pathname === '/pricing' ? 'font-bold text-gray-900' : 'text-gray-700 hover:text-gray-900'}`}>
                   Pricing
                 </Link>
-                <Link 
-                  href="/signin" 
-                  className="text-sm text-gray-700 hover:text-gray-900 transition-colors duration-200"
-                >
-                  Sign In
-                </Link>
+                
             </nav>
 
-            <div className="hidden md:flex items-center space-x-3">
+            <div className="hidden md:flex items-center space-x-3 ml-auto">
               <Link
-                href="#get-started"
-                className="bg-[#1A5799] text-beige-secondary px-5 py-2.5 rounded-xl hover:bg-[#154A85] transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                href="/auth"
+                className="bg-black text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
               >
-                Try it for Free
+                Sign Up
               </Link>
             </div>
 

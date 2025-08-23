@@ -60,7 +60,7 @@ fetch('https://api.schlep-engine.com/api/v1/integrations/database/connect', {
   method: 'POST',
   headers: {
     'Authorization': 
-      \`Bearer \${apiKey}\`,
+      `Bearer ${apiKey}`,
     'Content-Type': 'application/json'
   },
   body: JSON.stringify(connectionData)
@@ -101,7 +101,7 @@ fetch('https://api.schlep-engine.com/api/v1/integrations/database/connect', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/integrations/database/{'{connection_name}'}/tables</code>
+            <code className="text-sm">/api/v1/integrations/database/{{'{connection_name}'}}/tables</code>
           </div>
           <p className="text-gray-600 mb-4">List all tables in the connected database.</p>
         </div>
@@ -112,7 +112,7 @@ fetch('https://api.schlep-engine.com/api/v1/integrations/database/connect', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/integrations/database/{'{connection_name}'}/tables/{'{table_name}'}/schema</code>
+            <code className="text-sm">/api/v1/integrations/database/{{'{connection_name}'}}/tables/{{'{table_name}'}}/schema</code>
           </div>
           <p className="text-gray-600 mb-4">Get schema information for a specific table.</p>
         </div>
@@ -134,7 +134,7 @@ fetch('https://api.schlep-engine.com/api/v1/integrations/database/connect', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/integrations/storage/{'{connection_name}'}/files</code>
+            <code className="text-sm">/api/v1/integrations/storage/{{'{connection_name}'}}/files</code>
           </div>
           <p className="text-gray-600 mb-4">List files in cloud storage.</p>
         </div>
@@ -211,7 +211,7 @@ fetch('https://api.schlep-engine.com/api/v1/integrations/database/connect', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-red-200 text-red-800">DELETE</span>
-            <code className="text-sm">/api/v1/integrations/connections/{'{connection_name}'}</code>
+            <code className="text-sm">/api/v1/integrations/connections/{{'{connection_name}'}}</code>
           </div>
           <p className="text-gray-600 mb-4">Remove a connection.</p>
         </div>

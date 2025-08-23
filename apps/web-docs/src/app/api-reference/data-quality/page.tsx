@@ -34,8 +34,7 @@ formData.append('file', fileInput.files[0]);
 fetch('https://api.schlep-engine.com/api/v1/quality/assess', {
   method: 'POST',
   headers: {
-    'Authorization': 
-`Bearer ${apiKey}`
+    'Authorization': `Bearer ${apiKey}`
   },
   body: formData
 }).then(res => res.json()).then(console.log);`

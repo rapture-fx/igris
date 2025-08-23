@@ -61,9 +61,9 @@ export default function Footer() {
 
   return (
     <footer className="bg-gray-900 text-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-16">
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-[1300px] mx-auto">
             {/* Brand Column */}
             <div className="lg:col-span-2">
               <div className="flex flex-col">

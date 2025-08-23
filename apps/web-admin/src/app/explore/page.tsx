@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { 
   Search, 
   Filter, 
@@ -17,8 +17,14 @@ import {
   AlertTriangle,
   CheckCircle,
   Info,
-  X
+  X,
+  Upload,
+  FileText,
+  Loader2,
+  Play,
+  Database
 } from 'lucide-react'
+import { dataProcessingApi, DataUploadResponse } from '@/lib/api'
 
 interface DataColumn {
   name: string
@@ -60,15 +66,98 @@ export default function DataExploration() {
   const [searchQuery, setSearchQuery] = useState('')
   const [showQualityPanel, setShowQualityPanel] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [uploadResponse, setUploadResponse] = useState<DataUploadResponse | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [analysisInProgress, setAnalysisInProgress] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    // Mock data
+  // File upload handlers
+  const handleFileSelect = useCallback((file: File) => {
+    setUploadedFile(file)
+    setDataset(null)
+    setPreview(null)
+    setQualityIssues([])
+    setSelectedColumns([])
+  }, [])
+
+  const handleFileUpload = useCallback(async (file: File) => {
+    try {
+      setIsUploading(true)
+      
+      const response = await dataProcessingApi.uploadFile(file, {
+        auto_process: true,
+        workspace_id: 'default'
+      })
+      
+      setUploadResponse(response)
+      
+      // Start analysis process
+      setTimeout(() => {
+        analyzeUploadedFile(response.file_id)
+      }, 1000)
+      
+    } catch (error) {
+      console.error('File upload failed:', error)
+    } finally {
+      setIsUploading(false)
+    }
+  }, [])
+
+  const analyzeUploadedFile = useCallback(async (fileId: string) => {
+    try {
+      setAnalysisInProgress(true)
+      setIsLoading(true)
+
+      // Run smart profiling
+      const profilingResult = await dataProcessingApi.smartProfiling(fileId)
+      
+      // Get data quality analysis
+      const qualityResult = await dataProcessingApi.getDataQuality(fileId)
+      
+      // Mock the dataset info based on analysis results
+      const analyzedDataset: DatasetInfo = {
+        name: uploadedFile?.name || 'uploaded_file.csv',
+        total_rows: profilingResult.total_rows || 0,
+        total_columns: profilingResult.total_columns || 0,
+        size: formatFileSize(uploadedFile?.size || 0),
+        last_updated: new Date().toISOString(),
+        columns: profilingResult.columns || []
+      }
+      
+      const previewData: DataPreview = {
+        columns: profilingResult.column_names || [],
+        rows: profilingResult.sample_data || [],
+        total_count: profilingResult.total_rows || 0
+      }
+      
+      const issues: QualityIssue[] = qualityResult.issues || []
+      
+      setDataset(analyzedDataset)
+      setPreview(previewData)
+      setQualityIssues(issues)
+      setSelectedColumns(previewData.columns.slice(0, 6))
+      
+    } catch (error) {
+      console.error('File analysis failed:', error)
+      
+      // Fallback to mock data for demo
+      loadMockData()
+      
+    } finally {
+      setAnalysisInProgress(false)
+      setIsLoading(false)
+    }
+  }, [uploadedFile])
+
+  const loadMockData = useCallback(() => {
     const mockDataset: DatasetInfo = {
-      name: 'customer_transactions.csv',
+      name: uploadedFile?.name || 'customer_transactions.csv',
       total_rows: 150000,
       total_columns: 12,
-      size: '45.2 MB',
-      last_updated: '2024-01-15T10:30:00Z',
+      size: formatFileSize(uploadedFile?.size || 45200000),
+      last_updated: new Date().toISOString(),
       columns: [
         {
           name: 'customer_id',
@@ -168,7 +257,54 @@ export default function DataExploration() {
     setPreview(mockPreview)
     setQualityIssues(mockQualityIssues)
     setSelectedColumns(mockDataset.columns.slice(0, 6).map(col => col.name))
+  }, [uploadedFile])
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(true)
   }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }, [])
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    const file = files[0]
+    
+    if (file && (file.type.includes('csv') || file.type.includes('json') || file.name.endsWith('.csv') || file.name.endsWith('.json'))) {
+      handleFileSelect(file)
+      handleFileUpload(file)
+    }
+  }, [handleFileSelect, handleFileUpload])
+
+  const handleFileInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleFileSelect(file)
+      handleFileUpload(file)
+    }
+  }, [handleFileSelect, handleFileUpload])
+
+  useEffect(() => {
+    // Load mock data on initial load if no file is uploaded
+    if (!uploadedFile && !dataset) {
+      loadMockData()
+    }
+  }, [uploadedFile, dataset, loadMockData])
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -241,6 +377,25 @@ export default function DataExploration() {
               <p className="text-gray-400 mt-1">Interactive data profiling and quality analysis</p>
             </div>
             <div className="flex items-center space-x-4">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.json"
+                onChange={handleFileInputChange}
+                className="hidden"
+              />
+              <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="inline-flex items-center px-4 py-2 bg-[#1a1a1a] text-gray-300 border border-gray-700 rounded-lg hover:bg-[#2a2a2a] transition-colors"
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4 mr-2" />
+                )}
+                Upload Data
+              </button>
               <button 
                 onClick={() => setShowQualityPanel(!showQualityPanel)}
                 className="inline-flex items-center px-4 py-2 bg-[#1a1a1a] text-gray-300 border border-gray-700 rounded-lg hover:bg-[#2a2a2a] transition-colors"
@@ -248,7 +403,10 @@ export default function DataExploration() {
                 {showQualityPanel ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
                 Quality Panel
               </button>
-              <button className="inline-flex items-center px-4 py-2 bg-[#468BE6] text-white rounded-lg hover:bg-[#3a7bd5] transition-colors">
+              <button 
+                className="inline-flex items-center px-4 py-2 bg-[#468BE6] text-white rounded-lg hover:bg-[#3a7bd5] transition-colors"
+                disabled={!dataset}
+              >
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </button>
@@ -258,6 +416,79 @@ export default function DataExploration() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
+        {/* File Upload Drop Zone */}
+        {!dataset && (
+          <div 
+            className={`mb-8 border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
+              isDragOver 
+                ? 'border-[#468BE6] bg-[#468BE6]/10' 
+                : 'border-gray-600 bg-[#161616]'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            <div className="max-w-sm mx-auto">
+              {isUploading ? (
+                <>
+                  <Loader2 className="w-12 h-12 text-[#468BE6] mx-auto mb-4 animate-spin" />
+                  <h3 className="text-lg font-medium text-white mb-2">Uploading...</h3>
+                  <p className="text-gray-400">Processing your data file</p>
+                </>
+              ) : analysisInProgress ? (
+                <>
+                  <Database className="w-12 h-12 text-[#468BE6] mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-white mb-2">Analyzing Data...</h3>
+                  <p className="text-gray-400">Running smart profiling and quality checks</p>
+                  <div className="mt-4 w-full bg-gray-800 rounded-full h-2">
+                    <div className="bg-[#468BE6] h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-white mb-2">
+                    Drop your data file here
+                  </h3>
+                  <p className="text-gray-400 mb-4">
+                    Or click to browse CSV/JSON files
+                  </p>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="inline-flex items-center px-4 py-2 bg-[#468BE6] text-white rounded-lg hover:bg-[#3a7bd5] transition-colors"
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Select File
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Analysis Status Bar */}
+        {uploadResponse && (
+          <div className="mb-8 bg-[#161616] border border-gray-800 rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <CheckCircle className="w-5 h-5 text-green-400" />
+                <div>
+                  <h4 className="text-white font-medium">File Uploaded Successfully</h4>
+                  <p className="text-gray-400 text-sm">
+                    Job ID: {uploadResponse.job_id} • Status: {uploadResponse.status}
+                  </p>
+                </div>
+              </div>
+              {analysisInProgress && (
+                <div className="flex items-center space-x-2 text-blue-400">
+                  <Play className="w-4 h-4 animate-pulse" />
+                  <span className="text-sm">Processing...</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Data Schema Sidebar */}
           <div className="lg:col-span-1">

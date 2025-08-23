@@ -1,202 +1,231 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { 
-  PlayCircle, 
-  PauseCircle, 
+  Play, 
+  Pause, 
   Square, 
-  Settings, 
-  Download, 
-  Upload, 
-  Database, 
-  Zap, 
-  CheckCircle, 
-  AlertTriangle, 
+  Activity, 
   Clock, 
-  ArrowRight,
-  FileText,
+  CheckCircle, 
+  AlertTriangle,
+  XCircle,
+  Settings,
   BarChart3,
-  Layers,
-  Code2,
-  Eye,
-  Edit3
+  TrendingUp,
+  Database,
+  Cpu,
+  Zap,
+  RefreshCw,
+  Terminal,
+  PlayCircle,
+  Layers
 } from 'lucide-react'
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts'
+import { 
+  mlPipelineApi, 
+  MLPipelineStatus, 
+  WebSocketClient 
+} from '@/lib/api'
 
-interface PipelineStep {
-  id: string
-  name: string
-  type: 'input' | 'transform' | 'validate' | 'output' | 'ml'
-  status: 'completed' | 'running' | 'pending' | 'error'
-  duration: string
-  config: Record<string, any>
-  inputRows: number
-  outputRows: number
-  description: string
+interface PipelineMetrics {
+  timestamp: string
+  accuracy: number
+  loss: number
+  throughput: number
+  memory_usage: number
+  cpu_usage: number
 }
 
-interface Pipeline {
-  id: string
+interface PipelineStage {
   name: string
-  status: 'running' | 'completed' | 'paused' | 'failed'
-  steps: PipelineStep[]
-  startTime: string
-  totalDuration: string
-  datasetSize: string
+  status: 'pending' | 'running' | 'completed' | 'failed'
+  duration: number
+  progress: number
 }
 
-export default function PipelineVisualization() {
-  const [selectedPipeline, setSelectedPipeline] = useState<Pipeline | null>(null)
-  const [pipelines, setPipelines] = useState<Pipeline[]>([])
-  const [selectedStep, setSelectedStep] = useState<PipelineStep | null>(null)
+export default function MLPipelineMonitor() {
+  const [pipelines, setPipelines] = useState<MLPipelineStatus[]>([])
+  const [selectedPipeline, setSelectedPipeline] = useState<MLPipelineStatus | null>(null)
+  const [metrics, setMetrics] = useState<PipelineMetrics[]>([])
+  const [stages, setStages] = useState<PipelineStage[]>([])
+  const [logs, setLogs] = useState<string[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [wsClient, setWsClient] = useState<WebSocketClient | null>(null)
 
-  useEffect(() => {
-    // Mock pipeline data
-    const mockPipeline: Pipeline = {
-      id: '1',
-      name: 'Customer Data Processing Pipeline',
-      status: 'running',
-      startTime: '2024-01-15T10:30:00Z',
-      totalDuration: '4m 23s',
-      datasetSize: '2.3 GB',
-      steps: [
+  // Load pipeline data
+  const loadPipelines = useCallback(async () => {
+    try {
+      setIsRefreshing(true)
+      const pipelinesData = await mlPipelineApi.getActivePipelines()
+      setPipelines(pipelinesData)
+      
+      if (!selectedPipeline && pipelinesData.length > 0) {
+        setSelectedPipeline(pipelinesData[0])
+      }
+    } catch (error) {
+      console.error('Failed to load pipelines:', error)
+      // Fallback mock data
+      const mockPipelines: MLPipelineStatus[] = [
         {
-          id: 'input',
-          name: 'Data Ingestion',
-          type: 'input',
-          status: 'completed',
-          duration: '0m 45s',
-          inputRows: 0,
-          outputRows: 150000,
-          description: 'Load CSV data from cloud storage',
-          config: {
-            source: 's3://data-bucket/customers.csv',
-            format: 'CSV',
-            encoding: 'UTF-8'
-          }
-        },
-        {
-          id: 'validate',
-          name: 'Schema Validation',
-          type: 'validate',
-          status: 'completed',
-          duration: '0m 12s',
-          inputRows: 150000,
-          outputRows: 147850,
-          description: 'Validate data against predefined schema',
-          config: {
-            schema: 'customer_v2.json',
-            strict_mode: false,
-            drop_invalid: true
-          }
-        },
-        {
-          id: 'clean',
-          name: 'Data Cleaning',
-          type: 'transform',
+          pipeline_id: 'pipe_001',
           status: 'running',
-          duration: '1m 34s',
-          inputRows: 147850,
-          outputRows: 0,
-          description: 'Remove duplicates, handle missing values',
-          config: {
-            remove_duplicates: true,
-            missing_value_strategy: 'median_fill',
-            outlier_detection: 'iqr'
-          }
+          progress: 67,
+          stage: 'Training Neural Network',
+          metrics: {
+            accuracy: 0.892,
+            loss: 0.234,
+            learning_rate: 0.001
+          },
+          logs: [
+            'Starting training process...',
+            'Epoch 1/100 - Loss: 0.456, Accuracy: 0.823',
+            'Epoch 2/100 - Loss: 0.389, Accuracy: 0.851',
+            'Epoch 3/100 - Loss: 0.234, Accuracy: 0.892'
+          ]
         },
         {
-          id: 'transform',
-          name: 'Feature Engineering',
-          type: 'transform',
-          status: 'pending',
-          duration: '',
-          inputRows: 0,
-          outputRows: 0,
-          description: 'Create derived features and encodings',
-          config: {
-            categorical_encoding: 'one_hot',
-            numerical_scaling: 'standard',
-            create_features: ['age_group', 'purchase_frequency']
-          }
+          pipeline_id: 'pipe_002',
+          status: 'completed',
+          progress: 100,
+          stage: 'Model Evaluation',
+          metrics: {
+            accuracy: 0.945,
+            loss: 0.123,
+            f1_score: 0.923
+          },
+          logs: []
         },
         {
-          id: 'ml',
-          name: 'Auto-Labeling',
-          type: 'ml',
-          status: 'pending',
-          duration: '',
-          inputRows: 0,
-          outputRows: 0,
-          description: 'Apply ML model for automated classification',
-          config: {
-            model: 'customer_segmentation_v3',
-            confidence_threshold: 0.85,
-            fallback_strategy: 'manual_review'
-          }
-        },
-        {
-          id: 'output',
-          name: 'Data Export',
-          type: 'output',
-          status: 'pending',
-          duration: '',
-          inputRows: 0,
-          outputRows: 0,
-          description: 'Export processed data to destination',
-          config: {
-            destination: 'postgresql://prod-db/customers',
-            format: 'parquet',
-            partition_by: 'date'
-          }
+          pipeline_id: 'pipe_003',
+          status: 'failed',
+          progress: 23,
+          stage: 'Data Preprocessing',
+          metrics: {},
+          logs: [
+            'Loading dataset...',
+            'Error: Invalid data format in column "amount"'
+          ]
         }
       ]
+      setPipelines(mockPipelines)
+      if (!selectedPipeline) {
+        setSelectedPipeline(mockPipelines[0])
+      }
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [selectedPipeline])
+
+  // Generate mock metrics data
+  useEffect(() => {
+    const generateMetrics = () => {
+      const now = new Date()
+      const data: PipelineMetrics[] = []
+      
+      for (let i = 29; i >= 0; i--) {
+        const timestamp = new Date(now.getTime() - i * 60 * 1000)
+        data.push({
+          timestamp: timestamp.toISOString().substring(11, 19),
+          accuracy: 0.7 + Math.random() * 0.25,
+          loss: 0.5 - Math.random() * 0.3,
+          throughput: 800 + Math.random() * 400,
+          memory_usage: 60 + Math.random() * 30,
+          cpu_usage: 40 + Math.random() * 50
+        })
+      }
+      
+      setMetrics(data)
     }
 
-    setPipelines([mockPipeline])
-    setSelectedPipeline(mockPipeline)
+    const generateStages = () => {
+      setStages([
+        { name: 'Data Loading', status: 'completed', duration: 45, progress: 100 },
+        { name: 'Data Preprocessing', status: 'completed', duration: 120, progress: 100 },
+        { name: 'Feature Engineering', status: 'completed', duration: 89, progress: 100 },
+        { name: 'Model Training', status: 'running', duration: 340, progress: 67 },
+        { name: 'Model Validation', status: 'pending', duration: 0, progress: 0 },
+        { name: 'Model Deployment', status: 'pending', duration: 0, progress: 0 }
+      ])
+    }
+
+    generateMetrics()
+    generateStages()
+    
+    const interval = setInterval(() => {
+      generateMetrics()
+    }, 5000)
+
+    return () => clearInterval(interval)
   }, [])
 
-  const getStepIcon = (type: string, status: string) => {
-    const iconClass = "w-6 h-6"
+  // Initialize WebSocket
+  useEffect(() => {
+    const client = new WebSocketClient()
     
-    if (status === 'running') {
-      switch (type) {
-        case 'input': return <Upload className={`${iconClass} text-blue-500 animate-pulse`} />
-        case 'transform': return <Zap className={`${iconClass} text-yellow-500 animate-pulse`} />
-        case 'validate': return <CheckCircle className={`${iconClass} text-green-500 animate-pulse`} />
-        case 'ml': return <BarChart3 className={`${iconClass} text-purple-500 animate-pulse`} />
-        case 'output': return <Download className={`${iconClass} text-blue-500 animate-pulse`} />
-        default: return <Settings className={`${iconClass} text-gray-500 animate-pulse`} />
+    client.connect((data) => {
+      if (data.type === 'pipeline_metrics' && selectedPipeline) {
+        setMetrics(prev => [...prev.slice(-29), {
+          timestamp: new Date().toISOString().substring(11, 19),
+          accuracy: data.accuracy || 0.8,
+          loss: data.loss || 0.2,
+          throughput: data.throughput || 1000,
+          memory_usage: data.memory_usage || 70,
+          cpu_usage: data.cpu_usage || 60
+        }])
       }
-    }
+      
+      if (data.type === 'pipeline_logs' && selectedPipeline) {
+        setLogs(prev => [...prev, data.message])
+      }
+    })
 
-    switch (type) {
-      case 'input': return <Upload className={`${iconClass} ${getStatusColor(status)}`} />
-      case 'transform': return <Zap className={`${iconClass} ${getStatusColor(status)}`} />
-      case 'validate': return <CheckCircle className={`${iconClass} ${getStatusColor(status)}`} />
-      case 'ml': return <BarChart3 className={`${iconClass} ${getStatusColor(status)}`} />
-      case 'output': return <Download className={`${iconClass} ${getStatusColor(status)}`} />
-      default: return <Settings className={`${iconClass} text-gray-500`} />
+    setWsClient(client)
+    return () => client.disconnect()
+  }, [selectedPipeline])
+
+  useEffect(() => {
+    loadPipelines()
+    const interval = setInterval(loadPipelines, 30000)
+    return () => clearInterval(interval)
+  }, [loadPipelines])
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'running': return <Activity className="w-4 h-4 text-blue-400 animate-pulse" />
+      case 'completed': return <CheckCircle className="w-4 h-4 text-green-400" />
+      case 'failed': return <XCircle className="w-4 h-4 text-red-400" />
+      case 'pending': return <Clock className="w-4 h-4 text-gray-400" />
+      default: return <Clock className="w-4 h-4 text-gray-400" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed': return 'text-green-500'
-      case 'running': return 'text-blue-500'
-      case 'error': return 'text-red-500'
-      default: return 'text-gray-500'
+      case 'running': return 'bg-blue-900/30 border-blue-500 text-blue-400'
+      case 'completed': return 'bg-green-900/30 border-green-500 text-green-400'
+      case 'failed': return 'bg-red-900/30 border-red-500 text-red-400'
+      case 'pending': return 'bg-gray-900/30 border-gray-500 text-gray-400'
+      default: return 'bg-gray-900/30 border-gray-500 text-gray-400'
     }
   }
 
-  const getStepBackgroundColor = (status: string) => {
-    switch (status) {
-      case 'completed': return 'bg-green-900/20 border-green-700'
-      case 'running': return 'bg-blue-900/20 border-blue-700'
-      case 'error': return 'bg-red-900/20 border-red-700'
-      default: return 'bg-gray-900/20 border-gray-700'
-    }
-  }
+  const COLORS = ['#468BE6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6']
 
   return (
     <div className="min-h-screen bg-[#0f0f0f]">
@@ -205,17 +234,21 @@ export default function PipelineVisualization() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Pipeline Visualization</h1>
-              <p className="text-gray-400 mt-1">Monitor and debug your data transformation workflows</p>
+              <h1 className="text-2xl font-bold text-white">ML Pipeline Monitor</h1>
+              <p className="text-gray-400 mt-1">Real-time monitoring of machine learning workflows</p>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                <PlayCircle className="w-4 h-4 mr-2" />
-                Run Pipeline
+              <button
+                onClick={() => loadPipelines()}
+                disabled={isRefreshing}
+                className="inline-flex items-center px-4 py-2 bg-[#468BE6] text-white rounded-lg hover:bg-[#3a7bd5] transition-colors disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
               </button>
-              <button className="inline-flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                <Square className="w-4 h-4 mr-2" />
-                Stop All
+              <button className="inline-flex items-center px-4 py-2 bg-[#1a1a1a] text-gray-300 border border-gray-700 rounded-lg hover:bg-[#2a2a2a] transition-colors">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
               </button>
             </div>
           </div>
@@ -223,171 +256,243 @@ export default function PipelineVisualization() {
       </header>
 
       <div className="max-w-7xl mx-auto px-6 py-8">
-        {selectedPipeline && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Pipeline Flow Visualization */}
-            <div className="lg:col-span-2">
-              <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-lg font-semibold text-white">{selectedPipeline.name}</h2>
-                  <div className="flex items-center space-x-4">
-                    <span className="text-sm text-gray-400">Dataset: {selectedPipeline.datasetSize}</span>
-                    <span className="text-sm text-gray-400">Duration: {selectedPipeline.totalDuration}</span>
-                  </div>
-                </div>
-
-                {/* Pipeline Steps Flow */}
-                <div className="space-y-4">
-                  {selectedPipeline.steps.map((step, index) => (
-                    <div key={step.id}>
-                      <div 
-                        className={`relative p-4 rounded-lg border cursor-pointer transition-all hover:bg-gray-900/50 ${getStepBackgroundColor(step.status)} ${
-                          selectedStep?.id === step.id ? 'ring-2 ring-[#468BE6]' : ''
-                        }`}
-                        onClick={() => setSelectedStep(step)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-4">
-                            {getStepIcon(step.type, step.status)}
-                            <div>
-                              <h3 className="text-white font-medium">{step.name}</h3>
-                              <p className="text-gray-400 text-sm">{step.description}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center space-x-6">
-                            {step.inputRows > 0 && (
-                              <div className="text-right">
-                                <p className="text-xs text-gray-400">Input</p>
-                                <p className="text-sm text-white">{step.inputRows.toLocaleString()}</p>
-                              </div>
-                            )}
-                            {step.outputRows > 0 && (
-                              <div className="text-right">
-                                <p className="text-xs text-gray-400">Output</p>
-                                <p className="text-sm text-white">{step.outputRows.toLocaleString()}</p>
-                              </div>
-                            )}
-                            <div className="text-right">
-                              <p className="text-xs text-gray-400">Duration</p>
-                              <p className="text-sm text-white">{step.duration || '—'}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Progress bar for running steps */}
-                        {step.status === 'running' && (
-                          <div className="mt-3">
-                            <div className="w-full bg-gray-800 rounded-full h-2">
-                              <div className="bg-[#468BE6] h-2 rounded-full animate-pulse" style={{ width: '65%' }}></div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Connector Arrow */}
-                      {index < selectedPipeline.steps.length - 1 && (
-                        <div className="flex justify-center py-2">
-                          <ArrowRight className="w-5 h-5 text-gray-600" />
-                        </div>
-                      )}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Pipeline List */}
+          <div className="lg:col-span-1">
+            <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
+              <h2 className="text-lg font-semibold text-white mb-4">Active Pipelines</h2>
+              <div className="space-y-3">
+                {pipelines.map((pipeline) => (
+                  <div
+                    key={pipeline.pipeline_id}
+                    className={`p-3 rounded-lg border cursor-pointer transition-all hover:bg-gray-900/50 ${
+                      selectedPipeline?.pipeline_id === pipeline.pipeline_id
+                        ? 'bg-[#468BE6]/10 border-[#468BE6]'
+                        : 'bg-[#0f0f0f] border-gray-800'
+                    }`}
+                    onClick={() => setSelectedPipeline(pipeline)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-white text-sm font-medium">
+                        {pipeline.pipeline_id.slice(0, 8)}...
+                      </span>
+                      {getStatusIcon(pipeline.status)}
                     </div>
-                  ))}
-                </div>
+                    <div className="text-xs text-gray-400 mb-2">
+                      {pipeline.stage}
+                    </div>
+                    {pipeline.status === 'running' && (
+                      <div className="w-full bg-gray-800 rounded-full h-1.5">
+                        <div 
+                          className="bg-[#468BE6] h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${pipeline.progress}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Step Details Panel */}
-            <div className="lg:col-span-1">
-              <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-white mb-4">
-                  {selectedStep ? 'Step Configuration' : 'Select a Step'}
-                </h3>
-                
-                {selectedStep ? (
-                  <div className="space-y-6">
-                    {/* Step Overview */}
-                    <div>
-                      <div className="flex items-center space-x-3 mb-3">
-                        {getStepIcon(selectedStep.type, selectedStep.status)}
-                        <div>
-                          <h4 className="text-white font-medium">{selectedStep.name}</h4>
-                          <p className="text-xs text-gray-400 uppercase tracking-wider">{selectedStep.type}</p>
-                        </div>
-                      </div>
-                      <p className="text-gray-300 text-sm">{selectedStep.description}</p>
-                    </div>
-
-                    {/* Data Flow */}
-                    <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
-                      <h5 className="text-white font-medium mb-3">Data Flow</h5>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1">Input Rows</p>
-                          <p className="text-lg font-semibold text-white">
-                            {selectedStep.inputRows > 0 ? selectedStep.inputRows.toLocaleString() : '—'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-gray-400 mb-1">Output Rows</p>
-                          <p className="text-lg font-semibold text-white">
-                            {selectedStep.outputRows > 0 ? selectedStep.outputRows.toLocaleString() : '—'}
-                          </p>
-                        </div>
-                      </div>
-                      {selectedStep.inputRows > 0 && selectedStep.outputRows > 0 && (
-                        <div className="mt-3">
-                          <p className="text-xs text-gray-400 mb-1">Data Retention</p>
-                          <p className="text-sm text-green-400">
-                            {((selectedStep.outputRows / selectedStep.inputRows) * 100).toFixed(1)}%
-                          </p>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Configuration */}
-                    <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <h5 className="text-white font-medium">Configuration</h5>
-                        <button className="text-[#468BE6] hover:text-[#3a7bd5] transition-colors">
-                          <Edit3 className="w-4 h-4" />
-                        </button>
-                      </div>
-                      <div className="space-y-3">
-                        {Object.entries(selectedStep.config).map(([key, value]) => (
-                          <div key={key} className="flex justify-between">
-                            <span className="text-xs text-gray-400 capitalize">
-                              {key.replace(/_/g, ' ')}:
-                            </span>
-                            <span className="text-xs text-white font-mono max-w-32 truncate">
-                              {typeof value === 'boolean' ? (value ? 'true' : 'false') : String(value)}
-                            </span>
-                          </div>
-                        ))}
+            {/* Pipeline Stages */}
+            <div className="bg-[#161616] border border-gray-800 rounded-xl p-6 mt-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Pipeline Stages</h3>
+              <div className="space-y-3">
+                {stages.map((stage, index) => (
+                  <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-[#0f0f0f]">
+                    <div className="flex items-center space-x-3">
+                      {getStatusIcon(stage.status)}
+                      <div>
+                        <p className="text-sm text-white">{stage.name}</p>
+                        {stage.duration > 0 && (
+                          <p className="text-xs text-gray-400">{stage.duration}s</p>
+                        )}
                       </div>
                     </div>
-
-                    {/* Actions */}
-                    <div className="flex space-x-2">
-                      <button className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-[#468BE6] text-white rounded-lg hover:bg-[#3a7bd5] transition-colors text-sm">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Data
-                      </button>
-                      <button className="flex-1 inline-flex items-center justify-center px-3 py-2 bg-[#1a1a1a] text-gray-300 border border-gray-700 rounded-lg hover:bg-[#2a2a2a] transition-colors text-sm">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Logs
-                      </button>
-                    </div>
+                    {stage.status === 'running' && (
+                      <div className="w-16 bg-gray-800 rounded-full h-1.5">
+                        <div 
+                          className="bg-blue-400 h-1.5 rounded-full"
+                          style={{ width: `${stage.progress}%` }}
+                        />
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <Layers className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <p className="text-gray-400">Click on a pipeline step to view its configuration and data flow details.</p>
-                  </div>
-                )}
+                ))}
               </div>
             </div>
           </div>
-        )}
+
+          {/* Main Content */}
+          <div className="lg:col-span-3">
+            {selectedPipeline && (
+              <div className="space-y-6">
+                {/* Pipeline Status Card */}
+                <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h2 className="text-xl font-semibold text-white">
+                        Pipeline {selectedPipeline.pipeline_id}
+                      </h2>
+                      <p className="text-gray-400">{selectedPipeline.stage}</p>
+                    </div>
+                    <div className={`px-4 py-2 rounded-lg border ${getStatusColor(selectedPipeline.status)}`}>
+                      <div className="flex items-center space-x-2">
+                        {getStatusIcon(selectedPipeline.status)}
+                        <span className="text-sm font-medium capitalize">{selectedPipeline.status}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Metrics Grid */}
+                  {selectedPipeline.metrics && (
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-gray-400 text-sm">Accuracy</p>
+                            <p className="text-2xl font-bold text-green-400">
+                              {((selectedPipeline.metrics.accuracy || 0) * 100).toFixed(1)}%
+                            </p>
+                          </div>
+                          <TrendingUp className="w-8 h-8 text-green-400" />
+                        </div>
+                      </div>
+                      <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-gray-400 text-sm">Loss</p>
+                            <p className="text-2xl font-bold text-blue-400">
+                              {(selectedPipeline.metrics.loss || 0).toFixed(3)}
+                            </p>
+                          </div>
+                          <BarChart3 className="w-8 h-8 text-blue-400" />
+                        </div>
+                      </div>
+                      <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-gray-400 text-sm">Progress</p>
+                            <p className="text-2xl font-bold text-yellow-400">
+                              {selectedPipeline.progress}%
+                            </p>
+                          </div>
+                          <Activity className="w-8 h-8 text-yellow-400" />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Progress Bar */}
+                  {selectedPipeline.status === 'running' && (
+                    <div className="w-full bg-gray-800 rounded-full h-3 mb-6">
+                      <div 
+                        className="bg-gradient-to-r from-blue-500 to-purple-500 h-3 rounded-full transition-all duration-500"
+                        style={{ width: `${selectedPipeline.progress}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* Real-time Metrics Charts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Accuracy & Loss Chart */}
+                  <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Training Metrics</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={metrics}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="timestamp" stroke="#9CA3AF" fontSize={12} />
+                        <YAxis stroke="#9CA3AF" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#1F2937', 
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                            color: '#F3F4F6'
+                          }}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="accuracy" 
+                          stroke="#10B981" 
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="loss" 
+                          stroke="#EF4444" 
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Resource Usage */}
+                  <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Resource Usage</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <AreaChart data={metrics}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis dataKey="timestamp" stroke="#9CA3AF" fontSize={12} />
+                        <YAxis stroke="#9CA3AF" fontSize={12} />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#1F2937', 
+                            border: '1px solid #374151',
+                            borderRadius: '8px',
+                            color: '#F3F4F6'
+                          }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="cpu_usage" 
+                          stackId="1"
+                          stroke="#8B5CF6" 
+                          fill="#8B5CF6" 
+                          fillOpacity={0.6}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="memory_usage" 
+                          stackId="1"
+                          stroke="#F59E0B" 
+                          fill="#F59E0B" 
+                          fillOpacity={0.6}
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+
+                {/* Pipeline Logs */}
+                <div className="bg-[#161616] border border-gray-800 rounded-xl">
+                  <div className="p-6 border-b border-gray-800">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-white">Pipeline Logs</h3>
+                      <Terminal className="w-5 h-5 text-gray-400" />
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <div className="bg-[#0f0f0f] border border-gray-800 rounded-lg p-4 font-mono text-sm max-h-64 overflow-y-auto">
+                      {selectedPipeline.logs && selectedPipeline.logs.length > 0 ? (
+                        selectedPipeline.logs.map((log, index) => (
+                          <div key={index} className="mb-1 text-gray-300">
+                            <span className="text-gray-500">[{new Date().toISOString().substring(11, 19)}]</span> {log}
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-gray-500 italic">No logs available</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   )

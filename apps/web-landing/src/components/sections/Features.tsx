@@ -80,7 +80,7 @@ export default function Features() {
     // Visual Enhancement Suggestion: Consider adding a diagram or a short video here
     // that visually explains how these features work together to prepare data for ML.
     <section id="features" className="section-padding bg-custom-gray">
-      <div className="max-w-7xl mx-auto container-padding">
+      <div className="max-w-[1300px] mx-auto container-padding">
         <div className="mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

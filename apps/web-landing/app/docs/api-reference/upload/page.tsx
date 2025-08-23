@@ -1,6 +1,6 @@
 import Header from '@/components/sections/Header'
 import Footer from '@/components/sections/Footer'
-import { EndpointCard } from '@/src/components/docs/EndpointCard'
+import { EndpointCard } from '@/components/docs/EndpointCard'
 
 export default function UploadApiPage() {
   return (

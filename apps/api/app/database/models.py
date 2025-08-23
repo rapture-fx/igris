@@ -102,6 +102,10 @@ class User(Base):
     
     # OAuth relationships
     oauth_accounts = relationship("OAuthAccount", back_populates="user")
+    
+    # Feedback Learning relationships
+    feedback_events = relationship("UserFeedback", back_populates="user")
+    learning_profile = relationship("UserLearningProfile", back_populates="user", uselist=False)
 
 class OAuthAccount(Base):
     """OAuth account linking table for multiple OAuth providers per user"""
@@ -383,4 +387,214 @@ class UsageMetric(Base):
 
 # DataClassificationRecord is now defined in security_models.py to avoid duplication
 
-# ComplianceEvent is now defined in security_models.py to avoid duplication 
+# ComplianceEvent is now defined in security_models.py to avoid duplication
+
+# ==================== FEEDBACK LEARNING MODELS ====================
+
+class FeedbackTypeEnum(str, enum.Enum):
+    TRANSFORMATION_RATING = "transformation_rating"
+    PREDICTION_ACCURACY = "prediction_accuracy"  
+    PATTERN_RELEVANCE = "pattern_relevance"
+    DATA_QUALITY_IMPROVEMENT = "data_quality_improvement"
+    FEATURE_USEFULNESS = "feature_usefulness"
+    MODEL_PERFORMANCE = "model_performance"
+    UI_EXPERIENCE = "ui_experience"
+    API_SATISFACTION = "api_satisfaction"
+
+class FeedbackSentimentEnum(str, enum.Enum):
+    POSITIVE = "positive"
+    NEGATIVE = "negative" 
+    NEUTRAL = "neutral"
+
+class UserFeedback(Base):
+    __tablename__ = "user_feedback"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    
+    # Feedback details
+    feedback_type = Column(Enum(FeedbackTypeEnum), nullable=False)
+    rating = Column(Float)  # 1-5 scale
+    binary_feedback = Column(Boolean)  # thumbs up/down
+    text_feedback = Column(Text)
+    sentiment = Column(Enum(FeedbackSentimentEnum))
+    
+    # Context information
+    service_name = Column(String)
+    operation_type = Column(String)
+    context_data = Column(JSON, default={})
+    session_id = Column(String)
+    
+    # Processing metadata
+    processed = Column(Boolean, default=False)
+    processing_notes = Column(Text)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    processed_at = Column(DateTime(timezone=True))
+    
+    # Relationships
+    user = relationship("User", back_populates="feedback_events")
+    organization = relationship("Organization")
+    
+    # Indexes for efficient querying
+    __table_args__ = (
+        Index('idx_user_feedback_user_type', 'user_id', 'feedback_type'),
+        Index('idx_user_feedback_service', 'service_name', 'created_at'),
+        Index('idx_user_feedback_rating', 'rating', 'feedback_type'),
+    )
+
+class UserLearningProfile(Base):
+    __tablename__ = "user_learning_profiles"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False, unique=True)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    
+    # User characteristics
+    expertise_level = Column(String, default="intermediate")  # beginner, intermediate, advanced
+    preferences = Column(JSON, default={})
+    behavior_patterns = Column(JSON, default={})
+    
+    # Learning metrics
+    total_feedback_count = Column(Integer, default=0)
+    average_satisfaction = Column(Float, default=3.0)
+    engagement_score = Column(Float, default=0.5)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    last_activity = Column(DateTime(timezone=True))
+    
+    # Relationships
+    user = relationship("User", back_populates="learning_profile")
+    organization = relationship("Organization")
+
+class LearningRule(Base):
+    __tablename__ = "learning_rules"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    rule_id = Column(String, nullable=False, unique=True)
+    
+    # Rule definition
+    rule_type = Column(String, nullable=False)  # user_preference, context_based, temporal
+    condition = Column(JSON, nullable=False)
+    action = Column(JSON, nullable=False)
+    
+    # Rule metrics
+    confidence = Column(Float, nullable=False)
+    support = Column(Integer, default=0)  # Number of feedback events supporting this rule
+    effectiveness = Column(Float, default=0.0)  # Measured effectiveness of rule
+    
+    # Rule lifecycle
+    is_active = Column(Boolean, default=True)
+    validation_count = Column(Integer, default=0)
+    last_validated = Column(DateTime(timezone=True))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_learning_rules_type_confidence', 'rule_type', 'confidence'),
+        Index('idx_learning_rules_active', 'is_active', 'confidence'),
+    )
+
+class ABTest(Base):
+    __tablename__ = "ab_tests"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    test_name = Column(String, nullable=False)
+    test_id = Column(String, nullable=False, unique=True)
+    
+    # Test configuration
+    variants = Column(JSON, nullable=False)
+    success_metric = Column(String, nullable=False)
+    description = Column(Text)
+    
+    # Test lifecycle
+    status = Column(String, default="active")  # active, paused, completed, cancelled
+    start_time = Column(DateTime(timezone=True), nullable=False)
+    end_time = Column(DateTime(timezone=True), nullable=False)
+    
+    # Test results
+    results = Column(JSON, default={})
+    winner_variant = Column(String)
+    confidence_level = Column(Float)
+    
+    # Metadata
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    creator = relationship("User")
+    organization = relationship("Organization")
+    test_results = relationship("ABTestResult", back_populates="ab_test")
+
+class ABTestResult(Base):
+    __tablename__ = "ab_test_results"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    test_id = Column(UUID(as_uuid=True), ForeignKey("ab_tests.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    
+    # Result data
+    variant_name = Column(String, nullable=False)
+    metric_value = Column(Float, nullable=False)
+    context_data = Column(JSON, default={})
+    
+    # Timestamps
+    recorded_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    ab_test = relationship("ABTest", back_populates="test_results")
+    user = relationship("User")
+    
+    # Indexes
+    __table_args__ = (
+        Index('idx_ab_test_results_test_variant', 'test_id', 'variant_name'),
+        Index('idx_ab_test_results_user', 'user_id', 'recorded_at'),
+    )
+
+class ServiceImprovementLog(Base):
+    __tablename__ = "service_improvement_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    
+    # Service information
+    service_name = Column(String, nullable=False)
+    improvement_type = Column(String, nullable=False)  # parameter_tuning, algorithm_change, ui_improvement
+    
+    # Improvement details
+    description = Column(Text, nullable=False)
+    old_configuration = Column(JSON)
+    new_configuration = Column(JSON)
+    
+    # Impact metrics
+    feedback_basis = Column(JSON)  # Feedback events that led to this improvement
+    expected_impact = Column(String)
+    measured_impact = Column(JSON)
+    
+    # Implementation tracking
+    implemented = Column(Boolean, default=False)
+    implementation_notes = Column(Text)
+    rollback_needed = Column(Boolean, default=False)
+    
+    # Metadata
+    created_by_rule = Column(UUID(as_uuid=True), ForeignKey("learning_rules.id"))
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    implemented_at = Column(DateTime(timezone=True))
+    evaluated_at = Column(DateTime(timezone=True))
+    
+    # Relationships
+    learning_rule = relationship("LearningRule")
+    organization = relationship("Organization") 
