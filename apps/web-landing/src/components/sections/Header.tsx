@@ -131,11 +131,9 @@ export default function Header() {
                 <Image 
                   src="/Schlep Engine lightmode.svg" 
                   alt="Schlep Engine" 
-                  width={40} 
-                  height={40}
-                  className="mr-2"
+                  width={50} 
+                  height={50}
                 />
-                <span className="text-lg font-semibold text-gray-900">Schlep-engine</span>
               </Link>
             </div>
 
