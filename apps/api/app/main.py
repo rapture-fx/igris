@@ -53,6 +53,9 @@ from app.api.v1.api_status import router as api_status_router
 from app.api.v1.industry_solutions import router as industry_solutions_router
 from app.api.v1.feedback_learning import router as feedback_learning_router
 
+# Import real-time streaming routers
+from app.api.v1.real_time_streaming import router as streaming_router
+
 # Setup logging
 setup_logging(
     log_level=getattr(settings, 'LOG_LEVEL', 'INFO'),
@@ -89,6 +92,33 @@ async def lifespan(app: FastAPI):
         # Initialize metrics collection
         logger.info("Metrics collection system initialized")
         
+        # Initialize real-time streaming system if enabled
+        enable_streaming = os.getenv('ENABLE_STREAM_PRODUCERS', 'false').lower() == 'true'
+        if enable_streaming:
+            try:
+                # Initialize streaming services
+                from app.services.real_time_notifications import initialize_notification_system
+                from app.services.stream_consumers import start_stream_consumers
+                from app.core.event_sourcing import get_event_bus
+                
+                # Initialize event sourcing
+                await get_event_bus()
+                logger.info("Event sourcing system initialized")
+                
+                # Initialize notifications
+                await initialize_notification_system()
+                logger.info("Notification system initialized")
+                
+                # Initialize stream consumers
+                await start_stream_consumers()
+                logger.info("Stream consumers initialized")
+                
+                logger.info("Real-time streaming system initialized successfully")
+                
+            except Exception as streaming_error:
+                logger.warning(f"Failed to initialize streaming system: {streaming_error}")
+                logger.info("Continuing without real-time streaming features")
+        
         # Record application startup
         metrics_collector.record_business_event("application_startup")
         
@@ -110,6 +140,26 @@ async def lifespan(app: FastAPI):
     logger.info("Shutting down Schlep-engine application...")
     
     try:
+        # Shutdown streaming services if they were initialized
+        enable_streaming = os.getenv('ENABLE_STREAM_PRODUCERS', 'false').lower() == 'true'
+        if enable_streaming:
+            try:
+                from app.services.real_time_notifications import shutdown_notification_system
+                from app.services.stream_processing_pipelines import stop_stream_processing
+                
+                # Shutdown notification system
+                await shutdown_notification_system()
+                logger.info("Notification system shutdown")
+                
+                # Stop stream processing
+                stop_stream_processing()
+                logger.info("Stream processing stopped")
+                
+                logger.info("Real-time streaming system shutdown successfully")
+                
+            except Exception as streaming_error:
+                logger.warning(f"Error shutting down streaming system: {streaming_error}")
+        
         # Record application shutdown
         metrics_collector.record_business_event("application_shutdown")
         
@@ -317,6 +367,9 @@ app.include_router(cost_monitoring.router, prefix="/api/v1/cost", tags=["Cost Mo
 app.include_router(lemonsqueezy_webhooks.router, prefix="/api/v1/webhooks", tags=["LemonSqueezy Webhooks"])
 app.include_router(feedback_learning_router, prefix="/api/v1/feedback", tags=["Feedback Learning"])
 app.include_router(industry_solutions_router, prefix="/api/v1/industry", tags=["Industry Solutions"])
+
+# Real-time streaming endpoints
+app.include_router(streaming_router, prefix="/api/v1/streaming", tags=["Real-Time Streaming"])
 
 # Root endpoint
 @app.get("/", tags=["Root"])
