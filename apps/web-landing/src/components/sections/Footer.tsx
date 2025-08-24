@@ -69,13 +69,11 @@ export default function Footer() {
               <div className="flex flex-col">
                 <div className="flex items-center mb-4">
                   <Image 
-                    src="/Schlep Engine logo.svg" 
+                    src="/Schlep Engine lightmode.svg" 
                     alt="Schlep-engine" 
                     width={32} 
                     height={32}
-                    className="mr-2"
                   />
-                  <h3 className="text-base font-semibold text-gray-900">Schlep-engine</h3>
                 </div>
               </div>
             </div>
@@ -102,13 +100,11 @@ export default function Footer() {
             ))}
           </div>
 
-          <div className="mt-12 pt-8 border-t border-gray-700">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="text-gray-700 mb-4 md:mb-0 text-sm">
-                <p>&copy; 2024 Schlep-engine. All rights reserved.</p>
-              </div>
-              
-            </div>
+          {/* Copyright */}
+          <div className="border-t border-gray-200 pt-6 mt-12">
+            <p className="text-sm text-gray-500 text-left">
+              © 2024 Schlep-engine. All rights reserved.
+            </p>
           </div>
         </div>
       </div>

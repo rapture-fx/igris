@@ -22,7 +22,7 @@ export default function FAQ() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
               <a
                 href="/dashboard"
-                className="bg-[#1A5799] text-white px-5 py-2.5 rounded-xl hover:bg-[#154A85] transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                className="bg-black text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
               >
                 Get Started for Free
               </a>
