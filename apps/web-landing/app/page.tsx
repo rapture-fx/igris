@@ -1,6 +1,7 @@
 import Header from '../src/components/sections/Header'
 import AudienceTabs from '../src/components/sections/AudienceTabs'
-import Hero from '../src/components/sections/Hero'
+import Hero from '../src/components/sections/Hero';
+import CardSection from '../src/components/sections/CardSection';
 import AdditionalFeatures from '../src/components/sections/AdditionalFeatures'
 import SecurityFeatures from '../src/components/sections/SecurityFeatures'
 import AudienceGuide from '../src/components/sections/AudienceGuide'
@@ -18,6 +19,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <CardSection />
         <Benefits />
         <HowItWorks />
         <AudienceTabs />
