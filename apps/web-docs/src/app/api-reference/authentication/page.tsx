@@ -216,7 +216,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-orange-200 text-orange-800">PUT</span>
-            <code className="text-sm">/api/v1/auth/admin/users/{{'{user_id}'}}/role</code>
+            <code className="text-sm">/api/v1/auth/admin/users/{'{user_id}'}/role</code>
           </div>
           <p className="text-gray-600 mb-4">Update the role of a specific user. Requires admin privileges.</p>
         </div>

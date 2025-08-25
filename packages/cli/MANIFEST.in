@@ -1,0 +1,42 @@
+# Include package metadata and documentation
+include README.md
+include CHANGELOG.md
+include LICENSE
+include requirements.txt
+include requirements-dev.txt
+
+# Include configuration files
+include pyproject.toml
+include setup.py
+
+# Include type information
+recursive-include src/schlep_cli *.py *.typed
+
+# Include examples
+recursive-include examples *.py *.yml *.yaml *.json *.md
+
+# Include documentation
+recursive-include docs *.md *.rst
+
+# Include test files (for source distributions)
+recursive-include tests *.py
+
+# Exclude compiled Python files
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *~
+global-exclude *.so
+global-exclude .DS_Store
+
+# Exclude development and build artifacts
+prune .git
+prune .github
+prune .pytest_cache
+prune .mypy_cache
+prune .tox
+prune __pycache__
+prune *.egg-info
+prune build
+prune dist
+prune .venv
+prune venv

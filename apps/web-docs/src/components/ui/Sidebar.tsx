@@ -197,8 +197,8 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:flex md:flex-shrink-0">
-      <div className="flex flex-col w-64 h-screen">
-        <div className="flex flex-col h-full bg-gray-50 border-r border-gray-200 transition-all duration-300 ease-in-out">
+      <div className="flex flex-col w-72 h-screen">
+        <div className="flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300 ease-in-out">
           {/* Fixed Logo */}
           <div className="flex-shrink-0 px-5 pt-4">
             <div className="mb-4 pl-3">
@@ -206,7 +206,7 @@ export function Sidebar() {
                 <img 
                   src="/new light logo Schlep-engine.svg" 
                   alt="Schlep Engine" 
-                  className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                 />
               </Link>
             </div>

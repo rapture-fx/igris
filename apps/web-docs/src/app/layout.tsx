@@ -22,7 +22,7 @@ export default function RootLayout({
         <ThemeProvider>
           <div className="min-h-screen bg-white">
             <div className="w-full flex">
-              <div className="w-64 h-screen sticky top-0 z-40">
+              <div className="w-72 h-screen sticky top-0 z-40">
                 <Sidebar />
               </div>
               <div className="flex-1">
