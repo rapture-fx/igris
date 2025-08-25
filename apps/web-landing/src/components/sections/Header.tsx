@@ -131,8 +131,8 @@ export default function Header() {
                 <Image 
                   src="/Schlep Engine new finding light.svg" 
                   alt="Schlep Engine" 
-                  width={50} 
-                  height={50}
+                  width={40} 
+                  height={40}
                 />
               </Link>
             </div>
