@@ -106,7 +106,7 @@ function AuthPageContent() {
             <div className="mb-8">
               <div className="flex items-center mb-4">
                 <Image 
-                  src="/Schlep Engine logo.svg" 
+                  src="/new light logo Schlep-engine.svg" 
                   alt="Schlep Engine" 
                   width={40} 
                   height={40}

@@ -3,6 +3,6 @@ Authentication module for Schlep-engine SDK
 """
 
 from .manager import AuthManager
-from .token_storage import TokenStorage
+from .token_storage import TokenStorage, SecureTokenStorage
 
-__all__ = ["AuthManager", "TokenStorage"]
+__all__ = ["AuthManager", "TokenStorage", "SecureTokenStorage"]

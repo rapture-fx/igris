@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 from ..models.auth import TokenResponse, LoginRequest, RegisterRequest, RefreshTokenRequest, UserInfo
 from ..exceptions.base import AuthenticationError, ConfigurationError
-from .token_storage import TokenStorage
+from .token_storage import TokenStorage, SecureTokenStorage
 
 
 logger = logging.getLogger(__name__)
@@ -24,7 +24,8 @@ class AuthManager:
         self,
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
-        token_storage_path: Optional[str] = None
+        token_storage_path: Optional[str] = None,
+        use_secure_storage: bool = True
     ):
         """
         Initialize authentication manager.
@@ -33,10 +34,17 @@ class AuthManager:
             api_key: API key for authentication
             base_url: Base URL for the API
             token_storage_path: Custom path for token storage
+            use_secure_storage: Whether to use secure keyring storage (default: True)
         """
         self.api_key = api_key
         self.base_url = base_url or "https://api.schlep-engine.com"
-        self.token_storage = TokenStorage(token_storage_path)
+        
+        # Initialize appropriate token storage
+        if use_secure_storage:
+            self.token_storage = SecureTokenStorage(token_storage_path)
+        else:
+            self.token_storage = TokenStorage(token_storage_path)
+        
         self._current_tokens: Optional[TokenResponse] = None
         self._http_client = None  # Will be injected by main client
     
@@ -85,8 +93,18 @@ class AuthManager:
             Valid access token or None if not available
         """
         # Check if we have tokens in memory
-        if self._current_tokens and not self._current_tokens.is_expired:
-            return self._current_tokens.access_token
+        if self._current_tokens:
+            if not self._current_tokens.is_expired:
+                # Check if token expires soon and refresh proactively
+                if self._current_tokens.expires_soon and self._current_tokens.refresh_token:
+                    logger.debug("Access token expires soon, attempting proactive refresh")
+                    try:
+                        # This will require async context, so we'll handle it differently
+                        pass
+                    except Exception as e:
+                        logger.debug(f"Proactive refresh failed: {e}")
+                
+                return self._current_tokens.access_token
         
         # Try to load from storage
         stored_tokens = self.token_storage.load_tokens()
@@ -107,6 +125,66 @@ class AuthManager:
                 self.clear_authentication()
         
         return None
+    
+    async def get_valid_access_token_async(self) -> Optional[str]:
+        """
+        Get a valid access token with automatic refresh (async version).
+        
+        Returns:
+            Valid access token or None if not available
+        """
+        # Check if we have tokens in memory
+        if self._current_tokens:
+            if not self._current_tokens.is_expired:
+                # Check if token expires soon and refresh proactively
+                if self._current_tokens.expires_soon and self._current_tokens.refresh_token:
+                    logger.info("Access token expires soon, refreshing proactively")
+                    try:
+                        refreshed_tokens = await self.refresh_tokens()
+                        if refreshed_tokens:
+                            return refreshed_tokens.access_token
+                    except Exception as e:
+                        logger.warning(f"Proactive refresh failed: {e}")
+                
+                return self._current_tokens.access_token
+        
+        # Try to load from storage
+        stored_tokens = self.token_storage.load_tokens()
+        if stored_tokens and not stored_tokens.is_expired:
+            self._current_tokens = stored_tokens
+            # Check if this stored token also expires soon
+            if stored_tokens.expires_soon and stored_tokens.refresh_token:
+                logger.info("Stored token expires soon, refreshing proactively")
+                try:
+                    refreshed_tokens = await self.refresh_tokens()
+                    if refreshed_tokens:
+                        return refreshed_tokens.access_token
+                except Exception as e:
+                    logger.warning(f"Proactive refresh of stored token failed: {e}")
+            
+            return stored_tokens.access_token
+        
+        # Try to refresh if we have a refresh token
+        if stored_tokens and stored_tokens.refresh_token:
+            try:
+                refreshed_tokens = await self.refresh_tokens()
+                if refreshed_tokens:
+                    return refreshed_tokens.access_token
+            except Exception as e:
+                logger.warning(f"Failed to refresh access token: {e}")
+                self.clear_authentication()
+        
+        return None
+    
+    async def ensure_valid_token(self) -> bool:
+        """
+        Ensure we have a valid access token, refreshing if necessary.
+        
+        Returns:
+            True if valid token is available, False otherwise
+        """
+        token = await self.get_valid_access_token_async()
+        return token is not None
     
     async def login(self, email: str, password: str, remember_me: bool = False) -> TokenResponse:
         """
@@ -341,3 +419,43 @@ class AuthManager:
         """
         self.api_key = api_key
         logger.info("API key set for authentication")
+    
+    def save_api_key_securely(self, api_key: str, identifier: str = "default") -> None:
+        """
+        Securely save API key using keyring when available.
+        
+        Args:
+            api_key: The API key to store securely
+            identifier: Unique identifier for the API key (default: "default")
+        """
+        if isinstance(self.token_storage, SecureTokenStorage):
+            self.token_storage.save_api_key(api_key, identifier)
+        else:
+            raise ConfigurationError("Secure storage not available. Initialize with use_secure_storage=True")
+    
+    def load_api_key_securely(self, identifier: str = "default") -> Optional[str]:
+        """
+        Load API key from secure keyring storage.
+        
+        Args:
+            identifier: Unique identifier for the API key (default: "default")
+            
+        Returns:
+            API key if found, None otherwise
+        """
+        if isinstance(self.token_storage, SecureTokenStorage):
+            return self.token_storage.load_api_key(identifier)
+        else:
+            raise ConfigurationError("Secure storage not available. Initialize with use_secure_storage=True")
+    
+    def delete_api_key_securely(self, identifier: str = "default") -> None:
+        """
+        Delete API key from secure keyring storage.
+        
+        Args:
+            identifier: Unique identifier for the API key (default: "default")
+        """
+        if isinstance(self.token_storage, SecureTokenStorage):
+            self.token_storage.delete_api_key(identifier)
+        else:
+            raise ConfigurationError("Secure storage not available. Initialize with use_secure_storage=True")

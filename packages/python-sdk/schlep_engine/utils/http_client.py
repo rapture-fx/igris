@@ -26,6 +26,8 @@ from ..exceptions.base import (
 )
 from ..utils.retry import RetryHandler, RetryConfig
 from ..utils.logging import LoggerMixin, log_api_request, log_api_response
+from ..utils.validation import InputValidator
+from ..utils.rate_limiter import AdaptiveRateLimiter
 
 
 class HTTPClient(LoggerMixin):
@@ -40,7 +42,9 @@ class HTTPClient(LoggerMixin):
         timeout: float = 30.0,
         retry_config: Optional[RetryConfig] = None,
         user_agent: Optional[str] = None,
-        backend: Optional[str] = None
+        backend: Optional[str] = None,
+        enable_rate_limiting: bool = True,
+        initial_rps: float = 10.0
     ):
         """
         Initialize HTTP client.
@@ -51,10 +55,16 @@ class HTTPClient(LoggerMixin):
             retry_config: Retry configuration
             user_agent: Custom user agent string
             backend: HTTP backend to use ('httpx' or 'aiohttp')
+            enable_rate_limiting: Whether to enable adaptive rate limiting
+            initial_rps: Initial requests per second limit
         """
         self.base_url = base_url.rstrip('/')
         self.timeout = timeout
         self.retry_handler = RetryHandler(retry_config or RetryConfig())
+        
+        # Rate limiting
+        self.enable_rate_limiting = enable_rate_limiting
+        self.rate_limiter = AdaptiveRateLimiter(initial_rps=initial_rps) if enable_rate_limiting else None
         
         # Determine backend
         if backend:
@@ -88,19 +98,39 @@ class HTTPClient(LoggerMixin):
         """Ensure HTTP client is initialized."""
         if self._client is None:
             if self.backend == 'httpx':
+                # Enhanced client with connection pooling and limits
                 self._client = httpx.AsyncClient(
                     timeout=httpx.Timeout(self.timeout),
-                    headers={"User-Agent": self.user_agent}
+                    headers={"User-Agent": self.user_agent},
+                    limits=httpx.Limits(
+                        max_keepalive_connections=10,  # Keep-alive connections pool
+                        max_connections=100,           # Total connection pool size
+                        keepalive_expiry=30.0          # Keep-alive timeout
+                    ),
+                    http2=True,  # Enable HTTP/2 support for better performance
+                    follow_redirects=True  # Handle redirects automatically
                 )
             elif self.backend == 'aiohttp':
                 timeout = aiohttp.ClientTimeout(total=self.timeout)
+                # Enhanced connector with connection pooling
+                connector = aiohttp.TCPConnector(
+                    limit=100,              # Total connection pool size
+                    limit_per_host=30,      # Max connections per host
+                    keepalive_timeout=30,   # Keep-alive timeout
+                    enable_cleanup_closed=True,  # Clean up closed connections
+                    ttl_dns_cache=300,      # DNS cache TTL
+                )
                 self._session = aiohttp.ClientSession(
                     timeout=timeout,
-                    headers={"User-Agent": self.user_agent}
+                    headers={"User-Agent": self.user_agent},
+                    connector=connector
                 )
     
     async def close(self):
-        """Close HTTP client."""
+        """Close HTTP client and cleanup resources."""
+        if self.rate_limiter:
+            await self.rate_limiter.close()
+        
         if self._client:
             await self._client.aclose()
             self._client = None
@@ -122,10 +152,11 @@ class HTTPClient(LoggerMixin):
         params: Optional[Dict[str, Any]] = None,
         json_data: Optional[Any] = None,
         data: Optional[Any] = None,
-        files: Optional[Dict[str, Any]] = None
+        files: Optional[Dict[str, Any]] = None,
+        skip_validation: bool = False
     ) -> Dict[str, Any]:
         """
-        Make HTTP request with retry logic.
+        Make HTTP request with retry logic and input validation.
         
         Args:
             method: HTTP method
@@ -135,19 +166,45 @@ class HTTPClient(LoggerMixin):
             json_data: JSON data
             data: Form data
             files: File uploads
+            skip_validation: Skip input validation (use with caution)
             
         Returns:
             Response data
         """
         await self._ensure_client()
         
+        # Validate inputs unless explicitly skipped
+        if not skip_validation:
+            # Validate URL
+            url = InputValidator.validate_url(url)
+            
+            # Validate headers
+            if headers:
+                headers = InputValidator.validate_dict_params(headers)
+            
+            # Validate URL parameters
+            if params:
+                params = InputValidator.validate_dict_params(params)
+            
+            # Validate JSON data
+            if json_data is not None:
+                json_data = InputValidator.validate_json_data(json_data)
+            
+            # Validate form data
+            if data is not None:
+                if isinstance(data, dict):
+                    data = InputValidator.validate_dict_params(data)
+                else:
+                    # For non-dict data, convert to string and validate
+                    data = InputValidator.sanitize_string(str(data))
+        
         # Prepare headers
         request_headers = {"Accept": "application/json"}
         if headers:
             request_headers.update(headers)
         
-        # Log request
-        log_api_request(method, url, request_headers, json_data or data)
+        # Log request (returns request ID for correlation)
+        request_id = log_api_request(method, url, request_headers, json_data or data)
         
         async def _execute_request():
             start_time = time.time()
@@ -200,10 +257,50 @@ class HTTPClient(LoggerMixin):
                 except json.JSONDecodeError:
                     response_data = {"message": response_text}
                 
-                # Log response
-                log_api_response(status_code, response_data, duration)
+                # Log response with correlation
+                error_type = None
+                if status_code >= 400:
+                    error_type = response_data.get("error", "api_error")
                 
-                # Handle errors
+                log_api_response(
+                    status_code, 
+                    response_data, 
+                    duration, 
+                    request_id=request_id,
+                    error_type=error_type
+                )
+                
+                # Update rate limiter with response headers
+                if self.rate_limiter:
+                    if self.backend == 'httpx':
+                        self.rate_limiter.update_rate_limits(dict(response.headers))
+                    else:  # aiohttp
+                        self.rate_limiter.update_rate_limits(dict(response.headers))
+                
+                # Handle rate limiting with specific logic
+                if status_code == 429:
+                    # Extract retry-after header if available
+                    retry_after = None
+                    if self.backend == 'httpx':
+                        retry_after = response.headers.get('Retry-After')
+                    else:  # aiohttp
+                        retry_after = response.headers.get('Retry-After')
+                    
+                    if retry_after:
+                        try:
+                            retry_after = int(retry_after)
+                        except ValueError:
+                            retry_after = None
+                    
+                    # Create rate limit error with retry_after info
+                    from ..exceptions.base import RateLimitError
+                    raise RateLimitError(
+                        message=response_data.get("message", "Rate limit exceeded"),
+                        retry_after=retry_after,
+                        response_data=response_data
+                    )
+                
+                # Handle other errors
                 if status_code >= 400:
                     raise parse_api_error(response_data, status_code)
                 
@@ -216,8 +313,11 @@ class HTTPClient(LoggerMixin):
             except json.JSONDecodeError as e:
                 raise APIError(f"Invalid JSON response: {str(e)}")
         
-        # Execute with retry
-        return await self.retry_handler.execute_with_retry(_execute_request)
+        # Execute with rate limiting and retry
+        if self.rate_limiter:
+            return await self.rate_limiter.execute_request(_execute_request)
+        else:
+            return await self.retry_handler.execute_with_retry(_execute_request)
     
     async def get(
         self,
