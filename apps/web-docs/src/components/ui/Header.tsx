@@ -20,7 +20,7 @@ export function Header() {
           <div className="flex items-center pr-8">
             <a
               href="http://localhost:3000/signin"
-              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-[#1A5799] hover:bg-[#154A85] transition-colors duration-300"
+              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-black hover:bg-gray-800 transition-colors duration-300"
             >
               Sign In
             </a>
