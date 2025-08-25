@@ -129,7 +129,7 @@ export default function Header() {
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
                 <Image 
-                  src="/Schlep Engine new finding light.svg" 
+                  src="/new light logo Schlep-engine.svg" 
                   alt="Schlep Engine" 
                   width={40} 
                   height={40}

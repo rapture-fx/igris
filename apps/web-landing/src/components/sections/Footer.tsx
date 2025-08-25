@@ -69,7 +69,7 @@ export default function Footer() {
               <div className="flex flex-col">
                 <div className="flex items-center mb-4">
                   <Image 
-                    src="/Schlep Engine lightmode.svg" 
+                    src="/new light logo Schlep-engine.svg" 
                     alt="Schlep-engine" 
                     width={32} 
                     height={32}

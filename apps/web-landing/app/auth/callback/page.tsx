@@ -55,7 +55,7 @@ function AuthCallbackContent() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <img 
-              src="/assets/Schlep Engine logo.svg" 
+              src="/new light logo Schlep-engine.svg" 
               alt="Schlep Engine - AI-Powered Data Preparation" 
               className="h-10 w-auto"
             />
