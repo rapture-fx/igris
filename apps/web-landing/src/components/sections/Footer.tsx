@@ -74,6 +74,7 @@ export default function Footer() {
                     width={32} 
                     height={32}
                   />
+                  <span className="ml-2 text-lg font-bold">Schlep-engine</span>
                 </div>
               </div>
             </div>
