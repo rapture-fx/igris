@@ -1,0 +1,102 @@
+# OpenAPI Generator Configuration for Python Client
+generator-name: python
+input-spec: "../../apps/api/openapi.json"
+output-dir: "./generated/python"
+package-name: "schlep-engine-client"
+package-url: "https://github.com/schlep-engine/python-client"
+package-company: "Schlep-engine"
+package-description: "Python client library for Schlep-engine API"
+package-version: "2.0.0"
+project-name: "schlep-engine-client"
+
+# Package configuration
+additional-properties:
+  packageName: schlep_engine_client
+  projectName: schlep-engine-client
+  packageVersion: 2.0.0
+  packageUrl: https://github.com/schlep-engine/python-client
+  packageCompany: Schlep-engine
+  packageAuthor: Schlep-engine Team
+  packageEmail: support@schlep-engine.com
+  packageDescription: Python client library for Schlep-engine API - comprehensive data processing and ML pipeline platform
+  packageKeywords: "data-processing,machine-learning,api-client,schlep-engine"
+  
+  # Python-specific configuration
+  pythonAttr: true
+  generateSourceCodeOnly: false
+  library: urllib3
+  
+  # API Configuration
+  apiPackage: schlep_engine_client.api
+  modelPackage: schlep_engine_client.models
+  clientPackage: schlep_engine_client.client
+  
+  # Authentication
+  httpUserAgent: "schlep-engine-python-client/2.0.0"
+  
+  # Documentation
+  hideGenerationTimestamp: true
+  generateAliasAsModel: false
+  
+  # Type hints
+  packageTyping: true
+  useOneOfInterfaces: true
+
+# Type mappings for Python
+type-mappings:
+  DateTime: datetime
+  Date: date
+  UUID: str
+  
+# Import mappings
+import-mappings:
+  DateTime: "from datetime import datetime"
+  Date: "from datetime import date"
+
+# Template files (custom templates)
+template-dir: "./templates/python"
+
+# Files to generate
+supporting-files:
+  - setup.py
+  - requirements.txt
+  - README.md
+  - .gitignore
+  - pyproject.toml
+  - MANIFEST.in
+
+# Global properties
+global-properties:
+  models: true
+  apis: true
+  supportingFiles: true
+  modelTests: true
+  apiTests: true
+  modelDocs: true
+  apiDocs: true
+
+# Remove unused files
+files-to-remove:
+  - test_requirements.txt
+  - tox.ini
+  - git_push.sh
+
+# Quality settings
+validation:
+  - lint: true
+  - type-check: true
+  - test: true
+  - security-scan: true
+
+# Publishing configuration
+publishing:
+  enabled: true
+  registry: "pypi"
+  test-registry: "test.pypi.org"
+  package-name: "schlep-engine-client"
+  
+# Version management
+versioning:
+  strategy: "semantic"
+  auto-increment: true
+  tag-format: "python-v{version}"

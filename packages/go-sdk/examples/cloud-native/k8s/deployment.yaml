@@ -1,0 +1,357 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schlep-cloud-native-service
+  namespace: default
+  labels:
+    app: schlep-cloud-native-service
+    version: v1.0.0
+    component: data-processing
+    tier: backend
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: schlep-cloud-native-service
+  template:
+    metadata:
+      labels:
+        app: schlep-cloud-native-service
+        version: v1.0.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      # Security contexts
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+      
+      containers:
+      - name: app
+        image: schlep-cloud-native-service:latest
+        imagePullPolicy: IfNotPresent
+        
+        ports:
+        - name: http
+          containerPort: 8080
+          protocol: TCP
+        
+        # Environment variables
+        env:
+        - name: SERVICE_NAME
+          value: "schlep-cloud-native-service"
+        - name: SERVICE_VERSION
+          value: "1.0.0"
+        - name: PORT
+          value: "8080"
+        - name: LOG_LEVEL
+          value: "info"
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        
+        # Schlep-engine API configuration
+        - name: SCHLEP_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: schlep-api-secret
+              key: api-key
+        - name: SCHLEP_BASE_URL
+          value: "https://api.schlep-engine.com"
+        - name: SCHLEP_TIMEOUT_SECONDS
+          value: "60"
+        - name: SCHLEP_MAX_RETRIES
+          value: "5"
+        - name: SCHLEP_RETRY_WAIT_SECONDS
+          value: "2"
+        - name: SCHLEP_RETRY_MAX_WAIT_SECONDS
+          value: "30"
+        - name: SCHLEP_RETRY_BACKOFF_FACTOR
+          value: "2.0"
+        
+        # Circuit breaker configuration
+        - name: SCHLEP_CIRCUIT_BREAKER_ENABLED
+          value: "true"
+        - name: SCHLEP_CB_FAILURE_THRESHOLD
+          value: "5"
+        - name: SCHLEP_CB_TIMEOUT_SECONDS
+          value: "60"
+        - name: SCHLEP_CB_MAX_REQUESTS
+          value: "3"
+        
+        # Observability configuration
+        - name: SCHLEP_ENABLE_METRICS
+          value: "true"
+        - name: SCHLEP_ENABLE_TRACING
+          value: "true"
+        - name: SCHLEP_ENABLE_LOGGING
+          value: "true"
+        
+        # HTTP client optimization
+        - name: SCHLEP_MAX_IDLE_CONNS
+          value: "100"
+        - name: SCHLEP_MAX_IDLE_CONNS_PER_HOST
+          value: "10"
+        - name: SCHLEP_IDLE_CONN_TIMEOUT_SECONDS
+          value: "90"
+        
+        # Health check configuration
+        - name: SCHLEP_ENABLE_HEALTH_CHECKS
+          value: "true"
+        - name: SCHLEP_HEALTH_CHECK_INTERVAL_SECONDS
+          value: "30"
+        - name: SCHLEP_HEALTH_CHECK_TIMEOUT_SECONDS
+          value: "10"
+        - name: HEALTH_CHECK_MAX_CPU
+          value: "85.0"
+        - name: HEALTH_CHECK_MAX_MEMORY
+          value: "90.0"
+        
+        # Streaming configuration
+        - name: ENABLE_STREAMING
+          value: "true"
+        
+        # Timeouts
+        - name: READ_TIMEOUT_SECONDS
+          value: "30"
+        - name: WRITE_TIMEOUT_SECONDS
+          value: "30"
+        - name: IDLE_TIMEOUT_SECONDS
+          value: "120"
+        
+        # Resource limits and requests
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        # Security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+        
+        # Kubernetes probes
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+          successThreshold: 1
+        
+        startupProbe:
+          httpGet:
+            path: /health/startup
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 30
+          successThreshold: 1
+        
+        # Volume mounts for temporary files
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: var-run
+          mountPath: /var/run
+      
+      # Volumes
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: var-run
+        emptyDir: {}
+      
+      # Service account
+      serviceAccountName: schlep-cloud-native-service
+      
+      # Node selection and affinity
+      nodeSelector:
+        kubernetes.io/os: linux
+      
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - schlep-cloud-native-service
+              topologyKey: kubernetes.io/hostname
+      
+      # Tolerations
+      tolerations:
+      - key: "node.kubernetes.io/not-ready"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      - key: "node.kubernetes.io/unreachable"
+        operator: "Exists"
+        effect: "NoExecute"
+        tolerationSeconds: 300
+      
+      # DNS configuration
+      dnsPolicy: ClusterFirst
+      
+      # Termination grace period
+      terminationGracePeriodSeconds: 60
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schlep-cloud-native-service
+  namespace: default
+  labels:
+    app: schlep-cloud-native-service
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: schlep-cloud-native-service
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: schlep-cloud-native-service
+  namespace: default
+  labels:
+    app: schlep-cloud-native-service
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: schlep-api-secret
+  namespace: default
+  labels:
+    app: schlep-cloud-native-service
+type: Opaque
+data:
+  # Base64 encoded API key - replace with your actual API key
+  # echo -n "your-api-key" | base64
+  api-key: eW91ci1hcGkta2V5LWhlcmU=
+
+---
+# HorizontalPodAutoscaler for automatic scaling
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: schlep-cloud-native-service-hpa
+  namespace: default
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: schlep-cloud-native-service
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+
+---
+# NetworkPolicy for security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: schlep-cloud-native-service-netpol
+  namespace: default
+spec:
+  podSelector:
+    matchLabels:
+      app: schlep-cloud-native-service
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-system
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80

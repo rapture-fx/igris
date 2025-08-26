@@ -14,7 +14,7 @@ from rich.panel import Panel
 from .core.config import Config
 from .core.client import APIClient
 from .core.utils import handle_exceptions, check_api_connection
-from .commands import auth, process, pipeline, config as config_cmd, monitoring
+from .commands import auth, process, pipeline, config as config_cmd, monitoring, devops, cicd, batch, validate
 
 # Initialize console for rich output
 console = Console()
@@ -98,17 +98,32 @@ def show_welcome():
     # Create welcome panel
     welcome_text = Text()
     welcome_text.append("Welcome to Schlep-engine CLI!\n\n", style="bold cyan")
-    welcome_text.append("Advanced data processing and ML automation platform\n\n", style="dim")
-    welcome_text.append("Get started:\n", style="bold")
+    welcome_text.append("Advanced data processing, ML automation & DevOps platform\n\n", style="dim")
+    welcome_text.append("🚀 Quick Start:\n", style="bold")
     welcome_text.append("  1. ", style="dim")
     welcome_text.append("schlep auth login --api-key YOUR_API_KEY\n", style="green")
     welcome_text.append("  2. ", style="dim")
-    welcome_text.append("schlep process data.csv\n", style="green")
+    welcome_text.append("schlep process batch \"data/*.csv\" --parallel 4\n", style="green")
     welcome_text.append("  3. ", style="dim")
-    welcome_text.append("schlep pipeline create config.yml\n", style="green")
+    welcome_text.append("schlep pipeline create fraud-detection.yml --auto-start\n", style="green")
+    
+    welcome_text.append("\n🛠️ DevOps & Automation:\n", style="bold")
+    welcome_text.append("  • ", style="dim")
+    welcome_text.append("schlep devops deploy infrastructure/ --env production\n", style="cyan")
+    welcome_text.append("  • ", style="dim")
+    welcome_text.append("schlep cicd setup-pipeline . --provider github --template ml-training\n", style="cyan")
+    welcome_text.append("  • ", style="dim")
+    welcome_text.append("schlep batch submit-files \"data/*.csv\" --parallel-jobs 8\n", style="cyan")
+    
+    welcome_text.append("\n📊 Monitoring:\n", style="bold")
+    welcome_text.append("  • ", style="dim")
+    welcome_text.append("schlep monitoring status --detailed\n", style="yellow")
+    welcome_text.append("  • ", style="dim")
+    welcome_text.append("schlep devops status --provider kubernetes --watch\n", style="yellow")
+    
     welcome_text.append("\nUse ", style="dim")
     welcome_text.append("schlep --help", style="bold")
-    welcome_text.append(" to see all available commands.", style="dim")
+    welcome_text.append(" to explore all commands.", style="dim")
     
     # Print logo and welcome
     console.print(Text(LOGO, style="bold blue"))
@@ -120,6 +135,10 @@ cli.add_command(process.process)
 cli.add_command(pipeline.pipeline)
 cli.add_command(config_cmd.config)
 cli.add_command(monitoring.monitoring)
+cli.add_command(devops.devops)
+cli.add_command(cicd.cicd)
+cli.add_command(batch.batch)
+cli.add_command(validate.validate)
 
 # Add top-level commands for convenience
 @cli.command()

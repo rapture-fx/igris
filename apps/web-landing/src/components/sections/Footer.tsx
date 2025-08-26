@@ -61,15 +61,15 @@ export default function Footer() {
 
   return (
     <footer className="bg-white text-gray-900">
-      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="py-16">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-[1300px] mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-6xl mx-auto">
             {/* Brand Column */}
             <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
               <div className="flex flex-col">
                 <div className="flex items-center mb-4">
                   <Image 
-                    src="/new light logo Schlep-engine.svg" 
+                    src="/Schlep Engine bold light.svg" 
                     alt="Schlep-engine" 
                     width={32} 
                     height={32}

@@ -5,18 +5,29 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Downloads](https://pepy.tech/badge/schlep-engine-cli)](https://pepy.tech/project/schlep-engine-cli)
 
-Official command-line interface for [Schlep-engine](https://schlep-engine.com) - Advanced data processing, machine learning, and analytics platform.
+Official command-line interface for [Schlep-engine](https://schlep-engine.com) - Advanced data processing, machine learning, DevOps automation, and analytics platform.
 
 ## 🚀 Features
 
+### Core Features
 - **Complete CLI Interface**: Full access to all Schlep-engine API features
-- **Batch Processing**: Process multiple files in parallel with progress tracking
-- **Pipeline Management**: Create, monitor, and manage ML pipelines
-- **Rich Terminal UI**: Beautiful progress bars, tables, and status displays
-- **Configuration Management**: Flexible configuration system with validation
-- **CI/CD Integration**: Perfect for DevOps automation and batch workflows
-- **Cross-Platform**: Works on Windows, macOS, and Linux
-- **Extensible**: Plugin architecture for custom commands
+- **Batch Processing**: Process multiple files in parallel with intelligent queue management
+- **Pipeline Management**: Create, monitor, and manage ML pipelines with real-time updates
+- **Rich Terminal UI**: Beautiful progress bars, tables, live dashboards, and status displays
+- **Configuration Management**: Flexible configuration system with validation and templates
+
+### DevOps & Automation
+- **Infrastructure Deployment**: Deploy Kubernetes, Docker Compose, Terraform configurations
+- **CI/CD Integration**: Setup and manage pipelines for GitHub, GitLab, Jenkins, Azure DevOps, CircleCI
+- **Advanced Job Queues**: Sophisticated batch processing with priorities, dependencies, and retry logic
+- **Health Monitoring**: Comprehensive infrastructure and service health checks
+- **Automated Validation**: System validation, API testing, and performance benchmarks
+
+### Advanced Capabilities
+- **Parallel Processing**: Multi-threaded execution with configurable worker pools
+- **Real-time Monitoring**: Live dashboard updates with WebSocket connections
+- **Cross-Platform**: Works seamlessly on Windows, macOS, and Linux
+- **Extensible Architecture**: Plugin system for custom commands and integrations
 
 ## 📦 Installation
 

@@ -19,7 +19,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
-        <CardSection />
+        
         <Benefits />
         <HowItWorks />
         <AudienceTabs />

@@ -1,0 +1,157 @@
+# OpenAPI Generator Configuration for C# Client
+generator-name: csharp
+input-spec: "../../apps/api/openapi.json"
+output-dir: "./generated/csharp"
+package-name: "SchlepEngine.Client"
+package-version: "2.0.0"
+
+# C#-specific configuration
+additional-properties:
+  packageName: SchlepEngine.Client
+  clientPackage: SchlepEngine.Client
+  packageVersion: 2.0.0
+  packageTitle: "Schlep-engine API Client"
+  packageCompany: "Schlep-engine"
+  packageAuthors: "Schlep-engine Team"
+  packageCopyright: "Copyright © Schlep-engine 2024"
+  packageDescription: "C# client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
+  packageKeywords: "data-processing,machine-learning,api-client,schlep-engine,csharp,dotnet"
+  
+  # .NET configuration
+  targetFramework: net6.0
+  netCoreProjectFile: true
+  generatePropertyChanged: false
+  hideGenerationTimestamp: true
+  
+  # HTTP Client
+  httpClient: HttpClient
+  library: httpclient
+  
+  # Code generation
+  modelPropertyNaming: PascalCase
+  enumPropertyNaming: PascalCase
+  generateAliasAsModel: false
+  
+  # Documentation
+  generateApiDocumentation: true
+  generateModelDocumentation: true
+  generateClientInterfaces: true
+  
+  # Quality settings
+  ensureUniqueParams: true
+  allowUnicodeIdentifiers: false
+  sortParamsByRequiredFlag: true
+  sortModelPropertiesByRequiredFlag: true
+  
+  # Async support
+  generateAsyncMethods: true
+  
+  # Repository info
+  repositoryUrl: https://github.com/schlep-engine/csharp-client
+  projectUrl: https://schlep-engine.com
+  
+  # License
+  licenseName: MIT
+  licenseUrl: https://opensource.org/licenses/MIT
+
+# Type mappings for C#
+type-mappings:
+  DateTime: DateTime
+  Date: DateOnly
+  UUID: Guid
+  Binary: byte[]
+  File: Stream
+
+# Import mappings
+import-mappings:
+  DateTime: System.DateTime
+  DateOnly: System.DateOnly
+  Guid: System.Guid
+  Stream: System.IO.Stream
+
+# Template files (custom templates)
+template-dir: "./templates/csharp"
+
+# Files to generate
+supporting-files:
+  - SchlepEngine.Client.csproj
+  - README.md
+  - .gitignore
+  - nuget.config
+  - Directory.Build.props
+  - GlobalAssemblyInfo.cs
+
+# Global properties
+global-properties:
+  models: true
+  apis: true
+  supportingFiles: true
+  modelTests: true
+  apiTests: true
+  modelDocs: true
+  apiDocs: true
+
+# Remove unused files
+files-to-remove:
+  - git_push.sh
+  - build.sh
+  - build.bat
+
+# Quality settings
+validation:
+  - build: true
+  - test: true
+  - analyze: true
+  - format: true
+
+# Build configuration
+build:
+  framework: "net6.0"
+  
+  scripts:
+    - "dotnet restore"
+    - "dotnet build --configuration Release"
+    - "dotnet test"
+    - "dotnet pack --configuration Release"
+  
+  # Testing
+  test-framework: "xunit"
+  test-coverage: true
+  
+  # Quality tools
+  code-analysis: true
+  style-cop: true
+
+# NuGet package dependencies
+dependencies:
+  - "Newtonsoft.Json:13.0.3"
+  - "System.ComponentModel.Annotations:5.0.0"
+  - "Microsoft.Extensions.Http:6.0.0"
+  
+test-dependencies:
+  - "xunit:2.4.2"
+  - "xunit.runner.visualstudio:2.4.5"
+  - "Microsoft.NET.Test.Sdk:17.5.0"
+  - "Moq:4.18.4"
+
+# Version management
+versioning:
+  strategy: "semantic"
+  auto-increment: true
+  tag-format: "csharp-v{version}"
+
+# Publishing configuration
+publishing:
+  enabled: true
+  registry: "nuget"
+  package-name: "SchlepEngine.Client"
+  
+  # NuGet metadata
+  nuget-metadata:
+    repository-type: "git"
+    repository-url: "https://github.com/schlep-engine/csharp-client.git"
+    repository-branch: "main"
+    project-url: "https://schlep-engine.com"
+    icon-url: "https://schlep-engine.com/icon.png"
+    release-notes-url: "https://github.com/schlep-engine/csharp-client/releases"
+    tags: "api-client,data-processing,machine-learning"

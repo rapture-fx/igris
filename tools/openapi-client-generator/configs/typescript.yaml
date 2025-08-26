@@ -1,0 +1,133 @@
+# OpenAPI Generator Configuration for TypeScript/JavaScript Client
+generator-name: typescript-axios
+input-spec: "../../apps/api/openapi.json"
+output-dir: "./generated/typescript"
+package-name: "@schlep-engine/client"
+package-version: "2.0.0"
+
+# NPM Package configuration
+additional-properties:
+  npmName: "@schlep-engine/client"
+  npmVersion: "2.0.0"
+  npmRepository: "https://github.com/schlep-engine/typescript-client.git"
+  npmDescription: "TypeScript/JavaScript client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
+  npmAuthor: "Schlep-engine Team <support@schlep-engine.com>"
+  npmKeywords: "data-processing,machine-learning,api-client,schlep-engine,typescript,javascript"
+  
+  # TypeScript-specific configuration
+  typescriptThreePlus: true
+  supportsES6: true
+  npmPublishRegistry: "https://registry.npmjs.org"
+  platform: "node"
+  
+  # API Configuration
+  modelPropertyNaming: "camelCase"
+  paramNaming: "camelCase"
+  enumPropertyNaming: "UPPERCASE"
+  
+  # Client configuration
+  httpClient: "axios"
+  withInterfaces: true
+  withSeparateModelsAndApi: true
+  withoutPrefixEnums: true
+  
+  # Code generation
+  stringEnums: true
+  numericEnums: false
+  generateAliasAsModel: false
+  
+  # Documentation
+  hideGenerationTimestamp: true
+  
+  # Quality settings
+  ensureUniqueParams: true
+  allowUnicodeIdentifiers: false
+  sortParamsByRequiredFlag: true
+  sortModelPropertiesByRequiredFlag: true
+
+# Type mappings for TypeScript
+type-mappings:
+  DateTime: Date
+  Date: Date
+  UUID: string
+  Binary: Blob
+  File: File
+
+# Template files (custom templates)
+template-dir: "./templates/typescript"
+
+# Files to generate
+supporting-files:
+  - package.json
+  - tsconfig.json
+  - README.md
+  - .gitignore
+  - .npmignore
+  - rollup.config.js
+  - jest.config.js
+  - index.ts
+
+# Global properties
+global-properties:
+  models: true
+  apis: true
+  supportingFiles: true
+  modelTests: true
+  apiTests: true
+  modelDocs: true
+  apiDocs: true
+
+# Remove unused files
+files-to-remove:
+  - git_push.sh
+  - .travis.yml
+
+# Quality settings
+validation:
+  - lint: true
+  - type-check: true
+  - test: true
+  - security-scan: true
+  - bundle-analysis: true
+
+# Publishing configuration
+publishing:
+  enabled: true
+  registry: "npm"
+  access: "public"
+  package-name: "@schlep-engine/client"
+  
+# Build configuration
+build:
+  scripts:
+    - "npm run build"
+    - "npm run test"
+    - "npm run lint"
+  
+  output-formats:
+    - "es"
+    - "cjs"
+    - "umd"
+  
+  bundle-analysis: true
+  tree-shaking: true
+
+# Version management
+versioning:
+  strategy: "semantic"
+  auto-increment: true
+  tag-format: "typescript-v{version}"
+  
+# Development dependencies
+dev-dependencies:
+  - "@types/node"
+  - "typescript"
+  - "rollup"
+  - "@rollup/plugin-typescript"
+  - "@rollup/plugin-node-resolve"
+  - "@rollup/plugin-commonjs"
+  - "jest"
+  - "@types/jest"
+  - "eslint"
+  - "@typescript-eslint/eslint-plugin"
+  - "prettier"
