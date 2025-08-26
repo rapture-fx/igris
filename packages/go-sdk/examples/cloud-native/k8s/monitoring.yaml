@@ -1,0 +1,243 @@
+# ServiceMonitor for Prometheus scraping
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: schlep-cloud-native-service
+  namespace: default
+  labels:
+    app: schlep-cloud-native-service
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: schlep-cloud-native-service
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 10s
+    honorLabels: true
+
+---
+# PrometheusRule for alerting
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: schlep-cloud-native-service-alerts
+  namespace: default
+  labels:
+    app: schlep-cloud-native-service
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: schlep-cloud-native-service
+    rules:
+    - alert: SchlepServiceDown
+      expr: up{job="schlep-cloud-native-service"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Schlep Cloud Native Service is down"
+        description: "Schlep Cloud Native Service has been down for more than 1 minute."
+    
+    - alert: SchlepServiceHighErrorRate
+      expr: rate(schlep_errors_total[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate in Schlep Cloud Native Service"
+        description: "Error rate is {{ $value }} errors per second over the last 5 minutes."
+    
+    - alert: SchlepServiceHighLatency
+      expr: histogram_quantile(0.95, rate(schlep_request_duration_seconds_bucket[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency in Schlep Cloud Native Service"
+        description: "95th percentile latency is {{ $value }}s over the last 5 minutes."
+    
+    - alert: SchlepServiceHighMemoryUsage
+      expr: (container_memory_working_set_bytes{pod=~"schlep-cloud-native-service-.*"} / container_spec_memory_limit_bytes{pod=~"schlep-cloud-native-service-.*"}) * 100 > 90
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage in Schlep Cloud Native Service"
+        description: "Memory usage is {{ $value }}% for pod {{ $labels.pod }}."
+    
+    - alert: SchlepServiceHighCPUUsage
+      expr: (rate(container_cpu_usage_seconds_total{pod=~"schlep-cloud-native-service-.*"}[5m]) / container_spec_cpu_quota{pod=~"schlep-cloud-native-service-.*"} * container_spec_cpu_period{pod=~"schlep-cloud-native-service-.*"}) * 100 > 80
+      for: 10m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage in Schlep Cloud Native Service"
+        description: "CPU usage is {{ $value }}% for pod {{ $labels.pod }}."
+    
+    - alert: SchlepServiceCircuitBreakerOpen
+      expr: schlep_circuit_breaker_state > 1
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Circuit breaker is open in Schlep Cloud Native Service"
+        description: "Circuit breaker {{ $labels.name }} is open, indicating high failure rate."
+    
+    - alert: SchlepServiceWebSocketDisconnected
+      expr: schlep_websocket_connections < 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "WebSocket connection lost in Schlep Cloud Native Service"
+        description: "WebSocket connection to Schlep-engine has been lost for more than 5 minutes."
+
+---
+# Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schlep-cloud-native-service-dashboard
+  namespace: default
+  labels:
+    app: schlep-cloud-native-service
+    grafana_dashboard: "1"
+data:
+  dashboard.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Schlep Cloud Native Service",
+        "tags": ["schlep-engine", "cloud-native"],
+        "style": "dark",
+        "timezone": "browser",
+        "refresh": "30s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Service Health",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "up{job=\"schlep-cloud-native-service\"}",
+                "legendFormat": "Service Status"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "thresholds": {
+                  "steps": [
+                    {"color": "red", "value": 0},
+                    {"color": "green", "value": 1}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(schlep_requests_total[1m])",
+                "legendFormat": "{{ method }} {{ endpoint }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "Response Times",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "histogram_quantile(0.50, rate(schlep_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "50th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.95, rate(schlep_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "95th percentile"
+              },
+              {
+                "expr": "histogram_quantile(0.99, rate(schlep_request_duration_seconds_bucket[5m]))",
+                "legendFormat": "99th percentile"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(schlep_errors_total[1m])",
+                "legendFormat": "{{ error_type }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16}
+          },
+          {
+            "id": 5,
+            "title": "Circuit Breaker State",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "schlep_circuit_breaker_state",
+                "legendFormat": "{{ name }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16}
+          },
+          {
+            "id": 6,
+            "title": "WebSocket Connections",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "schlep_websocket_connections",
+                "legendFormat": "Connections"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+          },
+          {
+            "id": 7,
+            "title": "Memory Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "container_memory_working_set_bytes{pod=~\"schlep-cloud-native-service-.*\"} / 1024 / 1024",
+                "legendFormat": "{{ pod }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24}
+          },
+          {
+            "id": 8,
+            "title": "CPU Usage",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(container_cpu_usage_seconds_total{pod=~\"schlep-cloud-native-service-.*\"}[5m]) * 100",
+                "legendFormat": "{{ pod }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 24, "x": 0, "y": 32}
+          }
+        ]
+      }
+    }

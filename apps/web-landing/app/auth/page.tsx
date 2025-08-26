@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { Mail, Github, ArrowRight, Chrome } from 'lucide-react'
 import { checkEmailExists, initiateOAuthLogin, loginWithCredentials, registerUser, type ApiError } from '@/lib/auth'
 import { AuthWrapper } from '../../src/components/AuthWrapper'
+import { useUser } from '@clerk/nextjs';
 
 function AuthPageContent() {
   const router = useRouter()
@@ -15,6 +16,7 @@ function AuthPageContent() {
   const [fullName, setFullName] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [authStep, setAuthStep] = useState('email_input') // 'email_input', 'password_input', 'registration_form'
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -95,31 +97,27 @@ function AuthPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-screen bg-white">
         <div className="flex min-h-screen">
         {/* Left Column - Form */}
-        <div className="flex-1 flex flex-col justify-center px-12 py-24 lg:px-32 xl:px-48 bg-[#111111]">
+        <div className="flex-1 flex flex-col justify-center px-12 py-24 lg:px-32 xl:px-48 bg-white">
           <div className="mx-auto w-full max-w-sm lg:w-96">
             
 
             {/* Header */}
-            <div className="mb-8">
-              <div className="flex items-center mb-4">
+            <div className="mb-8 flex flex-col items-center justify-center">
+              <div className="flex items-center justify-center mb-4">
                 <Image 
-                  src="/new light logo Schlep-engine.svg" 
+                  src="/Schlep Engine bold light.svg" 
                   alt="Schlep Engine" 
-                  width={40} 
-                  height={40}
+                  width={45} 
+                  height={45}
                   className="mr-3"
                 />
-                <span className="text-xl font-semibold text-[#fcfcf7]">Schlep-engine</span>
+                
               </div>
-              <h2 className="text-3xl font-bold style={{color: '#fcfcf7'}} mb-2">
-                Welcome to Schlep-engine
-              </h2>
-              <p className="text-gray-300">
-                Sign in to your account or create a new one to continue
-              </p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+              
             </div>
 
             {/* Error Message */}
@@ -134,7 +132,7 @@ function AuthPageContent() {
               <button
                 onClick={() => handleOAuthLogin('google')}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-3 rounded-lg hover:bg-[#161616] focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full flex items-center justify-center px-4 py-3 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 style={{boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)', borderColor: '#161616', color: '#fcfcf7', backgroundColor: '#161616'}}
               >
                 <Mail className="w-5 h-5 mr-3" />
@@ -143,7 +141,7 @@ function AuthPageContent() {
               <button
                 onClick={() => handleOAuthLogin('github')}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center px-4 py-3 rounded-lg hover:bg-[#161616] focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full flex items-center justify-center px-4 py-3 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 style={{boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)', borderColor: '#161616', color: '#fcfcf7', backgroundColor: '#161616'}}
               >
                 <Github className="w-5 h-5 mr-3" />
@@ -154,10 +152,10 @@ function AuthPageContent() {
             {/* Divider */}
             <div className="relative mb-6">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-600" />
+                <div className="w-full border-t border-gray-300" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-[#111111] text-gray-400">Or continue with email</span>
+                <span className="px-2 bg-white text-gray-600">Or continue with email</span>
               </div>
             </div>
 
@@ -165,7 +163,7 @@ function AuthPageContent() {
             {authStep === 'email_input' && (
               <form onSubmit={handleEmailSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium style={{color: '#fcfcf7'}} mb-2">
+                  <label htmlFor="email" className="block text-sm font-medium mb-2" style={{color: '#fcfcf7'}}>
                     Email address
                   </label>
                   <input
@@ -180,17 +178,33 @@ function AuthPageContent() {
                       if (error) setError('')
                     }}
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm placeholder-gray-500 bg-[#111111] style={{color: '#fcfcf7'}} focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     placeholder="Enter your email"
                   />
                 </div>
 
+                <div className="flex items-center mb-4">
+                  <input
+                    id="terms"
+                    name="terms"
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="terms" className="ml-2 block text-sm text-gray-900">
+                    I agree to the{' '}
+                    <Link href="/terms" className="text-blue-600 hover:text-blue-500">
+                      Terms and Conditions
+                    </Link>
+                  </label>
+                </div>
                 <div>
                   <button
                     type="submit"
-                    disabled={isLoading || !email}
-                    className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium style={{color: '#fcfcf7'}} bg-[#161616] hover:bg-[#3a7bd5] focus:outline-none focus:ring-2 focus:ring-[#161616] focus:ring-offset-2 focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    style={{boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)'}}
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white !bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    style={{backgroundColor: 'black', boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)'}}
                   >
                     {isLoading ? (
                       'Checking...'
@@ -202,6 +216,12 @@ function AuthPageContent() {
                     )}
                   </button>
                 </div>
+                <p className="mt-4 text-center text-sm text-gray-600">
+                  Already have an account?{' '}
+                  <Link href="/auth/password" className="font-medium text-blue-600 hover:text-blue-500">
+                    Sign In
+                  </Link>
+                </p>
               </form>
             )}
 
@@ -209,7 +229,7 @@ function AuthPageContent() {
             {authStep === 'password_input' && (
               <form onSubmit={handlePasswordSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="password" className="block text-sm font-medium style={{color: '#fcfcf7'}} mb-2">
+                  <label htmlFor="password" className="block text-sm font-medium mb-2" style={{color: '#fcfcf7'}}>
                     Password
                   </label>
                   <input
@@ -221,16 +241,16 @@ function AuthPageContent() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm placeholder-gray-500 bg-[#111111] style={{color: '#fcfcf7'}} focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     placeholder="Enter your password"
                   />
                 </div>
                 <div>
                   <button
                     type="submit"
-                    disabled={isLoading || !password}
-                    className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium style={{color: '#fcfcf7'}} bg-[#161616] hover:bg-[#3a7bd5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#161616] focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    style={{boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)'}}
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white !bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    style={{backgroundColor: 'black', boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)'}}
                   >
                     {isLoading ? (
                       'Signing In...'
@@ -254,7 +274,7 @@ function AuthPageContent() {
             {authStep === 'registration_form' && (
               <form onSubmit={handleRegisterSubmit} className="space-y-6">
                 <div>
-                  <label htmlFor="fullName" className="block text-sm font-medium style={{color: '#fcfcf7'}} mb-2">
+                  <label htmlFor="fullName" className="block text-sm font-medium mb-2" style={{color: '#fcfcf7'}}>
                     Full Name
                   </label>
                   <input
@@ -266,12 +286,12 @@ function AuthPageContent() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm placeholder-gray-500 bg-[#111111] style={{color: '#fcfcf7'}} focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     placeholder="Enter your full name"
                   />
                 </div>
                 <div>
-                  <label htmlFor="email-register" className="block text-sm font-medium style={{color: '#fcfcf7'}} mb-2">
+                  <label htmlFor="email-register" className="block text-sm font-medium mb-2" style={{color: '#fcfcf7'}}>
                     Email address
                   </label>
                   <input
@@ -283,12 +303,12 @@ function AuthPageContent() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={true} // Email is pre-filled and not editable
-                    className="w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm placeholder-gray-500 bg-[#111111] style={{color: '#fcfcf7'}} focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     placeholder="Your email"
                   />
                 </div>
                 <div>
-                  <label htmlFor="password-register" className="block text-sm font-medium style={{color: '#fcfcf7'}} mb-2">
+                  <label htmlFor="password-register" className="block text-sm font-medium mb-2">
                     Password
                   </label>
                   <input
@@ -300,16 +320,32 @@ function AuthPageContent() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-600 rounded-lg shadow-sm placeholder-gray-500 bg-[#111111] style={{color: '#fcfcf7'}} focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm placeholder-gray-500 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#161616] focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     placeholder="Create a password"
                   />
+                </div>
+                <div className="flex items-center mb-4">
+                  <input
+                    id="terms-register"
+                    name="terms"
+                    type="checkbox"
+                    checked={agreedToTerms}
+                    onChange={(e) => setAgreedToTerms(e.target.checked)}
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="terms-register" className="ml-2 block text-sm text-gray-900">
+                    I agree to the{' '}
+                    <Link href="/terms" className="text-blue-600 hover:text-blue-500">
+                      Terms and Conditions
+                    </Link>
+                  </label>
                 </div>
                 <div>
                   <button
                     type="submit"
-                    disabled={isLoading || !fullName || !email || !password}
-                    className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium style={{color: '#fcfcf7'}} bg-[#161616] hover:bg-[#3a7bd5] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#161616] focus:ring-offset-black disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    style={{boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)'}}
+                    disabled={isLoading}
+                    className="w-full flex items-center justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white !bg-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 focus:ring-offset-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    style={{backgroundColor: 'black', boxShadow: '0 10px 15px -3px rgba(22, 22, 22, 0.1), 0 4px 6px -2px rgba(22, 22, 22, 0.05)'}}
                   >
                     {isLoading ? (
                       'Registering...'
@@ -328,9 +364,9 @@ function AuthPageContent() {
         
         {/* Right Column */}
         <div className="hidden lg:block relative flex-1">
-          <div className="absolute inset-0 bg-[#111111]">
+          <div className="absolute inset-0 bg-white">
             <div className="h-full flex items-center justify-center p-12">
-              <div className="text-center" style={{color: '#fcfcf7'}}>
+              <div className="text-center text-gray-900">
                 {/* Image removed */}
               </div>
             </div>
@@ -342,6 +378,12 @@ function AuthPageContent() {
 }
 
 export default function AuthPage() {
+  const { user } = useUser();
+
+  if (user) {
+    redirect('/dashboard');
+  }
+
   return (
     <AuthWrapper>
       <AuthPageContent />

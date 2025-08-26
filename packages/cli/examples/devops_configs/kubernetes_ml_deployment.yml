@@ -1,0 +1,213 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schlep-engine-ml-api
+  namespace: production
+  labels:
+    app: schlep-engine-ml-api
+    version: v1
+    tier: ml-serving
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: schlep-engine-ml-api
+  template:
+    metadata:
+      labels:
+        app: schlep-engine-ml-api
+        version: v1
+    spec:
+      containers:
+      - name: ml-api
+        image: schlep-engine/ml-api:latest
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: SCHLEP_ENGINE_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: schlep-engine-secrets
+              key: api-key
+        - name: MODEL_PATH
+          value: "/models"
+        - name: REDIS_URL
+          value: "redis://redis-service:6379"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-secrets
+              key: url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: model-storage
+          mountPath: /models
+          readOnly: true
+        - name: logs
+          mountPath: /app/logs
+      volumes:
+      - name: model-storage
+        persistentVolumeClaim:
+          claimName: ml-model-storage
+      - name: logs
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: schlep-engine-ml-api-service
+  namespace: production
+  labels:
+    app: schlep-engine-ml-api
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: schlep-engine-ml-api
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: schlep-engine-ml-api-ingress
+  namespace: production
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+spec:
+  tls:
+  - hosts:
+    - ml-api.schlep-engine.com
+    secretName: ml-api-tls
+  rules:
+  - host: ml-api.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-ml-api-service
+            port:
+              number: 80
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ml-model-storage
+  namespace: production
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: schlep-engine-ml-api-hpa
+  namespace: production
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: schlep-engine-ml-api
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: schlep-engine-ml-config
+  namespace: production
+data:
+  config.yaml: |
+    api:
+      host: "0.0.0.0"
+      port: 8000
+      workers: 4
+    
+    ml:
+      model_cache_size: 1000
+      batch_size: 32
+      timeout: 30
+      
+    logging:
+      level: "INFO"
+      format: "json"
+      
+    monitoring:
+      enabled: true
+      metrics_port: 9090
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: schlep-engine-secrets
+  namespace: production
+type: Opaque
+data:
+  # Base64 encoded secrets - replace with actual values
+  api-key: <BASE64_ENCODED_API_KEY>
+
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: schlep-engine-ml-api-pdb
+  namespace: production
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: schlep-engine-ml-api
