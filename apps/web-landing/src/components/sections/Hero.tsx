@@ -37,7 +37,6 @@ export default function Hero() {
             Messy data to ML-ready in API calls.
           </h1>
           <p className="text-base md:text-lg text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
-            Accelerate your machine learning workflows.<br />
             Simplifies complex data handling through a unified API.
           </p>
           <div className="flex justify-center gap-3">
