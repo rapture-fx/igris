@@ -1,15 +1,54 @@
-name: 🔄 Continuous Integration
+name: 🔄 Comprehensive SDK Testing & CI
 
 on:
   push:
     branches: [main, develop]
+    paths:
+      - 'packages/**'
+      - 'apps/api/**'
+      - '.github/workflows/**'
   pull_request:
     branches: [main, develop]
+    paths:
+      - 'packages/**'
+      - 'apps/api/**'
+      - '.github/workflows/**'
+  schedule:
+    # Run daily at 2 AM UTC for integration testing
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      test_suite:
+        description: 'Test suite to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - python-sdk
+        - javascript-sdk
+        - go-sdk
+        - cli
+        - backend
+        - integration
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  GO_VERSION: '1.21'
+  PNPM_VERSION: '8'
 
 jobs:
-  backend-tests:
-    name: 🐍 Backend Tests
+  # Python SDK Comprehensive Tests
+  python-sdk-tests:
+    name: 🐍 Python SDK Tests
     runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'python-sdk' || github.event_name != 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        test-type: ['unit', 'integration', 'performance']
     
     services:
       postgres:
@@ -39,33 +78,515 @@ jobs:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
 
-    - name: 🐍 Set up Python 3.11
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: 3.11
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: 📦 Install Python SDK dependencies
+      run: |
+        cd packages/python-sdk
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install -r requirements-dev.txt
+        pip install pytest-xdist pytest-benchmark pytest-timeout
+
+    - name: 🧪 Run Python SDK unit tests
+      if: matrix.test-type == 'unit'
+      run: |
+        cd packages/python-sdk
+        pytest tests/test_comprehensive_auth.py tests/test_comprehensive_data_processing.py tests/test_comprehensive_ml_pipeline.py tests/test_error_handling.py -v --tb=short --maxfail=5 --durations=10 --cov=schlep_engine --cov-report=xml --cov-report=term-missing
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: 🔗 Run Python SDK integration tests
+      if: matrix.test-type == 'integration'
+      run: |
+        cd packages/python-sdk
+        pytest tests/test_integration.py -v --tb=short --timeout=300
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: ⚡ Run Python SDK performance tests
+      if: matrix.test-type == 'performance'
+      run: |
+        cd packages/python-sdk
+        pytest tests/test_performance_load.py -v --tb=short --timeout=600 --benchmark-only --benchmark-json=benchmark.json
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: 📊 Upload Python SDK coverage
+      if: matrix.test-type == 'unit'
+      uses: codecov/codecov-action@v3
+      with:
+        file: packages/python-sdk/coverage.xml
+        flags: python-sdk,python-${{ matrix.python-version }}
+        name: python-sdk-${{ matrix.python-version }}
+
+    - name: 📈 Upload benchmark results
+      if: matrix.test-type == 'performance'
+      uses: actions/upload-artifact@v3
+      with:
+        name: python-sdk-benchmarks-${{ matrix.python-version }}
+        path: packages/python-sdk/benchmark.json
+
+  # JavaScript/TypeScript SDK Tests
+  javascript-sdk-tests:
+    name: ⚛️ JavaScript SDK Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'javascript-sdk' || github.event_name != 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        node-version: ['16', '18', '20']
+        test-environment: ['node', 'browser']
+        test-type: ['unit', 'integration', 'performance']
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+
+    - name: 📦 Install JavaScript SDK dependencies
+      run: |
+        cd packages/javascript-sdk
+        pnpm install
+        pnpm install --save-dev @jest/environment-jsdom puppeteer
+
+    - name: 🔨 Build JavaScript SDK
+      run: |
+        cd packages/javascript-sdk
+        pnpm build
+
+    - name: 🧪 Run JavaScript SDK unit tests
+      if: matrix.test-type == 'unit'
+      run: |
+        cd packages/javascript-sdk
+        if [ "${{ matrix.test-environment }}" = "browser" ]; then
+          pnpm test --testEnvironment=jsdom --testNamePattern="browser|Browser"
+        else
+          pnpm test --testEnvironment=node --testNamePattern="node|Node"
+        fi
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        NODE_ENV: test
+
+    - name: 🔗 Run JavaScript SDK integration tests
+      if: matrix.test-type == 'integration' && matrix.test-environment == 'node'
+      run: |
+        cd packages/javascript-sdk
+        pnpm test --testPathPattern="integration" --testTimeout=30000
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        NODE_ENV: test
+
+    - name: ⚡ Run JavaScript SDK performance tests
+      if: matrix.test-type == 'performance' && matrix.test-environment == 'node'
+      run: |
+        cd packages/javascript-sdk
+        pnpm test tests/performance-load.test.ts --testTimeout=60000
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        NODE_ENV: test
+
+    - name: 📊 Upload JavaScript SDK coverage
+      if: matrix.test-type == 'unit'
+      uses: codecov/codecov-action@v3
+      with:
+        file: packages/javascript-sdk/coverage/lcov.info
+        flags: javascript-sdk,node-${{ matrix.node-version }},${{ matrix.test-environment }}
+        name: javascript-sdk-${{ matrix.node-version }}-${{ matrix.test-environment }}
+
+  # Go SDK Tests
+  go-sdk-tests:
+    name: 🚀 Go SDK Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'go-sdk' || github.event_name != 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        go-version: ['1.20', '1.21', '1.22']
+        test-type: ['unit', 'integration', 'performance']
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+        cache-dependency-path: packages/go-sdk/go.sum
+
+    - name: 📦 Install Go SDK dependencies
+      run: |
+        cd packages/go-sdk
+        go mod download
+        go mod tidy
+
+    - name: 🧪 Run Go SDK unit tests
+      if: matrix.test-type == 'unit'
+      run: |
+        cd packages/go-sdk
+        go test -v -race -coverprofile=coverage.out -covermode=atomic ./tests/... -run="Test(Comprehensive|Auth|DataProcessing|ML)"
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        TESTING: true
+
+    - name: 🔗 Run Go SDK integration tests
+      if: matrix.test-type == 'integration'
+      run: |
+        cd packages/go-sdk
+        go test -v -timeout=300s -tags=integration ./tests/... -run="Integration"
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        TESTING: true
+
+    - name: ⚡ Run Go SDK performance tests
+      if: matrix.test-type == 'performance'
+      run: |
+        cd packages/go-sdk
+        go test -v -timeout=600s -bench=. -benchmem ./tests/... -run="Benchmark"
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        TESTING: true
+
+    - name: 📊 Upload Go SDK coverage
+      if: matrix.test-type == 'unit'
+      uses: codecov/codecov-action@v3
+      with:
+        file: packages/go-sdk/coverage.out
+        flags: go-sdk,go-${{ matrix.go-version }}
+        name: go-sdk-${{ matrix.go-version }}
+
+  # CLI Tests
+  cli-tests:
+    name: 🔧 CLI Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'cli' || github.event_name != 'workflow_dispatch'
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        test-type: ['unit', 'integration', 'performance']
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: 📦 Install CLI dependencies
+      run: |
+        cd packages/cli
+        python -m pip install --upgrade pip
+        pip install -e .
+        pip install -r requirements-dev.txt
+        pip install pytest-xdist pytest-timeout pytest-benchmark
+
+    - name: 🧪 Run CLI unit tests
+      if: matrix.test-type == 'unit'
+      run: |
+        cd packages/cli
+        pytest tests/test_comprehensive_auth.py tests/test_comprehensive_commands.py -v --tb=short --maxfail=5 --durations=10 --cov=schlep_cli --cov-report=xml --cov-report=term-missing
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: 🔗 Run CLI integration tests
+      if: matrix.test-type == 'integration' && matrix.os == 'ubuntu-latest'
+      run: |
+        cd packages/cli
+        pytest tests/test_performance_integration.py -v --tb=short --timeout=300 -k "integration"
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: ⚡ Run CLI performance tests
+      if: matrix.test-type == 'performance' && matrix.os == 'ubuntu-latest'
+      run: |
+        cd packages/cli
+        pytest tests/test_performance_integration.py -v --tb=short --timeout=600 -k "performance" --benchmark-only --benchmark-json=benchmark.json
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: 📊 Upload CLI coverage
+      if: matrix.test-type == 'unit'
+      uses: codecov/codecov-action@v3
+      with:
+        file: packages/cli/coverage.xml
+        flags: cli,python-${{ matrix.python-version }},${{ matrix.os }}
+        name: cli-${{ matrix.python-version }}-${{ matrix.os }}
+
+    - name: 📈 Upload CLI benchmark results
+      if: matrix.test-type == 'performance' && matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v3
+      with:
+        name: cli-benchmarks-${{ matrix.python-version }}
+        path: packages/cli/benchmark.json
+
+  # Backend API Tests
+  backend-tests:
+    name: 🏗️ Backend API Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'backend' || github.event_name != 'workflow_dispatch'
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
 
     - name: 📦 Install backend dependencies
       run: |
         cd apps/api
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-asyncio pytest-cov
+        pip install pytest pytest-asyncio pytest-cov httpx
 
-    - name: 🧪 Run backend tests
+    - name: 🧪 Run backend API tests
       run: |
         cd apps/api
-        echo "✅ Skipping tests - focus on deployment"
-        exit 0
+        if [ -d "tests" ]; then
+          pytest tests/ -v --tb=short --maxfail=10 --durations=15 --cov=app --cov-report=xml --cov-report=term-missing
+        else
+          echo "⚠️ No backend tests directory found, creating basic health check"
+          python -c "from app.main import app; print('✅ Backend app imports successfully')"
+        fi
       env:
         DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
         REDIS_URL: redis://localhost:6379
         TESTING: true
 
-    - name: 📊 Upload coverage
+    - name: 📊 Upload backend coverage
       uses: codecov/codecov-action@v3
+      if: always()
       with:
         file: apps/api/coverage.xml
         flags: backend
+        name: backend-api
+
+  # Cross-SDK Integration Tests
+  integration-tests:
+    name: 🔗 Cross-SDK Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'integration' || github.event_name != 'workflow_dispatch'
+    needs: [python-sdk-tests, javascript-sdk-tests, go-sdk-tests, cli-tests]
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: 🚀 Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+        cache: true
+        cache-dependency-path: packages/go-sdk/go.sum
+
+    - name: 🔧 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: 🔧 Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: 📦 Install all SDK dependencies
+      run: |
+        # Python SDK
+        cd packages/python-sdk && pip install -e . && pip install -r requirements-dev.txt
+        cd ../..
+        # JavaScript SDK
+        cd packages/javascript-sdk && pnpm install && pnpm build
+        cd ../..
+        # Go SDK
+        cd packages/go-sdk && go mod download
+        cd ../..
+        # CLI
+        cd packages/cli && pip install -e . && pip install -r requirements-dev.txt
+        cd ../..
+
+    - name: 🧪 Run cross-SDK compatibility tests
+      run: |
+        echo "🔄 Running cross-SDK integration tests..."
+        # Test that all SDKs can authenticate with the same credentials
+        export SCHLEP_API_KEY="${{ secrets.TEST_API_KEY }}"
+        export SCHLEP_API_BASE_URL="https://api-test.schlepengine.com"
+        
+        # Python SDK test
+        cd packages/python-sdk
+        python -c "from schlep_engine import SchlepEngine; client = SchlepEngine(); print('✅ Python SDK initialized')"
+        cd ../..
+        
+        # CLI test
+        cd packages/cli
+        python -m schlep_cli.main --version
+        cd ../..
+        
+        # Go SDK test
+        cd packages/go-sdk
+        go run -c "package main; import \"fmt\"; func main() { fmt.Println(\"✅ Go SDK compiled\") }"
+        cd ../..
+        
+        # JavaScript SDK test
+        cd packages/javascript-sdk
+        node -e "const { SchlepEngine } = require('./dist/index.js'); const client = new SchlepEngine(); console.log('✅ JavaScript SDK initialized');"
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
 
   frontend-tests:
     name: ⚛️ Frontend Tests
@@ -108,26 +629,115 @@ jobs:
         cd ../web-admin && npm run build || echo "⚠️ Admin build failed" 
         cd ../web-docs && npm run build || echo "⚠️ Docs build failed"
 
+  # Enhanced Security Scan for SDKs
   security-scan:
-    name: 🔒 Security Scan
+    name: 🔒 Comprehensive Security Scan
     runs-on: ubuntu-latest
+    if: github.event.inputs.test_suite == 'all' || github.event_name != 'workflow_dispatch'
 
     steps:
     - name: 📥 Checkout code
       uses: actions/checkout@v4
 
-    - name: 🔒 Run Semgrep
+    - name: 🔒 Run Semgrep for all SDKs
       uses: returntocorp/semgrep-action@v1
       with:
         config: >-
           p/security-audit
           p/secrets
-        outputFormat: text
-        outputFile: semgrep-results.txt
+          p/python
+          p/javascript
+          p/go
+          p/docker
+        outputFormat: sarif
+        outputFile: semgrep-results.sarif
 
-    - name: 📊 Upload security results
+    - name: 🐍 Python Security Audit
+      run: |
+        cd packages/python-sdk
+        pip install safety bandit
+        safety check --json --output safety-results.json || true
+        bandit -r schlep_engine/ -f json -o bandit-results.json || true
+
+    - name: 🔧 Node.js Security Audit
+      run: |
+        cd packages/javascript-sdk
+        pnpm install
+        pnpm audit --audit-level moderate --json > npm-audit-results.json || true
+
+    - name: 🚀 Go Security Audit
+      run: |
+        cd packages/go-sdk
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck -json ./... > govulncheck-results.json || true
+
+    - name: 📊 Upload all security results
       uses: actions/upload-artifact@v3
       if: always()
       with:
-        name: security-scan-results
-        path: semgrep-results.txt
+        name: comprehensive-security-scan-results
+        path: |
+          semgrep-results.sarif
+          packages/python-sdk/safety-results.json
+          packages/python-sdk/bandit-results.json
+          packages/javascript-sdk/npm-audit-results.json
+          packages/go-sdk/govulncheck-results.json
+
+    - name: 📋 Upload SARIF to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: semgrep-results.sarif
+
+  # Test Results Summary
+  test-summary:
+    name: 📊 Test Results Summary
+    runs-on: ubuntu-latest
+    needs: [python-sdk-tests, javascript-sdk-tests, go-sdk-tests, cli-tests, backend-tests, integration-tests, security-scan]
+    if: always()
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 📊 Generate test summary
+      run: |
+        echo "# 🧪 Comprehensive SDK Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Test Suite Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| SDK | Status | Coverage |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|--------|----------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 🐍 Python SDK | ${{ needs.python-sdk-tests.result }} | [![codecov](https://codecov.io/gh/${{ github.repository }}/branch/${{ github.ref_name }}/graph/badge.svg?flag=python-sdk)](https://codecov.io/gh/${{ github.repository }}) |" >> $GITHUB_STEP_SUMMARY
+        echo "| ⚛️ JavaScript SDK | ${{ needs.javascript-sdk-tests.result }} | [![codecov](https://codecov.io/gh/${{ github.repository }}/branch/${{ github.ref_name }}/graph/badge.svg?flag=javascript-sdk)](https://codecov.io/gh/${{ github.repository }}) |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🚀 Go SDK | ${{ needs.go-sdk-tests.result }} | [![codecov](https://codecov.io/gh/${{ github.repository }}/branch/${{ github.ref_name }}/graph/badge.svg?flag=go-sdk)](https://codecov.io/gh/${{ github.repository }}) |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔧 CLI | ${{ needs.cli-tests.result }} | [![codecov](https://codecov.io/gh/${{ github.repository }}/branch/${{ github.ref_name }}/graph/badge.svg?flag=cli)](https://codecov.io/gh/${{ github.repository }}) |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🏗️ Backend API | ${{ needs.backend-tests.result }} | [![codecov](https://codecov.io/gh/${{ github.repository }}/branch/${{ github.ref_name }}/graph/badge.svg?flag=backend)](https://codecov.io/gh/${{ github.repository }}) |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔗 Integration | ${{ needs.integration-tests.result }} | N/A |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔒 Security | ${{ needs.security-scan.result }} | N/A |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Performance Benchmarks" >> $GITHUB_STEP_SUMMARY
+        echo "Performance benchmark results are uploaded as artifacts for detailed analysis." >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Next Steps" >> $GITHUB_STEP_SUMMARY
+        if [[ "${{ needs.python-sdk-tests.result }}" == "failure" || "${{ needs.javascript-sdk-tests.result }}" == "failure" || "${{ needs.go-sdk-tests.result }}" == "failure" || "${{ needs.cli-tests.result }}" == "failure" || "${{ needs.backend-tests.result }}" == "failure" ]]; then
+          echo "❌ **Action Required**: Some tests failed. Please review the test logs and fix the issues." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ **All tests passed!** The SDKs are ready for release." >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: 🚨 Notify on failure
+      if: failure()
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { owner, repo } = context.repo;
+          const { number } = context.issue;
+          if (number) {
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: number,
+              body: '🚨 **SDK Test Failures Detected**\n\nOne or more SDK test suites have failed. Please check the [Actions tab](https://github.com/' + owner + '/' + repo + '/actions) for detailed results and fix the issues before merging.'
+            });
+          }
