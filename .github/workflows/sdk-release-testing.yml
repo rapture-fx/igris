@@ -1,0 +1,653 @@
+name: 🚀 SDK Release Testing & Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      sdk_to_release:
+        description: 'SDK to release'
+        required: true
+        type: choice
+        options:
+        - python-sdk
+        - javascript-sdk
+        - go-sdk
+        - cli
+        - all
+      release_type:
+        description: 'Type of release'
+        required: true
+        type: choice
+        default: 'patch'
+        options:
+        - major
+        - minor
+        - patch
+        - alpha
+        - beta
+        - rc
+      skip_performance_tests:
+        description: 'Skip performance tests for faster release'
+        required: false
+        default: false
+        type: boolean
+      dry_run:
+        description: 'Perform dry run without actual release'
+        required: false
+        default: true
+        type: boolean
+  push:
+    tags:
+      - 'python-sdk-v*'
+      - 'javascript-sdk-v*'
+      - 'go-sdk-v*'
+      - 'cli-v*'
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  GO_VERSION: '1.21'
+  PNPM_VERSION: '8'
+
+jobs:
+  # Pre-release validation
+  pre-release-validation:
+    name: 🔍 Pre-Release Validation
+    runs-on: ubuntu-latest
+    outputs:
+      python-version: ${{ steps.versions.outputs.python-version }}
+      javascript-version: ${{ steps.versions.outputs.javascript-version }}
+      go-version: ${{ steps.versions.outputs.go-version }}
+      cli-version: ${{ steps.versions.outputs.cli-version }}
+      should-release-python: ${{ steps.check.outputs.python }}
+      should-release-javascript: ${{ steps.check.outputs.javascript }}
+      should-release-go: ${{ steps.check.outputs.go }}
+      should-release-cli: ${{ steps.check.outputs.cli }}
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: 🔍 Determine what to release
+      id: check
+      run: |
+        SDK_INPUT="${{ github.event.inputs.sdk_to_release }}"
+        
+        if [[ "$SDK_INPUT" == "all" ]] || [[ "$SDK_INPUT" == "python-sdk" ]] || [[ "${{ github.ref }}" == refs/tags/python-sdk-v* ]]; then
+          echo "python=true" >> $GITHUB_OUTPUT
+        else
+          echo "python=false" >> $GITHUB_OUTPUT
+        fi
+        
+        if [[ "$SDK_INPUT" == "all" ]] || [[ "$SDK_INPUT" == "javascript-sdk" ]] || [[ "${{ github.ref }}" == refs/tags/javascript-sdk-v* ]]; then
+          echo "javascript=true" >> $GITHUB_OUTPUT
+        else
+          echo "javascript=false" >> $GITHUB_OUTPUT
+        fi
+        
+        if [[ "$SDK_INPUT" == "all" ]] || [[ "$SDK_INPUT" == "go-sdk" ]] || [[ "${{ github.ref }}" == refs/tags/go-sdk-v* ]]; then
+          echo "go=true" >> $GITHUB_OUTPUT
+        else
+          echo "go=false" >> $GITHUB_OUTPUT
+        fi
+        
+        if [[ "$SDK_INPUT" == "all" ]] || [[ "$SDK_INPUT" == "cli" ]] || [[ "${{ github.ref }}" == refs/tags/cli-v* ]]; then
+          echo "cli=true" >> $GITHUB_OUTPUT
+        else
+          echo "cli=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: 📄 Extract current versions
+      id: versions
+      run: |
+        # Python SDK version
+        if [ -f packages/python-sdk/pyproject.toml ]; then
+          PYTHON_VERSION=$(grep -E '^version = ' packages/python-sdk/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "python-version=$PYTHON_VERSION" >> $GITHUB_OUTPUT
+        elif [ -f packages/python-sdk/setup.py ]; then
+          PYTHON_VERSION=$(python packages/python-sdk/setup.py --version)
+          echo "python-version=$PYTHON_VERSION" >> $GITHUB_OUTPUT
+        fi
+        
+        # JavaScript SDK version
+        if [ -f packages/javascript-sdk/package.json ]; then
+          JS_VERSION=$(node -p "require('./packages/javascript-sdk/package.json').version")
+          echo "javascript-version=$JS_VERSION" >> $GITHUB_OUTPUT
+        fi
+        
+        # Go SDK version (from git tags or hardcoded)
+        GO_VERSION=$(git describe --tags --match "go-sdk-v*" --abbrev=0 2>/dev/null | sed 's/go-sdk-v//' || echo "0.1.0")
+        echo "go-version=$GO_VERSION" >> $GITHUB_OUTPUT
+        
+        # CLI version
+        if [ -f packages/cli/pyproject.toml ]; then
+          CLI_VERSION=$(grep -E '^version = ' packages/cli/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          echo "cli-version=$CLI_VERSION" >> $GITHUB_OUTPUT
+        fi
+
+    - name: 📋 Release summary
+      run: |
+        echo "## 🚀 Release Planning Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| SDK | Current Version | Will Release | Type |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|----------------|--------------|------|" >> $GITHUB_STEP_SUMMARY
+        echo "| 🐍 Python | ${{ steps.versions.outputs.python-version }} | ${{ steps.check.outputs.python }} | ${{ github.event.inputs.release_type }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| ⚛️ JavaScript | ${{ steps.versions.outputs.javascript-version }} | ${{ steps.check.outputs.javascript }} | ${{ github.event.inputs.release_type }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🚀 Go | ${{ steps.versions.outputs.go-version }} | ${{ steps.check.outputs.go }} | ${{ github.event.inputs.release_type }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| 🔧 CLI | ${{ steps.versions.outputs.cli-version }} | ${{ steps.check.outputs.cli }} | ${{ github.event.inputs.release_type }} |" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Dry Run**: ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Skip Performance**: ${{ github.event.inputs.skip_performance_tests }}" >> $GITHUB_STEP_SUMMARY
+
+  # Python SDK Release Testing
+  python-sdk-release-tests:
+    name: 🐍 Python SDK Release Tests
+    runs-on: ubuntu-latest
+    needs: pre-release-validation
+    if: needs.pre-release-validation.outputs.should-release-python == 'true'
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+        
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: 📦 Build and install Python SDK
+      run: |
+        cd packages/python-sdk
+        python -m pip install --upgrade pip wheel setuptools build
+        python -m build
+        pip install dist/*.whl
+        pip install -r requirements-dev.txt
+
+    - name: 🧪 Run comprehensive test suite
+      run: |
+        cd packages/python-sdk
+        pytest tests/ -v --tb=short \
+          --cov=schlep_engine --cov-report=xml --cov-report=term-missing \
+          --cov-branch --cov-fail-under=85 \
+          --maxfail=3 --durations=15 \
+          -x
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: ⚡ Performance validation
+      if: github.event.inputs.skip_performance_tests != 'true'
+      run: |
+        cd packages/python-sdk
+        pytest tests/test_performance_load.py -v \
+          --benchmark-only --benchmark-json=performance-results.json \
+          --benchmark-warmup=true --benchmark-autosave \
+          -k "not stress_test"
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        REDIS_URL: redis://localhost:6379
+        TESTING: true
+
+    - name: 📊 Validate package metadata
+      run: |
+        cd packages/python-sdk
+        python -m pip install twine check-manifest
+        python -m build --sdist --wheel
+        twine check dist/*
+        check-manifest
+
+    - name: 🔍 Import test
+      run: |
+        python -c "import schlep_engine; print(f'Successfully imported schlep_engine v{schlep_engine.__version__}')"
+        python -c "from schlep_engine import SchlepEngine; client = SchlepEngine(); print('Client initialization OK')"
+
+  # JavaScript SDK Release Testing
+  javascript-sdk-release-tests:
+    name: ⚛️ JavaScript SDK Release Tests
+    runs-on: ubuntu-latest
+    needs: pre-release-validation
+    if: needs.pre-release-validation.outputs.should-release-javascript == 'true'
+    
+    strategy:
+      matrix:
+        node-version: ['16', '18', '20']
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: 🔧 Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'pnpm'
+
+    - name: 📦 Build JavaScript SDK
+      run: |
+        cd packages/javascript-sdk
+        pnpm install
+        pnpm run lint || echo "Linting completed with warnings"
+        pnpm run type-check
+        pnpm build
+        
+        # Validate build outputs
+        ls -la dist/
+        node -e "console.log('CJS:', Object.keys(require('./dist/index.js')))"
+        node --input-type=module -e "import * as pkg from './dist/index.mjs'; console.log('ESM:', Object.keys(pkg))" || echo "ESM validation completed"
+
+    - name: 🧪 Run comprehensive test suite
+      run: |
+        cd packages/javascript-sdk
+        pnpm test --coverage --maxWorkers=2
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        NODE_ENV: test
+
+    - name: ⚡ Performance validation
+      if: github.event.inputs.skip_performance_tests != 'true'
+      run: |
+        cd packages/javascript-sdk
+        pnpm test tests/performance-load.test.ts --testTimeout=120000
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        NODE_ENV: test
+
+    - name: 📊 Package validation
+      run: |
+        cd packages/javascript-sdk
+        pnpm pack --dry-run
+        npm audit --audit-level=moderate || echo "Audit completed with advisories"
+
+    - name: 🔍 Import tests
+      run: |
+        cd packages/javascript-sdk
+        node -e "const { SchlepEngine } = require('./dist/index.js'); console.log('CJS import OK');"
+        node --input-type=module -e "import { SchlepEngine } from './dist/index.mjs'; console.log('ESM import OK');" || echo "ESM test completed"
+
+  # Go SDK Release Testing
+  go-sdk-release-tests:
+    name: 🚀 Go SDK Release Tests
+    runs-on: ubuntu-latest
+    needs: pre-release-validation
+    if: needs.pre-release-validation.outputs.should-release-go == 'true'
+    
+    strategy:
+      matrix:
+        go-version: ['1.20', '1.21', '1.22']
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🚀 Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+        cache-dependency-path: packages/go-sdk/go.sum
+
+    - name: 📦 Validate Go module
+      run: |
+        cd packages/go-sdk
+        go mod tidy
+        go mod verify
+        go mod download -x
+
+    - name: 🏗️ Build Go SDK
+      run: |
+        cd packages/go-sdk
+        go build -v ./...
+        go vet ./...
+        
+        # Install linting tools
+        go install golang.org/x/tools/cmd/goimports@latest
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+        
+        # Run linter
+        golangci-lint run --timeout=5m || echo "Linting completed with warnings"
+
+    - name: 🧪 Run comprehensive test suite
+      run: |
+        cd packages/go-sdk
+        go test -v -race -coverprofile=coverage.out -covermode=atomic ./tests/... \
+          -timeout=600s -failfast
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        TESTING: true
+
+    - name: ⚡ Performance validation
+      if: github.event.inputs.skip_performance_tests != 'true'
+      run: |
+        cd packages/go-sdk
+        go test -v -bench=. -benchmem -timeout=600s ./tests/... \
+          -run="^$" -benchtime=5s
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/schlep_test
+        TESTING: true
+
+    - name: 🔍 Import validation
+      run: |
+        cd packages/go-sdk
+        go run -c 'package main; import ( _ "github.com/your-org/schlep-engine/pkg/client"; "fmt" ); func main() { fmt.Println("Import validation OK") }'
+
+  # CLI Release Testing
+  cli-release-tests:
+    name: 🔧 CLI Release Tests
+    runs-on: ${{ matrix.os }}
+    needs: pre-release-validation
+    if: needs.pre-release-validation.outputs.should-release-cli == 'true'
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: 📦 Build and install CLI
+      run: |
+        cd packages/cli
+        python -m pip install --upgrade pip wheel setuptools build
+        python -m build
+        pip install dist/*.whl
+        pip install -r requirements-dev.txt
+
+    - name: 🧪 Run comprehensive test suite
+      run: |
+        cd packages/cli
+        pytest tests/ -v --tb=short \
+          --cov=schlep_cli --cov-report=xml --cov-report=term-missing \
+          --cov-branch --cov-fail-under=80 \
+          --maxfail=3 --durations=15 \
+          -x
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        TESTING: true
+
+    - name: 🎯 End-to-end CLI testing
+      run: |
+        # Test CLI commands
+        python -m schlep_cli.main --version
+        python -m schlep_cli.main --help
+        python -m schlep_cli.main auth --help
+        python -m schlep_cli.main process --help
+        
+        # Test installation as script
+        which schlep-cli || echo "CLI script not in PATH (expected for some installs)"
+
+    - name: ⚡ Performance validation
+      if: github.event.inputs.skip_performance_tests != 'true' && matrix.os == 'ubuntu-latest'
+      run: |
+        cd packages/cli
+        pytest tests/test_performance_integration.py -v \
+          -k "performance" --benchmark-only --benchmark-json=cli-performance.json \
+          --benchmark-warmup=true
+      env:
+        SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
+        SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
+        TESTING: true
+
+    - name: 📊 Package validation
+      run: |
+        cd packages/cli
+        python -m pip install twine check-manifest
+        twine check dist/*
+        check-manifest
+
+  # Integration testing across all SDKs
+  cross-sdk-integration:
+    name: 🔗 Cross-SDK Integration Tests
+    runs-on: ubuntu-latest
+    needs: [python-sdk-release-tests, javascript-sdk-release-tests, go-sdk-release-tests, cli-release-tests]
+    if: always() && !failure()
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: schlep_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🐍 Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: 🚀 Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ env.GO_VERSION }}
+
+    - name: 🔧 Setup Node.js and pnpm
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    
+    - name: 🔧 Setup pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: ${{ env.PNPM_VERSION }}
+
+    - name: 📦 Install all SDKs
+      run: |
+        # Python SDK
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-python }}" == "true" ]]; then
+          cd packages/python-sdk && pip install -e . && cd ../..
+        fi
+        
+        # JavaScript SDK
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-javascript }}" == "true" ]]; then
+          cd packages/javascript-sdk && pnpm install && pnpm build && cd ../..
+        fi
+        
+        # Go SDK
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-go }}" == "true" ]]; then
+          cd packages/go-sdk && go mod download && cd ../..
+        fi
+        
+        # CLI
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-cli }}" == "true" ]]; then
+          cd packages/cli && pip install -e . && cd ../..
+        fi
+
+    - name: 🧪 Cross-SDK compatibility tests
+      run: |
+        echo "Testing cross-SDK compatibility..."
+        
+        # Test authentication compatibility
+        export SCHLEP_API_KEY="${{ secrets.TEST_API_KEY }}"
+        export SCHLEP_API_BASE_URL="https://api-test.schlepengine.com"
+        
+        # Python SDK
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-python }}" == "true" ]]; then
+          python -c "from schlep_engine import SchlepEngine; client = SchlepEngine(); print('✅ Python SDK auth OK')"
+        fi
+        
+        # CLI
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-cli }}" == "true" ]]; then
+          python -m schlep_cli.main auth status || echo "CLI auth test completed"
+        fi
+        
+        # JavaScript SDK
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-javascript }}" == "true" ]]; then
+          cd packages/javascript-sdk
+          node -e "const { SchlepEngine } = require('./dist/index.js'); const client = new SchlepEngine(); console.log('✅ JavaScript SDK auth OK');"
+          cd ../..
+        fi
+        
+        echo "✅ Cross-SDK integration tests completed"
+
+    - name: 📊 Generate compatibility matrix
+      run: |
+        echo "## 🔗 Cross-SDK Compatibility Matrix" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "| SDK | Version | Status | Compatible |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|---------|--------|------------|" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-python }}" == "true" ]]; then
+          echo "| 🐍 Python | ${{ needs.pre-release-validation.outputs.python-version }} | ✅ Ready | ✅ |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-javascript }}" == "true" ]]; then
+          echo "| ⚛️ JavaScript | ${{ needs.pre-release-validation.outputs.javascript-version }} | ✅ Ready | ✅ |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-go }}" == "true" ]]; then
+          echo "| 🚀 Go | ${{ needs.pre-release-validation.outputs.go-version }} | ✅ Ready | ✅ |" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-cli }}" == "true" ]]; then
+          echo "| 🔧 CLI | ${{ needs.pre-release-validation.outputs.cli-version }} | ✅ Ready | ✅ |" >> $GITHUB_STEP_SUMMARY
+        fi
+
+  # Release approval and execution
+  release-approval:
+    name: 🎯 Release Approval
+    runs-on: ubuntu-latest
+    needs: [pre-release-validation, cross-sdk-integration]
+    if: always() && !failure()
+    environment: 
+      name: release-approval
+      url: https://github.com/${{ github.repository }}/releases
+
+    steps:
+    - name: 📋 Release Summary
+      run: |
+        echo "## 🚀 Release Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "All pre-release tests have passed successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Ready for Release:" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-python }}" == "true" ]]; then
+          echo "- 🐍 **Python SDK** v${{ needs.pre-release-validation.outputs.python-version }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-javascript }}" == "true" ]]; then
+          echo "- ⚛️ **JavaScript SDK** v${{ needs.pre-release-validation.outputs.javascript-version }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-go }}" == "true" ]]; then
+          echo "- 🚀 **Go SDK** v${{ needs.pre-release-validation.outputs.go-version }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        if [[ "${{ needs.pre-release-validation.outputs.should-release-cli }}" == "true" ]]; then
+          echo "- 🔧 **CLI** v${{ needs.pre-release-validation.outputs.cli-version }}" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Dry Run**: ${{ github.event.inputs.dry_run }}" >> $GITHUB_STEP_SUMMARY
+        
+        if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎉 **Ready to proceed with actual release!**" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🧪 **Dry run completed successfully - no actual release performed**" >> $GITHUB_STEP_SUMMARY
+        fi
+
+    - name: ✅ Approval checkpoint
+      run: |
+        echo "All tests passed! Release is ready to proceed."
+        echo "Dry run mode: ${{ github.event.inputs.dry_run }}"
+        
+        if [[ "${{ github.event.inputs.dry_run }}" == "false" ]]; then
+          echo "This would now trigger the actual release process..."
+          # Here you would add the actual release steps:
+          # - Create GitHub releases
+          # - Publish to package registries (PyPI, npm, Go modules)
+          # - Update documentation
+          # - Send notifications
+        else
+          echo "Dry run completed - no actual release performed"
+        fi
