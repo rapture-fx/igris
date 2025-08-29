@@ -77,11 +77,16 @@ except ImportError:
     RLOptimizationCRUD = None
 
 try:
-    from app.models.rl_models import RLOptimizationSession
+    from app.models.rl_models import RLOptimizationSession, SessionStatus
     RL_MODELS_AVAILABLE = True
 except ImportError:
     RL_MODELS_AVAILABLE = False
-    # Create a stub RLOptimizationSession for compatibility
+    # Create stub classes for compatibility
+    class SessionStatus:
+        RUNNING = "RUNNING"
+        COMPLETED = "COMPLETED"
+        FAILED = "FAILED"
+    
     class RLOptimizationSession:
         def __init__(self, **kwargs):
             for key, value in kwargs.items():
@@ -245,17 +250,17 @@ class HyperparameterOptimizer:
         try:
             # Create optimization session
             self.optimization_session = RLOptimizationSession(
+                user_id="test_user",  # Mock user for compatibility mode
                 pipeline_id=pipeline_id,
-                strategy=self.config.strategy,
-                objective=self.config.objective,
+                optimization_type=self.config.strategy.value,
                 config=asdict(self.config),
-                status="running",
+                status=SessionStatus.RUNNING,
                 created_at=start_time
             )
             
-            if not self.full_rl_available:
+            if not self.full_rl_available or not ML_ENV_AVAILABLE:
                 # Run in compatibility mode without full RL
-                logger.info("Running optimization in compatibility mode (no ML dependencies)")
+                logger.info("Running optimization in compatibility mode (no ML dependencies or environment)")
                 result = self._run_compatibility_optimization(pipeline_id)
             else:
                 # Initialize environment
@@ -276,7 +281,7 @@ class HyperparameterOptimizer:
             
             # Update session with results
             optimization_time = (datetime.now() - start_time).total_seconds()
-            self.optimization_session.status = "completed"
+            self.optimization_session.status = SessionStatus.COMPLETED
             self.optimization_session.best_performance = result.best_performance
             self.optimization_session.best_hyperparameters = result.best_hyperparameters
             self.optimization_session.total_episodes = result.total_episodes
@@ -288,7 +293,7 @@ class HyperparameterOptimizer:
         except Exception as e:
             logger.error(f"Optimization failed: {str(e)}")
             if self.optimization_session:
-                self.optimization_session.status = "failed"
+                self.optimization_session.status = SessionStatus.FAILED
                 self.optimization_session.error_message = str(e)
             raise
     
