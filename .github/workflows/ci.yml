@@ -413,8 +413,8 @@ jobs:
         name: cli-benchmarks-${{ matrix.python-version }}
         path: packages/cli/benchmark.json
 
-  backend-tests:
-    name: 🏗️ Backend API Tests
+    backend-tests:
+    name: Backend API Tests
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -440,33 +440,28 @@ jobs:
           --health-timeout 5s
           --health-retries 5
     steps:
-    - name: 📥 Checkout code
+    - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: 🐍 Set up Python ${{ env.PYTHON_VERSION }}
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Get pip cache dir
-      id: pip-cache
-      run: echo "pip_cache_dir=$(pip cache dir)" >> $GITHUB_OUTPUT
-
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
-        path: ${{ steps.pip-cache.outputs.pip_cache_dir }}
+        path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: 📦 Install backend dependencies
+    - name: Install backend dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r apps/api/requirements.txt
-        pip install pytest pytest-dotenv
+        pip install -r apps/api/requirements.txt pytest-dotenv
 
-    - name: 🧪 Run backend API tests
+    - name: Run backend API tests
       run: pytest apps/api/
 
   # Cross-SDK Integration Tests
