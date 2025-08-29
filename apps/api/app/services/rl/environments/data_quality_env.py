@@ -11,8 +11,12 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
-import gym
-from gym import spaces
+try:
+    import gymnasium as gym
+    from gymnasium import spaces
+except ImportError:
+    import gym
+    from gym import spaces
 from datetime import datetime, timedelta
 from enum import Enum
 import uuid

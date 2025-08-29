@@ -20,8 +20,10 @@ from app.services.rl.agents.resource_allocation_agent import ResourceAllocationA
 from app.services.rl.agents.data_quality_agent import DataQualityAgent, DataQualityAgentConfig
 from app.services.rl.monitoring.rl_monitor import RLPerformanceMonitor, RLMetric, MetricType
 from app.models.rl_models import (
-    RLOptimizationCRUD, SessionStatus, OptimizationStrategy, RLOptimizationSession
+    SessionStatus, RLOptimizationSession
 )
+from app.services.rl.models.rl_optimization_models import RLOptimizationCRUD
+from app.services.rl.agents.hyperparameter_optimizer import OptimizationStrategy
 from app.database.connection import get_sync_db
 
 logger = logging.getLogger(__name__)
