@@ -9,17 +9,17 @@ This module provides specialized RL agents for different optimization scenarios:
 - Multi-tenant scheduling optimization
 """
 
-from .hyperparameter_optimizer import HyperparameterOptimizer, HyperparameterOptimizerFactory
-from .resource_allocation_agent import ResourceAllocationAgent
-from .data_quality_agent import DataQualityAgent
-from .cost_performance_agent import CostPerformanceAgent
-from .scheduling_agent import MultiTenantSchedulingAgent
+# Import only existing agents
+__all__ = []
 
-__all__ = [
-    "HyperparameterOptimizer",
-    "HyperparameterOptimizerFactory",
-    "ResourceAllocationAgent",
-    "DataQualityAgent", 
-    "CostPerformanceAgent",
-    "MultiTenantSchedulingAgent"
-]
+try:
+    from .hyperparameter_optimizer import HyperparameterOptimizer, HyperparameterOptimizerFactory
+    __all__.extend(["HyperparameterOptimizer", "HyperparameterOptimizerFactory"])
+except ImportError:
+    pass
+
+# Other agents require full ML dependencies and are not implemented yet
+# from .resource_allocation_agent import ResourceAllocationAgent
+# from .data_quality_agent import DataQualityAgent  
+# from .cost_performance_agent import CostPerformanceAgent
+# from .scheduling_agent import MultiTenantSchedulingAgent

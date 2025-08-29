@@ -10,8 +10,12 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
-import gym
-from gym import spaces
+try:
+    import gym
+    from gym import spaces
+except ImportError:
+    import gymnasium as gym
+    from gymnasium import spaces
 from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
@@ -24,6 +28,8 @@ warnings.filterwarnings('ignore')
 logger = logging.getLogger(__name__)
 
 
+from dataclasses import dataclass, field
+
 @dataclass
 class HyperparameterSpace:
     """Define hyperparameter search space for different model types."""
@@ -35,7 +41,7 @@ class HyperparameterSpace:
     rf_min_samples_leaf: Tuple[int, int] = (1, 10)
     
     # Neural Network parameters
-    nn_hidden_layer_sizes: List[Tuple[int, ...]] = [(50,), (100,), (50, 25), (100, 50)]
+    nn_hidden_layer_sizes: List[Tuple[int, ...]] = field(default_factory=lambda: [(50,), (100,), (50, 25), (100, 50)])
     nn_alpha: Tuple[float, float] = (0.0001, 0.01)
     nn_learning_rate_init: Tuple[float, float] = (0.001, 0.1)
     

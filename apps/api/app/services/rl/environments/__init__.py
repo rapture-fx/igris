@@ -8,16 +8,15 @@ This module provides specialized RL environments for different optimization scen
 - Multi-tenant scheduling optimization
 """
 
-from .ml_training_env import MLTrainingEnvironment
-from .resource_allocation_env import ResourceAllocationEnvironment
-from .data_quality_env import DataQualityEnvironment
-from .cost_performance_env import CostPerformanceEnvironment
-from .scheduling_env import MultiTenantSchedulingEnvironment
+# Import only existing environments
+try:
+    from .ml_training_env import MLTrainingEnvironment
+    _ML_TRAINING_AVAILABLE = True
+except ImportError:
+    _ML_TRAINING_AVAILABLE = False
 
-__all__ = [
-    "MLTrainingEnvironment",
-    "ResourceAllocationEnvironment", 
-    "DataQualityEnvironment",
-    "CostPerformanceEnvironment",
-    "MultiTenantSchedulingEnvironment"
-]
+# Other environments are not yet implemented, so we'll skip them for now
+__all__ = []
+
+if _ML_TRAINING_AVAILABLE:
+    __all__.append("MLTrainingEnvironment")
