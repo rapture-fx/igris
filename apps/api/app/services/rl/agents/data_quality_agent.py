@@ -14,13 +14,21 @@ from datetime import datetime, timedelta
 import pickle
 import os
 
-from stable_baselines3 import PPO, A2C, SAC
-from stable_baselines3.common.env_util import make_vec_env
-from stable_baselines3.common.callbacks import BaseCallback
-from stable_baselines3.common.logger import configure
+try:
+    from stable_baselines3 import PPO, A2C, SAC
+    from stable_baselines3.common.env_util import make_vec_env
+    from stable_baselines3.common.callbacks import BaseCallback
+    from stable_baselines3.common.logger import configure
+    SB3_AVAILABLE = True
+except ImportError:
+    # Use mock implementations when stable-baselines3 is not available
+    from ..integrations.sb3_integration import MockPPO as PPO, MockA2C as A2C, MockSAC as SAC, make_vec_env
+    BaseCallback = object
+    configure = lambda x: None
+    SB3_AVAILABLE = False
 
 from ..environments.data_quality_env import DataQualityEnvironment, DataQualityMetrics
-from ..models.rl_optimization_models import OptimizationStatus, OptimizationType
+from app.models.rl_models import SessionStatus as OptimizationStatus
 
 logger = logging.getLogger(__name__)
 

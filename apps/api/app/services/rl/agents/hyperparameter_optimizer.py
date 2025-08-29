@@ -16,13 +16,16 @@ from datetime import datetime, timedelta
 
 # RL dependencies with fallback handling
 try:
-    import gym
-    from gym import spaces
-    GYM_AVAILABLE = True
-except ImportError:
     import gymnasium as gym
     from gymnasium import spaces
     GYM_AVAILABLE = True
+except ImportError:
+    try:
+        import gym
+        from gym import spaces
+        GYM_AVAILABLE = True
+    except ImportError:
+        GYM_AVAILABLE = False
 
 # Try to import stable-baselines3, fallback to stubs if not available
 try:

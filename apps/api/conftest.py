@@ -80,7 +80,7 @@ def override_get_async_session(async_session: AsyncSession):
     app.dependency_overrides = {}
 
 @pytest.fixture
-async def rl_crud(async_session: AsyncSession) -> RLOptimizationCRUD:
+async def rl_crud(async_session: AsyncSession):
     """Create RL CRUD instance for testing."""
     if not API_IMPORTS_AVAILABLE:
         pytest.skip("API imports not available")
@@ -88,7 +88,7 @@ async def rl_crud(async_session: AsyncSession) -> RLOptimizationCRUD:
     return RLOptimizationCRUD(async_session)
 
 @pytest.fixture
-async def rl_service(rl_crud: RLOptimizationCRUD) -> RLOptimizationService:
+async def rl_service(rl_crud):
     """Create RL service instance for testing."""
     if not API_IMPORTS_AVAILABLE:
         pytest.skip("API imports not available")
@@ -108,15 +108,15 @@ def sample_rl_session_data() -> dict:
             "learning_rate": 0.001,
             "batch_size": 32
         },
-        "status": SessionStatus.PENDING,
+        "status": "PENDING",
         "user_id": "test_user_123"
     }
 
 @pytest.fixture
 async def sample_rl_session(
-    rl_crud: RLOptimizationCRUD, 
+    rl_crud, 
     sample_rl_session_data: dict
-) -> RLOptimizationSession:
+):
     """Create a sample RL session for testing."""
     if not API_IMPORTS_AVAILABLE:
         pytest.skip("API imports not available")
