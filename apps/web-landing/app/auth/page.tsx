@@ -7,7 +7,6 @@ import Image from 'next/image'
 import { Mail, Github, ArrowRight, Chrome } from 'lucide-react'
 import { checkEmailExists, initiateOAuthLogin, loginWithCredentials, registerUser, type ApiError } from '@/lib/auth'
 import { AuthWrapper } from '../../src/components/AuthWrapper'
-import { useUser } from '@clerk/nextjs';
 
 function AuthPageContent() {
   const router = useRouter()
@@ -114,10 +113,10 @@ function AuthPageContent() {
                   height={45}
                   className="mr-3"
                 />
-                
               </div>
               <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              
+                Welcome to Schlep Engine
+              </h2>
             </div>
 
             {/* Error Message */}
@@ -378,12 +377,6 @@ function AuthPageContent() {
 }
 
 export default function AuthPage() {
-  const { user } = useUser();
-
-  if (user) {
-    redirect('/dashboard');
-  }
-
   return (
     <AuthWrapper>
       <AuthPageContent />

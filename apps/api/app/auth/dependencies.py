@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 # Security scheme for JWT tokens
 security = HTTPBearer(auto_error=False)
 
-
 def get_client_info(request: Request) -> Dict[str, str]:
     """Extract client information from request"""
     return {
@@ -46,7 +45,7 @@ async def get_current_user(
 ) -> User:
     """
     Get current authenticated user from JWT token
-    
+
     This is the primary dependency for protected endpoints.
     Raises HTTPException if authentication fails.
     """
@@ -56,7 +55,7 @@ async def get_current_user(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
+
     try:
         user = await unified_auth_service.get_current_user(db, credentials.credentials)
         if not user:
@@ -65,15 +64,15 @@ async def get_current_user(
                 detail="Invalid authentication credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Inactive user account"
             )
-        
+
         return user
-    
+
     except AuthError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -102,13 +101,13 @@ async def get_optional_user(
 ) -> Optional[User]:
     """
     Get current user if authenticated, None otherwise
-    
+
     This dependency is useful for endpoints that work with or without authentication.
     Does not raise exceptions on authentication failure.
     """
     if not credentials:
         return None
-    
+
     try:
         return await unified_auth_service.get_current_user(db, credentials.credentials)
     except Exception:
@@ -146,7 +145,7 @@ async def require_analyst_or_admin(
 def require_security_level(required_level: SecurityLevel):
     """
     Create a dependency that requires a specific security level
-    
+
     Usage:
         @app.get("/secure-endpoint")
         async def secure_endpoint(
@@ -165,30 +164,30 @@ def require_security_level(required_level: SecurityLevel):
                 detail="Authentication required",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         try:
             result = await unified_auth_service.verify_token(
-                db, 
-                credentials.credentials, 
+                db,
+                credentials.credentials,
                 required_security_level=required_level
             )
-            
+
             if not result.success or not result.user:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Invalid authentication credentials",
                     headers={"WWW-Authenticate": "Bearer"},
                 )
-            
+
             return result.user
-        
+
         except AuthError as e:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail=e.message,
                 headers={"WWW-Authenticate": "Bearer"},
             )
-    
+
     return security_dependency
 
 
@@ -198,40 +197,40 @@ async def get_api_key_user(
 ) -> Optional[User]:
     """
     Get user from API key authentication
-    
+
     Looks for API key in:
     1. Authorization header (Bearer token)
     2. X-API-Key header
     3. api_key query parameter
     """
     api_key = None
-    
+
     # Check Authorization header
     auth_header = request.headers.get("Authorization")
     if auth_header and auth_header.startswith("Bearer "):
         api_key = auth_header[7:]
-    
+
     # Check X-API-Key header
     if not api_key:
         api_key = request.headers.get("X-API-Key")
-    
+
     # Check query parameter
     if not api_key:
         api_key = request.query_params.get("api_key")
-    
+
     if not api_key:
         return None
-    
+
     try:
         from app.auth.api_key_manager import get_api_key_manager
-        
+
         # Use the secure API key manager
         api_key_manager = get_api_key_manager()
         user = await api_key_manager.authenticate_api_key(db, api_key)
-        
+
         if user:
             return user
-        
+
         return None
     except Exception as e:
         logger.error(f"API key authentication failed: {e}")
@@ -240,4 +239,4 @@ async def get_api_key_user(
 
 # Backward compatibility aliases
 get_current_active_user_dep = get_current_user
-get_current_user_dep = get_current_user 
+get_current_user_dep = get_current_user

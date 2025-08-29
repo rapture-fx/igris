@@ -5,69 +5,119 @@ export default function SDKsPage() {
   const sdks = [
     {
       name: 'Python SDK',
-      description: 'The primary SDK for data scientists and ML engineers. Comprehensive features with pandas integration.',
+      description: 'The primary SDK for data scientists and ML engineers. Comprehensive features with async support and type safety.',
       href: '/sdks/python',
       icon: '🐍',
       language: 'Python',
       version: 'v2.1.0',
-      features: ['Pandas Integration', 'Async Support', 'CLI Tools', 'Jupyter Widgets'],
+      features: ['Async/Sync Support', 'Type Safety', 'Error Handling', 'Data Processing'],
       installation: 'pip install schlep-engine',
-      quickExample: `from schlep_engine import SchlepClient
+      quickExample: `from schlep_engine import SchlepEngineClient
 
-client = SchlepClient(api_key="your_key")
-job = client.upload_csv("data.csv")
-result = client.process(job.id, auto_clean=True)
-data = client.download_pandas(result.id)`
+client = SchlepEngineClient(api_key="your-api-key")
+
+# Process a file
+result = await client.data.process_file(
+    file_path="data.csv",
+    transformations=[
+        {"type": "filter", "condition": "age > 18"},
+        {"type": "aggregate", "columns": ["revenue"], "operation": "sum"}
+    ]
+)
+
+print(f"Processing complete! Job ID: {result.job_id}")`
     },
     {
-      name: 'JavaScript SDK',
+      name: 'JavaScript/TypeScript SDK',
       description: 'Full-featured SDK for Node.js and browser environments. Perfect for web applications and serverless functions.',
       href: '/sdks/javascript',
       icon: '⚡',
       language: 'JavaScript',
       version: 'v1.8.2',
-      features: ['Browser Support', 'TypeScript Types', 'Streaming', 'Promise-based'],
-      installation: 'npm install @schlep-engine/js-sdk',
-      quickExample: `import { SchlepClient } from '@schlep-engine/js-sdk';
+      features: ['Browser Support', 'TypeScript Types', 'Real-time Streaming', 'Promise-based'],
+      installation: 'npm install @schlep-engine/javascript-sdk',
+      quickExample: `import { SchlepEngineClient, DataFormat } from '@schlep-engine/javascript-sdk';
 
-const client = new SchlepClient({ apiKey: 'your_key' });
-const job = await client.uploadCSV('data.csv');
-const result = await client.process(job.id, { autoClean: true });
-const data = await client.download(result.id);`
+const client = new SchlepEngineClient({
+  apiKey: 'your-api-key',
+  baseUrl: 'https://api.schlep-engine.com'
+});
+
+// Process a file
+const result = await client.data.processFile(file, {
+  outputFormat: DataFormat.JSON,
+  onProgress: (progress) => console.log(\`\${progress.percentage}% complete\`)
+});`
     },
     {
-      name: 'R Package',
-      description: 'Native R integration for statisticians and data analysts. Seamless integration with R data.frame objects.',
-      href: '/sdks/r',
-      icon: '📊',
-      language: 'R',
-      version: 'v0.9.1',
-      features: ['data.frame Support', 'ggplot2 Integration', 'Shiny Compatible', 'CRAN Available'],
-      installation: 'install.packages("schlepengine")',
-      quickExample: `library(schlepengine)
+      name: 'Go SDK',
+      description: 'Cloud-native Go SDK optimized for Kubernetes and microservices. Enterprise-grade with full observability.',
+      href: '/sdks/go',
+      icon: '🚀',
+      language: 'Go',
+      version: 'v1.0.0',
+      features: ['Cloud-Native', 'Observability', 'Context Support', 'Circuit Breakers'],
+      installation: 'go get github.com/schlep-engine/go-sdk',
+      quickExample: `package main
 
-client <- schlep_client(api_key = "your_key")
-job <- upload_csv(client, "data.csv")
-result <- process_data(client, job$id, auto_clean = TRUE)
-data <- download_dataframe(client, result$id)`
+import (
+    "context"
+    "github.com/schlep-engine/go-sdk/pkg/client"
+    "github.com/schlep-engine/go-sdk/pkg/config"
+)
+
+func main() {
+    cfg := &config.Config{
+        APIKey:  "your-api-key",
+        BaseURL: "https://api.schlep-engine.com",
+    }
+    
+    client, err := client.NewClient(cfg)
+    if err != nil {
+        panic(err)
+    }
+    defer client.Close()
+
+    // Process data
+    result, err := client.Data.ProcessFile(ctx, request)
+}`
     },
     {
       name: 'CLI Tool',
-      description: 'Command-line interface for batch processing, automation, and CI/CD integration.',
+      description: 'Command-line interface for batch processing, automation, and CI/CD integration with DevOps features.',
       href: '/sdks/cli',
       icon: '🔧',
       language: 'CLI',
       version: 'v1.5.0',
-      features: ['Batch Processing', 'Config Files', 'Progress Bars', 'CI/CD Ready'],
+      features: ['Batch Processing', 'DevOps Integration', 'Real-time Monitoring', 'CI/CD Ready'],
       installation: 'pip install schlep-engine-cli',
-      quickExample: `# Upload and process in one command
-schlep process data.csv \\
-  --auto-clean \\
-  --output processed_data.parquet \\
-  --format parquet
+      quickExample: `# Process single file
+schlep process file data.csv --output processed.parquet
 
-# Watch directory for new files
-schlep watch ./input --auto-process`
+# Batch process multiple files  
+schlep process batch "data/*.csv" --parallel 4 --clean
+
+# Create and monitor ML pipeline
+schlep pipeline create fraud-detection.yml --auto-start
+schlep pipeline status my-pipeline --watch`
+    },
+    {
+      name: 'OpenAPI Client Generator',
+      description: 'Multi-language client generation system supporting Python, JavaScript, Go, Java, C#, and more.',
+      href: '/sdks/openapi',
+      icon: '🛠️',
+      language: 'Multi-Language',
+      version: 'v1.0.0',
+      features: ['Auto Generation', 'Multi-Language', 'CI/CD Integration', 'Custom Templates'],
+      installation: 'npm install @openapitools/openapi-generator-cli -g',
+      quickExample: `# Generate all supported language clients
+./scripts/generate.sh --all
+
+# Generate specific language client
+./scripts/generate.sh --language python
+
+# Validate generated clients
+./scripts/validate.sh --all`
     }
   ]
 
@@ -180,33 +230,33 @@ schlep watch ./input --auto-process`
                 <td className="px-6 py-4 text-sm text-green-600">✓</td>
                 <td className="px-6 py-4 text-sm text-green-600">✓</td>
                 <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-gray-600">Pandas, NumPy</td>
+                <td className="px-6 py-4 text-sm text-gray-600">asyncio, httpx</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="mr-2">⚡</span>
-                    <span className="font-medium text-gray-900">JavaScript</span>
+                    <span className="font-medium text-gray-900">JavaScript/TS</span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600">Web & Serverless</td>
                 <td className="px-6 py-4 text-sm text-green-600">✓</td>
                 <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-gray-400">○</td>
+                <td className="px-6 py-4 text-sm text-green-600">✓</td>
                 <td className="px-6 py-4 text-sm text-gray-600">Node.js, Browser</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <span className="mr-2">📊</span>
-                    <span className="font-medium text-gray-900">R Package</span>
+                    <span className="mr-2">🚀</span>
+                    <span className="font-medium text-gray-900">Go SDK</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">Statistical Analysis</td>
-                <td className="px-6 py-4 text-sm text-gray-400">○</td>
-                <td className="px-6 py-4 text-sm text-gray-400">○</td>
+                <td className="px-6 py-4 text-sm text-gray-600">Cloud-Native & Microservices</td>
                 <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-gray-600">data.frame, ggplot2</td>
+                <td className="px-6 py-4 text-sm text-green-600">✓</td>
+                <td className="px-6 py-4 text-sm text-green-600">✓</td>
+                <td className="px-6 py-4 text-sm text-gray-600">Context, Observability</td>
               </tr>
               <tr>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -215,11 +265,24 @@ schlep watch ./input --auto-process`
                     <span className="font-medium text-gray-900">CLI Tool</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">Automation & CI/CD</td>
-                <td className="px-6 py-4 text-sm text-gray-400">○</td>
+                <td className="px-6 py-4 text-sm text-gray-600">DevOps & Automation</td>
                 <td className="px-6 py-4 text-sm text-gray-400">○</td>
                 <td className="px-6 py-4 text-sm text-green-600">✓</td>
+                <td className="px-6 py-4 text-sm text-green-600">✓</td>
                 <td className="px-6 py-4 text-sm text-gray-600">Command Line</td>
+              </tr>
+              <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <span className="mr-2">🛠️</span>
+                    <span className="font-medium text-gray-900">OpenAPI Generator</span>
+                  </div>
+                </td>
+                <td className="px-6 py-4 text-sm text-gray-600">Multi-Language Support</td>
+                <td className="px-6 py-4 text-sm text-yellow-600">Varies</td>
+                <td className="px-6 py-4 text-sm text-yellow-600">Varies</td>
+                <td className="px-6 py-4 text-sm text-yellow-600">Varies</td>
+                <td className="px-6 py-4 text-sm text-gray-600">Python, JS, Go, Java, C#</td>
               </tr>
             </tbody>
           </table>

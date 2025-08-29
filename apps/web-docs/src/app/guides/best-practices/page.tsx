@@ -211,6 +211,298 @@ export default function BestPracticesPage() {
       </section>
 
       <section className="mb-12">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">SDK Best Practices</h2>
+        
+        <div className="space-y-6">
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🐍</span>
+              Python SDK Best Practices
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-3 text-green-700">✓ Recommended Patterns</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Use async context managers for resource cleanup</li>
+                  <li>• Implement proper error handling with specific exceptions</li>
+                  <li>• Use type hints for better code documentation</li>
+                  <li>• Enable connection pooling for high-throughput applications</li>
+                  <li>• Use streaming mode for large file uploads</li>
+                </ul>
+                <div className="bg-gray-900 rounded p-3 mt-3">
+                  <code className="text-xs text-green-400">
+{`async with SchlepEngineClient() as client:
+    result = await client.data.process_file(
+        file_path="data.csv",
+        streaming_mode=True
+    )`}
+                  </code>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-3 text-red-700">✗ Common Mistakes</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Forgetting to close client connections</li>
+                  <li>• Loading large files entirely into memory</li>
+                  <li>• Not handling rate limiting properly</li>
+                  <li>• Using synchronous calls in async contexts</li>
+                  <li>• Ignoring retry configuration</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">⚡</span>
+              JavaScript/TypeScript SDK Best Practices
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-3 text-green-700">✓ Recommended Patterns</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Use TypeScript for better type safety</li>
+                  <li>• Implement proper promise handling with async/await</li>
+                  <li>• Use environment variables for configuration</li>
+                  <li>• Enable automatic retry with exponential backoff</li>
+                  <li>• Use streaming for real-time updates</li>
+                </ul>
+                <div className="bg-gray-900 rounded p-3 mt-3">
+                  <code className="text-xs text-green-400">
+{`const client = new SchlepEngineClient({
+  apiKey: process.env.SCHLEP_API_KEY,
+  retries: 3,
+  onProgress: (progress) => updateUI(progress)
+});`}
+                  </code>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-3 text-red-700">✗ Common Mistakes</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Making API calls directly from the browser</li>
+                  <li>• Not handling CORS issues properly</li>
+                  <li>• Forgetting to handle promise rejections</li>
+                  <li>• Using callbacks instead of promises</li>
+                  <li>• Not implementing proper error boundaries</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🚀</span>
+              Go SDK Best Practices
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-3 text-green-700">✓ Recommended Patterns</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Always use context for cancellation and timeouts</li>
+                  <li>• Enable observability (metrics, tracing, logging)</li>
+                  <li>• Use circuit breakers for resilience</li>
+                  <li>• Implement proper error handling and wrapping</li>
+                  <li>• Configure health checks for Kubernetes</li>
+                </ul>
+                <div className="bg-gray-900 rounded p-3 mt-3">
+                  <code className="text-xs text-green-400">
+{`ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)
+defer cancel()
+
+result, err := client.Data.ProcessFile(ctx, request)
+if err != nil {
+    return fmt.Errorf("processing failed: %w", err)
+}`}
+                  </code>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-3 text-red-700">✗ Common Mistakes</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Using context.Background() for everything</li>
+                  <li>• Not handling context cancellation</li>
+                  <li>• Ignoring error wrapping and context</li>
+                  <li>• Not configuring proper timeouts</li>
+                  <li>• Disabling observability features</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🔧</span>
+              CLI Best Practices
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h4 className="font-medium mb-3 text-green-700">✓ Recommended Patterns</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Use configuration files for complex setups</li>
+                  <li>• Implement proper logging and error reporting</li>
+                  <li>• Use batch processing for multiple files</li>
+                  <li>• Enable progress tracking for long operations</li>
+                  <li>• Implement proper exit codes for CI/CD</li>
+                </ul>
+                <div className="bg-gray-900 rounded p-3 mt-3">
+                  <code className="text-xs text-green-400">
+{`# Use configuration file
+schlep process batch "*.csv" --config production.yml
+
+# Enable detailed logging  
+export SCHLEP_LOG_LEVEL=DEBUG
+schlep pipeline create pipeline.yml --watch`}
+                  </code>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium mb-3 text-red-700">✗ Common Mistakes</h4>
+                <ul className="space-y-2 text-sm text-gray-600">
+                  <li>• Hardcoding credentials in scripts</li>
+                  <li>• Not handling file permission errors</li>
+                  <li>• Ignoring exit codes in automation</li>
+                  <li>• Processing files sequentially unnecessarily</li>
+                  <li>• Not implementing proper cleanup</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibent text-gray-900 mb-6">Cross-SDK Integration Patterns</h2>
+        
+        <div className="space-y-6">
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-6">
+            <h3 className="font-semibold mb-3">Polyglot Development</h3>
+            <p className="text-gray-700 mb-4">
+              When using multiple SDKs in the same project, follow these patterns for consistency:
+            </p>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>• <strong>Shared Configuration:</strong> Use environment variables or config files that all SDKs can read</li>
+              <li>• <strong>Consistent Error Handling:</strong> Implement similar error handling patterns across languages</li>
+              <li>• <strong>Unified Logging:</strong> Use structured logging formats that can be aggregated</li>
+              <li>• <strong>Standard Retry Logic:</strong> Configure similar retry and backoff strategies</li>
+            </ul>
+          </div>
+
+          <div className="bg-green-50 border-l-4 border-green-400 p-6">
+            <h3 className="font-semibold mb-3">Data Pipeline Orchestration</h3>
+            <p className="text-gray-700 mb-4">
+              Best practices for coordinating multiple SDK operations:
+            </p>
+            <div className="grid md:grid-cols-2 gap-4 mt-4">
+              <div>
+                <h4 className="font-medium text-sm mb-2">Sequential Processing</h4>
+                <div className="bg-gray-900 rounded p-2">
+                  <code className="text-xs text-green-400">
+{`# Python data preparation
+client.data.process_file("raw.csv")
+
+# Go model training  
+go run train.go --data processed.csv
+
+# CLI deployment
+schlep pipeline deploy model.yml`}
+                  </code>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-medium text-sm mb-2">Parallel Processing</h4>
+                <div className="bg-gray-900 rounded p-2">
+                  <code className="text-xs text-green-400">
+{`# Parallel data processing
+python process_batch_1.py &
+node process_batch_2.js &
+go run process_batch_3.go &
+wait`}
+                  </code>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-purple-50 border-l-4 border-purple-400 p-6">
+            <h3 className="font-semibold mb-3">Microservices Architecture</h3>
+            <p className="text-gray-700 mb-4">
+              Design patterns for SDK usage in microservices:
+            </p>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>• <strong>Service Per SDK:</strong> Dedicate services to specific SDK strengths (Python for ML, Go for high-performance)</li>
+              <li>• <strong>Shared Client Libraries:</strong> Create wrapper libraries that expose common interfaces</li>
+              <li>• <strong>Event-Driven Integration:</strong> Use message queues to coordinate between different SDK services</li>
+              <li>• <strong>Centralized Configuration:</strong> Use configuration services for API keys and settings</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Production Deployment Best Practices</h2>
+        
+        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-6">
+          <h3 className="font-semibold mb-4">Environment Management</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <h4 className="font-medium mb-3 text-blue-700">Development</h4>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Use test API keys and sandbox environment</li>
+                <li>• Enable debug mode and verbose logging</li>
+                <li>• Use smaller datasets for faster iteration</li>
+                <li>• Mock external dependencies</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-3 text-yellow-700">Staging</h4>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Mirror production configuration</li>
+                <li>• Use production-like data volumes</li>
+                <li>• Test all integrations and dependencies</li>
+                <li>• Validate performance characteristics</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-3 text-green-700">Production</h4>
+              <ul className="space-y-1 text-sm text-gray-600">
+                <li>• Use encrypted secret management</li>
+                <li>• Enable comprehensive monitoring</li>
+                <li>• Implement proper backup strategies</li>
+                <li>• Set up automated alerts and responses</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-red-50 border-l-4 border-red-400 p-6">
+          <h3 className="font-semibold mb-3">Security Checklist</h3>
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium mb-3">Authentication & Authorization</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>• Never hardcode API keys in source code</li>
+                <li>• Use environment variables or secret managers</li>
+                <li>• Implement proper token rotation policies</li>
+                <li>• Use least-privilege access principles</li>
+                <li>• Monitor and audit API key usage</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-3">Data Protection</h4>
+              <ul className="space-y-2 text-sm text-gray-600">
+                <li>• Enable encryption in transit and at rest</li>
+                <li>• Implement proper data masking for PII</li>
+                <li>• Use secure communication protocols</li>
+                <li>• Regular security assessments and updates</li>
+                <li>• Maintain compliance with regulations</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Monitoring & Observability</h2>
         
         <div className="bg-gray-50 rounded-lg p-6">
