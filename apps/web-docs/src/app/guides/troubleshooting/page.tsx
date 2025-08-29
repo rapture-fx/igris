@@ -78,6 +78,194 @@ export default function TroubleshootingPage() {
       </section>
 
       <section className="mb-12">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">SDK-Specific Issues</h2>
+        
+        <div className="space-y-6">
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🐍</span>
+              Python SDK Issues
+            </h3>
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-400 pl-4">
+                <h4 className="font-medium text-sm text-blue-800">Import Errors</h4>
+                <p className="text-sm text-gray-600 mb-2">ModuleNotFoundError or import failures</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">pip install --upgrade schlep-engine && python -c "import schlep_engine; print('OK')"</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Verify Python version >= 3.8</li>
+                  <li>• Check virtual environment activation</li>
+                  <li>• Try reinstalling with --force-reinstall flag</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-green-400 pl-4">
+                <h4 className="font-medium text-sm text-green-800">Async/Await Issues</h4>
+                <p className="text-sm text-gray-600 mb-2">Runtime errors with async operations</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">asyncio.run(your_async_function())</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Ensure you're in async context</li>
+                  <li>• Use asyncio.run() for top-level calls</li>
+                  <li>• Check for proper await keywords</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-purple-400 pl-4">
+                <h4 className="font-medium text-sm text-purple-800">Memory Leaks</h4>
+                <p className="text-sm text-gray-600 mb-2">Increasing memory usage over time</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">async with SchlepEngineClient() as client:</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Use context managers for resource cleanup</li>
+                  <li>• Call client.close() explicitly</li>
+                  <li>• Monitor connection pools</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">⚡</span>
+              JavaScript/TypeScript SDK Issues
+            </h3>
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-400 pl-4">
+                <h4 className="font-medium text-sm text-blue-800">Module Not Found</h4>
+                <p className="text-sm text-gray-600 mb-2">Package import failures</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">npm install @schlep-engine/javascript-sdk && node --version</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Verify Node.js version >= 16</li>
+                  <li>• Clear npm cache: npm cache clean --force</li>
+                  <li>• Delete node_modules and reinstall</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-red-400 pl-4">
+                <h4 className="font-medium text-sm text-red-800">CORS Errors in Browser</h4>
+                <p className="text-sm text-gray-600 mb-2">Cross-origin request blocked</p>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Use server-side proxy for API calls</li>
+                  <li>• Configure proper CORS headers</li>
+                  <li>• Consider using API from same domain</li>
+                  <li>• Use backend-for-frontend pattern</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-orange-400 pl-4">
+                <h4 className="font-medium text-sm text-orange-800">TypeScript Errors</h4>
+                <p className="text-sm text-gray-600 mb-2">Type checking failures</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">npm install typescript@latest @types/node</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Update TypeScript to >= 4.5</li>
+                  <li>• Check type imports and exports</li>
+                  <li>• Verify tsconfig.json configuration</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🚀</span>
+              Go SDK Issues
+            </h3>
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-400 pl-4">
+                <h4 className="font-medium text-sm text-blue-800">Context Deadline Exceeded</h4>
+                <p className="text-sm text-gray-600 mb-2">Operations timing out</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">ctx, cancel := context.WithTimeout(ctx, 5*time.Minute)</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Set appropriate context timeouts</li>
+                  <li>• Use background context for long operations</li>
+                  <li>• Implement proper context propagation</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-green-400 pl-4">
+                <h4 className="font-medium text-sm text-green-800">Circuit Breaker Failures</h4>
+                <p className="text-sm text-gray-600 mb-2">Circuit breaker in open state</p>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Check failure thresholds in config</li>
+                  <li>• Temporarily disable for debugging</li>
+                  <li>• Monitor error rates and patterns</li>
+                  <li>• Implement proper retry logic</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-purple-400 pl-4">
+                <h4 className="font-medium text-sm text-purple-800">Build Errors</h4>
+                <p className="text-sm text-gray-600 mb-2">Compilation or dependency issues</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">go mod tidy && go mod download && go version</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Verify Go version >= 1.21</li>
+                  <li>• Clean module cache: go clean -modcache</li>
+                  <li>• Check GOPROXY and GOSUMDB settings</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white border border-gray-200 rounded-lg p-6">
+            <h3 className="font-semibold mb-4 flex items-center gap-2">
+              <span className="text-2xl">🔧</span>
+              CLI Tool Issues
+            </h3>
+            <div className="space-y-4">
+              <div className="border-l-4 border-blue-400 pl-4">
+                <h4 className="font-medium text-sm text-blue-800">Command Not Found</h4>
+                <p className="text-sm text-gray-600 mb-2">schlep command not available</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">pip install --upgrade schlep-engine-cli && which schlep</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Check PATH environment variable</li>
+                  <li>• Verify pip installation directory</li>
+                  <li>• Use python -m schlep_cli as alternative</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-red-400 pl-4">
+                <h4 className="font-medium text-sm text-red-800">Configuration Errors</h4>
+                <p className="text-sm text-gray-600 mb-2">Invalid configuration file</p>
+                <div className="bg-gray-900 rounded p-2 mb-2">
+                  <code className="text-xs text-green-400">schlep config init && schlep config validate</code>
+                </div>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Create default config with init command</li>
+                  <li>• Validate YAML syntax</li>
+                  <li>• Check file permissions</li>
+                </ul>
+              </div>
+              
+              <div className="border-l-4 border-orange-400 pl-4">
+                <h4 className="font-medium text-sm text-orange-800">Permission Errors</h4>
+                <p className="text-sm text-gray-600 mb-2">Access denied to files or directories</p>
+                <ul className="text-xs text-gray-500 space-y-1">
+                  <li>• Check file and directory permissions</li>
+                  <li>• Run with appropriate user privileges</li>
+                  <li>• Verify write access to output directories</li>
+                  <li>• Use sudo only when necessary</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">API & Integration Issues</h2>
         
         <div className="space-y-6">

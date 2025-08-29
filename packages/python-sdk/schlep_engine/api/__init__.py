@@ -13,6 +13,7 @@ from .storage import StorageAPI
 from .monitoring import MonitoringAPI
 from .users import UsersAPI
 from .admin import AdminAPI
+from .rl_optimization import RLOptimizationAPI
 
 __all__ = [
     "BaseAPI",
@@ -25,5 +26,6 @@ __all__ = [
     "StorageAPI",
     "MonitoringAPI",
     "UsersAPI",
-    "AdminAPI"
+    "AdminAPI",
+    "RLOptimizationAPI"
 ]

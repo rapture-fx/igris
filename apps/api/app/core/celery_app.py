@@ -25,10 +25,11 @@ celery_app = Celery(
     backend=backend_url,
     include=[
         "app.tasks.data_processing_tasks",
-        "app.tasks.ai_processing_tasks", 
+        "app.tasks.ai_processing_tasks",
         "app.tasks.monitoring_tasks",
         "app.tasks.export_tasks",
-        "app.tasks.notification_tasks"
+        "app.tasks.notification_tasks",
+        "app.tasks.rl_optimization_tasks"
     ],
 )
 
@@ -38,26 +39,26 @@ celery_app.conf.update(
     task_serializer="json",
     accept_content=["json"],
     result_serializer="json",
-    
+
     # Timezone
     timezone="UTC",
     enable_utc=True,
-    
+
     # Task execution
     task_track_started=True,
     task_time_limit=7200,  # 2 hours max per task
     task_soft_time_limit=6600,  # 1 hour 50 minutes soft limit
     task_acks_late=True,
     worker_prefetch_multiplier=1,  # Prevent worker from hogging tasks
-    
+
     # Result backend
     result_expires=7200,  # Results expire after 2 hours
     result_persistent=True,
-    
+
     # Worker configuration
     worker_max_tasks_per_child=500,  # Restart worker after 500 tasks
     worker_disable_rate_limits=False,
-    
+
     # Routing with priority-based queues
     task_routes={
         'app.tasks.ai_processing_tasks.*': {'queue': 'ai_processing'},
@@ -66,7 +67,7 @@ celery_app.conf.update(
         'app.tasks.export_tasks.*': {'queue': 'export'},
         'app.tasks.notification_tasks.*': {'queue': 'notifications'},
     },
-    
+
     # Queue configuration with priorities
     task_default_queue='default',
     task_queues={
@@ -101,18 +102,18 @@ celery_app.conf.update(
             'priority': 1,  # Lowest priority
         },
     },
-    
+
     # Monitoring and health checks
     worker_send_task_events=True,
     task_send_sent_event=True,
-    
+
     # Memory and resource management
     worker_max_memory_per_child=3000000,  # 3GB per worker (restart after)
-    
+
     # Retry configuration with exponential backoff
     task_default_retry_delay=60,  # 1 minute initial delay
     task_max_retries=5,  # Increased max retries
-    
+
     # Beat schedule for periodic tasks
     beat_schedule={
         'system-health-check': {
@@ -136,13 +137,13 @@ celery_app.conf.update(
             'options': {'queue': 'monitoring'}
         },
     },
-    
+
     # Performance optimization
     worker_optimization='fair',
     worker_direct=True,
     task_compression='gzip',
     result_compression='gzip',
-    
+
     # Security
     task_remote_tracebacks=True,
     task_ignore_result=False,
@@ -166,14 +167,14 @@ def task_prerun_handler(sender=None, task_id=None, task=None, args=None, kwargs=
     """Log task start and system resources"""
     start_time = time.time()
     logger.info(f"Task {task.name}[{task_id}] started")
-    
+
     # Log system resources
     memory_usage = psutil.virtual_memory().percent
     cpu_usage = psutil.cpu_percent()
     disk_usage = psutil.disk_usage('/').percent
-    
+
     logger.info(f"System resources - Memory: {memory_usage}%, CPU: {cpu_usage}%, Disk: {disk_usage}%")
-    
+
     # Store start time for performance tracking
     if not hasattr(task, '_start_times'):
         task._start_times = {}
@@ -185,15 +186,15 @@ def task_postrun_handler(sender=None, task_id=None, task=None, args=None, kwargs
     end_time = time.time()
     start_time = getattr(task, '_start_times', {}).get(task_id, end_time)
     execution_time = end_time - start_time
-    
+
     # Log completion with performance metrics
     logger.info(f"Task {task.name}[{task_id}] completed with state: {state} in {execution_time:.2f}s")
-    
+
     # Log system resources after completion
     memory_usage = psutil.virtual_memory().percent
     cpu_usage = psutil.cpu_percent()
     logger.info(f"Post-task resources - Memory: {memory_usage}%, CPU: {cpu_usage}%")
-    
+
     # Clean up start time
     if hasattr(task, '_start_times') and task_id in task._start_times:
         del task._start_times[task_id]
@@ -203,7 +204,7 @@ def task_failure_handler(sender=None, task_id=None, exception=None, traceback=No
     """Log task failures with detailed error information"""
     logger.error(f"Task {sender.name}[{task_id}] failed: {exception}")
     logger.error(f"Traceback: {traceback}")
-    
+
     # Log system resources at failure
     memory_usage = psutil.virtual_memory().percent
     cpu_usage = psutil.cpu_percent()
@@ -218,11 +219,11 @@ def get_worker_health():
         active = inspector.active() or {}
         reserved = inspector.reserved() or {}
         registered = inspector.registered() or {}
-        
+
         # Count active tasks across all workers
         total_active = sum(len(tasks) for tasks in active.values())
         total_reserved = sum(len(tasks) for tasks in reserved.values())
-        
+
         return {
             'memory_usage': psutil.virtual_memory().percent,
             'cpu_usage': psutil.cpu_percent(),
@@ -247,19 +248,19 @@ def get_queue_stats():
         inspector = celery_app.control.inspect()
         active = inspector.active() or {}
         reserved = inspector.reserved() or {}
-        
+
         # Count tasks by queue
         queue_stats = {}
         for worker_tasks in active.values():
             for task in worker_tasks:
                 queue = task.get('delivery_info', {}).get('routing_key', 'default')
                 queue_stats[queue] = queue_stats.get(queue, 0) + 1
-        
+
         for worker_tasks in reserved.values():
             for task in worker_tasks:
                 queue = task.get('delivery_info', {}).get('routing_key', 'default')
                 queue_stats[queue] = queue_stats.get(queue, 0) + 1
-        
+
         return queue_stats
     except Exception as e:
         logger.error(f"Error getting queue stats: {e}")
@@ -270,7 +271,7 @@ def get_task_performance():
     try:
         inspector = celery_app.control.inspect()
         stats = inspector.stats() or {}
-        
+
         performance = {}
         for worker_name, worker_stats in stats.items():
             if 'total' in worker_stats:
@@ -280,7 +281,7 @@ def get_task_performance():
                     'min_time': worker_stats['total'].get('min', 0),
                     'max_time': worker_stats['total'].get('max', 0),
                 }
-        
+
         return performance
     except Exception as e:
         logger.error(f"Error getting task performance: {e}")
@@ -300,4 +301,4 @@ if __name__ == "__main__":
         '--without-mingle',  # Disable mingle for better performance
         '--without-heartbeat',  # Disable heartbeat for better performance
     ]
-    celery_app.worker_main(argv) 
+    celery_app.worker_main(argv)
