@@ -25,7 +25,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ...auth.dependencies import get_current_user
 from ...core.rate_limiting import rate_limit
 from ...core.unified_response_models import (
-    APIResponse, 
+    UnifiedResponse, 
     ResponseStatus, 
     ErrorType, 
     ErrorDetail,
@@ -271,7 +271,7 @@ class IoTDashboardResponse(BaseModel):
 # ============================================================================
 
 @router.post("/financial/fraud-detection", 
-             response_model=APIResponse[FraudDetectionResponse],
+             response_model=UnifiedResponse[FraudDetectionResponse],
              summary="Real-time fraud detection analysis",
              description="Analyze transaction data in real-time to detect potential fraudulent activity")
 @rate_limit(max_calls=1000, time_window=3600)  # 1000 calls per hour
@@ -329,7 +329,7 @@ async def detect_fraud(
         # Log successful processing
         logger.info(f"Fraud detection completed for transaction {request.transaction_id}, risk_score: {fraud_result['risk_score']}")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Fraud detection analysis completed successfully",
             data=response_data,
@@ -344,7 +344,7 @@ async def detect_fraud(
         )
 
 @router.post("/financial/credit-risk",
-             response_model=APIResponse[CreditRiskResponse],
+             response_model=UnifiedResponse[CreditRiskResponse],
              summary="Credit risk assessment",
              description="Comprehensive credit risk analysis for loan applications")
 @rate_limit(max_calls=500, time_window=3600)  # 500 calls per hour
@@ -398,7 +398,7 @@ async def assess_credit_risk(
         
         logger.info(f"Credit risk assessment completed for applicant {request.applicant_id}, credit_score: {credit_result['credit_score']}")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Credit risk assessment completed successfully",
             data=response_data,
@@ -413,7 +413,7 @@ async def assess_credit_risk(
         )
 
 @router.post("/financial/aml-check",
-             response_model=APIResponse[AMLCheckResponse],
+             response_model=UnifiedResponse[AMLCheckResponse],
              summary="AML compliance check",
              description="Comprehensive Anti-Money Laundering compliance screening")
 @rate_limit(max_calls=200, time_window=3600)  # 200 calls per hour
@@ -467,7 +467,7 @@ async def perform_aml_check(
         
         logger.info(f"AML check completed for customer {request.customer_id}, risk_level: {aml_result['risk_level']}")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="AML compliance check completed successfully",
             data=response_data,
@@ -482,7 +482,7 @@ async def perform_aml_check(
         )
 
 @router.get("/financial/models",
-            response_model=APIResponse[List[ModelInfo]],
+            response_model=UnifiedResponse[List[ModelInfo]],
             summary="List available financial AI models",
             description="Retrieve information about available financial AI models")
 @rate_limit(max_calls=100, time_window=3600)  # 100 calls per hour
@@ -519,7 +519,7 @@ async def get_financial_models(
             for model in models_info
         ]
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Financial models retrieved successfully",
             data=response_data,
@@ -538,7 +538,7 @@ async def get_financial_models(
 # ============================================================================
 
 @router.post("/ecommerce/recommendations",
-             response_model=APIResponse[ProductRecommendationResponse],
+             response_model=UnifiedResponse[ProductRecommendationResponse],
              summary="Product recommendations",
              description="Generate personalized product recommendations")
 @rate_limit(max_calls=2000, time_window=3600)  # 2000 calls per hour
@@ -591,7 +591,7 @@ async def get_product_recommendations(
         
         logger.info(f"Product recommendations generated for user {request.user_id}, count: {len(recommendations_result['recommendations'])}")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Product recommendations generated successfully",
             data=response_data,
@@ -606,7 +606,7 @@ async def get_product_recommendations(
         )
 
 @router.post("/ecommerce/demand-forecast",
-             response_model=APIResponse[DemandForecastResponse],
+             response_model=UnifiedResponse[DemandForecastResponse],
              summary="Demand forecasting",
              description="Generate accurate demand forecasts for products")
 @rate_limit(max_calls=100, time_window=3600)  # 100 calls per hour
@@ -657,7 +657,7 @@ async def forecast_demand(
         
         logger.info(f"Demand forecast completed for {len(request.product_ids)} products")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Demand forecast generated successfully",
             data=response_data,
@@ -672,7 +672,7 @@ async def forecast_demand(
         )
 
 @router.post("/ecommerce/price-optimization",
-             response_model=APIResponse[PriceOptimizationResponse],
+             response_model=UnifiedResponse[PriceOptimizationResponse],
              summary="Price optimization",
              description="Optimize product pricing for maximum profitability")
 @rate_limit(max_calls=200, time_window=3600)  # 200 calls per hour
@@ -726,7 +726,7 @@ async def optimize_price(
         
         logger.info(f"Price optimization completed for product {request.product_id}, optimized_price: {optimization_result['optimized_price']}")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Price optimization completed successfully",
             data=response_data,
@@ -741,7 +741,7 @@ async def optimize_price(
         )
 
 @router.get("/ecommerce/analytics",
-            response_model=APIResponse[EcommerceAnalyticsResponse],
+            response_model=UnifiedResponse[EcommerceAnalyticsResponse],
             summary="E-commerce analytics",
             description="Comprehensive e-commerce analytics and insights")
 @rate_limit(max_calls=50, time_window=3600)  # 50 calls per hour
@@ -787,7 +787,7 @@ async def get_ecommerce_analytics(
         
         logger.info("E-commerce analytics generated successfully")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="E-commerce analytics retrieved successfully",
             data=response_data,
@@ -806,7 +806,7 @@ async def get_ecommerce_analytics(
 # ============================================================================
 
 @router.post("/manufacturing/predictive-maintenance",
-             response_model=APIResponse[PredictiveMaintenanceResponse],
+             response_model=UnifiedResponse[PredictiveMaintenanceResponse],
              summary="Predictive maintenance analysis",
              description="Predict equipment maintenance needs using IoT sensor data")
 @rate_limit(max_calls=500, time_window=3600)  # 500 calls per hour
@@ -858,7 +858,7 @@ async def predict_maintenance(
         
         logger.info(f"Predictive maintenance analysis completed for equipment {request.equipment_id}, health_score: {maintenance_result['health_score']}")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Predictive maintenance analysis completed successfully",
             data=response_data,
@@ -873,7 +873,7 @@ async def predict_maintenance(
         )
 
 @router.post("/manufacturing/quality-control",
-             response_model=APIResponse[QualityControlResponse],
+             response_model=UnifiedResponse[QualityControlResponse],
              summary="Quality control analysis",
              description="Automated quality control and defect prediction")
 @rate_limit(max_calls=300, time_window=3600)  # 300 calls per hour
@@ -925,7 +925,7 @@ async def analyze_quality(
         
         logger.info(f"Quality control analysis completed for batch {request.batch_id}, quality_score: {quality_result['overall_quality_score']}")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Quality control analysis completed successfully",
             data=response_data,
@@ -940,7 +940,7 @@ async def analyze_quality(
         )
 
 @router.post("/manufacturing/supply-chain",
-             response_model=APIResponse[SupplyChainResponse],
+             response_model=UnifiedResponse[SupplyChainResponse],
              summary="Supply chain optimization",
              description="Optimize supply chain operations and inventory management")
 @rate_limit(max_calls=100, time_window=3600)  # 100 calls per hour
@@ -994,7 +994,7 @@ async def optimize_supply_chain(
         
         logger.info(f"Supply chain optimization completed, cost_reduction_potential: {optimization_result['cost_reduction_potential']}%")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Supply chain optimization completed successfully",
             data=response_data,
@@ -1009,7 +1009,7 @@ async def optimize_supply_chain(
         )
 
 @router.get("/manufacturing/iot-dashboard",
-            response_model=APIResponse[IoTDashboardResponse],
+            response_model=UnifiedResponse[IoTDashboardResponse],
             summary="IoT monitoring dashboard",
             description="Real-time IoT monitoring and analytics dashboard")
 @rate_limit(max_calls=200, time_window=3600)  # 200 calls per hour
@@ -1055,7 +1055,7 @@ async def get_iot_dashboard(
         
         logger.info("IoT dashboard data retrieved successfully")
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="IoT dashboard data retrieved successfully",
             data=response_data,
@@ -1090,7 +1090,7 @@ async def health_check():
         # Check health of all processors
         health_status = await ai_engine.health_check()
         
-        return APIResponse(
+        return UnifiedResponse(
             status=ResponseStatus.SUCCESS,
             message="Industry solutions are healthy",
             data=health_status,

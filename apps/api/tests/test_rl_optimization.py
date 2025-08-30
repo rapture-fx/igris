@@ -21,7 +21,7 @@ from app.services.rl_optimization_service import RLOptimizationService
 from app.services.rl.agents.hyperparameter_optimizer import HyperparameterOptimizer, OptimizationConfig
 from app.services.rl.environments.ml_training_env import MLTrainingEnvironment
 from app.services.rl.monitoring.rl_monitor import RLPerformanceMonitor
-from app.tasks.rl_optimization_tasks import start_hyperparameter_optimization_task
+from app.tasks.rl_optimization_tasks import optimize_hyperparameters_task
 from app.core.rl_config import get_rl_settings, RLStrategy, RLObjective
 from app.database.models import MLPipeline
 from app.main import app
@@ -388,7 +388,7 @@ class TestCeleryTasks:
             mock_optimizer_class.return_value = mock_optimizer
             
             # Mock task execution
-            result = await start_hyperparameter_optimization_task.apply_async(args=[task_data])
+            result = await optimize_hyperparameters_task.apply_async(args=[task_data])
             
             # Note: In real testing, you'd want to test actual Celery task execution
             # This is a simplified test for the task structure

@@ -21,7 +21,7 @@ from typing import Dict, Any, List, Optional, Union
 from enum import Enum
 from functools import lru_cache
 from pydantic_settings import BaseSettings
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, ConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -527,10 +527,10 @@ class UnifiedSettings(BaseSettings):
             raise ValueError("ENCRYPTION_KEY must be at least 32 characters long")
         return v
     
-    class Config:
-        # Load environment-specific .env file based on ENVIRONMENT variable
-        env_file = ".env.development"  # Default to development
-        case_sensitive = True
+    model_config = ConfigDict(
+        env_file=".env.development",  # Default to development
+        case_sensitive=True
+    )
 
 
 @lru_cache()

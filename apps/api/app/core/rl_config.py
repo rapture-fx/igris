@@ -5,7 +5,7 @@ Centralized configuration management for RL system
 
 import os
 from typing import Optional, Dict, Any
-from pydantic import Field, validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 from enum import Enum
 
@@ -75,21 +75,24 @@ class RLSettings(BaseSettings):
     manufacturing_default_objective: RLObjective = Field(default=RLObjective.ACCURACY)
     finance_default_objective: RLObjective = Field(default=RLObjective.AUC_ROC)
     
-    @validator('rl_checkpoint_directory', 'rl_logs_directory')
+    @field_validator('rl_checkpoint_directory', 'rl_logs_directory')
+    @classmethod
     def ensure_directory_exists(cls, v):
         """Ensure directories exist"""
         if v and not os.path.exists(v):
             os.makedirs(v, exist_ok=True)
         return v
     
-    @validator('rl_learning_rate')
+    @field_validator('rl_learning_rate')
+    @classmethod
     def validate_learning_rate(cls, v):
         """Validate learning rate is in reasonable range"""
         if not 1e-6 <= v <= 1e-1:
             raise ValueError("Learning rate must be between 1e-6 and 1e-1")
         return v
     
-    @validator('rl_max_concurrent_sessions')
+    @field_validator('rl_max_concurrent_sessions')
+    @classmethod
     def validate_concurrent_sessions(cls, v):
         """Validate concurrent sessions limit"""
         if v < 1 or v > 100:
@@ -159,10 +162,11 @@ class RLSettings(BaseSettings):
             self.rl_s3_secret_key
         ])
     
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-        extra = "ignore"  # Ignore extra environment variables
+    model_config = {
+        "env_file": ".env",
+        "case_sensitive": True,
+        "extra": "ignore"  # Ignore extra environment variables
+    }
 
 
 # Global RL settings instance
