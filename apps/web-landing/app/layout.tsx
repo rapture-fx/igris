@@ -58,8 +58,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="light">
-      <body className="font-sans antialiased overflow-x-hidden bg-white min-h-screen">
+    <html lang="en">
+      <body className="font-sans antialiased overflow-x-hidden min-h-screen">
         <div className="fixed left-0 top-0 bottom-0 w-px bg-gray-200 z-50"></div>
         <div className="fixed right-0 top-0 bottom-0 w-px bg-gray-200 z-50"></div>
         {children}

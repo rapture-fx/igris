@@ -10,7 +10,7 @@
     --primary-blue-dark: #3a7bd5;
     --primary-blue-bg: rgba(70, 139, 230, 0.05);
     --custom-gray: 22 22 22;
-    
+
     /* Light Theme Variables */
     --background: 255 255 255;
     --foreground: 17 24 39;
@@ -32,7 +32,7 @@
     --input: 229 231 235;
     --ring: 70 139 230;
     --radius: 0.5rem;
-    
+
     /* Glass Effect */
     --glass-bg: rgba(255, 255, 255, 0.8);
     --glass-border: rgba(255, 255, 255, 0.2);
@@ -43,53 +43,53 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  
+
   body {
     @apply bg-white text-gray-900 transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
   }
-  
+
   /* Ensure all text elements use Apple fonts and adapt to dark mode */
   h1, h2, h3, h4, h5, h6 {
     @apply transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", system-ui, sans-serif;
   }
-  
+
   p, span, div, li, a {
     @apply transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
   }
-  
+
   /* Default text colors for components that don't have explicit dark mode classes */
   .text-gray-900:not(.no-auto-dark) {
     color: rgb(17 24 39);
   }
-  
+
   .text-gray-800:not(.no-auto-dark) {
     color: rgb(31 41 55);
   }
-  
+
   .text-gray-700:not(.no-auto-dark) {
     color: rgb(55 65 81);
   }
-  
+
   .text-gray-600:not(.no-auto-dark) {
     color: rgb(75 85 99);
   }
-  
+
   .text-gray-500:not(.no-auto-dark) {
     color: rgb(107 114 128);
   }
-  
+
   /* Auto dark mode for backgrounds */
   .bg-white:not(.no-auto-dark) {
     background-color: rgb(255 255 255);
   }
-  
+
   .bg-gray-50:not(.no-auto-dark) {
     background-color: rgb(249 250 251);
   }
-  
+
   .bg-gray-100:not(.no-auto-dark) {
     background-color: rgb(243 244 246);
   }
@@ -103,42 +103,42 @@
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .glass-effect {
     background: var(--glass-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid var(--glass-border);
   }
-  
+
   .gradient-text {
     background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  
+
   .section-padding {
     @apply py-16 md:py-24 lg:py-32;
   }
-  
+
   .container-padding {
     @apply px-4 sm:px-6 lg:px-8;
   }
-  
+
   .button-primary {
     background: var(--primary-blue);
     @apply hover:bg-blue-600 text-white font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5;
   }
-  
+
   .button-primary:hover {
     background: var(--primary-blue-dark);
   }
-  
+
   .button-secondary {
     @apply bg-white hover:bg-gray-50 text-gray-900 font-medium px-8 py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 border border-gray-200;
   }
-  
+
   .card-hover {
     @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-2;
   }
@@ -193,4 +193,55 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgb(75 85 99);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 17 17 17;
+    --foreground: 255 255 255;
+    --card: 27 27 27;
+    --card-foreground: 255 255 255;
+    --popover: 27 27 27;
+    --popover-foreground: 255 255 255;
+    --primary: 70 139 230;
+    --primary-foreground: 255 255 255;
+    --secondary: 38 38 38;
+    --secondary-foreground: 255 255 255;
+    --muted: 38 38 38;
+    --muted-foreground: 161 161 170;
+    --accent: 38 38 38;
+    --accent-foreground: 255 255 255;
+    --destructive: 239 68 68;
+    --destructive-foreground: 255 255 255;
+    --border: 38 38 38;
+    --input: 38 38 38;
+    --ring: 70 139 230;
+    --glass-bg: rgba(17, 17, 17, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.1);
+  }
+
+  body {
+    background-color: #111111;
+    color: #ffffff;
+  }
+
+  .scrolled {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .button-secondary {
+    @apply bg-gray-800 hover:bg-gray-700 text-gray-100 border-gray-700;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #222222;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #555555;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #777777;
+  }
 }

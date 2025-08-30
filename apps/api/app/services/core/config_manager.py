@@ -13,7 +13,8 @@ This eliminates:
 
 import os
 from typing import List, Dict, Any, Optional
-from pydantic import BaseSettings, Field, validator
+from pydantic import Field, field_validator
+from pydantic_settings import BaseSettings
 from enum import Enum
 import logging
 
@@ -394,38 +395,43 @@ class ProcessingConfig(BaseSettings):
     # VALIDATION & CONFIGURATION
     # ==========================================
     
-    @validator('environment')
+    @field_validator('environment')
+    @classmethod
     def validate_environment(cls, v):
         """Validate environment setting"""
         if v not in Environment:
             raise ValueError(f"Invalid environment: {v}")
         return v
     
-    @validator('chunk_size')
-    def validate_chunk_size(cls, v, values):
+    @field_validator('chunk_size')
+    @classmethod
+    def validate_chunk_size(cls, v, info):
         """Ensure chunk size is reasonable"""
-        max_file_size = values.get('max_file_size_mb', 100)
+        max_file_size = info.data.get('max_file_size_mb', 100)
         max_chunk = max_file_size * 1024 * 1024 // 8  # Rough estimate
         if v > max_chunk:
             logger.warning(f"Chunk size {v} may be too large for max file size {max_file_size}MB")
         return v
     
-    @validator('cors_origins')
-    def validate_cors_origins(cls, v, values):
+    @field_validator('cors_origins')
+    @classmethod
+    def validate_cors_origins(cls, v, info):
         """Validate CORS origins for production"""
-        environment = values.get('environment')
+        environment = info.data.get('environment')
         if environment == Environment.PRODUCTION:
             localhost_origins = [origin for origin in v if 'localhost' in origin]
             if localhost_origins:
                 logger.warning(f"Localhost origins in production CORS: {localhost_origins}")
         return v
     
-    class Config:
-        env_prefix = "SCHLEP_ENGINE_"
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
-        validate_assignment = True
+    model_config = {
+        "env_prefix": "SCHLEP_ENGINE_",
+        "env_file": ".env",
+        "env_file_encoding": "utf-8",
+        "case_sensitive": False,
+        "validate_assignment": True,
+        "extra": "allow"
+    }
 
 class ConfigManager:
     """

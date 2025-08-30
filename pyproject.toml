@@ -51,6 +51,9 @@ markers = [
 env_files = [
     ".env.test"
 ]
+# Async test configuration
+asyncio_default_fixture_loop_scope = "function"
+asyncio_mode = "auto"
 
 # Coverage configuration
 [tool.coverage.run]
