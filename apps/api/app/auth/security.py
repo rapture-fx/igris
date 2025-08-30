@@ -6,14 +6,69 @@ from app.core.api_config import settings
 import secrets
 import hashlib
 import os
+from cryptography.hazmat.primitives import serialization
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # JWT settings - Use RS256 for production security
-ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))  # Shorter for security
+ALGORITHM = os.getenv("JWT_ALGORITHM", "RS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "15"))  # Short expiry for security
 REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7"))
+
+def get_signing_key():
+    """Get signing key based on algorithm"""
+    if ALGORITHM == "RS256":
+        # For RS256, use private key for signing
+        private_key_path = os.getenv("JWT_PRIVATE_KEY_PATH")
+        private_key_str = os.getenv("JWT_PRIVATE_KEY")
+        
+        if private_key_path:
+            with open(private_key_path, 'rb') as key_file:
+                private_key = serialization.load_pem_private_key(
+                    key_file.read(),
+                    password=None,
+                )
+                return private_key
+        elif private_key_str:
+            private_key = serialization.load_pem_private_key(
+                private_key_str.encode(),
+                password=None,
+            )
+            return private_key
+        else:
+            # Fallback to HS256 if no RSA keys are configured
+            secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
+            if not secret_key or secret_key == "__CHANGE_ME_GENERATE_SECURE_SECRET_KEY__":
+                raise ValueError("JWT keys must be properly configured for RS256 or SECRET_KEY for HS256")
+            return secret_key
+    else:
+        # For HS256, use secret key
+        secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
+        if not secret_key or secret_key == "__CHANGE_ME_GENERATE_SECURE_SECRET_KEY__":
+            raise ValueError("SECRET_KEY must be set to a secure value")
+        return secret_key
+
+def get_verification_key():
+    """Get verification key based on algorithm"""
+    if ALGORITHM == "RS256":
+        # For RS256, use public key for verification
+        public_key_path = os.getenv("JWT_PUBLIC_KEY_PATH")
+        public_key_str = os.getenv("JWT_PUBLIC_KEY")
+        
+        if public_key_path:
+            with open(public_key_path, 'rb') as key_file:
+                public_key = serialization.load_pem_public_key(key_file.read())
+                return public_key
+        elif public_key_str:
+            public_key = serialization.load_pem_public_key(public_key_str.encode())
+            return public_key
+        else:
+            # Fallback to HS256
+            return get_signing_key()
+    else:
+        # For HS256, same key for signing and verification
+        return get_signing_key()
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     """Create JWT access token with enhanced security"""
@@ -33,12 +88,10 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
         "aud": "schlep-engine-api"  # Audience
     })
     
-    # Use environment variable for secret key
-    secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
-    if not secret_key or secret_key == "__CHANGE_ME_GENERATE_SECURE_SECRET_KEY__":
-        raise ValueError("SECRET_KEY must be set to a secure value")
+    # Get signing key based on algorithm
+    signing_key = get_signing_key()
     
-    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, signing_key, algorithm=ALGORITHM)
     return encoded_jwt
 
 def create_refresh_token(data: dict) -> str:
@@ -52,17 +105,24 @@ def create_refresh_token(data: dict) -> str:
         "type": "refresh"
     })
     
-    secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
-    if not secret_key or secret_key == "__CHANGE_ME_GENERATE_SECURE_SECRET_KEY__":
-        raise ValueError("SECRET_KEY must be set to a secure value")
+    # Get signing key based on algorithm
+    signing_key = get_signing_key()
     
-    encoded_jwt = jwt.encode(to_encode, secret_key, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, signing_key, algorithm=ALGORITHM)
     return encoded_jwt
 
 def verify_token(token: str):
     """Verify and decode JWT token"""
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        # Get verification key based on algorithm
+        verification_key = get_verification_key()
+        payload = jwt.decode(
+            token, 
+            verification_key, 
+            algorithms=[ALGORITHM],
+            audience="schlep-engine-api",
+            issuer="schlep-engine"
+        )
         user_id: str = payload.get("sub")
         if user_id is None:
             return None

@@ -1,0 +1,31 @@
+{
+  "timestamp": "2025-08-30T16:48:42.000921",
+  "tests": [
+    {
+      "name": "Core Security Components",
+      "passed": true,
+      "output": "\ud83d\udd12 Security Validation Test\n========================================\nEnvironment: testing\nTimestamp: 2025-08-30T16:48:46.654402\n\nTesting JWT Algorithm Configuration...\n\u2705 PASS JWT Algorithm Security\n    Using secure RS256 algorithm with proper key configuration\n\nTesting Secret Management...\n\u2705 PASS Secret Management\n    All secrets properly configured via environment variables\n\nTesting Password Hashing...\n\u2705 PASS Password Hashing Security\n    Secure bcrypt hashing with proper verification\n\nTesting J"
+    },
+    {
+      "name": "Comprehensive Security Framework",
+      "passed": false,
+      "output": "\ud83d\udd12 Starting Security Validation Framework\n==================================================\nRunning security validation tests for environment: testing\n\nTest Results Summary:\n------------------------------\n\u274c FAIL [MEDIUM] JWT Algorithm Security\n    Details: Using RS256 but RSA keys not configured, falling back to HS256\n    Recommendation: Configure JWT_PRIVATE_KEY and JWT_PUBLIC_KEY environment variables\n\n\u274c FAIL [HIGH] Secret Management\n    Details: Secret management issues found: SECRET_KEY not "
+    },
+    {
+      "name": "Security Files Check",
+      "passed": true,
+      "output": "Checked 5 security files"
+    },
+    {
+      "name": "Environment Configuration",
+      "passed": false,
+      "output": "0/5 environment variables configured"
+    }
+  ],
+  "summary": {
+    "total_tests": 4,
+    "passed_tests": 2,
+    "security_score": 50.0,
+    "status": "FAIL"
+  }
+}
