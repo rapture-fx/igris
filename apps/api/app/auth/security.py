@@ -37,11 +37,8 @@ def get_signing_key():
             )
             return private_key
         else:
-            # Fallback to HS256 if no RSA keys are configured
-            secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
-            if not secret_key or secret_key == "__CHANGE_ME_GENERATE_SECURE_SECRET_KEY__":
-                raise ValueError("JWT keys must be properly configured for RS256 or SECRET_KEY for HS256")
-            return secret_key
+            # No fallback - require proper RS256 configuration in production
+            raise ValueError("RS256 requires JWT_PRIVATE_KEY_PATH or JWT_PRIVATE_KEY to be configured")
     else:
         # For HS256, use secret key
         secret_key = os.getenv("SECRET_KEY", settings.SECRET_KEY)
@@ -64,8 +61,8 @@ def get_verification_key():
             public_key = serialization.load_pem_public_key(public_key_str.encode())
             return public_key
         else:
-            # Fallback to HS256
-            return get_signing_key()
+            # No fallback - require proper RS256 configuration in production
+            raise ValueError("RS256 requires JWT_PUBLIC_KEY_PATH or JWT_PUBLIC_KEY to be configured")
     else:
         # For HS256, same key for signing and verification
         return get_signing_key()
