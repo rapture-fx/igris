@@ -154,14 +154,14 @@ export default function Pricing() {
             <div className="inline-flex rounded-md shadow-sm" role="group">
               <button
                 type="button"
-                className={`py-2 px-4 text-sm font-medium rounded-l-lg ${billingPeriod === 'monthly' ? 'bg-[#1A5799] text-white' : 'bg-white text-gray-900 border border-gray-200'}`}
+                className={`py-2 px-4 text-sm font-medium rounded-l-lg ${billingPeriod === 'monthly' ? 'bg-[#1A5799] text-white' : 'bg-white text-gray-900'}`}
                 onClick={() => setBillingPeriod('monthly')}
               >
                 Monthly
               </button>
               <button
                 type="button"
-                className={`py-2 px-4 text-sm font-medium rounded-r-lg ${billingPeriod === 'yearly' ? 'bg-[#1A5799] text-white' : 'bg-white text-gray-900 border border-gray-200'}`}
+                className={`py-2 px-4 text-sm font-medium rounded-r-lg ${billingPeriod === 'yearly' ? 'bg-[#1A5799] text-white' : 'bg-white text-gray-900'}`}
                 onClick={() => setBillingPeriod('yearly')}
               >
                 Yearly (2 months free)
@@ -171,7 +171,7 @@ export default function Pricing() {
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-lg p-6 border border-gray-200">
+            <div key={index} className="bg-white rounded-lg shadow-lg p-6">
               {plan.popular && (
                 <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
                   Most Popular
@@ -192,7 +192,7 @@ export default function Pricing() {
 
         {/* Pricing Table */}
         <div className="mt-12 overflow-x-auto">
-          <div className="bg-white rounded-lg shadow-lg border border-gray-200 min-w-full">
+          <div className="bg-white rounded-lg shadow-lg min-w-full">
           {/* Table Header */}
           <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
             <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">Features</div>

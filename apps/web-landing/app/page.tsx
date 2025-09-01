@@ -11,13 +11,12 @@ import HowItWorks from '../src/components/sections/HowItWorks'
 import LatestUpdate from '../src/components/sections/LatestUpdate'
 import FAQ from '../src/components/sections/FAQ'
 import Footer from '../src/components/sections/Footer'
-import GridBackground from '@/components/ui/GridBackground'
+
 
 export default function HomePage() {
   return (
     <div className="min-h-screen">
-      {/* Grid Overlay */}
-      <div className="grid-overlay"></div>
+      
       
       {/* Crop Marks */}
       <div className="crop-marks">

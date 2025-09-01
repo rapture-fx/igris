@@ -5,7 +5,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Menu, X, ChevronRight } from 'lucide-react'
 import { usePathname } from 'next/navigation'
-import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 import { useTheme } from "next-themes"
 
 export default function Header() {
@@ -374,11 +373,9 @@ export default function Header() {
               >
                 Sign Up
               </Link>
-              <ThemeSwitcher />
             </div>
 
             <div className="md:hidden flex items-center space-x-2">
-              <ThemeSwitcher />
               <button
                 type="button"
                 className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
