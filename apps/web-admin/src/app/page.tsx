@@ -49,11 +49,17 @@ export default function SystemStatusPage() {
   const [connectionTest, setConnectionTest] = useState<string>('')
   const [testResults, setTestResults] = useState<Record<string, any>>({})
 
-  // Check admin access
+  // Check authentication and redirect accordingly
   useEffect(() => {
-    if (!isLoading && (!isAuthenticated || user?.role !== 'admin')) {
-      router.push('/dashboard')
-      toast.error('Admin access required')
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/login')
+        return
+      }
+      if (user?.role !== 'admin') {
+        router.push('/dashboard')
+        toast.error('Admin access required')
+      }
     }
   }, [isAuthenticated, isLoading, user, router])
 
@@ -305,6 +311,13 @@ export default function SystemStatusPage() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Link
+                href="/realtime"
+                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <Activity className="w-4 h-4 mr-2" />
+                Real-time Monitor
+              </Link>
               <button
                 onClick={checkSystemHealth}
                 disabled={isRefreshing}

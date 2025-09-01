@@ -8,6 +8,8 @@ import json
 import logging
 import secrets
 import uuid
+import hashlib
+import base64
 from datetime import datetime, timedelta
 from typing import Dict, Optional, Any, Tuple
 from urllib.parse import urlencode, urlparse, parse_qs
@@ -58,13 +60,15 @@ class OAuthService:
         self.providers = OAuthProviderConfig()
         self.state_expire_minutes = 10
         
-    async def get_authorization_url(self, provider: str, redirect_uri: str) -> Tuple[str, str]:
+    async def get_authorization_url(self, provider: str, redirect_uri: str, code_challenge: Optional[str] = None, code_challenge_method: Optional[str] = None) -> Tuple[str, str]:
         """
-        Generate OAuth authorization URL and state
+        Generate OAuth authorization URL and state with PKCE support
         
         Args:
             provider: OAuth provider (google, github)
             redirect_uri: Callback URL
+            code_challenge: PKCE code challenge (optional)
+            code_challenge_method: PKCE challenge method (optional, defaults to S256)
             
         Returns:
             Tuple of (authorization_url, state)
@@ -75,8 +79,8 @@ class OAuthService:
         # Generate secure state parameter
         state = secrets.token_urlsafe(32)
         
-        # Store state in Redis with expiration
-        await self._store_oauth_state(state, provider, redirect_uri)
+        # Store state in Redis with expiration (include PKCE data if provided)
+        await self._store_oauth_state(state, provider, redirect_uri, code_challenge, code_challenge_method)
         
         if provider == "google":
             config = self.providers.GOOGLE
@@ -85,11 +89,20 @@ class OAuthService:
                 client_secret=config["client_secret"]
             )
             
+            auth_params = {
+                "redirect_uri": redirect_uri,
+                "scope": config["client_kwargs"]["scope"],
+                "state": state
+            }
+            
+            # Add PKCE parameters if provided
+            if code_challenge and code_challenge_method:
+                auth_params["code_challenge"] = code_challenge
+                auth_params["code_challenge_method"] = code_challenge_method
+            
             authorization_url, _ = client.create_authorization_url(
                 config["authorize_url"],
-                redirect_uri=redirect_uri,
-                scope=config["client_kwargs"]["scope"],
-                state=state
+                **auth_params
             )
             
         elif provider == "github":
@@ -101,6 +114,11 @@ class OAuthService:
                 'state': state,
                 'response_type': 'code'
             }
+            
+            # Add PKCE parameters if provided
+            if code_challenge and code_challenge_method:
+                params['code_challenge'] = code_challenge
+                params['code_challenge_method'] = code_challenge_method
             authorization_url = f"{config['authorize_url']}?{urlencode(params)}"
         
         return authorization_url, state
@@ -110,7 +128,8 @@ class OAuthService:
                                   code: str, 
                                   state: str, 
                                   redirect_uri: str,
-                                  db: AsyncSession) -> AuthResult:
+                                  db: AsyncSession,
+                                  code_verifier: Optional[str] = None) -> AuthResult:
         """
         Handle OAuth callback and create/login user
         
@@ -138,8 +157,19 @@ class OAuthService:
                     error_message="Invalid or expired OAuth state"
                 )
             
-            # Exchange code for token
-            token_data = await self._exchange_code_for_token(provider, code, redirect_uri)
+            # Validate PKCE if code verifier is provided
+            if code_verifier:
+                pkce_valid = await self._validate_pkce(stored_data, code_verifier)
+                if not pkce_valid:
+                    await self._record_oauth_failure(provider, "invalid_pkce")
+                    return AuthResult(
+                        success=False,
+                        status=AuthStatus.TOKEN_INVALID,
+                        error_message="Invalid PKCE code verifier"
+                    )
+            
+            # Exchange code for token (include PKCE code verifier if available)
+            token_data = await self._exchange_code_for_token(provider, code, redirect_uri, code_verifier)
             if not token_data:
                 await self._record_oauth_failure(provider, "token_exchange_failed")
                 return AuthResult(
@@ -212,8 +242,8 @@ class OAuthService:
                 error_message=f"OAuth authentication failed: {str(e)}"
             )
     
-    async def _store_oauth_state(self, state: str, provider: str, redirect_uri: str):
-        """Store OAuth state in Redis"""
+    async def _store_oauth_state(self, state: str, provider: str, redirect_uri: str, code_challenge: Optional[str] = None, code_challenge_method: Optional[str] = None):
+        """Store OAuth state in Redis with PKCE data"""
         redis = await get_redis_client()
         if redis:
             state_data = {
@@ -221,6 +251,12 @@ class OAuthService:
                 "redirect_uri": redirect_uri,
                 "created_at": datetime.utcnow().isoformat()
             }
+            
+            # Include PKCE data if provided
+            if code_challenge and code_challenge_method:
+                state_data["code_challenge"] = code_challenge
+                state_data["code_challenge_method"] = code_challenge_method
+            
             await redis.setex(
                 f"oauth:state:{state}",
                 self.state_expire_minutes * 60,
@@ -239,8 +275,8 @@ class OAuthService:
             return json.loads(state_data)
         return None
     
-    async def _exchange_code_for_token(self, provider: str, code: str, redirect_uri: str) -> Optional[Dict[str,Any]]:
-        """Exchange authorization code for access token"""
+    async def _exchange_code_for_token(self, provider: str, code: str, redirect_uri: str, code_verifier: Optional[str] = None) -> Optional[Dict[str,Any]]:
+        """Exchange authorization code for access token with PKCE support"""
         try:
             if provider == "google":
                 config = self.providers.GOOGLE
@@ -249,24 +285,39 @@ class OAuthService:
                     client_secret=config["client_secret"]
                 )
                 
+                # Prepare token request parameters
+                token_params = {
+                    "authorization_response": f"{redirect_uri}?code={code}",
+                    "redirect_uri": redirect_uri
+                }
+                
+                # Add PKCE code verifier if provided
+                if code_verifier:
+                    token_params["code_verifier"] = code_verifier
+                
                 token = await client.fetch_token(
                     config["token_url"],
-                    authorization_response=f"{redirect_uri}?code={code}",
-                    redirect_uri=redirect_uri
+                    **token_params
                 )
                 return token
                 
             elif provider == "github":
                 config = self.providers.GITHUB
                 async with httpx.AsyncClient() as client:
+                    token_data = {
+                        'client_id': config["client_id"],
+                        'client_secret': config["client_secret"],
+                        'code': code,
+                        'redirect_uri': redirect_uri
+                    }
+                    
+                    # Add PKCE code verifier if provided
+                    if code_verifier:
+                        token_data['code_verifier'] = code_verifier
+                    
                     response = await client.post(
                         config["token_url"],
-                        data={
-                            'client_id': config["client_id"],
-                            'client_secret': config["client_secret"],
-                            'code': code,
-                            'redirect_uri': redirect_uri
-                        },
+                        data=token_data,
                         headers={'Accept': 'application/json'}
                     )
                     
@@ -535,6 +586,64 @@ class OAuthService:
                     continue
         
         return sanitized
+    
+    async def _validate_pkce(self, stored_data: Dict[str, Any], code_verifier: str) -> bool:
+        """Validate PKCE code verifier against stored challenge"""
+        try:
+            # Get stored PKCE data
+            stored_challenge = stored_data.get("code_challenge")
+            stored_method = stored_data.get("code_challenge_method", "S256")
+            
+            if not stored_challenge or not code_verifier:
+                return False
+            
+            # Validate code verifier length (43-128 characters as per RFC 7636)
+            if not (43 <= len(code_verifier) <= 128):
+                logger.warning(f"Invalid code verifier length: {len(code_verifier)}")
+                return False
+            
+            # Validate code verifier character set (RFC 7636: unreserved characters)
+            import re
+            if not re.match(r'^[A-Za-z0-9._~-]+$', code_verifier):
+                logger.warning("Invalid code verifier character set")
+                return False
+            
+            # Generate challenge from verifier based on method
+            if stored_method == "S256":
+                # SHA256 hash of code verifier, then base64url encode
+                verifier_bytes = code_verifier.encode('utf-8')
+                digest = hashlib.sha256(verifier_bytes).digest()
+                generated_challenge = base64.urlsafe_b64encode(digest).decode('utf-8').rstrip('=')
+            elif stored_method == "plain":
+                # Plain text (not recommended but supported)
+                generated_challenge = code_verifier
+            else:
+                logger.warning(f"Unsupported code challenge method: {stored_method}")
+                return False
+            
+            # Compare challenges using constant-time comparison
+            return secrets.compare_digest(stored_challenge, generated_challenge)
+            
+        except Exception as e:
+            logger.error(f"PKCE validation error: {str(e)}")
+            return False
+    
+    def generate_pkce_pair(self) -> Tuple[str, str]:
+        """Generate PKCE code verifier and challenge pair"""
+        try:
+            # Generate cryptographically secure code verifier (43-128 characters)
+            code_verifier = base64.urlsafe_b64encode(secrets.token_bytes(32)).decode('utf-8').rstrip('=')
+            
+            # Generate code challenge using S256 method
+            verifier_bytes = code_verifier.encode('utf-8')
+            digest = hashlib.sha256(verifier_bytes).digest()
+            code_challenge = base64.urlsafe_b64encode(digest).decode('utf-8').rstrip('=')
+            
+            return code_verifier, code_challenge
+            
+        except Exception as e:
+            logger.error(f"PKCE generation error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to generate PKCE parameters")
     
     async def unlink_oauth_account(self, db: AsyncSession, user_id: uuid.UUID, provider: str) -> bool:
         """Unlink an OAuth account from a user"""

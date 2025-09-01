@@ -1,0 +1,646 @@
+# ======================================================================================
+# Prometheus Operator for Comprehensive Monitoring and Observability
+# Includes Prometheus, Grafana, AlertManager, and Service Discovery
+# ======================================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+  labels:
+    name: monitoring
+---
+# ServiceMonitor for Schlep Engine Backend
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: schlep-engine-backend-monitor
+  namespace: monitoring
+  labels:
+    app: schlep-engine-backend
+    prometheus: schlep-engine
+spec:
+  selector:
+    matchLabels:
+      app: schlep-engine-backend
+  namespaceSelector:
+    matchNames:
+    - schlep-engine
+  endpoints:
+  - port: http
+    path: /prometheus
+    interval: 15s
+    scrapeTimeout: 10s
+    honorLabels: true
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_name]
+      targetLabel: instance
+    - sourceLabels: [__meta_kubernetes_pod_ip]
+      targetLabel: pod_ip
+  - port: http
+    path: /metrics
+    interval: 30s
+    scrapeTimeout: 15s
+---
+# ServiceMonitor for Redis
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-monitor
+  namespace: monitoring
+  labels:
+    app: redis
+spec:
+  selector:
+    matchLabels:
+      app: schlep-engine-redis
+  namespaceSelector:
+    matchNames:
+    - schlep-engine
+  endpoints:
+  - port: redis
+    interval: 30s
+    scrapeTimeout: 10s
+---
+# ServiceMonitor for PostgreSQL
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-monitor
+  namespace: monitoring
+  labels:
+    app: postgres
+spec:
+  selector:
+    matchLabels:
+      app: schlep-engine-postgres
+  namespaceSelector:
+    matchNames:
+    - schlep-engine
+  endpoints:
+  - port: postgres-exporter
+    interval: 30s
+    scrapeTimeout: 10s
+---
+# Prometheus Custom Resource
+apiVersion: monitoring.coreos.com/v1
+kind: Prometheus
+metadata:
+  name: schlep-engine-prometheus
+  namespace: monitoring
+  labels:
+    prometheus: schlep-engine
+spec:
+  # Resource allocation
+  replicas: 2
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1000m
+  
+  # Data persistence
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: fast-ssd
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 50Gi
+  
+  # Retention policy
+  retention: 30d
+  retentionSize: 45GB
+  
+  # Service discovery
+  serviceMonitorSelector:
+    matchLabels:
+      prometheus: schlep-engine
+  
+  podMonitorSelector:
+    matchLabels:
+      prometheus: schlep-engine
+  
+  ruleSelector:
+    matchLabels:
+      prometheus: schlep-engine
+  
+  # Alerting configuration
+  alerting:
+    alertmanagers:
+    - namespace: monitoring
+      name: alertmanager-operated
+      port: web
+  
+  # Security context
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+  
+  # Service account
+  serviceAccountName: prometheus-schlep-engine
+  
+  # Additional scrape configs
+  additionalScrapeConfigs:
+    name: additional-scrape-configs
+    key: prometheus-additional.yaml
+  
+  # External labels for federation
+  externalLabels:
+    cluster: schlep-engine-production
+    environment: production
+  
+  # Web configuration
+  web:
+    httpConfig:
+      http2: true
+    tlsConfig:
+      keySecret:
+        name: prometheus-tls
+        key: tls.key
+      cert:
+        secret:
+          name: prometheus-tls
+          key: tls.crt
+  
+  # Enable features
+  enableFeatures:
+  - remote-write-receiver
+  - expand-external-labels
+  - memory-snapshot-on-shutdown
+  
+  # Configuration for high availability
+  enableAdminAPI: false
+  walCompression: true
+  
+  # Resource monitoring
+  nodeSelector:
+    kubernetes.io/arch: amd64
+  
+  tolerations:
+  - key: monitoring
+    operator: Equal
+    value: "true"
+    effect: NoSchedule
+  
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: prometheus
+            operator: In
+            values:
+            - schlep-engine-prometheus
+        topologyKey: kubernetes.io/hostname
+---
+# Grafana Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: monitoring
+  labels:
+    app: grafana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      serviceAccountName: grafana
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+        runAsNonRoot: true
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.2.0
+        ports:
+        - containerPort: 3000
+          name: http-grafana
+          protocol: TCP
+        
+        # Environment variables
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secret
+              key: admin-password
+        - name: GF_DATABASE_TYPE
+          value: postgres
+        - name: GF_DATABASE_HOST
+          value: schlep-engine-postgres.schlep-engine:5432
+        - name: GF_DATABASE_NAME
+          value: grafana
+        - name: GF_DATABASE_USER
+          value: grafana
+        - name: GF_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secret
+              key: db-password
+        - name: GF_INSTALL_PLUGINS
+          value: grafana-piechart-panel,grafana-clock-panel,grafana-simple-json-datasource,redis-datasource
+        - name: GF_FEATURE_TOGGLES_ENABLE
+          value: "ngalert,prometheusAzureOverrideAudience"
+        
+        # Resource limits
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 30
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        
+        # Volume mounts
+        volumeMounts:
+        - name: grafana-config
+          mountPath: /etc/grafana/grafana.ini
+          subPath: grafana.ini
+        - name: grafana-datasources
+          mountPath: /etc/grafana/provisioning/datasources
+        - name: grafana-dashboards-config
+          mountPath: /etc/grafana/provisioning/dashboards
+        - name: grafana-dashboards
+          mountPath: /var/lib/grafana/dashboards
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+      
+      volumes:
+      - name: grafana-config
+        configMap:
+          name: grafana-config
+      - name: grafana-datasources
+        configMap:
+          name: grafana-datasources
+      - name: grafana-dashboards-config
+        configMap:
+          name: grafana-dashboards-config
+      - name: grafana-dashboards
+        configMap:
+          name: grafana-dashboards
+      - name: grafana-storage
+        persistentVolumeClaim:
+          claimName: grafana-pvc
+---
+# AlertManager
+apiVersion: monitoring.coreos.com/v1
+kind: Alertmanager
+metadata:
+  name: schlep-engine-alertmanager
+  namespace: monitoring
+  labels:
+    alertmanager: schlep-engine
+spec:
+  replicas: 3
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 100m
+    limits:
+      memory: 256Mi
+      cpu: 200m
+  
+  # Data persistence
+  storage:
+    volumeClaimTemplate:
+      spec:
+        storageClassName: fast-ssd
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 5Gi
+  
+  # Service account
+  serviceAccountName: alertmanager-schlep-engine
+  
+  # Security context
+  securityContext:
+    fsGroup: 2000
+    runAsNonRoot: true
+    runAsUser: 1000
+  
+  # Configuration
+  configSecret: alertmanager-config
+  
+  # High availability
+  retention: 120h
+  
+  # Resource scheduling
+  nodeSelector:
+    kubernetes.io/arch: amd64
+  
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+          - key: alertmanager
+            operator: In
+            values:
+            - schlep-engine-alertmanager
+        topologyKey: kubernetes.io/hostname
+---
+# Service Account for Prometheus
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus-schlep-engine
+  namespace: monitoring
+---
+# ClusterRole for Prometheus
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-schlep-engine
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - nodes/metrics
+  - services
+  - endpoints
+  - pods
+  - ingresses
+  - configmaps
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions", "networking.k8s.io"]
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+# ClusterRoleBinding for Prometheus
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-schlep-engine
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-schlep-engine
+subjects:
+- kind: ServiceAccount
+  name: prometheus-schlep-engine
+  namespace: monitoring
+---
+# Service Account for Grafana
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: grafana
+  namespace: monitoring
+---
+# Service Account for AlertManager
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: alertmanager-schlep-engine
+  namespace: monitoring
+---
+# Service for Prometheus
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: monitoring
+  labels:
+    app: prometheus
+spec:
+  selector:
+    prometheus: schlep-engine-prometheus
+  ports:
+  - name: web
+    port: 9090
+    targetPort: web
+    protocol: TCP
+  type: ClusterIP
+---
+# Service for Grafana
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: monitoring
+  labels:
+    app: grafana
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "3000"
+spec:
+  selector:
+    app: grafana
+  ports:
+  - name: http
+    port: 80
+    targetPort: 3000
+    protocol: TCP
+  type: ClusterIP
+---
+# ConfigMap for additional Prometheus scrape configs
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: additional-scrape-configs
+  namespace: monitoring
+data:
+  prometheus-additional.yaml: |
+    - job_name: 'kubernetes-pods'
+      kubernetes_sd_configs:
+      - role: pod
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+    
+    - job_name: 'kubernetes-service-endpoints'
+      kubernetes_sd_configs:
+      - role: endpoints
+      relabel_configs:
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+        action: keep
+        regex: true
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scheme]
+        action: replace
+        target_label: __scheme__
+        regex: (https?)
+      - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+        action: replace
+        target_label: __address__
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+      - action: labelmap
+        regex: __meta_kubernetes_service_label_(.+)
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      - source_labels: [__meta_kubernetes_service_name]
+        action: replace
+        target_label: kubernetes_name
+    
+    - job_name: 'blackbox-http'
+      metrics_path: /probe
+      params:
+        module: [http_2xx]
+      static_configs:
+      - targets:
+        - https://api.schlep-engine.com/health
+        - https://schlep-engine.com
+      relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+    
+    - job_name: 'circuit-breaker-metrics'
+      static_configs:
+      - targets: ['schlep-engine-backend-service.schlep-engine:8000']
+      metrics_path: '/metrics'
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'circuit-breaker'
+---
+# PersistentVolumeClaim for Grafana
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-pvc
+  namespace: monitoring
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+---
+# Secret for Grafana
+apiVersion: v1
+kind: Secret
+metadata:
+  name: grafana-secret
+  namespace: monitoring
+type: Opaque
+data:
+  admin-password: YWRtaW4xMjM=  # admin123 (base64 encoded)
+  db-password: Z3JhZmFuYTEyMw==  # grafana123 (base64 encoded)
+---
+# Ingress for Monitoring Services
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: monitoring-ingress
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: monitoring-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Monitoring Authentication Required"
+spec:
+  tls:
+  - hosts:
+    - monitoring.schlep-engine.com
+    - prometheus.schlep-engine.com
+    - grafana.schlep-engine.com
+    secretName: monitoring-tls
+  rules:
+  - host: prometheus.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-service
+            port:
+              number: 9090
+  - host: grafana.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana-service
+            port:
+              number: 80
+  - host: monitoring.schlep-engine.com
+    http:
+      paths:
+      - path: /prometheus
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-service
+            port:
+              number: 9090
+      - path: /grafana
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana-service
+            port:
+              number: 80

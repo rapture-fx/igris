@@ -40,13 +40,13 @@ export default function Benefits() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-white text-gray-900">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="py-16 md:py-24 bg-white text-gray-900 dark:bg-black dark:text-white border border-gray-400">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 border border-gray-400">
         <div className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 mb-4 text-left">
+          <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-4 text-left">
             Data ready for what's next
           </h2>
-          <p className="text-xl text-gray-700 max-w-2xl text-left">
+          <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl text-left">
             Built for data teams who need reliable, scalable data preparation without the hassle
           </p>
         </div>
@@ -61,16 +61,16 @@ export default function Benefits() {
                   key={index}
                   onMouseEnter={() => setHoveredIndex(index)}
                   onMouseLeave={() => setHoveredIndex(null)}
-                  className={`group p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50 hover:shadow-lg ${hoveredIndex !== null && hoveredIndex !== index ? 'opacity-50' : ''}`}
+                  className={`group p-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-50 dark:hover:bg-gray-900 hover:shadow-lg ${hoveredIndex !== null && hoveredIndex !== index ? 'opacity-50' : ''}`}
                 >
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-0.5">
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-0.5">
                       {benefit.title}
                     </h3>
-                    <p className="text-gray-700 leading-relaxed text-xs">
+                    <p className="text-gray-700 dark:text-gray-400 leading-relaxed text-xs">
                       {benefit.description}
                     </p>
-                    <div className="w-full h-0.5 bg-gray-200 mt-2"></div>
+                    <div className="w-full h-0.5 bg-gray-200 dark:bg-gray-800 mt-2"></div>
                   </div>
                 </div>
               )

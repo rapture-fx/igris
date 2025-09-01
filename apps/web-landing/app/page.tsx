@@ -16,6 +16,15 @@ import GridBackground from '@/components/ui/GridBackground'
 export default function HomePage() {
   return (
     <div className="min-h-screen">
+      {/* Grid Overlay */}
+      <div className="grid-overlay"></div>
+      
+      {/* Crop Marks */}
+      <div className="crop-marks">
+        <div className="bottom-left"></div>
+        <div className="bottom-right"></div>
+      </div>
+      
       <Header />
       <main>
         <Hero />

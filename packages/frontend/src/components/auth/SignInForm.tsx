@@ -1,20 +1,28 @@
 /**
  * Enhanced Sign In Form Component with Elegant UX
  */
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, Loader2, ArrowRight, CheckCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Link from "next/link";
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  Loader2,
+  ArrowRight,
+  CheckCircle,
+} from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 // Validation schema
 const signInSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
   remember_me: z.boolean().default(false),
 });
 
@@ -37,13 +45,13 @@ export function SignInForm() {
     },
   });
 
-  const watchedEmail = watch('email');
-  const watchedPassword = watch('password');
+  const watchedEmail = watch("email");
+  const watchedPassword = watch("password");
 
   const onSubmit = async (data: SignInFormData) => {
     try {
       setIsSubmitted(true);
-      await signIn(data);
+      await signIn({ email: data.email, password: data.password });
     } catch (error) {
       setIsSubmitted(false);
     }
@@ -55,25 +63,30 @@ export function SignInForm() {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Email Field */}
       <div className="space-y-2">
-        <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+        <label
+          htmlFor="email"
+          className="block text-sm font-semibold text-gray-700"
+        >
           Email Address
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-            <Mail className={`h-5 w-5 transition-colors duration-200 ${
-              watchedEmail ? 'text-blue-500' : 'text-gray-400'
-            }`} />
+            <Mail
+              className={`h-5 w-5 transition-colors duration-200 ${
+                watchedEmail ? "text-blue-500" : "text-gray-400"
+              }`}
+            />
           </div>
           <input
-            {...register('email')}
+            {...register("email")}
             type="email"
             id="email"
             className={`block w-full pl-12 pr-4 py-4 border-2 rounded-xl shadow-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-0 bg-gray-50/50 backdrop-blur-sm ${
-              errors.email 
-                ? 'border-red-300 focus:border-red-500' 
+              errors.email
+                ? "border-red-300 focus:border-red-500"
                 : watchedEmail
-                ? 'border-blue-300 focus:border-blue-500 bg-blue-50/30'
-                : 'border-gray-200 focus:border-blue-400 hover:border-gray-300'
+                  ? "border-blue-300 focus:border-blue-500 bg-blue-50/30"
+                  : "border-gray-200 focus:border-blue-400 hover:border-gray-300"
             }`}
             placeholder="Enter your email"
             disabled={isFormLoading}
@@ -94,25 +107,30 @@ export function SignInForm() {
 
       {/* Password Field */}
       <div className="space-y-2">
-        <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+        <label
+          htmlFor="password"
+          className="block text-sm font-semibold text-gray-700"
+        >
           Password
         </label>
         <div className="relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
-            <Lock className={`h-5 w-5 transition-colors duration-200 ${
-              watchedPassword ? 'text-blue-500' : 'text-gray-400'
-            }`} />
+            <Lock
+              className={`h-5 w-5 transition-colors duration-200 ${
+                watchedPassword ? "text-blue-500" : "text-gray-400"
+              }`}
+            />
           </div>
           <input
-            {...register('password')}
-            type={showPassword ? 'text' : 'password'}
+            {...register("password")}
+            type={showPassword ? "text" : "password"}
             id="password"
             className={`block w-full pl-12 pr-12 py-4 border-2 rounded-xl shadow-sm placeholder-gray-400 transition-all duration-200 focus:outline-none focus:ring-0 bg-gray-50/50 backdrop-blur-sm ${
-              errors.password 
-                ? 'border-red-300 focus:border-red-500' 
+              errors.password
+                ? "border-red-300 focus:border-red-500"
                 : watchedPassword
-                ? 'border-blue-300 focus:border-blue-500 bg-blue-50/30'
-                : 'border-gray-200 focus:border-blue-400 hover:border-gray-300'
+                  ? "border-blue-300 focus:border-blue-500 bg-blue-50/30"
+                  : "border-gray-200 focus:border-blue-400 hover:border-gray-300"
             }`}
             placeholder="Enter your password"
             disabled={isFormLoading}
@@ -142,7 +160,7 @@ export function SignInForm() {
       <div className="flex items-center justify-between">
         <label className="flex items-center group cursor-pointer">
           <input
-            {...register('remember_me')}
+            {...register("remember_me")}
             type="checkbox"
             className="sr-only"
             disabled={isFormLoading}
@@ -181,7 +199,7 @@ export function SignInForm() {
             <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </>
         )}
-        
+
         {/* Button Glow Effect */}
         <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 group-hover:opacity-20 transition-opacity blur-xl"></div>
       </button>
@@ -192,14 +210,16 @@ export function SignInForm() {
           <div className="w-full border-t border-gray-200"></div>
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-4 bg-white text-gray-500">New to Schlep-engine?</span>
+          <span className="px-4 bg-white text-gray-500">
+            New to Schlep-engine?
+          </span>
         </div>
       </div>
 
       {/* Sign Up Link */}
       <div className="text-center">
-        <Link 
-          href="/auth/signup" 
+        <Link
+          href="/auth/signup"
           className="inline-flex items-center px-6 py-3 border-2 border-gray-200 rounded-xl text-base font-medium text-gray-700 bg-white hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 hover:scale-[1.02] transform"
         >
           Create an account
@@ -208,4 +228,4 @@ export function SignInForm() {
       </div>
     </form>
   );
-} 
+}

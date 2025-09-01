@@ -7,16 +7,13 @@ echo "Starting Schlep Engine servers..."
 
 # Start landing page
 echo "Starting landing page on port 3000..."
-cd apps/web-landing && pnpm run dev > ../web-landing/landing.log 2>&1 &
+(cd apps/web-landing && pnpm run dev > ../web-landing/landing.log 2>&1) &
 LANDING_PID=$!
 
 # Start docs
 echo "Starting docs on port 3003..."
-cd ../web-docs && pnpm run dev > docs.log 2>&1 &
+(cd apps/web-docs && pnpm run dev > docs.log 2>&1) &
 DOCS_PID=$!
-
-# Return to root
-cd ../../
 
 echo "Waiting for servers to start..."
 sleep 8
@@ -28,8 +25,8 @@ else
     echo "❌ Landing page failed to start"
 fi
 
-if curl -s http://localhost:3001 > /dev/null; then
-    echo "Docs running: http://localhost:3001"
+if curl -s http://localhost:3003 > /dev/null; then
+    echo "Docs running: http://localhost:3003"
 else
     echo "❌ Docs failed to start"
 fi

@@ -19,7 +19,8 @@ import {
 import { APIResponse, AuthMethod } from '../types/common';
 import { HTTPClient } from '../utils/http-client';
 import { SchlepEngineError, AuthenticationError, ConfigurationError } from '../utils/errors';
-import { TokenStorage, createTokenStorage } from './token-storage';
+import { createTokenStorage } from './token-storage';
+import { TokenStorage } from '../types/common';
 
 /**
  * Authentication manager configuration

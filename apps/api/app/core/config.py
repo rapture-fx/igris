@@ -102,17 +102,35 @@ class Settings(BaseSettings):
     HEALTH_CHECK_INTERVAL: int = Field(default=30, env="HEALTH_CHECK_INTERVAL")
     HEALTH_CHECK_TIMEOUT: int = Field(default=10, env="HEALTH_CHECK_TIMEOUT")
     HEALTH_CHECK_CRITICAL_SERVICES: list = Field(default=["database", "redis"], env="HEALTH_CHECK_CRITICAL_SERVICES")
+    HEALTH_CHECK_DEPENDENCY_TIMEOUT: float = Field(default=5.0, env="HEALTH_CHECK_DEPENDENCY_TIMEOUT")
+    HEALTH_CHECK_CACHE_TTL: int = Field(default=60, env="HEALTH_CHECK_CACHE_TTL")
     
     # Reliability and Retry Configuration
     RETRY_MAX_ATTEMPTS: int = Field(default=3, env="RETRY_MAX_ATTEMPTS")
     RETRY_BASE_DELAY: float = Field(default=1.0, env="RETRY_BASE_DELAY")
     RETRY_MAX_DELAY: float = Field(default=60.0, env="RETRY_MAX_DELAY")
     RETRY_EXPONENTIAL_BASE: float = Field(default=2.0, env="RETRY_EXPONENTIAL_BASE")
+    RETRY_JITTER_ENABLED: bool = Field(default=True, env="RETRY_JITTER_ENABLED")
+    RETRY_JITTER_FACTOR: float = Field(default=0.1, env="RETRY_JITTER_FACTOR")
+    
+    # Dead Letter Queue Configuration
+    DEAD_LETTER_QUEUE_ENABLED: bool = Field(default=True, env="DEAD_LETTER_QUEUE_ENABLED")
+    DEAD_LETTER_QUEUE_MAX_RETRIES: int = Field(default=3, env="DEAD_LETTER_QUEUE_MAX_RETRIES")
+    DEAD_LETTER_QUEUE_PROCESS_INTERVAL: int = Field(default=300, env="DEAD_LETTER_QUEUE_PROCESS_INTERVAL")
+    DEAD_LETTER_QUEUE_RETENTION_DAYS: int = Field(default=7, env="DEAD_LETTER_QUEUE_RETENTION_DAYS")
     
     # Request Timeout Configuration
     REQUEST_TIMEOUT_DEFAULT: float = Field(default=30.0, env="REQUEST_TIMEOUT_DEFAULT")
     REQUEST_TIMEOUT_SHORT: float = Field(default=5.0, env="REQUEST_TIMEOUT_SHORT")
     REQUEST_TIMEOUT_LONG: float = Field(default=120.0, env="REQUEST_TIMEOUT_LONG")
+    REQUEST_TIMEOUT_ML: float = Field(default=300.0, env="REQUEST_TIMEOUT_ML")
+    REQUEST_TIMEOUT_STORAGE: float = Field(default=60.0, env="REQUEST_TIMEOUT_STORAGE")
+    
+    # Service Mesh and Observability
+    DISTRIBUTED_TRACING_ENABLED: bool = Field(default=True, env="DISTRIBUTED_TRACING_ENABLED")
+    DISTRIBUTED_TRACING_SAMPLE_RATE: float = Field(default=0.1, env="DISTRIBUTED_TRACING_SAMPLE_RATE")
+    SERVICE_MESH_ENABLED: bool = Field(default=False, env="SERVICE_MESH_ENABLED")
+    OBSERVABILITY_METRICS_RETENTION_DAYS: int = Field(default=30, env="OBSERVABILITY_METRICS_RETENTION_DAYS")
     
     # File Upload
     MAX_FILE_SIZE: int = Field(default=100 * 1024 * 1024, env="MAX_FILE_SIZE")  # 100MB

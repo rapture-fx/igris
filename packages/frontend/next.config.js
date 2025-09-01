@@ -2,7 +2,22 @@
 const nextConfig = {
   // Environment and API configuration
   env: {
-    BACKEND_API_URL: process.env.BACKEND_API_URL || 'http://localhost:8000',
+    BACKEND_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000',
+    WS_HOST: process.env.NEXT_PUBLIC_WS_HOST || 'localhost:8000',
+  },
+  
+  // Environment variables validation
+  publicRuntimeConfig: {
+    apiUrl: process.env.NEXT_PUBLIC_API_URL,
+    wsHost: process.env.NEXT_PUBLIC_WS_HOST,
+    enableMLFeatures: process.env.NEXT_PUBLIC_ENABLE_ML_FEATURES === 'true',
+    enableRealTime: process.env.NEXT_PUBLIC_ENABLE_REAL_TIME === 'true',
+  },
+  
+  // Server runtime config (private)
+  serverRuntimeConfig: {
+    apiSecret: process.env.API_SECRET,
+    internalApiUrl: process.env.INTERNAL_API_URL,
   },
 
   // Image optimization
@@ -73,9 +88,44 @@ const nextConfig = {
     return config
   },
 
-  // Security headers
-  async headers() {
+
+  // Redirects for common issues
+  async redirects() {
     return [
+      {
+        source: '/docs',
+        destination: '/documentation',
+        permanent: true,
+      },
+    ]
+  },
+
+  // Output configuration
+  output: 'standalone',
+  
+  // Development server configuration with API proxy
+  ...(process.env.NODE_ENV === 'development' && {
+    async rewrites() {
+      return [
+        {
+          source: '/api/proxy/:path*',
+          destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
+        },
+        {
+          source: '/api/health',
+          destination: `${process.env.NEXT_PUBLIC_API_URL}/health`,
+        },
+      ]
+    },
+    onDemandEntries: {
+      maxInactiveAge: 25 * 1000,
+      pagesBufferLength: 2,
+    },
+  }),
+  
+  // API routes configuration
+  async headers() {
+    const headers = [
       {
         source: '/(.*)',
         headers: [
@@ -94,29 +144,30 @@ const nextConfig = {
         ],
       },
     ]
+    
+    // Add CORS headers for development
+    if (process.env.NODE_ENV === 'development') {
+      headers.push({
+        source: '/api/proxy/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET,POST,PUT,DELETE,OPTIONS',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type,Authorization',
+          },
+        ],
+      })
+    }
+    
+    return headers
   },
-
-  // Redirects for common issues
-  async redirects() {
-    return [
-      {
-        source: '/docs',
-        destination: '/documentation',
-        permanent: true,
-      },
-    ]
-  },
-
-  // Output configuration
-  output: 'standalone',
-  
-  // Development server configuration
-  ...(process.env.NODE_ENV === 'development' && {
-    onDemandEntries: {
-      maxInactiveAge: 25 * 1000,
-      pagesBufferLength: 2,
-    },
-  }),
 }
 
 module.exports = nextConfig 

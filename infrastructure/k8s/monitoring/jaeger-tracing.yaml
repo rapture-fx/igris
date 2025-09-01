@@ -1,0 +1,859 @@
+# ======================================================================================
+# Jaeger Distributed Tracing Infrastructure for Schlep Engine
+# Complete tracing solution with collector, query service, and storage
+# ======================================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tracing
+  labels:
+    name: tracing
+---
+# Jaeger Operator CRDs and Operator
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: jaegers.jaegertracing.io
+spec:
+  group: jaegertracing.io
+  versions:
+  - name: v1
+    served: true
+    storage: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              strategy:
+                type: string
+                enum: [allInOne, production]
+              storage:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    enum: [memory, elasticsearch, cassandra]
+          status:
+            type: object
+  scope: Namespaced
+  names:
+    plural: jaegers
+    singular: jaeger
+    kind: Jaeger
+    shortNames:
+    - jgr
+---
+# Jaeger Instance
+apiVersion: jaegertracing.io/v1
+kind: Jaeger
+metadata:
+  name: schlep-engine-jaeger
+  namespace: tracing
+spec:
+  strategy: production
+  
+  # Storage configuration using Elasticsearch
+  storage:
+    type: elasticsearch
+    options:
+      es:
+        server-urls: http://elasticsearch:9200
+        index-prefix: jaeger
+        num-shards: 3
+        num-replicas: 1
+        max-doc-count: 10000000
+        max-span-age: 168h  # 7 days
+        bulk:
+          size: 5000000
+          workers: 1
+          flush-interval: 1s
+    
+    # Dependency storage
+    dependencies:
+      enabled: true
+      schedule: "55 23 * * *"  # Run daily at 23:55
+  
+  # Collector configuration
+  collector:
+    replicas: 2
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+    
+    # Collector configuration
+    config: |
+      receivers:
+        otlp:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:14250
+            http:
+              endpoint: 0.0.0.0:14268
+        jaeger:
+          protocols:
+            grpc:
+              endpoint: 0.0.0.0:14250
+            thrift_http:
+              endpoint: 0.0.0.0:14268
+            thrift_compact:
+              endpoint: 0.0.0.0:6831
+            thrift_binary:
+              endpoint: 0.0.0.0:6832
+        zipkin:
+          endpoint: 0.0.0.0:9411
+      
+      processors:
+        batch:
+          timeout: 1s
+          send_batch_size: 1024
+          send_batch_max_size: 2048
+        memory_limiter:
+          limit_mib: 400
+          spike_limit_mib: 100
+        resource:
+          attributes:
+          - key: environment
+            value: production
+            action: upsert
+          - key: cluster
+            value: schlep-engine-eks
+            action: upsert
+      
+      exporters:
+        jaeger:
+          endpoint: jaeger-collector:14250
+          tls:
+            insecure: true
+      
+      extensions:
+        health_check:
+          endpoint: 0.0.0.0:13133
+        pprof:
+          endpoint: 0.0.0.0:1777
+        zpages:
+          endpoint: 0.0.0.0:55679
+      
+      service:
+        extensions: [health_check, pprof, zpages]
+        pipelines:
+          traces:
+            receivers: [otlp, jaeger, zipkin]
+            processors: [memory_limiter, resource, batch]
+            exporters: [jaeger]
+  
+  # Query service configuration
+  query:
+    replicas: 2
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+    
+    # UI configuration
+    options:
+      query:
+        base-path: /jaeger
+        ui-config: |
+          {
+            "dependencies": {
+              "dagMaxNumServices": 200
+            },
+            "archiveEnabled": true,
+            "tracking": {
+              "gaID": ""
+            }
+          }
+  
+  # Agent configuration (deprecated but included for backwards compatibility)
+  agent:
+    strategy: DaemonSet
+    resources:
+      requests:
+        memory: 64Mi
+        cpu: 50m
+      limits:
+        memory: 128Mi
+        cpu: 100m
+    
+    config: |
+      reporter:
+        type: grpc
+        grpc:
+          host-port: jaeger-collector:14250
+          tls:
+            enabled: false
+      
+      processor:
+        jaeger-compact:
+          server-max-packet-size: 65000
+          server-host-port: :6831
+          server-queue-size: 1000
+          workers: 10
+        jaeger-binary:
+          server-max-packet-size: 65000
+          server-host-port: :6832
+          server-queue-size: 1000
+          workers: 10
+  
+  # Ingester for high-throughput scenarios
+  ingester:
+    replicas: 2
+    resources:
+      requests:
+        memory: 256Mi
+        cpu: 200m
+      limits:
+        memory: 512Mi
+        cpu: 500m
+    
+    options:
+      ingester:
+        deadlockInterval: 5s
+  
+  # Sampling configuration
+  sampling:
+    options:
+      default_strategy:
+        type: probabilistic
+        param: 0.1  # 10% sampling rate
+      per_service_strategies:
+      - service: "schlep-engine-api"
+        type: probabilistic
+        param: 0.5  # 50% for main API
+      - service: "schlep-engine-worker"
+        type: probabilistic
+        param: 0.2  # 20% for workers
+      - service: "schlep-engine-auth"
+        type: probabilistic
+        param: 0.3  # 30% for auth service
+      
+      per_operation_strategies:
+      - operation: "GET /health"
+        type: probabilistic
+        param: 0.01  # 1% for health checks
+      - operation: "POST /api/v1/circuit-breaker/metrics"
+        type: probabilistic
+        param: 1.0   # 100% for circuit breaker metrics
+  
+  # Volume mounts for configuration
+  volumeMounts:
+  - name: jaeger-config
+    mountPath: /etc/jaeger
+  
+  volumes:
+  - name: jaeger-config
+    configMap:
+      name: jaeger-config
+---
+# Elasticsearch for Jaeger storage
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: tracing
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      initContainers:
+      - name: sysctl
+        image: busybox:1.35
+        command:
+        - sysctl
+        - -w
+        - vm.max_map_count=262144
+        securityContext:
+          privileged: true
+      
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.10.0
+        ports:
+        - containerPort: 9200
+          name: http
+        - containerPort: 9300
+          name: transport
+        
+        env:
+        - name: cluster.name
+          value: jaeger-elasticsearch
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: discovery.seed_hosts
+          value: elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch
+        - name: cluster.initial_master_nodes
+          value: elasticsearch-0,elasticsearch-1,elasticsearch-2
+        - name: ES_JAVA_OPTS
+          value: "-Xms1g -Xmx1g"
+        - name: xpack.security.enabled
+          value: "false"
+        - name: xpack.monitoring.collection.enabled
+          value: "true"
+        
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 500m
+          limits:
+            memory: 4Gi
+            cpu: 1000m
+        
+        volumeMounts:
+        - name: elasticsearch-data
+          mountPath: /usr/share/elasticsearch/data
+        
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        
+        livenessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+  
+  volumeClaimTemplates:
+  - metadata:
+      name: elasticsearch-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 20Gi
+      storageClassName: fast-ssd
+---
+# Elasticsearch Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: tracing
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+  - name: http
+    port: 9200
+    targetPort: 9200
+  - name: transport
+    port: 9300
+    targetPort: 9300
+  clusterIP: None
+---
+# Jaeger ConfigMap for advanced configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: jaeger-config
+  namespace: tracing
+data:
+  sampling_strategies.json: |
+    {
+      "default_strategy": {
+        "type": "probabilistic",
+        "param": 0.1
+      },
+      "per_service_strategies": [
+        {
+          "service": "schlep-engine-api",
+          "type": "probabilistic",
+          "param": 0.5,
+          "max_traces_per_second": 1000,
+          "per_operation_strategies": [
+            {
+              "operation": "GET /health",
+              "type": "probabilistic",
+              "param": 0.01
+            },
+            {
+              "operation": "POST /api/v1/auth/login",
+              "type": "probabilistic", 
+              "param": 1.0
+            },
+            {
+              "operation": "GET /api/v1/circuit-breaker/status",
+              "type": "probabilistic",
+              "param": 1.0
+            }
+          ]
+        },
+        {
+          "service": "schlep-engine-worker",
+          "type": "adaptive",
+          "max_traces_per_second": 500,
+          "param": 0.2
+        },
+        {
+          "service": "postgres",
+          "type": "probabilistic",
+          "param": 0.1
+        },
+        {
+          "service": "redis",
+          "type": "probabilistic", 
+          "param": 0.05
+        }
+      ]
+    }
+  
+  collector_config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+    
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+        send_batch_max_size: 2048
+      
+      memory_limiter:
+        limit_mib: 400
+        spike_limit_mib: 100
+        check_interval: 2s
+      
+      attributes:
+        actions:
+        - key: environment
+          value: production
+          action: upsert
+        - key: cluster
+          value: schlep-engine-eks
+          action: upsert
+        - key: version
+          from_attribute: service.version
+          action: insert
+      
+      span:
+        name:
+          to_attributes:
+            rules:
+            - ^\/api\/v1\/(?P<version>\w+)\/(?P<resource>\w+).*
+        attributes:
+        - key: http.route
+          action: update
+          from_attribute: http.target
+    
+    exporters:
+      jaeger:
+        endpoint: jaeger-collector.tracing.svc.cluster.local:14250
+        tls:
+          insecure: true
+      
+      logging:
+        loglevel: debug
+    
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+        path: /health
+      
+      pprof:
+        endpoint: 0.0.0.0:1777
+      
+      zpages:
+        endpoint: 0.0.0.0:55679
+      
+      memory_ballast:
+        size_mib: 64
+    
+    service:
+      telemetry:
+        logs:
+          level: "info"
+        metrics:
+          address: 0.0.0.0:8888
+      
+      extensions: [health_check, pprof, zpages, memory_ballast]
+      
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger]
+          processors: [memory_limiter, attributes, span, batch]
+          exporters: [jaeger, logging]
+---
+# Service for Jaeger Query UI
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-query
+  namespace: tracing
+  labels:
+    app: jaeger
+    component: query
+spec:
+  selector:
+    app: jaeger
+    component: query
+  ports:
+  - name: query-http
+    port: 16686
+    targetPort: 16686
+    protocol: TCP
+  - name: grpc
+    port: 16685
+    targetPort: 16685
+    protocol: TCP
+  type: ClusterIP
+---
+# Service for Jaeger Collector
+apiVersion: v1
+kind: Service
+metadata:
+  name: jaeger-collector
+  namespace: tracing
+  labels:
+    app: jaeger
+    component: collector
+spec:
+  selector:
+    app: jaeger
+    component: collector
+  ports:
+  - name: jaeger-collector-http
+    port: 14268
+    targetPort: 14268
+    protocol: TCP
+  - name: jaeger-collector-grpc
+    port: 14250
+    targetPort: 14250
+    protocol: TCP
+  - name: jaeger-collector-zipkin
+    port: 9411
+    targetPort: 9411
+    protocol: TCP
+  - name: otlp-grpc
+    port: 4317
+    targetPort: 4317
+    protocol: TCP
+  - name: otlp-http
+    port: 4318
+    targetPort: 4318
+    protocol: TCP
+  type: ClusterIP
+---
+# ServiceMonitor for Prometheus to scrape Jaeger metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: jaeger-monitor
+  namespace: tracing
+  labels:
+    app: jaeger
+    prometheus: schlep-engine
+spec:
+  selector:
+    matchLabels:
+      app: jaeger
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+  - port: admin-http
+    interval: 30s
+    path: /metrics
+---
+# Ingress for Jaeger UI
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jaeger-ingress
+  namespace: tracing
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: jaeger-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Jaeger Authentication Required"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  tls:
+  - hosts:
+    - jaeger.schlep-engine.com
+    secretName: jaeger-tls
+  rules:
+  - host: jaeger.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jaeger-query
+            port:
+              number: 16686
+---
+# OpenTelemetry Collector for enhanced tracing collection
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: otel-collector
+  namespace: tracing
+spec:
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      serviceAccount: otel-collector
+      containers:
+      - name: otel-collector
+        image: otel/opentelemetry-collector-contrib:0.87.0
+        ports:
+        - containerPort: 4317   # OTLP gRPC receiver
+          name: otlp-grpc
+        - containerPort: 4318   # OTLP HTTP receiver  
+          name: otlp-http
+        - containerPort: 8888   # Prometheus metrics
+          name: metrics
+        - containerPort: 13133  # Health check
+          name: health
+        - containerPort: 55679  # zPages
+          name: zpages
+        
+        env:
+        - name: K8S_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: K8S_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: K8S_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        
+        volumeMounts:
+        - name: otel-collector-config
+          mountPath: /etc/otel-collector-config.yaml
+          subPath: otel-collector-config.yaml
+        
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 13133
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 13133
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      
+      volumes:
+      - name: otel-collector-config
+        configMap:
+          name: otel-collector-config
+      
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+---
+# Service Account for OpenTelemetry Collector
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: otel-collector
+  namespace: tracing
+---
+# ClusterRole for OpenTelemetry Collector
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: otel-collector
+rules:
+- apiGroups: [""]
+  resources: ["nodes", "nodes/proxy", "services", "endpoints", "pods"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses"]
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+# ClusterRoleBinding for OpenTelemetry Collector
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: otel-collector
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: otel-collector
+subjects:
+- kind: ServiceAccount
+  name: otel-collector
+  namespace: tracing
+---
+# ConfigMap for OpenTelemetry Collector
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: tracing
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+      
+      zipkin:
+        endpoint: 0.0.0.0:9411
+      
+      k8s_cluster:
+        collection_interval: 10s
+      
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: otel-collector
+            scrape_interval: 10s
+            static_configs:
+            - targets: [0.0.0.0:8888]
+    
+    processors:
+      batch:
+        timeout: 1s
+        send_batch_size: 1024
+      
+      memory_limiter:
+        limit_mib: 400
+      
+      k8sattributes:
+        auth_type: "serviceAccount"
+        passthrough: false
+        filter:
+          node_from_env_var: K8S_NODE_NAME
+        extract:
+          metadata:
+          - k8s.pod.name
+          - k8s.pod.uid
+          - k8s.deployment.name
+          - k8s.namespace.name
+          - k8s.node.name
+          - k8s.pod.start_time
+        pod_association:
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.ip
+        - sources:
+          - from: resource_attribute
+            name: k8s.pod.uid
+        - sources:
+          - from: connection
+      
+      resource:
+        attributes:
+        - key: cluster
+          value: schlep-engine-eks
+          action: upsert
+        - key: environment
+          value: production
+          action: upsert
+    
+    exporters:
+      jaeger:
+        endpoint: jaeger-collector.tracing.svc.cluster.local:14250
+        tls:
+          insecure: true
+      
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        const_labels:
+          cluster: schlep-engine-eks
+      
+      logging:
+        loglevel: info
+    
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      pprof:
+        endpoint: 0.0.0.0:1777
+      zpages:
+        endpoint: 0.0.0.0:55679
+    
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp, jaeger, zipkin]
+          processors: [memory_limiter, k8sattributes, resource, batch]
+          exporters: [jaeger]
+        
+        metrics:
+          receivers: [otlp, k8s_cluster, prometheus]
+          processors: [memory_limiter, k8sattributes, resource, batch]
+          exporters: [prometheus]

@@ -86,13 +86,13 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     last_login = Column(DateTime(timezone=True))
     
-    # Relationships
-    organization = relationship("Organization", back_populates="users")
-    api_keys = relationship("ApiKey", back_populates="user")
-    data_investigations = relationship("DataInvestigation", back_populates="created_by")
-    audit_logs = relationship("AuditLog", back_populates="user")
-    user_sessions = relationship("UserSession", back_populates="user")
-    password_reset_tokens = relationship("PasswordResetToken", back_populates="user")
+    # Optimized relationships with eager loading configuration
+    organization = relationship("Organization", back_populates="users", lazy="select")
+    api_keys = relationship("ApiKey", back_populates="user", lazy="dynamic", order_by="ApiKey.created_at.desc()")
+    data_investigations = relationship("DataInvestigation", back_populates="created_by", lazy="dynamic", order_by="DataInvestigation.updated_at.desc()")
+    audit_logs = relationship("AuditLog", back_populates="user", lazy="dynamic", order_by="AuditLog.created_at.desc()")
+    user_sessions = relationship("UserSession", back_populates="user", lazy="dynamic", order_by="UserSession.last_accessed.desc()")
+    password_reset_tokens = relationship("PasswordResetToken", back_populates="user", lazy="dynamic", order_by="PasswordResetToken.created_at.desc()")
     
     # Security relationships (commented out until security models are properly defined)
     # encrypted_fields = relationship("EncryptedField", foreign_keys="[EncryptedField.users_id]", back_populates="user")
@@ -101,11 +101,11 @@ class User(Base):
     # compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.users_id]", back_populates="user")
     
     # OAuth relationships
-    oauth_accounts = relationship("OAuthAccount", back_populates="user")
+    oauth_accounts = relationship("OAuthAccount", back_populates="user", lazy="dynamic", order_by="OAuthAccount.last_used_at.desc()")
     
-    # Feedback Learning relationships
-    feedback_events = relationship("UserFeedback", back_populates="user")
-    learning_profile = relationship("UserLearningProfile", back_populates="user", uselist=False)
+    # Feedback Learning relationships - optimized for performance
+    feedback_events = relationship("UserFeedback", back_populates="user", lazy="dynamic", order_by="UserFeedback.created_at.desc()")
+    learning_profile = relationship("UserLearningProfile", back_populates="user", uselist=False, lazy="select")
 
 class OAuthAccount(Base):
     """OAuth account linking table for multiple OAuth providers per user"""
@@ -151,10 +151,10 @@ class Organization(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # Relationships
-    users = relationship("User", back_populates="organization")
-    workspaces = relationship("Workspace", back_populates="organization")
-    integrations = relationship("Integration", back_populates="organization")
+    # Optimized relationships
+    users = relationship("User", back_populates="organization", lazy="dynamic", order_by="User.created_at.desc()")
+    workspaces = relationship("Workspace", back_populates="organization", lazy="dynamic", order_by="Workspace.created_at.desc()")
+    integrations = relationship("Integration", back_populates="organization", lazy="dynamic", order_by="Integration.updated_at.desc()")
     
     # Security relationships (optional - for security models)
     encrypted_fields = relationship("EncryptedField", foreign_keys="[EncryptedField.organizations_id]", back_populates="organization")
@@ -175,9 +175,9 @@ class Workspace(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # Relationships
-    organization = relationship("Organization", back_populates="workspaces")
-    data_investigations = relationship("DataInvestigation", back_populates="workspace")
+    # Optimized relationships
+    organization = relationship("Organization", back_populates="workspaces", lazy="select")
+    data_investigations = relationship("DataInvestigation", back_populates="workspace", lazy="dynamic", order_by="DataInvestigation.updated_at.desc()")
 
 class ApiKey(Base):
     __tablename__ = "api_keys"
@@ -276,16 +276,16 @@ class DataInvestigation(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     completed_at = Column(DateTime(timezone=True))
     
-    # Relationships
-    workspace = relationship("Workspace", back_populates="data_investigations")
-    created_by = relationship("User", back_populates="data_investigations")
-    processing_jobs = relationship("ProcessingJob", back_populates="investigation")
+    # Optimized relationships with eager loading hints
+    workspace = relationship("Workspace", back_populates="data_investigations", lazy="select")
+    created_by = relationship("User", back_populates="data_investigations", lazy="select")
+    processing_jobs = relationship("ProcessingJob", back_populates="investigation", lazy="dynamic", order_by="ProcessingJob.created_at.desc()")
     
-    # Security relationships (optional - for security models)
-    encrypted_fields = relationship("EncryptedField", foreign_keys="[EncryptedField.data_investigations_id]", back_populates="data_investigation")
-    audit_trail = relationship("AuditTrail", foreign_keys="[AuditTrail.data_investigations_id]", back_populates="data_investigation")
-    data_classification = relationship("DataClassificationRecord", foreign_keys="[DataClassificationRecord.data_investigations_id]", back_populates="data_investigation")
-    compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.data_investigations_id]", back_populates="data_investigation")
+    # Security relationships (optional - for security models) - lazy loaded for performance
+    encrypted_fields = relationship("EncryptedField", foreign_keys="[EncryptedField.data_investigations_id]", back_populates="data_investigation", lazy="dynamic")
+    audit_trail = relationship("AuditTrail", foreign_keys="[AuditTrail.data_investigations_id]", back_populates="data_investigation", lazy="dynamic")
+    data_classification = relationship("DataClassificationRecord", foreign_keys="[DataClassificationRecord.data_investigations_id]", back_populates="data_investigation", lazy="dynamic")
+    compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.data_investigations_id]", back_populates="data_investigation", lazy="dynamic")
 
 class ProcessingJob(Base):
     __tablename__ = "processing_jobs"
@@ -532,10 +532,10 @@ class ABTest(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    # Relationships
-    creator = relationship("User")
-    organization = relationship("Organization")
-    test_results = relationship("ABTestResult", back_populates="ab_test")
+    # Optimized relationships
+    creator = relationship("User", lazy="select")
+    organization = relationship("Organization", lazy="select")
+    test_results = relationship("ABTestResult", back_populates="ab_test", lazy="dynamic", order_by="ABTestResult.recorded_at.desc()")
 
 class ABTestResult(Base):
     __tablename__ = "ab_test_results"
@@ -552,9 +552,9 @@ class ABTestResult(Base):
     # Timestamps
     recorded_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Relationships
-    ab_test = relationship("ABTest", back_populates="test_results")
-    user = relationship("User")
+    # Optimized relationships
+    ab_test = relationship("ABTest", back_populates="test_results", lazy="select")
+    user = relationship("User", lazy="select")
     
     # Indexes
     __table_args__ = (

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@schlep-engine/types": "workspace:*",
+    "@schlep-engine/ui": "workspace:*",
     "@tanstack/react-query": "^5.51.1",
     "@tanstack/react-query-devtools": "^5.51.1",
     "axios": "^1.10.0",

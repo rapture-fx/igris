@@ -1,11 +1,11 @@
-'use client'
+"use client";
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '@/lib/utils'
-import { 
-  LayoutDashboard, 
-  Database, 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  LayoutDashboard,
+  Database,
   Settings,
   BarChart3,
   Users,
@@ -76,7 +76,7 @@ import {
   Command,
   Zap as ZapIcon,
   Cog,
-  HeadphonesIcon,
+  Headphones as HeadphonesIcon,
   Home,
   Plus,
   Minus,
@@ -120,12 +120,12 @@ import {
   Cloud,
   CloudUpload,
   CloudDownload,
-  CloudSync,
+  CloudSun as CloudSync,
   HardDrive,
   Smartphone,
   Tablet,
   Laptop,
-  Desktop,
+  Monitor as Desktop,
   Watch,
   Camera,
   Mic,
@@ -135,8 +135,8 @@ import {
   Keyboard,
   Mouse,
   Printer,
-  Scanner,
-  Fax,
+  Scan as Scanner,
+  Printer as Fax,
   Phone,
   PhoneCall,
   PhoneMissed,
@@ -148,15 +148,15 @@ import {
   ReplyAll,
   Forward,
   MessageCircle,
-  MessageCircleIcon,
-  MessageSquareIcon,
+  MessageCircle as MessageCircleIcon,
+  MessageSquare as MessageSquareIcon,
   Info,
-  AlertTriangleIcon,
+  AlertTriangle as AlertTriangleIcon,
   CheckCircle,
   XCircle,
-  HelpCircleIcon,
-  QuestionMarkCircle,
-  ExclamationTriangleIcon,
+  HelpCircle as HelpCircleIcon,
+  HelpCircle as QuestionMarkCircle,
+  AlertTriangle as ExclamationTriangleIcon,
   ShieldAlert,
   ShieldX,
   ShieldCheck as ShieldCheckIcon,
@@ -164,19 +164,19 @@ import {
   Unlock,
   LockKeyhole,
   Hash,
-  At,
+  AtSign as At,
   Percent,
-  Dollar,
+  DollarSign as Dollar,
   Euro,
-  Pound,
+  PoundSterling as Pound,
   Yen,
   Bitcoin,
   Banknote,
   Wallet,
-  CreditCardIcon,
+  CreditCard as CreditCardIcon,
   Coins,
   TrendingDown,
-  TrendingUpIcon,
+  TrendingUp as TrendingUpIcon,
   ArrowUp,
   ArrowDown,
   ArrowLeft,
@@ -191,8 +191,8 @@ import {
   ArrowBigRight,
   ChevronUp,
   ChevronDown as ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
+  ChevronLeft as ChevronLeftIcon,
+  ChevronRight as ChevronRightIcon,
   ChevronsUp,
   ChevronsDown,
   ChevronsLeft,
@@ -218,13 +218,13 @@ import {
   ZoomIn,
   ZoomOut,
   Focus,
-  Unfocus,
+  Focus as Unfocus,
   Crosshair,
-  Crosshair2,
+  Crosshair as Crosshair2,
   Scan,
   ScanLine,
   Radar,
-  Sonar,
+  Radio as Sonar,
   Wifi,
   WifiOff,
   Bluetooth,
@@ -232,10 +232,10 @@ import {
   BluetoothSearching,
   BluetoothOff,
   Cast,
-  CastConnected,
+  Cast as CastConnected,
   Airplay,
   Radio,
-  RadioReceiver,
+  RadioTower as RadioReceiver,
   Rss,
   Signal,
   SignalHigh,
@@ -246,11 +246,10 @@ import {
   Satellite,
   SatelliteDish,
   Router,
-  Modem,
+  Server as Modem,
   Ethernet,
   Usb,
-  UsbC,
-  UsbCable,
+  Usb as UsbC,
   Cable,
   Plug,
   Power,
@@ -264,12 +263,12 @@ import {
   BatteryWarning,
   Fuel,
   Gauge as GaugeIcon,
-  Speedometer,
+  Gauge as Speedometer,
   Timer,
-  TimerIcon,
+  Timer as TimerIcon,
   Stopwatch,
   AlarmClock,
-  ClockIcon,
+  Clock as ClockIcon,
   Clock1,
   Clock2,
   Clock3,
@@ -282,7 +281,7 @@ import {
   Clock10,
   Clock11,
   Clock12,
-  CalendarIcon,
+  Calendar as CalendarIcon,
   CalendarDays,
   CalendarCheck,
   CalendarX,
@@ -292,23 +291,23 @@ import {
   CalendarClock,
   CalendarRange,
   CalendarSearch,
-  CalendarArrowUp,
-  CalendarArrowDown,
-  CalendarFold,
-  CalendarUnfold,
-  CalendarX2,
-  CalendarCheck2,
+  ArrowUpFromLine as CalendarArrowUp,
+  ArrowDownToLine as CalendarArrowDown,
+  Calendar as CalendarFold,
+  Calendar as CalendarUnfold,
+  CalendarX as CalendarX2,
+  CalendarCheck as CalendarCheck2,
   CalendarCog,
   CalendarSync,
-  CalendarIcon as CalendarIconIcon,
-  SunIcon,
-  MoonIcon,
+  Calendar as CalendarIconIcon,
+  Sun as SunIcon,
+  Moon as MoonIcon,
   SunDim,
   SunMedium,
   SunSnow,
   Sunrise,
   Sunset,
-  Eclipse,
+  Moon as Eclipse,
   Stars,
   Star as StarIcon,
   Sparkle,
@@ -326,9 +325,9 @@ import {
   Candle,
   Flame,
   Zap as ZapIcon3,
-  Bolt,
-  BoltIcon,
-  ThunderstormIcon,
+  Zap as Bolt,
+  Zap as BoltIcon,
+  CloudLightning as ThunderstormIcon,
   Cloud as CloudIcon,
   CloudDrizzle,
   CloudHail,
@@ -341,11 +340,11 @@ import {
   CloudMoon,
   CloudMoonRain,
   Cloudy,
-  PartlyCloudyDay,
-  PartlyCloudyNight,
+  CloudSun as PartlyCloudyDay,
+  CloudMoon as PartlyCloudyNight,
   Rainbow,
   Umbrella,
-  UmbrellaBeach,
+  Umbrella as UmbrellaBeach,
   Waves,
   Wind,
   Tornado,
@@ -355,11 +354,11 @@ import {
   ThermometerSnowflake,
   Droplets,
   Droplet,
-  Humidity,
+  Thermometer as Humidity,
   Eye as EyeIcon,
   EyeOff,
   Glasses,
-  Monocle,
+  Contact as Monocle,
   Telescope,
   Microscope,
   Binoculars,
@@ -367,36 +366,36 @@ import {
   CameraOff,
   Video,
   VideoOff,
-  VideoIcon,
+  Video as VideoIcon,
   Film,
-  FilmStrip,
+  Film as FilmStrip,
   Play as PlayIcon,
   Pause as PauseIcon,
   Square as SquareIcon,
   StopCircle,
   PlayCircle,
   PauseCircle,
-  SquarePlay,
-  SquarePause,
-  SquareStop,
+  PlaySquare as SquarePlay,
+  PauseSquare as SquarePause,
+  StopSquare as SquareStop,
   TriangleRight,
   TriangleLeft,
-  TriangleUp,
-  TriangleDown,
+  Triangle,
+  Triangle,
   SkipBack,
   SkipForward,
   Rewind,
   FastForward,
   Repeat,
-  RepeatOne,
+  Repeat1 as RepeatOne,
   Shuffle,
   Volume,
-  VolumeOff,
+  VolumeX as VolumeOff,
   Volume1,
   Volume2,
   VolumeX,
-  VolumeDown,
-  VolumeUp,
+  Volume1 as VolumeDown,
+  Volume2 as VolumeUp,
   Mic as MicIcon,
   MicOff,
   Headphones as HeadphonesIcon,
@@ -410,27 +409,27 @@ import {
   Disc,
   Disc2,
   Disc3,
-  Vinyl,
-  Cassette,
-  Cd,
+  Disc as Vinyl,
+  CassetteTape as Cassette,
+  Disc as Cd,
   Headset,
-  Airpods,
-  AirpodsCase,
-  AirpodsCharging,
-  AirpodsConnected,
-  AirpodsDisconnected,
-  AirpodsLeft,
-  AirpodsRight,
-  AirpodsOff,
-  AirpodsOn,
-  AirpodsCharging2,
-  AirpodsLow,
-  AirpodsHigh,
-  AirpodsPlaying,
-  AirpodsSearching,
-  AirpodsIcon,
+  Headphones as Airpods,
+  Headphones as AirpodsCase,
+  Headphones as AirpodsCharging,
+  Headphones as AirpodsConnected,
+  Headphones as AirpodsDisconnected,
+  Headphones as AirpodsLeft,
+  Headphones as AirpodsRight,
+  Headphones as AirpodsOff,
+  Headphones as AirpodsOn,
+  Headphones as AirpodsCharging2,
+  Headphones as AirpodsLow,
+  Headphones as AirpodsHigh,
+  Headphones as AirpodsPlaying,
+  Headphones as AirpodsSearching,
+  Headphones as AirpodsIcon,
   Waveform,
-  AudioWaveform,
+  Waveform as AudioWaveform,
   AudioLines,
   SoundWave,
   Equalizer,
@@ -438,437 +437,657 @@ import {
   SlidersHorizontal,
   SlidersVertical,
   Settings as SettingsIcon,
-  SettingsIcon as SettingsIconIcon,
+  Settings as SettingsIconIcon,
   Cog as CogIcon,
-  CogIcon as CogIconIcon,
-  Gear,
-  GearIcon,
+  Cog as CogIconIcon,
+  Cog as Gear,
+  Cog as GearIcon,
   Tool,
-  ToolIcon,
+  Tool as ToolIcon,
   Wrench,
-  WrenchIcon,
+  Wrench as WrenchIcon,
   Screwdriver,
-  ScrewdriverIcon,
+  Screwdriver as ScrewdriverIcon,
   Hammer,
-  HammerIcon,
+  Hammer as HammerIcon,
   Pickaxe,
-  PickaxeIcon,
+  Pickaxe as PickaxeIcon,
   Drill,
-  DrillIcon,
-  Saw,
-  SawIcon,
+  Drill as DrillIcon,
+  HandMetal as Saw,
+  HandMetal as SawIcon,
   Ruler,
-  RulerIcon,
+  Ruler as RulerIcon,
   Compass as CompassIcon,
-  CompassIcon as CompassIconIcon,
-  Protractor,
-  ProtractorIcon,
-  Dividers,
-  DividersIcon,
+  Compass as CompassIconIcon,
+  Compass as Protractor,
+  Compass as ProtractorIcon,
+  Divide as Dividers,
+  Divide as DividersIcon,
   Scissors,
-  ScissorsIcon,
-  Stapler,
-  StaplerIcon,
+  Scissors as ScissorsIcon,
+  Paperclip as Stapler,
+  Paperclip as StaplerIcon,
   Paperclip,
-  PaperclipIcon,
+  Paperclip as PaperclipIcon,
   Pin,
-  PinIcon,
-  Pushpin,
-  PushpinIcon,
-  Thumbtack,
-  ThumbtackIcon,
+  Pin as PinIcon,
+  Pin as Pushpin,
+  Pin as PushpinIcon,
+  Pin as Thumbtack,
+  Pin as ThumbtackIcon,
   Magnet,
-  MagnetIcon,
+  Magnet as MagnetIcon,
   Anchor,
-  AnchorIcon,
+  Anchor as AnchorIcon,
   Link,
-  LinkIcon,
+  Link as LinkIcon,
   Unlink,
-  UnlinkIcon,
-  Chain,
-  ChainIcon,
-  Rope,
-  RopeIcon,
-  Knot,
-  KnotIcon,
-  Bow,
-  BowIcon,
+  Unlink as UnlinkIcon,
+  Link as Chain,
+  Link as ChainIcon,
+  Cable as Rope,
+  Cable as RopeIcon,
+  Cable as Knot,
+  Cable as KnotIcon,
+  Gift as Bow,
+  Gift as BowIcon,
   Gift,
-  GiftIcon,
+  Gift as GiftIcon,
   Package as PackageIcon,
-  PackageIcon as PackageIconIcon,
+  Package as PackageIconIcon,
   PackageOpen,
-  PackageOpenIcon,
+  PackageOpen as PackageOpenIcon,
   PackageSearch,
-  PackageSearchIcon,
+  PackageSearch as PackageSearchIcon,
   PackageCheck,
-  PackageCheckIcon,
+  PackageCheck as PackageCheckIcon,
   PackageX,
-  PackageXIcon,
+  PackageX as PackageXIcon,
   PackagePlus,
-  PackagePlusIcon,
+  PackagePlus as PackagePlusIcon,
   PackageMinus,
-  PackageMinusIcon,
+  PackageMinus as PackageMinusIcon,
   Package2,
-  Package2Icon,
-  PackageIcon2,
+  Package as Package2Icon,
+  Package as PackageIcon2,
   Box,
-  BoxIcon,
+  Box as BoxIcon,
   BoxSelect,
-  BoxSelectIcon,
+  BoxSelect as BoxSelectIcon,
   Container,
-  ContainerIcon,
+  Container as ContainerIcon,
   Archive as ArchiveIcon,
-  ArchiveIcon as ArchiveIconIcon,
+  Archive as ArchiveIconIcon,
   ArchiveRestore,
-  ArchiveRestoreIcon,
+  ArchiveRestore as ArchiveRestoreIcon,
   ArchiveX,
-  ArchiveXIcon,
+  ArchiveX as ArchiveXIcon,
   FolderArchive,
-  FolderArchiveIcon,
+  FolderArchive as FolderArchiveIcon,
   FolderOpen,
-  FolderOpenIcon,
+  FolderOpen as FolderOpenIcon,
   FolderPlus,
-  FolderPlusIcon,
+  FolderPlus as FolderPlusIcon,
   FolderMinus,
-  FolderMinusIcon,
+  FolderMinus as FolderMinusIcon,
   FolderX,
-  FolderXIcon,
+  FolderX as FolderXIcon,
   FolderCheck,
-  FolderCheckIcon,
+  FolderCheck as FolderCheckIcon,
   FolderClock,
-  FolderClockIcon,
+  FolderClock as FolderClockIcon,
   FolderEdit,
-  FolderEditIcon,
+  FolderEdit as FolderEditIcon,
   FolderKey,
-  FolderKeyIcon,
+  FolderKey as FolderKeyIcon,
   FolderLock,
-  FolderLockIcon,
+  FolderLock as FolderLockIcon,
   FolderRoot,
-  FolderRootIcon,
+  FolderRoot as FolderRootIcon,
   FolderSync,
-  FolderSyncIcon,
+  FolderSync as FolderSyncIcon,
   FolderTree,
-  FolderTreeIcon,
+  FolderTree as FolderTreeIcon,
   FolderUp,
-  FolderUpIcon,
+  FolderUp as FolderUpIcon,
   FolderDown,
-  FolderDownIcon,
+  FolderDown as FolderDownIcon,
   FolderInput,
-  FolderInputIcon,
+  FolderInput as FolderInputIcon,
   FolderOutput,
-  FolderOutputIcon,
+  FolderOutput as FolderOutputIcon,
   FolderCog,
-  FolderCogIcon,
+  FolderCog as FolderCogIcon,
   FolderGit,
-  FolderGitIcon,
+  FolderGit as FolderGitIcon,
   FolderGit2,
-  FolderGit2Icon,
+  FolderGit2 as FolderGit2Icon,
   FolderSearch,
-  FolderSearchIcon,
+  FolderSearch as FolderSearchIcon,
   FolderSearch2,
-  FolderSearch2Icon,
+  FolderSearch2 as FolderSearch2Icon,
   FolderHeart,
-  FolderHeartIcon,
+  FolderHeart as FolderHeartIcon,
   FolderSymlink,
-  FolderSymlinkIcon,
+  FolderSymlink as FolderSymlinkIcon,
   FolderKanban,
-  FolderKanbanIcon,
+  FolderKanban as FolderKanbanIcon,
   File as FileIcon,
-  FileIcon as FileIconIcon,
+  File as FileIconIcon,
   FilePlus,
-  FilePlusIcon,
+  FilePlus as FilePlusIcon,
   FileMinus,
-  FileMinusIcon,
+  FileMinus as FileMinusIcon,
   FileX,
-  FileXIcon,
+  FileX as FileXIcon,
   FileCheck,
-  FileCheckIcon,
+  FileCheck as FileCheckIcon,
   FileSearch as FileSearchIcon,
-  FileSearchIcon as FileSearchIconIcon,
+  FileSearch as FileSearchIconIcon,
   FileSearch2,
-  FileSearch2Icon,
+  FileSearch2 as FileSearch2Icon,
   FileEdit,
-  FileEditIcon,
+  FileEdit as FileEditIcon,
   FileType,
-  FileTypeIcon,
+  FileType as FileTypeIcon,
   FileType2,
-  FileType2Icon,
+  FileType2 as FileType2Icon,
   FileInput,
-  FileInputIcon,
+  FileInput as FileInputIcon,
   FileOutput,
-  FileOutputIcon,
+  FileOutput as FileOutputIcon,
   FileDown,
-  FileDownIcon,
+  FileDown as FileDownIcon,
   FileUp,
-  FileUpIcon,
+  FileUp as FileUpIcon,
   FileDigit,
-  FileDigitIcon,
+  FileDigit as FileDigitIcon,
   FileKey,
-  FileKeyIcon,
+  FileKey as FileKeyIcon,
   FileKey2,
-  FileKey2Icon,
+  FileKey2 as FileKey2Icon,
   FileLock,
-  FileLockIcon,
+  FileLock as FileLockIcon,
   FileLock2,
-  FileLock2Icon,
+  FileLock2 as FileLock2Icon,
   FileQuestion,
-  FileQuestionIcon,
+  FileQuestion as FileQuestionIcon,
   FileWarning,
-  FileWarningIcon,
+  FileWarning as FileWarningIcon,
   FileX2,
-  FileX2Icon,
+  FileX2 as FileX2Icon,
   FileSliders,
-  FileSlidersIcon,
+  FileSliders as FileSlidersIcon,
   FileCog,
-  FileCogIcon,
+  FileCog as FileCogIcon,
   FileCog2,
-  FileCog2Icon,
+  FileCog2 as FileCog2Icon,
   FileCode as FileCodeIcon,
-  FileCodeIcon as FileCodeIconIcon,
+  FileCode as FileCodeIconIcon,
   FileCode2,
-  FileCode2Icon,
+  FileCode2 as FileCode2Icon,
   FileJson,
-  FileJsonIcon,
+  FileJson as FileJsonIcon,
   FileJson2,
-  FileJson2Icon,
+  FileJson2 as FileJson2Icon,
   FileBox,
-  FileBoxIcon,
+  FileBox as FileBoxIcon,
   FileArchive,
-  FileArchiveIcon,
+  FileArchive as FileArchiveIcon,
   FileImage as FileImageIcon,
-  FileImageIcon as FileImageIconIcon,
+  FileImage as FileImageIconIcon,
   FileVideo as FileVideoIcon,
-  FileVideoIcon as FileVideoIconIcon,
+  FileVideo as FileVideoIconIcon,
   FileVideo2,
-  FileVideo2Icon,
+  FileVideo2 as FileVideo2Icon,
   FileAudio,
-  FileAudioIcon,
+  FileAudio as FileAudioIcon,
   FileAudio2,
-  FileAudio2Icon,
+  FileAudio2 as FileAudio2Icon,
   FileMusic as FileMusicIcon,
-  FileMusicIcon as FileMusicIconIcon,
+  FileMusic as FileMusicIconIcon,
   FileMusic2,
-  FileMusic2Icon,
+  FileMusic2 as FileMusic2Icon,
   FileSpreadsheet as FileSpreadsheetIcon,
-  FileSpreadsheetIcon as FileSpreadsheetIconIcon,
+  FileSpreadsheet as FileSpreadsheetIconIcon,
   FileBarChart as FileBarChartIcon,
-  FileBarChartIcon as FileBarChartIconIcon,
+  FileBarChart as FileBarChartIconIcon,
   FileBarChart2,
-  FileBarChart2Icon,
-  FileBarChart3,
-  FileBarChart3Icon,
-  FileBarChart4,
-  FileBarChart4Icon,
+  FileBarChart2 as FileBarChart2Icon,
+  FileBarChart as FileBarChart3,
+  FileBarChart as FileBarChart3Icon,
+  FileBarChart as FileBarChart4,
+  FileBarChart as FileBarChart4Icon,
   FileLineChart,
-  FileLineChartIcon,
+  FileLineChart as FileLineChartIcon,
   FilePieChart,
-  FilePieChartIcon,
+  FilePieChart as FilePieChartIcon,
   FileText as FileTextIcon,
-  FileTextIcon as FileTextIconIcon,
-  FileDoc,
-  FileDocIcon,
-  FilePdf,
-  FilePdfIcon,
+  FileText as FileTextIconIcon,
+  FileText as FileDoc,
+  FileText as FileDocIcon,
+  FileText as FilePdf,
+  FileText as FilePdfIcon,
   FileSymlink,
-  FileSymlinkIcon,
+  FileSymlink as FileSymlinkIcon,
   FileHeart,
-  FileHeartIcon,
+  FileHeart as FileHeartIcon,
   FileStack,
-  FileStackIcon,
+  FileStack as FileStackIcon,
   FileTerminal,
-  FileTerminalIcon,
+  FileTerminal as FileTerminalIcon,
   FileVolume,
-  FileVolumeIcon,
+  FileVolume as FileVolumeIcon,
   FileVolume2,
-  FileVolume2Icon,
+  FileVolume2 as FileVolume2Icon,
   FileVolumeX,
-  FileVolumeXIcon,
+  FileVolumeX as FileVolumeXIcon,
   FileSignature,
-  FileSignatureIcon,
-  FileChartColumn,
-  FileChartColumnIcon,
-  FileChartColumnIncreasing,
-  FileChartColumnIncreasingIcon,
-  FileChartLine,
-  FileChartLineIcon,
-  FileChartPie,
-  FileChartPieIcon,
+  FileSignature as FileSignatureIcon,
+  BarChart as FileChartColumn,
+  BarChart as FileChartColumnIcon,
+  BarChart as FileChartColumnIncreasing,
+  BarChart as FileChartColumnIncreasingIcon,
+  LineChart as FileChartLine,
+  LineChart as FileChartLineIcon,
+  PieChart as FileChartPie,
+  PieChart as FileChartPieIcon,
   FileUser,
-  FileUserIcon,
+  FileUser as FileUserIcon,
   FileUsers,
-  FileUsersIcon,
-  FileWarning2,
-  FileWarning2Icon,
-  FileSpreadsheet2,
-  FileSpreadsheet2Icon,
-  FileSpreadsheet3,
-  FileSpreadsheet3Icon,
-  FileSpreadsheet4,
-  FileSpreadsheet4Icon,
-  FileSpreadsheet5,
-  FileSpreadsheet5Icon,
-  FileSpreadsheet6,
-  FileSpreadsheet6Icon,
-  FileSpreadsheet7,
-  FileSpreadsheet7Icon,
-  FileSpreadsheet8,
-  FileSpreadsheet8Icon,
-  FileSpreadsheet9,
-  FileSpreadsheet9Icon,
-  FileSpreadsheet10,
-  FileSpreadsheet10Icon,
-  FileSpreadsheet11,
-  FileSpreadsheet11Icon,
-  FileSpreadsheet12,
-  FileSpreadsheet12Icon,
-  FileSpreadsheet13,
-  FileSpreadsheet13Icon,
-  FileSpreadsheet14,
-  FileSpreadsheet14Icon,
-  FileSpreadsheet15,
-  FileSpreadsheet15Icon,
-  FileSpreadsheet16,
-  FileSpreadsheet16Icon,
-  FileSpreadsheet17,
-  FileSpreadsheet17Icon,
-  FileSpreadsheet18,
-  FileSpreadsheet18Icon,
-  FileSpreadsheet19,
-  FileSpreadsheet19Icon,
-  FileSpreadsheet20,
-  FileSpreadsheet20Icon,
-  FileSpreadsheet21,
-  FileSpreadsheet21Icon,
-  FileSpreadsheet22,
-  FileSpreadsheet22Icon,
-  FileSpreadsheet23,
-  FileSpreadsheet23Icon,
-  FileSpreadsheet24,
-  FileSpreadsheet24Icon,
-  FileSpreadsheet25,
-  FileSpreadsheet25Icon,
-  FileSpreadsheet26,
-  FileSpreadsheet26Icon,
-  FileSpreadsheet27,
-  FileSpreadsheet27Icon,
-  FileSpreadsheet28,
-  FileSpreadsheet28Icon,
-  FileSpreadsheet29,
-  FileSpreadsheet29Icon,
-  FileSpreadsheet30,
-  FileSpreadsheet30Icon
-} from 'lucide-react'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { Badge } from '@/components/ui/badge'
-import { useState } from 'react'
-import { useAuth } from '@/hooks/useAuth'
+  FileUsers as FileUsersIcon,
+  FileWarning as FileWarning2,
+  FileWarning as FileWarning2Icon,
+  FileSpreadsheet as FileSpreadsheet2,
+  FileSpreadsheet as FileSpreadsheet2Icon,
+  FileSpreadsheet as FileSpreadsheet3,
+  FileSpreadsheet as FileSpreadsheet3Icon,
+  FileSpreadsheet as FileSpreadsheet4,
+  FileSpreadsheet as FileSpreadsheet4Icon,
+  FileSpreadsheet as FileSpreadsheet5,
+  FileSpreadsheet as FileSpreadsheet5Icon,
+  FileSpreadsheet as FileSpreadsheet6,
+  FileSpreadsheet as FileSpreadsheet6Icon,
+  FileSpreadsheet as FileSpreadsheet7,
+  FileSpreadsheet as FileSpreadsheet7Icon,
+  FileSpreadsheet as FileSpreadsheet8,
+  FileSpreadsheet as FileSpreadsheet8Icon,
+  FileSpreadsheet as FileSpreadsheet9,
+  FileSpreadsheet as FileSpreadsheet9Icon,
+  FileSpreadsheet as FileSpreadsheet10,
+  FileSpreadsheet as FileSpreadsheet10Icon,
+  FileSpreadsheet as FileSpreadsheet11,
+  FileSpreadsheet as FileSpreadsheet11Icon,
+  FileSpreadsheet as FileSpreadsheet12,
+  FileSpreadsheet as FileSpreadsheet12Icon,
+  FileSpreadsheet as FileSpreadsheet13,
+  FileSpreadsheet as FileSpreadsheet13Icon,
+  FileSpreadsheet as FileSpreadsheet14,
+  FileSpreadsheet as FileSpreadsheet14Icon,
+  FileSpreadsheet as FileSpreadsheet15,
+  FileSpreadsheet as FileSpreadsheet15Icon,
+  FileSpreadsheet as FileSpreadsheet16,
+  FileSpreadsheet as FileSpreadsheet16Icon,
+  FileSpreadsheet as FileSpreadsheet17,
+  FileSpreadsheet as FileSpreadsheet17Icon,
+  FileSpreadsheet as FileSpreadsheet18,
+  FileSpreadsheet as FileSpreadsheet18Icon,
+  FileSpreadsheet as FileSpreadsheet19,
+  FileSpreadsheet as FileSpreadsheet19Icon,
+  FileSpreadsheet as FileSpreadsheet20,
+  FileSpreadsheet as FileSpreadsheet20Icon,
+  FileSpreadsheet as FileSpreadsheet21,
+  FileSpreadsheet as FileSpreadsheet21Icon,
+  FileSpreadsheet as FileSpreadsheet22,
+  FileSpreadsheet as FileSpreadsheet22Icon,
+  FileSpreadsheet as FileSpreadsheet23,
+  FileSpreadsheet as FileSpreadsheet23Icon,
+  FileSpreadsheet as FileSpreadsheet24,
+  FileSpreadsheet as FileSpreadsheet24Icon,
+  FileSpreadsheet as FileSpreadsheet25,
+  FileSpreadsheet as FileSpreadsheet25Icon,
+  FileSpreadsheet as FileSpreadsheet26,
+  FileSpreadsheet as FileSpreadsheet26Icon,
+  FileSpreadsheet as FileSpreadsheet27,
+  FileSpreadsheet as FileSpreadsheet27Icon,
+  FileSpreadsheet as FileSpreadsheet28,
+  FileSpreadsheet as FileSpreadsheet28Icon,
+  FileSpreadsheet as FileSpreadsheet29,
+  FileSpreadsheet as FileSpreadsheet29Icon,
+  FileSpreadsheet as FileSpreadsheet30,
+  FileSpreadsheet as FileSpreadsheet30Icon,
+} from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 // Role-based navigation structure
 const roleBasedNavigation = {
   admin: {
     core: [
-      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, shortcut: '⌘1' },
-      { name: 'Projects', href: '/dashboard/projects', icon: FolderKanban, shortcut: '⌘2', badge: 'New' },
-      { name: 'Data Sources', href: '/dashboard/data-sources', icon: Database, shortcut: '⌘3' },
-      { name: 'Pipelines', href: '/dashboard/pipelines', icon: Workflow, shortcut: '⌘4' },
-      { name: 'Analysis', href: '/dashboard/data-analysis', icon: BarChart3, shortcut: '⌘5' },
-      { name: 'System Monitor', href: '/dashboard/monitoring', icon: Activity, shortcut: '⌘6' },
+      {
+        name: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        shortcut: "⌘1",
+      },
+      {
+        name: "Projects",
+        href: "/dashboard/projects",
+        icon: FolderKanban,
+        shortcut: "⌘2",
+        badge: "New",
+      },
+      {
+        name: "Data Sources",
+        href: "/dashboard/data-sources",
+        icon: Database,
+        shortcut: "⌘3",
+      },
+      {
+        name: "Pipelines",
+        href: "/dashboard/pipelines",
+        icon: Workflow,
+        shortcut: "⌘4",
+      },
+      {
+        name: "Analysis",
+        href: "/dashboard/data-analysis",
+        icon: BarChart3,
+        shortcut: "⌘5",
+      },
+      {
+        name: "System Monitor",
+        href: "/dashboard/monitoring",
+        icon: Activity,
+        shortcut: "⌘6",
+      },
     ],
     management: [
-      { name: 'User Management', href: '/dashboard/users', icon: Users, count: 0 },
-      { name: 'Security', href: '/dashboard/security', icon: Shield, count: 0 },
-      { name: 'Audit Logs', href: '/dashboard/audit', icon: FileSearch, count: 0 },
-      { name: 'System Health', href: '/dashboard/system-health', icon: Gauge, count: 0 },
+      {
+        name: "User Management",
+        href: "/dashboard/users",
+        icon: Users,
+        count: 0,
+      },
+      { name: "Security", href: "/dashboard/security", icon: Shield, count: 0 },
+      {
+        name: "Audit Logs",
+        href: "/dashboard/audit",
+        icon: FileSearch,
+        count: 0,
+      },
+      {
+        name: "System Health",
+        href: "/dashboard/system-health",
+        icon: Gauge,
+        count: 0,
+      },
     ],
     ai: [
-      { name: 'AI Models', href: '/dashboard/models', icon: BrainCircuit, count: 0 },
-      { name: 'Auto-labeling', href: '/dashboard/labeling', icon: Tags, count: 0 },
-      { name: 'ML Preparation', href: '/dashboard/ml-preparation', icon: Beaker, count: 0 },
-      { name: 'Model Registry', href: '/dashboard/model-registry', icon: Archive, count: 0 },
-    ]
+      {
+        name: "AI Models",
+        href: "/dashboard/models",
+        icon: BrainCircuit,
+        count: 0,
+      },
+      {
+        name: "Auto-labeling",
+        href: "/dashboard/labeling",
+        icon: Tags,
+        count: 0,
+      },
+      {
+        name: "ML Preparation",
+        href: "/dashboard/ml-preparation",
+        icon: Beaker,
+        count: 0,
+      },
+      {
+        name: "Model Registry",
+        href: "/dashboard/model-registry",
+        icon: Archive,
+        count: 0,
+      },
+    ],
   },
   user: {
     core: [
-      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, shortcut: '⌘1' },
-      { name: 'My Projects', href: '/dashboard/my-projects', icon: FolderKanban, shortcut: '⌘2' },
-      { name: 'Data Sources', href: '/dashboard/data-sources', icon: Database, shortcut: '⌘3' },
-  { name: 'Analysis', href: '/dashboard/data-analysis', icon: BarChart3, shortcut: '⌘4' },
-      { name: 'Exports', href: '/dashboard/export', icon: Download, shortcut: '⌘5' },
+      {
+        name: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        shortcut: "⌘1",
+      },
+      {
+        name: "My Projects",
+        href: "/dashboard/my-projects",
+        icon: FolderKanban,
+        shortcut: "⌘2",
+      },
+      {
+        name: "Data Sources",
+        href: "/dashboard/data-sources",
+        icon: Database,
+        shortcut: "⌘3",
+      },
+      {
+        name: "Analysis",
+        href: "/dashboard/data-analysis",
+        icon: BarChart3,
+        shortcut: "⌘4",
+      },
+      {
+        name: "Exports",
+        href: "/dashboard/export",
+        icon: Download,
+        shortcut: "⌘5",
+      },
     ],
     workflow: [
-    { name: 'Datasets', href: '/dashboard/datasets', icon: FileText, count: 0 },
-    { name: 'Transformations', href: '/dashboard/transformations', icon: Zap, count: 0 },
-    { name: 'Jobs', href: '/dashboard/jobs', icon: Activity, count: 0 },
-      { name: 'Anomalies', href: '/dashboard/anomalies', icon: AlertTriangle, count: 0 },
+      {
+        name: "Datasets",
+        href: "/dashboard/datasets",
+        icon: FileText,
+        count: 0,
+      },
+      {
+        name: "Transformations",
+        href: "/dashboard/transformations",
+        icon: Zap,
+        count: 0,
+      },
+      { name: "Jobs", href: "/dashboard/jobs", icon: Activity, count: 0 },
+      {
+        name: "Anomalies",
+        href: "/dashboard/anomalies",
+        icon: AlertTriangle,
+        count: 0,
+      },
     ],
     collaboration: [
-      { name: 'Shared Projects', href: '/dashboard/shared', icon: Users, count: 0 },
-      { name: 'Team Insights', href: '/dashboard/team-insights', icon: TrendingUp, count: 0 },
-      { name: 'Comments', href: '/dashboard/comments', icon: MessageSquare, count: 0 },
-    ]
+      {
+        name: "Shared Projects",
+        href: "/dashboard/shared",
+        icon: Users,
+        count: 0,
+      },
+      {
+        name: "Team Insights",
+        href: "/dashboard/team-insights",
+        icon: TrendingUp,
+        count: 0,
+      },
+      {
+        name: "Comments",
+        href: "/dashboard/comments",
+        icon: MessageSquare,
+        count: 0,
+      },
+    ],
   },
   analyst: {
     core: [
-      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, shortcut: '⌘1' },
-      { name: 'Analysis Hub', href: '/dashboard/analysis-hub', icon: BarChart3, shortcut: '⌘2' },
-      { name: 'Data Sources', href: '/dashboard/data-sources', icon: Database, shortcut: '⌘3' },
-      { name: 'ML Models', href: '/dashboard/ml-models', icon: BrainCircuit, shortcut: '⌘4' },
-      { name: 'Experiments', href: '/dashboard/experiments', icon: FlaskConical, shortcut: '⌘5' },
+      {
+        name: "Dashboard",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        shortcut: "⌘1",
+      },
+      {
+        name: "Analysis Hub",
+        href: "/dashboard/analysis-hub",
+        icon: BarChart3,
+        shortcut: "⌘2",
+      },
+      {
+        name: "Data Sources",
+        href: "/dashboard/data-sources",
+        icon: Database,
+        shortcut: "⌘3",
+      },
+      {
+        name: "ML Models",
+        href: "/dashboard/ml-models",
+        icon: BrainCircuit,
+        shortcut: "⌘4",
+      },
+      {
+        name: "Experiments",
+        href: "/dashboard/experiments",
+        icon: FlaskConical,
+        shortcut: "⌘5",
+      },
     ],
     analytics: [
-      { name: 'Statistical Analysis', href: '/dashboard/stats', icon: BarChart4, count: 0 },
-      { name: 'Predictive Models', href: '/dashboard/predictions', icon: TrendingUp, count: 0 },
-      { name: 'A/B Testing', href: '/dashboard/ab-testing', icon: GitBranch, count: 0 },
-      { name: 'Reporting', href: '/dashboard/reports', icon: FileText, count: 0 },
+      {
+        name: "Statistical Analysis",
+        href: "/dashboard/stats",
+        icon: BarChart4,
+        count: 0,
+      },
+      {
+        name: "Predictive Models",
+        href: "/dashboard/predictions",
+        icon: TrendingUp,
+        count: 0,
+      },
+      {
+        name: "A/B Testing",
+        href: "/dashboard/ab-testing",
+        icon: GitBranch,
+        count: 0,
+      },
+      {
+        name: "Reporting",
+        href: "/dashboard/reports",
+        icon: FileText,
+        count: 0,
+      },
     ],
     tools: [
-      { name: 'Query Builder', href: '/dashboard/query-builder', icon: Code, count: 0 },
-      { name: 'Visualization', href: '/dashboard/visualizations', icon: PieChart, count: 0 },
-      { name: 'Notebooks', href: '/dashboard/notebooks', icon: BookOpen, count: 0 },
-      { name: 'SQL Editor', href: '/dashboard/sql-editor', icon: Terminal, count: 0 },
-    ]
-  }
-}
+      {
+        name: "Query Builder",
+        href: "/dashboard/query-builder",
+        icon: Code,
+        count: 0,
+      },
+      {
+        name: "Visualization",
+        href: "/dashboard/visualizations",
+        icon: PieChart,
+        count: 0,
+      },
+      {
+        name: "Notebooks",
+        href: "/dashboard/notebooks",
+        icon: BookOpen,
+        count: 0,
+      },
+      {
+        name: "SQL Editor",
+        href: "/dashboard/sql-editor",
+        icon: Terminal,
+        count: 0,
+      },
+    ],
+  },
+};
 
 const systemAndIntegration = [
-  { name: 'Integrations', href: '/dashboard/integrations', icon: Globe, shortcut: '⌘I' },
-  { name: 'API Keys', href: '/dashboard/api-keys', icon: Key, shortcut: '⌘K' },
-  { name: 'Webhooks', href: '/dashboard/webhooks', icon: Network, shortcut: '⌘W' },
-]
+  {
+    name: "Integrations",
+    href: "/dashboard/integrations",
+    icon: Globe,
+    shortcut: "⌘I",
+  },
+  { name: "API Keys", href: "/dashboard/api-keys", icon: Key, shortcut: "⌘K" },
+  {
+    name: "Webhooks",
+    href: "/dashboard/webhooks",
+    icon: Network,
+    shortcut: "⌘W",
+  },
+];
 
 const settingsAndSupport = [
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings, shortcut: '⌘,' },
-  { name: 'Usage', href: '/dashboard/usage', icon: PieChart, shortcut: '⌘U' },
-  { name: 'Documentation', href: '/documentation', icon: BookOpen, shortcut: '⌘D' },
-  { name: 'Support', href: '/dashboard/support', icon: HeadphonesIcon, shortcut: '⌘H' },
-]
+  {
+    name: "Settings",
+    href: "/dashboard/settings",
+    icon: Settings,
+    shortcut: "⌘,",
+  },
+  { name: "Usage", href: "/dashboard/usage", icon: PieChart, shortcut: "⌘U" },
+  {
+    name: "Documentation",
+    href: "/documentation",
+    icon: BookOpen,
+    shortcut: "⌘D",
+  },
+  {
+    name: "Support",
+    href: "/dashboard/support",
+    icon: HeadphonesIcon,
+    shortcut: "⌘H",
+  },
+];
 
 // Role definitions
 const roleDefinitions = {
   admin: {
-    name: 'Administrator',
-    description: 'Full system access',
+    name: "Administrator",
+    description: "Full system access",
     icon: Crown,
-    color: 'text-red-600 bg-red-50',
-    badge: 'ADMIN'
+    color: "text-red-600 bg-red-50",
+    badge: "ADMIN",
   },
   user: {
-    name: 'Data User',
-    description: 'Standard user access',
+    name: "Data User",
+    description: "Standard user access",
     icon: User,
-    color: 'text-blue-600 bg-blue-50',
-    badge: 'USER'
+    color: "text-blue-600 bg-blue-50",
+    badge: "USER",
   },
   analyst: {
-    name: 'Data Analyst',
-    description: 'Advanced analytics',
+    name: "Data Analyst",
+    description: "Advanced analytics",
     icon: GraduationCap,
-    color: 'text-purple-600 bg-purple-50',
-    badge: 'ANALYST'
-  }
-}
+    color: "text-purple-600 bg-purple-50",
+    badge: "ANALYST",
+  },
+};
 
 interface DynamicSectionProps {
   title: string;
@@ -886,42 +1105,51 @@ interface DynamicSectionProps {
   setOpenCollapsible: (title: string | null) => void;
 }
 
-function DynamicSection({ 
-  title, 
-  icon: Icon, 
-  items, 
-  isCollapsed, 
-  pathname, 
-  openCollapsible, 
-  setOpenCollapsible 
+function DynamicSection({
+  title,
+  icon: Icon,
+  items,
+  isCollapsed,
+  pathname,
+  openCollapsible,
+  setOpenCollapsible,
 }: DynamicSectionProps) {
   const isOpen = openCollapsible === title;
-  const isParentActive = items.some(item => pathname.startsWith(item.href));
+  const isParentActive = items.some((item) => pathname.startsWith(item.href));
 
   return (
     <div className="group">
-      <Collapsible open={isOpen} onOpenChange={(open) => setOpenCollapsible(open ? title : null)}>
-        <CollapsibleTrigger className={cn(
-          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group-hover:bg-gray-50/80",
-          isCollapsed ? "justify-center px-2" : "justify-between",
-          isParentActive 
-            ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100' 
-            : 'text-gray-600 hover:text-gray-900'
-        )}>
+      <Collapsible
+        open={isOpen}
+        onOpenChange={(open) => setOpenCollapsible(open ? title : null)}
+      >
+        <CollapsibleTrigger
+          className={cn(
+            "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group-hover:bg-gray-50/80",
+            isCollapsed ? "justify-center px-2" : "justify-between",
+            isParentActive
+              ? "bg-blue-50 text-blue-700 shadow-sm border border-blue-100"
+              : "text-gray-600 hover:text-gray-900",
+          )}
+        >
           <div className="flex items-center gap-3">
-            <Icon className={cn(
-              'w-5 h-5 transition-colors',
-              isParentActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-            )} />
-            {!isCollapsed && (
-              <span className="font-medium">{title}</span>
-            )}
+            <Icon
+              className={cn(
+                "w-5 h-5 transition-colors",
+                isParentActive
+                  ? "text-blue-600"
+                  : "text-gray-400 group-hover:text-gray-600",
+              )}
+            />
+            {!isCollapsed && <span className="font-medium">{title}</span>}
           </div>
           {!isCollapsed && (
-            <ChevronDown className={cn(
-              "w-4 h-4 transition-transform duration-200",
-              isOpen && "rotate-180"
-            )} />
+            <ChevronDown
+              className={cn(
+                "w-4 h-4 transition-transform duration-200",
+                isOpen && "rotate-180",
+              )}
+            />
           )}
         </CollapsibleTrigger>
         {!isCollapsed && (
@@ -933,8 +1161,8 @@ function DynamicSection({
                 className={cn(
                   "flex items-center gap-3 px-3 py-2 ml-6 rounded-lg text-sm transition-all duration-200 group",
                   pathname.startsWith(item.href)
-                    ? 'text-blue-600 bg-blue-50 font-medium'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    ? "text-blue-600 bg-blue-50 font-medium"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50",
                 )}
               >
                 <item.icon className="w-4 h-4" />
@@ -964,9 +1192,14 @@ interface RoleSwitcherProps {
   isCollapsed: boolean;
 }
 
-function RoleSwitcher({ currentRole, onRoleChange, isCollapsed }: RoleSwitcherProps) {
+function RoleSwitcher({
+  currentRole,
+  onRoleChange,
+  isCollapsed,
+}: RoleSwitcherProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const currentRoleData = roleDefinitions[currentRole as keyof typeof roleDefinitions];
+  const currentRoleData =
+    roleDefinitions[currentRole as keyof typeof roleDefinitions];
 
   if (isCollapsed) {
     return (
@@ -979,7 +1212,9 @@ function RoleSwitcher({ currentRole, onRoleChange, isCollapsed }: RoleSwitcherPr
           </TooltipTrigger>
           <TooltipContent side="right" className="font-medium">
             <p>{currentRoleData.name}</p>
-            <p className="text-xs text-gray-400">{currentRoleData.description}</p>
+            <p className="text-xs text-gray-400">
+              {currentRoleData.description}
+            </p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -992,18 +1227,22 @@ function RoleSwitcher({ currentRole, onRoleChange, isCollapsed }: RoleSwitcherPr
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 hover:bg-gray-50/80",
-          currentRoleData.color
+          currentRoleData.color,
         )}
       >
         <currentRoleData.icon className="w-5 h-5" />
         <div className="flex-1 text-left">
           <div className="font-medium">{currentRoleData.name}</div>
-          <div className="text-xs opacity-75">{currentRoleData.description}</div>
+          <div className="text-xs opacity-75">
+            {currentRoleData.description}
+          </div>
         </div>
-        <ChevronDown className={cn(
-          "w-4 h-4 transition-transform duration-200",
-          isOpen && "rotate-180"
-        )} />
+        <ChevronDown
+          className={cn(
+            "w-4 h-4 transition-transform duration-200",
+            isOpen && "rotate-180",
+          )}
+        />
       </button>
 
       {isOpen && (
@@ -1019,7 +1258,10 @@ function RoleSwitcher({ currentRole, onRoleChange, isCollapsed }: RoleSwitcherPr
                 "w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-gray-50",
                 roleKey === currentRole && "bg-blue-50 text-blue-700",
                 roleKey === Object.keys(roleDefinitions)[0] && "rounded-t-xl",
-                roleKey === Object.keys(roleDefinitions)[Object.keys(roleDefinitions).length - 1] && "rounded-b-xl"
+                roleKey ===
+                  Object.keys(roleDefinitions)[
+                    Object.keys(roleDefinitions).length - 1
+                  ] && "rounded-b-xl",
               )}
             >
               <role.icon className="w-5 h-5" />
@@ -1047,25 +1289,28 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   const pathname = usePathname();
   const { user } = useAuth();
   const [openCollapsible, setOpenCollapsible] = useState<string | null>(null);
-  const [currentRole, setCurrentRole] = useState<string>('user'); // Default to user, can be set from user context
+  const [currentRole, setCurrentRole] = useState<string>("user"); // Default to user, can be set from user context
 
   // Get role-based navigation
-  const roleNav = roleBasedNavigation[currentRole as keyof typeof roleBasedNavigation];
+  const roleNav =
+    roleBasedNavigation[currentRole as keyof typeof roleBasedNavigation];
 
   const renderNav = (items: any[]) => (
     <div className="space-y-1">
       {items.map((item) => {
-        const isActive = (pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
+        const isActive =
+          pathname === item.href ||
+          (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
         const NavLink = ({ children }: { children: React.ReactNode }) => (
-          <Link 
-            href={item.href} 
+          <Link
+            href={item.href}
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group",
               isCollapsed ? "justify-center px-2" : "",
               isActive
-                ? 'bg-blue-50 text-blue-700 shadow-sm border border-blue-100'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50/80'
+                ? "bg-blue-50 text-blue-700 shadow-sm border border-blue-100"
+                : "text-gray-600 hover:text-gray-900 hover:bg-gray-50/80",
             )}
           >
             {children}
@@ -1074,20 +1319,27 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
         const content = (
           <>
-            <item.icon className={cn(
-              'w-5 h-5 transition-colors',
-              isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-            )} />
-            {!isCollapsed && (
-              <span className="flex-1">{item.name}</span>
-            )}
+            <item.icon
+              className={cn(
+                "w-5 h-5 transition-colors",
+                isActive
+                  ? "text-blue-600"
+                  : "text-gray-400 group-hover:text-gray-600",
+              )}
+            />
+            {!isCollapsed && <span className="flex-1">{item.name}</span>}
             {!isCollapsed && item.badge && (
-              <Badge variant={item.badge === 'New' ? 'default' : 'outline'} className="text-xs">
+              <Badge
+                variant={item.badge === "New" ? "default" : "outline"}
+                className="text-xs"
+              >
                 {item.badge}
               </Badge>
             )}
             {!isCollapsed && item.shortcut && (
-              <span className="text-xs text-gray-400 font-mono">{item.shortcut}</span>
+              <span className="text-xs text-gray-400 font-mono">
+                {item.shortcut}
+              </span>
             )}
           </>
         );
@@ -1103,7 +1355,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
                   <TooltipContent side="right" className="font-medium">
                     <p>{item.name}</p>
                     {item.shortcut && (
-                      <p className="text-xs text-gray-400 font-mono">{item.shortcut}</p>
+                      <p className="text-xs text-gray-400 font-mono">
+                        {item.shortcut}
+                      </p>
                     )}
                   </TooltipContent>
                 </Tooltip>
@@ -1118,10 +1372,12 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
   );
 
   return (
-    <div className={cn(
-      "relative hidden lg:flex lg:flex-col lg:h-[calc(100vh-5rem)] transition-all duration-300 ease-in-out bg-white border-r border-gray-100/80",
-      isCollapsed ? "lg:w-16" : "lg:w-80"
-    )}>
+    <div
+      className={cn(
+        "relative hidden lg:flex lg:flex-col lg:h-[calc(100vh-5rem)] transition-all duration-300 ease-in-out bg-white border-r border-gray-100/80",
+        isCollapsed ? "lg:w-16" : "lg:w-80",
+      )}
+    >
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-100/80">
         {!isCollapsed && (
@@ -1131,7 +1387,9 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-900">Schlep-engine</h2>
-              <p className="text-xs text-gray-500">Data Intelligence Platform</p>
+              <p className="text-xs text-gray-500">
+                Data Intelligence Platform
+              </p>
             </div>
           </div>
         )}
@@ -1139,14 +1397,15 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
           onClick={onToggle}
           className={cn(
             "p-2 rounded-lg hover:bg-gray-100 transition-colors",
-            isCollapsed && "mx-auto"
+            isCollapsed && "mx-auto",
           )}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {isCollapsed ? 
-            <ChevronRight className="w-4 h-4 text-gray-600" /> : 
+          {isCollapsed ? (
+            <ChevronRight className="w-4 h-4 text-gray-600" />
+          ) : (
             <ChevronLeft className="w-4 h-4 text-gray-600" />
-          }
+          )}
         </button>
       </div>
 
@@ -1172,24 +1431,40 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         </div>
 
         {/* Role-specific sections */}
-        {Object.entries(roleNav).slice(1).map(([sectionKey, sectionItems]) => (
-          <div key={sectionKey} className="space-y-6">
-          {!isCollapsed && (
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 px-3">
-                {sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}
-            </h3>
-          )}
-          <DynamicSection
-              title={sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}
-              icon={sectionKey === 'management' ? Settings : sectionKey === 'ai' ? BrainCircuit : sectionKey === 'workflow' ? Activity : sectionKey === 'collaboration' ? Users : sectionKey === 'analytics' ? BarChart3 : sectionKey === 'tools' ? Code : Folder}
-              items={sectionItems as any[]}
-            isCollapsed={isCollapsed}
-            pathname={pathname}
-            openCollapsible={openCollapsible}
-            setOpenCollapsible={setOpenCollapsible}
-          />
-        </div>
-        ))}
+        {Object.entries(roleNav)
+          .slice(1)
+          .map(([sectionKey, sectionItems]) => (
+            <div key={sectionKey} className="space-y-6">
+              {!isCollapsed && (
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3 px-3">
+                  {sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}
+                </h3>
+              )}
+              <DynamicSection
+                title={sectionKey.charAt(0).toUpperCase() + sectionKey.slice(1)}
+                icon={
+                  sectionKey === "management"
+                    ? Settings
+                    : sectionKey === "ai"
+                      ? BrainCircuit
+                      : sectionKey === "workflow"
+                        ? Activity
+                        : sectionKey === "collaboration"
+                          ? Users
+                          : sectionKey === "analytics"
+                            ? BarChart3
+                            : sectionKey === "tools"
+                              ? Code
+                              : Folder
+                }
+                items={sectionItems as any[]}
+                isCollapsed={isCollapsed}
+                pathname={pathname}
+                openCollapsible={openCollapsible}
+                setOpenCollapsible={setOpenCollapsible}
+              />
+            </div>
+          ))}
 
         {/* System & Integration */}
         <div>
@@ -1214,20 +1489,22 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
 
       {/* User Profile */}
       <div className="p-4 border-t border-gray-100/80">
-        <div className={cn(
-          "flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer",
-          isCollapsed && "justify-center"
-        )}>
+        <div
+          className={cn(
+            "flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer",
+            isCollapsed && "justify-center",
+          )}
+        >
           <div className="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-full flex items-center justify-center">
             <User className="w-5 h-5 text-white" />
           </div>
           {!isCollapsed && (
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.name || 'Admin User'}
+                {user?.name || "Admin User"}
               </p>
               <p className="text-xs text-gray-500 truncate">
-                {user?.email || 'admin@company.com'}
+                {user?.email || "admin@company.com"}
               </p>
             </div>
           )}
@@ -1239,5 +1516,5 @@ export function Sidebar({ isCollapsed, onToggle }: SidebarProps) {
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}
