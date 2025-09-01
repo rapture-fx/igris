@@ -1,0 +1,918 @@
+# ======================================================================================
+# Istio Service Mesh Configuration for Schlep Engine
+# Comprehensive service mesh with traffic management, security, and observability
+# ======================================================================================
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: istio-system
+  labels:
+    istio-injection: enabled
+---
+# Istio Control Plane
+apiVersion: install.istio.io/v1alpha1
+kind: IstioOperator
+metadata:
+  name: control-plane
+  namespace: istio-system
+spec:
+  values:
+    pilot:
+      traceSampling: 50.0  # Increased sampling for better observability
+    global:
+      meshID: schlep-engine-mesh
+      multiCluster:
+        clusterName: schlep-engine-eks
+      network: schlep-engine-network
+      
+      # Proxy configuration
+      proxy:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 2000m
+            memory: 1024Mi
+        
+        # Circuit breaker and timeout settings
+        runtime:
+          config:
+            PILOT_ENABLE_CROSS_CLUSTER_WORKLOAD_ENTRY: true
+            PILOT_ENABLE_IP_AUTOALLOCATE: true
+            PILOT_TRACE_SAMPLING: 50.0
+    
+    # Telemetry v2 configuration
+    telemetry:
+      v2:
+        enabled: true
+        prometheus:
+          configOverride:
+            metric_relabeling_configs:
+            - source_labels: [__name__]
+              regex: 'istio_.*'
+              target_label: __tmp_istio_metric
+            - source_labels: [__tmp_istio_metric]
+              regex: 'istio_request_total'
+              target_label: __tmp_circuit_breaker_metric
+              replacement: 'circuit_breaker_requests_total'
+        
+    gateways:
+      istio-egressgateway:
+        enabled: true
+        k8s:
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 2000m
+              memory: 1024Mi
+      istio-ingressgateway:
+        enabled: true
+        k8s:
+          service:
+            type: LoadBalancer
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 2000m
+              memory: 1024Mi
+    
+    istiodRemote:
+      enabled: false
+  
+  components:
+    pilot:
+      k8s:
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2048Mi
+        env:
+        - name: PILOT_TRACE_SAMPLING
+          value: "50.0"
+        - name: PILOT_ENABLE_WORKLOAD_ENTRY_AUTOREGISTRATION
+          value: "true"
+        - name: PILOT_ENABLE_CROSS_CLUSTER_WORKLOAD_ENTRY
+          value: "true"
+    
+    # Istiod configuration for enhanced reliability
+    ingressGateways:
+    - name: istio-ingressgateway
+      enabled: true
+      k8s:
+        service:
+          type: LoadBalancer
+          ports:
+          - port: 15021
+            targetPort: 15021
+            name: status-port
+          - port: 80
+            targetPort: 8080
+            name: http2
+          - port: 443
+            targetPort: 8443
+            name: https
+          - port: 15443
+            targetPort: 15443
+            name: tls
+        
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 2000m
+            memory: 1024Mi
+        
+        hpaSpec:
+          maxReplicas: 5
+          minReplicas: 2
+          scaleTargetRef:
+            apiVersion: apps/v1
+            kind: Deployment
+            name: istio-ingressgateway
+          metrics:
+          - type: Resource
+            resource:
+              name: cpu
+              target:
+                type: Utilization
+                averageUtilization: 80
+    
+    egressGateways:
+    - name: istio-egressgateway
+      enabled: true
+      k8s:
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 2000m
+            memory: 1024Mi
+---
+# Gateway for external traffic
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: schlep-engine-gateway
+  namespace: istio-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  # HTTPS
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: schlep-engine-tls
+    hosts:
+    - api.schlep-engine.com
+    - app.schlep-engine.com
+    - "*.schlep-engine.com"
+  
+  # HTTP redirect to HTTPS
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - api.schlep-engine.com
+    - app.schlep-engine.com
+    - "*.schlep-engine.com"
+    tls:
+      httpsRedirect: true
+---
+# Virtual Service for traffic routing with circuit breaker patterns
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: schlep-engine-api
+  namespace: schlep-engine
+spec:
+  hosts:
+  - api.schlep-engine.com
+  gateways:
+  - istio-system/schlep-engine-gateway
+  http:
+  # Health check routing (high priority)
+  - match:
+    - uri:
+        prefix: "/health"
+    - uri:
+        prefix: "/ready"
+    route:
+    - destination:
+        host: schlep-engine-backend-service
+        port:
+          number: 80
+    timeout: 5s
+    retries:
+      attempts: 2
+      perTryTimeout: 2s
+      retryOn: gateway-error,connect-failure,refused-stream
+    
+  # Circuit breaker metrics endpoint
+  - match:
+    - uri:
+        prefix: "/metrics"
+    - uri:
+        prefix: "/prometheus"
+    route:
+    - destination:
+        host: schlep-engine-backend-service
+        port:
+          number: 80
+    timeout: 10s
+    retries:
+      attempts: 1
+      perTryTimeout: 5s
+    
+  # API routes with fault injection for testing
+  - match:
+    - uri:
+        prefix: "/api/v1"
+    route:
+    - destination:
+        host: schlep-engine-backend-service
+        port:
+          number: 80
+      weight: 100
+    fault:
+      delay:
+        percentage:
+          value: 0.1  # 0.1% of requests
+        fixedDelay: 5s
+      abort:
+        percentage:
+          value: 0.001  # 0.001% of requests
+        httpStatus: 500
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+      retryRemoteLocalities: true
+    
+  # Default route
+  - route:
+    - destination:
+        host: schlep-engine-backend-service
+        port:
+          number: 80
+    timeout: 30s
+---
+# Destination Rules for circuit breaker implementation
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: schlep-engine-backend-circuit-breaker
+  namespace: schlep-engine
+spec:
+  host: schlep-engine-backend-service
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 30s
+        tcpKeepalive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 50   # Circuit breaker: max pending
+        http2MaxRequests: 100         # Circuit breaker: max requests
+        maxRequestsPerConnection: 10
+        maxRetries: 5
+        consecutiveGatewayErrors: 5   # Circuit breaker trigger
+        interval: 30s                 # Circuit breaker check interval
+        baseEjectionTime: 30s         # Circuit breaker open time
+        maxEjectionPercent: 50        # Max % of hosts that can be ejected
+        minHealthPercent: 30          # Minimum healthy hosts
+        
+    loadBalancer:
+      simple: LEAST_CONN
+      consistentHash:
+        httpHeaderName: "x-user-id"   # Session affinity for user requests
+    
+    outlierDetection:
+      consecutiveGatewayErrors: 3     # Advanced circuit breaker
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+      splitExternalLocalOriginErrors: true
+  
+  portLevelSettings:
+  - port:
+      number: 80
+    connectionPool:
+      tcp:
+        maxConnections: 50
+      http:
+        http1MaxPendingRequests: 25
+        http2MaxRequests: 50
+        maxRequestsPerConnection: 5
+---
+# Destination Rule for Redis with circuit breaker
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: redis-circuit-breaker
+  namespace: schlep-engine
+spec:
+  host: schlep-engine-redis
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 20
+        connectTimeout: 10s
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 20
+        consecutiveGatewayErrors: 3
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+    
+    outlierDetection:
+      consecutiveGatewayErrors: 2
+      interval: 15s
+      baseEjectionTime: 15s
+      maxEjectionPercent: 25
+      minHealthPercent: 50
+---
+# Destination Rule for PostgreSQL with circuit breaker
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: postgres-circuit-breaker
+  namespace: schlep-engine
+spec:
+  host: schlep-engine-postgres
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 30
+        connectTimeout: 5s
+      http:
+        http1MaxPendingRequests: 5
+        http2MaxRequests: 15
+        consecutiveGatewayErrors: 3
+        interval: 60s
+        baseEjectionTime: 60s
+        maxEjectionPercent: 30
+    
+    outlierDetection:
+      consecutiveGatewayErrors: 2
+      consecutive5xxErrors: 3
+      interval: 30s
+      baseEjectionTime: 60s
+      maxEjectionPercent: 30
+      minHealthPercent: 70
+---
+# Service Entry for external dependencies
+apiVersion: networking.istio.io/v1beta1
+kind: ServiceEntry
+metadata:
+  name: external-ml-service
+  namespace: schlep-engine
+spec:
+  hosts:
+  - ml-service.external.com
+  ports:
+  - number: 443
+    name: https
+    protocol: HTTPS
+  - number: 80
+    name: http
+    protocol: HTTP
+  location: MESH_EXTERNAL
+  resolution: DNS
+---
+# Destination Rule for external ML service with circuit breaker
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: external-ml-service-circuit-breaker
+  namespace: schlep-engine
+spec:
+  host: ml-service.external.com
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 10
+        connectTimeout: 30s
+      http:
+        http1MaxPendingRequests: 10
+        http2MaxRequests: 20
+        consecutiveGatewayErrors: 5
+        interval: 60s
+        baseEjectionTime: 120s
+        maxEjectionPercent: 50
+    
+    outlierDetection:
+      consecutiveGatewayErrors: 3
+      consecutive5xxErrors: 5
+      interval: 60s
+      baseEjectionTime: 120s
+      maxEjectionPercent: 50
+      minHealthPercent: 30
+---
+# Authorization Policy for enhanced security
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: schlep-engine-authz
+  namespace: schlep-engine
+spec:
+  selector:
+    matchLabels:
+      app: schlep-engine-backend
+  rules:
+  # Allow health checks
+  - from:
+    - source:
+        namespaces: ["istio-system", "monitoring"]
+    to:
+    - operation:
+        paths: ["/health", "/ready", "/metrics", "/prometheus"]
+    when:
+    - key: source.ip
+      notValues: ["127.0.0.1"]  # Block localhost for security
+  
+  # Allow API access with JWT validation
+  - from:
+    - source:
+        principals: ["cluster.local/ns/schlep-engine/sa/default"]
+    - source:
+        requestPrincipals: ["*"]
+    to:
+    - operation:
+        paths: ["/api/v1/*"]
+    when:
+    - key: source.namespace
+      values: ["schlep-engine", "istio-system"]
+  
+  # Block suspicious patterns
+  - from: []
+    to:
+    - operation:
+        paths: ["*"]
+    when:
+    - key: request.headers[user-agent]
+      values: ["*bot*", "*crawler*", "*scanner*"]
+    action: DENY
+---
+# Peer Authentication for mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: default
+  namespace: schlep-engine
+spec:
+  mtls:
+    mode: STRICT
+---
+# Request Authentication for JWT validation
+apiVersion: security.istio.io/v1beta1
+kind: RequestAuthentication
+metadata:
+  name: jwt-auth
+  namespace: schlep-engine
+spec:
+  selector:
+    matchLabels:
+      app: schlep-engine-backend
+  jwtRules:
+  - issuer: "https://api.schlep-engine.com"
+    audiences:
+    - "schlep-engine-api"
+    jwksUri: "https://api.schlep-engine.com/.well-known/jwks.json"
+    fromHeaders:
+    - name: Authorization
+      prefix: "Bearer "
+    fromCookies:
+    - "auth-token"
+    forwardOriginalToken: true
+---
+# Telemetry v2 configuration for enhanced metrics
+apiVersion: telemetry.istio.io/v1alpha1
+kind: Telemetry
+metadata:
+  name: circuit-breaker-metrics
+  namespace: schlep-engine
+spec:
+  metrics:
+  - providers:
+    - name: prometheus
+  - overrides:
+    - match:
+        metric: ALL_METRICS
+      tagOverrides:
+        circuit_breaker_state:
+          value: |
+            has(response.code) && response.code >= 500 ? "open" : "closed"
+        service_name:
+          value: |
+            source.workload.name | "unknown"
+        error_rate:
+          value: |
+            has(response.code) && response.code >= 400 ? "1" : "0"
+  
+  # Custom metrics for circuit breaker monitoring
+  - providers:
+    - name: stackdriver
+  - overrides:
+    - match:
+        metric: requests_total
+      disabled: false
+      tags:
+        circuit_breaker_state: |
+          has(response.code) && response.code >= 500 ? "open" : "closed"
+        failure_rate: |
+          has(response.code) && response.code >= 400 ? "high" : "normal"
+---
+# EnvoyFilter for advanced circuit breaker configuration
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: circuit-breaker-filter
+  namespace: schlep-engine
+spec:
+  workloadSelector:
+    labels:
+      app: schlep-engine-backend
+  configPatches:
+  - applyTo: HTTP_FILTER
+    match:
+      context: SIDECAR_INBOUND
+      listener:
+        filterChain:
+          filter:
+            name: "envoy.filters.network.http_connection_manager"
+    patch:
+      operation: INSERT_BEFORE
+      value:
+        name: envoy.filters.http.local_ratelimit
+        typed_config:
+          "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+          type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+          value:
+            stat_prefix: circuit_breaker_rate_limiter
+            token_bucket:
+              max_tokens: 100
+              tokens_per_fill: 100
+              fill_interval: 60s
+            filter_enabled:
+              runtime_key: circuit_breaker_rate_limit_enabled
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+            filter_enforced:
+              runtime_key: circuit_breaker_rate_limit_enforced
+              default_value:
+                numerator: 100
+                denominator: HUNDRED
+  
+  # Circuit breaker configuration for upstream connections
+  - applyTo: CLUSTER
+    match:
+      context: SIDECAR_OUTBOUND
+      cluster:
+        name: outbound|80||schlep-engine-redis
+    patch:
+      operation: MERGE
+      value:
+        circuit_breakers:
+          thresholds:
+          - priority: DEFAULT
+            max_connections: 20
+            max_pending_requests: 10
+            max_requests: 50
+            max_retries: 3
+            track_remaining: true
+          - priority: HIGH
+            max_connections: 30
+            max_pending_requests: 15
+            max_requests: 75
+            max_retries: 5
+            track_remaining: true
+---
+# Istio ServiceMonitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: istio-mesh-monitor
+  namespace: monitoring
+  labels:
+    app: istio-proxy
+    prometheus: schlep-engine
+spec:
+  selector:
+    matchLabels:
+      app: istiod
+  namespaceSelector:
+    matchNames:
+    - istio-system
+  endpoints:
+  - port: http-monitoring
+    interval: 15s
+    path: /stats/prometheus
+---
+# Kiali for service mesh observability
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+data:
+  config.yaml: |
+    installation_tag: "schlep-engine-mesh"
+    istio_namespace: "istio-system"
+    
+    auth:
+      strategy: "anonymous"
+    
+    deployment:
+      accessible_namespaces: ["**"]
+      additional_service_yaml:
+        metadata:
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "9090"
+      
+    external_services:
+      prometheus:
+        url: "http://prometheus-operated.monitoring:9090"
+      grafana:
+        url: "http://grafana-service.monitoring:80"
+        in_cluster_url: "http://grafana-service.monitoring:80"
+      jaeger:
+        url: "http://jaeger-query.tracing:16686"
+        in_cluster_url: "http://jaeger-query.tracing:16686"
+        use_grpc: true
+        grpc_port: 16685
+    
+    server:
+      metrics_enabled: true
+      metrics_port: 9090
+      port: 20001
+      web_root: "/kiali"
+---
+# Kiali Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+    version: v1.75.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kiali
+  template:
+    metadata:
+      labels:
+        app: kiali
+        version: v1.75.0
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/kiali/api/prometheus"
+    spec:
+      serviceAccountName: kiali-service-account
+      containers:
+      - name: kiali
+        image: quay.io/kiali/kiali:v1.75.0
+        ports:
+        - containerPort: 20001
+          name: api-port
+        - containerPort: 9090
+          name: http-metrics
+        
+        env:
+        - name: ACTIVE_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: LOG_LEVEL
+          value: "info"
+        - name: LOG_FORMAT
+          value: "text"
+        
+        volumeMounts:
+        - name: kiali-configuration
+          mountPath: "/kiali-configuration"
+        - name: kiali-cert
+          mountPath: "/kiali-cert"
+        - name: kiali-secret
+          mountPath: "/kiali-secret"
+        
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        
+        livenessProbe:
+          httpGet:
+            path: /kiali/api/healthz
+            port: api-port
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 30
+        
+        readinessProbe:
+          httpGet:
+            path: /kiali/api/healthz
+            port: api-port
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 30
+      
+      volumes:
+      - name: kiali-configuration
+        configMap:
+          name: kiali
+      - name: kiali-cert
+        secret:
+          secretName: kiali-cert-secret
+          optional: true
+      - name: kiali-secret
+        secret:
+          secretName: kiali-secret
+          optional: true
+---
+# Kiali Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kiali-service-account
+  namespace: istio-system
+  labels:
+    app: kiali
+---
+# Kiali ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: kiali-viewer
+  labels:
+    app: kiali
+rules:
+- apiGroups: [""]
+  resources:
+  - configmaps
+  - endpoints
+  - pods/log
+  verbs:
+  - get
+  - list
+- apiGroups: [""]
+  resources:
+  - namespaces
+  - pods
+  - replicationcontrollers
+  - services
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["extensions", "apps"]
+  resources:
+  - daemonsets
+  - deployments
+  - replicasets
+  - statefulsets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["batch"]
+  resources:
+  - cronjobs
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - networking.istio.io
+  - security.istio.io
+  - extensions.istio.io
+  - telemetry.istio.io
+  - install.istio.io
+  resources: ["*"]
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["apps.openshift.io"]
+  resources:
+  - deploymentconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups: ["project.openshift.io"]
+  resources:
+  - projects
+  verbs:
+  - get
+- apiGroups: ["route.openshift.io"]
+  resources:
+  - routes
+  verbs:
+  - get
+- apiGroups: ["monitoring.coreos.com"]
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - list
+---
+# Kiali ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: kiali
+  labels:
+    app: kiali
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: kiali-viewer
+subjects:
+- kind: ServiceAccount
+  name: kiali-service-account
+  namespace: istio-system
+---
+# Kiali Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: kiali
+  namespace: istio-system
+  labels:
+    app: kiali
+    version: v1.75.0
+spec:
+  type: ClusterIP
+  ports:
+  - name: http-kiali
+    port: 20001
+    targetPort: 20001
+    protocol: TCP
+  - name: http-metrics
+    port: 9090
+    targetPort: 9090
+    protocol: TCP
+  selector:
+    app: kiali
+---
+# Ingress for Kiali
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kiali-ingress
+  namespace: istio-system
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/auth-type: basic
+    nginx.ingress.kubernetes.io/auth-secret: kiali-auth
+    nginx.ingress.kubernetes.io/auth-realm: "Kiali Authentication Required"
+spec:
+  tls:
+  - hosts:
+    - kiali.schlep-engine.com
+    secretName: kiali-tls
+  rules:
+  - host: kiali.schlep-engine.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kiali
+            port:
+              number: 20001

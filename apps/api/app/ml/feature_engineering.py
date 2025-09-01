@@ -18,6 +18,118 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+class FeatureEngineer:
+    """
+    General-purpose feature engineering class for ML/RL systems.
+    
+    Features:
+    - Automated feature generation
+    - Missing value handling
+    - Categorical encoding
+    - Scaling and normalization
+    """
+    
+    def __init__(self):
+        self.scaler = StandardScaler()
+        self.categorical_encoders = {}
+        self.feature_names = []
+    
+    def engineer_features(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Engineer features from input data.
+        
+        Args:
+            data: Input dataset
+            
+        Returns:
+            Enhanced dataset with engineered features
+        """
+        logger.info(f"Engineering features for dataset with shape {data.shape}")
+        
+        engineered_data = data.copy()
+        
+        # Handle missing values
+        engineered_data = self._handle_missing_values(engineered_data)
+        
+        # Create basic statistical features
+        engineered_data = self._create_statistical_features(engineered_data)
+        
+        # Handle categorical variables
+        engineered_data = self._handle_categorical_features(engineered_data)
+        
+        # Create interaction features
+        engineered_data = self._create_interaction_features(engineered_data)
+        
+        logger.info(f"Feature engineering completed. New shape: {engineered_data.shape}")
+        return engineered_data
+    
+    def _handle_missing_values(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Handle missing values in the dataset."""
+        # For numeric columns, fill with median
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        for col in numeric_columns:
+            if data[col].isnull().any():
+                data[col] = data[col].fillna(data[col].median())
+        
+        # For categorical columns, fill with mode or 'unknown'
+        categorical_columns = data.select_dtypes(include=['object', 'category']).columns
+        for col in categorical_columns:
+            if data[col].isnull().any():
+                mode_value = data[col].mode()
+                fill_value = mode_value[0] if len(mode_value) > 0 else 'unknown'
+                data[col] = data[col].fillna(fill_value)
+        
+        return data
+    
+    def _create_statistical_features(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Create statistical features from numeric columns."""
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        
+        if len(numeric_columns) > 1:
+            # Create rolling statistics for each numeric column
+            for col in numeric_columns:
+                if len(data) > 5:  # Only if we have enough data
+                    # Rolling mean (window of 3)
+                    data[f'{col}_rolling_mean_3'] = data[col].rolling(window=3, min_periods=1).mean()
+                    
+                    # Rolling std (window of 3)
+                    data[f'{col}_rolling_std_3'] = data[col].rolling(window=3, min_periods=1).std().fillna(0)
+        
+        return data
+    
+    def _handle_categorical_features(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Handle categorical features with encoding."""
+        categorical_columns = data.select_dtypes(include=['object', 'category']).columns
+        
+        for col in categorical_columns:
+            # Simple label encoding for now
+            unique_values = data[col].unique()
+            if len(unique_values) <= 10:  # Only encode if not too many categories
+                # Create dummy variables
+                dummies = pd.get_dummies(data[col], prefix=col, dummy_na=False)
+                data = pd.concat([data, dummies], axis=1)
+                data = data.drop(col, axis=1)  # Drop original column
+        
+        return data
+    
+    def _create_interaction_features(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Create interaction features between numeric columns."""
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        original_numeric = [col for col in numeric_columns if not any(suffix in col for suffix in ['_rolling_', '_interaction_'])]
+        
+        if len(original_numeric) > 1:
+            # Create pairwise interactions for first few columns (to avoid explosion)
+            max_interactions = min(3, len(original_numeric))
+            for i in range(max_interactions):
+                for j in range(i+1, max_interactions):
+                    col1, col2 = original_numeric[i], original_numeric[j]
+                    
+                    # Product interaction
+                    data[f'{col1}_{col2}_interaction'] = data[col1] * data[col2]
+        
+        return data
+
+
 class SensorDataFeatureEngine:
     """
     Advanced feature engineering for manufacturing sensor data cleaning and analysis.

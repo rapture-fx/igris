@@ -204,9 +204,9 @@ export function Sidebar() {
             <div className="mb-4 pl-3">
               <Link href="/" className="block">
                 <img 
-                  src="/Schlep Engine bold light.svg" 
+                  src="/Schlep-engine docs page.svg" 
                   alt="Schlep Engine" 
-                  className="h-12 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                  className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
                 />
               </Link>
             </div>

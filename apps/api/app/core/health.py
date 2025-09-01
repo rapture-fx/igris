@@ -46,6 +46,8 @@ class ServiceType(str, Enum):
     CELERY = "celery"
     EXTERNAL_API = "external_api"
     SYSTEM = "system"
+    ML_SERVICE = "ml_service"
+    RL_SERVICE = "rl_service"
 
 class HealthCheckResult:
     """Result of a health check"""
@@ -82,7 +84,15 @@ class HealthChecker:
     
     def __init__(self):
         self.cache: Dict[str, HealthCheckResult] = {}
-        self.cache_ttl = 30  # Cache results for 30 seconds
+        self.cache_ttl = settings.HEALTH_CHECK_CACHE_TTL
+        self.dependency_graph: Dict[str, List[str]] = {
+            "api": ["database", "redis", "ml_service", "rl_service"],
+            "ml_service": ["database", "redis", "storage"],
+            "rl_service": ["database", "redis", "ml_service"],
+            "storage": ["database"],
+            "auth": ["database", "redis"],
+            "notifications": ["database", "redis", "external_api"]
+        }
         
     async def check_database_health(self, db: Session) -> HealthCheckResult:
         """Check database connectivity and performance"""
@@ -408,49 +418,374 @@ class HealthChecker:
         
         return result
     
+    async def check_ml_service_health(self) -> HealthCheckResult:
+        """Check ML service health and model status"""
+        start_time = time.time()
+        
+        try:
+            # Import ML services
+            try:
+                from app.services.ml_service import MLService
+                from app.models.ml.ml_status import get_ml_model_status
+                ml_service = MLService()
+            except ImportError:
+                # ML service not available
+                response_time = time.time() - start_time
+                status = HealthStatus.DEGRADED
+                message = "ML service not available in this configuration"
+                details = {"error": "ML service not imported"}
+                
+                result = HealthCheckResult(
+                    service=ServiceType.ML_SERVICE,
+                    status=status,
+                    message=message,
+                    details=details,
+                    response_time=response_time
+                )
+                
+                # Update Prometheus metrics
+                HEALTH_CHECK_COUNTER.labels(service=ServiceType.ML_SERVICE, status=status.value).inc()
+                HEALTH_CHECK_DURATION.labels(service=ServiceType.ML_SERVICE).observe(response_time)
+                SERVICE_STATUS.labels(service=ServiceType.ML_SERVICE).set(0)
+                
+                return result
+            
+            # Test ML model loading and prediction
+            start_perf = time.time()
+            model_status = await get_ml_model_status()
+            perf_time = time.time() - start_perf
+            
+            # Check model availability
+            available_models = model_status.get("available_models", [])
+            active_models = model_status.get("active_models", [])
+            
+            # Test a simple prediction if models are available
+            if available_models:
+                try:
+                    # Test prediction with dummy data
+                    test_result = await ml_service.test_prediction()
+                    prediction_successful = test_result.get("success", False)
+                except Exception as pred_error:
+                    prediction_successful = False
+            else:
+                prediction_successful = False
+            
+            response_time = time.time() - start_time
+            
+            details = {
+                "available_models": len(available_models),
+                "active_models": len(active_models),
+                "model_list": available_models[:5],  # Show first 5 models
+                "prediction_test": prediction_successful,
+                "query_performance_ms": round(perf_time * 1000, 2),
+                "gpu_available": model_status.get("gpu_available", False),
+                "memory_usage_mb": model_status.get("memory_usage_mb", 0)
+            }
+            
+            # Determine health status
+            if len(available_models) == 0:
+                status = HealthStatus.UNHEALTHY
+                message = "No ML models available"
+            elif not prediction_successful:
+                status = HealthStatus.DEGRADED
+                message = "ML models available but prediction test failed"
+            elif perf_time > 5.0:  # Model loading takes more than 5 seconds
+                status = HealthStatus.DEGRADED
+                message = "ML service performance degraded"
+            else:
+                status = HealthStatus.HEALTHY
+                message = f"ML service healthy with {len(available_models)} models"
+            
+        except Exception as e:
+            response_time = time.time() - start_time
+            status = HealthStatus.UNHEALTHY
+            message = f"ML service health check failed: {str(e)}"
+            details = {"error": str(e)}
+        
+        result = HealthCheckResult(
+            service=ServiceType.ML_SERVICE,
+            status=status,
+            message=message,
+            details=details,
+            response_time=response_time
+        )
+        
+        # Update Prometheus metrics
+        HEALTH_CHECK_COUNTER.labels(service=ServiceType.ML_SERVICE, status=status.value).inc()
+        HEALTH_CHECK_DURATION.labels(service=ServiceType.ML_SERVICE).observe(response_time)
+        SERVICE_STATUS.labels(service=ServiceType.ML_SERVICE).set(1 if status == HealthStatus.HEALTHY else 0)
+        
+        return result
+    
+    async def check_rl_service_health(self) -> HealthCheckResult:
+        """Check RL service health and training status"""
+        start_time = time.time()
+        
+        try:
+            # Import RL services
+            try:
+                from app.services.rl.rl_service import RLService
+                from app.services.rl.rl_training_service import RLTrainingService
+                rl_service = RLService()
+                rl_training = RLTrainingService()
+            except ImportError:
+                # RL service not available
+                response_time = time.time() - start_time
+                status = HealthStatus.DEGRADED
+                message = "RL service not available in this configuration"
+                details = {"error": "RL service not imported"}
+                
+                result = HealthCheckResult(
+                    service=ServiceType.RL_SERVICE,
+                    status=status,
+                    message=message,
+                    details=details,
+                    response_time=response_time
+                )
+                
+                # Update Prometheus metrics
+                HEALTH_CHECK_COUNTER.labels(service=ServiceType.RL_SERVICE, status=status.value).inc()
+                HEALTH_CHECK_DURATION.labels(service=ServiceType.RL_SERVICE).observe(response_time)
+                SERVICE_STATUS.labels(service=ServiceType.RL_SERVICE).set(0)
+                
+                return result
+            
+            # Test RL service components
+            start_perf = time.time()
+            
+            # Check RL environment status
+            env_status = await rl_service.get_environment_status()
+            
+            # Check training status
+            training_status = await rl_training.get_training_status()
+            
+            # Check agent status
+            agent_status = await rl_service.get_agent_status()
+            
+            perf_time = time.time() - start_perf
+            response_time = time.time() - start_time
+            
+            details = {
+                "environment_status": env_status.get("status", "unknown"),
+                "active_environments": env_status.get("active_environments", 0),
+                "training_jobs_active": training_status.get("active_jobs", 0),
+                "training_jobs_queued": training_status.get("queued_jobs", 0),
+                "agent_models_loaded": agent_status.get("loaded_models", 0),
+                "query_performance_ms": round(perf_time * 1000, 2),
+                "memory_usage_mb": env_status.get("memory_usage_mb", 0),
+                "gpu_utilization": env_status.get("gpu_utilization", 0)
+            }
+            
+            # Determine health status
+            if env_status.get("status") == "error":
+                status = HealthStatus.UNHEALTHY
+                message = "RL environment in error state"
+            elif agent_status.get("loaded_models", 0) == 0:
+                status = HealthStatus.DEGRADED
+                message = "RL service running but no agent models loaded"
+            elif perf_time > 3.0:  # Status check takes more than 3 seconds
+                status = HealthStatus.DEGRADED
+                message = "RL service performance degraded"
+            else:
+                status = HealthStatus.HEALTHY
+                message = f"RL service healthy with {agent_status.get('loaded_models', 0)} agents"
+            
+        except Exception as e:
+            response_time = time.time() - start_time
+            status = HealthStatus.UNHEALTHY
+            message = f"RL service health check failed: {str(e)}"
+            details = {"error": str(e)}
+        
+        result = HealthCheckResult(
+            service=ServiceType.RL_SERVICE,
+            status=status,
+            message=message,
+            details=details,
+            response_time=response_time
+        )
+        
+        # Update Prometheus metrics
+        HEALTH_CHECK_COUNTER.labels(service=ServiceType.RL_SERVICE, status=status.value).inc()
+        HEALTH_CHECK_DURATION.labels(service=ServiceType.RL_SERVICE).observe(response_time)
+        SERVICE_STATUS.labels(service=ServiceType.RL_SERVICE).set(1 if status == HealthStatus.HEALTHY else 0)
+        
+        return result
+    
+    def _is_cached_result_valid(self, service: str) -> bool:
+        """Check if cached health check result is still valid"""
+        if service not in self.cache:
+            return False
+        
+        result = self.cache[service]
+        if not result.last_check:
+            return False
+        
+        age = (datetime.utcnow() - result.last_check).total_seconds()
+        return age < self.cache_ttl
+    
+    async def _get_cached_or_fresh_result(
+        self, 
+        service: str, 
+        check_func: Callable[..., HealthCheckResult],
+        *args,
+        **kwargs
+    ) -> HealthCheckResult:
+        """Get cached result or run fresh health check"""
+        if self._is_cached_result_valid(service):
+            return self.cache[service]
+        
+        result = await check_func(*args, **kwargs)
+        self.cache[service] = result
+        return result
+    
+    async def check_dependency_health(self, service: str, dependencies: List[str]) -> Dict[str, Any]:
+        """Check health of service dependencies"""
+        dependency_results = {}
+        
+        for dependency in dependencies:
+            if dependency == "database":
+                # Skip DB dependency check to avoid circular dependency
+                dependency_results[dependency] = {
+                    "status": "healthy",
+                    "message": "Database dependency check skipped",
+                    "response_time": 0.0
+                }
+            elif dependency == "redis":
+                try:
+                    result = await asyncio.wait_for(
+                        self.check_redis_health(),
+                        timeout=settings.HEALTH_CHECK_DEPENDENCY_TIMEOUT
+                    )
+                    dependency_results[dependency] = result.to_dict()
+                except asyncio.TimeoutError:
+                    dependency_results[dependency] = {
+                        "status": "timeout",
+                        "message": "Dependency health check timed out",
+                        "response_time": settings.HEALTH_CHECK_DEPENDENCY_TIMEOUT
+                    }
+                except Exception as e:
+                    dependency_results[dependency] = {
+                        "status": "unhealthy",
+                        "message": f"Dependency check failed: {str(e)}",
+                        "response_time": 0.0,
+                        "error": str(e)
+                    }
+            elif dependency == "external_api":
+                try:
+                    result = await asyncio.wait_for(
+                        self.check_external_api_health(),
+                        timeout=settings.HEALTH_CHECK_DEPENDENCY_TIMEOUT
+                    )
+                    dependency_results[dependency] = result.to_dict()
+                except Exception as e:
+                    dependency_results[dependency] = {
+                        "status": "unhealthy",
+                        "message": f"External API dependency failed: {str(e)}",
+                        "response_time": 0.0,
+                        "error": str(e)
+                    }
+            elif dependency == "ml_service":
+                try:
+                    result = await asyncio.wait_for(
+                        self.check_ml_service_health(),
+                        timeout=settings.HEALTH_CHECK_DEPENDENCY_TIMEOUT
+                    )
+                    dependency_results[dependency] = result.to_dict()
+                except Exception as e:
+                    dependency_results[dependency] = {
+                        "status": "unhealthy",
+                        "message": f"ML service dependency failed: {str(e)}",
+                        "response_time": 0.0,
+                        "error": str(e)
+                    }
+            elif dependency == "rl_service":
+                try:
+                    result = await asyncio.wait_for(
+                        self.check_rl_service_health(),
+                        timeout=settings.HEALTH_CHECK_DEPENDENCY_TIMEOUT
+                    )
+                    dependency_results[dependency] = result.to_dict()
+                except Exception as e:
+                    dependency_results[dependency] = {
+                        "status": "unhealthy",
+                        "message": f"RL service dependency failed: {str(e)}",
+                        "response_time": 0.0,
+                        "error": str(e)
+                    }
+        
+        # Calculate dependency health score
+        healthy_deps = sum(1 for r in dependency_results.values() if r["status"] == "healthy")
+        total_deps = len(dependency_results)
+        dependency_health_score = (healthy_deps / total_deps) * 100 if total_deps > 0 else 100
+        
+        return {
+            "dependencies": dependency_results,
+            "dependency_health_score": round(dependency_health_score, 2),
+            "critical_dependencies_healthy": all(
+                r["status"] == "healthy" 
+                for dep, r in dependency_results.items() 
+                if dep in settings.HEALTH_CHECK_CRITICAL_SERVICES
+            )
+        }
+    
     async def run_all_health_checks(self, db: Session) -> Dict[str, Any]:
         """Run all health checks and return comprehensive status"""
         start_time = time.time()
         
-        # Run all health checks concurrently
-        tasks = [
-            self.check_database_health(db),
-            self.check_redis_health(),
-            self.check_storage_health(),
-            self.check_celery_health(),
-            self.check_external_api_health(),
-            self.check_system_health()
+        # Run all health checks concurrently with caching
+        health_check_tasks = [
+            ("database", self._get_cached_or_fresh_result("database", self.check_database_health, db)),
+            ("redis", self._get_cached_or_fresh_result("redis", self.check_redis_health)),
+            ("storage", self._get_cached_or_fresh_result("storage", self.check_storage_health)),
+            ("celery", self._get_cached_or_fresh_result("celery", self.check_celery_health)),
+            ("external_api", self._get_cached_or_fresh_result("external_api", self.check_external_api_health)),
+            ("ml_service", self._get_cached_or_fresh_result("ml_service", self.check_ml_service_health)),
+            ("rl_service", self._get_cached_or_fresh_result("rl_service", self.check_rl_service_health)),
+            ("system", self._get_cached_or_fresh_result("system", self.check_system_health))
         ]
         
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        
-        # Process results
+        # Execute all health checks
         health_results = {}
-        overall_status = HealthStatus.HEALTHY
         failed_services = []
         
-        for i, result in enumerate(results):
-            if isinstance(result, Exception):
-                service_name = list(ServiceType)[i].value
+        for service_name, task in health_check_tasks:
+            try:
+                result = await task
+                health_results[service_name] = result
+                if result.status == HealthStatus.UNHEALTHY:
+                    failed_services.append(service_name)
+            except Exception as e:
+                logger.error(f"Health check failed for {service_name}: {e}")
                 health_results[service_name] = HealthCheckResult(
                     service=service_name,
                     status=HealthStatus.UNHEALTHY,
-                    message=f"Health check failed with exception: {str(result)}",
-                    details={"error": str(result)}
+                    message=f"Health check failed with exception: {str(e)}",
+                    details={"error": str(e)}
                 )
                 failed_services.append(service_name)
-            else:
-                health_results[result.service.value] = result
-                if result.status == HealthStatus.UNHEALTHY:
-                    failed_services.append(result.service.value)
         
-        # Determine overall status
-        if any(r.status == HealthStatus.UNHEALTHY for r in health_results.values()):
-            overall_status = HealthStatus.UNHEALTHY
-        elif any(r.status == HealthStatus.DEGRADED for r in health_results.values()):
-            overall_status = HealthStatus.DEGRADED
+        # Check dependency health for critical services
+        dependency_checks = {}
+        for service, dependencies in self.dependency_graph.items():
+            try:
+                dependency_health = await self.check_dependency_health(service, dependencies)
+                dependency_checks[service] = dependency_health
+            except Exception as e:
+                logger.error(f"Dependency health check failed for {service}: {e}")
+                dependency_checks[service] = {
+                    "dependencies": {},
+                    "dependency_health_score": 0.0,
+                    "critical_dependencies_healthy": False,
+                    "error": str(e)
+                }
+        
+        # Determine overall status with dependency consideration
+        overall_status = self._calculate_overall_status(health_results, dependency_checks)
         
         total_time = time.time() - start_time
+        
+        # Calculate system health metrics
+        system_metrics = self._calculate_system_metrics(health_results, dependency_checks)
         
         return {
             "status": overall_status.value,
@@ -459,14 +794,112 @@ class HealthChecker:
             "environment": getattr(settings, 'ENVIRONMENT', 'development'),
             "total_check_time": round(total_time, 3),
             "services": {k: v.to_dict() for k, v in health_results.items()},
+            "dependencies": dependency_checks,
             "failed_services": failed_services,
+            "system_metrics": system_metrics,
             "summary": {
                 "total_services": len(health_results),
                 "healthy_services": len([r for r in health_results.values() if r.status == HealthStatus.HEALTHY]),
                 "degraded_services": len([r for r in health_results.values() if r.status == HealthStatus.DEGRADED]),
-                "unhealthy_services": len([r for r in health_results.values() if r.status == HealthStatus.UNHEALTHY])
+                "unhealthy_services": len([r for r in health_results.values() if r.status == HealthStatus.UNHEALTHY]),
+                "overall_health_score": system_metrics["overall_health_score"],
+                "critical_services_healthy": system_metrics["critical_services_healthy"]
             }
         }
+    
+    def _calculate_overall_status(
+        self, 
+        health_results: Dict[str, HealthCheckResult],
+        dependency_checks: Dict[str, Dict[str, Any]]
+    ) -> HealthStatus:
+        """Calculate overall system status considering dependencies"""
+        
+        # Check critical services first
+        critical_services_status = []
+        for service_name in settings.HEALTH_CHECK_CRITICAL_SERVICES:
+            if service_name in health_results:
+                critical_services_status.append(health_results[service_name].status)
+        
+        # If any critical service is unhealthy, system is unhealthy
+        if any(status == HealthStatus.UNHEALTHY for status in critical_services_status):
+            return HealthStatus.UNHEALTHY
+        
+        # Check if critical dependencies are healthy
+        critical_deps_unhealthy = any(
+            not dep_check.get("critical_dependencies_healthy", True)
+            for dep_check in dependency_checks.values()
+        )
+        
+        if critical_deps_unhealthy:
+            return HealthStatus.DEGRADED
+        
+        # Check overall service health
+        if any(r.status == HealthStatus.UNHEALTHY for r in health_results.values()):
+            return HealthStatus.DEGRADED
+        elif any(r.status == HealthStatus.DEGRADED for r in health_results.values()):
+            return HealthStatus.DEGRADED
+        
+        return HealthStatus.HEALTHY
+    
+    def _calculate_system_metrics(
+        self,
+        health_results: Dict[str, HealthCheckResult],
+        dependency_checks: Dict[str, Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """Calculate comprehensive system health metrics"""
+        
+        # Service health metrics
+        healthy_services = sum(1 for r in health_results.values() if r.status == HealthStatus.HEALTHY)
+        total_services = len(health_results)
+        service_health_score = (healthy_services / total_services) * 100 if total_services > 0 else 0
+        
+        # Dependency health metrics
+        dependency_scores = [
+            dep_check.get("dependency_health_score", 0)
+            for dep_check in dependency_checks.values()
+        ]
+        avg_dependency_score = sum(dependency_scores) / len(dependency_scores) if dependency_scores else 0
+        
+        # Critical services health
+        critical_services_healthy = all(
+            health_results.get(service, HealthCheckResult("", HealthStatus.UNHEALTHY, "")).status == HealthStatus.HEALTHY
+            for service in settings.HEALTH_CHECK_CRITICAL_SERVICES
+            if service in health_results
+        )
+        
+        # Response time metrics
+        response_times = [
+            r.response_time for r in health_results.values() 
+            if r.response_time is not None
+        ]
+        avg_response_time = sum(response_times) / len(response_times) if response_times else 0
+        max_response_time = max(response_times) if response_times else 0
+        
+        # Overall health score (weighted)
+        overall_health_score = (
+            service_health_score * 0.6 +  # Service health: 60%
+            avg_dependency_score * 0.3 +   # Dependency health: 30%
+            (100 if critical_services_healthy else 0) * 0.1  # Critical services: 10%
+        )
+        
+        return {
+            "service_health_score": round(service_health_score, 2),
+            "dependency_health_score": round(avg_dependency_score, 2),
+            "overall_health_score": round(overall_health_score, 2),
+            "critical_services_healthy": critical_services_healthy,
+            "average_response_time": round(avg_response_time, 3),
+            "max_response_time": round(max_response_time, 3),
+            "cache_hit_rate": self._calculate_cache_hit_rate()
+        }
+    
+    def _calculate_cache_hit_rate(self) -> float:
+        """Calculate health check cache hit rate"""
+        if not hasattr(self, '_cache_hits'):
+            self._cache_hits = 0
+        if not hasattr(self, '_cache_attempts'):
+            self._cache_attempts = 0
+        
+        return (self._cache_hits / self._cache_attempts) * 100 if self._cache_attempts > 0 else 0
 
 # Global health checker instance
 health_checker = HealthChecker()

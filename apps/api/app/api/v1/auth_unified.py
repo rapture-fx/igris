@@ -6,7 +6,7 @@ Consolidates all authentication endpoints into a single, clean API
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, Any, List
+from typing import Dict, Any, Optional, List
 import logging
 
 from app.auth.unified_auth_system import (
@@ -311,7 +311,9 @@ async def update_user_role(
 @handle_auth_errors
 async def oauth_authorize(
     provider: str,
-    request: Request
+    request: Request,
+    code_challenge: Optional[str] = None,
+    code_challenge_method: Optional[str] = None
 ):
     """
     Start OAuth 2.0 authorization flow
@@ -323,15 +325,24 @@ async def oauth_authorize(
         base_url = str(request.base_url).rstrip("/")
         redirect_uri = f"{base_url}/api/v1/auth/oauth/{provider}/callback"
         
-        # Get authorization URL
-        auth_url, state = await oauth_service.get_authorization_url(provider, redirect_uri)
+        # Get authorization URL with PKCE support
+        auth_url, state = await oauth_service.get_authorization_url(
+            provider, redirect_uri, code_challenge, code_challenge_method
+        )
         
-        return {
+        response_data = {
             "authorization_url": auth_url,
             "state": state,
             "provider": provider,
             "redirect_uri": redirect_uri
         }
+        
+        # Include PKCE information if provided
+        if code_challenge and code_challenge_method:
+            response_data["pkce_enabled"] = True
+            response_data["code_challenge_method"] = code_challenge_method
+        
+        return response_data
         
     except HTTPException:
         raise
@@ -347,7 +358,8 @@ async def oauth_callback(
     code: str,
     state: str,
     request: Request,
-    db: AsyncSession = Depends(get_async_session)
+    db: AsyncSession = Depends(get_async_session),
+    code_verifier: Optional[str] = None
 ):
     """
     Handle OAuth 2.0 callback
@@ -359,9 +371,9 @@ async def oauth_callback(
         base_url = str(request.base_url).rstrip("/")
         redirect_uri = f"{base_url}/api/v1/auth/oauth/{provider}/callback"
         
-        # Handle OAuth callback
+        # Handle OAuth callback with PKCE support
         auth_result = await oauth_service.handle_oauth_callback(
-            provider, code, state, redirect_uri, db
+            provider, code, state, redirect_uri, db, code_verifier
         )
         
         if not auth_result.success:

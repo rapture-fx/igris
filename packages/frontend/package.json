@@ -79,6 +79,14 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
+    "@storybook/addon-essentials": "^7.4.6",
+    "@storybook/addon-interactions": "^7.4.6",
+    "@storybook/addon-links": "^7.4.6",
+    "@storybook/blocks": "^7.4.6",
+    "@storybook/react": "^7.4.6",
+    "@storybook/react-vite": "^7.4.6",
+    "@storybook/testing-library": "^0.2.2",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.5.1",
@@ -107,13 +115,6 @@
     "postcss": "^8",
     "prettier": "^3.0.3",
     "storybook": "^7.4.6",
-    "@storybook/addon-essentials": "^7.4.6",
-    "@storybook/addon-interactions": "^7.4.6",
-    "@storybook/addon-links": "^7.4.6",
-    "@storybook/blocks": "^7.4.6",
-    "@storybook/react": "^7.4.6",
-    "@storybook/react-vite": "^7.4.6",
-    "@storybook/testing-library": "^0.2.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   },
@@ -123,7 +124,9 @@
   },
   "jest": {
     "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/jest.setup.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/jest.setup.js"
+    ],
     "moduleNameMapping": {
       "^@/(.*)$": "<rootDir>/src/$1",
       "^@/components/(.*)$": "<rootDir>/src/components/$1",

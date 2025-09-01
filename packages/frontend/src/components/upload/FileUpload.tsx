@@ -1,250 +1,291 @@
-"use client"
+"use client";
 
-import React, { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { useRouter } from 'next/navigation'
-import { Upload, FileText, CheckCircle, XCircle, AlertCircle, Loader2, X } from 'lucide-react'
-import { useFileUpload } from '@/hooks/useAPIData'
-import { config } from '@/lib/config'
+import React, { useState, useCallback } from "react";
+import { useDropzone } from "react-dropzone";
+import { useRouter } from "next/navigation";
+import {
+  Upload,
+  FileText,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Loader2,
+  X,
+} from "lucide-react";
+import { useFileUpload } from "@/hooks/useAPIData";
+import { config } from "@/lib/config";
 
 interface FileUploadProps {
-  onUploadComplete?: (investigationId: string) => void
-  onUploadStart?: () => void
-  maxFileSize?: number
-  allowedTypes?: string[]
+  onUploadComplete?: (investigationId: string) => void;
+  onUploadStart?: () => void;
+  maxFileSize?: number;
+  allowedTypes?: string[];
+  onError?: (error: Error) => void;
+  multiple?: boolean;
+  disabled?: boolean;
+  uploadText?: string;
+  headers?: Record<string, string>;
 }
 
 interface FileWithStatus {
-  file: File
-  id: string
-  status: 'pending' | 'uploading' | 'success' | 'error'
-  progress: number
-  investigationId?: string
-  error?: string
+  file: File;
+  id: string;
+  status: "pending" | "uploading" | "success" | "error";
+  progress: number;
+  investigationId?: string;
+  error?: string;
 }
 
-export function FileUpload({ 
-  onUploadComplete, 
+export function FileUpload({
+  onUploadComplete,
   onUploadStart,
   maxFileSize = config.upload.maxFileSize,
-  allowedTypes = config.upload.allowedExtensions
+  allowedTypes = config.upload.allowedExtensions,
 }: FileUploadProps) {
-  const router = useRouter()
-  const [files, setFiles] = useState<FileWithStatus[]>([])
-  const [showNameDialog, setShowNameDialog] = useState<number | null>(null)
-  const [uploadName, setUploadName] = useState('')
-  const [uploadDescription, setUploadDescription] = useState('')
-  const [isDragging, setIsDragging] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [uploadProgress, setUploadProgress] = useState(0)
+  const router = useRouter();
+  const [files, setFiles] = useState<FileWithStatus[]>([]);
+  const [showNameDialog, setShowNameDialog] = useState<number | null>(null);
+  const [uploadName, setUploadName] = useState("");
+  const [uploadDescription, setUploadDescription] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
-  const { uploadFile } = useFileUpload()
+  const { uploadFile } = useFileUpload();
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     // Handle rejected files
     if (rejectedFiles.length > 0) {
-      const errors = rejectedFiles.map(rejection => {
-        const error = rejection.errors[0]
-        return `${rejection.file.name}: ${error.message}`
-      })
-      alert(`Some files were rejected:\n${errors.join('\n')}`)
+      const errors = rejectedFiles.map((rejection) => {
+        const error = rejection.errors[0];
+        return `${rejection.file.name}: ${error.message}`;
+      });
+      alert(`Some files were rejected:\n${errors.join("\n")}`);
     }
 
     // Add accepted files
-    const newFiles = acceptedFiles.map(file => ({
+    const newFiles = acceptedFiles.map((file) => ({
       file,
       id: Math.random().toString(36).substr(2, 9),
-      status: 'pending' as const,
-      progress: 0
-    }))
+      status: "pending" as const,
+      progress: 0,
+    }));
 
-    setFiles(prev => [...prev, ...newFiles])
-  }, [])
+    setFiles((prev) => [...prev, ...newFiles]);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'text/csv': ['.csv'],
-      'application/json': ['.json'],
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-      'application/vnd.ms-excel': ['.xls'],
-      'application/vnd.apache.parquet': ['.parquet'],
-      'text/plain': ['.txt']
+      "text/csv": [".csv"],
+      "application/json": [".json"],
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+        ".xlsx",
+      ],
+      "application/vnd.ms-excel": [".xls"],
+      "application/vnd.apache.parquet": [".parquet"],
+      "text/plain": [".txt"],
     },
     maxSize: maxFileSize,
-    multiple: true
-  })
+    multiple: true,
+  });
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-    
-    const droppedFiles = Array.from(e.dataTransfer.files)
-    setFiles(droppedFiles.map(file => ({
-      file,
-      id: Math.random().toString(36).substr(2, 9),
-      status: 'pending' as const,
-      progress: 0
-    })))
-  }, [])
+    e.preventDefault();
+    setIsDragging(false);
 
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const selectedFiles = Array.from(e.target.files)
-      setFiles(selectedFiles.map(file => ({
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    setFiles(
+      droppedFiles.map((file) => ({
         file,
         id: Math.random().toString(36).substr(2, 9),
-        status: 'pending' as const,
-        progress: 0
-      })))
-    }
-  }, [])
+        status: "pending" as const,
+        progress: 0,
+      })),
+    );
+  }, []);
 
-  const uploadFileWithDetails = async (fileIndex: number, name?: string, description?: string) => {
-    const fileObj = files[fileIndex]
-    if (!fileObj) return
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files) {
+        const selectedFiles = Array.from(e.target.files);
+        setFiles(
+          selectedFiles.map((file) => ({
+            file,
+            id: Math.random().toString(36).substr(2, 9),
+            status: "pending" as const,
+            progress: 0,
+          })),
+        );
+      }
+    },
+    [],
+  );
 
-    setFiles(prev => prev.map((f, i) => 
-      i === fileIndex ? { ...f, status: 'uploading', progress: 0 } : f
-    ))
+  const uploadFileWithDetails = async (
+    fileIndex: number,
+    name?: string,
+    description?: string,
+  ) => {
+    const fileObj = files[fileIndex];
+    if (!fileObj) return;
 
-    onUploadStart?.()
+    setFiles((prev) =>
+      prev.map((f, i) =>
+        i === fileIndex ? { ...f, status: "uploading", progress: 0 } : f,
+      ),
+    );
+
+    onUploadStart?.();
 
     try {
       const result = await uploadFile(
-        fileObj.file, 
-        name, 
+        fileObj.file,
+        name,
         description,
         (progress) => {
-          setFiles(prev => prev.map((f, i) => 
-            i === fileIndex ? { ...f, progress } : f
-          ))
-        }
-      )
+          setFiles((prev) =>
+            prev.map((f, i) => (i === fileIndex ? { ...f, progress } : f)),
+          );
+        },
+      );
 
-      setFiles(prev => prev.map((f, i) => 
-        i === fileIndex ? { 
-          ...f, 
-          status: 'success', 
-          progress: 100,
-          investigationId: result.investigation_id 
-        } : f
-      ))
+      setFiles((prev) =>
+        prev.map((f, i) =>
+          i === fileIndex
+            ? {
+                ...f,
+                status: "success",
+                progress: 100,
+                investigationId: result.investigation_id,
+              }
+            : f,
+        ),
+      );
 
-      onUploadComplete?.(result.investigation_id)
+      onUploadComplete?.(result.investigation_id);
 
       // Auto-redirect to investigation after 2 seconds
       setTimeout(() => {
-        router.push(`/dashboard/data-sources?investigation=${result.investigation_id}`)
-      }, 2000)
-
+        router.push(
+          `/dashboard/data-sources?investigation=${result.investigation_id}`,
+        );
+      }, 2000);
     } catch (error) {
-      setFiles(prev => prev.map((f, i) => 
-        i === fileIndex ? { 
-          ...f, 
-          status: 'error', 
-          progress: 0,
-          error: error instanceof Error ? error.message : 'Upload failed'
-        } : f
-      ))
+      setFiles((prev) =>
+        prev.map((f, i) =>
+          i === fileIndex
+            ? {
+                ...f,
+                status: "error",
+                progress: 0,
+                error: error instanceof Error ? error.message : "Upload failed",
+              }
+            : f,
+        ),
+      );
     }
-  }
+  };
 
   const handleUpload = (fileIndex: number) => {
-    setShowNameDialog(fileIndex)
-  }
+    setShowNameDialog(fileIndex);
+  };
 
   const handleUploadWithName = () => {
     if (showNameDialog !== null) {
-      uploadFileWithDetails(showNameDialog, uploadName, uploadDescription)
-      setShowNameDialog(null)
-      setUploadName('')
-      setUploadDescription('')
+      uploadFileWithDetails(showNameDialog, uploadName, uploadDescription);
+      setShowNameDialog(null);
+      setUploadName("");
+      setUploadDescription("");
     }
-  }
+  };
 
   const removeFile = (fileIndex: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== fileIndex))
-  }
+    setFiles((prev) => prev.filter((_, i) => i !== fileIndex));
+  };
 
   const getFileIcon = (file: File) => {
-    const extension = file.name.split('.').pop()?.toLowerCase()
+    const extension = file.name.split(".").pop()?.toLowerCase();
     switch (extension) {
-      case 'csv': return '📊'
-      case 'json': return '📋'
-      case 'xlsx':
-      case 'xls': return '📈'
-      case 'parquet': return '🗂️'
-      default: return '📄'
+      case "csv":
+        return "📊";
+      case "json":
+        return "📋";
+      case "xlsx":
+      case "xls":
+        return "📈";
+      case "parquet":
+        return "🗂️";
+      default:
+        return "📄";
     }
-  }
+  };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-  }
+    if (bytes === 0) return "0 Bytes";
+    const k = 1024;
+    const sizes = ["Bytes", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
 
   const handleUploadProgress = async () => {
-    if (files.length === 0) return
+    if (files.length === 0) return;
 
-    setUploading(true)
-    setUploadProgress(0)
+    setUploading(true);
+    setUploadProgress(0);
 
     // Simulate upload progress
     const interval = setInterval(() => {
-      setUploadProgress(prev => {
+      setUploadProgress((prev) => {
         if (prev >= 90) {
-          clearInterval(interval)
-          return 90
+          clearInterval(interval);
+          return 90;
         }
-        return prev + 10
-      })
-    }, 200)
+        return prev + 10;
+      });
+    }, 200);
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      setUploadProgress(100)
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
+      setUploadProgress(100);
+
       // Wait a bit to show completion
       setTimeout(() => {
-        setUploading(false)
-                 setFiles([])
-         setUploadProgress(0)
-         onUploadComplete?.('mock-investigation-id')
-       }, 500)
-      
+        setUploading(false);
+        setFiles([]);
+        setUploadProgress(0);
+        onUploadComplete?.("mock-investigation-id");
+      }, 500);
     } catch (error) {
-      console.error('Upload failed:', error)
-      setUploading(false)
-      setUploadProgress(0)
+      console.error("Upload failed:", error);
+      setUploading(false);
+      setUploadProgress(0);
     } finally {
-      clearInterval(interval)
+      clearInterval(interval);
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-2xl mx-auto">
       {/* Upload Area */}
       <div
         className={`relative border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-          isDragging 
-            ? 'border-blue-400 bg-blue-50' 
-            : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+          isDragging
+            ? "border-blue-400 bg-blue-50"
+            : "border-gray-300 bg-gray-50 hover:bg-gray-100"
         }`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -257,7 +298,7 @@ export function FileUpload({
         <p className="text-sm text-gray-500 mb-4">
           Drag and drop your files here, or click to browse
         </p>
-        
+
         <input
           type="file"
           multiple
@@ -265,11 +306,11 @@ export function FileUpload({
           onChange={handleFileSelect}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
         />
-        
+
         <button className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
           Select Files
         </button>
-        
+
         <p className="text-xs text-gray-400 mt-2">
           Supported formats: CSV, JSON, Excel (max 100MB)
         </p>
@@ -282,7 +323,7 @@ export function FileUpload({
             Selected Files ({files.length})
           </h4>
           <div className="space-y-2">
-          {files.map((fileObj, index) => (
+            {files.map((fileObj, index) => (
               <div
                 key={fileObj.id}
                 className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg"
@@ -298,12 +339,12 @@ export function FileUpload({
                     </p>
                   </div>
                 </div>
-                      <button
-                        onClick={() => removeFile(index)}
+                <button
+                  onClick={() => removeFile(index)}
                   className="text-gray-400 hover:text-red-500"
-                      >
+                >
                   <X className="h-4 w-4" />
-                      </button>
+                </button>
               </div>
             ))}
           </div>
@@ -314,17 +355,19 @@ export function FileUpload({
       {uploading && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">Uploading...</span>
+            <span className="text-sm font-medium text-gray-700">
+              Uploading...
+            </span>
             <span className="text-sm text-gray-500">{uploadProgress}%</span>
           </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Upload Button */}
       {files.length > 0 && !uploading && (
@@ -342,13 +385,15 @@ export function FileUpload({
             <Upload className="h-4 w-4 mr-2" />
             Upload Files
           </button>
-                </div>
-              )}
+        </div>
+      )}
 
       {uploadProgress === 100 && (
         <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center">
           <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
-          <span className="text-sm text-green-700">Upload completed successfully!</span>
+          <span className="text-sm text-green-700">
+            Upload completed successfully!
+          </span>
         </div>
       )}
 
@@ -403,7 +448,7 @@ export function FileUpload({
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default FileUpload 
+export default FileUpload;

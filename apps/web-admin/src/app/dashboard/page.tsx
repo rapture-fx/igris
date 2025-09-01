@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { ProtectedRoute } from '@schlep-engine/ui/auth'
 import { 
   Activity, 
   Server, 
@@ -285,7 +286,8 @@ export default function DeveloperDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0f0f0f]">
+    <ProtectedRoute redirectTo="/login">
+      <div className="min-h-screen bg-[#0f0f0f]">
       {/* Header */}
       <header className="bg-[#161616] border-b border-gray-800">
         <div className="max-w-7xl mx-auto px-6 py-6">
@@ -807,5 +809,6 @@ export default function DeveloperDashboard() {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   )
 }

@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { Mail, Github, ArrowRight, Chrome } from 'lucide-react'
 import { checkEmailExists, initiateOAuthLogin, loginWithCredentials, registerUser, type ApiError } from '@/lib/auth'
 import { AuthWrapper } from '../../src/components/AuthWrapper'
+import { useTheme } from "next-themes"
 
 function AuthPageContent() {
   const router = useRouter()
@@ -17,6 +18,7 @@ function AuthPageContent() {
   const [error, setError] = useState('')
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [authStep, setAuthStep] = useState('email_input') // 'email_input', 'password_input', 'registration_form'
+  const { theme } = useTheme()
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,7 +109,7 @@ function AuthPageContent() {
             <div className="mb-8 flex flex-col items-center justify-center">
               <div className="flex items-center justify-center mb-4">
                 <Image 
-                  src="/Schlep Engine bold light.svg" 
+                  src={theme === "dark" ? "/Schlep Engine Dark mode logo.svg" : "/Schlep Engine Light mode logo.svg"} 
                   alt="Schlep Engine" 
                   width={45} 
                   height={45}

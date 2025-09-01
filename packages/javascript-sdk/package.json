@@ -14,6 +14,7 @@
   ],
   "author": "Schlep-engine <support@schlep-engine.com>",
   "license": "MIT",
+  "type": "module",
   "homepage": "https://schlep-engine.com",
   "repository": {
     "type": "git",
@@ -48,7 +49,7 @@
     "npm": ">=6.0.0"
   },
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c --bundleConfigAsCjs",
     "build:watch": "rollup -c -w",
     "dev": "rollup -c -w",
     "clean": "rimraf dist",

@@ -1,0 +1,73 @@
+{
+  "test_summary": {
+    "timestamp": "2025-08-31T13:26:14.174499",
+    "test_time_seconds": 6.061576,
+    "total_tests": 5,
+    "successful_tests": 3,
+    "success_rate": 0.6,
+    "overall_status": "GOOD"
+  },
+  "test_results": {
+    "rl_service_integration": {
+      "status": "success",
+      "service_created": true,
+      "session_created": true,
+      "status_retrieval": true,
+      "compatibility_mode": true
+    },
+    "ml_models_sklearn": {
+      "status": "error",
+      "error": "'ManufacturingPredictorModel' object has no attribute '_is_classification_task'"
+    },
+    "database_crud": {
+      "status": "success",
+      "create_working": true,
+      "get_working": true,
+      "update_working": true,
+      "list_working": true,
+      "delete_working": true,
+      "compatibility_mode": true
+    },
+    "rl_optimization_workflow": {
+      "status": "success",
+      "optimization_completed": true,
+      "best_performance": 0.7408735379767946,
+      "total_episodes": 3,
+      "optimization_time": 0.000346,
+      "hyperparameters_found": true
+    },
+    "data_processing_pipeline": {
+      "status": "error",
+      "error": ""
+    }
+  },
+  "successes": [
+    "RL service integration working in compatibility mode",
+    "Database CRUD operations working in compatibility mode",
+    "RL optimization workflow working in compatibility mode"
+  ],
+  "errors": [
+    "ML models: 'ManufacturingPredictorModel' object has no attribute '_is_classification_task'",
+    "Data processing pipeline: "
+  ],
+  "system_info": {
+    "python_version": "3.13.3",
+    "platform": "macOS-13.7.8-x86_64-i386-64bit-Mach-O",
+    "available_dependencies": {
+      "numpy": "2.2.6",
+      "pandas": "2.2.3",
+      "sklearn": "1.6.1",
+      "gymnasium": "0.29.1",
+      "pdfplumber": "0.11.7",
+      "openpyxl": "3.1.5",
+      "celery": "5.5.2",
+      "redis": "6.2.0"
+    }
+  },
+  "recommendations": [
+    "Most core functionality is working",
+    "Address failing tests for improved functionality",
+    "Install missing ML dependencies (scikit-learn, etc.)",
+    "Run 'pip install -r requirements-ml.txt' for full functionality"
+  ]
+}

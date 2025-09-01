@@ -7,7 +7,8 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Optional, Tuple, Union
 from scipy import stats
-from sklearn.ensemble import IsolationForest, OneClassSVM
+from sklearn.ensemble import IsolationForest
+from sklearn.svm import OneClassSVM
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.cluster import DBSCAN
 from sklearn.covariance import EllipticEnvelope
@@ -17,6 +18,156 @@ import logging
 from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
+
+
+class DataQualityAnalyzer:
+    """
+    Comprehensive data quality analyzer for ML/RL systems.
+    
+    Features:
+    - Basic data profiling and statistics
+    - Missing value analysis
+    - Data type consistency checks
+    - Quality scoring and recommendations
+    """
+    
+    def __init__(self):
+        self.quality_thresholds = {
+            "missing_value_threshold": 0.1,  # 10% missing values is concerning
+            "unique_value_threshold": 0.95,  # 95% unique values might indicate IDs
+            "duplicate_row_threshold": 0.05   # 5% duplicate rows is concerning
+        }
+    
+    def generate_comprehensive_report(self, data: pd.DataFrame, sensor_metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+        """
+        Generate comprehensive data quality report.
+        
+        Args:
+            data: Dataset to analyze
+            sensor_metadata: Optional metadata about sensors
+            
+        Returns:
+            Detailed quality assessment report
+        """
+        logger.info(f"Starting comprehensive quality assessment for {len(data)} records")
+        start_time = datetime.now()
+        
+        # Basic data profiling
+        basic_profile = self._basic_data_profiling(data)
+        
+        # Missing value analysis
+        missing_analysis = self._analyze_missing_values(data)
+        
+        # Data type analysis
+        type_analysis = self._analyze_data_types(data)
+        
+        # Quality scoring
+        quality_score = self._calculate_quality_score(data, basic_profile, missing_analysis)
+        
+        # Generate recommendations
+        recommendations = self._generate_quality_recommendations(basic_profile, missing_analysis, type_analysis)
+        
+        processing_time = (datetime.now() - start_time).total_seconds()
+        
+        return {
+            "data_quality_score": quality_score,
+            "basic_profile": basic_profile,
+            "missing_value_analysis": missing_analysis,
+            "data_type_analysis": type_analysis,
+            "recommendations": recommendations,
+            "processing_time_seconds": processing_time,
+            "timestamp": datetime.now().isoformat()
+        }
+    
+    def _basic_data_profiling(self, data: pd.DataFrame) -> Dict[str, Any]:
+        """Generate basic data profile."""
+        return {
+            "total_rows": len(data),
+            "total_columns": len(data.columns),
+            "memory_usage_mb": data.memory_usage(deep=True).sum() / (1024 * 1024),
+            "duplicate_rows": data.duplicated().sum(),
+            "duplicate_rate": data.duplicated().sum() / len(data),
+            "column_types": data.dtypes.value_counts().to_dict()
+        }
+    
+    def _analyze_missing_values(self, data: pd.DataFrame) -> Dict[str, Any]:
+        """Analyze missing values in the dataset."""
+        missing_counts = data.isnull().sum()
+        missing_percentages = (missing_counts / len(data)) * 100
+        
+        return {
+            "total_missing_values": int(missing_counts.sum()),
+            "missing_percentage": float(missing_counts.sum() / (len(data) * len(data.columns)) * 100),
+            "columns_with_missing": missing_counts[missing_counts > 0].to_dict(),
+            "missing_percentages_by_column": missing_percentages[missing_percentages > 0].to_dict(),
+            "complete_rows": int(data.dropna().shape[0]),
+            "complete_row_percentage": float(data.dropna().shape[0] / len(data) * 100)
+        }
+    
+    def _analyze_data_types(self, data: pd.DataFrame) -> Dict[str, Any]:
+        """Analyze data types and consistency."""
+        numeric_columns = data.select_dtypes(include=[np.number]).columns.tolist()
+        categorical_columns = data.select_dtypes(include=['object', 'category']).columns.tolist()
+        datetime_columns = data.select_dtypes(include=['datetime64']).columns.tolist()
+        
+        return {
+            "numeric_columns": numeric_columns,
+            "categorical_columns": categorical_columns,
+            "datetime_columns": datetime_columns,
+            "numeric_column_count": len(numeric_columns),
+            "categorical_column_count": len(categorical_columns),
+            "datetime_column_count": len(datetime_columns)
+        }
+    
+    def _calculate_quality_score(self, data: pd.DataFrame, basic_profile: Dict, missing_analysis: Dict) -> float:
+        """Calculate overall data quality score (0-1)."""
+        score = 1.0
+        
+        # Penalize for missing values
+        missing_penalty = min(missing_analysis["missing_percentage"] / 100, 0.5)
+        score -= missing_penalty
+        
+        # Penalize for duplicate rows
+        duplicate_penalty = min(basic_profile["duplicate_rate"], 0.3)
+        score -= duplicate_penalty
+        
+        # Penalize for columns with all missing values
+        if missing_analysis["columns_with_missing"]:
+            all_missing_columns = sum(1 for pct in missing_analysis["missing_percentages_by_column"].values() if pct == 100)
+            all_missing_penalty = (all_missing_columns / len(data.columns)) * 0.2
+            score -= all_missing_penalty
+        
+        return max(0.0, score)
+    
+    def _generate_quality_recommendations(self, basic_profile: Dict, missing_analysis: Dict, type_analysis: Dict) -> List[str]:
+        """Generate data quality recommendations."""
+        recommendations = []
+        
+        # Missing value recommendations
+        if missing_analysis["missing_percentage"] > 10:
+            recommendations.append("High percentage of missing values detected. Consider imputation strategies.")
+        
+        if missing_analysis["columns_with_missing"]:
+            high_missing_columns = [col for col, pct in missing_analysis["missing_percentages_by_column"].items() if pct > 50]
+            if high_missing_columns:
+                recommendations.append(f"Columns with >50% missing values: {', '.join(high_missing_columns[:3])}. Consider removing or special handling.")
+        
+        # Duplicate recommendations
+        if basic_profile["duplicate_rate"] > 0.05:
+            recommendations.append("Significant number of duplicate rows detected. Consider deduplication.")
+        
+        # Data type recommendations
+        if len(type_analysis["categorical_columns"]) > len(type_analysis["numeric_columns"]) * 2:
+            recommendations.append("High ratio of categorical to numeric columns. Consider encoding strategies.")
+        
+        # Memory recommendations
+        if basic_profile["memory_usage_mb"] > 100:
+            recommendations.append("Dataset has high memory usage. Consider data type optimization or chunked processing.")
+        
+        if not recommendations:
+            recommendations.append("Data quality looks good overall.")
+        
+        return recommendations
 
 
 class IndustrialDataQualityEngine:
@@ -375,6 +526,16 @@ class IndustrialDataQualityEngine:
         }
         
         return validation_result
+    
+    def generate_comprehensive_report(self, data: pd.DataFrame, sensor_metadata: Dict[str, Any] = None) -> Dict[str, Any]:
+        """
+        Generate comprehensive data quality report.
+        
+        Args:
+            data: Dataset to analyze
+            sensor_metadata: Optional metadata about sensors
+            
+        Returns:
             Detailed quality assessment report
         """
         logger.info(f"Starting comprehensive quality assessment for {len(data)} records")

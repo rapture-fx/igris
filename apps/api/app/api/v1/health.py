@@ -560,6 +560,128 @@ async def external_api_health_check() -> Dict[str, Any]:
             detail=f"External API health check failed: {str(e)}"
         )
 
+@router.get("/health/ml", response_model=Dict[str, Any])
+async def ml_service_health_check() -> Dict[str, Any]:
+    """
+    ML service-specific health check
+    
+    Returns detailed health status for the ML service including:
+    - Model availability and status
+    - GPU availability and usage
+    - Prediction test results
+    - Performance metrics
+    
+    Returns:
+        Dict containing ML service health information
+    """
+    start_time = time.time()
+    request_id = f"health_ml_{int(start_time)}"
+    
+    # Log request start
+    log_request_start(request_id, "GET", "/health/ml")
+    
+    try:
+        from app.core.health import health_checker
+        
+        # Get ML service health status
+        health_result = await health_checker.check_ml_service_health()
+        
+        # Record metrics
+        duration = time.time() - start_time
+        record_http_request(
+            method="GET",
+            endpoint="/health/ml",
+            status_code=200,
+            duration=duration,
+            user_type="system"
+        )
+        
+        # Log request end
+        log_request_end(request_id, "GET", "/health/ml", 200, duration)
+        
+        return health_result.to_dict()
+        
+    except Exception as e:
+        duration = time.time() - start_time
+        
+        # Record error metrics
+        record_http_request(
+            method="GET",
+            endpoint="/health/ml",
+            status_code=500,
+            duration=duration,
+            user_type="system"
+        )
+        
+        # Log request end with error
+        log_request_end(request_id, "GET", "/health/ml", 500, duration)
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"ML service health check failed: {str(e)}"
+        )
+
+@router.get("/health/rl", response_model=Dict[str, Any])
+async def rl_service_health_check() -> Dict[str, Any]:
+    """
+    RL service-specific health check
+    
+    Returns detailed health status for the RL service including:
+    - Environment status
+    - Training job status
+    - Agent model availability
+    - Resource utilization
+    
+    Returns:
+        Dict containing RL service health information
+    """
+    start_time = time.time()
+    request_id = f"health_rl_{int(start_time)}"
+    
+    # Log request start
+    log_request_start(request_id, "GET", "/health/rl")
+    
+    try:
+        from app.core.health import health_checker
+        
+        # Get RL service health status
+        health_result = await health_checker.check_rl_service_health()
+        
+        # Record metrics
+        duration = time.time() - start_time
+        record_http_request(
+            method="GET",
+            endpoint="/health/rl",
+            status_code=200,
+            duration=duration,
+            user_type="system"
+        )
+        
+        # Log request end
+        log_request_end(request_id, "GET", "/health/rl", 200, duration)
+        
+        return health_result.to_dict()
+        
+    except Exception as e:
+        duration = time.time() - start_time
+        
+        # Record error metrics
+        record_http_request(
+            method="GET",
+            endpoint="/health/rl",
+            status_code=500,
+            duration=duration,
+            user_type="system"
+        )
+        
+        # Log request end with error
+        log_request_end(request_id, "GET", "/health/rl", 500, duration)
+        
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"RL service health check failed: {str(e)}"
+        )
+
 @router.get("/metrics", response_model=Dict[str, Any])
 async def get_metrics() -> Dict[str, Any]:
     """

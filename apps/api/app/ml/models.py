@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Optional, Tuple, Union
 from sklearn.base import BaseEstimator, TransformerMixin, ClassifierMixin, RegressorMixin
-from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier, RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neural_network import MLPClassifier, MLPRegressor
 from sklearn.model_selection import cross_val_score, GridSearchCV, TimeSeriesSplit
 from sklearn.preprocessing import StandardScaler, LabelEncoder
@@ -159,6 +159,23 @@ class ManufacturingPredictorModel:
         
         return predictions
     
+    def _prepare_prediction_features(self, data: pd.DataFrame) -> pd.DataFrame:
+        """Prepare features for prediction (simplified version)."""
+        # Simple feature preparation - in production this should match training preparation
+        feature_data = data.copy()
+        
+        # Handle missing values
+        numeric_columns = feature_data.select_dtypes(include=[np.number]).columns
+        for col in numeric_columns:
+            feature_data[col] = feature_data[col].fillna(feature_data[col].median())
+        
+        # Handle categorical columns
+        categorical_columns = feature_data.select_dtypes(include=['object']).columns
+        for col in categorical_columns:
+            feature_data[col] = feature_data[col].fillna('unknown')
+        
+        return feature_data
+    
     def _prepare_manufacturing_data(self, data: pd.DataFrame,
                                   target_columns: List[str],
                                   timestamp_column: Optional[str]) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -198,6 +215,27 @@ class ManufacturingPredictorModel:
         y = feature_data[target_columns]
         
         return X, y
+    
+    def _is_classification_task(self, target_series: pd.Series) -> bool:
+        """Determine if the task is classification or regression based on target values."""
+        # Check the number of unique values
+        unique_values = target_series.nunique()
+        total_values = len(target_series)
+        
+        # If very few unique values relative to total, likely classification
+        if unique_values < 20 and unique_values / total_values < 0.1:
+            return True
+        
+        # Check data type
+        if target_series.dtype in ['int64', 'int32', 'bool', 'object', 'category']:
+            return True
+        
+        # Check if all values are integers (even if stored as float)
+        if target_series.dtype in ['float64', 'float32']:
+            if all(val.is_integer() for val in target_series.dropna()):
+                return True
+        
+        return False
     
     def _train_single_target_model(self, X: pd.DataFrame, y: pd.Series,
                                  target_name: str, is_classification: bool) -> Dict[str, Any]:
@@ -280,6 +318,32 @@ class ManufacturingPredictorModel:
         )
         
         return ensemble
+    
+    def _calculate_overall_performance(self) -> Dict[str, float]:
+        """Calculate overall performance metrics across all models."""
+        if not self.model_performance:
+            return {}
+        
+        overall_metrics = {}
+        
+        # Calculate mean performance across all models
+        cv_scores = [perf["cv_score_mean"] for perf in self.model_performance.values()]
+        if cv_scores:
+            overall_metrics["mean_cv_score"] = np.mean(cv_scores)
+            overall_metrics["std_cv_score"] = np.std(cv_scores)
+            overall_metrics["min_cv_score"] = np.min(cv_scores)
+            overall_metrics["max_cv_score"] = np.max(cv_scores)
+        
+        # Count classification vs regression tasks
+        classification_count = sum(1 for perf in self.model_performance.values() 
+                                 if perf.get("is_classification", False))
+        regression_count = len(self.model_performance) - classification_count
+        
+        overall_metrics["classification_models"] = classification_count
+        overall_metrics["regression_models"] = regression_count
+        overall_metrics["total_models"] = len(self.model_performance)
+        
+        return overall_metrics
 
 
 class EcommerceRecommendationModel:
