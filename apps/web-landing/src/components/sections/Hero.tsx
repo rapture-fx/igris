@@ -48,9 +48,7 @@ export default function Hero() {
             </Link>
             
           </div>
-          <div className="mt-12 flex justify-center">
-            <img src="/Gradient Schlep-engine.svg" alt="Gradient Schlep Engine" className="max-w-full h-auto" />
-          </div>
+          
           
           
         </div>
