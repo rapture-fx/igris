@@ -12,3 +12,6 @@ export * from './auth'
 
 // WebSocket Components and Hooks
 export * from './websocket'
+
+// Comprehensive Monitoring and Observability System
+export * from './monitoring'

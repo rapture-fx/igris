@@ -24,14 +24,14 @@ export default function Hero() {
   }, [])
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-white dark:bg-black pt-32 pb-16 border border-gray-400">
+    <section className="relative min-h-screen overflow-hidden bg-white dark:bg-black pt-32 pb-16">
       {/* Layer 1: Grid Background */}
       
 
       
 
       {/* Layer 3: Content */}
-      <div className="relative z-20 mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8 border border-gray-400">
+      <div className="relative z-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center pt-20">
           <h1 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-2 leading-tight py-8 text-center">
             Messy data to ML-ready in API calls.
@@ -47,6 +47,9 @@ export default function Hero() {
               Get Started <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
             
+          </div>
+          <div className="mt-12 flex justify-center">
+            <img src="/Gradient Schlep-engine.svg" alt="Gradient Schlep Engine" className="max-w-full h-auto" />
           </div>
           
           

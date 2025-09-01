@@ -5,82 +5,71 @@ import { ChevronRight, Zap, Database, BarChart3, Cloud, Globe, Code, Users, Mega
 import Link from 'next/link'
 
 export default function Integrations() {
-  const [activeCategory, setActiveCategory] = useState('analytics')
+  const [activeCategory, setActiveCategory] = useState('all');
 
   const categories = {
-    analytics: {
-      title: 'Analytics & BI',
-      icon: BarChart3,
-      integrations: [
-        { name: 'Tableau', description: 'Direct data connector for visual analytics', logo: '📊' },
-        { name: 'Power BI', description: 'Microsoft Power BI integration', logo: '📈' },
-        { name: 'Looker', description: 'Google Cloud data platform', logo: '👁️' },
-        { name: 'Grafana', description: 'Real-time monitoring dashboards', logo: '📉' },
-        { name: 'Metabase', description: 'Open source business intelligence', logo: '🔍' },
-        { name: 'Apache Superset', description: 'Modern data exploration platform', logo: '🚀' }
-      ]
-    },
-    databases: {
-      title: 'Databases & Storage',
-      icon: Database,
-      integrations: [
-        { name: 'PostgreSQL', description: 'Direct database connections', logo: '🐘' },
-        { name: 'MongoDB', description: 'NoSQL document database', logo: '🍃' },
-        { name: 'Redis', description: 'In-memory data caching', logo: '🔴' },
-        { name: 'Snowflake', description: 'Cloud data warehouse', logo: '❄️' },
-        { name: 'BigQuery', description: 'Google Cloud analytics database', logo: '🔍' },
-        { name: 'Amazon S3', description: 'Object storage integration', logo: '☁️' }
-      ]
-    },
-    automation: {
-      title: 'Automation & Workflows',
+    all: {
+      title: 'All Integrations',
       icon: Zap,
       integrations: [
-        { name: 'Zapier', description: 'Connect with 5000+ apps', logo: '⚡' },
-        { name: 'Make (Integromat)', description: 'Visual automation platform', logo: '🔧' },
-        { name: 'Apache Airflow', description: 'Workflow orchestration', logo: '🌊' },
-        { name: 'GitHub Actions', description: 'CI/CD automation', logo: '🐱' },
-        { name: 'Microsoft Power Automate', description: 'Business process automation', logo: '🔄' },
-        { name: 'n8n', description: 'Open source workflow automation', logo: '🔗' }
-      ]
+        { logo: '📊', name: 'Google Analytics', description: 'Track website traffic and user behavior.' },
+        { logo: '📈', name: 'Mixpanel', description: 'Understand user actions and funnels.' },
+        { logo: '📧', name: 'Mailchimp', description: 'Automate email marketing campaigns.' },
+        { logo: '💬', name: 'Slack', description: 'Collaborate with your team in real-time.' },
+        { logo: '💳', name: 'Stripe', description: 'Process online payments securely.' },
+        { logo: '📦', name: 'Shopify', description: 'Manage your e-commerce store.' },
+        { logo: '☁️', name: 'AWS S3', description: 'Store and retrieve data from the cloud.' },
+        { logo: '📄', name: 'Google Sheets', description: 'Organize and analyze data in spreadsheets.' },
+        { logo: '🚀', name: 'Salesforce', description: 'Manage customer relationships and sales processes.' },
+        { logo: '💡', name: 'Zendesk', description: 'Provide customer support and service.' },
+      ],
     },
-    cloud: {
-      title: 'Cloud Platforms',
-      icon: Cloud,
+    data: {
+      title: 'Data & Analytics',
+      icon: BarChart3,
       integrations: [
-        { name: 'AWS', description: 'Lambda, S3, EC2 integrations', logo: '🟧' },
-        { name: 'Google Cloud', description: 'GCP services integration', logo: '🌈' },
-        { name: 'Microsoft Azure', description: 'Azure Functions and Storage', logo: '🔷' },
-        { name: 'Vercel', description: 'Edge functions deployment', logo: '▲' },
-        { name: 'Netlify', description: 'Serverless function integration', logo: '🌊' },
-        { name: 'Heroku', description: 'Platform as a service', logo: '💜' }
-      ]
+        { logo: '📊', name: 'Google Analytics', description: 'Track website traffic and user behavior.' },
+        { logo: '📈', name: 'Mixpanel', description: 'Understand user actions and funnels.' },
+        { logo: '☁️', name: 'AWS S3', description: 'Store and retrieve data from the cloud.' },
+        { logo: '📄', name: 'Google Sheets', description: 'Organize and analyze data in spreadsheets.' },
+      ],
     },
-    nocode: {
-      title: 'No-Code Platforms',
+    marketing: {
+      title: 'Marketing',
+      icon: Megaphone,
+      integrations: [
+        { logo: '📧', name: 'Mailchimp', description: 'Automate email marketing campaigns.' },
+        { logo: '🚀', name: 'Salesforce', description: 'Manage customer relationships and sales processes.' },
+      ],
+    },
+    communication: {
+      title: 'Communication',
+      icon: Users,
+      integrations: [
+        { logo: '💬', name: 'Slack', description: 'Collaborate with your team in real-time.' },
+        { logo: '💡', name: 'Zendesk', description: 'Provide customer support and service.' },
+      ],
+    },
+    ecommerce: {
+      title: 'E-commerce',
       icon: Globe,
       integrations: [
-        { name: 'Airtable', description: 'Spreadsheet-database hybrid', logo: '🏗️' },
-        { name: 'Notion', description: 'All-in-one workspace', logo: '📝' },
-        { name: 'Google Sheets', description: 'Cloud spreadsheet integration', logo: '📊' },
-        { name: 'Bubble', description: 'Visual programming platform', logo: '💭' },
-        { name: 'Webflow', description: 'Visual web development', logo: '🌐' },
-        { name: 'Retool', description: 'Internal tool builder', logo: '🔨' }
-      ]
+        { logo: '💳', name: 'Stripe', description: 'Process online payments securely.' },
+        { logo: '📦', name: 'Shopify', description: 'Manage your e-commerce store.' },
+      ],
     },
     development: {
-      title: 'Developer Tools',
+      title: 'Development',
       icon: Code,
       integrations: [
-        { name: 'GitHub', description: 'Version control integration', logo: '🐙' },
-        { name: 'GitLab', description: 'DevOps platform integration', logo: '🦊' },
-        { name: 'Docker', description: 'Container deployment', logo: '🐳' },
-        { name: 'Kubernetes', description: 'Container orchestration', logo: '☸️' },
-        { name: 'Jenkins', description: 'CI/CD automation', logo: '👨‍🔧' },
-        { name: 'Slack', description: 'Team communication', logo: '💬' }
-      ]
-    }
-  }
+        { logo: '🐙', name: 'GitHub', description: 'Host and manage your code.' },
+        { logo: '⚙️', name: 'Jira', description: 'Track bugs and manage projects.' },
+      ],
+    },
+  };
+  
+
+  
 
   return (
     <section className="py-20 bg-gray-50 dark:bg-black">
@@ -153,7 +142,7 @@ export default function Integrations() {
           </h3>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white border border-gray-200 rounded-xl p-6 dark:bg-gray-900 dark:border-gray-800">
+            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
               <div className="flex items-center space-x-3 mb-4">
                 <BarChart3 className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-gray-900 dark:text-white">Analytics Pipeline</h4>
@@ -174,7 +163,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6 dark:bg-gray-900 dark:border-gray-800">
+            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
               <div className="flex items-center space-x-3 mb-4">
                 <Zap className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-gray-900 dark:text-white">Automated Workflow</h4>
@@ -195,7 +184,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6 dark:bg-gray-900 dark:border-gray-800">
+            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
               <div className="flex items-center space-x-3 mb-4">
                 <Database className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-gray-900 dark:text-white">Data Warehouse</h4>
@@ -216,7 +205,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6 dark:bg-gray-900 dark:border-gray-800">
+            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
               <div className="flex items-center space-x-3 mb-4">
                 <Users className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-gray-900 dark:text-white">Customer Data Enrichment</h4>
@@ -237,7 +226,7 @@ export default function Integrations() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-xl p-6 dark:bg-gray-900 dark:border-gray-800">
+            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
               <div className="flex items-center space-x-3 mb-4">
                 <Megaphone className="w-5 h-5 text-[#1A5799]" />
                 <h4 className="font-semibold text-gray-900 dark:text-white">Marketing Campaign Optimization</h4>

@@ -40,8 +40,8 @@ export default function Benefits() {
   ]
 
   return (
-    <section className="py-16 md:py-24 bg-white text-gray-900 dark:bg-black dark:text-white border border-gray-400">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 border border-gray-400">
+    <section className="py-16 md:py-24 bg-white text-gray-900 dark:bg-black dark:text-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-4 text-left">
             Data ready for what's next

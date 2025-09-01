@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useTheme } from "next-themes"
+import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 
 export default function Footer() {
   const { theme } = useTheme()
@@ -103,11 +104,12 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Copyright */}
-          <div className="border-t border-gray-200 dark:border-gray-800 pt-6 mt-12">
+          {/* Copyright and Theme Switcher */}
+          <div className="pt-6 mt-12 flex justify-between items-center">
             <p className="text-sm text-gray-500 dark:text-gray-400 text-left">
               © 2024 Schlep-engine. All rights reserved.
             </p>
+            <ThemeSwitcher />
           </div>
         </div>
       </div>
