@@ -11,29 +11,32 @@ import HowItWorks from '../src/components/sections/HowItWorks'
 import LatestUpdate from '../src/components/sections/LatestUpdate'
 import FAQ from '../src/components/sections/FAQ'
 import Footer from '../src/components/sections/Footer'
+import CallToAction from '../src/components/sections/CallToAction'
 
 
 export default function HomePage() {
   return (
     <div className="min-h-screen">
-      
-      
+
       {/* Crop Marks */}
       <div className="crop-marks">
         <div className="bottom-left"></div>
         <div className="bottom-right"></div>
       </div>
-      
+
       <Header />
       <main>
         <Hero />
 
         <Benefits />
         <HowItWorks />
-        <AudienceTabs />
         <AdditionalFeatures />
         <SecurityFeatures />
         <Integrations />
+        <AudienceTabs />
+
+        <CallToAction />
+
         <LatestUpdate />
         <FAQ />
       </main>
