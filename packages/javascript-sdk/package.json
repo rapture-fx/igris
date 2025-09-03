@@ -25,6 +25,9 @@
   },
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
+  "browser": {
+    "./src/auth/index.ts": "./src/auth/index.browser.ts"
+  },
   "browser": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "exports": {
@@ -67,6 +70,7 @@
     "size": "size-limit"
   },
   "devDependencies": {
+    "@rollup/plugin-alias": "^5.0.1",
     "@playwright/test": "^1.40.0",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^6.0.1",

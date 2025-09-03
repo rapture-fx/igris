@@ -59,8 +59,7 @@ const connectionData = {
 fetch('https://api.schlep-engine.com/api/v1/integrations/database/connect', {
   method: 'POST',
   headers: {
-    'Authorization': 
-      `Bearer ${apiKey}`,
+    'Authorization': 'Bearer ' + apiKey,
     'Content-Type': 'application/json'
   },
   body: JSON.stringify(connectionData)

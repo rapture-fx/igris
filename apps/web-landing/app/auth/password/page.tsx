@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
-import { loginWithCredentials, tokenStorage, type ApiError } from '@/lib/auth'
-import { AuthWrapper } from '@/src/components/AuthWrapper'
+import { AuthManager, createTokenStorage, type ApiError } from '@schlep-engine/javascript-sdk'
+import { AuthWrapper } from '@/components/AuthWrapper'
 
 function PasswordPageContent() {
   const router = useRouter()
@@ -32,10 +32,11 @@ function PasswordPageContent() {
     setError('')
     
     try {
-      const response = await loginWithCredentials({ email, password })
-      
-      // Store tokens
-      tokenStorage.setTokens(response.access_token, response.refresh_token)
+      const authManager = new AuthManager({
+        tokenStorage: createTokenStorage(),
+      });
+
+      const response = await authManager.loginWithCredentials({ email, password })
       
       // Handle successful sign-in (redirect to dashboard or home)
       console.log('Sign in successful:', response.user)

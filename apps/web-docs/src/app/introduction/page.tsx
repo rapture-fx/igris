@@ -27,11 +27,11 @@ export default function Introduction() {
       {/* Hero Section */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-3">
-          Industry-Focused Data Processing APIs
+          Industrial Data Processing Platform
         </h1>
         <p className="text-xs text-[#999999] mb-4 max-w-3xl">
-          REST APIs for data processing and analysis workflows in financial services, e-commerce, and manufacturing. 
-          Handle common business logic and data transformations through HTTP endpoints.
+          Transform messy manufacturing and sensor data into analysis-ready datasets. 
+          Industrial sensor validation, equipment health monitoring, and real-time quality assessment through REST APIs.
         </p>
       </div>
       
@@ -42,46 +42,46 @@ export default function Introduction() {
           {/* Key Benefits */}
           <section>
             <h2 className="text-lg font-bold tracking-tight text-gray-900 mb-3">
-              Why Use Schlep Engine?
+              Core Capabilities
             </h2>
             <p className="text-xs text-[#999999] mb-4">
-              Save development time with pre-built data processing workflows for common business use cases.
+              Industrial sensor data processing with multi-modal anomaly detection and manufacturing quality assessment.
             </p>
             <div className="space-y-4">
               <div className="flex flex-col">
                 <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
                   <RocketLaunchIcon className="h-4 w-4 flex-none text-blue-600" />
-                  Ready-to-Use
+                  Industrial Sensor Validation
                 </div>
                 <p className="text-xs leading-7 text-[#999999]">
-                  Pre-configured processing workflows for transaction analysis, product matching, and equipment monitoring
+                  Multi-modal anomaly detection using IsolationForest, OneClassSVM, DBSCAN for manufacturing sensors
                 </p>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
                   <CpuChipIcon className="h-4 w-4 flex-none text-blue-600" />
-                  Industry-Specific
+                  Manufacturing Quality Assessment
                 </div>
                 <p className="text-xs leading-7 text-[#999999]">
-                  Endpoints tailored for financial, e-commerce, and manufacturing data structures and requirements
+                  Equipment health monitoring with cross-sensor correlation analysis and real-time quality metrics
                 </p>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
                   <ChartBarIcon className="h-4 w-4 flex-none text-blue-600" />
-                  Scalable Processing
+                  Real-time Monitoring
                 </div>
                 <p className="text-xs leading-7 text-[#999999]">
-                  Handle high-volume data processing with configurable rate limits and batch operations
+                  Sliding window quality assessment with industrial-specific alerts and automated data validation workflows
                 </p>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
                   <ShieldCheckIcon className="h-4 w-4 flex-none text-blue-600" />
-                  Security Focused
+                  Document Processing
                 </div>
                 <p className="text-xs leading-7 text-[#999999]">
-                  API authentication, data encryption, and compliance-ready audit logs
+                  PDF, Excel, Word extraction for manufacturing documentation with multi-source data fusion
                 </p>
               </div>
             </div>
@@ -102,7 +102,7 @@ export default function Introduction() {
           Getting Started
         </h2>
         <p className="text-xs text-[#999999] mb-4">
-          Install our SDK and start processing data with industry-specific endpoints
+          Install our SDK and start processing industrial sensor data with real anomaly detection
         </p>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -112,23 +112,28 @@ export default function Introduction() {
 pip install schlep-engine
 
 # Import and authenticate
-from schlep_engine import SchlepClient
+from schlep_engine import SchlepEngineClient
 
-client = SchlepClient(api_key="your_api_key")
-
-# Analyze transaction data
-result = client.financial.analyze_transaction(
-    transaction_id="txn_12345",
-    user_id="user_67890", 
-    amount=2500.00,
-    merchant_category="gas_station",
-    location={"lat": 40.7128, "lon": -74.0060}
-)
-
-print(f"Risk Score: {result.risk_score}")
-print(f"Analysis: {result.analysis}")`}
+async with SchlepEngineClient(api_key="your_key") as client:
+    # Upload manufacturing sensor data
+    sensor_file = await client.storage.upload_file("factory_sensors.csv")
+    
+    # Real industrial quality assessment
+    quality_report = await client.data_quality.comprehensive_quality_assessment(
+        file_id=sensor_file.file_id,
+        sensor_metadata={
+            "temperature_sensor_1": {"min_value": -40, "max_value": 150},
+            "pressure_sensor_1": {"min_value": 0, "max_value": 100},
+            "vibration_sensor_1": {"sensor_type": "accelerometer"}
+        }
+    )
+    
+    # Multi-modal anomaly detection results
+    anomaly_results = quality_report["anomaly_detection"]
+    print(f"Anomalies detected: {anomaly_results['total_anomalies_detected']}")
+    print(f"Methods used: {anomaly_results['anomaly_methods']}")  # IsolationForest, DBSCAN, etc.`}
               language="python"
-              title="Python SDK - Transaction Analysis"
+              title="Python SDK - Industrial Data Quality Assessment"
               showCopyButton={true}
             />
           </div>
@@ -139,22 +144,27 @@ print(f"Analysis: {result.analysis}")`}
 npm install @schlep-engine/js-sdk
 
 // Import and authenticate
-import { SchlepClient } from '@schlep-engine/js-sdk';
+import { SchlepEngineClient } from '@schlep-engine/js-sdk';
 
-const client = new SchlepClient({
+const client = new SchlepEngineClient({
   apiKey: 'your_api_key'
 });
 
-// Process product matching
-const matches = await client.ecommerce.findMatches({
-  userId: 'user_12345',
-  maxResults: 10,
-  currentSession: { category: 'electronics' }
+// Monitor equipment health in real-time
+const healthReport = await client.monitoring.equipmentHealth({
+  sensorData: {
+    temperature: [22.5, 23.1, 22.8, 24.2],
+    vibration: [0.1, 0.15, 0.12, 0.18],
+    pressure: [101.3, 101.5, 101.2, 101.8]
+  },
+  equipmentId: 'pump_001',
+  timeWindow: '1h'
 });
 
-console.log('Matching products:', matches.products);`}
+console.log('Equipment Health Score:', healthReport.healthScore);
+console.log('Detected Anomalies:', healthReport.anomalies);`}
               language="javascript"
-              title="JavaScript SDK - Product Matching"
+              title="JavaScript SDK - Equipment Health Monitoring"
               showCopyButton={true}
             />
           </div>
@@ -168,50 +178,50 @@ console.log('Matching products:', matches.products);`}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🛡️ Financial Services</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🔧 Predictive Maintenance</h3>
             <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
-              Transaction analysis, risk scoring, and compliance data processing workflows.
+              Monitor vibration, temperature, and pressure sensors to detect equipment degradation patterns.
             </p>
             <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• Transaction data validation</li>
-              <li>• Risk score calculations</li>
-              <li>• Compliance report generation</li>
+              <li>• Equipment health scores in real-time</li>
+              <li>• Multi-sensor correlation analysis</li>
+              <li>• Automated degradation alerts</li>
             </ul>
           </div>
           
           <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🛍️ E-commerce</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">📊 Quality Control</h3>
             <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
-              Product matching, inventory analysis, and pricing calculation endpoints.
+              Multi-sensor correlation analysis for production lines with automated detection of sensor drift.
             </p>
             <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• Product similarity matching</li>
-              <li>• Demand forecast calculations</li>
-              <li>• Dynamic pricing algorithms</li>
+              <li>• Statistical process control</li>
+              <li>• Sensor calibration monitoring</li>
+              <li>• Production quality metrics</li>
             </ul>
           </div>
           
           <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🏭 Manufacturing</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">⚡ Production Optimization</h3>
             <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
-              Equipment monitoring, quality analysis, and supply chain data processing.
+              Cross-sensor data validation and real-time anomaly detection for production equipment.
             </p>
             <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• Equipment status monitoring</li>
-              <li>• Quality metrics analysis</li>
-              <li>• Supply chain data tracking</li>
+              <li>• Real-time anomaly detection</li>
+              <li>• Data preparation for analytics</li>
+              <li>• Multi-source data fusion</li>
             </ul>
           </div>
           
           <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🤖 Data Processing</h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">📄 Document Processing</h3>
             <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
-              Configurable data processing workflows and parameter optimization.
+              PDF, Excel, Word extraction for manufacturing documentation and data sheets.
             </p>
             <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• Parameter tuning workflows</li>
-              <li>• Batch processing optimization</li>
-              <li>• Pipeline configuration tools</li>
+              <li>• Equipment manual extraction</li>
+              <li>• Sensor specification parsing</li>
+              <li>• Quality report processing</li>
             </ul>
           </div>
         </div>
@@ -223,7 +233,7 @@ console.log('Matching products:', matches.products);`}
           API Overview
         </h2>
         <p className="text-sm text-[#999999] mb-6">
-          Our REST API provides industry-specific AI endpoints for financial, e-commerce, and manufacturing use cases.
+          Our REST API provides industrial sensor data processing with real anomaly detection and quality assessment capabilities.
         </p>
         
         <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 dark:border-blue-500 p-4 mb-6">
@@ -238,27 +248,59 @@ console.log('Matching products:', matches.products);`}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🛡️ Fraud Detection</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /industry/financial/fraud-detection</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Real-time transaction fraud analysis</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">📊 Data Quality Assessment</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /api/v1/data-quality/assess</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Industrial data quality assessment with anomaly detection</p>
           </div>
           
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🛍️ Product Recommendations</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /industry/ecommerce/recommendations</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">AI-powered product recommendations</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🔧 Sensor Validation</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /api/v1/data-processing/validate-sensors</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Multi-modal sensor validation and calibration check</p>
           </div>
           
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🔧 Predictive Maintenance</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /industry/manufacturing/predictive-maintenance</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">IoT-powered equipment monitoring</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">❤️ Equipment Health</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /api/v1/monitoring/equipment-health</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Real-time equipment health assessment</p>
           </div>
           
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🤖 RL Optimization</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /rl/hyperparameter-optimization</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Automated ML hyperparameter tuning</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">📄 Document Extraction</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /api/v1/document-extraction/</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">PDF, Excel, Word processing for manufacturing docs</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Current Capabilities */}
+      <div className="mb-8">
+        <h2 className="text-lg font-bold tracking-tight text-gray-900 mb-3">
+          Current Capabilities
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
+            <h3 className="text-sm font-semibold text-green-900 dark:text-green-100 mb-2">✅ What Works Today</h3>
+            <ul className="text-xs text-green-800 dark:text-green-200 space-y-1">
+              <li>• Multi-modal anomaly detection (IsolationForest, OneClassSVM, DBSCAN)</li>
+              <li>• Industrial sensor data validation and quality assessment</li>
+              <li>• Equipment health monitoring with cross-sensor correlation</li>
+              <li>• Real-time quality monitoring and alerts</li>
+              <li>• Document extraction (PDF, Excel, Word)</li>
+              <li>• Statistical analysis and pattern detection</li>
+            </ul>
+          </div>
+          
+          <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
+            <h3 className="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-2">⚠️ In Development</h3>
+            <ul className="text-xs text-yellow-800 dark:text-yellow-200 space-y-1">
+              <li>• Advanced missing value imputation</li>
+              <li>• Automated sensor drift correction</li>
+              <li>• Deep learning model integration</li>
+              <li>• Advanced predictive analytics</li>
+              <li>• AutoML workflows</li>
+              <li>• Real-time intelligent insights</li>
+            </ul>
           </div>
         </div>
       </div>
