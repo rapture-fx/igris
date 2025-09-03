@@ -9,7 +9,6 @@ import Integrations from '../src/components/sections/Integrations'
 import Benefits from '../src/components/sections/Benefits'
 import HowItWorks from '../src/components/sections/HowItWorks'
 import LatestUpdate from '../src/components/sections/LatestUpdate'
-import FAQ from '../src/components/sections/FAQ'
 import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 
@@ -30,15 +29,13 @@ export default function HomePage() {
 
         <Benefits />
         <HowItWorks />
+        <AudienceTabs />
         <AdditionalFeatures />
         <SecurityFeatures />
         <Integrations />
-        <AudienceTabs />
-
-        <CallToAction />
 
         <LatestUpdate />
-        <FAQ />
+        <CallToAction />
       </main>
       <Footer />
     </div>

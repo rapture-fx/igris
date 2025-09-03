@@ -1,7 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ClipboardDocumentIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
+import { Light as SyntaxHighlighter } from 'react-syntax-highlighter'
+import python from 'react-syntax-highlighter/dist/esm/languages/hljs/python'
+import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript'
+import bash from 'react-syntax-highlighter/dist/esm/languages/hljs/bash'
+import json from 'react-syntax-highlighter/dist/esm/languages/hljs/json'
+import curl from 'react-syntax-highlighter/dist/esm/languages/hljs/bash'
+import { atomOneLight } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 
 interface CodeBlockProps {
   code: string
@@ -11,12 +18,23 @@ interface CodeBlockProps {
   showCopyButton?: boolean
 }
 
-export function CodeBlock({ code, language, title, showLineNumbers = false, showCopyButton = false }: CodeBlockProps) {
+// Register languages
+SyntaxHighlighter.registerLanguage('python', python)
+SyntaxHighlighter.registerLanguage('javascript', javascript)
+SyntaxHighlighter.registerLanguage('bash', bash)
+SyntaxHighlighter.registerLanguage('json', json)
+SyntaxHighlighter.registerLanguage('curl', curl)
+
+export function CodeBlock({ code, language, title, showLineNumbers = false, showCopyButton = true }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const copyToClipboard = async () => {
     try {
-      // Copy the original code without HTML formatting
       await navigator.clipboard.writeText(code)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
@@ -25,59 +43,47 @@ export function CodeBlock({ code, language, title, showLineNumbers = false, show
     }
   }
 
-  const highlightCode = (code: string, language: string) => {
-    // Simple regex-based syntax highlighting for common languages
-    if (!code) return code
-
-    let highlightedCode = code
-
-    if (language === 'python') {
-      highlightedCode = highlightedCode
-        // Keywords
-        .replace(/\b(def|class|if|else|elif|for|while|import|from|return|try|except|with|as|pass|break|continue|and|or|not|in|is|lambda|global|nonlocal|assert|yield|True|False|None)\b/g, '<span style="color: #a626a4; font-weight: bold;">$1</span>')
-        // Strings
-        .replace(/(['"`])(.*?)\1/g, '<span style="color: #50a14f;">$1$2$1</span>')
-        // Comments
-        .replace(/(#.*$)/gm, '<span style="color: #a0a1a7; font-style: italic;">$1</span>')
-        // Functions
-        .replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span style="color: #4078f2;">$1</span>(')
-        // Numbers
-        .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span style="color: #e45649;">$1</span>')
-    } else if (language === 'javascript') {
-      highlightedCode = highlightedCode
-        // Keywords
-        .replace(/\b(function|const|let|var|if|else|for|while|return|import|export|from|default|class|extends|try|catch|finally|throw|async|await|true|false|null|undefined|typeof|instanceof)\b/g, '<span style="color: #a626a4; font-weight: bold;">$1</span>')
-        // Strings
-        .replace(/(['"`])(.*?)\1/g, '<span style="color: #50a14f;">$1$2$1</span>')
-        // Comments
-        .replace(/(\/\/.*$)/gm, '<span style="color: #a0a1a7; font-style: italic;">$1</span>')
-        // Functions
-        .replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/g, '<span style="color: #4078f2;">$1</span>(')
-        // Numbers
-        .replace(/\b(\d+(?:\.\d+)?)\b/g, '<span style="color: #e45649;">$1</span>')
-    } else if (language === 'bash' || language === 'curl') {
-      highlightedCode = highlightedCode
-        // Commands
-        .replace(/^(\s*)([a-zA-Z_][a-zA-Z0-9_-]*)/gm, '$1<span style="color: #4078f2; font-weight: bold;">$2</span>')
-        // Flags
-        .replace(/\s(-[a-zA-Z-]+)/g, ' <span style="color: #a626a4;">$1</span>')
-        // Strings
-        .replace(/(['"`])(.*?)\1/g, '<span style="color: #50a14f;">$1$2$1</span>')
-        // Comments
-        .replace(/(#.*$)/gm, '<span style="color: #a0a1a7; font-style: italic;">$1</span>')
-    } else if (language === 'json') {
-      highlightedCode = highlightedCode
-        // Strings (keys and values)
-        .replace(/(".*?")/g, '<span style="color: #50a14f;">$1</span>')
-        // Numbers
-        .replace(/:\s*(\d+(?:\.\d+)?)/g, ': <span style="color: #e45649;">$1</span>')
-        // Booleans and null
-        .replace(/:\s*(true|false|null)/g, ': <span style="color: #a626a4;">$1</span>')
-        // Brackets and braces
-        .replace(/([{}[\],])/g, '<span style="color: #383a42;">$1</span>')
+  // Custom style for better readability
+  const customStyle = {
+    ...atomOneLight,
+    'hljs': {
+      ...atomOneLight['hljs'],
+      background: '#f8f9fa',
+      padding: '1rem',
+      borderRadius: '0.375rem',
+      fontSize: '11px',
+      lineHeight: '1.4',
     }
+  }
 
-    return highlightedCode
+  // Handle language mapping
+  const getLanguage = (lang: string) => {
+    switch (lang.toLowerCase()) {
+      case 'curl': return 'bash'
+      case 'js': return 'javascript'
+      case 'py': return 'python'
+      default: return lang.toLowerCase()
+    }
+  }
+
+  if (!mounted) {
+    // Show plain text while loading to prevent hydration mismatch
+    return (
+      <div className={`relative text-left ${title ? 'my-6' : ''}`}>
+        {title && (
+          <div className="mb-2 text-gray-600 text-sm font-medium">
+            {title}
+          </div>
+        )}
+        <div className="relative">
+          <pre className="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto">
+            <code className="text-sm font-mono block leading-relaxed">
+              {code}
+            </code>
+          </pre>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -91,27 +97,35 @@ export function CodeBlock({ code, language, title, showLineNumbers = false, show
         {showCopyButton && (
           <button
             onClick={copyToClipboard}
-            className="absolute top-4 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 z-10"
+            className="absolute top-4 right-4 p-2 rounded-md bg-white hover:bg-gray-50 text-gray-600 hover:text-gray-800 transition-colors shadow-sm border border-gray-200 z-10"
+            title={copied ? 'Copied!' : 'Copy code'}
           >
             {copied ? (
-              <CheckCircleIcon className="h-4 w-4" />
+              <CheckCircleIcon className="h-4 w-4 text-green-600" />
             ) : (
               <ClipboardDocumentIcon className="h-4 w-4" />
             )}
           </button>
         )}
-        <pre className="bg-white border border-gray-200 rounded-lg p-4 overflow-x-auto">
-          <code 
-            className="text-sm font-mono block leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: highlightCode(code, language) }}
-            style={{
+        <div className="border border-gray-200 rounded-lg overflow-hidden">
+          <SyntaxHighlighter
+            language={getLanguage(language)}
+            style={customStyle}
+            showLineNumbers={showLineNumbers}
+            wrapLines={true}
+            customStyle={{
+              margin: 0,
+              fontSize: '11px',
+              lineHeight: '1.4',
               fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
             }}
-          />
-        </pre>
+          >
+            {code}
+          </SyntaxHighlighter>
+        </div>
       </div>
     </div>
   )
 }
 
-export default CodeBlock;
+export default CodeBlock

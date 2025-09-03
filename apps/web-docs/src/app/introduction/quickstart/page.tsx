@@ -2,412 +2,419 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircleIcon, ClipboardDocumentIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, ArrowRightIcon, ShieldCheckIcon, CpuChipIcon, ChartBarIcon } from '@heroicons/react/24/outline'
+import CodeBlock from '../../../components/ui/CodeBlock'
 
 export default function QuickStart() {
-  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+  return (
+    <div className="max-w-7xl mx-auto px-6">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-3">Quick Start Guide</h1>
+        <p className="text-base text-gray-600 mb-4">
+          Get started with industry-focused data processing APIs. Set up transaction analysis, 
+          product matching, and equipment monitoring workflows.
+        </p>
+      </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
-  const copyToClipboard = (code: string, id: string) => {
-    navigator.clipboard.writeText(code)
-    setCopiedCode(id)
-    setTimeout(() => setCopiedCode(null), 2000)
-  }
+        {/* Left Column */}
+        <div className="space-y-8">
+          {/* Prerequisites */}
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Prerequisites</h2>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+              <div className="flex items-start gap-3">
+                <CheckCircleIcon className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h3 className="font-semibold text-blue-900 mb-1 text-sm">Get Your API Key</h3>
+                  <p className="text-blue-800 text-xs mb-2">
+                    You'll need an API key to authenticate your requests to our industry AI endpoints.
+                  </p>
+                  <Link 
+                    href="/introduction/api-keys"
+                    className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-800 text-xs font-medium"
+                  >
+                    Get API Key
+                    <ArrowRightIcon className="h-3 w-3" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                <span className="text-gray-600 text-sm">Python 3.7+ or Node.js 14+ (for SDK usage)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                <span className="text-gray-600 text-sm">Business data to analyze (transactions, products, sensor data)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircleIcon className="h-4 w-4 text-green-600" />
+                <span className="text-gray-600 text-sm">Internet connection for API requests</span>
+              </div>
+            </div>
+          </section>
 
-  const formatCode = (code: string, language: string) => {
-    if (language === 'python') {
-      return code
-        .replace(/(from|import|def|class|if|else|elif|try|except|finally|with|as|return|yield|break|continue|pass|global|nonlocal|assert|del|lambda|and|or|not|in|is)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
-        .replace(/(True|False|None)\b/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
-        .replace(/(['"])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
-        .replace(/(#.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
-        .replace(/(\d+)/g, '<span style="color: #dc2626;">$1</span>')
-    } else if (language === 'javascript' || language === 'js') {
-      return code
-        .replace(/(const|let|var|function|class|if|else|for|while|do|switch|case|default|try|catch|finally|throw|return|break|continue|new|this|super|extends|import|export|from|async|await)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
-        .replace(/(true|false|null|undefined)\b/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
-        .replace(/(['"`])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
-        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
-        .replace(/(\d+)/g, '<span style="color: #dc2626;">$1</span>')
-    } else if (language === 'bash' || language === 'shell') {
-      return code
-        .replace(/(curl|npm|pip|git|cd|ls|mkdir|cp|mv|rm|chmod|chown|grep|find|sed|awk|sort|uniq|head|tail|cat|less|more)\b/g, '<span style="color: #7c3aed; font-weight: 600;">$1</span>')
-        .replace(/(-[a-zA-Z]+|--[a-zA-Z-]+)/g, '<span style="color: #dc2626; font-weight: 600;">$1</span>')
-        .replace(/(['"])(.*?)\1/g, '<span style="color: #059669;">$1$2$1</span>')
-        .replace(/(#.*$)/gm, '<span style="color: #6b7280; font-style: italic;">$1</span>')
-    }
-    return code
-  }
+          {/* Installation */}
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-3">Installation</h2>
+            
+            <div className="space-y-4">
+              {/* Python SDK */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">Python SDK</h3>
+                <CodeBlock
+                  code="pip install schlep-engine"
+                  language="bash"
+                  title="Install Python SDK"
+                  showCopyButton={true}
+                />
+              </div>
 
-  const pythonInstall = `pip install schlep-engine`
-  
-  const pythonCode = `from schlep_engine import SchlepClient
+              {/* JavaScript SDK */}
+              <div>
+                <h3 className="text-sm font-semibold text-gray-900 mb-2">JavaScript SDK</h3>
+                <CodeBlock
+                  code="npm install @schlep-engine/js-sdk"
+                  language="bash"
+                  title="Install JavaScript SDK"
+                  showCopyButton={true}
+                />
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Right Column - Empty for now */}
+        <div className="space-y-8">
+          {/* Content to be added later */}
+        </div>
+      </div>
+
+      {/* Continue with existing content below the 2-column layout */}
+
+      {/* Industry AI Examples */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Choose Your Industry</h2>
+        <p className="text-gray-600 mb-4 text-sm">
+          Select the industry that matches your use case to see tailored examples.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+            <ShieldCheckIcon className="h-6 w-6 text-blue-600 mb-2" />
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm">Financial Services</h3>
+            <p className="text-xs text-gray-600 mb-3">Transaction analysis, risk scoring, compliance processing</p>
+            <div className="text-xs text-gray-500">
+              • Transaction data validation<br/>
+              • Risk score calculations<br/>
+              • Compliance report generation
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+            <CpuChipIcon className="h-6 w-6 text-green-600 mb-2" />
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm">E-commerce</h3>
+            <p className="text-xs text-gray-600 mb-3">Product matching, pricing, demand analysis</p>
+            <div className="text-xs text-gray-500">
+              • Product similarity matching<br/>
+              • Dynamic pricing calculations<br/>
+              • Demand forecast processing
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-purple-50 to-violet-50 border border-purple-200 rounded-lg p-4">
+            <ChartBarIcon className="h-6 w-6 text-purple-600 mb-2" />
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm">Manufacturing</h3>
+            <p className="text-xs text-gray-600 mb-3">Equipment monitoring, quality analysis</p>
+            <div className="text-xs text-gray-500">
+              • Equipment status tracking<br/>
+              • Quality metrics analysis<br/>
+              • Supply chain data processing
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Financial Services Example */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">🏦 Financial Services: Transaction Analysis</h2>
+        <p className="text-gray-600 mb-4 text-sm">
+          Analyze transaction data and calculate risk scores using configurable business rules.
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Python Example</h3>
+            <CodeBlock
+              code={`from schlep_engine import SchlepClient
 
 # Initialize client with your API key
 client = SchlepClient(api_key="your_api_key_here")
 
-# Upload your dataset
-job = client.upload_csv("your_dataset.csv")
-print(f"Upload job created: {job.id}")
+# Analyze transaction data
+result = client.financial.analyze_transaction(
+    transaction_id="txn_12345",
+    user_id="user_67890",
+    transaction_amount=2500.00,
+    merchant_category="gas_station",
+    location={
+        "lat": 40.7128,
+        "lon": -74.0060,
+        "country": "US"
+    },
+    device_info={
+        "device_id": "device_abc123",
+        "ip_address": "192.168.1.1"
+    }
+)
 
-# Process the data with AI-powered cleaning
-result = client.process(job.id, {
-    "auto_clean": True,
-    "detect_outliers": True,
-    "ml_ready": True,
-    "target_format": "tensorflow"
-})
+print(f"Risk Score: {result.risk_score}")
+print(f"Analysis: {result.analysis_summary}")
+print(f"Flags: {result.risk_flags}")
 
-print(f"Processing completed: {result.status}")
-print(f"Data quality score: {result.quality_score}/100")
+# Take action based on results
+if result.risk_score > 0.7:
+    print("⚠️ HIGH RISK - Review required")
+else:
+    print("✅ LOW RISK - Transaction approved")`}
+              language="python"
+              title="Transaction Analysis with Python SDK"
+              showCopyButton={true}
+            />
+          </div>
 
-# Download the cleaned dataset
-cleaned_data = client.download(result.id, format="parquet")
-print("Clean data ready for ML training!")`
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">Direct API Call</h3>
+            <CodeBlock
+              code={`curl -X POST https://api.schlep-engine.com/v1/financial/analyze-transaction \\
+  -H "Authorization: Bearer your_api_key_here" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "transaction_id": "txn_12345",
+    "user_id": "user_67890",
+    "transaction_amount": 2500.00,
+    "merchant_category": "gas_station",
+    "location": {
+      "lat": 40.7128,
+      "lon": -74.0060,
+      "country": "US"
+    },
+    "device_info": {
+      "device_id": "device_abc123",
+      "ip_address": "192.168.1.1"
+    }
+  }'`}
+              language="curl"
+              title="Transaction Analysis API Request"
+              showCopyButton={true}
+            />
+          </div>
+        </div>
+      </section>
 
-  const jsCode = `import { SchlepClient } from '@schlep-engine/js-sdk';
+      {/* E-commerce Example */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">🛒 E-commerce: Product Matching</h2>
+        <p className="text-gray-600 mb-4 text-sm">
+          Find similar products and calculate pricing using similarity algorithms and business logic.
+        </p>
+
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">JavaScript Example</h3>
+          <CodeBlock
+            code={`import { SchlepClient } from '@schlep-engine/js-sdk';
 
 // Initialize client
 const client = new SchlepClient({
   apiKey: 'your_api_key_here'
 });
 
-// Upload and process your data
-async function processData() {
-  // Upload dataset
-  const job = await client.uploadCSV('your_dataset.csv');
-  console.log(\`Upload job created: \${job.id}\`);
-
-  // Process with AI cleaning
-  const result = await client.process(job.id, {
-    autoClean: true,
-    detectOutliers: true,
-    mlReady: true,
-    targetFormat: 'json'
+// Find matching products
+async function findMatches() {
+  const matches = await client.ecommerce.findMatches({
+    userId: 'user_12345',
+    currentSession: {
+      category: 'electronics',
+      viewedProducts: ['laptop_abc', 'phone_xyz']
+    },
+    filters: {
+      priceRange: { min: 100, max: 1000 },
+      category: 'electronics'
+    },
+    maxResults: 10
   });
 
-  console.log(\`Processing completed: \${result.status}\`);
-  console.log(\`Data quality score: \${result.qualityScore}/100\`);
+  console.log('Matching products:', matches.products);
+  console.log('Match Score:', matches.total_matches);
+  console.log('Processing Time:', matches.processing_time_ms);
 
-  // Download processed data
-  const cleanedData = await client.download(result.id);
-  console.log('Clean data ready!');
-  
-  return cleanedData;
+  // Display matches in your UI
+  matches.products.forEach(product => {
+    console.log(\`\${product.name}: $\${product.price} (Similarity: \${product.similarity_score})\`);
+  });
 }
 
-processData().catch(console.error);`
-
-  const curlCode = `# 1. Upload your dataset
-curl -X POST "https://api.schlep-engine.com/v1/upload" \\
-  -H "Authorization: Bearer your_api_key_here" \\
-  -H "Content-Type: multipart/form-data" \\
-  -F "file=@your_dataset.csv" \\
-  -F "options={\\"auto_profile\\": true}"
-
-# Response: {"job_id": "job_123abc", "status": "processing"}
-
-# 2. Process the data
-curl -X POST "https://api.schlep-engine.com/v1/process" \\
-  -H "Authorization: Bearer your_api_key_here" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "job_id": "job_123abc",
-    "auto_clean": true,
-    "detect_outliers": true,
-    "ml_ready": true,
-    "target_format": "parquet"
-  }'
-
-# 3. Check status and download
-curl -X GET "https://api.schlep-engine.com/v1/jobs/job_123abc/result" \\
-  -H "Authorization: Bearer your_api_key_here"`
-
-  return (
-    <div className="max-w-4xl mx-auto px-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Quick Start Guide</h1>
-        <p className="text-xl text-gray-600 mb-6">
-          Get up and running with Schlep Engine in under 5 minutes. Transform your first dataset 
-          with just a few lines of code.
-        </p>
-      </div>
-
-      {/* Prerequisites */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Prerequisites</h2>
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <CheckCircleIcon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <h3 className="font-semibold text-blue-900 mb-1">Get Your API Key</h3>
-              <p className="text-blue-800 text-sm mb-2">
-                You'll need an API key to authenticate your requests.
-              </p>
-              <Link 
-                href="/introduction/api-keys"
-                className="inline-flex items-center gap-1 text-blue-700 hover:text-blue-800 text-sm font-medium"
-              >
-                Get API Key
-                <ArrowRightIcon className="h-3 w-3" />
-              </Link>
-            </div>
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon className="h-5 w-5 text-green-600" />
-            <span className="text-gray-600">Python 3.7+ or Node.js 14+ (for SDK usage)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon className="h-5 w-5 text-green-600" />
-            <span className="text-gray-600">A dataset to clean (CSV, JSON, or Excel)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircleIcon className="h-5 w-5 text-green-600" />
-            <span className="text-gray-600">Internet connection for API requests</span>
-          </div>
+findMatches().catch(console.error);`}
+            language="javascript"
+            title="Product Matching with JavaScript SDK"
+            showCopyButton={true}
+          />
         </div>
       </section>
 
-      {/* Installation */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Installation</h2>
-        
-        <div className="space-y-6">
-          {/* Python SDK */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">Python SDK</h3>
-            <div className="relative">
-              <div className="relative my-6">
-                <div className="mb-2 text-gray-600 text-sm font-medium">Terminal</div>
-                <button
-                  onClick={() => copyToClipboard(pythonInstall, 'python-install')}
-                  className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100"
-                >
-                  {copiedCode === 'python-install' ? (
-                    <CheckCircleIcon className="h-4 w-4" />
-                  ) : (
-                    <ClipboardDocumentIcon className="h-4 w-4" />
-                  )}
-                </button>
-                <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
-                  <code style={{color: '#7c3aed', fontSize: '18px', fontWeight: '600'}}>{pythonInstall}</code>
-                </pre>
-              </div>
-            </div>
-          </div>
-
-          {/* JavaScript SDK */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3">JavaScript SDK</h3>
-            <div className="relative">
-              <div className="relative my-6">
-                <div className="mb-2 text-gray-600 text-sm font-medium">Terminal</div>
-                <button
-                  onClick={() => copyToClipboard('npm install @schlep-engine/js-sdk', 'js-install')}
-                  className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100"
-                >
-                  {copiedCode === 'js-install' ? (
-                    <CheckCircleIcon className="h-4 w-4" />
-                  ) : (
-                    <ClipboardDocumentIcon className="h-4 w-4" />
-                  )}
-                </button>
-                <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
-                  <code style={{color: '#7c3aed', fontSize: '18px', fontWeight: '600'}}>npm install @schlep-engine/js-sdk</code>
-                </pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Your First API Call */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Your First API Call</h2>
-        <p className="text-gray-600 mb-6">
-          Let's start with a simple example that uploads a CSV file, processes it with AI-powered cleaning, 
-          and downloads the cleaned result.
+      {/* Manufacturing Example */}
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">🏭 Manufacturing: Equipment Monitoring</h2>
+        <p className="text-gray-600 mb-4 text-sm">
+          Monitor equipment status and analyze quality metrics from sensor data and operational logs.
         </p>
 
-        <div className="space-y-8">
-          {/* Python Example */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">Python</span>
-              Complete Example
-            </h3>
-            <div className="relative my-6">
-              <div className="mb-2 text-gray-600 text-sm font-medium">main.py</div>
-              <button
-                onClick={() => copyToClipboard(pythonCode, 'python-code')}
-                className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 z-10"
-              >
-                {copiedCode === 'python-code' ? (
-                  <CheckCircleIcon className="h-4 w-4" />
-                ) : (
-                  <ClipboardDocumentIcon className="h-4 w-4" />
-                )}
-              </button>
-              <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
-                <code 
-                  style={{fontSize: '18px', lineHeight: '1.7'}}
-                  dangerouslySetInnerHTML={{__html: formatCode(pythonCode, 'python')}}
-                />
-              </pre>
-            </div>
-          </div>
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">Python Example</h3>
+          <CodeBlock
+            code={`from schlep_engine import SchlepClient
 
-          {/* JavaScript Example */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">JavaScript</span>
-              Complete Example
-            </h3>
-            <div className="relative my-6">
-              <div className="mb-2 text-gray-600 text-sm font-medium">index.js</div>
-              <button
-                onClick={() => copyToClipboard(jsCode, 'js-code')}
-                className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 z-10"
-              >
-                {copiedCode === 'js-code' ? (
-                  <CheckCircleIcon className="h-4 w-4" />
-                ) : (
-                  <ClipboardDocumentIcon className="h-4 w-4" />
-                )}
-              </button>
-              <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
-                <code 
-                  style={{fontSize: '18px', lineHeight: '1.7'}}
-                  dangerouslySetInnerHTML={{__html: formatCode(jsCode, 'javascript')}}
-                />
-              </pre>
-            </div>
-          </div>
+# Initialize client
+client = SchlepClient(api_key="your_api_key_here")
 
-          {/* cURL Example */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-              <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">REST API</span>
-              Raw HTTP Requests
-            </h3>
-            <div className="relative my-6">
-              <div className="mb-2 text-gray-600 text-sm font-medium">Terminal</div>
-              <button
-                onClick={() => copyToClipboard(curlCode, 'curl-code')}
-                className="absolute top-2 right-4 p-2 rounded-md bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors opacity-75 hover:opacity-100 z-10"
-              >
-                {copiedCode === 'curl-code' ? (
-                  <CheckCircleIcon className="h-4 w-4" />
-                ) : (
-                  <ClipboardDocumentIcon className="h-4 w-4" />
-                )}
-              </button>
-              <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
-                <code 
-                  style={{fontSize: '18px', lineHeight: '1.7'}}
-                  dangerouslySetInnerHTML={{__html: formatCode(curlCode, 'bash')}}
-                />
-              </pre>
-            </div>
-          </div>
+# Monitor equipment status from sensor data
+status_check = client.manufacturing.monitor_equipment(
+    equipment_id="motor_pump_A01",
+    sensor_data={
+        "temperature": 85.2,
+        "vibration": 0.15,
+        "pressure": 145.8,
+        "flow_rate": 23.4,
+        "power_consumption": 1250
+    },
+    operational_context={
+        "hours_since_maintenance": 720,
+        "load_factor": 0.85,
+        "environmental_conditions": "normal"
+    }
+)
+
+print(f"Status: {status_check.status}")
+print(f"Health Score: {status_check.health_score}")
+print(f"Anomalies: {status_check.anomalies}")
+print(f"Maintenance Due: {status_check.maintenance_due}")
+
+# Handle maintenance scheduling
+if status_check.health_score < 0.3:
+    print("🚨 CRITICAL: Schedule maintenance soon")
+    for issue in status_check.issues:
+        print(f"• {issue}")
+elif status_check.health_score < 0.7:
+    print("⚠️ WARNING: Monitor closely")
+else:
+    print("✅ NORMAL: Equipment operating within parameters")`}
+            language="python"
+            title="Equipment Monitoring with Python SDK"
+            showCopyButton={true}
+          />
         </div>
       </section>
 
       {/* Expected Response */}
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Expected Response</h2>
-        <p className="text-gray-600 mb-4">
-          After processing completes, you'll receive a response with data quality metrics and processing details:
+      <section className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Expected Response Format</h2>
+        <p className="text-gray-600 mb-3 text-sm">
+          All industry AI APIs return structured JSON responses with consistent formatting:
         </p>
         
-        <div className="relative my-6">
-          <div className="mb-2 text-gray-600 text-sm font-medium">JSON Response</div>
-          <pre className="p-8 overflow-x-auto font-mono leading-relaxed" style={{fontFamily: 'SF Mono, Monaco, Inconsolata, "Roboto Mono", Consolas, "Courier New", monospace', fontSize: '18px', lineHeight: '1.7', background: 'transparent'}}>
-{`{
-  "job_id": "job_123abc",
-  "status": "completed",
-  "quality_score": 87,
-  "processing_time": "2.3s",
-  "records_processed": 10000,
-  "issues_found": 15,
-  "issues_fixed": 15,
-  "transformations_applied": [
-    "removed_duplicates",
-    "filled_missing_values", 
-    "normalized_formats",
-    "detected_outliers"
-  ],
-  "download_url": "https://api.schlep-engine.com/v1/download/result_xyz789",
-  "expires_at": "2024-01-20T10:30:00Z"
+        <CodeBlock
+          code={`{
+  "status": "success",
+  "data": {
+    "request_id": "req_abc123",
+    "processing_time_ms": 45,
+    "model_version": "v2.1.0",
+    // Industry-specific results
+    "risk_score": 0.23,
+    "confidence": 0.94,
+    "recommendations": [
+      "Monitor for unusual patterns",
+      "Review user behavior history"
+    ]
+  },
+  "metadata": {
+    "api_version": "v1",
+    "timestamp": "2024-01-15T10:30:00Z",
+    "rate_limit_remaining": 4950
+  }
 }`}
-          </pre>
-        </div>
+          language="json"
+          title="Standard API Response Format"
+          showCopyButton={true}
+        />
       </section>
 
       {/* Next Steps */}
-      <section className="bg-gray-50 rounded-lg p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">🎉 Congratulations!</h2>
-        <p className="text-gray-600 mb-4">
-          You've successfully processed your first dataset with Schlep Engine. Here's what to explore next:
+      <section className="bg-gray-50 rounded-lg p-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">🎉 What's Next?</h2>
+        <p className="text-gray-600 mb-3 text-sm">
+          You've learned the basics! Here's how to take your implementation further:
         </p>
         
-        <div className="grid md:grid-cols-2 gap-4 mb-6">
+        <div className="grid md:grid-cols-2 gap-3 mb-4">
+          <Link 
+            href="/industries"
+            className="block p-3 border border-gray-200 rounded-lg hover:bg-white transition-colors"
+          >
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm">🏢 Industry Deep Dives</h3>
+            <p className="text-gray-600 text-xs">
+              Explore comprehensive guides for Financial, E-commerce, and Manufacturing AI.
+            </p>
+          </Link>
+          
+          <Link 
+            href="/concepts/reinforcement-learning"
+            className="block p-3 border border-gray-200 rounded-lg hover:bg-white transition-colors"
+          >
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm">🤖 Advanced RL Features</h3>
+            <p className="text-gray-600 text-xs">
+              Learn about our reinforcement learning optimization capabilities.
+            </p>
+          </Link>
+          
           <Link 
             href="/api-reference"
-            className="block p-4 border border-gray-200 rounded-lg hover:bg-white transition-colors"
+            className="block p-3 border border-gray-200 rounded-lg hover:bg-white transition-colors"
           >
-            <h3 className="font-semibold text-gray-900 mb-2">📚 Explore the API</h3>
-            <p className="text-gray-600 text-sm">
-              Discover all available endpoints, parameters, and advanced features.
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm">📚 Complete API Reference</h3>
+            <p className="text-gray-600 text-xs">
+              Detailed documentation for all endpoints, parameters, and responses.
             </p>
           </Link>
           
           <Link 
             href="/sdks"
-            className="block p-4 border border-gray-200 rounded-lg hover:bg-white transition-colors"
+            className="block p-3 border border-gray-200 rounded-lg hover:bg-white transition-colors"
           >
-            <h3 className="font-semibold text-gray-900 mb-2">🛠 SDK Documentation</h3>
-            <p className="text-gray-600 text-sm">
-              Deep dive into Python, JavaScript, and R SDKs with detailed examples.
-            </p>
-          </Link>
-          
-          <Link 
-            href="/use-cases"
-            className="block p-4 border border-gray-200 rounded-lg hover:bg-white transition-colors"
-          >
-            <h3 className="font-semibold text-gray-900 mb-2">💡 Use Cases</h3>
-            <p className="text-gray-600 text-sm">
-              See real-world examples and implementation patterns for common scenarios.
-            </p>
-          </Link>
-          
-          <Link 
-            href="/integrations"
-            className="block p-4 border border-gray-200 rounded-lg hover:bg-white transition-colors"
-          >
-            <h3 className="font-semibold text-gray-900 mb-2">🔗 Integrations</h3>
-            <p className="text-gray-600 text-sm">
-              Connect with Jupyter, Airflow, Snowflake, and other popular platforms.
+            <h3 className="font-semibold text-gray-900 mb-1 text-sm">🛠 SDK Documentation</h3>
+            <p className="text-gray-600 text-xs">
+              In-depth guides for Python, JavaScript, and other SDK implementations.
             </p>
           </Link>
         </div>
 
-        <div className="flex gap-4">
-          <Link
-            href="/api-reference/upload"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Data Upload API
-            <ArrowRightIcon className="h-4 w-4" />
-          </Link>
+        <div className="flex gap-3">
           <Link
             href="/introduction/first-call"
-            className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            className="inline-flex items-center gap-2 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
           >
-            Detailed First Call Guide
+            Make Your First API Call
+            <ArrowRightIcon className="h-3 w-3" />
+          </Link>
+          <Link
+            href="/introduction/api-keys"
+            className="inline-flex items-center gap-2 border border-gray-300 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+          >
+            Get Your API Key
           </Link>
         </div>
       </section>

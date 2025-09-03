@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useEffect, useState } from 'react'
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 
 type Theme = 'light' | 'dark'
 
@@ -12,51 +12,47 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>('dark')
-  const [mounted, setMounted] = useState(false)
+const THEME_STORAGE_KEY = 'schlep-docs-theme';
 
-  // Handle hydration mismatch by only setting theme after component mounts
-  useEffect(() => {
-    setMounted(true)
-    
-    // Check localStorage first, then default to dark
-    const savedTheme = localStorage.getItem('schlep-docs-theme') as Theme | null
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-      setThemeState(savedTheme)
+const getInitialTheme = (): Theme => {
+  if (typeof window !== 'undefined') {
+    const savedTheme = localStorage.getItem(THEME_STORAGE_KEY) as Theme | null
+    if (savedTheme && ['light', 'dark'].includes(savedTheme)) {
+      return savedTheme
+    }
+  }
+  return 'light' // Default theme
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const [theme, setThemeState] = useState<Theme>(getInitialTheme)
+
+  const applyTheme = useCallback((themeToApply: Theme) => {
+    const root = document.documentElement
+    root.classList.remove('light', 'dark')
+    root.classList.add(themeToApply)
+    localStorage.setItem(THEME_STORAGE_KEY, themeToApply)
+
+    const body = document.body;
+    if (themeToApply === 'dark') {
+      body.classList.add('bg-gray-900', 'text-white');
+      body.classList.remove('bg-white', 'text-gray-900');
     } else {
-      // Default to dark mode (dark mode first approach)
-      const initialTheme: Theme = 'dark'
-      setThemeState(initialTheme)
-      localStorage.setItem('schlep-docs-theme', initialTheme)
+      body.classList.add('bg-white', 'text-gray-900');
+      body.classList.remove('bg-gray-900', 'text-white');
     }
   }, [])
 
-  // Update document class and localStorage when theme changes
   useEffect(() => {
-    if (!mounted) return
-
-    const root = document.documentElement
-    root.classList.remove('light', 'dark')
-    root.classList.add(theme)
-    localStorage.setItem('schlep-docs-theme', theme)
-  }, [theme, mounted])
+    applyTheme(theme)
+  }, [theme, applyTheme])
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme)
   }
 
   const toggleTheme = () => {
-    setThemeState(prev => prev === 'light' ? 'dark' : 'light')
-  }
-
-  // Prevent flash of wrong theme by not rendering until mounted
-  if (!mounted) {
-    return (
-      <ThemeContext.Provider value={{ theme: 'dark', toggleTheme: () => {}, setTheme: () => {} }}>
-        {children}
-      </ThemeContext.Provider>
-    )
+    setThemeState(prev => (prev === 'light' ? 'dark' : 'light'))
   }
 
   return (
