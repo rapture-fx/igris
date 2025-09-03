@@ -1,77 +1,10 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function AuthenticationApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Login
-curl -X POST https://api.schlep-engine.com/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{ 
-    "email": "your@email.com",
-    "password": "your_password"
-  }'
-
-# Register
-curl -X POST https://api.schlep-engine.com/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{ 
-    "email": "new@email.com",
-    "password": "new_password",
-    "username": "new_user"
-  }'`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-# Login
-login_data = {
-    "email": "your@email.com",
-    "password": "your_password"
-}
-response = requests.post("https://api.schlep-engine.com/api/v1/auth/login", json=login_data)
-print(response.json())
-
-# Register
-register_data = {
-    "email": "new@email.com",
-    "password": "new_password",
-    "username": "new_user"
-}
-response = requests.post("https://api.schlep-engine.com/api/v1/auth/register", json=register_data)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `// Login
-fetch('https://api.schlep-engine.com/api/v1/auth/login', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ email: 'your@email.com', password: 'your_password' }) 
-}).then(res => res.json()).then(console.log);
-
-// Register
-fetch('https://api.schlep-engine.com/api/v1/auth/register', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ email: 'new@email.com', password: 'new_password', username: 'new_user' }) 
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
-
   return (
     <ApiLayout 
       title="Authentication API"
       description="Manage users, authentication, and authorization."
-      codeExamples={codeExamples}
     >
       <section className="mb-12" id="login">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">User Login</h2>
@@ -227,7 +160,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/auth/oauth/{{'{provider}'}}/authorize</code>
+            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/authorize</code>
           </div>
           <p className="text-gray-600 mb-4">Start the OAuth 2.0 authorization flow for a given provider (e.g., google, github).</p>
         </div>
@@ -238,7 +171,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/auth/oauth/{{'{provider}'}}/callback</code>
+            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/callback</code>
           </div>
           <p className="text-gray-600 mb-4">Handle the callback from the OAuth 2.0 provider.</p>
         </div>
@@ -260,7 +193,7 @@ fetch('https://api.schlep-engine.com/api/v1/auth/register', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-red-200 text-red-800">DELETE</span>
-            <code className="text-sm">/api/v1/auth/oauth/{{'{provider}'}}/unlink</code>
+            <code className="text-sm">/api/v1/auth/oauth/{'{provider}'}/unlink</code>
           </div>
           <p className="text-gray-600 mb-4">Unlink an OAuth account from the current user.</p>
         </div>

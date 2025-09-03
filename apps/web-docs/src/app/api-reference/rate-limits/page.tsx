@@ -2,92 +2,10 @@ import { ApiLayout } from '@/components/ui/ApiLayout'
 import { ExclamationTriangleIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 
 export default function RateLimitsPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Check rate limit headers in response
-curl -I "https://api.schlep-engine.com/api/v1/metrics" \\
-  -H "Authorization: Bearer sk_your_api_key"
-
-# Response headers include:
-# X-RateLimit-Limit: 1000
-# X-RateLimit-Remaining: 999
-# X-RateLimit-Reset: 1642694400
-# Retry-After: 60 (if rate limited)`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-import time
-
-def make_api_call_with_retry(url, headers, max_retries=3):
-    for attempt in range(max_retries):
-        response = requests.get(url, headers=headers)
-        
-        # Check rate limit headers
-        limit = int(response.headers.get('X-RateLimit-Limit', 0))
-        remaining = int(response.headers.get('X-RateLimit-Remaining', 0))
-        reset_time = int(response.headers.get('X-RateLimit-Reset', 0))
-        
-        if response.status_code == 429:
-            # Rate limited - wait and retry
-            retry_after = int(response.headers.get('Retry-After', 60))
-            print(f"Rate limited. Waiting {retry_after} seconds...")
-            time.sleep(retry_after)
-            continue
-            
-        return response
-    
-    raise Exception("Max retries exceeded")
-
-# Usage
-headers = {"Authorization": "Bearer sk_your_api_key"}
-response = make_api_call_with_retry(
-    "https://api.schlep-engine.com/api/v1/metrics", 
-    headers
-)`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `async function makeApiCallWithRetry(url, headers, maxRetries = 3) {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const response = await fetch(url, { headers });
-    
-    // Check rate limit headers
-    const limit = parseInt(response.headers.get('X-RateLimit-Limit') || '0');
-    const remaining = parseInt(response.headers.get('X-RateLimit-Remaining') || '0');
-    const resetTime = parseInt(response.headers.get('X-RateLimit-Reset') || '0');
-    
-    if (response.status === 429) {
-      // Rate limited - wait and retry
-      const retryAfter = parseInt(response.headers.get('Retry-After') || '60');
-      console.log(\`Rate limited. Waiting \${retryAfter} seconds...\`);
-      await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
-      continue;
-    }
-    
-    return response;
-  }
-  
-  throw new Error('Max retries exceeded');
-}
-
-// Usage
-const response = await makeApiCallWithRetry(
-  'https://api.schlep-engine.com/api/v1/metrics',
-  { 'Authorization': 'Bearer sk_your_api_key' }
-);`
-    }
-  ]
-
   return (
     <ApiLayout 
       title="Rate Limits"
       description="Understanding and handling API rate limits to ensure optimal performance and fair usage across all users."
-      codeExamples={codeExamples}
     >
       {/* Rate Limit Overview */}
       <section className="mb-12">

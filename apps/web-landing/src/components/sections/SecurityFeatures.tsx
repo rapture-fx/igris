@@ -5,48 +5,48 @@ import { motion } from 'framer-motion'
 
 const securityFeatures = [
   {
-    name: 'Multi-layered Authentication',
-    description: 'Robust user verification with advanced MFA (TOTP, SMS, email, backup codes) and account lockout.',
+    name: 'User Authentication',
+    description: 'Standard user authentication with password requirements and optional two-factor authentication.',
     icon: Fingerprint,
   },
   {
-    name: 'Field-Level Encryption',
-    description: 'Sensitive data is encrypted at rest and in transit using AES-256-GCM with strong key management.',
+    name: 'Data Encryption',
+    description: 'HTTPS for data in transit and encrypted storage for sensitive information.',
     icon: Lock,
   },
   {
-    name: 'Comprehensive Audit Trails',
-    description: 'Detailed logging of all activities, PII masking in logs, and security event correlation.',
+    name: 'Activity Logging',
+    description: 'Basic audit logs for user actions and API requests for security monitoring.',
     icon: FileText,
   },
   {
-    name: 'Role-Based Access Control (RBAC)',
-    description: 'Fine-grained permissions (Admin > Analyst > User) and API key management with usage tracking.',
+    name: 'Access Control',
+    description: 'User roles and permissions system with API key management for controlled access.',
     icon: Layers,
   },
   {
-    name: 'SOC 2 & GDPR Compliant',
-    description: 'Built with enterprise-grade security controls meeting or exceeding SOC 2 Type II and GDPR standards.',
+    name: 'Security Standards',
+    description: 'Security implementation following common industry practices and standards.',
     icon: ShieldCheck,
   },
   {
-    name: 'Secure API Endpoints',
-    description: 'Advanced rate limiting, security headers (HSTS, CSP), CSRF protection, and input validation.',
+    name: 'API Security',
+    description: 'Rate limiting, input validation, and standard security headers for API endpoints.',
     icon: Server,
   },
   {
-    name: 'Global Infrastructure Security',
-    description: 'Leveraging secure global infrastructure with 24/7 monitoring and end-to-end encryption.',
+    name: 'Infrastructure Security',
+    description: 'Hosted on secure cloud infrastructure with regular security updates.',
     icon: Globe,
   },
   {
-    name: 'Secure Password Requirements',
-    description: 'Enforced strong password policies (8+ chars, mixed case, digits, symbols) with validation.',
+    name: 'Password Policy',
+    description: 'Basic password requirements including minimum length and complexity rules.',
     icon: Key,
   },
   {
-    name: 'Real-time Security Monitoring',
-    description: 'Continuous monitoring for anomalies and threats, integrated with enhanced security systems.',
+    name: 'Monitoring',
+    description: 'System monitoring for unusual activity and basic security alerting.',
     icon: Activity,
   },
 ]
@@ -63,7 +63,7 @@ export default function SecurityFeatures() {
             transition={{ duration: 0.6 }}
             className="text-base font-semibold leading-7 text-[#1A5799] text-left"
           >
-            Enterprise-Grade Protection
+            Security Features
           </motion.h2>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -72,7 +72,7 @@ export default function SecurityFeatures() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-4xl text-left"
           >
-            Your Data, Secured with Confidence
+            Data Security and Access Control
           </motion.p>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -81,8 +81,7 @@ export default function SecurityFeatures() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-left"
           >
-            Schlep-engine is built from the ground up with security as a core principle, 
-            ensuring your sensitive data is protected by industry-leading controls and compliance.
+            Standard security features to protect your data and control access to processing capabilities.
           </motion.p>
         </div>
 
@@ -118,24 +117,24 @@ export default function SecurityFeatures() {
         >
           <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 max-w-3xl mx-auto border border-gray-200 dark:border-gray-800">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-              Compliance & Certifications
+              Security Approach
             </h3>
             <div className="flex flex-wrap justify-center gap-6 text-gray-900 dark:text-gray-300 font-medium">
               <div className="flex items-center space-x-2">
-                <ShieldCheck className="w-5 h-5 text-green-600" />
-                <span>SOC 2 Type II Ready</span>
+                <ShieldCheck className="w-5 h-5 text-blue-600" />
+                <span>Industry Best Practices</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Globe className="w-5 h-5 text-green-600" />
-                <span>GDPR Fully Compliant</span>
+                <Globe className="w-5 h-5 text-blue-600" />
+                <span>Privacy by Design</span>
               </div>
               <div className="flex items-center space-x-2">
-                <Lock className="w-5 h-5 text-green-600" />
-                <span>ISO 27001 (85% Ready)</span>
+                <Lock className="w-5 h-5 text-blue-600" />
+                <span>Secure by Default</span>
               </div>
             </div>
             <p className="mt-6 text-gray-700 dark:text-gray-400 text-sm">
-              We are committed to maintaining the highest security standards and regularly undergo third-party audits.
+              Security features are implemented following established industry practices and standards.
             </p>
           </div>
         </motion.div>

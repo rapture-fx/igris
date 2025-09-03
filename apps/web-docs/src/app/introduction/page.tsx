@@ -11,6 +11,7 @@ import {
   ShieldCheckIcon,
   PlayIcon
 } from '@heroicons/react/24/outline'
+import CodeBlock from '../../components/ui/CodeBlock'
 
 export default function Introduction() {
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
@@ -22,80 +23,92 @@ export default function Introduction() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6">
+    <div className="max-w-7xl mx-auto px-6">
       {/* Hero Section */}
-      <div className="mb-12">
-        <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-4">
-          Introduction to Schlep Engine
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900 mb-3">
+          Industry-Focused Data Processing APIs
         </h1>
-        <p className="text-sm text-[#999999] mb-6 max-w-3xl">
-          Transform raw, messy datasets into ML-ready formats through intelligent pattern recognition 
-          and automated preprocessing workflows. Eliminate 80% of data preparation time.
+        <p className="text-xs text-[#999999] mb-4 max-w-3xl">
+          REST APIs for data processing and analysis workflows in financial services, e-commerce, and manufacturing. 
+          Handle common business logic and data transformations through HTTP endpoints.
         </p>
       </div>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Left Column */}
+        <div className="space-y-6">
 
-      {/* Key Benefits */}
-      <div className="mb-16">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-4">
-          Why Choose Schlep Engine?
-        </h2>
-        <p className="text-sm text-[#999999] mb-6">
-          Focus on building models that drive business value, not on data cleaning
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div className="flex flex-col">
-            <div className="flex items-center gap-x-3 text-sm font-semibold leading-7 text-[#999999] mb-4">
-              <RocketLaunchIcon className="h-5 w-5 flex-none text-blue-600" />
-              Lightning Fast
-            </div>
-            <p className="text-sm leading-7 text-[#999999]">
-              Reduce data prep time from weeks to hours with AI-powered automation
+          {/* Key Benefits */}
+          <section>
+            <h2 className="text-lg font-bold tracking-tight text-gray-900 mb-3">
+              Why Use Schlep Engine?
+            </h2>
+            <p className="text-xs text-[#999999] mb-4">
+              Save development time with pre-built data processing workflows for common business use cases.
             </p>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-x-3 text-sm font-semibold leading-7 text-[#999999] mb-4">
-              <CpuChipIcon className="h-5 w-5 flex-none text-blue-600" />
-              AI-Driven Accuracy
+            <div className="space-y-4">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
+                  <RocketLaunchIcon className="h-4 w-4 flex-none text-blue-600" />
+                  Ready-to-Use
+                </div>
+                <p className="text-xs leading-7 text-[#999999]">
+                  Pre-configured processing workflows for transaction analysis, product matching, and equipment monitoring
+                </p>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
+                  <CpuChipIcon className="h-4 w-4 flex-none text-blue-600" />
+                  Industry-Specific
+                </div>
+                <p className="text-xs leading-7 text-[#999999]">
+                  Endpoints tailored for financial, e-commerce, and manufacturing data structures and requirements
+                </p>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
+                  <ChartBarIcon className="h-4 w-4 flex-none text-blue-600" />
+                  Scalable Processing
+                </div>
+                <p className="text-xs leading-7 text-[#999999]">
+                  Handle high-volume data processing with configurable rate limits and batch operations
+                </p>
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-x-3 text-xs font-semibold leading-7 text-[#999999] mb-2">
+                  <ShieldCheckIcon className="h-4 w-4 flex-none text-blue-600" />
+                  Security Focused
+                </div>
+                <p className="text-xs leading-7 text-[#999999]">
+                  API authentication, data encryption, and compliance-ready audit logs
+                </p>
+              </div>
             </div>
-            <p className="text-sm leading-7 text-[#999999]">
-              Catch data quality issues human reviewers miss with advanced ML detection
-            </p>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-x-3 text-sm font-semibold leading-7 text-[#999999] mb-4">
-              <ChartBarIcon className="h-5 w-5 flex-none text-blue-600" />
-              Enterprise Scale
-            </div>
-            <p className="text-sm leading-7 text-[#999999]">
-              Handle datasets from gigabytes to petabytes with cloud-native architecture
-            </p>
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-x-3 text-sm font-semibold leading-7 text-[#999999] mb-4">
-              <ShieldCheckIcon className="h-5 w-5 flex-none text-blue-600" />
-              Learning System
-            </div>
-            <p className="text-sm leading-7 text-[#999999]">
-              Gets smarter with each dataset, building institutional knowledge
-            </p>
-          </div>
+          </section>
+        </div>
+        
+        {/* Right Column - Empty for now */}
+        <div className="space-y-6">
+          {/* Content to be added later */}
         </div>
       </div>
+      
+      {/* Continue with existing content below the 2-column layout */}
 
       {/* Quick Start Preview */}
-      <div className="mb-16">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-4">
-          Get started in minutes
+      <div className="mb-8">
+        <h2 className="text-lg font-bold tracking-tight text-gray-900 mb-3">
+          Getting Started
         </h2>
-        <p className="text-sm text-[#999999] mb-6">
-          Install our SDK and transform your first dataset with just a few lines of code
+        <p className="text-xs text-[#999999] mb-4">
+          Install our SDK and start processing data with industry-specific endpoints
         </p>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <CodeExampleCard 
-            title="Python SDK"
-            language="python"
-            code={`# Install the SDK
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div>
+            <CodeBlock
+              code={`# Install the SDK
 pip install schlep-engine
 
 # Import and authenticate
@@ -103,23 +116,26 @@ from schlep_engine import SchlepClient
 
 client = SchlepClient(api_key="your_api_key")
 
-# Upload and process your data
-job = client.upload_csv("messy_data.csv")
-result = client.process(job.id, 
-    auto_clean=True,
-    ml_ready=True
+# Analyze transaction data
+result = client.financial.analyze_transaction(
+    transaction_id="txn_12345",
+    user_id="user_67890", 
+    amount=2500.00,
+    merchant_category="gas_station",
+    location={"lat": 40.7128, "lon": -74.0060}
 )
 
-# Export to your ML framework
-client.export_tensorflow(result.id)`}
-            onCopy={(code) => handleCopyCode(code, 'python-example')}
-            copied={copiedCode === 'python-example'}
-          />
+print(f"Risk Score: {result.risk_score}")
+print(f"Analysis: {result.analysis}")`}
+              language="python"
+              title="Python SDK - Transaction Analysis"
+              showCopyButton={true}
+            />
+          </div>
 
-          <CodeExampleCard 
-            title="JavaScript SDK"
-            language="javascript"
-            code={`// Install the SDK
+          <div>
+            <CodeBlock
+              code={`// Install the SDK
 npm install @schlep-engine/js-sdk
 
 // Import and authenticate
@@ -129,72 +145,73 @@ const client = new SchlepClient({
   apiKey: 'your_api_key'
 });
 
-// Upload and process your data
-const job = await client.uploadCSV('messy_data.csv');
-const result = await client.process(job.id, {
-  autoClean: true,
-  mlReady: true
+// Process product matching
+const matches = await client.ecommerce.findMatches({
+  userId: 'user_12345',
+  maxResults: 10,
+  currentSession: { category: 'electronics' }
 });
 
-// Download processed data
-const processedData = await client.download(result.id);`}
-            onCopy={(code) => handleCopyCode(code, 'js-example')}
-            copied={copiedCode === 'js-example'}
-          />
+console.log('Matching products:', matches.products);`}
+              language="javascript"
+              title="JavaScript SDK - Product Matching"
+              showCopyButton={true}
+            />
+          </div>
         </div>
       </div>
 
       {/* Core Features */}
-      <div className="mb-16">
-        <h2 className="text-2xl font-bold tracking-tight text-gray-900 mb-4">
+      <div className="mb-8">
+        <h2 className="text-lg font-bold tracking-tight text-gray-900 mb-3">
           Core Features
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">🤖 Intelligent Data Profiling</h3>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mb-3">
-              Automatically detect data types, patterns, and quality issues in your datasets with AI-powered analysis.
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🛡️ Financial Services</h3>
+            <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
+              Transaction analysis, risk scoring, and compliance data processing workflows.
             </p>
-            <ul className="text-sm text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• Automatic schema detection</li>
-              <li>• Data quality scoring</li>
-              <li>• Pattern recognition</li>
+            <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
+              <li>• Transaction data validation</li>
+              <li>• Risk score calculations</li>
+              <li>• Compliance report generation</li>
             </ul>
           </div>
           
-          <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">🔧 Smart Data Cleaning</h3>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mb-3">
-              Advanced algorithms handle duplicates, missing values, and inconsistencies automatically.
+          <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🛍️ E-commerce</h3>
+            <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
+              Product matching, inventory analysis, and pricing calculation endpoints.
             </p>
-            <ul className="text-sm text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• Duplicate detection & removal</li>
-              <li>• Missing value imputation</li>
-              <li>• Outlier identification</li>
+            <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
+              <li>• Product similarity matching</li>
+              <li>• Demand forecast calculations</li>
+              <li>• Dynamic pricing algorithms</li>
             </ul>
           </div>
           
-          <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">🏷️ Auto-Labeling & Categorization</h3>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mb-3">
-              ML-powered labeling system categorizes and enriches your data automatically.
+          <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🏭 Manufacturing</h3>
+            <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
+              Equipment monitoring, quality analysis, and supply chain data processing.
             </p>
-            <ul className="text-sm text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• Unsupervised classification</li>
-              <li>• Entity recognition</li>
-              <li>• Semantic enrichment</li>
+            <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
+              <li>• Equipment status monitoring</li>
+              <li>• Quality metrics analysis</li>
+              <li>• Supply chain data tracking</li>
             </ul>
           </div>
           
-          <div className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">🚀 ML Framework Export</h3>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mb-3">
-              Export clean, processed data directly to your favorite ML frameworks and platforms.
+          <div className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">🤖 Data Processing</h3>
+            <p className="text-xs text-[#999999] dark:text-[#999999] mb-2">
+              Configurable data processing workflows and parameter optimization.
             </p>
-            <ul className="text-sm text-[#999999] dark:text-[#999999] space-y-1">
-              <li>• TensorFlow & PyTorch ready</li>
-              <li>• scikit-learn compatibility</li>
-              <li>• Custom format support</li>
+            <ul className="text-xs text-[#999999] dark:text-[#999999] space-y-1">
+              <li>• Parameter tuning workflows</li>
+              <li>• Batch processing optimization</li>
+              <li>• Pipeline configuration tools</li>
             </ul>
           </div>
         </div>
@@ -206,7 +223,7 @@ const processedData = await client.download(result.id);`}
           API Overview
         </h2>
         <p className="text-sm text-[#999999] mb-6">
-          Our REST API provides simple, powerful endpoints for all your data processing needs.
+          Our REST API provides industry-specific AI endpoints for financial, e-commerce, and manufacturing use cases.
         </p>
         
         <div className="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-400 dark:border-blue-500 p-4 mb-6">
@@ -221,27 +238,27 @@ const processedData = await client.download(result.id);`}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">📤 Upload & Process</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /v1/upload</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Upload datasets and start processing</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🛡️ Fraud Detection</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /industry/financial/fraud-detection</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Real-time transaction fraud analysis</p>
           </div>
           
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">📊 Data Profiling</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /v1/profile</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Generate intelligent data profiles</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🛍️ Product Recommendations</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /industry/ecommerce/recommendations</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">AI-powered product recommendations</p>
           </div>
           
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">⚙️ Transform Data</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /v1/process</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Clean and transform your data</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🔧 Predictive Maintenance</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /industry/manufacturing/predictive-maintenance</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">IoT-powered equipment monitoring</p>
           </div>
           
           <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
-            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">📥 Download Results</h4>
-            <code className="text-xs text-[#999999] dark:text-[#999999]">GET /v1/download/&#123;id&#125;</code>
-            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Download processed datasets</p>
+            <h4 className="font-semibold text-gray-900 dark:text-white mb-2">🤖 RL Optimization</h4>
+            <code className="text-xs text-[#999999] dark:text-[#999999]">POST /rl/hyperparameter-optimization</code>
+            <p className="text-sm text-[#999999] dark:text-[#999999] mt-2">Automated ML hyperparameter tuning</p>
           </div>
         </div>
       </div>
@@ -286,63 +303,3 @@ const processedData = await client.download(result.id);`}
   )
 }
 
-interface CodeExampleCardProps {
-  title: string
-  language: string
-  code: string
-  onCopy: (code: string) => void
-  copied: boolean
-}
-
-function CodeExampleCard({ title, language, code, onCopy, copied }: CodeExampleCardProps) {
-  const formatCode = (code: string, language: string) => {
-    if (language === 'python') {
-      return code
-        .replace(/(from|import|def|class|if|else|elif|try|except|finally|with|as|return|yield|break|continue|pass|global|nonlocal|assert|del|lambda|and|or|not|in|is)\b/g, '<span style="color: #8b5cf6;">$1</span>')
-        .replace(/(True|False|None)\b/g, '<span style="color: #f59e0b;">$1</span>')
-        .replace(/(['"])(.*?)\1/g, '<span style="color: #10b981;">$1$2$1</span>')
-        .replace(/(#.*$)/gm, '<span style="color: #6b7280;">$1</span>')
-        .replace(/(\d+)/g, '<span style="color: #f59e0b;">$1</span>')
-    } else if (language === 'javascript' || language === 'js') {
-      return code
-        .replace(/(const|let|var|function|class|if|else|for|while|do|switch|case|default|try|catch|finally|throw|return|break|continue|new|this|super|extends|import|export|from|async|await)\b/g, '<span style="color: #8b5cf6;">$1</span>')
-        .replace(/(true|false|null|undefined)\b/g, '<span style="color: #f59e0b;">$1</span>')
-        .replace(/(['"`])(.*?)\1/g, '<span style="color: #10b981;">$1$2$1</span>')
-        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #6b7280;">$1</span>')
-        .replace(/(\d+)/g, '<span style="color: #f59e0b;">$1</span>')
-    }
-    return code
-  }
-
-  return (
-    <div className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden">
-      {/* Terminal Header */}
-      <div className="bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-700">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-2">
-            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-          </div>
-          <span className="text-gray-300 text-sm font-medium ml-3">{title}</span>
-        </div>
-        <button
-          onClick={() => onCopy(code)}
-          className="flex items-center gap-2 px-3 py-1 text-xs text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 rounded transition-colors"
-        >
-          {copied ? <CheckIcon className="h-3 w-3" /> : <ClipboardDocumentIcon className="h-3 w-3" />}
-          {copied ? 'Copied!' : 'Copy'}
-        </button>
-      </div>
-      
-      {/* Terminal Content */}
-      <div className="p-4">
-        <pre className="overflow-x-auto font-mono text-sm leading-relaxed text-gray-100">
-          <code 
-            dangerouslySetInnerHTML={{__html: formatCode(code, language)}}
-          />
-        </pre>
-      </div>
-    </div>
-  )
-}

@@ -4,51 +4,51 @@ import { ArrowRightIcon, DocumentTextIcon, ShieldCheckIcon, CloudIcon, CogIcon }
 export default function ApiReferencePage() {
   const apiSections = [
     {
-      title: 'Authentication',
+      title: 'Financial Services',
       icon: ShieldCheckIcon,
-      description: 'User login, API key management, and session handling',
-      href: '/api-reference/authentication',
-      methods: ['POST /auth/login', 'POST /auth/register', 'POST /auth/refresh'],
+      description: 'Transaction analysis, risk scoring, and compliance data processing',
+      href: '/api-reference/financial',
+      methods: ['POST /financial/analyze-transaction', 'POST /financial/risk-score', 'POST /financial/compliance-check'],
       color: 'text-blue-600'
     },
     {
-      title: 'Data Processing',
+      title: 'E-commerce',
       icon: CogIcon,
-      description: 'File processing, data transformation, and quality analysis',
-      href: '/api-reference/data-processing',
-      methods: ['POST /data/process', 'GET /data/jobs/{id}', 'POST /data/pipelines'],
+      description: 'Product matching, demand analysis, and pricing calculations',
+      href: '/api-reference/ecommerce',
+      methods: ['POST /ecommerce/recommend', 'POST /ecommerce/forecast-demand', 'POST /ecommerce/calculate-pricing'],
       color: 'text-green-600'
     },
     {
-      title: 'Machine Learning',
+      title: 'Manufacturing',
       icon: CloudIcon,
-      description: 'Model training, predictions, and pipeline management',
-      href: '/api-reference/ml-pipeline',
-      methods: ['POST /ml/pipelines', 'POST /ml/train', 'POST /ml/predict'],
+      description: 'Equipment monitoring, quality analysis, and supply chain data',
+      href: '/api-reference/manufacturing',
+      methods: ['POST /manufacturing/equipment-status', 'POST /manufacturing/quality-check', 'POST /manufacturing/supply-chain'],
       color: 'text-purple-600'
     },
     {
-      title: 'Document Extraction',
+      title: 'Authentication',
       icon: DocumentTextIcon,
-      description: 'Extract text and structured data from documents',
-      href: '/api-reference/document-extraction',
-      methods: ['POST /extract/text', 'POST /extract/tables', 'GET /extract/jobs/{id}'],
+      description: 'User login, API key management, and session handling',
+      href: '/api-reference/authentication',
+      methods: ['POST /auth/login', 'POST /auth/register', 'POST /auth/refresh'],
       color: 'text-orange-600'
     },
     {
-      title: 'Data Quality',
+      title: 'Data Processing',
       icon: ShieldCheckIcon,
-      description: 'Data validation, profiling, and quality assessment',
-      href: '/api-reference/data-quality',
-      methods: ['POST /quality/assess', 'GET /quality/reports/{id}', 'POST /quality/rules'],
+      description: 'Model execution, parameter tuning, and job management',
+      href: '/api-reference/data-processing',
+      methods: ['POST /process/start', 'POST /process/configure', 'GET /process/jobs/{id}'],
       color: 'text-red-600'
     },
     {
-      title: 'Storage & Files',
+      title: 'Real-time Processing',
       icon: CloudIcon,
-      description: 'File upload, download, and storage management',
-      href: '/api-reference/storage',
-      methods: ['POST /storage/upload', 'GET /storage/files/{id}', 'DELETE /storage/files/{id}'],
+      description: 'WebSocket connections and streaming data endpoints',
+      href: '/api-reference/streaming',
+      methods: ['WS /stream/connect', 'POST /stream/data', 'GET /stream/status'],
       color: 'text-indigo-600'
     }
   ]
@@ -60,8 +60,8 @@ export default function ApiReferencePage() {
           API Reference
         </h1>
         <p className="text-xl text-gray-600 mb-6">
-          Complete REST API documentation for Schlep Engine. Build powerful data processing, machine learning, 
-          and analytics applications with our comprehensive API.
+          REST API documentation for data processing, analysis, and workflow automation. 
+          Industry-focused endpoints for financial, e-commerce, and manufacturing use cases.
         </p>
         
         <div className="flex gap-4">
@@ -100,12 +100,14 @@ export default function ApiReferencePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-3">API Key Authentication</h3>
               <div className="bg-gray-900 rounded-lg p-4">
                 <pre className="text-sm text-gray-100">
-{`curl -X POST https://api.schlep-engine.com/v1/data/process \\
+{`curl -X POST https://api.schlep-engine.com/v1/industry/financial/fraud-detection \\
   -H "Authorization: Bearer sk-your-api-key" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "file_url": "https://example.com/data.csv",
-    "format": "csv"
+    "transaction_id": "txn_12345",
+    "user_id": "user_67890",
+    "transaction_amount": 2500.00,
+    "merchant_category": "gas_station"
   }'`}
                 </pre>
               </div>

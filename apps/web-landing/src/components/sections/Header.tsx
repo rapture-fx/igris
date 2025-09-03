@@ -42,13 +42,15 @@ export default function Header() {
   }
 
   const handleApiHover = () => {
-    setShowApiPanel(true)
-    console.log("handleApiHover: showApiPanel set to true")
+    if (!isClicked) {
+      setShowApiPanel(true)
+    }
   }
 
   const handleApiLeave = () => {
-    setShowApiPanel(false)
-    console.log("handleApiLeave: showApiPanel set to false")
+    if (!isClicked) {
+      setShowApiPanel(false)
+    }
   }
 
   const handleApiClick = (e: React.MouseEvent) => {
@@ -85,6 +87,7 @@ export default function Header() {
         !apiLinkRef.current.contains(event.target as Node)
       ) {
         setShowApiPanel(false)
+        setIsClicked(false)
       }
       if (
         docsPanelRef.current &&
@@ -93,14 +96,24 @@ export default function Header() {
         !docsLinkRef.current.contains(event.target as Node)
       ) {
         setShowDocsPanel(false)
+        setIsClicked(false)
+      }
+      if (
+        panelRef.current &&
+        !panelRef.current.contains(event.target as Node) &&
+        productLinkRef.current &&
+        !productLinkRef.current.contains(event.target as Node)
+      ) {
+        setShowProductPanel(false)
+        setIsClicked(false)
       }
     }
 
-    if (showApiPanel || showDocsPanel) {
+    if (showApiPanel || showDocsPanel || showProductPanel) {
       document.addEventListener('mousedown', handleClickOutside)
       return () => document.removeEventListener('mousedown', handleClickOutside)
     }
-  }, [showApiPanel, showDocsPanel])
+  }, [showApiPanel, showDocsPanel, showProductPanel])
 
   // Scroll effect
   useEffect(() => {
@@ -149,7 +162,6 @@ export default function Header() {
                   
                   {/* API panel positioned relative to API link */}
                   {showApiPanel && (
-                    console.log("API panel is rendering!"),
                     <div 
                       ref={apiPanelRef}
                       className="absolute bg-white dark:bg-black backdrop-blur-md border border-gray-200 dark:border-gray-800 rounded-lg shadow-2xl p-5 z-50"

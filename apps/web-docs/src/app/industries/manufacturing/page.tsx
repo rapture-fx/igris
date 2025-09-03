@@ -1,66 +1,236 @@
+'use client'
+
+import { useState } from 'react'
+import { WrenchScrewdriverIcon, ChartBarIcon, CogIcon } from '@heroicons/react/24/outline'
+import CodeBlock from '../../../components/ui/CodeBlock'
+
 export default function ManufacturingPage() {
+  const [copiedCode, setCopiedCode] = useState<string | null>(null)
+
+  const handleCopyCode = async (code: string, id: string) => {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopiedCode(id)
+      setTimeout(() => setCopiedCode(null), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
+  }
+
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Manufacturing</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Manufacturing AI</h1>
         <p className="text-xl text-gray-600">
-          Transform IoT sensor data, production metrics, and quality control records into ML-ready datasets for predictive maintenance, quality optimization, and supply chain analytics.
+          Enterprise AI APIs for predictive maintenance, quality control, and supply chain optimization. 
+          Reduce downtime by 31% and improve efficiency with intelligent manufacturing automation.
         </p>
       </div>
 
+      {/* Live API Demo */}
       <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Industry Challenges</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-red-50 border-l-4 border-red-400 p-6">
-            <h3 className="font-semibold mb-3">Industrial Data Complexity</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li>• High-frequency sensor data streams</li>
-              <li>• Legacy system integrations</li>
-              <li>• Multi-location data synchronization</li>
-              <li>• Equipment downtime data gaps</li>
-            </ul>
-          </div>
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-6">
-            <h3 className="font-semibold mb-3">Schlep Engine Solutions</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
-              <li>• Real-time IoT data processing</li>
-              <li>• Automated anomaly detection</li>
-              <li>• Production line optimization</li>
-              <li>• Predictive maintenance scheduling</li>
-            </ul>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Live Predictive Maintenance API</h2>
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 border border-purple-200 rounded-lg p-6 mb-6">
+          <div className="flex items-start gap-4">
+            <WrenchScrewdriverIcon className="h-8 w-8 text-purple-600 mt-1" />
+            <div>
+              <h3 className="font-semibold text-gray-900 mb-2">IoT-Powered Predictive Maintenance</h3>
+              <p className="text-gray-600 mb-4">
+                Monitor equipment health in real-time using IoT sensor data and ML models. 
+                Predict failures 2-4 weeks in advance with 92% accuracy.
+              </p>
+              <div className="bg-white rounded-md p-4 border">
+                <CodeBlock
+                  code={`curl -X POST https://api.schlep-engine.com/v1/industry/manufacturing/predictive-maintenance \\
+  -H "Authorization: Bearer your_api_key" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "equipment_id": "motor_pump_A01",
+    "sensor_data": {
+      "temperature": 85.2,
+      "vibration": 0.15,
+      "pressure": 145.8,
+      "flow_rate": 23.4,
+      "power_consumption": 1250
+    },
+    "operational_context": {
+      "hours_since_maintenance": 720,
+      "load_factor": 0.85,
+      "environmental_conditions": "normal"
+    }
+  }'`}
+                  language="curl"
+                  title="Predictive Maintenance Request"
+                  showCopyButton={true}
+                />
+                <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded">
+                  <p className="text-sm font-semibold text-purple-800 mb-2">Response (JSON):</p>
+                  <CodeBlock
+                    code={`{
+  "status": "success",
+  "data": {
+    "equipment_id": "motor_pump_A01",
+    "health_score": 0.73,
+    "risk_level": "medium",
+    "failure_probability": 0.27,
+    "predicted_failure_window": {
+      "earliest": "2024-02-15",
+      "latest": "2024-02-28"
+    },
+    "anomalies_detected": [
+      {
+        "type": "vibration_increase",
+        "severity": "moderate",
+        "trend": "increasing"
+      }
+    ],
+    "recommendations": [
+      "Schedule bearing inspection within 2 weeks",
+      "Monitor vibration levels daily",
+      "Reduce operational load to 70%"
+    ],
+    "confidence": 0.92
+  }
+}`}
+                    language="json"
+                    showCopyButton={true}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Common Use Cases</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Manufacturing AI Solutions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-red-50 border-l-4 border-red-400 p-6">
+            <h3 className="font-semibold mb-3">Traditional Manufacturing Challenges</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>• Reactive maintenance schedules</li>
+              <li>• Manual quality inspections</li>
+              <li>• Supply chain disruptions</li>
+              <li>• Inefficient resource allocation</li>
+            </ul>
+          </div>
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-6">
+            <h3 className="font-semibold mb-3">Schlep Engine AI APIs</h3>
+            <ul className="space-y-2 text-sm text-gray-600">
+              <li>• Predictive maintenance alerts</li>
+              <li>• AI-powered quality control</li>
+              <li>• RL supply chain optimization</li>
+              <li>• Real-time IoT data processing</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* API Endpoints */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Production AI APIs</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold mb-3">🔧 Predictive Maintenance</h3>
-            <p className="text-sm text-gray-600 mb-4">Prevent equipment failures by predicting maintenance needs before breakdowns occur</p>
-            <div className="text-xs text-gray-500">
-              <p><strong>Data Types:</strong> Sensor readings, maintenance logs, equipment specifications</p>
-              <p><strong>ML Models:</strong> Time Series Analysis, Anomaly Detection</p>
+          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <WrenchScrewdriverIcon className="h-6 w-6 text-orange-600" />
+              <h3 className="font-semibold">Predictive Maintenance</h3>
             </div>
+            <p className="text-sm text-gray-600 mb-4">Predict equipment failures 2-4 weeks in advance</p>
+            <div className="text-xs text-gray-500 mb-4">
+              <p><strong>Endpoint:</strong> <code>/v1/industry/manufacturing/predictive-maintenance</code></p>
+              <p><strong>Accuracy:</strong> 92% failure prediction</p>
+              <p><strong>Rate Limit:</strong> 500 req/hour</p>
+            </div>
+            <button className="text-blue-600 text-sm hover:text-blue-800 font-medium">
+              View Documentation →
+            </button>
           </div>
           
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold mb-3">📊 Quality Control</h3>
-            <p className="text-sm text-gray-600 mb-4">Automated defect detection and quality assurance using computer vision</p>
-            <div className="text-xs text-gray-500">
-              <p><strong>Data Types:</strong> Visual inspection data, measurement readings, product specifications</p>
-              <p><strong>ML Models:</strong> Computer Vision, Classification</p>
+          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <ChartBarIcon className="h-6 w-6 text-blue-600" />
+              <h3 className="font-semibold">Quality Control</h3>
             </div>
+            <p className="text-sm text-gray-600 mb-4">AI-powered defect detection and quality assessment</p>
+            <div className="text-xs text-gray-500 mb-4">
+              <p><strong>Endpoint:</strong> <code>/v1/industry/manufacturing/quality-control</code></p>
+              <p><strong>Detection Rate:</strong> 99.1% defect accuracy</p>
+              <p><strong>Rate Limit:</strong> 1,000 req/hour</p>
+            </div>
+            <button className="text-blue-600 text-sm hover:text-blue-800 font-medium">
+              View Documentation →
+            </button>
           </div>
           
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold mb-3">⚙️ Process Optimization</h3>
-            <p className="text-sm text-gray-600 mb-4">Optimize production parameters for maximum efficiency and minimal waste</p>
-            <div className="text-xs text-gray-500">
-              <p><strong>Data Types:</strong> Production metrics, resource consumption, output quality</p>
-              <p><strong>ML Models:</strong> Optimization Algorithms, Regression</p>
+          <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+            <div className="flex items-center gap-3 mb-4">
+              <CogIcon className="h-6 w-6 text-green-600" />
+              <h3 className="font-semibold">Supply Chain Optimization</h3>
             </div>
+            <p className="text-sm text-gray-600 mb-4">RL-powered logistics and inventory optimization</p>
+            <div className="text-xs text-gray-500 mb-4">
+              <p><strong>Endpoint:</strong> <code>/v1/industry/manufacturing/supply-chain</code></p>
+              <p><strong>Optimization:</strong> Cost reduction + efficiency</p>
+              <p><strong>Rate Limit:</strong> 100 req/hour</p>
+            </div>
+            <button className="text-blue-600 text-sm hover:text-blue-800 font-medium">
+              View Documentation →
+            </button>
           </div>
+        </div>
+      </section>
+
+      {/* RL Supply Chain Demo */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">RL Supply Chain Optimization</h2>
+        <div className="bg-gray-50 rounded-lg p-6">
+          <h3 className="font-semibold mb-4">Reinforcement Learning for Logistics</h3>
+          <p className="text-gray-600 mb-4">
+            Our RL agents optimize supply chain decisions by learning from historical data, demand patterns, 
+            and real-time constraints to minimize costs while meeting delivery requirements.
+          </p>
+          <CodeBlock
+            code={`from schlep_engine import SchlepClient
+
+client = SchlepClient(api_key="your_api_key")
+
+# Optimize supply chain with RL
+optimization = client.manufacturing.optimize_supply_chain(
+    facility_id="plant_detroit_01",
+    current_inventory={
+        "raw_materials": {
+            "steel_grade_a": 1250,
+            "aluminum_6061": 800,
+            "plastic_abs": 450
+        },
+        "finished_goods": {
+            "product_x": 120,
+            "product_y": 85
+        }
+    },
+    demand_forecast={
+        "product_x": {"1_week": 200, "4_weeks": 750},
+        "product_y": {"1_week": 150, "4_weeks": 580}
+    },
+    constraints={
+        "max_storage_capacity": 5000,
+        "budget_limit": 250000,
+        "lead_times": {"steel": 14, "aluminum": 7, "plastic": 5}
+    }
+)
+
+print(f"Optimal Order Quantities: {optimization.recommended_orders}")
+print(f"Expected Cost Savings: $\{optimization.cost_savings}")
+print(f"Service Level: {optimization.service_level}%")
+
+# Expected Output:
+# Optimal Order Quantities: {'steel_grade_a': 2000, 'aluminum_6061': 1200, 'plastic_abs': 800}
+# Expected Cost Savings: $18,450
+# Service Level: 98.7%`}
+            language="python"
+            title="RL Supply Chain Optimization Example"
+            showCopyButton={true}
+          />
         </div>
       </section>
 
@@ -69,8 +239,8 @@ export default function ManufacturingPage() {
         <div className="bg-purple-50 border-l-4 border-purple-400 p-6">
           <h3 className="font-semibold mb-3">Industrial IoT Data Processing</h3>
           <p className="text-gray-700 mb-4">
-            Schlep Engine seamlessly integrates with industrial IoT systems to process high-volume sensor data, 
-            enabling real-time monitoring and predictive analytics across your manufacturing operations.
+            Seamlessly integrate with industrial IoT systems to process high-volume sensor data, 
+            enabling real-time monitoring and predictive analytics across manufacturing operations.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-white rounded border">
@@ -94,9 +264,9 @@ export default function ManufacturingPage() {
       </section>
 
       <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Manufacturing Metrics</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Performance Metrics</h2>
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="font-semibold mb-4">Typical Manufacturing Results</h3>
+          <h3 className="font-semibold mb-4">Manufacturing AI Results</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-green-50 rounded">
               <p className="text-2xl font-bold text-green-600">31%</p>
@@ -113,56 +283,6 @@ export default function ManufacturingPage() {
             <div className="text-center p-4 bg-orange-50 rounded">
               <p className="text-2xl font-bold text-orange-600">15%</p>
               <p className="text-sm text-gray-600">Energy Efficiency</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Implementation Approach</h2>
-        <div className="space-y-6">
-          <div className="flex gap-6">
-            <div className="flex-shrink-0">
-              <div className="bg-blue-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">1</div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Data Infrastructure Setup</h3>
-              <p className="text-gray-600 text-sm mb-2">Establish secure connections to manufacturing systems and IoT devices</p>
-              <ul className="text-xs text-gray-500 space-y-1">
-                <li>• Industrial protocol support (OPC-UA, Modbus, MQTT)</li>
-                <li>• Edge computing deployment for real-time processing</li>
-                <li>• Secure data transmission and storage</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="flex gap-6">
-            <div className="flex-shrink-0">
-              <div className="bg-green-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">2</div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Model Development & Training</h3>
-              <p className="text-gray-600 text-sm mb-2">Build and train ML models specific to manufacturing processes</p>
-              <ul className="text-xs text-gray-500 space-y-1">
-                <li>• Historical data analysis and pattern recognition</li>
-                <li>• Custom model training for specific equipment</li>
-                <li>• Continuous learning and model improvement</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="flex gap-6">
-            <div className="flex-shrink-0">
-              <div className="bg-purple-600 text-white rounded-full w-8 h-8 flex items-center justify-center font-bold">3</div>
-            </div>
-            <div>
-              <h3 className="font-semibold mb-2">Production Deployment</h3>
-              <p className="text-gray-600 text-sm mb-2">Deploy models into production environment with monitoring</p>
-              <ul className="text-xs text-gray-500 space-y-1">
-                <li>• Real-time alerting and notification systems</li>
-                <li>• Dashboard integration for operations teams</li>
-                <li>• Automated maintenance scheduling</li>
-              </ul>
             </div>
           </div>
         </div>

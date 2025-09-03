@@ -3,48 +3,48 @@ import { Zap, BarChart2, Lock, DollarSign, Cloud, GitBranch, Activity, Users, Me
 
 const features = [
   {
-    name: 'Advanced AI Endpoints',
-    description: 'Leverage cutting-edge AI models for complex data analysis, prediction, and intelligent automation.',
+    name: 'Machine Learning APIs',
+    description: 'APIs for data preparation tasks commonly needed in ML workflows and model training.',
     icon: Zap,
   },
   {
     name: 'Analytics and Metrics',
-    description: 'Gain deep insights into your data processing workflows with comprehensive analytics and performance metrics.',
+    description: 'Basic usage analytics and processing metrics for monitoring your data operations.',
     icon: BarChart2,
   },
   {
     name: 'Authentication and Authorization',
-    description: 'Secure your data and control access with robust authentication and fine-grained authorization mechanisms.',
+    description: 'API key management and user authentication for secure access to processing endpoints.',
     icon: Lock,
   },
   {
-    name: 'Billing',
-    description: 'Manage your usage and costs effectively with transparent billing and usage tracking features.',
+    name: 'Usage Tracking',
+    description: 'Track API usage, processing volume, and account limits with built-in monitoring.',
     icon: DollarSign,
   },
   {
-    name: 'Data Connections/Streaming',
-    description: 'Connect to various data sources and enable real-time data streaming for continuous processing.',
+    name: 'Data Streaming',
+    description: 'Support for processing streaming data and batch uploads through various input methods.',
     icon: Cloud,
   },
   {
-    name: 'Integrations',
-    description: 'Seamlessly integrate with your existing tools and platforms through a wide range of connectors.',
+    name: 'Standard Integrations',
+    description: 'Work with common data formats and export to standard destinations via APIs.',
     icon: GitBranch,
   },
   {
-    name: 'Monitoring',
-    description: 'Keep an eye on your pipelines and data health with real-time monitoring and alerting capabilities.',
+    name: 'System Monitoring',
+    description: 'Basic health checks and status monitoring for processing jobs and system uptime.',
     icon: Activity,
   },
   {
-    name: 'Users and Admin',
-    description: 'Manage users, roles, and administrative settings with a comprehensive user management system.',
+    name: 'User Management',
+    description: 'Basic user accounts, roles, and administrative controls for team access.',
     icon: Users,
   },
   {
-    name: 'Websocket Manager',
-    description: 'Enable real-time communication and interactive data experiences with our integrated WebSocket manager.',
+    name: 'Real-time Updates',
+    description: 'WebSocket connections for live status updates during data processing operations.',
     icon: MessageSquare,
   },
 ]
@@ -54,13 +54,12 @@ export default function AdditionalFeatures() {
     <section className="py-20 sm:py-24 lg:py-32 bg-gray-50 dark:bg-black text-gray-900 dark:text-white">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="lg:text-left">
-          <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-left">Beyond the Core</h2>
+          <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-left">Additional Features</h2>
           <p className="mt-2 text-3xl font-semibold tracking-tight text-gray-900 dark:text-white sm:text-4xl text-left">
-            Explore the Full Power of Schlep-engine
+            Extended Platform Capabilities
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-left">
-            Schlep-engine offers a comprehensive suite of features designed to streamline your data operations,
-            from advanced AI capabilities to robust security and seamless integrations.
+            Supporting features for user management, monitoring, and integration with existing workflows.
           </p>
         </div>
 

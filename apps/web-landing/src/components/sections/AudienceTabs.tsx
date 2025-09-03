@@ -14,10 +14,10 @@ export default function AudienceTabs() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-4">
-            Who is Schlep Engine For?
+            Who Uses Schlep Engine?
           </h2>
           <p className="text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
-            Whether you're a data scientist, ML engineer, or business analyst, Schlep Engine streamlines your data workflow.
+            Data processing tools for different roles working with data preparation and analysis.
           </p>
         </div>
 
@@ -45,19 +45,19 @@ export default function AudienceTabs() {
           <TabsContent value="data-scientists" className="mt-8 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">For Data Scientists</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Spend less time wrangling data and more time building models. Schlep Engine automates the tedious parts of data preparation, from cleaning and normalization to feature engineering, allowing you to focus on insights and innovation. Integrate seamlessly with your existing Python or R workflows.
+              Automate common data preparation tasks like cleaning, validation, and format conversion. Use the Python SDK to integrate data processing into your existing analysis workflows and notebooks.
             </p>
           </TabsContent>
           <TabsContent value="ml-engineers" className="mt-8 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">For ML Engineers</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Ensure your models are trained on high-quality, consistent data. Schlep Engine provides robust data validation, versioning, and pipeline orchestration, making your ML deployments more reliable and scalable. Deploy models faster with confidence in your data integrity.
+              Process data at scale using APIs and SDKs. Handle data validation and preprocessing steps as part of your ML pipeline infrastructure and model training workflows.
             </p>
           </TabsContent>
           <TabsContent value="business-analysts" className="mt-8 bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg">
             <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">For Business Analysts</h3>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Quickly prepare data for reporting and analysis without relying on IT. Schlep Engine's intuitive API allows you to transform raw data into actionable insights, enabling faster decision-making and more accurate business intelligence. Focus on strategy, not spreadsheets.
+              Clean and standardize data for reporting and analysis. Use web interface or API to process datasets and export clean data in formats compatible with your BI tools.
             </p>
           </TabsContent>
         </Tabs>

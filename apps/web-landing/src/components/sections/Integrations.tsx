@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, Zap, Database, BarChart3, Cloud, Globe, Code, Users, Megaphone } from 'lucide-react'
+import { ChevronRight, Zap, Database, BarChart3, Cloud, Globe, Code, Users, Megaphone, FileSpreadsheet, FileText, Braces, Terminal, Webhook, Shield, BookOpen, Package } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Integrations() {
@@ -9,61 +9,47 @@ export default function Integrations() {
 
   const categories = {
     all: {
-      title: 'All Integrations',
+      title: 'All Capabilities',
       icon: Zap,
       integrations: [
-        { logo: '📊', name: 'Google Analytics', description: 'Track website traffic and user behavior.' },
-        { logo: '📈', name: 'Mixpanel', description: 'Understand user actions and funnels.' },
-        { logo: '📧', name: 'Mailchimp', description: 'Automate email marketing campaigns.' },
-        { logo: '💬', name: 'Slack', description: 'Collaborate with your team in real-time.' },
-        { logo: '💳', name: 'Stripe', description: 'Process online payments securely.' },
-        { logo: '📦', name: 'Shopify', description: 'Manage your e-commerce store.' },
-        { logo: '☁️', name: 'AWS S3', description: 'Store and retrieve data from the cloud.' },
-        { logo: '📄', name: 'Google Sheets', description: 'Organize and analyze data in spreadsheets.' },
-        { logo: '🚀', name: 'Salesforce', description: 'Manage customer relationships and sales processes.' },
-        { logo: '💡', name: 'Zendesk', description: 'Provide customer support and service.' },
+        { icon: FileText, name: 'CSV Files', description: 'Import and export comma-separated value files.' },
+        { icon: FileSpreadsheet, name: 'Excel/XLSX', description: 'Process Excel spreadsheets and workbooks.' },
+        { icon: Braces, name: 'JSON Data', description: 'Handle structured JSON data formats.' },
+        { icon: Globe, name: 'REST APIs', description: 'Standard HTTP APIs for programmatic access.' },
+        { icon: Code, name: 'Python SDK', description: 'Full-featured Python library with async support and type hints.' },
+        { icon: Package, name: 'JavaScript/TypeScript SDK', description: 'Official npm package with browser and Node.js support.' },
+        { icon: Database, name: 'Go SDK', description: 'High-performance Go library for backend integrations.' },
+        { icon: Terminal, name: 'CLI Tools', description: 'Command-line interface for batch processing and automation.' },
       ],
     },
-    data: {
-      title: 'Data & Analytics',
+    formats: {
+      title: 'Data Formats',
       icon: BarChart3,
       integrations: [
-        { logo: '📊', name: 'Google Analytics', description: 'Track website traffic and user behavior.' },
-        { logo: '📈', name: 'Mixpanel', description: 'Understand user actions and funnels.' },
-        { logo: '☁️', name: 'AWS S3', description: 'Store and retrieve data from the cloud.' },
-        { logo: '📄', name: 'Google Sheets', description: 'Organize and analyze data in spreadsheets.' },
+        { icon: FileText, name: 'CSV Files', description: 'Import and export comma-separated value files.' },
+        { icon: FileSpreadsheet, name: 'Excel/XLSX', description: 'Process Excel spreadsheets and workbooks.' },
+        { icon: Braces, name: 'JSON Data', description: 'Handle structured JSON data formats.' },
+        { icon: FileText, name: 'TSV Files', description: 'Tab-separated value file support.' },
       ],
     },
-    marketing: {
-      title: 'Marketing',
-      icon: Megaphone,
-      integrations: [
-        { logo: '📧', name: 'Mailchimp', description: 'Automate email marketing campaigns.' },
-        { logo: '🚀', name: 'Salesforce', description: 'Manage customer relationships and sales processes.' },
-      ],
-    },
-    communication: {
-      title: 'Communication',
-      icon: Users,
-      integrations: [
-        { logo: '💬', name: 'Slack', description: 'Collaborate with your team in real-time.' },
-        { logo: '💡', name: 'Zendesk', description: 'Provide customer support and service.' },
-      ],
-    },
-    ecommerce: {
-      title: 'E-commerce',
-      icon: Globe,
-      integrations: [
-        { logo: '💳', name: 'Stripe', description: 'Process online payments securely.' },
-        { logo: '📦', name: 'Shopify', description: 'Manage your e-commerce store.' },
-      ],
-    },
-    development: {
-      title: 'Development',
+    apis: {
+      title: 'API Access',
       icon: Code,
       integrations: [
-        { logo: '🐙', name: 'GitHub', description: 'Host and manage your code.' },
-        { logo: '⚙️', name: 'Jira', description: 'Track bugs and manage projects.' },
+        { icon: Globe, name: 'REST APIs', description: 'Standard HTTP APIs for programmatic access.' },
+        { icon: Webhook, name: 'Webhooks', description: 'Real-time event notifications and triggers.' },
+        { icon: Shield, name: 'API Authentication', description: 'Secure token-based API access.' },
+        { icon: BookOpen, name: 'API Documentation', description: 'Comprehensive API reference and examples.' },
+      ],
+    },
+    sdks: {
+      title: 'SDKs & Libraries',
+      icon: Users,
+      integrations: [
+        { icon: Code, name: 'Python SDK', description: 'Full-featured Python library with async support and type hints.' },
+        { icon: Package, name: 'JavaScript/TypeScript SDK', description: 'Official npm package with browser and Node.js support.' },
+        { icon: Database, name: 'Go SDK', description: 'High-performance Go library for backend integrations.' },
+        { icon: Terminal, name: 'CLI Tools', description: 'Command-line interface for batch processing and automation.' },
       ],
     },
   };
@@ -76,58 +62,63 @@ export default function Integrations() {
       <div className="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-6 text-left">
-            Integrations Everywhere
+            Built for Integration
           </h2>
           <p className="text-lg text-gray-700 dark:text-gray-300 max-w-3xl text-left">
-            Connect Schlep Engine with your favorite tools and platforms. 
-            Build powerful data pipelines without the complexity.
+            Schlep Engine is designed with standard APIs and common data formats to work seamlessly 
+            with your existing tools and workflows.
           </p>
         </div>
 
-        <div className="flex flex-col md:flex-row gap-12">
-          {/* Left Column: Category Tabs */}
-          <div className="md:w-1/4">
-            <div className="flex flex-col gap-4">
-              {Object.entries(categories).map(([key, category]) => {
-                const IconComponent = category.icon
-                return (
-                  <button
-                    key={key}
-                    onClick={() => setActiveCategory(key)}
-                    className={`flex items-center justify-start space-x-2 px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                      activeCategory === key
-                        ? 'bg-white text-gray-900 shadow-md dark:bg-gray-700 dark:text-white'
-                        : 'bg-transparent text-gray-600 hover:bg-white dark:text-gray-400 dark:hover:bg-gray-800'
-                    }`}
-                  >
-                    <IconComponent className="w-5 h-5" />
-                    <span className="text-left">{category.title}</span>
-                  </button>
-                )
-              })}
-            </div>
+        {/* Category Navigation */}
+        <div className="mb-12">
+          <div className="flex flex-wrap justify-center gap-4">
+            {Object.entries(categories).map(([key, category]) => {
+              const IconComponent = category.icon
+              return (
+                <button
+                  key={key}
+                  onClick={() => setActiveCategory(key)}
+                  className={`flex items-center space-x-2 px-6 py-3 rounded-full font-medium transition-all duration-300 transform hover:scale-105 ${
+                    activeCategory === key
+                      ? 'bg-blue-600 text-white shadow-lg dark:bg-blue-500'
+                      : 'bg-white text-gray-700 hover:bg-blue-50 shadow-md dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <IconComponent className="w-5 h-5" />
+                  <span>{category.title}</span>
+                </button>
+              )
+            })}
           </div>
+        </div>
 
-          {/* Right Column: Integration Grid */}
-          <div className="md:w-3/4">
-            <div className="flex flex-col gap-4">
-              {categories[activeCategory as keyof typeof categories].integrations.map((integration, index) => (
+        {/* Capabilities Grid */}
+        <div className="mb-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categories[activeCategory as keyof typeof categories].integrations.map((integration, index) => {
+              const IconComponent = integration.icon
+              return (
                 <div
                   key={index}
-                  className="p-4 transition-all duration-200 group"
+                  className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group"
                 >
-                  <div className="flex items-center space-x-4 mb-1">
-                    <div className="text-xl">{integration.logo}</div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-[#468BE6] transition-colors">
+                  <div className="flex items-start space-x-4">
+                    <div className="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                      <IconComponent className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {integration.name}
                       </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                        {integration.description}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">{integration.description}</p>
                 </div>
-              ))}
-            </div>
+              )
+            })}
           </div>
         </div>
 
@@ -135,117 +126,142 @@ export default function Integrations() {
 
         
 
-        {/* Popular Workflows */}
+        {/* Integration Approach */}
         <div className="mt-20">
           <h3 className="text-2xl font-semibold text-gray-900 dark:text-white text-center mb-12">
-            Popular Integration Workflows
+            How It Works With Your Stack
           </h3>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
-              <div className="flex items-center space-x-3 mb-4">
-                <BarChart3 className="w-5 h-5 text-[#1A5799]" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">Analytics Pipeline</h4>
-              </div>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Upload data from S3/Google Drive
+          <div className="relative">
+            {/* Desktop flow with connecting lines */}
+            <div className="hidden lg:block">
+              <div className="grid grid-cols-4 gap-8 relative">
+                {/* Connecting arrows */}
+                <div className="absolute top-12 left-1/4 right-1/4 flex justify-between items-center pointer-events-none">
+                  <ChevronRight className="w-6 h-6 text-blue-400" />
+                  <ChevronRight className="w-6 h-6 text-blue-400" />
+                  <ChevronRight className="w-6 h-6 text-blue-400" />
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Clean & transform with Schlep Engine
+                
+                <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 relative z-10">
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
+                      <Database className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                  <div className="absolute -top-2 -left-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Upload</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Import your data via API, web interface, or direct file upload
+                  </p>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Push to Tableau/Power BI
+
+                <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 relative z-10">
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
+                      <Zap className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    </div>
+                  </div>
+                  <div className="absolute -top-2 -left-2 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Process</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    AI-powered cleaning and transformation in the cloud
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 relative z-10">
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center">
+                      <Code className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  </div>
+                  <div className="absolute -top-2 -left-2 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Export</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Download clean data in standard formats (CSV, JSON, Excel)
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-all duration-300 relative z-10">
+                  <div className="flex justify-center mb-4">
+                    <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center">
+                      <Globe className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                    </div>
+                  </div>
+                  <div className="absolute -top-2 -left-2 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Integrate</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Use standard formats to connect with any downstream tool
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
-              <div className="flex items-center space-x-3 mb-4">
-                <Zap className="w-5 h-5 text-[#1A5799]" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">Automated Workflow</h4>
+            {/* Mobile/tablet layout */}
+            <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center relative">
+                    <Database className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    <div className="absolute -top-2 -left-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                  </div>
+                </div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Upload</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  Import your data via API, web interface, or direct file upload
+                </p>
               </div>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Zapier triggers on new data
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Process via API automatically
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Notify team via Slack
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
-              <div className="flex items-center space-x-3 mb-4">
-                <Database className="w-5 h-5 text-[#1A5799]" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">Data Warehouse</h4>
+              <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center relative">
+                    <Zap className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    <div className="absolute -top-2 -left-2 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                  </div>
+                </div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Process</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  AI-powered cleaning and transformation in the cloud
+                </p>
               </div>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Extract from multiple sources
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Transform for consistency
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Load to Snowflake/BigQuery
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
-              <div className="flex items-center space-x-3 mb-4">
-                <Users className="w-5 h-5 text-[#1A5799]" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">Customer Data Enrichment</h4>
+              <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center relative">
+                    <Code className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+                    <div className="absolute -top-2 -left-2 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                  </div>
+                </div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Export</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  Download clean data in standard formats (CSV, JSON, Excel)
+                </p>
               </div>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Import customer lists from CRM
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Clean & standardize contact info
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Append demographic/firmographic data
-                </div>
-              </div>
-            </div>
 
-            <div className="bg-white rounded-xl p-6 dark:bg-gray-900">
-              <div className="flex items-center space-x-3 mb-4">
-                <Megaphone className="w-5 h-5 text-[#1A5799]" />
-                <h4 className="font-semibold text-gray-900 dark:text-white">Marketing Campaign Optimization</h4>
-              </div>
-              <div className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Collect campaign performance data
+              <div className="bg-white rounded-xl p-6 dark:bg-gray-800 text-center border border-gray-200 dark:border-gray-700">
+                <div className="flex justify-center mb-4">
+                  <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center relative">
+                    <Globe className="w-8 h-8 text-orange-600 dark:text-orange-400" />
+                    <div className="absolute -top-2 -left-2 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</div>
+                  </div>
                 </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Normalize and merge datasets
-                </div>
-                <div className="flex items-center">
-                  <span className="w-2 h-2 bg-gray-600 dark:bg-gray-400 rounded-full mr-2"></span>
-                  Identify key segments for targeting
-                </div>
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Integrate</h4>
+                <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
+                  Use standard formats to connect with any downstream tool
+                </p>
               </div>
             </div>
+          </div>
+
+          <div className="mt-12 bg-blue-50 dark:bg-gray-800 rounded-2xl p-8 text-center">
+            <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Standard Formats, Universal Compatibility
+            </h4>
+            <p className="text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
+              Rather than building specific integrations that become outdated, Schlep Engine focuses on 
+              standard data formats and robust APIs. This means it works with any tool that can read CSV, JSON, 
+              or connect to REST APIs - which is virtually everything.
+            </p>
           </div>
         </div>
       </div>
