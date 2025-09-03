@@ -4,14 +4,12 @@ import typescript from '@rollup/plugin-typescript';
 import json from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
 import { dts } from 'rollup-plugin-dts';
+import alias from '@rollup/plugin-alias';
 
 const pkg = require('./package.json');
 
-const external = [
-  'cross-fetch',
-  'eventemitter3',
-  ...Object.keys(pkg.peerDependencies || {})
-];
+const external = ['cross-fetch','eventemitter3', 'fs/promises', 'path',...Object.keys(pkg.peerDependencies || {})];
+console.log("External dependencies:", external);
 
 const globals = {
   'cross-fetch': 'fetch',
@@ -80,7 +78,7 @@ export default [
 
   // UMD build for browsers
   {
-    input: 'src/index.ts',
+    input: 'src/index.browser.ts',
     external: Object.keys(globals),
     output: {
       file: pkg.browser,
@@ -91,6 +89,11 @@ export default [
       globals
     },
     plugins: [
+      alias({
+        entries: [
+          { find: './auth', replacement: './auth/index.browser' }
+        ]
+      }),
       resolve({
         browser: true,
         preferBuiltins: false

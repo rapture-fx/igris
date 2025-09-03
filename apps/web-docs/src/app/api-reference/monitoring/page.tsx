@@ -5,9 +5,19 @@ export default function MonitoringApiPage() {
     {
       language: 'curl',
       label: 'cURL',
-      code: `# Get performance snapshot
-curl -X GET https://api.schlep-engine.com/api/v1/monitoring/metrics/snapshot \
-  -H "Authorization: Bearer sk_your_api_key"`
+      code: `# Get equipment health assessment
+curl -X POST https://api.schlep-engine.com/api/v1/monitoring/equipment-health \
+  -H "Authorization: Bearer sk_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "equipment_id": "pump_001",
+    "sensor_data": {
+      "temperature": [22.5, 23.1, 22.8, 24.2],
+      "vibration": [0.1, 0.15, 0.12, 0.18],
+      "pressure": [101.3, 101.5, 101.2, 101.8]
+    },
+    "time_window": "1h"
+  }'`
     },
     {
       language: 'python',
@@ -27,7 +37,7 @@ print(response.json())`
 
 fetch('https://api.schlep-engine.com/api/v1/monitoring/metrics/snapshot', {
   headers: {
-    'Authorization': 	`Bearer ${apiKey}`
+    'Authorization': 'Bearer ' + apiKey
   }
 }).then(res => res.json()).then(console.log);`
     }
@@ -35,29 +45,29 @@ fetch('https://api.schlep-engine.com/api/v1/monitoring/metrics/snapshot', {
 
   return (
     <ApiLayout 
-      title="Monitoring API"
-      description="Monitor system performance, health, and metrics."
+      title="Equipment Monitoring API"
+      description="Real-time equipment health monitoring and industrial sensor tracking."
       codeExamples={codeExamples}
     >
       <section className="mb-12" id="get-performance-snapshot">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get Performance Snapshot</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Equipment Health Assessment</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
-            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/monitoring/metrics/snapshot</code>
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
+            <code className="text-sm">/api/v1/monitoring/equipment-health</code>
           </div>
-          <p className="text-gray-600 mb-4">Get a complete performance snapshot of the system.</p>
+          <p className="text-gray-600 mb-4">Real-time equipment health assessment with cross-sensor correlation analysis.</p>
         </div>
       </section>
 
       <section className="mb-12" id="get-metrics-history">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get Metrics History</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Sensor Health History</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/monitoring/metrics/history</code>
+            <code className="text-sm">/api/v1/monitoring/sensor-health-history/{'{equipment_id}'}</code>
           </div>
-          <p className="text-gray-600 mb-4">Get historical metrics data.</p>
+          <p className="text-gray-600 mb-4">Get historical sensor health data and degradation patterns for specific equipment.</p>
         </div>
       </section>
 

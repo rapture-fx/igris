@@ -1,4 +1,3 @@
-import uuid
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -129,7 +128,7 @@ async def create_processing_job(
     investigation = await crud_data_processing.get_data_investigation(db, investigation_id=job_in.investigation_id)
     if not investigation:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"DataInvestigation with id {job_in.investigation_id} not found")
-    
+
     # Create the ProcessingJob record in the database (status will be PENDING by default)
     db_job = await crud_data_processing.create_processing_job(db=db, job_in=job_in)
 
@@ -148,7 +147,7 @@ async def create_processing_job(
             print(f"Warning: original_file_path not found for investigation {investigation.id} during schema_detection job {db_job.id} creation.")
             # Optionally, update job to FAILED:
             # await crud_data_processing.update_processing_job(
-            #     db, job_id=db_job.id, 
+            #     db, job_id=db_job.id,
             #     job_in=schemas_dp.ProcessingJobUpdate(status="FAILED", error_message="Missing file path for schema detection")
             # )
             # db_job.status = "FAILED" # Update local object if needed for response
@@ -219,4 +218,4 @@ async def delete_processing_job(
     deleted = await crud_data_processing.delete_processing_job(db, job_id=job_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="ProcessingJob not found")
-    return 
+    return

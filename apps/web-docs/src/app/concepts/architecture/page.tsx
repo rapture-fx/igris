@@ -4,9 +4,9 @@ export default function ArchitecturePage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Architecture Overview</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">Industrial Data Processing Architecture</h1>
         <p className="text-xl text-gray-600">
-          Understanding the Schlep Engine platform architecture and how components work together to transform messy data into ML-ready datasets.
+          Understanding how Schlep Engine processes industrial sensor data with multi-modal anomaly detection and manufacturing quality assessment.
         </p>
       </div>
 
@@ -20,9 +20,9 @@ export default function ArchitecturePage() {
               <div className="bg-blue-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <CloudIcon className="h-8 w-8 text-blue-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Data Ingestion Layer</h3>
+              <h3 className="font-semibold text-lg mb-2">Sensor Data Ingestion</h3>
               <p className="text-gray-600 text-sm">
-                Handles multiple data sources, formats, and streaming protocols with intelligent routing and preprocessing.
+                Handles industrial sensor streams including temperature, pressure, vibration, and flow sensors with data validation.
               </p>
             </div>
             
@@ -30,9 +30,9 @@ export default function ArchitecturePage() {
               <div className="bg-green-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <ArrowPathIcon className="h-8 w-8 text-green-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">Processing Engine</h3>
+              <h3 className="font-semibold text-lg mb-2">Quality Assessment Engine</h3>
               <p className="text-gray-600 text-sm">
-                AI-powered data processing pipeline with automated cleaning, validation, and feature engineering capabilities.
+                Statistical analysis and anomaly detection using IsolationForest, DBSCAN, OneClassSVM for manufacturing data.
               </p>
             </div>
             
@@ -40,9 +40,9 @@ export default function ArchitecturePage() {
               <div className="bg-purple-100 rounded-full p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <CubeTransparentIcon className="h-8 w-8 text-purple-600" />
               </div>
-              <h3 className="font-semibold text-lg mb-2">ML Integration Layer</h3>
+              <h3 className="font-semibold text-lg mb-2">Equipment Monitoring</h3>
               <p className="text-gray-600 text-sm">
-                Seamless integration with popular ML platforms and frameworks for training and deployment.
+                Real-time equipment health assessment with cross-sensor correlation and maintenance alert generation.
               </p>
             </div>
           </div>
@@ -69,30 +69,30 @@ export default function ArchitecturePage() {
           </div>
 
           <div className="border-l-4 border-green-500 pl-6">
-            <h3 className="text-xl font-semibold mb-3">Data Processing Pipeline</h3>
+            <h3 className="text-xl font-semibold mb-3">Industrial Data Quality Engine</h3>
             <p className="text-gray-600 mb-4">
-              The core processing engine that handles data transformation, cleaning, and validation. 
-              Uses a microservices architecture with distributed task queues for scalability.
+              The core processing engine specialized for industrial sensor data validation and quality assessment 
+              with manufacturing-specific algorithms and statistical process control.
             </p>
             <ul className="list-disc list-inside text-gray-600 space-y-1">
-              <li>Investigation-based data organization</li>
-              <li>Multi-format file support (CSV, JSON, Excel, PDF, etc.)</li>
-              <li>AI-powered data cleaning and validation</li>
-              <li>Real-time and batch processing capabilities</li>
+              <li>Sensor data validation and drift detection</li>
+              <li>Multi-format manufacturing document support (PDF, Excel, CSV)</li>
+              <li>Statistical quality assessment and pattern detection</li>
+              <li>Real-time sensor monitoring capabilities</li>
             </ul>
           </div>
 
           <div className="border-l-4 border-purple-500 pl-6">
-            <h3 className="text-xl font-semibold mb-3">ML & AI Services</h3>
+            <h3 className="text-xl font-semibold mb-3">Anomaly Detection Services</h3>
             <p className="text-gray-600 mb-4">
-              Advanced machine learning capabilities including AutoML, feature engineering, 
-              and predictive analytics powered by state-of-the-art AI models.
+              Multi-modal anomaly detection algorithms specifically designed for industrial sensor data 
+              and manufacturing equipment monitoring with proven statistical methods.
             </p>
             <ul className="list-disc list-inside text-gray-600 space-y-1">
-              <li>AutoML pipeline creation and training</li>
-              <li>Intelligent insights generation</li>
-              <li>Predictive analytics and forecasting</li>
-              <li>Real-time model serving and inference</li>
+              <li>IsolationForest for temperature and pressure outlier detection</li>
+              <li>DBSCAN for vibration pattern analysis and clustering</li>
+              <li>OneClassSVM for multi-sensor correlation anomalies</li>
+              <li>Statistical control charts with 3-sigma limits</li>
             </ul>
           </div>
 
@@ -140,23 +140,23 @@ export default function ArchitecturePage() {
           </div>
 
           <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="font-semibold text-lg mb-4">ML & AI Stack</h3>
+            <h3 className="font-semibold text-lg mb-4">Industrial Analytics Stack</h3>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm font-medium">scikit-learn</span>
-                <span className="text-gray-600 text-sm">Machine learning algorithms</span>
+                <span className="text-gray-600 text-sm">IsolationForest, DBSCAN, OneClassSVM algorithms</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-sm font-medium">pandas</span>
-                <span className="text-gray-600 text-sm">Data manipulation and analysis</span>
+                <span className="text-gray-600 text-sm">Sensor data manipulation and time series analysis</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-sm font-medium">Transformers</span>
-                <span className="text-gray-600 text-sm">NLP and text processing</span>
+                <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-sm font-medium">numpy</span>
+                <span className="text-gray-600 text-sm">Statistical calculations and signal processing</span>
               </div>
               <div className="flex items-center gap-3">
-                <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded text-sm font-medium">OpenAI</span>
-                <span className="text-gray-600 text-sm">Advanced AI capabilities</span>
+                <span className="bg-pink-100 text-pink-800 px-2 py-1 rounded text-sm font-medium">scipy</span>
+                <span className="text-gray-600 text-sm">Statistical analysis and correlation functions</span>
               </div>
             </div>
           </div>
@@ -234,11 +234,43 @@ export default function ArchitecturePage() {
             <div className="flex">
               <div className="ml-3">
                 <p className="text-sm text-green-700">
-                  <strong>Compliance:</strong> Built-in support for GDPR, HIPAA, SOC2, and other compliance frameworks 
-                  with comprehensive audit trails and data governance controls.
+                  <strong>Security:</strong> Standard web application security practices with JWT authentication, 
+                  HTTPS encryption, and basic access controls for industrial data protection.
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Honest Capabilities Assessment */}
+      <section className="mb-12">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Current Architecture Capabilities</h2>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+            <h3 className="font-semibold text-green-800 mb-4">✓ What Works Today</h3>
+            <ul className="text-sm text-green-700 space-y-2">
+              <li>• Multi-modal anomaly detection (4 proven algorithms)</li>
+              <li>• Industrial sensor data validation and quality assessment</li>
+              <li>• Cross-sensor correlation analysis</li>
+              <li>• Real-time equipment health monitoring</li>
+              <li>• Document processing (PDF, Excel, Word)</li>
+              <li>• Statistical process control and pattern detection</li>
+              <li>• REST API with proper authentication</li>
+            </ul>
+          </div>
+          
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <h3 className="font-semibold text-yellow-800 mb-4">⚠️ Architecture Limitations</h3>
+            <ul className="text-sm text-yellow-700 space-y-2">
+              <li>• No advanced machine learning model training</li>
+              <li>• Limited to statistical analysis methods</li>
+              <li>• No deep learning or neural network integration</li>
+              <li>• No AutoML pipeline generation</li>
+              <li>• Basic compliance features (not enterprise-grade)</li>
+              <li>• Limited scalability (thousands, not millions of sensors)</li>
+            </ul>
           </div>
         </div>
       </section>

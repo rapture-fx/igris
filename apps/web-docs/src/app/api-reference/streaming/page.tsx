@@ -135,7 +135,7 @@ async function setupStreaming() {
     const response = await fetch('https://api.schlep-engine.com/api/v1/data-streaming/connections/', {
       method: 'POST',
       headers: {
-        'Authorization': \\`Bearer \\${apiKey}\\`,
+        'Authorization': 'Bearer ' + apiKey,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(connectionConfig)

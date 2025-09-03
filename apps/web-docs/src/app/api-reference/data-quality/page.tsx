@@ -5,22 +5,56 @@ export default function DataQualityApiPage() {
     {
       language: 'curl',
       label: 'cURL',
-      code: `# Assess data quality
-curl -X POST https://api.schlep-engine.com/api/v1/quality/assess \
+      code: `# Industrial sensor quality assessment
+curl -X POST https://api.schlep-engine.com/api/v1/data-quality/assess \
   -H "Authorization: Bearer sk_your_api_key" \
-  -F "file=@/path/to/your/file.csv"`
+  -H "Content-Type: application/json" \
+  -d '{
+    "sensor_data": {
+      "temperature_sensor_1": [22.5, 23.1, 22.8, 95.2, 24.2],
+      "pressure_sensor_1": [101.3, 101.5, 101.2, 180.8, 101.8],
+      "vibration_sensor_1": [0.1, 0.15, 0.12, 0.18, 0.14]
+    },
+    "sensor_metadata": {
+      "temperature_sensor_1": {"min_value": -40, "max_value": 150},
+      "pressure_sensor_1": {"min_value": 0, "max_value": 100}
+    }
+  }'`
     },
     {
       language: 'python',
       label: 'Python',
       code: `import requests
+import json
 
 api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-files = {'file': open('/path/to/your/file.csv', 'rb')}
+headers = {
+    "Authorization": f"Bearer {api_key}",
+    "Content-Type": "application/json"
+}
 
-response = requests.post("https://api.schlep-engine.com/api/v1/quality/assess", headers=headers, files=files)
-print(response.json())`
+# Industrial sensor data with known anomalies
+data = {
+    "sensor_data": {
+        "temperature_sensor_1": [22.5, 23.1, 22.8, 95.2, 24.2],  # 95.2 is anomalous
+        "pressure_sensor_1": [101.3, 101.5, 101.2, 180.8, 101.8],  # 180.8 is anomalous
+        "vibration_sensor_1": [0.1, 0.15, 0.12, 0.18, 0.14]
+    },
+    "sensor_metadata": {
+        "temperature_sensor_1": {"min_value": -40, "max_value": 150},
+        "pressure_sensor_1": {"min_value": 0, "max_value": 100}
+    }
+}
+
+response = requests.post(
+    "https://api.schlep-engine.com/api/v1/data-quality/assess", 
+    headers=headers, 
+    data=json.dumps(data)
+)
+
+result = response.json()
+print(f"Anomalies detected: {result['anomaly_detection']['total_anomalies_detected']}")
+print(f"Methods used: {result['anomaly_detection']['anomaly_methods']}")`
     },
     {
       language: 'javascript',
@@ -43,40 +77,40 @@ fetch('https://api.schlep-engine.com/api/v1/quality/assess', {
 
   return (
     <ApiLayout 
-      title="Data Quality API"
-      description="Assess, clean, and engineer your data for AI-readiness."
+      title="Industrial Data Quality API"
+      description="Multi-modal anomaly detection and sensor validation for manufacturing data."
       codeExamples={codeExamples}
     >
       <section className="mb-12" id="assess-data-quality">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Assess Data Quality</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Industrial Quality Assessment</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
-            <code className="text-sm">/api/v1/quality/assess</code>
+            <code className="text-sm">/api/v1/data-quality/assess</code>
           </div>
-          <p className="text-gray-600 mb-4">Comprehensive data quality assessment for AI-ready datasets.</p>
+          <p className="text-gray-600 mb-4">Multi-modal anomaly detection using IsolationForest, OneClassSVM, DBSCAN for industrial sensor data.</p>
         </div>
       </section>
 
       <section className="mb-12" id="auto-clean-data">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Auto Clean Data</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Sensor Validation</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
-            <code className="text-sm">/api/v1/quality/clean/auto</code>
+            <code className="text-sm">/api/v1/data-processing/validate-sensors</code>
           </div>
-          <p className="text-gray-600 mb-4">Automated data cleaning with intelligent missing value imputation, outlier detection, and duplicate removal.</p>
+          <p className="text-gray-600 mb-4">Statistical validation of sensor readings with cross-sensor correlation analysis and drift detection.</p>
         </div>
       </section>
 
       <section className="mb-12" id="ai-feature-engineering">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">AI Feature Engineering</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Equipment Health Assessment</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
-            <code className="text-sm">/api/v1/quality/feature-engineering</code>
+            <code className="text-sm">/api/v1/monitoring/equipment-health</code>
           </div>
-          <p className="text-gray-600 mb-4">AI-powered feature engineering for machine learning readiness.</p>
+          <p className="text-gray-600 mb-4">Real-time equipment health monitoring with statistical process control and pattern detection.</p>
         </div>
       </section>
 

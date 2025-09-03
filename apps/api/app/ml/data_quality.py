@@ -6,18 +6,963 @@ Enhanced data validation, anomaly detection, and multi-source data fusion
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Any, Optional, Tuple, Union
-from scipy import stats
+# Conditional scipy imports with fallbacks
+try:
+    from scipy import stats, interpolate
+    from scipy.spatial.distance import euclidean
+    SCIPY_STATS_AVAILABLE = True
+except ImportError:
+    # Fallback implementations for basic stats functions
+    import statistics as stats_builtin
+    SCIPY_STATS_AVAILABLE = False
+    
+    # Basic fallback for euclidean distance
+    def euclidean(a, b):
+        return np.sqrt(np.sum((np.array(a) - np.array(b))**2))
+    
+    # Create a basic stats module replacement
+    class BasicStats:
+        @staticmethod
+        def linregress(x, y):
+            x_arr = np.array(x)
+            y_arr = np.array(y)
+            n = len(x_arr)
+            
+            if n < 2:
+                return 0, 0, 0, 1, 0
+                
+            x_mean = np.mean(x_arr)
+            y_mean = np.mean(y_arr)
+            
+            # Calculate slope and intercept
+            numerator = np.sum((x_arr - x_mean) * (y_arr - y_mean))
+            denominator = np.sum((x_arr - x_mean)**2)
+            
+            if denominator == 0:
+                return 0, y_mean, 0, 1, 0
+                
+            slope = numerator / denominator
+            intercept = y_mean - slope * x_mean
+            
+            # Calculate correlation coefficient
+            y_pred = slope * x_arr + intercept
+            ss_res = np.sum((y_arr - y_pred) ** 2)
+            ss_tot = np.sum((y_arr - y_mean) ** 2)
+            
+            if ss_tot == 0:
+                r_value = 0
+            else:
+                r_value = np.sqrt(1 - (ss_res / ss_tot))
+                
+            # Simplified p-value (always significant for fallback)
+            p_value = 0.01
+            std_err = 0
+            
+            return slope, intercept, r_value, p_value, std_err
+            
+        @staticmethod
+        def norm():
+            class NormDist:
+                @staticmethod
+                def cdf(x):
+                    # Approximation of normal CDF
+                    return 0.5 * (1 + np.sign(x) * np.sqrt(1 - np.exp(-2 * x**2 / np.pi)))
+            return NormDist()
+    
+    if not SCIPY_STATS_AVAILABLE:
+        stats = BasicStats()
 from sklearn.ensemble import IsolationForest
 from sklearn.svm import OneClassSVM
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.cluster import DBSCAN
 from sklearn.covariance import EllipticEnvelope
+from sklearn.impute import KNNImputer, IterativeImputer
+from sklearn.experimental import enable_iterative_imputer
+from sklearn.linear_model import LinearRegression, BayesianRidge
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.neighbors import NearestNeighbors
 import warnings
 warnings.filterwarnings('ignore')
 import logging
 from datetime import datetime, timedelta
+import math
+
+# Try to import advanced packages, fall back to basic implementations if not available
+try:
+    from scipy.signal import detrend, savgol_filter
+    from scipy.optimize import minimize_scalar, curve_fit
+    SCIPY_AVAILABLE = True
+except ImportError:
+    SCIPY_AVAILABLE = False
+    
+try:
+    from statsmodels.tsa.seasonal import seasonal_decompose
+    from statsmodels.stats.diagnostic import acorr_ljungbox
+    STATSMODELS_AVAILABLE = True
+except ImportError:
+    STATSMODELS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
+
+
+class AdvancedImputationEngine:
+    """
+    Advanced missing value imputation for industrial sensor data.
+    
+    Implements sophisticated imputation strategies optimized for manufacturing
+    and industrial sensor data, including temporal patterns, equipment states,
+    and physics-based correlations.
+    """
+    
+    def __init__(self):
+        self.imputation_strategies = {
+            'knn_temporal': self._knn_temporal_imputation,
+            'time_series': self._time_series_interpolation,
+            'domain_specific': self._domain_specific_imputation,
+            'statistical': self._statistical_imputation,
+            'mice': self._mice_imputation
+        }
+        self.imputation_models = {}
+        self.quality_assessor = None
+        
+    def handle_missing_values(
+        self, 
+        data: pd.DataFrame, 
+        sensor_metadata: Optional[Dict] = None,
+        strategy: str = 'auto',
+        preserve_original: bool = True
+    ) -> Tuple[pd.DataFrame, Dict]:
+        """
+        Main imputation method with intelligent strategy selection.
+        
+        Args:
+            data: DataFrame with missing values
+            sensor_metadata: Metadata about sensors and equipment
+            strategy: Imputation strategy ('auto', 'knn_temporal', 'time_series', etc.)
+            preserve_original: Whether to preserve original data structure
+            
+        Returns:
+            Tuple of (imputed_data, imputation_report)
+        """
+        logger.info(f"Starting advanced imputation with strategy: {strategy}")
+        start_time = datetime.now()
+        
+        if data.empty:
+            return data.copy(), {"message": "Empty dataset provided"}
+        
+        # Create working copy
+        working_data = data.copy() if preserve_original else data
+        
+        # Analyze missing value patterns
+        missingness_analysis = self._detect_missingness_pattern(working_data)
+        
+        # Select optimal strategy if auto mode
+        if strategy == 'auto':
+            strategy = self._select_optimal_strategy(working_data, missingness_analysis, sensor_metadata)
+            logger.info(f"Auto-selected strategy: {strategy}")
+        
+        # Initialize report
+        imputation_report = {
+            "strategy_used": strategy,
+            "original_missing_count": working_data.isnull().sum().sum(),
+            "original_missing_percentage": (working_data.isnull().sum().sum() / (len(working_data) * len(working_data.columns))) * 100,
+            "missingness_analysis": missingness_analysis,
+            "column_imputation_details": {},
+            "quality_metrics": {},
+            "processing_time_seconds": 0
+        }
+        
+        # Apply selected imputation strategy
+        if strategy in self.imputation_strategies:
+            imputed_data = self.imputation_strategies[strategy](
+                working_data, 
+                sensor_metadata=sensor_metadata,
+                missingness_analysis=missingness_analysis
+            )
+        else:
+            logger.warning(f"Unknown strategy {strategy}, falling back to statistical imputation")
+            imputed_data = self._statistical_imputation(working_data)
+        
+        # Calculate imputation effectiveness
+        final_missing_count = imputed_data.isnull().sum().sum()
+        imputation_report.update({
+            "final_missing_count": final_missing_count,
+            "final_missing_percentage": (final_missing_count / (len(imputed_data) * len(imputed_data.columns))) * 100,
+            "imputation_effectiveness": 1 - (final_missing_count / max(imputation_report["original_missing_count"], 1)),
+            "processing_time_seconds": (datetime.now() - start_time).total_seconds()
+        })
+        
+        # Quality assessment of imputed values
+        quality_assessment = self._assess_imputation_quality(data, imputed_data, sensor_metadata)
+        imputation_report["quality_assessment"] = quality_assessment
+        
+        logger.info(f"Imputation completed. Missing values: {imputation_report['original_missing_count']} -> {final_missing_count}")
+        return imputed_data, imputation_report
+    
+    def _detect_missingness_pattern(self, data: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Analyze missing value patterns to understand missingness mechanisms.
+        
+        Returns:
+            Dictionary with missingness pattern analysis
+        """
+        analysis = {
+            "missing_summary": {},
+            "pattern_type": "unknown",
+            "temporal_patterns": {},
+            "correlation_patterns": {},
+            "recommendations": []
+        }
+        
+        # Basic missing value summary
+        missing_counts = data.isnull().sum()
+        total_missing = missing_counts.sum()
+        
+        analysis["missing_summary"] = {
+            "total_missing": int(total_missing),
+            "columns_with_missing": missing_counts[missing_counts > 0].to_dict(),
+            "missing_percentage_by_column": (missing_counts / len(data) * 100).to_dict(),
+            "complete_cases": int(data.dropna().shape[0]),
+            "complete_case_percentage": data.dropna().shape[0] / len(data) * 100
+        }
+        
+        if total_missing == 0:
+            analysis["pattern_type"] = "complete"
+            return analysis
+        
+        # Analyze missingness patterns
+        missing_matrix = data.isnull()
+        
+        # Check for completely missing columns
+        completely_missing = missing_counts[missing_counts == len(data)].index.tolist()
+        if completely_missing:
+            analysis["completely_missing_columns"] = completely_missing
+            analysis["recommendations"].append(f"Remove completely missing columns: {completely_missing}")
+        
+        # Check for random vs systematic missing patterns
+        if self._test_mcar(data):
+            analysis["pattern_type"] = "MCAR"  # Missing Completely At Random
+            analysis["recommendations"].append("Missing values appear random - simple imputation methods suitable")
+        else:
+            analysis["pattern_type"] = "MAR_or_MNAR"  # Missing At Random or Missing Not At Random
+            analysis["recommendations"].append("Missing values show patterns - consider advanced imputation methods")
+        
+        # Temporal missing patterns (if timestamp available)
+        timestamp_col = self._find_timestamp_column(data)
+        if timestamp_col:
+            analysis["temporal_patterns"] = self._analyze_temporal_missingness(data, timestamp_col)
+        
+        # Cross-column missing correlations
+        if len(data.columns) > 1:
+            analysis["correlation_patterns"] = self._analyze_missing_correlations(missing_matrix)
+        
+        return analysis
+    
+    def _select_optimal_strategy(
+        self, 
+        data: pd.DataFrame, 
+        missingness_analysis: Dict, 
+        sensor_metadata: Optional[Dict]
+    ) -> str:
+        """
+        Select optimal imputation strategy based on data characteristics.
+        """
+        missing_pct = missingness_analysis["missing_summary"]["total_missing"] / (len(data) * len(data.columns)) * 100
+        
+        # If very low missing percentage, use simple statistical methods
+        if missing_pct < 5:
+            return 'statistical'
+        
+        # Check for temporal structure
+        if self._find_timestamp_column(data) is not None:
+            if missing_pct < 20:
+                return 'time_series'
+            else:
+                return 'knn_temporal'
+        
+        # Check for industrial sensor context
+        if sensor_metadata or self._has_sensor_characteristics(data):
+            if missing_pct < 30:
+                return 'domain_specific'
+            else:
+                return 'mice'
+        
+        # Default to MICE for complex missing patterns
+        if missing_pct > 20:
+            return 'mice'
+        
+        return 'knn_temporal'
+    
+    def _knn_temporal_imputation(
+        self, 
+        data: pd.DataFrame, 
+        k: int = 5,
+        temporal_weight: float = 0.7,
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        KNN imputation with temporal weighting for sensor data.
+        
+        Uses temporal locality and sensor correlation patterns for imputation.
+        """
+        logger.info("Applying KNN temporal imputation")
+        imputed_data = data.copy()
+        
+        # Find timestamp column
+        timestamp_col = self._find_timestamp_column(data)
+        
+        numeric_columns = data.select_dtypes(include=[np.number]).columns.tolist()
+        if timestamp_col in numeric_columns:
+            numeric_columns.remove(timestamp_col)
+        
+        if not numeric_columns:
+            logger.warning("No numeric columns found for KNN imputation")
+            return imputed_data
+        
+        # Prepare data for KNN
+        numeric_data = data[numeric_columns].copy()
+        
+        if timestamp_col:
+            # Create temporal features
+            timestamps = pd.to_datetime(data[timestamp_col])
+            temporal_features = self._create_temporal_features(timestamps)
+            
+            # Combine numeric and temporal features with weighting
+            combined_features = pd.concat([
+                numeric_data * (1 - temporal_weight),
+                temporal_features * temporal_weight
+            ], axis=1)
+        else:
+            combined_features = numeric_data
+        
+        # Apply KNN imputation
+        try:
+            knn_imputer = KNNImputer(n_neighbors=k, weights='distance')
+            imputed_numeric = knn_imputer.fit_transform(combined_features)
+            
+            # Extract only the original numeric columns
+            n_original_cols = len(numeric_columns)
+            imputed_data[numeric_columns] = imputed_numeric[:, :n_original_cols]
+            
+            logger.info(f"KNN temporal imputation completed for {len(numeric_columns)} columns")
+        except Exception as e:
+            logger.error(f"KNN temporal imputation failed: {e}")
+            # Fallback to simple KNN without temporal features
+            try:
+                simple_knn = KNNImputer(n_neighbors=k)
+                imputed_data[numeric_columns] = simple_knn.fit_transform(numeric_data)
+            except Exception as e2:
+                logger.error(f"Fallback KNN also failed: {e2}")
+        
+        return imputed_data
+    
+    def _time_series_interpolation(
+        self, 
+        data: pd.DataFrame,
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        Time-series aware interpolation methods for sensor data.
+        """
+        logger.info("Applying time-series interpolation")
+        imputed_data = data.copy()
+        
+        timestamp_col = self._find_timestamp_column(data)
+        if not timestamp_col:
+            logger.warning("No timestamp column found, falling back to index-based interpolation")
+            return self._apply_interpolation_methods(imputed_data)
+        
+        # Sort by timestamp
+        imputed_data = imputed_data.sort_values(timestamp_col)
+        
+        numeric_columns = imputed_data.select_dtypes(include=[np.number]).columns.tolist()
+        if timestamp_col in numeric_columns:
+            numeric_columns.remove(timestamp_col)
+        
+        for column in numeric_columns:
+            if imputed_data[column].isnull().any():
+                imputed_data[column] = self._apply_sensor_specific_interpolation(
+                    imputed_data[column], 
+                    column,
+                    kwargs.get('sensor_metadata', {})
+                )
+        
+        # Handle categorical columns with forward/backward fill
+        categorical_columns = imputed_data.select_dtypes(include=['object', 'category']).columns
+        for column in categorical_columns:
+            if imputed_data[column].isnull().any():
+                # Forward fill then backward fill for categorical data
+                imputed_data[column] = imputed_data[column].fillna(method='ffill').fillna(method='bfill')
+        
+        logger.info(f"Time-series interpolation completed for {len(numeric_columns) + len(categorical_columns)} columns")
+        return imputed_data
+    
+    def _apply_sensor_specific_interpolation(
+        self, 
+        series: pd.Series, 
+        column_name: str, 
+        sensor_metadata: Dict
+    ) -> pd.Series:
+        """
+        Apply interpolation method based on sensor type.
+        """
+        sensor_type = self._infer_sensor_type(column_name, series)
+        
+        if sensor_type in ['temperature', 'pressure', 'flow']:
+            # Smooth sensors benefit from spline interpolation
+            return self._spline_interpolation(series)
+        elif sensor_type in ['vibration', 'speed']:
+            # Variable sensors use linear interpolation
+            return series.interpolate(method='linear')
+        elif sensor_type == 'electrical':
+            # Electrical measurements can have sudden changes
+            return series.interpolate(method='linear')
+        else:
+            # Default to linear interpolation
+            return series.interpolate(method='linear')
+    
+    def _spline_interpolation(self, series: pd.Series, order: int = 3) -> pd.Series:
+        """
+        Apply spline interpolation for smooth sensor readings.
+        """
+        if series.isnull().all():
+            return series
+        
+        valid_indices = ~series.isnull()
+        if valid_indices.sum() < order + 1:
+            # Not enough points for spline, use linear
+            return series.interpolate(method='linear')
+        
+        try:
+            x = np.arange(len(series))[valid_indices]
+            y = series[valid_indices].values
+            
+            # Create spline function
+            spline_func = interpolate.UnivariateSpline(x, y, k=min(order, len(x)-1), s=0)
+            
+            # Interpolate missing values
+            interpolated_series = series.copy()
+            missing_indices = series.isnull()
+            interpolated_series[missing_indices] = spline_func(np.arange(len(series))[missing_indices])
+            
+            return interpolated_series
+        except Exception as e:
+            logger.warning(f"Spline interpolation failed for {series.name}: {e}")
+            return series.interpolate(method='linear')
+    
+    def _domain_specific_imputation(
+        self, 
+        data: pd.DataFrame,
+        sensor_metadata: Optional[Dict] = None,
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        Manufacturing domain-specific imputation strategies.
+        """
+        logger.info("Applying domain-specific industrial imputation")
+        imputed_data = data.copy()
+        
+        # Equipment state imputation (carry-forward for categorical states)
+        equipment_columns = self._identify_equipment_state_columns(imputed_data)
+        for column in equipment_columns:
+            if imputed_data[column].isnull().any():
+                # Use forward fill for equipment states (assume state persists)
+                imputed_data[column] = imputed_data[column].fillna(method='ffill')
+                # Backward fill for any remaining missing values at the beginning
+                imputed_data[column] = imputed_data[column].fillna(method='bfill')
+        
+        # Physics-based imputation (correlated sensors)
+        physics_groups = self._identify_physics_relationships(imputed_data, sensor_metadata)
+        for group_name, sensor_group in physics_groups.items():
+            imputed_data = self._apply_physics_based_imputation(imputed_data, sensor_group)
+        
+        # Production schedule awareness
+        if self._has_temporal_patterns(imputed_data):
+            imputed_data = self._apply_schedule_aware_imputation(imputed_data, sensor_metadata)
+        
+        # Equipment-specific defaults for maintenance windows
+        imputed_data = self._apply_equipment_defaults(imputed_data, sensor_metadata)
+        
+        logger.info("Domain-specific imputation completed")
+        return imputed_data
+    
+    def _mice_imputation(
+        self, 
+        data: pd.DataFrame,
+        max_iter: int = 10,
+        random_state: int = 42,
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        Multiple Imputation by Chained Equations (MICE) for complex missingness.
+        """
+        logger.info("Applying MICE imputation")
+        imputed_data = data.copy()
+        
+        numeric_columns = data.select_dtypes(include=[np.number]).columns.tolist()
+        
+        if len(numeric_columns) < 2:
+            logger.warning("Insufficient numeric columns for MICE, falling back to statistical imputation")
+            return self._statistical_imputation(data)
+        
+        try:
+            # Use Bayesian Ridge as the estimator for more uncertainty quantification
+            mice_imputer = IterativeImputer(
+                estimator=BayesianRidge(),
+                max_iter=max_iter,
+                random_state=random_state,
+                initial_strategy='median'
+            )
+            
+            imputed_numeric = mice_imputer.fit_transform(data[numeric_columns])
+            imputed_data[numeric_columns] = imputed_numeric
+            
+            logger.info(f"MICE imputation completed for {len(numeric_columns)} columns")
+        except Exception as e:
+            logger.error(f"MICE imputation failed: {e}")
+            # Fallback to statistical imputation
+            return self._statistical_imputation(data)
+        
+        return imputed_data
+    
+    def _statistical_imputation(
+        self, 
+        data: pd.DataFrame,
+        **kwargs
+    ) -> pd.DataFrame:
+        """
+        Advanced statistical imputation methods with uncertainty estimation.
+        """
+        logger.info("Applying statistical imputation")
+        imputed_data = data.copy()
+        
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        categorical_columns = data.select_dtypes(include=['object', 'category']).columns
+        
+        # Numeric columns - use median for robustness
+        for column in numeric_columns:
+            if imputed_data[column].isnull().any():
+                # Use median for central tendency, more robust than mean
+                median_value = imputed_data[column].median()
+                imputed_data[column] = imputed_data[column].fillna(median_value)
+        
+        # Categorical columns - use mode
+        for column in categorical_columns:
+            if imputed_data[column].isnull().any():
+                mode_value = imputed_data[column].mode()
+                if len(mode_value) > 0:
+                    imputed_data[column] = imputed_data[column].fillna(mode_value[0])
+                else:
+                    imputed_data[column] = imputed_data[column].fillna("unknown")
+        
+        logger.info("Statistical imputation completed")
+        return imputed_data
+    
+    def _assess_imputation_quality(
+        self, 
+        original_data: pd.DataFrame, 
+        imputed_data: pd.DataFrame,
+        sensor_metadata: Optional[Dict]
+    ) -> Dict[str, Any]:
+        """
+        Assess quality of imputed values with confidence scoring.
+        """
+        quality_assessment = {
+            "overall_confidence": 0.0,
+            "column_confidences": {},
+            "imputation_impact": {},
+            "validation_metrics": {}
+        }
+        
+        # Calculate confidence scores for each column
+        column_confidences = []
+        
+        for column in original_data.columns:
+            if original_data[column].isnull().any():
+                # Calculate various quality metrics
+                missing_ratio = original_data[column].isnull().sum() / len(original_data)
+                
+                if pd.api.types.is_numeric_dtype(original_data[column]):
+                    # For numeric columns
+                    original_stats = original_data[column].describe()
+                    imputed_stats = imputed_data[column].describe()
+                    
+                    # Statistical consistency check
+                    stat_consistency = self._calculate_statistical_consistency(original_stats, imputed_stats)
+                    
+                    # Distribution similarity
+                    distribution_similarity = self._calculate_distribution_similarity(
+                        original_data[column].dropna(), 
+                        imputed_data[column]
+                    )
+                    
+                    confidence = (stat_consistency + distribution_similarity) / 2
+                    confidence *= (1 - missing_ratio * 0.5)  # Penalize high missing ratios
+                else:
+                    # For categorical columns
+                    confidence = 1 - missing_ratio * 0.7  # Simple confidence for categorical
+                
+                quality_assessment["column_confidences"][column] = {
+                    "confidence_score": max(0.0, min(1.0, confidence)),
+                    "missing_ratio": missing_ratio,
+                    "imputation_method": "inferred_from_strategy"
+                }
+                column_confidences.append(confidence)
+        
+        # Overall confidence
+        if column_confidences:
+            quality_assessment["overall_confidence"] = np.mean(column_confidences)
+        
+        return quality_assessment
+    
+    # Helper methods
+    
+    def _test_mcar(self, data: pd.DataFrame) -> bool:
+        """
+        Simple test for Missing Completely At Random (MCAR) pattern.
+        """
+        missing_matrix = data.isnull()
+        
+        if missing_matrix.sum().sum() == 0:
+            return True  # No missing values
+        
+        # Simple correlation test - if missing patterns are uncorrelated, likely MCAR
+        if len(data.columns) > 1:
+            missing_corr = missing_matrix.corr().abs()
+            # Remove diagonal and check if correlations are low
+            np.fill_diagonal(missing_corr.values, 0)
+            avg_correlation = missing_corr.mean().mean()
+            return avg_correlation < 0.3  # Low correlation suggests MCAR
+        
+        return True
+    
+    def _find_timestamp_column(self, data: pd.DataFrame) -> Optional[str]:
+        """
+        Find timestamp column in the dataset.
+        """
+        timestamp_indicators = ['time', 'date', 'timestamp', 'datetime']
+        
+        for col in data.columns:
+            col_lower = col.lower()
+            if any(indicator in col_lower for indicator in timestamp_indicators):
+                try:
+                    pd.to_datetime(data[col])
+                    return col
+                except (ValueError, TypeError):
+                    continue
+        return None
+    
+    def _create_temporal_features(self, timestamps: pd.Series) -> pd.DataFrame:
+        """
+        Create temporal features for KNN imputation.
+        """
+        temporal_features = pd.DataFrame(index=timestamps.index)
+        
+        timestamps = pd.to_datetime(timestamps)
+        
+        # Convert to numeric timestamp
+        temporal_features['timestamp_numeric'] = timestamps.astype(np.int64) / 10**9  # Convert to seconds
+        
+        # Extract time components
+        temporal_features['hour'] = timestamps.dt.hour
+        temporal_features['day_of_week'] = timestamps.dt.dayofweek
+        temporal_features['day_of_year'] = timestamps.dt.dayofyear
+        
+        # Normalize features
+        for col in temporal_features.columns:
+            temporal_features[col] = (temporal_features[col] - temporal_features[col].mean()) / temporal_features[col].std()
+        
+        return temporal_features
+    
+    def _infer_sensor_type(self, column_name: str, data: pd.Series) -> str:
+        """
+        Infer sensor type from column name and data characteristics.
+        """
+        name_lower = column_name.lower()
+        
+        sensor_keywords = {
+            'temperature': ['temp', 'temperature', 'celsius', 'fahrenheit'],
+            'pressure': ['press', 'pressure', 'psi', 'bar', 'pascal'],
+            'flow': ['flow', 'rate', 'volume'],
+            'vibration': ['vibr', 'vibration', 'accel', 'shake'],
+            'speed': ['speed', 'rpm', 'velocity', 'hz'],
+            'electrical': ['volt', 'current', 'amp', 'power', 'watt']
+        }
+        
+        for sensor_type, keywords in sensor_keywords.items():
+            if any(keyword in name_lower for keyword in keywords):
+                return sensor_type
+        
+        return 'unknown'
+    
+    def _has_sensor_characteristics(self, data: pd.DataFrame) -> bool:
+        """
+        Check if data has characteristics typical of sensor data.
+        """
+        numeric_cols = data.select_dtypes(include=[np.number]).columns
+        
+        if len(numeric_cols) < 2:
+            return False
+        
+        # Check for sensor-like column names
+        sensor_indicators = ['temp', 'press', 'flow', 'speed', 'vibr', 'sensor', 'rpm']
+        sensor_like_columns = sum(
+            1 for col in data.columns 
+            if any(indicator in col.lower() for indicator in sensor_indicators)
+        )
+        
+        return sensor_like_columns >= len(data.columns) * 0.3  # At least 30% sensor-like columns
+    
+    def _apply_interpolation_methods(self, data: pd.DataFrame) -> pd.DataFrame:
+        """
+        Apply basic interpolation methods without timestamp information.
+        """
+        imputed_data = data.copy()
+        
+        numeric_columns = data.select_dtypes(include=[np.number]).columns
+        
+        for column in numeric_columns:
+            if imputed_data[column].isnull().any():
+                # Use linear interpolation
+                imputed_data[column] = imputed_data[column].interpolate(method='linear')
+                # Fill remaining NaNs at boundaries
+                imputed_data[column] = imputed_data[column].fillna(method='bfill').fillna(method='ffill')
+        
+        return imputed_data
+    
+    def _identify_equipment_state_columns(self, data: pd.DataFrame) -> List[str]:
+        """
+        Identify columns that represent equipment states.
+        """
+        state_indicators = ['status', 'state', 'mode', 'condition', 'alarm']
+        equipment_columns = []
+        
+        for col in data.columns:
+            col_lower = col.lower()
+            if any(indicator in col_lower for indicator in state_indicators):
+                equipment_columns.append(col)
+        
+        return equipment_columns
+    
+    def _identify_physics_relationships(
+        self, 
+        data: pd.DataFrame, 
+        sensor_metadata: Optional[Dict]
+    ) -> Dict[str, List[str]]:
+        """
+        Identify sensor groups with physical relationships.
+        """
+        physics_groups = {}
+        
+        # Common physics relationships in industrial systems
+        relationships = {
+            'thermal_system': ['temperature', 'pressure', 'flow'],
+            'mechanical_system': ['speed', 'vibration', 'torque'],
+            'electrical_system': ['voltage', 'current', 'power']
+        }
+        
+        for group_name, keywords in relationships.items():
+            group_columns = []
+            for col in data.columns:
+                col_lower = col.lower()
+                if any(keyword in col_lower for keyword in keywords):
+                    group_columns.append(col)
+            
+            if len(group_columns) >= 2:
+                physics_groups[group_name] = group_columns
+        
+        return physics_groups
+    
+    def _apply_physics_based_imputation(
+        self, 
+        data: pd.DataFrame, 
+        sensor_group: List[str]
+    ) -> pd.DataFrame:
+        """
+        Apply physics-based imputation using correlated sensors.
+        """
+        imputed_data = data.copy()
+        
+        # Use simple regression-based imputation within the group
+        group_data = imputed_data[sensor_group].select_dtypes(include=[np.number])
+        
+        if len(group_data.columns) < 2:
+            return imputed_data
+        
+        # For each column with missing values, use others as predictors
+        for target_col in group_data.columns:
+            if imputed_data[target_col].isnull().any():
+                predictor_cols = [col for col in group_data.columns if col != target_col]
+                
+                # Create training data (complete cases)
+                complete_mask = group_data[predictor_cols + [target_col]].notna().all(axis=1)
+                
+                if complete_mask.sum() > 5:  # Need minimum samples
+                    X_train = group_data.loc[complete_mask, predictor_cols]
+                    y_train = group_data.loc[complete_mask, target_col]
+                    
+                    # Predict missing values
+                    missing_mask = imputed_data[target_col].isnull()
+                    X_predict = group_data.loc[missing_mask, predictor_cols]
+                    
+                    if not X_predict.isnull().any().any():  # Predictors must be complete
+                        try:
+                            model = LinearRegression()
+                            model.fit(X_train, y_train)
+                            predictions = model.predict(X_predict)
+                            imputed_data.loc[missing_mask, target_col] = predictions
+                        except Exception as e:
+                            logger.warning(f"Physics-based imputation failed for {target_col}: {e}")
+        
+        return imputed_data
+    
+    def _has_temporal_patterns(self, data: pd.DataFrame) -> bool:
+        """
+        Check if data shows temporal patterns suitable for schedule-aware imputation.
+        """
+        timestamp_col = self._find_timestamp_column(data)
+        return timestamp_col is not None
+    
+    def _apply_schedule_aware_imputation(
+        self, 
+        data: pd.DataFrame, 
+        sensor_metadata: Optional[Dict]
+    ) -> pd.DataFrame:
+        """
+        Apply production schedule-aware imputation.
+        """
+        # Placeholder for schedule-aware logic
+        # In practice, this would use production schedule data
+        return data
+    
+    def _apply_equipment_defaults(
+        self, 
+        data: pd.DataFrame, 
+        sensor_metadata: Optional[Dict]
+    ) -> pd.DataFrame:
+        """
+        Apply equipment-specific default values for maintenance windows.
+        """
+        if not sensor_metadata:
+            return data
+        
+        imputed_data = data.copy()
+        
+        # Apply safe defaults from metadata
+        equipment_defaults = sensor_metadata.get('equipment_defaults', {})
+        
+        for column, default_value in equipment_defaults.items():
+            if column in imputed_data.columns and imputed_data[column].isnull().any():
+                # Only apply defaults to remaining missing values
+                imputed_data[column] = imputed_data[column].fillna(default_value)
+        
+        return imputed_data
+    
+    def _analyze_temporal_missingness(self, data: pd.DataFrame, timestamp_col: str) -> Dict[str, Any]:
+        """
+        Analyze temporal patterns in missing data.
+        """
+        temporal_analysis = {
+            "has_temporal_clustering": False,
+            "missing_time_periods": [],
+            "temporal_statistics": {}
+        }
+        
+        try:
+            timestamps = pd.to_datetime(data[timestamp_col])
+            missing_matrix = data.isnull()
+            
+            # Find time periods with high missing rates
+            time_grouped = missing_matrix.groupby(timestamps.dt.date).sum()
+            high_missing_periods = time_grouped[time_grouped.sum(axis=1) > len(data.columns) * 0.5]
+            
+            if len(high_missing_periods) > 0:
+                temporal_analysis["has_temporal_clustering"] = True
+                temporal_analysis["missing_time_periods"] = high_missing_periods.index.tolist()
+        
+        except Exception as e:
+            logger.warning(f"Temporal missingness analysis failed: {e}")
+        
+        return temporal_analysis
+    
+    def _analyze_missing_correlations(self, missing_matrix: pd.DataFrame) -> Dict[str, Any]:
+        """
+        Analyze correlations in missing value patterns across columns.
+        """
+        correlation_analysis = {
+            "strong_correlations": [],
+            "correlation_matrix": {}
+        }
+        
+        try:
+            if len(missing_matrix.columns) > 1:
+                missing_corr = missing_matrix.corr()
+                correlation_analysis["correlation_matrix"] = missing_corr.to_dict()
+                
+                # Find strong correlations (> 0.7)
+                for i, col1 in enumerate(missing_corr.columns):
+                    for j, col2 in enumerate(missing_corr.columns[i+1:], i+1):
+                        corr_value = missing_corr.iloc[i, j]
+                        if abs(corr_value) > 0.7:
+                            correlation_analysis["strong_correlations"].append({
+                                "column1": col1,
+                                "column2": col2,
+                                "correlation": float(corr_value)
+                            })
+        except Exception as e:
+            logger.warning(f"Missing correlation analysis failed: {e}")
+        
+        return correlation_analysis
+    
+    def _calculate_statistical_consistency(self, original_stats: pd.Series, imputed_stats: pd.Series) -> float:
+        """
+        Calculate consistency between original and imputed data statistics.
+        """
+        try:
+            # Compare key statistics
+            stats_to_compare = ['mean', 'std', 'min', 'max']
+            consistency_scores = []
+            
+            for stat in stats_to_compare:
+                if stat in original_stats and stat in imputed_stats:
+                    orig_val = original_stats[stat]
+                    imp_val = imputed_stats[stat]
+                    
+                    if orig_val != 0:
+                        relative_diff = abs(imp_val - orig_val) / abs(orig_val)
+                        consistency_scores.append(1 - min(relative_diff, 1.0))
+                    else:
+                        consistency_scores.append(1.0 if imp_val == 0 else 0.0)
+            
+            return np.mean(consistency_scores) if consistency_scores else 0.5
+        except Exception:
+            return 0.5
+    
+    def _calculate_distribution_similarity(self, original_data: pd.Series, imputed_data: pd.Series) -> float:
+        """
+        Calculate distribution similarity between original and imputed data.
+        """
+        try:
+            # Use simple statistical test
+            from scipy import stats
+            
+            # Sample data if too large
+            if len(imputed_data) > 1000:
+                sample_size = min(1000, len(original_data))
+                original_sample = original_data.sample(n=min(sample_size, len(original_data)), random_state=42)
+                imputed_sample = imputed_data.sample(n=sample_size, random_state=42)
+            else:
+                original_sample = original_data
+                imputed_sample = imputed_data
+            
+            # Kolmogorov-Smirnov test
+            ks_statistic, p_value = stats.ks_2samp(original_sample, imputed_sample)
+            
+            # Convert p-value to similarity score
+            similarity = p_value  # Higher p-value means more similar distributions
+            return min(1.0, similarity)
+        except Exception:
+            return 0.5
 
 
 class DataQualityAnalyzer:
@@ -1205,10 +2150,755 @@ class IndustrialDataQualityEngine:
         return "Schedule preventive maintenance"  # Placeholder
     
     def _handle_industrial_missing_values(self, data: pd.DataFrame, metadata: Optional[Dict]) -> Tuple[pd.DataFrame, Dict]:
-        return data, {"missing_values_handled": 0}  # Placeholder
+        """
+        Handle missing values in industrial sensor data using advanced imputation strategies.
+        
+        Args:
+            data: Industrial sensor dataset with missing values
+            metadata: Optional sensor and equipment metadata
+            
+        Returns:
+            Tuple of (imputed_data, imputation_report)
+        """
+        logger.info("Starting advanced industrial missing value imputation")
+        
+        if data.isnull().sum().sum() == 0:
+            return data, {"missing_values_handled": 0, "message": "No missing values detected"}
+        
+        # Initialize advanced imputation engine
+        imputation_engine = AdvancedImputationEngine()
+        
+        # Apply advanced imputation with automatic strategy selection
+        imputed_data, imputation_report = imputation_engine.handle_missing_values(
+            data=data,
+            sensor_metadata=metadata,
+            strategy='auto',  # Let the engine select optimal strategy
+            preserve_original=True
+        )
+        
+        # Enhance report with industrial-specific insights
+        enhanced_report = {
+            "missing_values_handled": imputation_report["original_missing_count"] - imputation_report["final_missing_count"],
+            "imputation_strategy": imputation_report["strategy_used"],
+            "effectiveness_percentage": imputation_report["imputation_effectiveness"] * 100,
+            "processing_time_seconds": imputation_report["processing_time_seconds"],
+            "quality_confidence": imputation_report.get("quality_assessment", {}).get("overall_confidence", 0.0),
+            "missingness_analysis": imputation_report["missingness_analysis"],
+            "column_specific_details": {}
+        }
+        
+        # Add column-specific imputation details
+        for column in data.columns:
+            if data[column].isnull().any():
+                original_missing = data[column].isnull().sum()
+                final_missing = imputed_data[column].isnull().sum()
+                
+                enhanced_report["column_specific_details"][column] = {
+                    "original_missing": int(original_missing),
+                    "final_missing": int(final_missing),
+                    "imputation_success": original_missing > final_missing,
+                    "missing_percentage_before": (original_missing / len(data)) * 100,
+                    "missing_percentage_after": (final_missing / len(imputed_data)) * 100
+                }
+        
+        logger.info(f"Industrial missing value imputation completed. "
+                   f"Strategy: {enhanced_report['imputation_strategy']}, "
+                   f"Effectiveness: {enhanced_report['effectiveness_percentage']:.1f}%")
+        
+        return imputed_data, enhanced_report
+
+
+class SensorDriftCorrector:
+    """
+    Advanced sensor drift detection and correction for industrial data.
+    
+    Implements comprehensive algorithms for detecting and correcting various types
+    of sensor drift including calibration drift, temporal trends, and physics-based
+    corrections for industrial sensor networks.
+    """
+    
+    def __init__(self):
+        self.correction_methods = {
+            'linear_trend': self._linear_drift_correction,
+            'calibration_reference': self._reference_based_correction,
+            'cross_sensor': self._cross_sensor_correction,
+            'physics_based': self._physics_based_correction,
+            'statistical': self._statistical_drift_correction,
+            'kalman': self._kalman_filter_correction
+        }
+        
+        self.drift_detectors = {
+            'trend_analysis': self._detect_linear_trend,
+            'changepoint': self._detect_changepoint,
+            'cross_validation': self._detect_cross_sensor_drift,
+            'reference_deviation': self._detect_reference_drift
+        }
+        
+        # Default thresholds for drift detection
+        self.drift_thresholds = {
+            'linear_trend_pvalue': 0.05,
+            'trend_slope_threshold': 0.01,
+            'changepoint_threshold': 2.0,
+            'reference_deviation_threshold': 0.1,
+            'cross_sensor_correlation_min': 0.7
+        }
+    
+    def correct_sensor_drift(
+        self,
+        data: pd.DataFrame,
+        sensor_metadata: Optional[Dict] = None,
+        correction_strategy: str = 'auto'
+    ) -> Tuple[pd.DataFrame, Dict]:
+        """
+        Main drift correction method that analyzes and corrects sensor drift.
+        
+        Args:
+            data: DataFrame with sensor readings
+            sensor_metadata: Metadata containing sensor specifications and calibration data
+            correction_strategy: Strategy for correction ('auto', 'linear_trend', 'physics_based', etc.)
+        
+        Returns:
+            Tuple of corrected DataFrame and correction report
+        """
+        try:
+            if data.empty:
+                return data, {"drift_corrections_applied": 0, "status": "no_data"}
+            
+            corrected_data = data.copy()
+            correction_report = {
+                "drift_corrections_applied": 0,
+                "corrections_by_column": {},
+                "drift_patterns_detected": {},
+                "correction_confidence": {},
+                "status": "success"
+            }
+            
+            # Initialize metadata if not provided
+            if sensor_metadata is None:
+                sensor_metadata = {}
+            
+            # Detect drift patterns for each numeric column
+            numeric_cols = data.select_dtypes(include=[np.number]).columns
+            
+            for col in numeric_cols:
+                if col in data.columns and len(data[col].dropna()) > 10:  # Minimum data points
+                    try:
+                        # Detect drift patterns
+                        drift_analysis = self._detect_drift_patterns(
+                            data[col].dropna(), 
+                            sensor_metadata.get(col, {})
+                        )
+                        
+                        correction_report["drift_patterns_detected"][col] = drift_analysis
+                        
+                        # Apply corrections if drift detected
+                        if drift_analysis["drift_detected"]:
+                            corrected_series, correction_info = self._apply_drift_correction(
+                                data[col],
+                                drift_analysis,
+                                correction_strategy,
+                                sensor_metadata.get(col, {})
+                            )
+                            
+                            corrected_data[col] = corrected_series
+                            correction_report["corrections_by_column"][col] = correction_info
+                            correction_report["drift_corrections_applied"] += 1
+                            correction_report["correction_confidence"][col] = drift_analysis["confidence"]
+                            
+                            logger.info(f"Drift correction applied to {col}: {correction_info['method']}")
+                    
+                    except Exception as e:
+                        logger.warning(f"Failed to correct drift for column {col}: {str(e)}")
+                        continue
+            
+            return corrected_data, correction_report
+            
+        except Exception as e:
+            logger.error(f"Sensor drift correction failed: {str(e)}")
+            return data, {"drift_corrections_applied": 0, "status": "error", "error": str(e)}
+    
+    def _detect_drift_patterns(self, series: pd.Series, metadata: Dict) -> Dict:
+        """Analyze data to detect drift patterns and select correction methods."""
+        drift_analysis = {
+            "drift_detected": False,
+            "drift_type": None,
+            "confidence": 0.0,
+            "drift_magnitude": 0.0,
+            "recommended_correction": None
+        }
+        
+        try:
+            # Skip if insufficient data
+            if len(series) < 10:
+                return drift_analysis
+            
+            data_array = series.values
+            
+            # 1. Linear trend detection
+            trend_result = self._detect_linear_trend(data_array)
+            
+            # 2. Change point detection
+            changepoint_result = self._detect_changepoint(data_array)
+            
+            # 3. Reference deviation (if reference values available)
+            reference_result = self._detect_reference_drift(data_array, metadata)
+            
+            # Determine strongest drift signal
+            detections = [
+                ("linear_trend", trend_result),
+                ("changepoint", changepoint_result),
+                ("reference_deviation", reference_result)
+            ]
+            
+            # Find the most confident detection
+            max_confidence = 0
+            for drift_type, result in detections:
+                if result["detected"] and result["confidence"] > max_confidence:
+                    max_confidence = result["confidence"]
+                    drift_analysis.update({
+                        "drift_detected": True,
+                        "drift_type": drift_type,
+                        "confidence": result["confidence"],
+                        "drift_magnitude": result.get("magnitude", 0.0),
+                        "recommended_correction": result.get("recommended_method", drift_type)
+                    })
+            
+            return drift_analysis
+            
+        except Exception as e:
+            logger.error(f"Drift pattern detection failed: {str(e)}")
+            return drift_analysis
+    
+    def _detect_linear_trend(self, data: np.ndarray) -> Dict:
+        """Detect linear drift trends using statistical analysis."""
+        try:
+            if len(data) < 10:
+                return {"detected": False, "confidence": 0.0}
+            
+            # Remove NaN values
+            clean_data = data[~np.isnan(data)]
+            if len(clean_data) < 10:
+                return {"detected": False, "confidence": 0.0}
+            
+            x = np.arange(len(clean_data))
+            
+            # Linear regression
+            slope, intercept, r_value, p_value, std_err = stats.linregress(x, clean_data)
+            
+            # Mann-Kendall trend test for non-parametric trend detection
+            try:
+                mk_result = self._mann_kendall_test(clean_data)
+                mk_significant = mk_result["p_value"] < self.drift_thresholds["linear_trend_pvalue"]
+            except:
+                mk_significant = False
+            
+            # Determine if trend is significant
+            trend_significant = (
+                p_value < self.drift_thresholds["linear_trend_pvalue"] and
+                abs(slope) > self.drift_thresholds["trend_slope_threshold"] * np.std(clean_data)
+            )
+            
+            confidence = max(0, 1 - p_value) if trend_significant else 0
+            
+            return {
+                "detected": trend_significant or mk_significant,
+                "confidence": confidence,
+                "slope": slope,
+                "p_value": p_value,
+                "r_squared": r_value**2,
+                "magnitude": abs(slope * len(clean_data)),
+                "recommended_method": "linear_trend"
+            }
+            
+        except Exception as e:
+            logger.error(f"Linear trend detection failed: {str(e)}")
+            return {"detected": False, "confidence": 0.0}
+    
+    def _mann_kendall_test(self, data: np.ndarray) -> Dict:
+        """Perform Mann-Kendall test for trend detection."""
+        try:
+            n = len(data)
+            s = 0
+            
+            for i in range(n-1):
+                for j in range(i+1, n):
+                    s += np.sign(data[j] - data[i])
+            
+            # Calculate variance
+            var_s = (n * (n-1) * (2*n+5)) / 18
+            
+            if s > 0:
+                z = (s - 1) / np.sqrt(var_s)
+            elif s < 0:
+                z = (s + 1) / np.sqrt(var_s)
+            else:
+                z = 0
+            
+            p_value = 2 * (1 - stats.norm.cdf(abs(z)))
+            
+            return {
+                "statistic": s,
+                "z_score": z,
+                "p_value": p_value,
+                "trend": "increasing" if s > 0 else "decreasing" if s < 0 else "no trend"
+            }
+            
+        except Exception as e:
+            logger.error(f"Mann-Kendall test failed: {str(e)}")
+            return {"p_value": 1.0, "trend": "no trend"}
+    
+    def _detect_changepoint(self, data: np.ndarray) -> Dict:
+        """Detect sudden changes in sensor calibration using CUSUM-like algorithm."""
+        try:
+            if len(data) < 20:
+                return {"detected": False, "confidence": 0.0}
+            
+            clean_data = data[~np.isnan(data)]
+            if len(clean_data) < 20:
+                return {"detected": False, "confidence": 0.0}
+            
+            # Simple CUSUM implementation
+            mean_data = np.mean(clean_data)
+            std_data = np.std(clean_data)
+            
+            if std_data == 0:
+                return {"detected": False, "confidence": 0.0}
+            
+            # Cumulative sum of standardized deviations
+            cusum_pos = np.zeros(len(clean_data))
+            cusum_neg = np.zeros(len(clean_data))
+            
+            threshold = self.drift_thresholds["changepoint_threshold"]
+            
+            for i in range(1, len(clean_data)):
+                deviation = (clean_data[i] - mean_data) / std_data
+                cusum_pos[i] = max(0, cusum_pos[i-1] + deviation - 0.5)
+                cusum_neg[i] = max(0, cusum_neg[i-1] - deviation - 0.5)
+            
+            # Check if threshold exceeded
+            max_cusum = max(np.max(cusum_pos), np.max(cusum_neg))
+            changepoint_detected = max_cusum > threshold
+            
+            confidence = min(1.0, max_cusum / threshold) if changepoint_detected else 0.0
+            
+            return {
+                "detected": changepoint_detected,
+                "confidence": confidence,
+                "max_cusum": max_cusum,
+                "changepoint_index": np.argmax(np.maximum(cusum_pos, cusum_neg)),
+                "magnitude": max_cusum * std_data,
+                "recommended_method": "statistical"
+            }
+            
+        except Exception as e:
+            logger.error(f"Changepoint detection failed: {str(e)}")
+            return {"detected": False, "confidence": 0.0}
+    
+    def _detect_cross_sensor_drift(self, primary_data: np.ndarray, reference_sensors: Dict) -> Dict:
+        """Detect drift using correlations with other sensors."""
+        try:
+            # This would require reference sensor data
+            # For now, return no detection as it requires multi-sensor setup
+            return {"detected": False, "confidence": 0.0, "recommended_method": "cross_sensor"}
+        except Exception as e:
+            logger.error(f"Cross-sensor drift detection failed: {str(e)}")
+            return {"detected": False, "confidence": 0.0}
+    
+    def _detect_reference_drift(self, data: np.ndarray, metadata: Dict) -> Dict:
+        """Detect drift by comparing to reference calibration values."""
+        try:
+            reference_values = metadata.get("reference_values", {})
+            if not reference_values:
+                return {"detected": False, "confidence": 0.0}
+            
+            clean_data = data[~np.isnan(data)]
+            if len(clean_data) < 5:
+                return {"detected": False, "confidence": 0.0}
+            
+            # Compare current readings to expected reference
+            expected_range = reference_values.get("expected_range", [])
+            if len(expected_range) == 2:
+                min_ref, max_ref = expected_range
+                data_mean = np.mean(clean_data)
+                
+                # Check if mean is outside expected range
+                deviation = 0
+                if data_mean < min_ref:
+                    deviation = min_ref - data_mean
+                elif data_mean > max_ref:
+                    deviation = data_mean - max_ref
+                
+                reference_span = max_ref - min_ref
+                if reference_span > 0:
+                    relative_deviation = deviation / reference_span
+                    drift_detected = relative_deviation > self.drift_thresholds["reference_deviation_threshold"]
+                    confidence = min(1.0, relative_deviation * 2) if drift_detected else 0.0
+                    
+                    return {
+                        "detected": drift_detected,
+                        "confidence": confidence,
+                        "deviation": deviation,
+                        "relative_deviation": relative_deviation,
+                        "magnitude": deviation,
+                        "recommended_method": "calibration_reference"
+                    }
+            
+            return {"detected": False, "confidence": 0.0}
+            
+        except Exception as e:
+            logger.error(f"Reference drift detection failed: {str(e)}")
+            return {"detected": False, "confidence": 0.0}
+    
+    def _apply_drift_correction(
+        self, 
+        series: pd.Series, 
+        drift_analysis: Dict, 
+        strategy: str, 
+        metadata: Dict
+    ) -> Tuple[pd.Series, Dict]:
+        """Apply the appropriate drift correction method."""
+        try:
+            if strategy == 'auto':
+                method = drift_analysis.get("recommended_correction", "linear_trend")
+            else:
+                method = strategy
+            
+            if method in self.correction_methods:
+                return self.correction_methods[method](series, drift_analysis, metadata)
+            else:
+                # Default to linear trend correction
+                return self._linear_drift_correction(series, drift_analysis, metadata)
+                
+        except Exception as e:
+            logger.error(f"Drift correction application failed: {str(e)}")
+            return series, {"method": "none", "status": "failed", "error": str(e)}
+    
+    def _linear_drift_correction(self, series: pd.Series, drift_analysis: Dict, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Remove linear drift trends from sensor data."""
+        try:
+            clean_series = series.dropna()
+            if len(clean_series) < 10:
+                return series, {"method": "linear_trend", "status": "insufficient_data"}
+            
+            # Detrend the data
+            x = np.arange(len(clean_series))
+            slope, intercept, _, _, _ = stats.linregress(x, clean_series.values)
+            
+            # Remove the linear trend
+            trend = slope * x + intercept
+            detrended_values = clean_series.values - (slope * x)
+            
+            # Reconstruct the series maintaining the original index
+            corrected_series = series.copy()
+            corrected_series.loc[clean_series.index] = detrended_values
+            
+            return corrected_series, {
+                "method": "linear_trend",
+                "status": "success",
+                "slope_removed": slope,
+                "trend_magnitude": abs(slope * len(clean_series))
+            }
+            
+        except Exception as e:
+            logger.error(f"Linear drift correction failed: {str(e)}")
+            return series, {"method": "linear_trend", "status": "failed", "error": str(e)}
+    
+    def _reference_based_correction(self, series: pd.Series, drift_analysis: Dict, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Correct drift using reference calibration points."""
+        try:
+            reference_values = metadata.get("reference_values", {})
+            if not reference_values:
+                return self._linear_drift_correction(series, drift_analysis, metadata)
+            
+            clean_series = series.dropna()
+            if len(clean_series) < 5:
+                return series, {"method": "calibration_reference", "status": "insufficient_data"}
+            
+            # Get expected range and calibration points
+            expected_range = reference_values.get("expected_range", [])
+            calibration_points = reference_values.get("calibration_points", {})
+            
+            if expected_range and len(expected_range) == 2:
+                min_ref, max_ref = expected_range
+                current_mean = np.mean(clean_series)
+                expected_mean = (min_ref + max_ref) / 2
+                
+                # Apply offset correction
+                offset = expected_mean - current_mean
+                corrected_series = series + offset
+                
+                return corrected_series, {
+                    "method": "calibration_reference",
+                    "status": "success",
+                    "offset_applied": offset,
+                    "reference_range": expected_range
+                }
+            
+            return self._linear_drift_correction(series, drift_analysis, metadata)
+            
+        except Exception as e:
+            logger.error(f"Reference-based correction failed: {str(e)}")
+            return series, {"method": "calibration_reference", "status": "failed", "error": str(e)}
+    
+    def _cross_sensor_correction(self, series: pd.Series, drift_analysis: Dict, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Use correlated sensors to detect and correct drift in primary sensor."""
+        try:
+            # This would require reference sensor data from the broader dataset
+            # For now, fall back to statistical correction
+            return self._statistical_drift_correction(series, drift_analysis, metadata)
+        except Exception as e:
+            logger.error(f"Cross-sensor correction failed: {str(e)}")
+            return series, {"method": "cross_sensor", "status": "failed", "error": str(e)}
+    
+    def _physics_based_correction(self, series: pd.Series, drift_analysis: Dict, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Apply physics-based corrections for temperature, pressure, etc."""
+        try:
+            sensor_type = metadata.get("sensor_type", "").lower()
+            
+            if "temperature" in sensor_type:
+                return self._temperature_compensated_correction(series, metadata)
+            elif "pressure" in sensor_type:
+                return self._pressure_drift_correction(series, metadata)
+            else:
+                # Default to statistical correction for unknown sensor types
+                return self._statistical_drift_correction(series, drift_analysis, metadata)
+                
+        except Exception as e:
+            logger.error(f"Physics-based correction failed: {str(e)}")
+            return series, {"method": "physics_based", "status": "failed", "error": str(e)}
+    
+    def _temperature_compensated_correction(self, series: pd.Series, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Apply temperature compensation for temperature-sensitive sensors."""
+        try:
+            # Temperature compensation parameters
+            temp_coeff = metadata.get("temperature_coefficient", 0.0)
+            reference_temp = metadata.get("reference_temperature", 25.0)  # Default 25°C
+            
+            if temp_coeff == 0.0:
+                # No temperature coefficient available, use linear correction
+                return self._linear_drift_correction(series, {}, metadata)
+            
+            # For now, apply a simple linear temperature compensation
+            # In practice, this would use actual temperature data
+            clean_series = series.dropna()
+            if len(clean_series) < 10:
+                return series, {"method": "temperature_compensation", "status": "insufficient_data"}
+            
+            # Assume temperature drift over time (simplified model)
+            time_factor = np.linspace(0, 1, len(clean_series))
+            temp_drift = temp_coeff * time_factor * 5  # Assume 5°C drift over dataset
+            
+            corrected_series = series.copy()
+            corrected_series.loc[clean_series.index] = clean_series - temp_drift
+            
+            return corrected_series, {
+                "method": "temperature_compensation",
+                "status": "success",
+                "temperature_coefficient": temp_coeff,
+                "max_correction": np.max(np.abs(temp_drift))
+            }
+            
+        except Exception as e:
+            logger.error(f"Temperature compensation failed: {str(e)}")
+            return series, {"method": "temperature_compensation", "status": "failed", "error": str(e)}
+    
+    def _pressure_drift_correction(self, series: pd.Series, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Apply pressure-specific drift corrections."""
+        try:
+            # Pressure sensors often have non-linear drift characteristics
+            clean_series = series.dropna()
+            if len(clean_series) < 15:
+                return series, {"method": "pressure_drift", "status": "insufficient_data"}
+            
+            # Apply smoothing and detrending for pressure drift
+            if len(clean_series) >= 15:
+                if SCIPY_AVAILABLE:
+                    # Use advanced Savitzky-Golay filter and scipy detrend
+                    window_length = min(15, len(clean_series) // 3)
+                    if window_length % 2 == 0:
+                        window_length -= 1
+                    
+                    smoothed = savgol_filter(clean_series.values, window_length, 3)
+                    detrended = detrend(smoothed, type='linear')
+                    method_used = f"savgol_scipy_detrend_window_{window_length}"
+                else:
+                    # Fallback to simple moving average and linear detrend
+                    window_size = min(15, len(clean_series) // 3)
+                    smoothed = clean_series.rolling(window=window_size, center=True).mean().fillna(method='bfill').fillna(method='ffill')
+                    
+                    # Simple linear detrend
+                    x = np.arange(len(clean_series))
+                    slope, intercept, _, _, _ = stats.linregress(x, smoothed.values)
+                    detrended = smoothed.values - (slope * x + intercept)
+                    method_used = f"moving_avg_linear_detrend_window_{window_size}"
+                
+                corrected_series = series.copy()
+                corrected_series.loc[clean_series.index] = detrended
+                
+                return corrected_series, {
+                    "method": "pressure_drift",
+                    "status": "success",
+                    "method_details": method_used,
+                    "scipy_available": SCIPY_AVAILABLE
+                }
+            
+            return self._linear_drift_correction(series, {}, metadata)
+            
+        except Exception as e:
+            logger.error(f"Pressure drift correction failed: {str(e)}")
+            return series, {"method": "pressure_drift", "status": "failed", "error": str(e)}
+    
+    def _statistical_drift_correction(self, series: pd.Series, drift_analysis: Dict, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Advanced statistical drift correction with robust methods."""
+        try:
+            clean_series = series.dropna()
+            if len(clean_series) < 20:
+                return self._linear_drift_correction(series, drift_analysis, metadata)
+            
+            # Use robust statistical methods
+            # 1. Median-based detrending
+            window_size = min(50, len(clean_series) // 4)
+            rolling_median = clean_series.rolling(window=window_size, center=True).median()
+            
+            # Fill NaN values at edges
+            rolling_median = rolling_median.fillna(method='bfill').fillna(method='ffill')
+            
+            # Remove the trend
+            detrended = clean_series - rolling_median + np.median(clean_series)
+            
+            corrected_series = series.copy()
+            corrected_series.loc[clean_series.index] = detrended
+            
+            return corrected_series, {
+                "method": "statistical_robust",
+                "status": "success",
+                "window_size": window_size,
+                "median_correction": True
+            }
+            
+        except Exception as e:
+            logger.error(f"Statistical drift correction failed: {str(e)}")
+            return series, {"method": "statistical_robust", "status": "failed", "error": str(e)}
+    
+    def _kalman_filter_correction(self, series: pd.Series, drift_analysis: Dict, metadata: Dict) -> Tuple[pd.Series, Dict]:
+        """Continuous drift estimation and correction using Kalman-like filtering."""
+        try:
+            clean_series = series.dropna()
+            if len(clean_series) < 30:
+                return self._statistical_drift_correction(series, drift_analysis, metadata)
+            
+            # Simple Kalman-like filter for drift estimation
+            values = clean_series.values
+            n = len(values)
+            
+            # Initialize
+            filtered_values = np.zeros(n)
+            drift_estimates = np.zeros(n)
+            
+            # Process noise and measurement noise (tunable parameters)
+            process_noise = 0.01
+            measurement_noise = np.var(values) * 0.1
+            
+            # Initial estimates
+            filtered_values[0] = values[0]
+            drift_estimates[0] = 0
+            
+            # Kalman filtering loop
+            for i in range(1, n):
+                # Predict
+                predicted_value = filtered_values[i-1] + drift_estimates[i-1]
+                predicted_drift = drift_estimates[i-1]
+                
+                # Update
+                innovation = values[i] - predicted_value
+                kalman_gain_value = measurement_noise / (measurement_noise + process_noise)
+                kalman_gain_drift = process_noise / (measurement_noise + process_noise)
+                
+                filtered_values[i] = predicted_value + kalman_gain_value * innovation
+                drift_estimates[i] = predicted_drift + kalman_gain_drift * innovation
+            
+            # Remove estimated drift
+            corrected_values = values - drift_estimates
+            
+            corrected_series = series.copy()
+            corrected_series.loc[clean_series.index] = corrected_values
+            
+            return corrected_series, {
+                "method": "kalman_filter",
+                "status": "success",
+                "max_drift_estimate": np.max(np.abs(drift_estimates)),
+                "process_noise": process_noise,
+                "measurement_noise": measurement_noise
+            }
+            
+        except Exception as e:
+            logger.error(f"Kalman filter correction failed: {str(e)}")
+            return series, {"method": "kalman_filter", "status": "failed", "error": str(e)}
     
     def _correct_sensor_drift(self, data: pd.DataFrame, metadata: Optional[Dict]) -> Tuple[pd.DataFrame, Dict]:
-        return data, {"drift_corrections_applied": 0}  # Placeholder
+        """
+        Advanced sensor drift detection and correction using comprehensive algorithms.
+        
+        This method implements industrial-grade sensor drift correction including:
+        - Linear trend drift detection and correction
+        - Calibration reference point validation
+        - Physics-based corrections for temperature/pressure sensors
+        - Statistical drift correction with robust methods
+        - Kalman-like filtering for continuous drift estimation
+        
+        Args:
+            data: DataFrame containing sensor readings
+            metadata: Optional metadata containing sensor specifications and calibration data
+        
+        Returns:
+            Tuple of (corrected_data, correction_report) with detailed drift analysis
+        """
+        try:
+            if data.empty:
+                logger.warning("Empty dataset provided for sensor drift correction")
+                return data, {"drift_corrections_applied": 0, "status": "no_data"}
+            
+            # Initialize the sensor drift corrector
+            if not hasattr(self, '_drift_corrector'):
+                self._drift_corrector = SensorDriftCorrector()
+            
+            logger.info(f"Starting sensor drift correction for {len(data.columns)} columns")
+            
+            # Apply comprehensive drift correction
+            corrected_data, drift_report = self._drift_corrector.correct_sensor_drift(
+                data=data,
+                sensor_metadata=metadata,
+                correction_strategy='auto'  # Use automatic method selection
+            )
+            
+            # Enhance the report with additional statistics
+            if drift_report.get("drift_corrections_applied", 0) > 0:
+                drift_report["correction_summary"] = {
+                    "total_columns_processed": len(data.select_dtypes(include=[np.number]).columns),
+                    "columns_with_drift_detected": len(drift_report.get("drift_patterns_detected", {})),
+                    "columns_corrected": drift_report.get("drift_corrections_applied", 0),
+                    "average_confidence": np.mean(list(drift_report.get("correction_confidence", {}).values())) if drift_report.get("correction_confidence") else 0.0
+                }
+                
+                logger.info(
+                    f"Sensor drift correction completed successfully. "
+                    f"Corrected {drift_report['drift_corrections_applied']} columns with "
+                    f"average confidence: {drift_report['correction_summary']['average_confidence']:.3f}"
+                )
+            else:
+                logger.info("No significant sensor drift detected in the provided data")
+            
+            return corrected_data, drift_report
+            
+        except Exception as e:
+            error_msg = f"Sensor drift correction failed: {str(e)}"
+            logger.error(error_msg)
+            return data, {
+                "drift_corrections_applied": 0, 
+                "status": "error", 
+                "error": error_msg,
+                "fallback_applied": True
+            }
     
     def _filter_equipment_noise(self, data: pd.DataFrame, metadata: Optional[Dict]) -> Tuple[pd.DataFrame, Dict]:
         return data, {"noise_filters_applied": 0}  # Placeholder

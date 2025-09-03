@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { handleOAuthCallback, tokenStorage, type ApiError } from '@/lib/auth'
-import { AuthWrapper } from '@/src/components/AuthWrapper'
+import { AuthManager, createTokenStorage, type ApiError } from '@schlep-engine/javascript-sdk'
+import { AuthWrapper } from '@/components/AuthWrapper'
 
 function AuthCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
@@ -25,11 +25,12 @@ function AuthCallbackContent() {
           throw new Error('Missing authorization code or provider')
         }
 
+        const authManager = new AuthManager({
+          tokenStorage: createTokenStorage(),
+        });
+
         // Handle the OAuth callback
-        const response = await handleOAuthCallback(code, provider)
-        
-        // Store tokens
-        tokenStorage.setTokens(response.access_token, response.refresh_token)
+        const response = await authManager.handleOAuthCallback({ code, provider });
         
         setStatus('success')
         
