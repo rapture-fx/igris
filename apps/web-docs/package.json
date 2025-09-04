@@ -1,5 +1,5 @@
 {
-  "name": "@schlep-engine/docs",
+  "name": "@schlep-engine/web-docs",
   "version": "1.0.0",
   "private": true,
   "scripts": {
