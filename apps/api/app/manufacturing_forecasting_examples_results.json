@@ -1,0 +1,1157 @@
+{
+  "equipment_failure": {
+    "example_type": "basic_failure_prediction",
+    "equipment_id": "PUMP_001",
+    "prediction_result": {
+      "equipment_id": "PUMP_001",
+      "predictions": [
+        0.3983415350402456,
+        0.4183415350402456,
+        0.4383415350402456,
+        0.4583415350402456,
+        0.4783415350402456,
+        0.4983415350402456,
+        0.5183415350402456
+      ],
+      "failure_probabilities": [
+        0.3983415350402456,
+        0.4183415350402456,
+        0.4383415350402456,
+        0.4583415350402456,
+        0.4783415350402456,
+        0.4983415350402456,
+        0.5183415350402456
+      ],
+      "maintenance_urgency": "medium",
+      "days_to_failure": null,
+      "cost_analysis": {
+        "preventive_cost": 4036.6830700804912,
+        "estimated_cost_savings": 4146.732280321965,
+        "roi": 1.0272622864690935
+      },
+      "recommended_actions": [
+        "Plan maintenance within next week",
+        "Continue routine monitoring",
+        "Review maintenance history"
+      ]
+    },
+    "business_analysis": {
+      "risk_assessment": {
+        "maximum_failure_probability": 0.5183415350402456,
+        "average_failure_probability": 0.4583415350402455,
+        "risk_trend": "increasing"
+      },
+      "financial_impact": {
+        "preventive_maintenance_cost": 4036.6830700804912,
+        "potential_cost_savings": 4146.732280321965,
+        "return_on_investment": 1.0272622864690935
+      },
+      "operational_impact": {
+        "maintenance_urgency": "medium",
+        "recommended_timeline": null,
+        "business_continuity_risk": "medium"
+      }
+    }
+  },
+  "multi_equipment": {
+    "example_type": "multi_equipment_analysis",
+    "total_equipment": 10,
+    "batch_results": {
+      "PUMP_001": {
+        "equipment_id": "PUMP_001",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "high"
+      },
+      "PUMP_002": {
+        "equipment_id": "PUMP_002",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "high"
+      },
+      "PUMP_003": {
+        "equipment_id": "PUMP_003",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "high"
+      },
+      "PUMP_004": {
+        "equipment_id": "PUMP_004",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "medium"
+      },
+      "PUMP_005": {
+        "equipment_id": "PUMP_005",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "medium"
+      },
+      "PUMP_006": {
+        "equipment_id": "PUMP_006",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "medium"
+      },
+      "PUMP_007": {
+        "equipment_id": "PUMP_007",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "medium"
+      },
+      "PUMP_008": {
+        "equipment_id": "PUMP_008",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "medium"
+      },
+      "PUMP_009": {
+        "equipment_id": "PUMP_009",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "medium"
+      },
+      "PUMP_010": {
+        "equipment_id": "PUMP_010",
+        "predictions": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "failure_probabilities": [
+          0.3983415350402456,
+          0.4183415350402456,
+          0.4383415350402456,
+          0.4583415350402456,
+          0.4783415350402456,
+          0.4983415350402456,
+          0.5183415350402456,
+          0.5383415350402456,
+          0.5583415350402456,
+          0.5783415350402455,
+          0.5983415350402456,
+          0.6183415350402456,
+          0.6383415350402456,
+          0.6583415350402456
+        ],
+        "maintenance_urgency": "high",
+        "days_to_failure": null,
+        "cost_analysis": {
+          "preventive_cost": 4316.683070080491,
+          "estimated_cost_savings": 5266.732280321965,
+          "roi": 1.2200877837954776
+        },
+        "recommended_actions": [
+          "Schedule maintenance within 48 hours",
+          "Increase monitoring frequency",
+          "Prepare maintenance materials",
+          "Check spare parts inventory"
+        ],
+        "criticality": "medium"
+      }
+    },
+    "maintenance_priority": {
+      "priority_ranking": [
+        {
+          "equipment_id": "PUMP_001",
+          "priority_score": 1.3166830700804912,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "high",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_002",
+          "priority_score": 1.3166830700804912,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "high",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_003",
+          "priority_score": 1.3166830700804912,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "high",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_004",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_005",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_006",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_007",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_008",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_009",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_010",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        }
+      ],
+      "immediate_attention_required": [
+        {
+          "equipment_id": "PUMP_001",
+          "priority_score": 1.3166830700804912,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "high",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_002",
+          "priority_score": 1.3166830700804912,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "high",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_003",
+          "priority_score": 1.3166830700804912,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "high",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_004",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_005",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_006",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_007",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_008",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_009",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        },
+        {
+          "equipment_id": "PUMP_010",
+          "priority_score": 0.6583415350402456,
+          "max_failure_probability": 0.6583415350402456,
+          "maintenance_urgency": "high",
+          "criticality": "medium",
+          "estimated_cost": 4316.683070080491
+        }
+      ],
+      "resource_planning": {
+        "high_priority_equipment_count": 5,
+        "estimated_total_cost": 21583.415350402458,
+        "recommended_maintenance_window_days": 14
+      }
+    }
+  },
+  "production_demand": {
+    "example_type": "demand_forecasting_with_seasonality",
+    "production_line_id": "LINE_001",
+    "forecast_result": {
+      "production_line_id": "LINE_001",
+      "predictions": [
+        1270.6218838869897,
+        1305.285173663226,
+        1451.199360561788,
+        1247.2220750354056,
+        1247.7608644595994,
+        1424.05773028362,
+        1419.3189603598298,
+        1343.6062142659443,
+        1375.7995129087542,
+        1228.4828879234142,
+        1303.6247932044737,
+        1428.5808235312536,
+        1402.0548994769542,
+        1447.6123001100093,
+        1280.8660898968822,
+        1366.8833605351915,
+        1360.008246016323,
+        1385.90285097324,
+        1247.0237959584808,
+        1365.0759759105313,
+        1315.0163221828836,
+        1472.7883435707574,
+        1221.1868798918276,
+        1259.5734405914302,
+        1253.6142391822195,
+        1249.5788460302979,
+        1456.2035601540474,
+        1254.9721019735355,
+        1329.9504323226736,
+        1277.4455705176626
+      ],
+      "timestamps": [
+        "2025-09-04T13:15:30.704975",
+        "2025-09-05T13:15:30.705001",
+        "2025-09-06T13:15:30.705009",
+        "2025-09-07T13:15:30.705015",
+        "2025-09-08T13:15:30.705020",
+        "2025-09-09T13:15:30.705033",
+        "2025-09-10T13:15:30.705040",
+        "2025-09-11T13:15:30.705048",
+        "2025-09-12T13:15:30.705055",
+        "2025-09-13T13:15:30.705061",
+        "2025-09-14T13:15:30.705067",
+        "2025-09-15T13:15:30.705072",
+        "2025-09-16T13:15:30.705077",
+        "2025-09-17T13:15:30.705082",
+        "2025-09-18T13:15:30.705087",
+        "2025-09-19T13:15:30.705092",
+        "2025-09-20T13:15:30.705097",
+        "2025-09-21T13:15:30.705102",
+        "2025-09-22T13:15:30.705107",
+        "2025-09-23T13:15:30.705112",
+        "2025-09-24T13:15:30.705117",
+        "2025-09-25T13:15:30.705122",
+        "2025-09-26T13:15:30.705126",
+        "2025-09-27T13:15:30.705131",
+        "2025-09-28T13:15:30.705136",
+        "2025-09-29T13:15:30.705149",
+        "2025-09-30T13:15:30.705154",
+        "2025-10-01T13:15:30.705159",
+        "2025-10-02T13:15:30.705164",
+        "2025-10-03T13:15:30.705169"
+      ],
+      "production_metrics": {
+        "total_forecast_demand": 39991.317535379254,
+        "peak_demand": 1472.7883435707574,
+        "average_demand": 1333.043917845975,
+        "demand_variability": 77.66692107761368
+      },
+      "resource_planning": {
+        "labor_hours_required": 3999.1317535379258,
+        "material_requirements": 99978.29383844814,
+        "estimated_production_cost": 1799609.2890920665
+      }
+    },
+    "capacity_analysis": {
+      "capacity_utilization": {
+        "maximum_utilization": 0.9818588957138383,
+        "average_utilization": 0.8886959452306499,
+        "bottleneck_periods": [
+          2,
+          5,
+          6,
+          8,
+          11,
+          12,
+          13,
+          15,
+          16,
+          17,
+          19,
+          21,
+          26
+        ],
+        "utilization_by_day": [
+          0.8470812559246598,
+          0.870190115775484,
+          0.9674662403745252,
+          0.8314813833569371,
+          0.8318405763063996,
+          0.94937182018908,
+          0.9462126402398865,
+          0.8957374761772963,
+          0.9171996752725028,
+          0.8189885919489428,
+          0.8690831954696491,
+          0.9523872156875024,
+          0.9347032663179695,
+          0.9650748667400062,
+          0.8539107265979214,
+          0.9112555736901277,
+          0.906672164010882,
+          0.92393523398216,
+          0.8313491973056539,
+          0.9100506506070208,
+          0.8766775481219224,
+          0.9818588957138383,
+          0.8141245865945518,
+          0.8397156270609535,
+          0.8357428261214797,
+          0.8330525640201986,
+          0.9708023734360316,
+          0.836648067982357,
+          0.886633621548449,
+          0.8516303803451084
+        ]
+      },
+      "capacity_constraints": {
+        "constraint_days": 13,
+        "total_excess_demand": 0,
+        "requires_capacity_expansion": false
+      },
+      "recommendations": [
+        "Consider capacity expansion",
+        "Implement overtime scheduling",
+        "Evaluate equipment upgrades"
+      ]
+    },
+    "external_factors": {
+      "market_growth_rate": 0.15,
+      "seasonal_index": 1.2,
+      "economic_indicator": 0.95,
+      "promotional_campaigns": [
+        {
+          "start_date": "2024-02-15",
+          "end_date": "2024-02-29",
+          "impact_factor": 1.3
+        },
+        {
+          "start_date": "2024-03-15",
+          "end_date": "2024-03-31",
+          "impact_factor": 1.4
+        }
+      ]
+    }
+  },
+  "quality_trends": {
+    "example_type": "quality_trend_analysis",
+    "batch_id": "BATCH_2024_001",
+    "quality_prediction": {
+      "batch_id": "BATCH_2024_001",
+      "predictions": [
+        0.7545051489522447,
+        0.7541328016063666,
+        0.766295955588913,
+        0.7676237463866322,
+        0.716671630796075,
+        0.7483695115725333,
+        0.7376937704450578,
+        0.726318227564285,
+        0.7405875718015321,
+        0.7261338860763592,
+        0.7354402538749977,
+        0.7155594780683486,
+        0.7099956145097238,
+        0.7139890594112138,
+        0.7064563022782906,
+        0.699711869767461,
+        0.6726160986488462,
+        0.7163975361436248,
+        0.6928522884960518,
+        0.6803117103351518,
+        0.6726603301476599,
+        0.6665275117463709,
+        0.6721219116301247,
+        0.65351932343089
+      ],
+      "defect_rate_predictions": [
+        0.024549485104775528,
+        0.024586719839363336,
+        0.023370404441108706,
+        0.023237625361336778,
+        0.028332836920392502,
+        0.02516304884274667,
+        0.02623062295549422,
+        0.027368177243571504,
+        0.02594124281984679,
+        0.02738661139236408,
+        0.026455974612500235,
+        0.028444052193165138,
+        0.02900043854902762,
+        0.028601094058878618,
+        0.029354369772170943,
+        0.0300288130232539,
+        0.03273839013511538,
+        0.028360246385637524,
+        0.030714771150394816,
+        0.03196882896648482,
+        0.03273396698523401,
+        0.033347248825362906,
+        0.03278780883698753,
+        0.034648067656910995
+      ],
+      "quality_analysis": {
+        "average_predicted_quality": 0.714437147469948,
+        "minimum_predicted_quality": 0.65351932343089,
+        "quality_trend": "declining",
+        "trend_magnitude": 0.09448570920295674
+      },
+      "compliance_forecast": {
+        "percentage_above_acceptable": 0.0,
+        "expected_defect_rate": 0.028556285253005183,
+        "quality_risk_level": "high"
+      }
+    },
+    "process_optimization": {
+      "process_stability": {
+        "temperature_variability": 4.724111080407632,
+        "pressure_variability": 1.993182836203611,
+        "feed_rate_variability": 9.988112728091041,
+        "overall_stability_score": 0.42186023874426276
+      },
+      "optimization_opportunities": {
+        "quality_improvement_potential": 0.23556285253005194,
+        "defect_reduction_potential": 0.014278142626502592,
+        "cost_savings_potential": 1427.814262650259
+      },
+      "recommendations": [
+        "Review process setpoints",
+        "Implement statistical process control",
+        "Consider equipment calibration"
+      ]
+    }
+  },
+  "energy_optimization": {
+    "example_type": "energy_optimization",
+    "facility_id": "FAC_001",
+    "energy_forecast": {
+      "facility_id": "FAC_001",
+      "predictions": [
+        80.9368276391642,
+        71.53203596050827,
+        76.72855290404114,
+        82.98862480553096,
+        85.47018798358835,
+        79.26333122751137,
+        72.96005138167435,
+        77.16544474138661,
+        60.667724945316856,
+        63.9706153510092,
+        45.59802327690843,
+        44.23815034255727,
+        50.997294462577514,
+        36.61376356340061,
+        33.91898814028027,
+        44.53898471895855,
+        48.2997568609638,
+        74.69095245561451,
+        69.27224937386114,
+        75.18141230844945,
+        83.06130433990758,
+        75.55814046737295,
+        83.25182757781563,
+        80.83298797237421,
+        79.1227537867081,
+        78.9510195957601,
+        87.67206559087217,
+        88.89061604760745,
+        84.82995867212381,
+        77.90539942870254,
+        72.60731543513519,
+        71.08837337790891,
+        83.78503083155368,
+        64.14911493417269,
+        42.39521293667549,
+        45.56585633241988,
+        42.46007652891632,
+        37.831424049575794,
+        40.77070651375029,
+        36.35987312858408,
+        34.144953302145346,
+        44.00153900582425,
+        45.71557923038432,
+        55.94079257196589,
+        47.385391382536675,
+        45.66148028119027,
+        41.771925511019155,
+        38.73131190930246
+      ],
+      "cost_predictions": [
+        9.712419316699705,
+        8.583844315260992,
+        9.207426348484937,
+        14.937952464995572,
+        15.384633837045902,
+        14.267399620952046,
+        13.132809248701381,
+        13.88978005344959,
+        7.280126993438023,
+        5.117649228080736,
+        3.6478418621526743,
+        3.5390520274045816,
+        4.079783557006201,
+        2.9291010850720487,
+        2.7135190512224217,
+        3.563118777516684,
+        3.863980548877104,
+        8.962914294673741,
+        8.312669924863338,
+        9.021769477013933,
+        9.96735652078891,
+        9.066976856084754,
+        9.990219309337876,
+        9.699958556684905,
+        9.494730454404971,
+        9.474122351491213,
+        10.520647870904659,
+        16.00031088856934,
+        15.269392560982284,
+        14.022971897166457,
+        13.069316778324334,
+        12.795907208023603,
+        10.054203699786441,
+        5.131929194733815,
+        3.3916170349340393,
+        3.6452685065935904,
+        3.3968061223133055,
+        3.0265139239660637,
+        3.2616565211000235,
+        2.9087898502867264,
+        2.731596264171628,
+        5.28018468069891,
+        5.485869507646118,
+        6.712895108635907,
+        5.686246965904401,
+        5.479377633742833,
+        5.012631061322298,
+        4.647757429116296
+      ],
+      "energy_analysis": {
+        "total_forecast_consumption_kwh": 2985.4750031856074,
+        "peak_consumption_kw": 88.89061604760745,
+        "average_consumption_kw": 62.197395899700155,
+        "load_factor": 0.6997071081877628
+      },
+      "cost_forecast": {
+        "total_energy_cost": 377.37304679062714,
+        "peak_demand_cost": 1600.031088856934,
+        "average_cost_per_hour": 7.861938474804732
+      }
+    },
+    "optimization_analysis": {
+      "load_analysis": {
+        "load_factor": 0.6997071081877628,
+        "peak_hours_count": 10,
+        "peak_hours": [
+          0,
+          3,
+          4,
+          20,
+          22,
+          23,
+          26,
+          27,
+          28,
+          32
+        ],
+        "efficiency_score": 0.8396485298253153
+      },
+      "optimization_opportunities": {
+        "peak_reduction_potential_kw": 11.900453614874175,
+        "load_shifting_savings_potential": 1.1900453614874174,
+        "efficiency_improvement_potential": 0.060351470174684674
+      },
+      "cost_savings": {
+        "annual_savings_estimate": 217.18327847145366,
+        "payback_period_months": 36,
+        "roi_percentage": 0.4343665569429073
+      },
+      "recommendations": [
+        "Implement demand response programs",
+        "Schedule non-critical operations during off-peak hours",
+        "Consider peak shaving technologies"
+      ]
+    },
+    "pricing_structure": {
+      "energy_rate_per_kwh": 0.12,
+      "peak_demand_rate": 18.0,
+      "time_of_use_rates": {
+        "peak": {
+          "hours": [
+            16,
+            17,
+            18,
+            19,
+            20
+          ],
+          "rate": 0.18
+        },
+        "off_peak": {
+          "hours": [
+            22,
+            23,
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "rate": 0.08
+        },
+        "standard": {
+          "rate": 0.12
+        }
+      }
+    }
+  }
+}
