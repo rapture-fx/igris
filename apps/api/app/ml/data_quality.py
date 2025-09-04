@@ -2075,52 +2075,493 @@ class IndustrialDataQualityEngine:
     def _validate_single_sensor(self, sensor_data: pd.Series, 
                               sensor_name: str,
                               metadata: Optional[Dict] = None) -> Dict[str, Any]:
-        """Validate a single sensor's data."""
+        """Validate a single sensor's data with manufacturing-specific rules."""
         validation_result = {
             "sensor_name": sensor_name,
+            "sensor_type": self._identify_sensor_type(sensor_name),
             "validation_status": "passed",
             "issues": [],
             "warnings": [],
-            "metrics": {}
+            "metrics": {},
+            "domain_specific_checks": {}
         }
+        
+        sensor_type = validation_result["sensor_type"]
         
         # Basic validation checks
-        if sensor_data.isnull().sum() > len(sensor_data) * 0.5:
-            validation_result["issues"].append("High missing value rate (>50%)")
+        missing_rate = sensor_data.isnull().sum() / len(sensor_data)
+        if missing_rate > 0.5:
+            validation_result["issues"].append(f"Critical missing value rate: {missing_rate:.1%}")
             validation_result["validation_status"] = "failed"
+        elif missing_rate > 0.2:
+            validation_result["warnings"].append(f"High missing value rate: {missing_rate:.1%}")
+            if validation_result["validation_status"] == "passed":
+                validation_result["validation_status"] = "warning"
         
-        # Check for stuck values
-        if len(sensor_data.unique()) < 3:
-            validation_result["issues"].append("Sensor appears stuck (too few unique values)")
+        # Check for stuck/frozen sensor values
+        unique_values = sensor_data.nunique()
+        if unique_values < 3:
+            validation_result["issues"].append(f"Sensor appears stuck (only {unique_values} unique values)")
             validation_result["validation_status"] = "failed"
+        elif unique_values < len(sensor_data) * 0.1:  # Less than 10% unique values
+            validation_result["warnings"].append(f"Low sensor resolution: {unique_values} unique values")
+            if validation_result["validation_status"] == "passed":
+                validation_result["validation_status"] = "warning"
         
-        # Check for impossible values (if metadata available)
-        if metadata and sensor_name in metadata:
-            sensor_meta = metadata[sensor_name]
-            if "min_value" in sensor_meta:
-                below_min = (sensor_data < sensor_meta["min_value"]).sum()
-                if below_min > 0:
-                    validation_result["warnings"].append(f"{below_min} values below minimum threshold")
-                    if validation_result["validation_status"] == "passed":
-                        validation_result["validation_status"] = "warning"
-            
-            if "max_value" in sensor_meta:
-                above_max = (sensor_data > sensor_meta["max_value"]).sum()
-                if above_max > 0:
-                    validation_result["warnings"].append(f"{above_max} values above maximum threshold")
-                    if validation_result["validation_status"] == "passed":
-                        validation_result["validation_status"] = "warning"
+        # Manufacturing-specific sensor validation
+        domain_checks = self._perform_manufacturing_sensor_validation(
+            sensor_data, sensor_type, sensor_name, metadata
+        )
+        validation_result["domain_specific_checks"] = domain_checks
         
-        # Calculate sensor-specific metrics
-        validation_result["metrics"] = {
-            "missing_rate": sensor_data.isnull().sum() / len(sensor_data),
-            "unique_values": sensor_data.nunique(),
-            "mean": sensor_data.mean() if sensor_data.dtype in [np.float64, np.int64] else None,
-            "std": sensor_data.std() if sensor_data.dtype in [np.float64, np.int64] else None,
-            "coefficient_of_variation": sensor_data.std() / sensor_data.mean() if sensor_data.mean() != 0 else None
-        }
+        # Update overall status based on domain checks
+        if domain_checks["critical_issues"]:
+            validation_result["issues"].extend(domain_checks["critical_issues"])
+            validation_result["validation_status"] = "failed"
+        elif domain_checks["warnings"] and validation_result["validation_status"] == "passed":
+            validation_result["warnings"].extend(domain_checks["warnings"])
+            validation_result["validation_status"] = "warning"
+        
+        # Calculate comprehensive sensor metrics
+        validation_result["metrics"] = self._calculate_sensor_metrics(
+            sensor_data, sensor_type, sensor_name
+        )
         
         return validation_result
+    
+    def _perform_manufacturing_sensor_validation(
+        self,
+        sensor_data: pd.Series,
+        sensor_type: str,
+        sensor_name: str,
+        metadata: Optional[Dict] = None
+    ) -> Dict[str, Any]:
+        """Perform manufacturing-specific sensor validation."""
+        domain_checks = {
+            "sensor_type": sensor_type,
+            "critical_issues": [],
+            "warnings": [],
+            "operational_ranges": {},
+            "drift_analysis": {},
+            "calibration_status": "unknown"
+        }
+        
+        if sensor_data.empty or sensor_data.isnull().all():
+            domain_checks["critical_issues"].append("No valid sensor data available")
+            return domain_checks
+        
+        # Get sensor-specific validation rules
+        validation_rules = self._get_manufacturing_sensor_rules(sensor_type)
+        
+        # Range validation with manufacturing context
+        if validation_rules["operating_range"]:
+            min_val, max_val = validation_rules["operating_range"]
+            
+            # Check for values outside operating range
+            below_range = (sensor_data < min_val).sum()
+            above_range = (sensor_data > max_val).sum()
+            
+            if below_range > 0:
+                severity = "critical" if below_range > len(sensor_data) * 0.1 else "warning"
+                message = f"{below_range} readings below operating range ({min_val})"
+                
+                if severity == "critical":
+                    domain_checks["critical_issues"].append(message)
+                else:
+                    domain_checks["warnings"].append(message)
+            
+            if above_range > 0:
+                severity = "critical" if above_range > len(sensor_data) * 0.1 else "warning"
+                message = f"{above_range} readings above operating range ({max_val})"
+                
+                if severity == "critical":
+                    domain_checks["critical_issues"].append(message)
+                else:
+                    domain_checks["warnings"].append(message)
+            
+            domain_checks["operational_ranges"] = {
+                "expected_min": min_val,
+                "expected_max": max_val,
+                "actual_min": float(sensor_data.min()),
+                "actual_max": float(sensor_data.max()),
+                "within_range_percentage": (len(sensor_data) - below_range - above_range) / len(sensor_data)
+            }
+        
+        # Sensor drift analysis
+        drift_analysis = self._analyze_sensor_drift(sensor_data, sensor_type)
+        domain_checks["drift_analysis"] = drift_analysis
+        
+        if drift_analysis["drift_detected"]:
+            if drift_analysis["drift_severity"] == "critical":
+                domain_checks["critical_issues"].append(
+                    f"Critical sensor drift detected: {drift_analysis['drift_rate']:.3f}/hour"
+                )
+            else:
+                domain_checks["warnings"].append(
+                    f"Sensor drift detected: {drift_analysis['drift_rate']:.3f}/hour"
+                )
+        
+        # Noise and stability analysis
+        noise_analysis = self._analyze_sensor_noise(sensor_data, sensor_type)
+        
+        if noise_analysis["excessive_noise"]:
+            domain_checks["warnings"].append(
+                f"High sensor noise level: {noise_analysis['noise_level']:.2f}"
+            )
+        
+        if noise_analysis["instability_detected"]:
+            domain_checks["critical_issues"].append(
+                "Sensor instability detected - potential hardware failure"
+            )
+        
+        # Equipment-specific validation
+        equipment_checks = self._validate_equipment_sensor_patterns(sensor_data, sensor_type, metadata)
+        
+        if equipment_checks["anomalous_patterns"]:
+            domain_checks["warnings"].extend(equipment_checks["pattern_warnings"])
+        
+        # Calibration assessment
+        calibration_status = self._assess_calibration_status(sensor_data, sensor_type, metadata)
+        domain_checks["calibration_status"] = calibration_status
+        
+        if calibration_status == "requires_calibration":
+            domain_checks["warnings"].append("Sensor may require calibration")
+        elif calibration_status == "critical_calibration_needed":
+            domain_checks["critical_issues"].append("Immediate sensor calibration required")
+        
+        return domain_checks
+    
+    def _get_manufacturing_sensor_rules(self, sensor_type: str) -> Dict[str, Any]:
+        """Get manufacturing-specific validation rules for sensor types."""
+        rules = {
+            "temperature": {
+                "operating_range": (-40, 150),  # Celsius
+                "normal_variation": 5.0,  # Max normal variation per hour
+                "stability_threshold": 0.5,  # Max acceptable noise
+                "drift_threshold": 0.1  # Max drift per hour
+            },
+            "pressure": {
+                "operating_range": (0, 200),  # PSI
+                "normal_variation": 10.0,
+                "stability_threshold": 2.0,
+                "drift_threshold": 0.5
+            },
+            "vibration": {
+                "operating_range": (0, 50),  # Hz
+                "normal_variation": 2.0,
+                "stability_threshold": 1.0,
+                "drift_threshold": 0.2
+            },
+            "flow": {
+                "operating_range": (0, 1000),  # L/min
+                "normal_variation": 50.0,
+                "stability_threshold": 5.0,
+                "drift_threshold": 1.0
+            },
+            "speed": {
+                "operating_range": (0, 5000),  # RPM
+                "normal_variation": 100.0,
+                "stability_threshold": 10.0,
+                "drift_threshold": 5.0
+            },
+            "electrical": {
+                "operating_range": (0, 500),  # Volts/Amps depending on context
+                "normal_variation": 20.0,
+                "stability_threshold": 5.0,
+                "drift_threshold": 1.0
+            }
+        }
+        
+        return rules.get(sensor_type, {
+            "operating_range": None,
+            "normal_variation": 10.0,
+            "stability_threshold": 1.0,
+            "drift_threshold": 0.5
+        })
+    
+    def _analyze_sensor_drift(self, sensor_data: pd.Series, sensor_type: str) -> Dict[str, Any]:
+        """Analyze sensor drift patterns."""
+        drift_analysis = {
+            "drift_detected": False,
+            "drift_rate": 0.0,
+            "drift_direction": "none",
+            "drift_severity": "normal"
+        }
+        
+        if len(sensor_data) < 10:
+            return drift_analysis
+        
+        try:
+            # Calculate linear trend
+            x = np.arange(len(sensor_data))
+            coeffs = np.polyfit(x, sensor_data.fillna(sensor_data.mean()), 1)
+            drift_rate = abs(coeffs[0])  # Slope indicates drift
+            
+            # Get sensor-specific thresholds
+            rules = self._get_manufacturing_sensor_rules(sensor_type)
+            drift_threshold = rules["drift_threshold"]
+            
+            drift_analysis["drift_rate"] = float(drift_rate)
+            drift_analysis["drift_direction"] = "increasing" if coeffs[0] > 0 else "decreasing"
+            
+            if drift_rate > drift_threshold * 2:
+                drift_analysis["drift_detected"] = True
+                drift_analysis["drift_severity"] = "critical"
+            elif drift_rate > drift_threshold:
+                drift_analysis["drift_detected"] = True
+                drift_analysis["drift_severity"] = "moderate"
+            
+        except Exception as e:
+            logger.warning(f"Error in drift analysis: {e}")
+        
+        return drift_analysis
+    
+    def _analyze_sensor_noise(self, sensor_data: pd.Series, sensor_type: str) -> Dict[str, Any]:
+        """Analyze sensor noise and stability."""
+        noise_analysis = {
+            "noise_level": 0.0,
+            "excessive_noise": False,
+            "instability_detected": False,
+            "signal_to_noise_ratio": 0.0
+        }
+        
+        if len(sensor_data) < 5:
+            return noise_analysis
+        
+        try:
+            # Calculate noise metrics
+            data_clean = sensor_data.dropna()
+            if len(data_clean) < 3:
+                return noise_analysis
+            
+            # Standard deviation as noise measure
+            noise_level = float(data_clean.std())
+            mean_signal = float(data_clean.mean())
+            
+            noise_analysis["noise_level"] = noise_level
+            
+            if mean_signal != 0:
+                snr = abs(mean_signal / noise_level)
+                noise_analysis["signal_to_noise_ratio"] = snr
+                
+                # Low SNR indicates high noise
+                if snr < 5:  # SNR below 5 is concerning
+                    noise_analysis["excessive_noise"] = True
+                
+                if snr < 2:  # SNR below 2 indicates instability
+                    noise_analysis["instability_detected"] = True
+            
+            # Check for rapid fluctuations (potential electrical interference)
+            if len(data_clean) > 3:
+                diff_data = data_clean.diff().dropna()
+                rapid_changes = (abs(diff_data) > noise_level * 3).sum()
+                
+                if rapid_changes > len(diff_data) * 0.1:  # More than 10% rapid changes
+                    noise_analysis["instability_detected"] = True
+            
+        except Exception as e:
+            logger.warning(f"Error in noise analysis: {e}")
+        
+        return noise_analysis
+    
+    def _validate_equipment_sensor_patterns(self, sensor_data: pd.Series, sensor_type: str, metadata: Optional[Dict]) -> Dict[str, Any]:
+        """Validate equipment-specific sensor patterns."""
+        pattern_analysis = {
+            "anomalous_patterns": False,
+            "pattern_warnings": [],
+            "equipment_health_indicators": {}
+        }
+        
+        try:
+            data_clean = sensor_data.dropna()
+            if len(data_clean) < 10:
+                return pattern_analysis
+            
+            # Check for equipment-specific anomalous patterns
+            if sensor_type == "vibration":
+                # High frequency oscillations may indicate bearing issues
+                if data_clean.std() > data_clean.mean() * 0.3:  # High coefficient of variation
+                    pattern_analysis["anomalous_patterns"] = True
+                    pattern_analysis["pattern_warnings"].append(
+                        "High vibration variation detected - potential bearing wear"
+                    )
+            
+            elif sensor_type == "temperature":
+                # Rapid temperature changes may indicate cooling system issues
+                temp_diff = data_clean.diff().dropna()
+                rapid_temp_changes = (abs(temp_diff) > 5).sum()  # >5°C changes
+                
+                if rapid_temp_changes > len(temp_diff) * 0.05:  # More than 5% rapid changes
+                    pattern_analysis["anomalous_patterns"] = True
+                    pattern_analysis["pattern_warnings"].append(
+                        "Rapid temperature fluctuations - check cooling system"
+                    )
+            
+            elif sensor_type == "pressure":
+                # Pressure drops may indicate leaks
+                pressure_drops = (data_clean.diff() < -5).sum()  # Drops >5 PSI
+                
+                if pressure_drops > len(data_clean) * 0.02:  # More than 2% pressure drops
+                    pattern_analysis["anomalous_patterns"] = True
+                    pattern_analysis["pattern_warnings"].append(
+                        "Frequent pressure drops detected - check for system leaks"
+                    )
+            
+        except Exception as e:
+            logger.warning(f"Error in equipment pattern validation: {e}")
+        
+        return pattern_analysis
+    
+    def _assess_calibration_status(self, sensor_data: pd.Series, sensor_type: str, metadata: Optional[Dict]) -> str:
+        """Assess if sensor requires calibration."""
+        try:
+            data_clean = sensor_data.dropna()
+            if len(data_clean) < 5:
+                return "insufficient_data"
+            
+            # Check for systematic bias (indication of calibration drift)
+            rules = self._get_manufacturing_sensor_rules(sensor_type)
+            operating_range = rules.get("operating_range")
+            
+            if operating_range:
+                min_range, max_range = operating_range
+                expected_center = (min_range + max_range) / 2
+                actual_mean = data_clean.mean()
+                
+                # Calculate bias as percentage of range
+                range_width = max_range - min_range
+                bias_percentage = abs(actual_mean - expected_center) / range_width
+                
+                if bias_percentage > 0.2:  # More than 20% bias
+                    return "critical_calibration_needed"
+                elif bias_percentage > 0.1:  # More than 10% bias
+                    return "requires_calibration"
+            
+            # Check for metadata-based calibration status
+            if metadata and "calibration_due" in metadata:
+                # This would compare against actual calibration dates
+                pass
+            
+            return "calibration_ok"
+            
+        except Exception as e:
+            logger.warning(f"Error in calibration assessment: {e}")
+            return "assessment_error"
+    
+    def _calculate_sensor_metrics(self, sensor_data: pd.Series, sensor_type: str, sensor_name: str) -> Dict[str, Any]:
+        """Calculate comprehensive sensor metrics."""
+        metrics = {
+            "missing_rate": float(sensor_data.isnull().sum() / len(sensor_data)),
+            "unique_values": int(sensor_data.nunique()),
+            "data_resolution": float(sensor_data.nunique() / len(sensor_data))
+        }
+        
+        # Numerical metrics
+        if sensor_data.dtype in [np.float64, np.int64]:
+            data_clean = sensor_data.dropna()
+            if len(data_clean) > 0:
+                metrics.update({
+                    "mean": float(data_clean.mean()),
+                    "std": float(data_clean.std()),
+                    "min": float(data_clean.min()),
+                    "max": float(data_clean.max()),
+                    "range": float(data_clean.max() - data_clean.min()),
+                    "coefficient_of_variation": float(data_clean.std() / data_clean.mean()) if data_clean.mean() != 0 else None,
+                    "skewness": float(data_clean.skew()),
+                    "kurtosis": float(data_clean.kurtosis())
+                })
+                
+                # Percentiles for distribution analysis
+                metrics.update({
+                    "p25": float(data_clean.quantile(0.25)),
+                    "p50": float(data_clean.quantile(0.50)),
+                    "p75": float(data_clean.quantile(0.75)),
+                    "p95": float(data_clean.quantile(0.95)),
+                    "p99": float(data_clean.quantile(0.99))
+                })
+        
+        # Sensor-specific metrics
+        if sensor_type == "temperature":
+            metrics["thermal_stability_score"] = self._calculate_thermal_stability(sensor_data)
+        elif sensor_type == "vibration":
+            metrics["vibration_health_score"] = self._calculate_vibration_health(sensor_data)
+        elif sensor_type == "pressure":
+            metrics["pressure_stability_score"] = self._calculate_pressure_stability(sensor_data)
+        
+        return metrics
+    
+    def _calculate_thermal_stability(self, temp_data: pd.Series) -> float:
+        """Calculate thermal stability score for temperature sensors."""
+        try:
+            data_clean = temp_data.dropna()
+            if len(data_clean) < 5:
+                return 0.5  # Neutral score for insufficient data
+            
+            # Calculate temperature variation over time
+            temp_range = data_clean.max() - data_clean.min()
+            temp_std = data_clean.std()
+            
+            # Good thermal stability = low variation
+            # Score: 1.0 = excellent, 0.0 = poor
+            if temp_range < 2 and temp_std < 0.5:  # Very stable
+                return 1.0
+            elif temp_range < 5 and temp_std < 1.0:  # Good stability
+                return 0.8
+            elif temp_range < 10 and temp_std < 2.0:  # Moderate stability
+                return 0.6
+            elif temp_range < 20 and temp_std < 4.0:  # Poor stability
+                return 0.4
+            else:  # Very poor stability
+                return 0.2
+                
+        except Exception:
+            return 0.5
+    
+    def _calculate_vibration_health(self, vib_data: pd.Series) -> float:
+        """Calculate vibration health score."""
+        try:
+            data_clean = vib_data.dropna()
+            if len(data_clean) < 5:
+                return 0.5
+            
+            mean_vib = data_clean.mean()
+            std_vib = data_clean.std()
+            
+            # Lower vibration and lower variation = better health
+            if mean_vib < 2 and std_vib < 0.5:  # Excellent
+                return 1.0
+            elif mean_vib < 5 and std_vib < 1.0:  # Good
+                return 0.8
+            elif mean_vib < 10 and std_vib < 2.0:  # Moderate
+                return 0.6
+            elif mean_vib < 20 and std_vib < 5.0:  # Poor
+                return 0.4
+            else:  # Critical
+                return 0.2
+                
+        except Exception:
+            return 0.5
+    
+    def _calculate_pressure_stability(self, pressure_data: pd.Series) -> float:
+        """Calculate pressure stability score."""
+        try:
+            data_clean = pressure_data.dropna()
+            if len(data_clean) < 5:
+                return 0.5
+            
+            # Check for pressure drops and stability
+            pressure_diff = data_clean.diff().dropna()
+            large_drops = (pressure_diff < -5).sum()  # Significant pressure drops
+            stability = 1.0 / (1.0 + data_clean.std() / data_clean.mean()) if data_clean.mean() > 0 else 0.5
+            
+            # Penalize for pressure drops
+            drop_penalty = large_drops / len(pressure_diff) if len(pressure_diff) > 0 else 0
+            
+            score = max(0.0, stability - drop_penalty)
+            return min(1.0, score)
+            
+        except Exception:
+            return 0.5
     
     def generate_comprehensive_report(self, data: pd.DataFrame, sensor_metadata: Dict[str, Any] = None) -> Dict[str, Any]:
         """
