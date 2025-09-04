@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { 
   BookOpenIcon, 
   CodeBracketIcon, 
@@ -182,6 +182,7 @@ const mainSections = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set(['REST API Endpoints']))
 
@@ -248,7 +249,10 @@ export function Sidebar() {
                   {mainSections.map((section) => (
                     <button
                       key={section.name}
-                      onClick={() => setActiveSection(section.name)}
+                      onClick={() => {
+                      setActiveSection(section.name);
+                      router.push(section.href);
+                    }}
                       className={clsx(
                         'w-full flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all duration-150 group border text-left',
                         currentActiveSection === section.name

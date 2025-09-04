@@ -40,6 +40,9 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.base import BaseEstimator, RegressorMixin
 
+# Advanced optimization
+from .model_optimization import AdvancedModelOptimizer
+
 # Statistical models
 try:
     from statsmodels.tsa.arima.model import ARIMA
@@ -964,6 +967,9 @@ class ManufacturingTimeSeriesForecaster:
         self.config = config or {}
         self.models = {}
         self.manufacturing_context = None
+        
+        # Initialize advanced model optimizer
+        self.model_optimizer = AdvancedModelOptimizer()
         
         # Initialize available models
         self.available_models = {
@@ -1927,6 +1933,182 @@ def create_sample_manufacturing_data(n_samples: int = 1000) -> pd.DataFrame:
     except Exception as e:
         logger.error(f"Error creating sample data: {e}")
         raise
+    
+    def optimize_model_performance(
+        self,
+        model_name: str,
+        equipment_id: str,
+        training_data: pd.DataFrame,
+        target_column: str,
+        validation_split: float = 0.2
+    ) -> Dict[str, Any]:
+        """
+        Optimize model performance with SHAP explainability and comprehensive analysis.
+        
+        Args:
+            model_name: Name of the model to optimize
+            equipment_id: Equipment this model is for
+            training_data: Training dataset
+            target_column: Target variable column name
+            validation_split: Fraction of data for validation
+            
+        Returns:
+            Optimization results with SHAP analysis and recommendations
+        """
+        try:
+            logger.info(f"Starting model optimization for {model_name} on equipment {equipment_id}")
+            
+            # Split data for training and validation
+            split_idx = int(len(training_data) * (1 - validation_split))
+            train_data = training_data.iloc[:split_idx]
+            val_data = training_data.iloc[split_idx:]
+            
+            # Prepare features and targets
+            feature_columns = [col for col in train_data.columns if col != target_column]
+            X_train = train_data[feature_columns]
+            y_train = train_data[target_column]
+            X_val = val_data[feature_columns]
+            y_val = val_data[target_column]
+            
+            # Get the trained model
+            model_key = f"{model_name}_{equipment_id}"
+            if model_key not in self.models:
+                # Train model if not exists
+                model_type = ModelType.ENSEMBLE  # Default to ensemble
+                model_class = self.available_models[model_type]
+                model = model_class()
+                model.fit(train_data, target_column)
+                self.models[model_key] = model
+            else:
+                model = self.models[model_key]
+            
+            # Perform optimization with SHAP analysis
+            optimization_results = self.model_optimizer.optimize_model_with_explainability(
+                model=model,
+                X_train=X_train,
+                y_train=y_train,
+                X_val=X_val,
+                y_val=y_val,
+                model_name=model_name,
+                equipment_id=equipment_id
+            )
+            
+            logger.info(f"Model optimization completed for {model_name} on equipment {equipment_id}")
+            return optimization_results
+            
+        except Exception as e:
+            logger.error(f"Error in model optimization: {e}")
+            return {
+                'error': str(e),
+                'model_name': model_name,
+                'equipment_id': equipment_id,
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    def detect_model_drift(
+        self,
+        model_name: str,
+        equipment_id: str,
+        new_data: pd.DataFrame,
+        target_column: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Detect model drift using statistical analysis and performance monitoring.
+        
+        Args:
+            model_name: Name of the model to check
+            equipment_id: Equipment identifier
+            new_data: New data to compare against baseline
+            target_column: Target variable column name (optional)
+            
+        Returns:
+            Drift detection results with severity assessment
+        """
+        try:
+            logger.info(f"Starting drift detection for {model_name} on equipment {equipment_id}")
+            
+            # Prepare data
+            feature_columns = [col for col in new_data.columns if col != target_column]
+            X_new = new_data[feature_columns]
+            y_new = new_data[target_column] if target_column else None
+            
+            # Get model predictions if target is available
+            model_predictions = None
+            if target_column:
+                model_key = f"{model_name}_{equipment_id}"
+                if model_key in self.models:
+                    model = self.models[model_key]
+                    try:
+                        model_predictions = model.predict(len(X_new)).predictions
+                    except Exception as e:
+                        logger.warning(f"Could not generate predictions for drift detection: {e}")
+            
+            # Perform drift detection
+            drift_results = self.model_optimizer.detect_model_drift(
+                model_name=model_name,
+                equipment_id=equipment_id,
+                X_new=X_new,
+                y_new=y_new,
+                model_predictions=model_predictions
+            )
+            
+            logger.info(f"Drift detection completed for {model_name} on equipment {equipment_id}")
+            return drift_results
+            
+        except Exception as e:
+            logger.error(f"Error in drift detection: {e}")
+            return {
+                'error': str(e),
+                'model_name': model_name,
+                'equipment_id': equipment_id,
+                'timestamp': datetime.now().isoformat()
+            }
+    
+    def get_model_health_report(
+        self,
+        model_name: str,
+        equipment_id: str
+    ) -> Dict[str, Any]:
+        """
+        Get comprehensive model health report including optimization status and drift.
+        
+        Args:
+            model_name: Name of the model
+            equipment_id: Equipment identifier
+            
+        Returns:
+            Model health report with recommendations
+        """
+        try:
+            health_report = self.model_optimizer.get_model_health_report(
+                model_name=model_name,
+                equipment_id=equipment_id
+            )
+            
+            # Add forecasting-specific health metrics
+            model_key = f"{model_name}_{equipment_id}"
+            if model_key in self.models:
+                model = self.models[model_key]
+                health_report['model_loaded'] = True
+                health_report['model_type'] = type(model).__name__
+            else:
+                health_report['model_loaded'] = False
+                health_report['recommendations'].append({
+                    'type': 'model_training',
+                    'priority': 'high',
+                    'recommendation': 'Model not found. Train model before assessment.'
+                })
+            
+            return health_report
+            
+        except Exception as e:
+            logger.error(f"Error generating model health report: {e}")
+            return {
+                'error': str(e),
+                'model_name': model_name,
+                'equipment_id': equipment_id,
+                'timestamp': datetime.now().isoformat()
+            }
 
 
 def test_forecasting_system():
