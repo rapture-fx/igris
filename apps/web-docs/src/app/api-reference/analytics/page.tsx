@@ -27,7 +27,7 @@ print(response.json())`
 
 fetch('https://api.schlep-engine.com/api/v1/analytics/time-savings', {
   headers: {
-    'Authorization': 	'Bearer ${apiKey}'
+    'Authorization': 'Bearer ' + apiKey
   }
 }).then(res => res.json()).then(console.log);`
     }

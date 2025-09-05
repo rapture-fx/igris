@@ -205,12 +205,12 @@ optimization = client.ecommerce.optimize_price(
     business_objective="profit_maximization"
 )
 
-print(f"Optimized Price: ${optimization.optimized_price}")
+print(f"Optimized Price: \${optimization.optimized_price}")
 print(f"Expected Revenue Change: +{optimization.expected_revenue_change}%")
 print(f"Competitive Position: {optimization.competitive_positioning}")
 
 # Expected Output:
-# Optimized Price: $152.99
+# Optimized Price: \$152.99
 # Expected Revenue Change: +23.4%
 # Competitive Position: premium_but_competitive`}
             language="python"
