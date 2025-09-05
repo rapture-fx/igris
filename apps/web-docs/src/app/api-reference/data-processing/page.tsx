@@ -6,34 +6,34 @@ export default function DataProcessingApiPage() {
       language: 'curl',
       label: 'cURL',
       code: `# Create a new data investigation
-curl -X POST https://api.schlep-engine.com/api/v1/data-processing/investigations/ \
-  -H \"Authorization: Bearer sk_your_api_key\" \
-  -H \"Content-Type: application/json\" \
+curl -X POST https://api.schlep-engine.com/api/v1/data-processing/investigations/ \\
+  -H "Authorization: Bearer sk_your_api_key" \\
+  -H "Content-Type: application/json" \\
   -d '{
-    \"name\": \"Customer Data Analysis\",
-    \"description\": \"Analysis of customer behavior data\",
-    \"workspace_id\": \"ws_123456789\"
-  }
+    "name": "Customer Data Analysis",
+    "description": "Analysis of customer behavior data",
+    "workspace_id": "ws_123456789"
+  }'
 
 # Upload file to investigation  
-curl -X POST \"https://api.schlep-engine.com/api/v1/data-processing/investigations/{investigation_id}/files/\" \
-  -H \"Authorization: Bearer sk_your_api_key\" \
-  -F \"file=@customer_data.csv\" \
-  -F \"file_type=dataset\"`
+curl -X POST "https://api.schlep-engine.com/api/v1/data-processing/investigations/{investigation_id}/files/" \\
+  -H "Authorization: Bearer sk_your_api_key" \\
+  -F "file=@customer_data.csv" \\
+  -F "file_type=dataset"`
     },
     {
       language: 'python',
       label: 'Python',
       code: `import requests
 
-api_key = \"sk_your_api_key\"
-headers = {\"Authorization\": f\"Bearer {api_key}\"}
+api_key = "sk_your_api_key"
+headers = {"Authorization": f"Bearer {api_key}"}
 
 investigation_data = {
-    \"workspace_id\": \"your_workspace_id\"
+    "workspace_id": "your_workspace_id"
 }
 
-response = requests.post(\"https://api.schlep-engine.com/api/v1/processing/investigations/\", headers=headers, json=investigation_data)
+response = requests.post("https://api.schlep-engine.com/api/v1/processing/investigations/", headers=headers, json=investigation_data)
 print(response.json())`
     },
     {
@@ -42,7 +42,7 @@ print(response.json())`
       code: `const apiKey = 'sk_your_api_key';
 
 const investigationData = {
-    workspace_id: \"your_workspace_id\"
+    workspace_id: "your_workspace_id"
 };
 
 fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
@@ -89,7 +89,7 @@ fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/processing/investigations/{{'{investigation_id}'}}</code>
+            <code className="text-sm">/api/v1/processing/investigations/{"{investigation_id}"}</code>
           </div>
           <p className="text-gray-600 mb-4">Get a specific data investigation by ID.</p>
         </div>
@@ -100,7 +100,7 @@ fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-orange-200 text-orange-800">PUT</span>
-            <code className="text-sm">/api/v1/processing/investigations/{{'{investigation_id}'}}</code>
+            <code className="text-sm">/api/v1/processing/investigations/{"{investigation_id}"}</code>
           </div>
           <p className="text-gray-600 mb-4">Update a data investigation.</p>
         </div>
@@ -111,7 +111,7 @@ fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-red-200 text-red-800">DELETE</span>
-            <code className="text-sm">/api/v1/processing/investigations/{{'{investigation_id}'}}</code>
+            <code className="text-sm">/api/v1/processing/investigations/{"{investigation_id}"}</code>
           </div>
           <p className="text-gray-600 mb-4">Delete a data investigation.</p>
         </div>
@@ -133,7 +133,7 @@ fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/processing/investigations/{{'{investigation_id}'}}/jobs/</code>
+            <code className="text-sm">/api/v1/processing/investigations/{"{investigation_id}"}/jobs/</code>
           </div>
           <p className="text-gray-600 mb-4">List all processing jobs for a specific data investigation.</p>
         </div>
@@ -144,7 +144,7 @@ fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
-            <code className="text-sm">/api/v1/processing/jobs/{{'{job_id}'}}</code>
+            <code className="text-sm">/api/v1/processing/jobs/{"{job_id}"}</code>
           </div>
           <p className="text-gray-600 mb-4">Get a specific processing job by ID.</p>
         </div>
@@ -155,7 +155,7 @@ fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-orange-200 text-orange-800">PUT</span>
-            <code className="text-sm">/api/v1/processing/jobs/{{'{job_id}'}}</code>
+            <code className="text-sm">/api/v1/processing/jobs/{"{job_id}"}</code>
           </div>
           <p className="text-gray-600 mb-4">Update a processing job.</p>
         </div>
@@ -166,7 +166,7 @@ fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-red-200 text-red-800">DELETE</span>
-            <code className="text-sm">/api/v1/processing/jobs/{{'{job_id}'}}</code>
+            <code className="text-sm">/api/v1/processing/jobs/{"{job_id}"}</code>
           </div>
           <p className="text-gray-600 mb-4">Delete a processing job.</p>
         </div>

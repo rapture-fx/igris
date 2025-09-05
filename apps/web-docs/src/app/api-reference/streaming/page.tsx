@@ -143,10 +143,10 @@ async function setupStreaming() {
 
     if (response.ok) {
       const connection = await response.json();
-      console.log(\\`✅ Streaming connection created: \\${connection.id}\\`);
+      console.log('✅ Streaming connection created:', connection.id);
       
       // Connect to WebSocket for real-time updates
-      const wsUrl = \\`wss://api.schlep-engine.com/ws?token=\\${apiKey}&connection_id=\\${connection.id}\\`;
+      const wsUrl = 'wss://api.schlep-engine.com/ws?token=' + apiKey + '&connection_id=' + connection.id;
       const ws = new WebSocket(wsUrl);
       
       ws.onopen = () => {
@@ -158,13 +158,13 @@ async function setupStreaming() {
         
         switch(data.type) {
           case 'data_update':
-            console.log(\\`📊 New data: \\${data.payload.record_count} records\\`);
+            console.log('📊 New data:', data.payload.record_count, 'records');
             break;
           case 'quality_alert':
-            console.log(\\`⚠️ Quality alert: \\${data.payload.message}\\`);
+            console.log('⚠️ Quality alert:', data.payload.message);
             break;
           case 'error':
-            console.log(\\`❌ Error: \\${data.payload.error}\\`);
+            console.log('❌ Error:', data.payload.error);
             break;
         }
       };
