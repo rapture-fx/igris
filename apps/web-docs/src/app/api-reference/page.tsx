@@ -6,25 +6,25 @@ export default function ApiReferencePage() {
     {
       title: 'Financial Services',
       icon: ShieldCheckIcon,
-      description: 'Transaction analysis, risk scoring, and compliance data processing',
-      href: '/api-reference/financial',
-      methods: ['POST /financial/analyze-transaction', 'POST /financial/risk-score', 'POST /financial/compliance-check'],
+      description: 'AI-powered fraud detection, credit risk assessment, and AML compliance screening',
+      href: '/api-reference/financial-ai',
+      methods: ['POST /industry/financial/fraud-detection', 'POST /industry/financial/credit-risk', 'POST /industry/financial/aml-check'],
       color: 'text-blue-600'
     },
     {
       title: 'E-commerce',
       icon: CogIcon,
-      description: 'Product matching, demand analysis, and pricing calculations',
-      href: '/api-reference/ecommerce',
-      methods: ['POST /ecommerce/recommend', 'POST /ecommerce/forecast-demand', 'POST /ecommerce/calculate-pricing'],
+      description: 'Personalized recommendations, demand forecasting, and dynamic pricing optimization',
+      href: '/api-reference/ecommerce-ai',
+      methods: ['POST /industry/ecommerce/recommendations', 'POST /industry/ecommerce/demand-forecast', 'POST /industry/ecommerce/price-optimization'],
       color: 'text-green-600'
     },
     {
       title: 'Manufacturing',
       icon: CloudIcon,
-      description: 'Equipment monitoring, quality analysis, and supply chain data',
-      href: '/api-reference/manufacturing',
-      methods: ['POST /manufacturing/equipment-status', 'POST /manufacturing/quality-check', 'POST /manufacturing/supply-chain'],
+      description: 'Predictive maintenance, quality control, and forecasting with ML models',
+      href: '/api-reference/manufacturing-forecasting',
+      methods: ['POST /industry/manufacturing/predictive-maintenance', 'POST /industry/manufacturing/quality-control', 'POST /industry/manufacturing/supply-chain'],
       color: 'text-purple-600'
     },
     {
@@ -100,14 +100,14 @@ export default function ApiReferencePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-3">API Key Authentication</h3>
               <div className="bg-gray-900 rounded-lg p-4">
                 <pre className="text-sm text-gray-100">
-{`curl -X POST https://api.schlep-engine.com/v1/industry/financial/fraud-detection \\
-  -H "Authorization: Bearer sk-your-api-key" \\
+{`curl -X POST https://api.schlep-engine.com/api/v1/industry/financial/fraud-detection \\
+  -H "Authorization: Bearer sk_your_api_key" \\
   -H "Content-Type: application/json" \\
   -d '{
     "transaction_id": "txn_12345",
     "user_id": "user_67890",
     "transaction_amount": 2500.00,
-    "merchant_category": "gas_station"
+    "merchant_category": "electronics"
   }'`}
                 </pre>
               </div>
@@ -117,7 +117,7 @@ export default function ApiReferencePage() {
               <h3 className="text-lg font-semibold text-gray-900 mb-3">User Authentication</h3>
               <div className="bg-gray-900 rounded-lg p-4">
                 <pre className="text-sm text-gray-100">
-{`curl -X POST https://api.schlep-engine.com/v1/auth/login \\
+{`curl -X POST https://api.schlep-engine.com/api/v1/auth/login \\
   -H "Content-Type: application/json" \\
   -d '{
     "email": "user@example.com",

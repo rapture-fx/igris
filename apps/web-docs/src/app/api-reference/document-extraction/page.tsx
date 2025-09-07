@@ -1,52 +1,12 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function DocumentExtractionApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Extract data from a PDF file
-curl -X POST https://api.schlep-engine.com/api/v1/extraction/extract/pdf \
-  -H "Authorization: Bearer sk_your_api_key" \
-  -F "file=@/path/to/your/file.pdf"`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-files = {'file': open('/path/to/your/file.pdf', 'rb')}
-
-response = requests.post("https://api.schlep-engine.com/api/v1/extraction/extract/pdf", headers=headers, files=files)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-const fileInput = document.querySelector('input[type="file"]');
-
-const formData = new FormData();
-formData.append('file', fileInput.files[0]);
-
-fetch('https://api.schlep-engine.com/api/v1/extraction/extract/pdf', {
-  method: 'POST',
-  headers: {
-    'Authorization': 
-    'Bearer ' + apiKey
-  },
-  body: formData
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
 
   return (
     <ApiLayout 
       title="Document Extraction API"
       description="Extract data from PDFs, DOCX, Excel, and scanned documents."
-      codeExamples={codeExamples}
+      
     >
       <section className="mb-12" id="extract-pdf-data">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Extract PDF Data</h2>

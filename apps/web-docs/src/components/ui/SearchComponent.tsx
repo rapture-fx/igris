@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from 'react'
 
 // Define searchable content for existing documentation pages only
 const searchData = [
-  { title: 'Introduction', url: '/introduction', content: 'Getting started with schlep-engine - Your AI-powered data processing platform', category: 'Introduction' },
+  { title: 'Introduction', url: '/introduction', content: 'Getting started with schlep-engine - Your statistical data processing platform', category: 'Introduction' },
   { title: 'Quick Start Guide', url: '/introduction/quickstart', content: 'Get up and running with schlep-engine in minutes', category: 'Introduction' },
   { title: 'API Keys', url: '/introduction/api-keys', content: 'Get your API keys and authentication setup', category: 'Introduction' },
   { title: 'First API Call', url: '/introduction/first-call', content: 'Make your first API call to schlep-engine', category: 'Introduction' },

@@ -2,119 +2,30 @@ import { ApiLayout } from '@/components/ui/ApiLayout'
 import { CpuChipIcon, LightBulbIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 
 export default function AdvancedAIApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Intelligent Analysis
-curl -X POST "https://api.schlep-engine.com/api/v1/advanced-ai/intelligent-analysis" \\
-  -H "Authorization: Bearer sk_your_api_key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "investigation_id": "inv_abc123",
-    "analysis_type": "comprehensive",
-    "include_recommendations": true,
-    "ai_depth": "deep"
-  }'`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-
-# Run intelligent analysis
-analysis_request = {
-    "investigation_id": "inv_abc123",
-    "analysis_type": "comprehensive",
-    "include_recommendations": True,
-    "ai_depth": "deep"
-}
-
-response = requests.post(
-    "https://api.schlep-engine.com/api/v1/advanced-ai/intelligent-analysis",
-    headers=headers,
-    json=analysis_request
-)
-
-if response.status_code == 200:
-    insights = response.json()
-    print(f"✅ Analysis complete. Confidence: {insights['confidence_score']:.1%}")
-    
-    for insight in insights['insights']:
-        print(f"📊 {insight['category']}: {insight['title']}")
-        
-else:
-    print(f"❌ Analysis failed: {response.text}")`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-
-// Run intelligent analysis
-async function runIntelligentAnalysis(investigationId) {
-  try {
-    const response = await fetch('https://api.schlep-engine.com/api/v1/advanced-ai/intelligent-analysis', {
-      method: 'POST',
-      headers: {
-        'Authorization': \`Bearer \${apiKey}\`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        investigation_id: investigationId,
-        analysis_type: 'comprehensive',
-        include_recommendations: true,
-        ai_depth: 'deep'
-      })
-    });
-    
-    if (response.ok) {
-      const insights = await response.json();
-      console.log(\`✅ Analysis complete. Confidence: \${(insights.confidence_score * 100).toFixed(1)}%\`);
-      
-      insights.insights.forEach(insight => {
-        console.log(\`📊 \${insight.category}: \${insight.title}\`);
-      });
-      
-      return insights;
-    } else {
-      console.error('❌ Analysis failed:', await response.text());
-    }
-  } catch (error) {
-    console.error('Request failed:', error);
-  }
-}
-
-runIntelligentAnalysis('inv_abc123');`
-    }
-  ]
 
   return (
     <ApiLayout 
-      title="Advanced AI"
-      description="Leverage advanced AI capabilities for intelligent data analysis, automated insights generation, and predictive analytics."
-      codeExamples={codeExamples}
+      title="Statistical Analytics"
+      description="Statistical analysis capabilities for data quality assessment, automated insights generation, and predictive modeling."
+      
     >
       {/* Advanced AI Overview */}
       <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Advanced AI Overview</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Statistical Analytics Overview</h2>
         <p className="text-gray-600 mb-6">
-          Our Advanced AI API provides sophisticated machine learning capabilities that go beyond traditional data processing. 
-          It offers intelligent analysis, automated insights generation, predictive analytics, and real-time monitoring 
-          powered by state-of-the-art AI models.
+          Our Statistical Analytics API provides data analysis capabilities using proven statistical methods and algorithms. 
+          It offers statistical analysis, automated insights generation, predictive analytics, and real-time monitoring 
+          using established statistical techniques.
         </p>
         
         <div className="grid md:grid-cols-3 gap-6">
           <div className="border border-gray-200 rounded-lg p-6">
             <div className="flex items-center gap-3 mb-4">
               <CpuChipIcon className="h-6 w-6 text-blue-600" />
-              <h3 className="font-semibold text-gray-900">Intelligent Analysis</h3>
+              <h3 className="font-semibold text-gray-900">Statistical Analysis</h3>
             </div>
             <p className="text-gray-600 text-sm">
-              AI-powered comprehensive analysis including data quality assessment, anomaly detection, and trend analysis.
+              Statistical analysis including data quality assessment, anomaly detection, and trend analysis using proven algorithms.
             </p>
           </div>
           
@@ -124,7 +35,7 @@ runIntelligentAnalysis('inv_abc123');`
               <h3 className="font-semibold text-gray-900">Auto Insights</h3>
             </div>
             <p className="text-gray-600 text-sm">
-              Automatically generate actionable insights from your data using NLP and statistical analysis.
+              Automatically generate actionable insights from your data using pattern recognition and statistical analysis.
             </p>
           </div>
           
@@ -142,14 +53,14 @@ runIntelligentAnalysis('inv_abc123');`
 
       {/* Intelligent Analysis */}
       <section className="mb-12" id="intelligent-analysis">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Intelligent Analysis</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Statistical Analysis</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
-            <code className="text-sm">/api/v1/advanced-ai/intelligent-analysis</code>
+            <code className="text-sm">/api/v1/advanced-ai/statistical-analysis</code>
           </div>
           <p className="text-gray-600 mb-4">
-            Perform comprehensive intelligent analysis on investigation data using multiple AI techniques.
+            Perform comprehensive statistical analysis on investigation data using multiple analytical techniques.
           </p>
           
           <div className="mt-4">
@@ -206,10 +117,10 @@ runIntelligentAnalysis('inv_abc123');`
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="px-2 py-1 text-xs font-semibold rounded bg-blue-200 text-blue-800">POST</span>
-            <code className="text-sm">/api/v1/advanced-ai/auto-insights</code>
+            <code className="text-sm">/api/v1/advanced-ai/insights</code>
           </div>
           <p className="text-gray-600 mb-4">
-            Generate automated insights from data using AI/ML analysis and NLP processing.
+            Generate automated insights from data using statistical analysis and pattern recognition.
           </p>
           
           <div className="mt-4">

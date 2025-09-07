@@ -15,7 +15,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <div className="w-full flex">
-        <div className="w-72 h-screen sticky top-0 z-40">
+        <div className="w-[35rem] h-screen sticky top-0 z-40">
           <Sidebar />
         </div>
         <div className="flex-1">
@@ -23,12 +23,9 @@ function AppContent({ children }: { children: React.ReactNode }) {
             <Header />
           </div>
           <main className="flex-1 overflow-y-auto transition-colors duration-300">
-            <div className="pt-8 pb-6 pr-6 w-full grid grid-cols-2 gap-6" style={{ paddingLeft: '3rem' }}>
-              <div className="flex flex-col items-start">
+            <div className="pt-8 pb-6 pr-6 w-full" style={{ paddingLeft: '1rem' }}>
+              <div className="flex flex-col items-start max-w-4xl">
                 {children}
-              </div>
-              <div className="flex flex-col">
-                {/* Right column - empty for future use */}
               </div>
             </div>
           </main>
@@ -55,15 +52,15 @@ export default function RootLayout({
             (function() {
               try {
                 document.documentElement.classList.add('light');
-                document.documentElement.style.backgroundColor = 'white';
-                document.body.style.backgroundColor = 'white';
+                document.documentElement.style.backgroundColor = '#f5f4f2';
+                document.body.style.backgroundColor = '#f5f4f2';
                 document.body.style.color = '#111827';
               } catch (e) {}
             })();
           `
         }} />
       </head>
-      <body className="antialiased bg-white text-gray-900">
+      <body className="antialiased text-gray-900" style={{backgroundColor: '#f5f4f2'}}>
         <ThemeProvider>
           <AppContent>{children}</AppContent>
         </ThemeProvider>

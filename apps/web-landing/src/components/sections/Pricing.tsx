@@ -24,15 +24,15 @@ export default function Pricing() {
       cta: "Get started for free",
       ctaLink: "/auth/register",
       tagline: "Go from raw data to model-ready in minutes.",
-      popular: true
     },
     {
       name: "Growth",
       title: "Growth",
-      monthlyPrice: 149,
-      cta: "Get started for free",
-      ctaLink: "/auth/register",
-      tagline: "Accelerate your team's ML development and scale your data pipelines."
+      monthlyPrice: 199,
+      cta: "Contact Sales",
+      ctaLink: "/contact-sales",
+      tagline: "Accelerate your team's ML development and scale your data pipelines.",
+      popular: true
     }
   ]
 

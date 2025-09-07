@@ -101,7 +101,7 @@ print(f"Recommended transformations: {len(profile['recommendations'])}")`}
                 Process Your Data
               </h3>
               <p className="text-gray-600 mb-8 text-lg leading-relaxed">
-                Apply AI-powered transformations to clean and prepare your data:
+                Apply statistical transformations to clean and prepare your data:
               </p>
 
             <CodeBlock

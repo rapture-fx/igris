@@ -1,54 +1,35 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function MonitoringApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Get equipment health assessment
-curl -X POST https://api.schlep-engine.com/api/v1/monitoring/equipment-health \
-  -H "Authorization: Bearer sk_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "equipment_id": "pump_001",
-    "sensor_data": {
-      "temperature": [22.5, 23.1, 22.8, 24.2],
-      "vibration": [0.1, 0.15, 0.12, 0.18],
-      "pressure": [101.3, 101.5, 101.2, 101.8]
-    },
-    "time_window": "1h"
-  }'`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-
-response = requests.get("https://api.schlep-engine.com/api/v1/monitoring/metrics/snapshot", headers=headers)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-
-fetch('https://api.schlep-engine.com/api/v1/monitoring/metrics/snapshot', {
-  headers: {
-    'Authorization': 'Bearer ' + apiKey
-  }
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
 
   return (
     <ApiLayout 
-      title="Equipment Monitoring API"
-      description="Real-time equipment health monitoring and industrial sensor tracking."
-      codeExamples={codeExamples}
+      title="System Monitoring & Health API"
+      description="Real-time system health monitoring, equipment tracking, and industrial sensor monitoring."
+      
     >
+      <section className="mb-12" id="industry-health-check">
+        <h2 className="text-2xl font-semibold text-gray-900 mb-4">Industry AI Services Health Check</h2>
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="px-2 py-1 text-xs font-semibold rounded bg-green-200 text-green-800">GET</span>
+            <code className="text-sm">/api/v1/industry/health</code>
+          </div>
+          <p className="text-gray-600 mb-4">Check the operational status of all industry-specific AI services including financial, e-commerce, and manufacturing processors. Returns detailed health information for each service and their underlying ML models.</p>
+          
+          <div className="mt-4">
+            <h4 className="font-medium text-gray-900 mb-2">Response includes:</h4>
+            <ul className="text-sm text-gray-600 space-y-1">
+              <li>• Overall system status</li>
+              <li>• Individual service health (financial, e-commerce, manufacturing)</li>
+              <li>• Model operational status for each processor</li>
+              <li>• Response time metrics</li>
+              <li>• System uptime and version information</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
       <section className="mb-12" id="get-performance-snapshot">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Equipment Health Assessment</h2>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">

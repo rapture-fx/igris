@@ -20,10 +20,10 @@ export default function EcommercePage() {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12">
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">E-commerce AI</h1>
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">E-commerce Analytics</h1>
         <p className="text-xl text-gray-600">
-          Production-ready AI APIs for product recommendations, demand forecasting, and dynamic pricing. 
-          Boost conversion rates and optimize revenue with intelligent e-commerce automation.
+          Production-ready analytics APIs for product recommendations, demand forecasting, and dynamic pricing. 
+          Boost conversion rates and optimize revenue with data-driven e-commerce automation.
         </p>
       </div>
 
@@ -36,7 +36,7 @@ export default function EcommercePage() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">Personalized Product Recommendations</h3>
               <p className="text-gray-600 mb-4">
-                Generate intelligent product recommendations using collaborative filtering and deep learning. 
+                Generate product recommendations using collaborative filtering and statistical analysis. 
                 Increase conversion rates by 35% with personalized shopping experiences.
               </p>
               <div className="bg-white rounded-md p-4 border">
@@ -109,11 +109,11 @@ export default function EcommercePage() {
             </ul>
           </div>
           <div className="bg-blue-50 border-l-4 border-blue-400 p-6">
-            <h3 className="font-semibold mb-3">Schlep Engine AI APIs</h3>
+            <h3 className="font-semibold mb-3">Schlep Engine Analytics APIs</h3>
             <ul className="space-y-2 text-sm text-gray-600">
-              <li>• Intelligent product recommendations</li>
+              <li>• Statistical product recommendations</li>
               <li>• RL-powered dynamic pricing</li>
-              <li>• ML-driven demand forecasting</li>
+              <li>• Statistical demand forecasting</li>
               <li>• Real-time personalization engine</li>
             </ul>
           </div>
@@ -122,7 +122,7 @@ export default function EcommercePage() {
 
       {/* API Endpoints */}
       <section className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Production AI APIs</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-6">Production Analytics APIs</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
             <div className="flex items-center gap-3 mb-4">
@@ -145,7 +145,7 @@ export default function EcommercePage() {
               <ChartBarIcon className="h-6 w-6 text-blue-600" />
               <h3 className="font-semibold">Demand Forecasting</h3>
             </div>
-            <p className="text-sm text-gray-600 mb-4">ML-powered inventory optimization and planning</p>
+            <p className="text-sm text-gray-600 mb-4">Statistical inventory optimization and planning</p>
             <div className="text-xs text-gray-500 mb-4">
               <p><strong>Endpoint:</strong> <code>/v1/industry/ecommerce/demand-forecast</code></p>
               <p><strong>Forecast Horizon:</strong> 1-365 days</p>
@@ -223,7 +223,7 @@ print(f"Competitive Position: {optimization.competitive_positioning}")
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Performance Metrics</h2>
         <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <h3 className="font-semibold mb-4">E-commerce AI Results</h3>
+          <h3 className="font-semibold mb-4">E-commerce Analytics Results</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center p-4 bg-blue-50 rounded">
               <p className="text-2xl font-bold text-blue-600">35%</p>

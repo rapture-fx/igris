@@ -1,45 +1,12 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function BillingApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Get usage statistics
-curl -X GET https://api.schlep-engine.com/api/v1/billing/usage \
-  -H "Authorization: Bearer sk_your_api_key"`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-
-response = requests.get("https://api.schlep-engine.com/api/v1/billing/usage", headers=headers)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-
-fetch('https://api.schlep-engine.com/api/v1/billing/usage', {
-  headers: {
-    'Authorization': \`Bearer \${apiKey}\`
-  }
-})
-.then(response => response.json())
-.then(data => console.log(data));`
-    }
-  ]
 
   return (
     <ApiLayout 
       title="Billing API"
       description="Manage billing, subscriptions, and usage."
-      codeExamples={codeExamples}
+      
     >
       <section className="mb-12" id="get-usage-statistics">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get Usage Statistics</h2>
