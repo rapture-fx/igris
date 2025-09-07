@@ -1,77 +1,11 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function IntegrationsApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Connect to a PostgreSQL database
-curl -X POST https://api.schlep-engine.com/api/v1/integrations/database/connect \
-  -H "Authorization: Bearer sk_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{ 
-    "connection_name": "my_pg_db",
-    "database_type": "postgresql",
-    "host": "localhost",
-    "port": 5432,
-    "database": "mydb",
-    "username": "user",
-    "password": "password"
-  }'`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-
-# Connect to a PostgreSQL database
-connection_data = {
-    "connection_name": "my_pg_db",
-    "database_type": "postgresql",
-    "host": "localhost",
-    "port": 5432,
-    "database": "mydb",
-    "username": "user",
-    "password": "password"
-}
-response = requests.post("https://api.schlep-engine.com/api/v1/integrations/database/connect", headers=headers, json=connection_data)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-
-// Connect to a PostgreSQL database
-const connectionData = {
-    connection_name: "my_pg_db",
-    database_type: "postgresql",
-    host: "localhost",
-    port: 5432,
-    database: "mydb",
-    username: "user",
-    password: "password"
-};
-
-fetch('https://api.schlep-engine.com/api/v1/integrations/database/connect', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer ' + apiKey,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(connectionData)
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
 
   return (
     <ApiLayout 
       title="Integrations API"
       description="Connect to various data sources and external services."
-      codeExamples={codeExamples}
     >
       <section className="mb-12" id="connect-database">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Connect Database</h2>

@@ -11,7 +11,7 @@ export function Header() {
       <div className="w-full px-4 py-4">
         <div className="flex items-center justify-between h-12">
           {/* Left side - Breadcrumb aligned with main content */}
-          <div className="flex items-center" style={{ marginLeft: '3rem' }}>
+          <div className="flex items-center" style={{ marginLeft: '1rem' }}>
             <Breadcrumb />
           </div>
           

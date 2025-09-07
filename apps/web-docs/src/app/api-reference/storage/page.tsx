@@ -1,51 +1,11 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function StorageApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Upload a file
-curl -X POST https://api.schlep-engine.com/api/v1/storage/upload \
-  -H "Authorization: Bearer sk_your_api_key" \
-  -F "file=@/path/to/your/file.csv"`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-files = {'file': open('/path/to/your/file.csv', 'rb')}
-
-response = requests.post("https://api.schlep-engine.com/api/v1/storage/upload", headers=headers, files=files)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-const fileInput = document.querySelector('input[type="file"]');
-
-const formData = new FormData();
-formData.append('file', fileInput.files[0]);
-
-fetch('https://api.schlep-engine.com/api/v1/storage/upload', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer ' + apiKey
-  },
-  body: formData
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
 
   return (
     <ApiLayout 
       title="Storage API"
       description="Manage files, folders, and storage quotas."
-      codeExamples={codeExamples}
     >
       <section className="mb-12" id="upload-file">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Upload File</h2>

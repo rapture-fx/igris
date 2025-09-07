@@ -1,43 +1,10 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function UsersApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Get current user profile
-curl -X GET https://api.schlep-engine.com/api/v1/users/me \
-  -H "Authorization: Bearer sk_your_api_key"`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-
-response = requests.get("https://api.schlep-engine.com/api/v1/users/me", headers=headers)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-
-fetch('https://api.schlep-engine.com/api/v1/users/me', {
-  headers: {
-    'Authorization': 'Bearer ' + apiKey
-  }
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
-
   return (
     <ApiLayout 
       title="Users API"
       description="Manage users and their profiles."
-      codeExamples={codeExamples}
     >
       <section className="mb-12" id="get-current-user">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get Current User</h2>

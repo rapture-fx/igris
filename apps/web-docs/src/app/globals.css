@@ -10,7 +10,7 @@
   --color-primary: #468BE6;
   --color-primary-hover: #3a7bd5;
   --color-secondary: #6b7280;
-  --color-background: #ffffff;
+  --color-background: #f5f4f2;
   --color-surface: #f9fafb;
   --color-border: #e5e7eb;
   --color-text-primary: #111827;
@@ -35,17 +35,18 @@
 @layer base {
   html {
     scroll-behavior: smooth;
-    background-color: white !important; /* Prevent flash */
+    background-color: #f5f4f2 !important; /* Prevent flash */
     color: #111827 !important;
   }
-  
+
   body {
-    @apply bg-white text-gray-900 antialiased;
+    @apply text-gray-900 antialiased;
+    background-color: #f5f4f2 !important;
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
     font-size: 13px;
     line-height: 1.5;
     color: #111827 !important; /* Force light mode text color */
-    background-color: white !important; /* Ensure white background always */
+    background-color: #f5f4f2 !important; /* Ensure background color always */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     opacity: 1 !important; /* Prevent fade/blank */
@@ -63,7 +64,7 @@
   div,
   section,
   article {
-    background-color: white !important;
+    background-color: #f5f4f2 !important;
     color: #111827 !important;
     opacity: 1 !important;
   }
@@ -89,16 +90,16 @@
 
   /* Ensure proper light mode styling */
   .light {
-    background-color: white;
+    background-color: #f5f4f2;
     color: #111827;
   }
 
   /* Default to light mode if no class */
   html:not(.dark) {
-    background-color: white;
+    background-color: #f5f4f2;
     color: #111827;
   }
-  
+
   p, li, div {
     @apply text-gray-900 transition-colors duration-300 text-left;
   }
@@ -181,14 +182,7 @@ main {
 
 /* Proper spacing for main content - removed since layout is now handled by grid */
 
-/* Improved spacing for grid layout */
-main .grid-cols-2 > div:first-child {
-  padding-right: 1rem;
-}
-
-main .grid-cols-2 > div:last-child {
-  padding-left: 1rem;
-}
+/* Single column main content layout */
 
 .prose h1 {
   font-size: 1rem !important;
@@ -262,7 +256,7 @@ main .grid-cols-2 > div:last-child {
     box-shadow: none !important;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
-  
+
   .dark pre {
     background-color: #0f172a !important;  /* slate-900 */
     color: #f8fafc !important;             /* slate-50 */
@@ -279,38 +273,38 @@ main .grid-cols-2 > div:last-child {
     border: none !important;
     transition: none;
   }
-  
+
   .dark code {
     background-color: transparent !important;
     color: inherit !important;
   }
-  
+
   /* Remove borders from all code containers */
   .prose pre {
     border: none !important;
     box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05) !important;
   }
-  
+
   .endpoint-badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
   }
-  
+
   .endpoint-badge.get {
     @apply bg-green-100 text-green-800;
   }
-  
+
   .endpoint-badge.post {
     @apply bg-blue-100 text-blue-800;
   }
-  
+
   .endpoint-badge.put {
     @apply bg-yellow-100 text-yellow-800;
   }
-  
+
   .endpoint-badge.delete {
     @apply bg-red-100 text-red-800;
   }
-  
+
 }
 
 /* Subtle syntax highlighting for light background */

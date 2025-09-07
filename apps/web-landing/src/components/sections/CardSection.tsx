@@ -1,4 +1,6 @@
 
+'use client'
+
 import React from 'react';
 
 const Card = ({ title, description, cta, ctaLink }) => (

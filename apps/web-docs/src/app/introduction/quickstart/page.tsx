@@ -190,7 +190,7 @@ else:
           <div>
             <h3 className="text-sm font-semibold text-gray-900 mb-2">Direct API Call</h3>
             <CodeBlock
-              code={`curl -X POST https://api.schlep-engine.com/v1/financial/analyze-transaction \\
+              code={`curl -X POST https://api.schlep-engine.com/api/v1/industry/financial/fraud-detection \\
   -H "Authorization: Bearer your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{

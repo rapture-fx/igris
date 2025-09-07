@@ -1,66 +1,11 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function DataProcessingApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Create a new data investigation
-curl -X POST https://api.schlep-engine.com/api/v1/data-processing/investigations/ \\
-  -H "Authorization: Bearer sk_your_api_key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "name": "Customer Data Analysis",
-    "description": "Analysis of customer behavior data",
-    "workspace_id": "ws_123456789"
-  }'
-
-# Upload file to investigation  
-curl -X POST "https://api.schlep-engine.com/api/v1/data-processing/investigations/{investigation_id}/files/" \\
-  -H "Authorization: Bearer sk_your_api_key" \\
-  -F "file=@customer_data.csv" \\
-  -F "file_type=dataset"`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-
-investigation_data = {
-    "workspace_id": "your_workspace_id"
-}
-
-response = requests.post("https://api.schlep-engine.com/api/v1/processing/investigations/", headers=headers, json=investigation_data)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-
-const investigationData = {
-    workspace_id: "your_workspace_id"
-};
-
-fetch('https://api.schlep-engine.com/api/v1/processing/investigations/', {
-  method: 'POST',
-  headers: {
-    'Authorization': 'Bearer ' + apiKey,
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify(investigationData)
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
 
   return (
     <ApiLayout 
       title="Data Processing API"
       description="Manage data investigations and processing jobs."
-      codeExamples={codeExamples}
     >
       <section className="mb-12" id="create-investigation">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Create Investigation</h2>

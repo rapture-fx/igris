@@ -1,43 +1,12 @@
 import { ApiLayout } from '@/components/ui/ApiLayout'
 
 export default function AnalyticsApiPage() {
-  const codeExamples = [
-    {
-      language: 'curl',
-      label: 'cURL',
-      code: `# Get time savings analytics
-curl -X GET https://api.schlep-engine.com/api/v1/analytics/time-savings \
-  -H "Authorization: Bearer sk_your_api_key"`
-    },
-    {
-      language: 'python',
-      label: 'Python',
-      code: `import requests
-
-api_key = "sk_your_api_key"
-headers = {"Authorization": f"Bearer {api_key}"}
-
-response = requests.get("https://api.schlep-engine.com/api/v1/analytics/time-savings", headers=headers)
-print(response.json())`
-    },
-    {
-      language: 'javascript',
-      label: 'JavaScript',
-      code: `const apiKey = 'sk_your_api_key';
-
-fetch('https://api.schlep-engine.com/api/v1/analytics/time-savings', {
-  headers: {
-    'Authorization': 'Bearer ' + apiKey
-  }
-}).then(res => res.json()).then(console.log);`
-    }
-  ]
 
   return (
     <ApiLayout 
       title="Analytics API"
       description="Get analytics, monitoring, and webhook information."
-      codeExamples={codeExamples}
+      
     >
       <section className="mb-12" id="get-time-savings">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">Get Time Savings</h2>
