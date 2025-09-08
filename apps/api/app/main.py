@@ -56,6 +56,9 @@ from app.api.v1.feedback_learning import router as feedback_learning_router
 # Import real-time streaming routers
 from app.api.v1.real_time_streaming import router as streaming_router
 
+# Import Advanced Model Serving APIs
+from app.api.v1.model_serving import router as model_serving_router
+
 # Setup logging
 setup_logging(
     log_level=getattr(settings, 'LOG_LEVEL', 'INFO'),
@@ -119,6 +122,27 @@ async def lifespan(app: FastAPI):
                 logger.warning(f"Failed to initialize streaming system: {streaming_error}")
                 logger.info("Continuing without real-time streaming features")
         
+        # Initialize Advanced Model Serving Platform
+        enable_model_serving = os.getenv('ENABLE_MODEL_SERVING', 'true').lower() == 'true'
+        if enable_model_serving:
+            try:
+                from app.services.model_serving_initializer import initialize_model_serving_platform
+                from app.core.database import get_db
+                
+                # Initialize model serving platform
+                db = next(get_db())
+                init_result = await initialize_model_serving_platform(db)
+                
+                if init_result.get('ready'):
+                    logger.info("Advanced Model Serving Platform initialized successfully")
+                    logger.info(f"Platform components: {list(init_result.get('components', {}).keys())}")
+                else:
+                    logger.warning(f"Model Serving Platform initialization incomplete: {init_result.get('status')}")
+                
+            except Exception as serving_error:
+                logger.warning(f"Failed to initialize Model Serving Platform: {serving_error}")
+                logger.info("Continuing without advanced model serving features")
+        
         # Record application startup
         metrics_collector.record_business_event("application_startup")
         
@@ -159,6 +183,19 @@ async def lifespan(app: FastAPI):
                 
             except Exception as streaming_error:
                 logger.warning(f"Error shutting down streaming system: {streaming_error}")
+        
+        # Shutdown Advanced Model Serving Platform
+        enable_model_serving = os.getenv('ENABLE_MODEL_SERVING', 'true').lower() == 'true'
+        if enable_model_serving:
+            try:
+                from app.services.model_serving_initializer import shutdown_model_serving_platform
+                
+                # Shutdown model serving platform
+                await shutdown_model_serving_platform()
+                logger.info("Advanced Model Serving Platform shutdown successfully")
+                
+            except Exception as serving_error:
+                logger.warning(f"Error shutting down Model Serving Platform: {serving_error}")
         
         # Record application shutdown
         metrics_collector.record_business_event("application_shutdown")
@@ -372,6 +409,9 @@ app.include_router(industry_solutions_router, prefix="/api/v1/industry", tags=["
 # Real-time streaming endpoints
 app.include_router(streaming_router, prefix="/api/v1/streaming", tags=["Real-Time Streaming"])
 
+# Advanced Model Serving endpoints
+app.include_router(model_serving_router, prefix="/api/v1/serving", tags=["Model Serving"])
+
 # Root endpoint
 @app.get("/", tags=["Root"])
 async def root():
@@ -385,6 +425,26 @@ async def root():
         "health": "/api/v1/health",
         "metrics": "/api/v1/metrics"
     }
+
+# Model Serving Platform Status endpoint
+@app.get("/api/v1/serving/platform/status", tags=["Model Serving"])
+async def model_serving_platform_status():
+    """Get Model Serving Platform status"""
+    try:
+        from app.services.model_serving_initializer import get_platform_status
+        return get_platform_status()
+    except Exception as e:
+        return {"error": str(e), "initialized": False}
+
+# Model Serving Platform Health Check endpoint
+@app.get("/api/v1/serving/platform/health", tags=["Model Serving"])
+async def model_serving_platform_health():
+    """Get Model Serving Platform health check"""
+    try:
+        from app.services.model_serving_initializer import platform_health_check
+        return await platform_health_check()
+    except Exception as e:
+        return {"overall_status": "error", "error": str(e)}
 
 # Health check endpoint (simple)
 @app.get("/health", tags=["Health"])
