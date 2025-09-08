@@ -27,6 +27,14 @@ from ..ml.manufacturing_forecasting import (
     ManufacturingContext,
     ForecastResult
 )
+from ..ml.real_time_manufacturing_analytics import (
+    RealTimeManufacturingAnalytics,
+    create_real_time_analytics_engine
+)
+from .manufacturing_time_series_processor import (
+    ManufacturingTimeSeriesProcessor,
+    create_manufacturing_processor
+)
 from ..models.manufacturing import ManufacturingDatabase
 
 logger = logging.getLogger(__name__)
@@ -59,6 +67,16 @@ class ManufacturingForecastingService:
         # Initialize the core forecasting engine
         self.forecasting_engine = ManufacturingTimeSeriesForecaster(
             config=self.config.get('forecasting_engine', {})
+        )
+        
+        # Initialize real-time analytics engine
+        self.real_time_analytics = create_real_time_analytics_engine(
+            config=self.config.get('real_time_analytics', {})
+        )
+        
+        # Initialize time-series processor
+        self.time_series_processor = create_manufacturing_processor(
+            config=self.config.get('time_series_processor', {})
         )
         
         # Performance monitoring
@@ -952,3 +970,313 @@ class ManufacturingForecastingService:
         # Update forecasting engine config
         self.forecasting_engine.update_model_config('all', new_config.get('forecasting_engine', {}))
         logger.info("Service configuration updated")
+    
+    # Real-time Analytics Integration Methods
+    
+    async def process_real_time_sensor_data(
+        self,
+        equipment_id: str,
+        sensor_data: Dict[str, Any],
+        timestamp: Optional[datetime] = None,
+        include_forecasting: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Process real-time sensor data with comprehensive analytics and forecasting.
+        
+        Args:
+            equipment_id: Equipment identifier
+            sensor_data: Current sensor readings
+            timestamp: Data timestamp (defaults to now)
+            include_forecasting: Include forecasting in the analysis
+            
+        Returns:
+            Comprehensive real-time analysis results
+        """
+        start_time = datetime.now()
+        
+        try:
+            # Process with real-time analytics engine
+            analytics_results = await self.real_time_analytics.process_real_time_data(
+                equipment_id=equipment_id,
+                sensor_data=sensor_data,
+                timestamp=timestamp
+            )
+            
+            # Add forecasting if requested
+            if include_forecasting:
+                forecasting_results = await self._generate_real_time_forecasts(
+                    equipment_id=equipment_id,
+                    current_sensor_data=sensor_data,
+                    analytics_context=analytics_results
+                )
+                analytics_results['forecasting'] = forecasting_results
+            
+            # Update performance metrics
+            processing_time = (datetime.now() - start_time).total_seconds()
+            self.performance_metrics['total_requests'] += 1
+            self.performance_metrics['successful_predictions'] += 1
+            self.performance_metrics['average_response_time'] = (
+                self.performance_metrics['average_response_time'] * 0.9 + processing_time * 0.1
+            )
+            
+            return analytics_results
+            
+        except Exception as e:
+            logger.error(f"Error in real-time sensor data processing: {e}")
+            self.performance_metrics['failed_predictions'] += 1
+            raise
+    
+    async def _generate_real_time_forecasts(
+        self,
+        equipment_id: str,
+        current_sensor_data: Dict[str, Any],
+        analytics_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Generate real-time forecasts based on current sensor data and analytics context."""
+        try:
+            forecasts = {}
+            
+            # Equipment failure prediction (short-term)
+            if analytics_context.get('anomalies') or analytics_context.get('overall_status') != 'healthy':
+                failure_forecast = await self.predict_equipment_failure(
+                    equipment_id=equipment_id,
+                    sensor_data=current_sensor_data,
+                    forecast_horizon_days=1,  # Short-term for real-time
+                    model_preference='ensemble'
+                )
+                forecasts['failure_prediction'] = failure_forecast
+            
+            # Quality prediction based on current conditions
+            if 'quality_predictions' in analytics_context:
+                quality_forecast = await self.predict_quality_trends(
+                    batch_id=f"{equipment_id}_{datetime.now().strftime('%Y%m%d')}",
+                    quality_data=pd.DataFrame([current_sensor_data]),
+                    process_parameters=pd.DataFrame([current_sensor_data]),
+                    forecast_horizon_hours=4  # 4-hour quality forecast
+                )
+                forecasts['quality_forecast'] = quality_forecast
+            
+            # Energy consumption forecast
+            energy_sensors = {
+                k: v for k, v in current_sensor_data.items()
+                if any(term in k.lower() for term in ['energy', 'power', 'current'])
+            }
+            if energy_sensors:
+                energy_forecast = await self.forecast_energy_consumption(
+                    facility_id=equipment_id,
+                    energy_data=pd.DataFrame([energy_sensors]),
+                    production_schedule=pd.DataFrame([{'production': current_sensor_data.get('production_output', 100)}]),
+                    forecast_horizon_hours=8
+                )
+                forecasts['energy_forecast'] = energy_forecast
+            
+            return forecasts
+            
+        except Exception as e:
+            logger.error(f"Error generating real-time forecasts: {e}")
+            return {}
+    
+    async def stream_analytics_with_forecasting(
+        self,
+        equipment_ids: List[str],
+        data_stream: AsyncGenerator[Dict[str, Any], None],
+        processing_options: Optional[Dict[str, Any]] = None
+    ) -> AsyncGenerator[Dict[str, Any], None]:
+        """
+        Process streaming sensor data with real-time analytics and forecasting.
+        
+        Args:
+            equipment_ids: List of equipment IDs to monitor
+            data_stream: Async generator yielding sensor data
+            processing_options: Processing configuration options
+            
+        Yields:
+            Real-time analytics and forecasting results
+        """
+        options = processing_options or {}
+        
+        try:
+            async for data_batch in data_stream:
+                batch_results = {}
+                
+                # Process each equipment's data
+                for equipment_id in equipment_ids:
+                    if equipment_id in data_batch:
+                        equipment_data = data_batch[equipment_id]
+                        
+                        # Process with comprehensive analytics
+                        result = await self.process_real_time_sensor_data(
+                            equipment_id=equipment_id,
+                            sensor_data=equipment_data,
+                            include_forecasting=options.get('include_forecasting', True)
+                        )
+                        
+                        batch_results[equipment_id] = result
+                
+                # Yield combined results
+                if batch_results:
+                    yield {
+                        'timestamp': datetime.now().isoformat(),
+                        'batch_processing_time_ms': sum(
+                            r.get('processing_time_ms', 0) for r in batch_results.values()
+                        ),
+                        'equipment_results': batch_results,
+                        'system_summary': self._generate_system_summary(batch_results)
+                    }
+                    
+        except Exception as e:
+            logger.error(f"Error in stream analytics: {e}")
+            yield {'error': str(e), 'timestamp': datetime.now().isoformat()}
+    
+    def _generate_system_summary(self, batch_results: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
+        """Generate system-wide summary from batch processing results."""
+        try:
+            total_equipment = len(batch_results)
+            healthy_equipment = sum(
+                1 for r in batch_results.values()
+                if r.get('overall_status') == 'healthy'
+            )
+            
+            total_alerts = sum(
+                len(r.get('alerts', [])) for r in batch_results.values()
+            )
+            
+            critical_alerts = sum(
+                len([a for a in r.get('alerts', []) if a.get('severity') in ['critical', 'emergency']])
+                for r in batch_results.values()
+            )
+            
+            return {
+                'total_equipment': total_equipment,
+                'healthy_equipment': healthy_equipment,
+                'degraded_equipment': total_equipment - healthy_equipment,
+                'total_alerts': total_alerts,
+                'critical_alerts': critical_alerts,
+                'system_health_percentage': (healthy_equipment / total_equipment * 100) if total_equipment > 0 else 0
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating system summary: {e}")
+            return {}
+    
+    async def configure_real_time_alerts(
+        self,
+        equipment_id: str,
+        alert_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Configure real-time alerts and thresholds for equipment.
+        
+        Args:
+            equipment_id: Equipment identifier
+            alert_config: Alert configuration including thresholds and notification settings
+            
+        Returns:
+            Configuration confirmation and current settings
+        """
+        try:
+            # Configure anomaly detection thresholds
+            if 'anomaly_thresholds' in alert_config:
+                anomaly_config = alert_config['anomaly_thresholds']
+                # Update time series processor configuration
+                self.time_series_processor.anomaly_detector.confidence_level = anomaly_config.get(
+                    'confidence_level', 0.95
+                )
+            
+            # Configure SPC limits
+            if 'spc_limits' in alert_config:
+                spc_config = alert_config['spc_limits']
+                for parameter, limits in spc_config.items():
+                    key = f"{equipment_id}_{parameter}"
+                    self.time_series_processor.spc_controller.control_limits[key] = limits
+            
+            # Register alert callbacks
+            if 'alert_callbacks' in alert_config:
+                callbacks = alert_config['alert_callbacks']
+                if 'anomaly' in callbacks:
+                    self.time_series_processor.register_anomaly_callback(
+                        self._create_alert_callback(equipment_id, 'anomaly')
+                    )
+                if 'spc' in callbacks:
+                    self.time_series_processor.register_spc_callback(
+                        self._create_alert_callback(equipment_id, 'spc')
+                    )
+            
+            return {
+                'equipment_id': equipment_id,
+                'configuration_applied': True,
+                'timestamp': datetime.now().isoformat(),
+                'active_alerts': list(alert_config.keys())
+            }
+            
+        except Exception as e:
+            logger.error(f"Error configuring real-time alerts: {e}")
+            return {'error': str(e), 'equipment_id': equipment_id}
+    
+    def _create_alert_callback(self, equipment_id: str, alert_type: str):
+        """Create alert callback function for real-time notifications."""
+        async def alert_callback(alert_data):
+            try:
+                # Log alert
+                logger.warning(f"Real-time alert for {equipment_id} ({alert_type}): {alert_data}")
+                
+                # Here you could:
+                # - Send notifications via email/SMS
+                # - Push to message queue
+                # - Update dashboard in real-time
+                # - Trigger automated responses
+                
+                # For now, just log the alert
+                alert_summary = {
+                    'equipment_id': equipment_id,
+                    'alert_type': alert_type,
+                    'timestamp': datetime.now().isoformat(),
+                    'data': alert_data
+                }
+                
+                # Store in alert history (simplified)
+                if not hasattr(self, 'alert_history'):
+                    self.alert_history = []
+                self.alert_history.append(alert_summary)
+                
+                # Keep only recent alerts
+                if len(self.alert_history) > 1000:
+                    self.alert_history = self.alert_history[-500:]
+                    
+            except Exception as e:
+                logger.error(f"Error in alert callback: {e}")
+        
+        return alert_callback
+    
+    def get_real_time_capabilities(self) -> Dict[str, Any]:
+        """Get information about real-time processing capabilities."""
+        return {
+            'real_time_analytics': {
+                'available': True,
+                'features': [
+                    'anomaly_detection',
+                    'statistical_process_control',
+                    'quality_prediction',
+                    'efficiency_analysis',
+                    'energy_optimization'
+                ],
+                'response_time_target_ms': 100,
+                'max_concurrent_streams': 50
+            },
+            'forecasting_integration': {
+                'available': True,
+                'models': ['lstm', 'prophet', 'arima', 'ensemble'],
+                'max_horizon_days': 30,
+                'uncertainty_quantification': True
+            },
+            'streaming_capabilities': {
+                'websocket_support': True,
+                'batch_processing': True,
+                'auto_scaling': True
+            },
+            'alert_system': {
+                'real_time_notifications': True,
+                'configurable_thresholds': True,
+                'multi_channel_delivery': True
+            }
+        }

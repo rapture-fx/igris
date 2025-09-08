@@ -12,6 +12,7 @@ import {
   RocketLaunchIcon,
   DocumentTextIcon,
   ClockIcon,
+  SparklesIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
@@ -21,7 +22,7 @@ const mainSections = [
   {
     name: 'Documentation',
     href: '/introduction',
-    icon: DocumentTextIcon,
+    icon: BookOpenIcon,
     isMainSection: true,
     children: [
       { name: 'Overview', href: '/introduction' },
@@ -59,7 +60,7 @@ const mainSections = [
   {
     name: 'API Reference',
     href: '/api-reference',
-    icon: CodeBracketIcon,
+    icon: CommandLineIcon,
     isMainSection: true,
     flatItems: [
       { name: 'API Overview', href: '/api-reference' },
@@ -298,7 +299,7 @@ const mainSections = [
   {
     name: 'Changelog',
     href: '/changelog',
-    icon: ClockIcon,
+    icon: SparklesIcon,
     isMainSection: true,
     children: [
       { name: 'Latest Updates', href: '/changelog' },
@@ -347,29 +348,29 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:flex md:flex-shrink-0">
-      <div className="flex flex-col w-96 h-screen">
+      <div className="flex flex-col w-[22.5rem] h-screen">
         <div className="flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300 ease-in-out">
           {/* Combined Logo, Search, and Navigation - now scrollable */}
           <div className="flex-1 flex flex-col pb-4 overflow-y-auto scrollbar-thin">
-            <div className="px-5 pt-4">
-              <div className="mb-4 pl-3">
+            <div className="pt-4">
+              <div className="mb-4 pl-10">
                 <Link href="/" className="block">
                   <img
-                    src="/docs logo.svg"
+                    src="/Docs Schlep-engne.svg?t=1725657600000"
                     alt="Schlep Engine"
-                    className="h-16 w-auto cursor-pointer hover:opacity-80 transition-opacity duration-200"
+                    className="h-14 w-auto cursor-pointer"
                   />
                 </Link>
               </div>
               {/* Search Trigger */}
-              <div className="mb-6 px-3">
+              <div className="mb-6 px-10">
                 <button
                   onClick={() => {
                     // Trigger global search
                     const event = new CustomEvent('openGlobalSearch');
                     document.dispatchEvent(event);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-sm text-left"
+                  className="w-3/4 flex items-center gap-3 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-sm text-left"
                 >
                   <MagnifyingGlassIcon className="h-4 w-4 text-gray-600" />
                   <span className="text-sm text-gray-500">Search...</span>
@@ -393,7 +394,7 @@ export function Sidebar() {
                       className={clsx(
                         'w-full flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all duration-150 group border text-left',
                         currentActiveSection === section.name
-                          ? 'text-gray-900 border-transparent'
+                          ? 'text-schlep-active-blue border-transparent'
                           : 'text-gray-600 border-transparent'
                       )}
                     >
@@ -470,34 +471,34 @@ export function Sidebar() {
                       section.groups.map((group) => (
                         <div key={group.name} className="mb-4">
                           {/* Group header with dropdown toggle */}
-                          <div className="w-full flex items-center justify-between">
-                            <Link 
-                              href={group.href || '#'}
+                          <div
+                            onClick={() => {
+                              toggleGroup(group.name)
+                              router.push(group.href || '#')
+                            }}
+                            className={clsx(
+                              'w-full flex items-center justify-between px-3 py-1 transition-all duration-150 nav-link cursor-pointer group',
+                              isActive(group.href || '#')
+                                ? 'text-schlep-active-blue'
+                                : 'text-gray-600'
+                            )}
+                          >
+                            <span className="text-sm">{group.name}</span>
+                            <ChevronRightIcon
                               className={clsx(
-                                'flex-1 flex items-center px-3 py-1 rounded-lg transition-all duration-150 group border nav-link',
-                                isActive(group.href || '#')
-                                  ? 'text-gray-900 border-transparent'
-                                  : 'text-gray-600 border-transparent'
+                                'h-4 w-4 transition-transform duration-200',
+                                openGroups.has(group.name) ? 'rotate-90' : 'rotate-0',
+                                {
+                                  'invisible group-hover:visible': !openGroups.has(group.name)
+                                },
+                                isActive(group.href || '#') ? 'text-schlep-active-blue' : 'text-black'
                               )}
-                            >
-                              <span className="text-sm">{group.name}</span>
-                            </Link>
-                            <button
-                              onClick={() => toggleGroup(group.name)}
-                              className="ml-2 p-1 hover:bg-gray-100 rounded"
-                            >
-                              <ChevronRightIcon
-                                className={clsx(
-                                  'h-4 w-4 text-gray-500 transition-transform duration-200',
-                                  openGroups.has(group.name) ? 'rotate-90' : 'rotate-0'
-                                )}
-                              />
-                            </button>
+                            />
                           </div>
 
                           {/* Group content */}
                           {openGroups.has(group.name) && (
-                            <div className="ml-3 space-y-1 border-l border-gray-200 pl-3">
+                            <div className="ml-5 space-y-1 border-l border-gray-200 pl-1">
                               {group.children.map((child) => {
                                 const getMethodColor = (method: string) => {
                                   switch (method?.toUpperCase()) {
@@ -519,7 +520,7 @@ export function Sidebar() {
                                     className={clsx(
                                       'w-full flex items-center px-3 py-1 rounded-lg transition-all duration-150 group border nav-link',
                                       isActive(child.href)
-                                        ? 'text-gray-900 border-transparent font-semibold'
+                                        ? 'text-schlep-active-blue border-transparent font-semibold'
                                         : 'text-gray-600 border-transparent'
                                     )}
                                   >

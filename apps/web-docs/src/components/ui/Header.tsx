@@ -27,10 +27,10 @@ export function Header() {
             </button>
             
             <a
-              href="http://localhost:3000/signin"
-              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-black hover:bg-gray-800 transition-colors duration-300"
+              href="/api-console"
+              className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-[#114dcd] bg-[#e9eef9] hover:bg-[#f0f4fc] transition-colors duration-300 shadow-md"
             >
-              Sign In
+              API Console
             </a>
           </div>
         </div>
