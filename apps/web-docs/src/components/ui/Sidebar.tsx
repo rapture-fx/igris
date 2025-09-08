@@ -63,7 +63,7 @@ const mainSections = [
     icon: CommandLineIcon,
     isMainSection: true,
     flatItems: [
-      { name: 'API Overview', href: '/api-reference' },
+      { name: 'Getting Started', href: '/api-reference' },
       { name: 'API Keys', href: '/api-reference/api-keys' },
       { name: 'Rate Limits', href: '/api-reference/rate-limits' },
       { name: 'Error Handling', href: '/api-reference/errors' },

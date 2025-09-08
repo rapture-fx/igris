@@ -56,43 +56,50 @@ export default function ApiReferencePage() {
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-4 text-[#114dcd]">
+        <h1 className="text-2xl font-semibold mb-4 text-[#114dcd]">
           Getting Started
         </h1>
-        <p className="text-base text-gray-600 mb-6">
-          A REST API platform for transforming messy data into ML-ready formats via API calls. <span className="text-[#114dcd]">Schlep-engine</span> integrates real-time data processing, advanced Machine Learning (ML) and Reinforcement Learning (RL) capabilities, and delivers specialized solutions for AI, Manufacturing, Financial, and E-commerce industries.
+        <p className="text-sm text-gray-600 mb-6">
+          Welcome to Schlep-engine! We’re excited to have you onboard. This guide is your launchpad for getting started.
+        </p>
+        <p className="text-sm text-gray-600 mb-6">
+          Schlep-engine is a REST API platform that transforms messy, unstructured data into ML-ready formats with just a few API calls. It comes with built-in real-time data processing, advanced Machine Learning (ML), and Reinforcement Learning (RL) to deliver powerful, domain-specific solutions across AI, Manufacturing, Financial Services, and E-commerce.
         </p>
         
         
       </div>
 
-      <div className="prose prose-lg max-w-none">
+      <div className="max-w-none">
         {/* Quick Start */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Quick Start</h2>
+          <h2 className="text-xl font-semibold mb-4 text-[#114dcd]">Quick Start</h2>
+          <div className="border-b border-gray-200 mb-4"></div>
           
-          <div className="bg-blue-50 p-6 mb-6">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">
+          
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-blue-800 mb-3">
               Base URL
             </h3>
-            <code className="text-blue-700 bg-blue-100 px-2 py-1 rounded">
-              https://api.schlep-engine.com
-            </code>
+            <div className="bg-white rounded-lg p-4">
+              <code className="block text-sm text-gray-900">
+                https://api.schlep-engine.com
+              </code>
+            </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="flex flex-col space-y-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">API Key Authentication</h3>
-              <div className="bg-gray-900 rounded-lg p-4">
-                <pre className="text-sm text-gray-100">
-{`curl -X POST https://api.schlep-engine.com/api/v1/industry/financial/fraud-detection \\
-  -H "Authorization: Bearer sk_your_api_key" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "transaction_id": "txn_12345",
-    "user_id": "user_67890",
-    "transaction_amount": 2500.00,
-    "merchant_category": "electronics"
+              <div className="bg-gray-900 rounded-lg">
+                <pre className="text-sm text-gray-100 p-4">
+{`curl -X POST https://api.schlep-engine.com/api/v1/industry/financial/fraud-detection \
+  -H "Authorization: Bearer sk_your_api_key" \
+  -H "Content-Type: application/json" \
+  -d '{' \
+    "transaction_id": "txn_12345", \
+    "user_id": "user_67890", \
+    "transaction_amount": 2500.00, \
+    "merchant_category": "electronics" \
   }'`}
                 </pre>
               </div>
@@ -100,19 +107,56 @@ export default function ApiReferencePage() {
             
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">User Authentication</h3>
-              <div className="bg-gray-900 rounded-lg p-4">
-                <pre className="text-sm text-gray-100">
-{`curl -X POST https://api.schlep-engine.com/api/v1/auth/login \\
-  -H "Content-Type: application/json" \\
-  -d '{
+              <div className="bg-gray-900 rounded-lg">
+                <pre className="text-sm text-gray-100 p-4">
+{`curl -X POST https://api.schlep-engine.com/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{'
     "email": "user@example.com",
     "password": "your_password"
-  }'`}
+  }`}
                 </pre>
               </div>
             </div>
           </div>
         </section>
+
+        {/* SDKs and Libraries */}
+        <section className="mb-12">
+          <h2 className="text-xl font-semibold mb-6 text-[#114dcd]">SDKs and Libraries</h2>
+          
+          <p className="text-sm text-gray-600 mb-6">
+            For a smoother developer experience, we suggest using our official SDKs instead of making direct REST API calls.
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link href="/sdks/python" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+              <div className="text-2xl mb-2">🐍</div>
+              <h4 className="font-medium text-gray-900">Python SDK</h4>
+              <p className="text-sm text-gray-600">Full async/await support</p>
+            </Link>
+            
+            <Link href="/sdks/javascript" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+              <div className="text-2xl mb-2">⚡</div>
+              <h4 className="font-medium text-gray-900">JavaScript/TS</h4>
+              <p className="text-sm text-gray-600">Browser & Node.js</p>
+            </Link>
+            
+            <Link href="/sdks/go" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+              <div className="text-2xl mb-2">🚀</div>
+              <h4 className="font-medium text-gray-900">Go SDK</h4>
+              <p className="text-sm text-gray-600">Cloud-native ready</p>
+            </Link>
+            
+            <Link href="/sdks/cli" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+              <div className="text-2xl mb-2">🔧</div>
+              <h4 className="font-medium text-gray-900">CLI Tool</h4>
+              <p className="text-sm text-gray-600">Command-line interface</p>
+            </Link>
+          </div>
+        </section>
+
+        
 
         {/* API Sections */}
         <section className="mb-12">
@@ -322,40 +366,7 @@ Retry-After: 3600`}
           </div>
         </section>
 
-        {/* SDKs and Libraries */}
-        <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">SDKs and Libraries</h2>
-          
-          <p className="text-gray-600 mb-6">
-            Instead of calling the REST API directly, we recommend using our official SDKs for a better developer experience:
-          </p>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/sdks/python" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-              <div className="text-2xl mb-2">🐍</div>
-              <h4 className="font-medium text-gray-900">Python SDK</h4>
-              <p className="text-sm text-gray-600">Full async/await support</p>
-            </Link>
-            
-            <Link href="/sdks/javascript" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-              <div className="text-2xl mb-2">⚡</div>
-              <h4 className="font-medium text-gray-900">JavaScript/TS</h4>
-              <p className="text-sm text-gray-600">Browser & Node.js</p>
-            </Link>
-            
-            <Link href="/sdks/go" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-              <div className="text-2xl mb-2">🚀</div>
-              <h4 className="font-medium text-gray-900">Go SDK</h4>
-              <p className="text-sm text-gray-600">Cloud-native ready</p>
-            </Link>
-            
-            <Link href="/sdks/cli" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-              <div className="text-2xl mb-2">🔧</div>
-              <h4 className="font-medium text-gray-900">CLI Tool</h4>
-              <p className="text-sm text-gray-600">Command-line interface</p>
-            </Link>
-          </div>
-        </section>
+        
 
         {/* Resources */}
         <section className="bg-gray-50 rounded-lg p-6">

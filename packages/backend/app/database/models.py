@@ -38,6 +38,52 @@ class SessionStatus(str, enum.Enum):
     REVOKED = "revoked"
     SUSPICIOUS = "suspicious"
 
+class DatasetStatus(str, enum.Enum):
+    DRAFT = "draft"
+    PROCESSING = "processing"
+    PUBLISHED = "published"
+    DEPRECATED = "deprecated"
+    PRIVATE = "private"
+
+class DatasetFormat(str, enum.Enum):
+    CSV = "csv"
+    PARQUET = "parquet"
+    JSON = "json"
+    JSONL = "jsonl"
+    XLSX = "xlsx"
+    IMAGE_ZIP = "image_zip"
+    AUDIO_ZIP = "audio_zip"
+    VIDEO_ZIP = "video_zip"
+    HDF5 = "hdf5"
+    ARROW = "arrow"
+
+class DatasetCategory(str, enum.Enum):
+    TEXT = "text"
+    IMAGE = "image"
+    AUDIO = "audio"
+    VIDEO = "video"
+    TABULAR = "tabular"
+    TIMESERIES = "timeseries"
+    GRAPH = "graph"
+    GEOSPATIAL = "geospatial"
+    MULTIMODAL = "multimodal"
+
+class AccessLevel(str, enum.Enum):
+    PUBLIC = "public"
+    PRIVATE = "private"
+    ORGANIZATION = "organization"
+    SHARED = "shared"
+
+class QualityGrade(str, enum.Enum):
+    A_PLUS = "A+"
+    A = "A"
+    B_PLUS = "B+"
+    B = "B"
+    C_PLUS = "C+"
+    C = "C"
+    D = "D"
+    F = "F"
+
 class User(Base):
     __tablename__ = "users"
 
@@ -82,6 +128,16 @@ class User(Base):
     audit_trail = relationship("AuditTrail", foreign_keys="[AuditTrail.users_id]", back_populates="user")
     data_classification = relationship("DataClassificationRecord", foreign_keys="[DataClassificationRecord.users_id]", back_populates="user")
     compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.users_id]", back_populates="user")
+    
+    # Dataset marketplace relationships
+    created_datasets = relationship("Dataset", back_populates="created_by")
+    dataset_versions = relationship("DatasetVersion", back_populates="created_by")
+    dataset_reviews = relationship("DatasetReview", back_populates="reviewer")
+    shared_datasets = relationship("DatasetShare", foreign_keys="[DatasetShare.shared_by_id]", back_populates="shared_by")
+    received_datasets = relationship("DatasetShare", foreign_keys="[DatasetShare.shared_with_id]", back_populates="shared_with_user")
+    dataset_usage_logs = relationship("DatasetUsageLog", back_populates="user")
+    dataset_collaborations = relationship("DatasetCollaboration", foreign_keys="[DatasetCollaboration.collaborator_id]", back_populates="collaborator")
+    dataset_invitations = relationship("DatasetCollaboration", foreign_keys="[DatasetCollaboration.invited_by_id]", back_populates="invited_by")
 
 class Organization(Base):
     __tablename__ = "organizations"
@@ -108,6 +164,10 @@ class Organization(Base):
     audit_trail = relationship("AuditTrail", foreign_keys="[AuditTrail.organizations_id]", back_populates="organization")
     data_classification = relationship("DataClassificationRecord", foreign_keys="[DataClassificationRecord.organizations_id]", back_populates="organization")
     compliance_events = relationship("ComplianceEvent", foreign_keys="[ComplianceEvent.organizations_id]", back_populates="organization")
+    
+    # Dataset marketplace relationships
+    datasets = relationship("Dataset", back_populates="organization")
+    received_datasets = relationship("DatasetShare", foreign_keys="[DatasetShare.shared_with_organization_id]", back_populates="shared_with_organization")
 
 class Workspace(Base):
     __tablename__ = "workspaces"
@@ -413,4 +473,239 @@ class ComplianceEvent(Base):
     # Relationships
     user = relationship("User", foreign_keys=[users_id], back_populates="compliance_events")
     organization = relationship("Organization", foreign_keys=[organizations_id], back_populates="compliance_events")
-    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="compliance_events") 
+    data_investigation = relationship("DataInvestigation", foreign_keys=[data_investigations_id], back_populates="compliance_events")
+
+# Dataset Marketplace Models
+
+class Dataset(Base):
+    __tablename__ = "datasets"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name = Column(String, nullable=False, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text)
+    category = Column(Enum(DatasetCategory), nullable=False)
+    format = Column(Enum(DatasetFormat), nullable=False)
+    status = Column(Enum(DatasetStatus), default=DatasetStatus.DRAFT)
+    access_level = Column(Enum(AccessLevel), default=AccessLevel.PRIVATE)
+    
+    # Metadata
+    version = Column(String, default="1.0.0")
+    size_bytes = Column(Integer)
+    row_count = Column(Integer)
+    column_count = Column(Integer)
+    tags = Column(JSON, default=list)
+    schema_info = Column(JSON, default=dict)
+    sample_data = Column(JSON, default=dict)
+    
+    # File storage
+    file_path = Column(String)
+    preview_path = Column(String)
+    processed_path = Column(String)
+    
+    # Quality metrics
+    quality_score = Column(Float)
+    quality_grade = Column(Enum(QualityGrade))
+    completeness_score = Column(Float)
+    consistency_score = Column(Float)
+    validity_score = Column(Float)
+    uniqueness_score = Column(Float)
+    bias_score = Column(Float)
+    
+    # Statistics
+    download_count = Column(Integer, default=0)
+    view_count = Column(Integer, default=0)
+    rating_average = Column(Float)
+    rating_count = Column(Integer, default=0)
+    
+    # Relationships
+    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    published_at = Column(DateTime(timezone=True))
+    
+    # Relationships
+    created_by = relationship("User", back_populates="created_datasets")
+    organization = relationship("Organization", back_populates="datasets")
+    versions = relationship("DatasetVersion", back_populates="dataset", cascade="all, delete-orphan")
+    quality_reports = relationship("DatasetQualityReport", back_populates="dataset", cascade="all, delete-orphan")
+    reviews = relationship("DatasetReview", back_populates="dataset", cascade="all, delete-orphan")
+    shares = relationship("DatasetShare", back_populates="dataset", cascade="all, delete-orphan")
+    usage_logs = relationship("DatasetUsageLog", back_populates="dataset", cascade="all, delete-orphan")
+    collaborations = relationship("DatasetCollaboration", back_populates="dataset", cascade="all, delete-orphan")
+
+class DatasetVersion(Base):
+    __tablename__ = "dataset_versions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
+    version = Column(String, nullable=False)
+    description = Column(Text)
+    
+    # Version-specific metadata
+    size_bytes = Column(Integer)
+    row_count = Column(Integer)
+    column_count = Column(Integer)
+    schema_info = Column(JSON, default=dict)
+    changes_summary = Column(Text)
+    
+    # File storage
+    file_path = Column(String)
+    processed_path = Column(String)
+    
+    # Quality metrics for this version
+    quality_score = Column(Float)
+    quality_grade = Column(Enum(QualityGrade))
+    
+    # Relationships
+    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    dataset = relationship("Dataset", back_populates="versions")
+    created_by = relationship("User", back_populates="dataset_versions")
+
+class DatasetQualityReport(Base):
+    __tablename__ = "dataset_quality_reports"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
+    dataset_version_id = Column(UUID(as_uuid=True), ForeignKey("dataset_versions.id"))
+    
+    # Overall quality metrics
+    quality_score = Column(Float, nullable=False)
+    quality_grade = Column(Enum(QualityGrade), nullable=False)
+    
+    # Detailed quality metrics
+    completeness_score = Column(Float)
+    consistency_score = Column(Float)
+    validity_score = Column(Float)
+    uniqueness_score = Column(Float)
+    bias_score = Column(Float)
+    
+    # Detailed analysis results
+    missing_values_analysis = Column(JSON, default=dict)
+    data_types_analysis = Column(JSON, default=dict)
+    statistical_summary = Column(JSON, default=dict)
+    anomalies_detected = Column(JSON, default=list)
+    bias_analysis = Column(JSON, default=dict)
+    schema_validation = Column(JSON, default=dict)
+    
+    # Processing metadata
+    analysis_config = Column(JSON, default=dict)
+    processing_time_seconds = Column(Float)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    dataset = relationship("Dataset", back_populates="quality_reports")
+    dataset_version = relationship("DatasetVersion")
+
+class DatasetReview(Base):
+    __tablename__ = "dataset_reviews"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
+    reviewer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    
+    rating = Column(Integer, nullable=False)  # 1-5 stars
+    title = Column(String)
+    comment = Column(Text)
+    
+    # Review categories
+    data_quality_rating = Column(Integer)  # 1-5
+    documentation_rating = Column(Integer)  # 1-5
+    usability_rating = Column(Integer)  # 1-5
+    
+    # Flags
+    is_verified_purchase = Column(Boolean, default=False)  # For paid datasets
+    is_flagged = Column(Boolean, default=False)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    dataset = relationship("Dataset", back_populates="reviews")
+    reviewer = relationship("User", back_populates="dataset_reviews")
+
+class DatasetShare(Base):
+    __tablename__ = "dataset_shares"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
+    shared_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    shared_with_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    shared_with_organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    
+    # Access control
+    access_level = Column(Enum(AccessLevel), default=AccessLevel.SHARED)
+    permissions = Column(JSON, default=dict)  # read, write, delete, share permissions
+    expires_at = Column(DateTime(timezone=True))
+    
+    # Usage tracking
+    download_count = Column(Integer, default=0)
+    last_accessed_at = Column(DateTime(timezone=True))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    dataset = relationship("Dataset", back_populates="shares")
+    shared_by = relationship("User", foreign_keys=[shared_by_id], back_populates="shared_datasets")
+    shared_with_user = relationship("User", foreign_keys=[shared_with_id], back_populates="received_datasets")
+    shared_with_organization = relationship("Organization", back_populates="received_datasets")
+
+class DatasetUsageLog(Base):
+    __tablename__ = "dataset_usage_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    
+    action = Column(String, nullable=False)  # view, download, convert, analyze
+    details = Column(JSON, default=dict)
+    
+    # Context
+    experiment_id = Column(UUID(as_uuid=True))  # Link to MLOps experiments
+    session_id = Column(String)
+    ip_address = Column(String)
+    user_agent = Column(String)
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    dataset = relationship("Dataset", back_populates="usage_logs")
+    user = relationship("User", back_populates="dataset_usage_logs")
+
+class DatasetCollaboration(Base):
+    __tablename__ = "dataset_collaborations"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
+    collaborator_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    invited_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
+    
+    role = Column(String, default="contributor")  # viewer, contributor, maintainer
+    permissions = Column(JSON, default=dict)
+    
+    # Status
+    status = Column(String, default="pending")  # pending, accepted, declined, revoked
+    invited_at = Column(DateTime(timezone=True), server_default=func.now())
+    responded_at = Column(DateTime(timezone=True))
+    
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    # Relationships
+    dataset = relationship("Dataset", back_populates="collaborations")
+    collaborator = relationship("User", foreign_keys=[collaborator_id], back_populates="dataset_collaborations")
+    invited_by = relationship("User", foreign_keys=[invited_by_id], back_populates="dataset_invitations") 
