@@ -1252,3 +1252,612 @@ class PlatformAnalytics(BaseSchema):
     lineage_stats: Dict[str, Any] = Field(default_factory=dict, description="Lineage statistics")
     performance_trends: Dict[str, Any] = Field(default_factory=dict, description="Performance trends")
     timestamp: datetime = Field(..., description="Analytics timestamp")
+
+
+# ===========================
+# Advanced Model Serving Schemas
+# ===========================
+
+class ServingEndpointStatus(str, Enum):
+    """Serving endpoint status options."""
+    PENDING = "pending"
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    FAILED = "failed"
+    SCALING = "scaling"
+    UPDATING = "updating"
+
+
+class ServingProtocol(str, Enum):
+    """Serving protocol options."""
+    HTTP = "http"
+    GRPC = "grpc"
+    WEBSOCKET = "websocket"
+
+
+class ComputeBackend(str, Enum):
+    """Compute backend options."""
+    KUBERNETES = "kubernetes"
+    DOCKER = "docker"
+    SERVERLESS = "serverless"
+    CLOUD_RUN = "cloud_run"
+    AWS_LAMBDA = "aws_lambda"
+
+
+class InstanceType(str, Enum):
+    """Instance type options."""
+    CPU_OPTIMIZED = "cpu-optimized"
+    GPU_ENABLED = "gpu-enabled"
+    MEMORY_OPTIMIZED = "memory-optimized"
+    BALANCED = "balanced"
+
+
+class TrafficSplitStrategy(str, Enum):
+    """Traffic split strategy options."""
+    RANDOM = "random"
+    USER_BASED = "user_based"
+    GEOGRAPHIC = "geographic"
+    DEVICE_TYPE = "device_type"
+    AB_TESTING = "ab_testing"
+
+
+class InferenceType(str, Enum):
+    """Inference type options."""
+    REAL_TIME = "real_time"
+    BATCH = "batch"
+    STREAMING = "streaming"
+    ASYNC_CALLBACK = "async_callback"
+
+
+class BatchJobStatus(str, Enum):
+    """Batch job status options."""
+    QUEUED = "queued"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
+    CANCELLED = "cancelled"
+    PAUSED = "paused"
+
+
+class AlertSeverity(str, Enum):
+    """Alert severity levels."""
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+    CRITICAL = "critical"
+
+
+# Serving Endpoint Schemas
+class ServingEndpointCreate(BaseSchema):
+    """Schema for creating a serving endpoint."""
+    name: str = Field(..., min_length=1, max_length=200, description="Endpoint name")
+    model_id: str = Field(..., description="Model ID to serve")
+    deployment_id: Optional[str] = Field(None, description="Specific deployment ID")
+    
+    # Infrastructure configuration
+    compute_backend: ComputeBackend = Field(ComputeBackend.KUBERNETES, description="Compute backend")
+    instance_type: InstanceType = Field(InstanceType.CPU_OPTIMIZED, description="Instance type")
+    min_replicas: int = Field(1, ge=1, le=100, description="Minimum replicas")
+    max_replicas: int = Field(10, ge=1, le=1000, description="Maximum replicas")
+    target_cpu_utilization: int = Field(70, ge=10, le=95, description="Target CPU utilization %")
+    target_memory_utilization: int = Field(80, ge=10, le=95, description="Target memory utilization %")
+    
+    # Performance configuration  
+    batch_size: int = Field(1, ge=1, le=1000, description="Batch size for inference")
+    max_batch_delay_ms: int = Field(100, ge=0, le=10000, description="Max batch delay in ms")
+    request_timeout_ms: int = Field(30000, ge=1000, le=300000, description="Request timeout in ms")
+    concurrent_requests: int = Field(100, ge=1, le=10000, description="Max concurrent requests")
+    
+    # Circuit breaker configuration
+    circuit_breaker_enabled: bool = Field(True, description="Enable circuit breaker")
+    failure_threshold: int = Field(5, ge=1, le=100, description="Failure threshold")
+    recovery_timeout_ms: int = Field(60000, ge=1000, le=600000, description="Recovery timeout in ms")
+    
+    # Caching configuration
+    cache_enabled: bool = Field(True, description="Enable response caching")
+    cache_ttl_seconds: int = Field(300, ge=0, le=86400, description="Cache TTL in seconds")
+    cache_size_mb: int = Field(512, ge=0, le=10240, description="Cache size in MB")
+    
+    # Security configuration
+    authentication_required: bool = Field(True, description="Require authentication")
+    api_key_required: bool = Field(True, description="Require API key")
+    rate_limit_rpm: int = Field(1000, ge=1, le=100000, description="Rate limit per minute")
+    allowed_origins: Optional[List[str]] = Field(None, description="Allowed CORS origins")
+    
+    # Additional configuration
+    configuration: Optional[Dict[str, Any]] = Field(None, description="Additional configuration")
+
+    @validator('name')
+    def validate_name(cls, v):
+        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError('Name can only contain letters, numbers, underscores, and hyphens')
+        return v
+
+
+class ServingEndpointUpdate(BaseSchema):
+    """Schema for updating a serving endpoint."""
+    name: Optional[str] = Field(None, min_length=1, max_length=200, description="Endpoint name")
+    
+    # Infrastructure configuration
+    min_replicas: Optional[int] = Field(None, ge=1, le=100, description="Minimum replicas")
+    max_replicas: Optional[int] = Field(None, ge=1, le=1000, description="Maximum replicas")
+    target_cpu_utilization: Optional[int] = Field(None, ge=10, le=95, description="Target CPU utilization %")
+    target_memory_utilization: Optional[int] = Field(None, ge=10, le=95, description="Target memory utilization %")
+    
+    # Performance configuration
+    batch_size: Optional[int] = Field(None, ge=1, le=1000, description="Batch size for inference")
+    max_batch_delay_ms: Optional[int] = Field(None, ge=0, le=10000, description="Max batch delay in ms")
+    request_timeout_ms: Optional[int] = Field(None, ge=1000, le=300000, description="Request timeout in ms")
+    concurrent_requests: Optional[int] = Field(None, ge=1, le=10000, description="Max concurrent requests")
+    
+    # Circuit breaker configuration
+    circuit_breaker_enabled: Optional[bool] = Field(None, description="Enable circuit breaker")
+    failure_threshold: Optional[int] = Field(None, ge=1, le=100, description="Failure threshold")
+    recovery_timeout_ms: Optional[int] = Field(None, ge=1000, le=600000, description="Recovery timeout in ms")
+    
+    # Caching configuration
+    cache_enabled: Optional[bool] = Field(None, description="Enable response caching")
+    cache_ttl_seconds: Optional[int] = Field(None, ge=0, le=86400, description="Cache TTL in seconds")
+    cache_size_mb: Optional[int] = Field(None, ge=0, le=10240, description="Cache size in MB")
+    
+    # Security configuration
+    authentication_required: Optional[bool] = Field(None, description="Require authentication")
+    api_key_required: Optional[bool] = Field(None, description="Require API key")
+    rate_limit_rpm: Optional[int] = Field(None, ge=1, le=100000, description="Rate limit per minute")
+    allowed_origins: Optional[List[str]] = Field(None, description="Allowed CORS origins")
+    
+    # Additional configuration
+    configuration: Optional[Dict[str, Any]] = Field(None, description="Additional configuration")
+
+    @validator('name')
+    def validate_name(cls, v):
+        if v and not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError('Name can only contain letters, numbers, underscores, and hyphens')
+        return v
+
+
+class ServingEndpointResponse(BaseSchema):
+    """Schema for serving endpoint response."""
+    id: int = Field(..., description="Database ID")
+    endpoint_id: str = Field(..., description="Unique endpoint ID")
+    name: str = Field(..., description="Endpoint name")
+    model_id: str = Field(..., description="Model ID")
+    deployment_id: str = Field(..., description="Deployment ID")
+    
+    # Endpoint configuration
+    endpoint_url: str = Field(..., description="Endpoint URL")
+    api_version: str = Field(..., description="API version")
+    protocol: str = Field(..., description="Protocol")
+    port: int = Field(..., description="Port number")
+    
+    # Infrastructure configuration
+    compute_backend: str = Field(..., description="Compute backend")
+    instance_type: Optional[str] = Field(None, description="Instance type")
+    min_replicas: int = Field(..., description="Minimum replicas")
+    max_replicas: int = Field(..., description="Maximum replicas")
+    target_cpu_utilization: int = Field(..., description="Target CPU utilization")
+    target_memory_utilization: int = Field(..., description="Target memory utilization")
+    
+    # Performance configuration
+    batch_size: int = Field(..., description="Batch size")
+    max_batch_delay_ms: int = Field(..., description="Max batch delay")
+    request_timeout_ms: int = Field(..., description="Request timeout")
+    concurrent_requests: int = Field(..., description="Max concurrent requests")
+    
+    # Status and health
+    status: str = Field(..., description="Endpoint status")
+    health_status: str = Field(..., description="Health status")
+    last_health_check: Optional[datetime] = Field(None, description="Last health check")
+    
+    # Performance metrics
+    total_requests: int = Field(..., description="Total requests")
+    successful_requests: int = Field(..., description="Successful requests")
+    failed_requests: int = Field(..., description="Failed requests")
+    avg_response_time_ms: float = Field(..., description="Average response time")
+    p95_response_time_ms: float = Field(..., description="P95 response time")
+    p99_response_time_ms: float = Field(..., description="P99 response time")
+    throughput_rps: float = Field(..., description="Throughput in RPS")
+    success_rate: float = Field(..., description="Success rate percentage")
+    
+    # Cost tracking
+    estimated_hourly_cost: float = Field(..., description="Estimated hourly cost")
+    total_compute_hours: float = Field(..., description="Total compute hours")
+    
+    # Timestamps
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+    activated_at: Optional[datetime] = Field(None, description="Activation timestamp")
+
+
+class PredictionRequest(BaseSchema):
+    """Schema for real-time prediction request."""
+    instances: List[Dict[str, Any]] = Field(..., min_items=1, max_items=1000, description="Input instances for prediction")
+    parameters: Optional[Dict[str, Any]] = Field(None, description="Additional prediction parameters")
+    explanation: bool = Field(False, description="Include prediction explanations")
+    confidence_threshold: Optional[float] = Field(None, ge=0.0, le=1.0, description="Minimum confidence threshold")
+    
+    # Request metadata
+    request_id: Optional[str] = Field(None, description="Client request ID for tracking")
+    timeout_ms: Optional[int] = Field(None, ge=100, le=60000, description="Request timeout override")
+    
+    @validator('instances')
+    def validate_instances(cls, v):
+        if not v:
+            raise ValueError('At least one instance is required')
+        return v
+
+
+class PredictionResponse(BaseSchema):
+    """Schema for real-time prediction response."""
+    predictions: List[Dict[str, Any]] = Field(..., description="Prediction results")
+    
+    # Metadata
+    model_id: str = Field(..., description="Model ID used for prediction")
+    model_version: Optional[str] = Field(None, description="Model version")
+    endpoint_id: str = Field(..., description="Endpoint ID")
+    request_id: Optional[str] = Field(None, description="Request ID")
+    
+    # Performance metadata
+    prediction_time_ms: float = Field(..., description="Prediction time in milliseconds")
+    processing_time_ms: float = Field(..., description="Total processing time")
+    batch_size: int = Field(..., description="Batch size processed")
+    
+    # Quality metadata
+    confidence_scores: Optional[List[float]] = Field(None, description="Confidence scores for predictions")
+    explanations: Optional[List[Dict[str, Any]]] = Field(None, description="Prediction explanations")
+    feature_importance: Optional[Dict[str, float]] = Field(None, description="Feature importance scores")
+    
+    # Caching metadata
+    cached_response: bool = Field(False, description="Whether response was cached")
+    cache_key: Optional[str] = Field(None, description="Cache key used")
+    
+    # Timestamp
+    timestamp: datetime = Field(..., description="Prediction timestamp")
+
+
+class BatchPredictionRequest(BaseSchema):
+    """Schema for batch prediction request."""
+    name: str = Field(..., min_length=1, max_length=200, description="Job name")
+    model_id: str = Field(..., description="Model ID to use for prediction")
+    
+    # Input configuration
+    input_source_type: str = Field(..., description="Input source type")
+    input_source_config: Dict[str, Any] = Field(..., description="Input source configuration")
+    input_format: str = Field("json", description="Input format")
+    
+    # Output configuration
+    output_destination_type: str = Field(..., description="Output destination type")
+    output_destination_config: Dict[str, Any] = Field(..., description="Output destination configuration")
+    output_format: str = Field("json", description="Output format")
+    
+    # Processing configuration
+    batch_size: int = Field(1000, ge=1, le=10000, description="Processing batch size")
+    max_parallel_batches: int = Field(5, ge=1, le=20, description="Max parallel batches")
+    retry_count: int = Field(3, ge=0, le=10, description="Retry count for failed batches")
+    timeout_minutes: int = Field(60, ge=1, le=1440, description="Job timeout in minutes")
+    
+    # Callback configuration
+    callback_url: Optional[str] = Field(None, description="Callback URL for completion notification")
+    callback_headers: Optional[Dict[str, str]] = Field(None, description="Headers for callback request")
+    
+    # Error handling
+    error_threshold_percent: float = Field(5.0, ge=0.0, le=100.0, description="Fail job if error rate exceeds this")
+    
+    # Additional parameters
+    job_parameters: Optional[Dict[str, Any]] = Field(None, description="Additional job parameters")
+    labels: Optional[Dict[str, str]] = Field(None, description="Job labels")
+    
+    @validator('name')
+    def validate_name(cls, v):
+        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError('Name can only contain letters, numbers, underscores, and hyphens')
+        return v
+
+
+class BatchPredictionResponse(BaseSchema):
+    """Schema for batch prediction response."""
+    id: int = Field(..., description="Database ID")
+    job_id: str = Field(..., description="Unique job ID")
+    name: str = Field(..., description="Job name")
+    model_id: str = Field(..., description="Model ID")
+    
+    # Job status and progress
+    status: str = Field(..., description="Job status")
+    progress_percent: float = Field(..., description="Progress percentage")
+    total_records: int = Field(..., description="Total records to process")
+    processed_records: int = Field(..., description="Records processed")
+    successful_predictions: int = Field(..., description="Successful predictions")
+    failed_predictions: int = Field(..., description="Failed predictions")
+    success_rate: float = Field(..., description="Success rate percentage")
+    
+    # Performance metrics
+    avg_prediction_time_ms: float = Field(..., description="Average prediction time")
+    total_processing_time_seconds: int = Field(..., description="Total processing time")
+    throughput_records_per_second: float = Field(..., description="Processing throughput")
+    
+    # Error details
+    error_count: int = Field(..., description="Total error count")
+    error_details: Optional[Dict[str, Any]] = Field(None, description="Error details")
+    
+    # Cost tracking
+    estimated_cost_usd: float = Field(..., description="Estimated cost")
+    actual_cost_usd: float = Field(..., description="Actual cost")
+    
+    # Timestamps
+    created_at: datetime = Field(..., description="Creation timestamp")
+    started_at: Optional[datetime] = Field(None, description="Start timestamp")
+    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
+
+
+class CanaryDeploymentCreate(BaseSchema):
+    """Schema for creating a canary deployment."""
+    name: str = Field(..., min_length=1, max_length=200, description="Canary deployment name")
+    baseline_deployment_id: str = Field(..., description="Baseline deployment ID")
+    canary_deployment_id: str = Field(..., description="Canary deployment ID")
+    
+    # Traffic routing configuration
+    traffic_split_percent: float = Field(5.0, ge=1.0, le=50.0, description="Traffic percentage to canary")
+    traffic_split_strategy: TrafficSplitStrategy = Field(TrafficSplitStrategy.RANDOM, description="Traffic split strategy")
+    routing_rules: Optional[Dict[str, Any]] = Field(None, description="Additional routing rules")
+    
+    # Success criteria
+    success_criteria: Dict[str, Any] = Field(..., description="Success criteria thresholds")
+    min_sample_size: int = Field(100, ge=10, le=10000, description="Minimum sample size")
+    evaluation_period_minutes: int = Field(60, ge=5, le=1440, description="Evaluation period")
+    
+    # Rollback configuration
+    auto_rollback_enabled: bool = Field(True, description="Enable automatic rollback")
+    rollback_threshold_error_rate: float = Field(5.0, ge=0.1, le=50.0, description="Rollback error rate threshold")
+    rollback_threshold_latency_ms: float = Field(2000.0, ge=100.0, le=60000.0, description="Rollback latency threshold")
+    rollback_evaluation_window_minutes: int = Field(10, ge=1, le=60, description="Rollback evaluation window")
+    
+    # Statistical analysis
+    statistical_test: str = Field("chi_squared", description="Statistical test to use")
+    significance_level: float = Field(0.05, ge=0.01, le=0.1, description="Statistical significance level")
+    
+    # Additional configuration
+    configuration: Optional[Dict[str, Any]] = Field(None, description="Additional configuration")
+
+    @validator('name')
+    def validate_name(cls, v):
+        if not re.match(r'^[a-zA-Z0-9_-]+$', v):
+            raise ValueError('Name can only contain letters, numbers, underscores, and hyphens')
+        return v
+
+
+class CanaryDeploymentResponse(BaseSchema):
+    """Schema for canary deployment response."""
+    id: int = Field(..., description="Database ID")
+    canary_id: str = Field(..., description="Unique canary ID")
+    name: str = Field(..., description="Canary deployment name")
+    
+    # Model deployments
+    baseline_deployment_id: str = Field(..., description="Baseline deployment ID")
+    canary_deployment_id: str = Field(..., description="Canary deployment ID")
+    
+    # Traffic routing
+    traffic_split_percent: float = Field(..., description="Configured traffic split")
+    current_traffic_percent: float = Field(..., description="Current traffic split")
+    traffic_split_strategy: str = Field(..., description="Traffic split strategy")
+    
+    # Status and progress
+    status: str = Field(..., description="Canary deployment status")
+    evaluation_results: Optional[Dict[str, Any]] = Field(None, description="Evaluation results")
+    
+    # Statistical analysis
+    statistical_test: str = Field(..., description="Statistical test used")
+    significance_level: float = Field(..., description="Significance level")
+    p_value: Optional[float] = Field(None, description="Statistical p-value")
+    confidence_interval: Optional[Dict[str, Any]] = Field(None, description="Confidence intervals")
+    
+    # Performance comparison
+    baseline_metrics: Optional[Dict[str, Any]] = Field(None, description="Baseline metrics")
+    canary_metrics: Optional[Dict[str, Any]] = Field(None, description="Canary metrics")
+    improvement_percent: Optional[float] = Field(None, description="Performance improvement")
+    
+    # Duration
+    duration_minutes: float = Field(..., description="Deployment duration")
+    
+    # Timestamps
+    created_at: datetime = Field(..., description="Creation timestamp")
+    started_at: Optional[datetime] = Field(None, description="Start timestamp")
+    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
+    rolled_back_at: Optional[datetime] = Field(None, description="Rollback timestamp")
+
+
+class ServingMetricsResponse(BaseSchema):
+    """Schema for serving metrics response."""
+    endpoint_id: str = Field(..., description="Endpoint ID")
+    model_id: str = Field(..., description="Model ID")
+    timestamp: datetime = Field(..., description="Metrics timestamp")
+    
+    # Request metrics
+    request_count: int = Field(..., description="Total requests")
+    successful_requests: int = Field(..., description="Successful requests")
+    failed_requests: int = Field(..., description="Failed requests")
+    timeout_requests: int = Field(..., description="Timeout requests")
+    
+    # Latency metrics
+    avg_response_time: float = Field(..., description="Average response time")
+    min_response_time: float = Field(..., description="Minimum response time")
+    max_response_time: float = Field(..., description="Maximum response time")
+    p50_response_time: float = Field(..., description="P50 response time")
+    p95_response_time: float = Field(..., description="P95 response time")
+    p99_response_time: float = Field(..., description="P99 response time")
+    
+    # Throughput metrics
+    throughput_rps: float = Field(..., description="Throughput in RPS")
+    concurrent_requests: int = Field(..., description="Concurrent requests")
+    queue_size: int = Field(..., description="Request queue size")
+    
+    # Resource utilization
+    cpu_usage_percent: float = Field(..., description="CPU usage percentage")
+    memory_usage_percent: float = Field(..., description="Memory usage percentage")
+    gpu_usage_percent: float = Field(..., description="GPU usage percentage")
+    disk_usage_percent: float = Field(..., description="Disk usage percentage")
+    
+    # Infrastructure metrics
+    active_replicas: int = Field(..., description="Active replicas")
+    scaling_events: int = Field(..., description="Scaling events")
+    container_restarts: int = Field(..., description="Container restarts")
+    
+    # Business metrics
+    data_drift_score: float = Field(..., description="Data drift score")
+    model_accuracy: float = Field(..., description="Model accuracy")
+    prediction_confidence: float = Field(..., description="Average prediction confidence")
+    
+    # Cache metrics
+    cache_hit_rate: float = Field(..., description="Cache hit rate")
+    cache_size_mb: float = Field(..., description="Cache size in MB")
+    cache_evictions: int = Field(..., description="Cache evictions")
+    
+    # Error details
+    error_types: Optional[Dict[str, int]] = Field(None, description="Error type counts")
+    error_rate_percent: float = Field(..., description="Error rate percentage")
+    
+    # Cost tracking
+    compute_cost_usd: float = Field(..., description="Compute cost")
+    data_transfer_cost_usd: float = Field(..., description="Data transfer cost")
+    storage_cost_usd: float = Field(..., description="Storage cost")
+
+
+class ModelServingAlertCreate(BaseSchema):
+    """Schema for creating a model serving alert."""
+    target_type: str = Field(..., description="Alert target type")
+    target_id: str = Field(..., description="Target ID")
+    alert_type: str = Field(..., description="Alert type")
+    alert_name: str = Field(..., min_length=1, max_length=200, description="Alert name")
+    description: Optional[str] = Field(None, description="Alert description")
+    
+    # Threshold configuration
+    metric_name: str = Field(..., description="Metric name to monitor")
+    threshold_value: float = Field(..., description="Threshold value")
+    threshold_operator: str = Field(..., description="Threshold operator")
+    evaluation_window_minutes: int = Field(5, ge=1, le=1440, description="Evaluation window")
+    
+    # Alert severity
+    severity: AlertSeverity = Field(AlertSeverity.MEDIUM, description="Alert severity")
+    priority: int = Field(3, ge=1, le=5, description="Alert priority")
+    
+    # Notification configuration
+    notification_channels: List[Dict[str, Any]] = Field(..., description="Notification channels")
+    notification_frequency_minutes: int = Field(15, ge=1, le=1440, description="Notification frequency")
+    suppress_duration_minutes: int = Field(60, ge=1, le=1440, description="Alert suppression duration")
+    
+    # Additional configuration
+    additional_conditions: Optional[Dict[str, Any]] = Field(None, description="Additional conditions")
+    alert_rules: Optional[Dict[str, Any]] = Field(None, description="Alert rules")
+    tags: Optional[Dict[str, str]] = Field(None, description="Alert tags")
+
+    @validator('threshold_operator')
+    def validate_operator(cls, v):
+        valid_operators = ['>', '<', '>=', '<=', '==', '!=']
+        if v not in valid_operators:
+            raise ValueError(f'Operator must be one of: {valid_operators}')
+        return v
+
+
+class ModelServingAlertResponse(BaseSchema):
+    """Schema for model serving alert response."""
+    id: int = Field(..., description="Database ID")
+    alert_id: str = Field(..., description="Unique alert ID")
+    target_type: str = Field(..., description="Alert target type")
+    target_id: str = Field(..., description="Target ID")
+    alert_type: str = Field(..., description="Alert type")
+    alert_name: str = Field(..., description="Alert name")
+    description: Optional[str] = Field(None, description="Alert description")
+    
+    # Threshold configuration
+    metric_name: str = Field(..., description="Metric name")
+    threshold_value: float = Field(..., description="Threshold value")
+    threshold_operator: str = Field(..., description="Threshold operator")
+    evaluation_window_minutes: int = Field(..., description="Evaluation window")
+    
+    # Alert severity
+    severity: str = Field(..., description="Alert severity")
+    priority: int = Field(..., description="Alert priority")
+    
+    # Alert status
+    is_active: bool = Field(..., description="Alert is active")
+    last_triggered_at: Optional[datetime] = Field(None, description="Last triggered timestamp")
+    trigger_count: int = Field(..., description="Total trigger count")
+    
+    # Timestamps
+    created_at: datetime = Field(..., description="Creation timestamp")
+    updated_at: datetime = Field(..., description="Last update timestamp")
+
+
+class ScalingRequest(BaseSchema):
+    """Schema for manual scaling request."""
+    min_replicas: Optional[int] = Field(None, ge=0, le=100, description="Minimum replicas")
+    max_replicas: Optional[int] = Field(None, ge=1, le=1000, description="Maximum replicas")
+    target_replicas: Optional[int] = Field(None, ge=1, le=1000, description="Target replicas (immediate)")
+    
+    # Scaling configuration
+    scale_up_cooldown_seconds: Optional[int] = Field(None, ge=30, le=3600, description="Scale up cooldown")
+    scale_down_cooldown_seconds: Optional[int] = Field(None, ge=30, le=3600, description="Scale down cooldown")
+    
+    # Resource thresholds
+    target_cpu_utilization: Optional[int] = Field(None, ge=10, le=95, description="Target CPU utilization")
+    target_memory_utilization: Optional[int] = Field(None, ge=10, le=95, description="Target memory utilization")
+    
+    @root_validator
+    def validate_replicas(cls, values):
+        min_replicas = values.get('min_replicas')
+        max_replicas = values.get('max_replicas')
+        target_replicas = values.get('target_replicas')
+        
+        if min_replicas is not None and max_replicas is not None:
+            if min_replicas > max_replicas:
+                raise ValueError('min_replicas cannot be greater than max_replicas')
+        
+        if target_replicas is not None:
+            if min_replicas is not None and target_replicas < min_replicas:
+                raise ValueError('target_replicas cannot be less than min_replicas')
+            if max_replicas is not None and target_replicas > max_replicas:
+                raise ValueError('target_replicas cannot be greater than max_replicas')
+        
+        return values
+
+
+class ModelRollbackRequest(BaseSchema):
+    """Schema for model rollback request."""
+    target_deployment_id: Optional[str] = Field(None, description="Specific deployment to roll back to")
+    rollback_reason: str = Field(..., min_length=1, description="Reason for rollback")
+    immediate: bool = Field(False, description="Perform immediate rollback (bypass checks)")
+    
+    # Safety checks
+    skip_health_checks: bool = Field(False, description="Skip health checks during rollback")
+    skip_traffic_validation: bool = Field(False, description="Skip traffic validation")
+    
+    # Traffic management
+    gradual_traffic_shift: bool = Field(True, description="Gradually shift traffic during rollback")
+    traffic_shift_duration_minutes: int = Field(5, ge=1, le=60, description="Duration for traffic shift")
+
+
+class EndpointHealthResponse(BaseSchema):
+    """Schema for endpoint health response."""
+    endpoint_id: str = Field(..., description="Endpoint ID")
+    status: str = Field(..., description="Overall status")
+    health_status: str = Field(..., description="Health status")
+    last_health_check: Optional[datetime] = Field(None, description="Last health check")
+    
+    # Health checks
+    health_checks: Dict[str, Any] = Field(..., description="Individual health check results")
+    
+    # Current metrics
+    current_metrics: Dict[str, float] = Field(..., description="Current performance metrics")
+    
+    # Infrastructure status
+    active_replicas: int = Field(..., description="Currently active replicas")
+    desired_replicas: int = Field(..., description="Desired replicas")
+    
+    # Resource utilization
+    resource_utilization: Dict[str, float] = Field(..., description="Current resource utilization")
+    
+    # Circuit breaker status
+    circuit_breaker_status: str = Field(..., description="Circuit breaker status")
+    recent_errors: List[Dict[str, Any]] = Field(..., description="Recent errors")
+    
+    # Timestamp
+    timestamp: datetime = Field(..., description="Health check timestamp")

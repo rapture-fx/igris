@@ -398,7 +398,10 @@ export function Sidebar() {
                           : 'text-gray-600 border-transparent'
                       )}
                     >
-                      <section.icon className="h-4 w-4 flex-shrink-0 text-schlep-dark-blue" />
+                      <section.icon className={clsx(
+                        'h-4 w-4 flex-shrink-0',
+                        currentActiveSection === section.name ? 'text-schlep-active-blue' : 'text-gray-600'
+                      )} />
                       <span className="text-sm font-semibold">{section.name}</span>
                     </button>
                   ))}
@@ -412,7 +415,7 @@ export function Sidebar() {
               {mainSections
                 .filter(section => section.name === currentActiveSection)
                 .map(section => (
-                  <div key={section.name} className="space-y-1">
+                  <div key={section.name} className="space-y-1 pt-4">
                     {/* Handle flat items first */}
                     {section.flatItems && section.flatItems.map((item) => {
                       const getMethodColor = (method: string) => {
@@ -435,7 +438,7 @@ export function Sidebar() {
                           className={clsx(
                             'w-full flex items-center px-3 py-1 rounded-lg transition-all duration-150 group border nav-link',
                             isActive(item.href)
-                              ? 'text-gray-900 border-transparent font-semibold'
+                              ? 'text-schlep-active-blue border-transparent font-semibold'
                               : 'text-gray-600 border-transparent'
                           )}
                         >
@@ -459,7 +462,7 @@ export function Sidebar() {
                           ) : (
                             <span className={clsx(
                               'text-sm truncate',
-                              isActive(item.href) ? 'text-gray-900' : 'text-gray-600'
+                              isActive(item.href) ? 'text-schlep-active-blue' : 'text-gray-600'
                             )}>{item.name}</span>
                           )}
                         </Link>
@@ -483,7 +486,10 @@ export function Sidebar() {
                                 : 'text-gray-600'
                             )}
                           >
-                            <span className="text-sm">{group.name}</span>
+                            <span className={clsx(
+                              'text-sm',
+                              isActive(group.href || '#') ? 'text-schlep-active-blue' : 'text-gray-600'
+                            )}>{group.name}</span>
                             <ChevronRightIcon
                               className={clsx(
                                 'h-4 w-4 transition-transform duration-200',
@@ -491,7 +497,7 @@ export function Sidebar() {
                                 {
                                   'invisible group-hover:visible': !openGroups.has(group.name)
                                 },
-                                isActive(group.href || '#') ? 'text-schlep-active-blue' : 'text-black'
+                                isActive(group.href || '#') ? 'text-schlep-active-blue' : 'text-gray-600'
                               )}
                             />
                           </div>
@@ -537,7 +543,7 @@ export function Sidebar() {
                                         <div className="flex items-center min-h-6">
                                           <span className={clsx(
                                             'text-sm',
-                                            isActive(child.href) ? 'text-gray-900' : 'text-gray-600'
+                                            isActive(child.href) ? 'text-schlep-active-blue' : 'text-gray-600'
                                           )}>{child.name}</span>
                                         </div>
                                       </div>
