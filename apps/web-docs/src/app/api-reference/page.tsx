@@ -65,20 +65,23 @@ export default function ApiReferencePage() {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto p-4 lg:grid lg:grid-cols-12 lg:gap-8 min-h-screen">
-      <div className="lg:col-span-9">
+    <div className="max-w-4xl mx-auto p-4">
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold mb-4 text-[#114dcd]">
+          Getting Started
+        </h1>
+        <p className="text-sm text-gray-600 mb-6">
+          Welcome to Schlep-engine! We’re excited to have you onboard. This guide is your launchpad for getting started.
+        </p>
+        <p className="text-sm text-gray-600 mb-6">
+          Schlep-engine is a REST API platform that transforms messy, unstructured data into ML-ready formats with just a few API calls. It comes with built-in real-time data processing, advanced Machine Learning (ML), and Reinforcement Learning (RL) to deliver powerful, domain-specific solutions across AI, Manufacturing, Financial Services, and E-commerce.
+        </p>
+        
+        
+      </div>
+
+      <div className="flex justify-between">
         <div className="max-w-none">
-          <div className="mb-8">
-            <h1 className="text-2xl font-semibold mb-4 text-[#114dcd]">
-              Getting Started
-            </h1>
-            <p className="text-sm text-gray-600 mb-6">
-              Welcome to Schlep-engine! We’re excited to have you onboard. This guide is your launchpad for getting started.
-            </p>
-            <p className="text-sm text-gray-600 mb-6">
-              Schlep-engine is a REST API platform that transforms messy, unstructured data into ML-ready formats with just a few API calls. It comes with built-in real-time data processing, advanced Machine Learning (ML), and Reinforcement Learning (RL) to deliver powerful, domain-specific solutions across AI, Manufacturing, Financial Services, and E-commerce.
-            </p>
-          </div>
         {/* Quick Start */}
         <section className="mb-12">
           <h2 id="tldr" className="text-xl font-semibold mb-4 text-[#114dcd]">TL;DR</h2>
@@ -461,9 +464,9 @@ Retry-After: 3600`}
           </div>
         </section>
         </div>
-      </div>
-      <div className="lg:col-span-3">
-        <Toc sections={tocSections} />
+        <div className="w-64 ml-8 hidden lg:block">
+          <Toc sections={tocSections} />
+        </div>
       </div>
     </div>
   )
