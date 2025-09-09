@@ -287,6 +287,128 @@ const mainSections = [
           { name: 'Usage Analytics', href: '/api-reference/enterprise#usage-analytics', method: 'GET' },
         ]
       },
+      // AI Company APIs - Priority 1
+      {
+        name: 'MLOps Platform',
+        href: '/api-reference/mlops',
+        children: [
+          { name: 'Register Model', href: '/api-reference/mlops#register-model', method: 'POST' },
+          { name: 'Create Experiment', href: '/api-reference/mlops#create-experiment', method: 'POST' },
+          { name: 'Deploy Model', href: '/api-reference/mlops#deploy-model', method: 'POST' },
+          { name: 'Get Model Performance', href: '/api-reference/mlops#get-model-performance', method: 'GET' },
+          { name: 'A/B Test Model', href: '/api-reference/mlops#ab-test-model', method: 'POST' },
+          { name: 'List Models', href: '/api-reference/mlops#list-models', method: 'GET' },
+          { name: 'Get Experiment Status', href: '/api-reference/mlops#get-experiment-status', method: 'GET' },
+        ]
+      },
+      {
+        name: 'Enhanced Experiment Tracking',
+        href: '/api-reference/experiments',
+        children: [
+          { name: 'Create Enhanced Experiment', href: '/api-reference/experiments#create-enhanced-experiment', method: 'POST' },
+          { name: 'Log Metrics', href: '/api-reference/experiments#log-metrics', method: 'POST' },
+          { name: 'Get Real-time Metrics', href: '/api-reference/experiments#get-real-time-metrics', method: 'GET' },
+          { name: 'Compare Experiments', href: '/api-reference/experiments#compare-experiments', method: 'POST' },
+          { name: 'Get Insights', href: '/api-reference/experiments#get-insights', method: 'GET' },
+          { name: 'Share Experiment', href: '/api-reference/experiments#share-experiment', method: 'POST' },
+          { name: 'Get Genealogy', href: '/api-reference/experiments#get-genealogy', method: 'GET' },
+        ]
+      },
+      {
+        name: 'Advanced Model Serving',
+        href: '/api-reference/model-serving',
+        children: [
+          { name: 'Deploy Model for Serving', href: '/api-reference/model-serving#deploy-model-for-serving', method: 'POST' },
+          { name: 'Real-time Predictions', href: '/api-reference/model-serving#real-time-predictions', method: 'POST' },
+          { name: 'Batch Predictions', href: '/api-reference/model-serving#batch-predictions', method: 'POST' },
+          { name: 'Get Serving Status', href: '/api-reference/model-serving#get-serving-status', method: 'GET' },
+          { name: 'Scale Model', href: '/api-reference/model-serving#scale-model', method: 'POST' },
+          { name: 'Get Performance Metrics', href: '/api-reference/model-serving#get-performance-metrics', method: 'GET' },
+          { name: 'Canary Deployment', href: '/api-reference/model-serving#canary-deployment', method: 'POST' },
+          { name: 'Rollback Deployment', href: '/api-reference/model-serving#rollback-deployment', method: 'POST' },
+        ]
+      },
+      {
+        name: 'Dataset Marketplace',
+        href: '/api-reference/datasets',
+        children: [
+          { name: 'Catalog Dataset', href: '/api-reference/datasets#catalog-dataset', method: 'POST' },
+          { name: 'Search Datasets', href: '/api-reference/datasets#search-datasets', method: 'GET' },
+          { name: 'Get Quality Report', href: '/api-reference/datasets#get-quality-report', method: 'GET' },
+          { name: 'Share Dataset', href: '/api-reference/datasets#share-dataset', method: 'POST' },
+          { name: 'Get Usage Analytics', href: '/api-reference/datasets#get-usage-analytics', method: 'GET' },
+          { name: 'Add Review', href: '/api-reference/datasets#add-review', method: 'POST' },
+          { name: 'Get Recommendations', href: '/api-reference/datasets#get-recommendations', method: 'GET' },
+          { name: 'Convert Format', href: '/api-reference/datasets#convert-format', method: 'POST' },
+        ]
+      },
+      {
+        name: 'Automated Retraining',
+        href: '/api-reference/retraining',
+        children: [
+          { name: 'Create Pipeline', href: '/api-reference/retraining#create-pipeline', method: 'POST' },
+          { name: 'Trigger Retraining', href: '/api-reference/retraining#trigger-retraining', method: 'POST' },
+          { name: 'Get Pipeline Status', href: '/api-reference/retraining#get-pipeline-status', method: 'GET' },
+          { name: 'Configure Drift Detection', href: '/api-reference/retraining#configure-drift-detection', method: 'POST' },
+          { name: 'Get Drift Reports', href: '/api-reference/retraining#get-drift-reports', method: 'GET' },
+          { name: 'List Jobs', href: '/api-reference/retraining#list-jobs', method: 'GET' },
+          { name: 'Submit Feedback', href: '/api-reference/retraining#submit-feedback', method: 'POST' },
+        ]
+      },
+      // Manufacturing APIs - Priority 2
+      {
+        name: 'Manufacturing IoT Gateway',
+        href: '/api-reference/manufacturing-iot',
+        children: [
+          { name: 'Connect Industrial System', href: '/api-reference/manufacturing-iot#connect-industrial-system', method: 'POST' },
+          { name: 'Stream Process Data', href: '/api-reference/manufacturing-iot#stream-process-data', method: 'POST' },
+          { name: 'Equipment Health Status', href: '/api-reference/manufacturing-iot#equipment-health-status', method: 'GET' },
+          { name: 'List Connections', href: '/api-reference/manufacturing-iot#list-connections', method: 'GET' },
+          { name: 'Delete Connection', href: '/api-reference/manufacturing-iot#delete-connection', method: 'DELETE' },
+          { name: 'Batch Upload', href: '/api-reference/manufacturing-iot#batch-upload', method: 'POST' },
+          { name: 'Get Alerts', href: '/api-reference/manufacturing-iot#get-alerts', method: 'GET' },
+          { name: 'Configure Alerts', href: '/api-reference/manufacturing-iot#configure-alerts', method: 'POST' },
+        ]
+      },
+      {
+        name: 'Manufacturing Analytics',
+        href: '/api-reference/manufacturing-analytics',
+        children: [
+          { name: 'Stream Analytics', href: '/api-reference/manufacturing-analytics#stream-analytics', method: 'POST' },
+          { name: 'Get Forecasts', href: '/api-reference/manufacturing-analytics#get-forecasts', method: 'GET' },
+          { name: 'Configure SPC', href: '/api-reference/manufacturing-analytics#configure-spc', method: 'POST' },
+          { name: 'Get Efficiency Metrics', href: '/api-reference/manufacturing-analytics#get-efficiency-metrics', method: 'GET' },
+          { name: 'Real-time Analytics WebSocket', href: '/api-reference/manufacturing-analytics#real-time-analytics-websocket', method: 'WebSocket' },
+        ]
+      },
+      {
+        name: 'Manufacturing MES Integration',
+        href: '/api-reference/manufacturing-mes',
+        children: [
+          { name: 'Connect MES System', href: '/api-reference/manufacturing-mes#connect-mes-system', method: 'POST' },
+          { name: 'Sync Production Data', href: '/api-reference/manufacturing-mes#sync-production-data', method: 'POST' },
+          { name: 'Get Production Schedule', href: '/api-reference/manufacturing-mes#get-production-schedule', method: 'GET' },
+          { name: 'Optimize Production', href: '/api-reference/manufacturing-mes#optimize-production', method: 'POST' },
+          { name: 'Get Work Orders', href: '/api-reference/manufacturing-mes#get-work-orders', method: 'GET' },
+          { name: 'Update Work Order', href: '/api-reference/manufacturing-mes#update-work-order', method: 'POST' },
+          { name: 'Get OEE Metrics', href: '/api-reference/manufacturing-mes#get-oee-metrics', method: 'GET' },
+          { name: 'Report Quality Data', href: '/api-reference/manufacturing-mes#report-quality-data', method: 'POST' },
+        ]
+      },
+      {
+        name: 'Digital Twin Framework',
+        href: '/api-reference/digital-twin',
+        children: [
+          { name: 'Create Digital Twin', href: '/api-reference/digital-twin#create-digital-twin', method: 'POST' },
+          { name: 'Get Current State', href: '/api-reference/digital-twin#get-current-state', method: 'GET' },
+          { name: 'Run Simulation', href: '/api-reference/digital-twin#run-simulation', method: 'POST' },
+          { name: 'Get Insights', href: '/api-reference/digital-twin#get-insights', method: 'GET' },
+          { name: 'Optimize Parameters', href: '/api-reference/digital-twin#optimize-parameters', method: 'POST' },
+          { name: 'Get Predictions', href: '/api-reference/digital-twin#get-predictions', method: 'GET' },
+          { name: 'Force Synchronization', href: '/api-reference/digital-twin#force-synchronization', method: 'POST' },
+          { name: 'Real-time WebSocket', href: '/api-reference/digital-twin#real-time-websocket', method: 'WebSocket' },
+        ]
+      },
 
     ]
   },

@@ -1,8 +1,18 @@
+import { Toc } from '@/components/ui/Toc'
 import { CodeBlock } from '@/components/ui/CodeBlock'
 import Link from 'next/link'
 import { ArrowRightIcon, DocumentTextIcon, ShieldCheckIcon, CloudIcon, CogIcon } from '@heroicons/react/24/outline'
 
 export default function ApiReferencePage() {
+  const tocSections = [
+    { id: 'tldr', title: 'TL;DR' },
+    { id: 'sdks-and-libraries', title: 'SDKs and Libraries' },
+    { id: 'api-sections', title: 'API Sections' },
+    { id: 'http-status-codes', title: 'HTTP Status Codes' },
+    { id: 'rate-limiting', title: 'Rate Limiting' },
+    { id: 'error-handling', title: 'Error Handling' },
+    { id: 'additional-resources', title: 'Additional Resources' },
+  ]
   const apiSections = [
     {
       title: 'Financial Services',
@@ -71,7 +81,6 @@ export default function ApiReferencePage() {
       </div>
 
       <div className="flex justify-between">
-        <div className="flex justify-between">
         <div className="max-w-none">
         {/* Quick Start */}
         <section className="mb-12">
@@ -456,7 +465,7 @@ Retry-After: 3600`}
         </section>
         </div>
         <div className="w-64 ml-8 hidden lg:block">
-          {/* TOC component will go here */}
+          <Toc sections={tocSections} />
         </div>
       </div>
     </div>

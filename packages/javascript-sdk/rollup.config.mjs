@@ -5,6 +5,7 @@ import json from '@rollup/plugin-json';
 import { terser } from 'rollup-plugin-terser';
 import { dts } from 'rollup-plugin-dts';
 import alias from '@rollup/plugin-alias';
+import path from 'path';
 
 const pkg = require('./package.json');
 
@@ -91,7 +92,7 @@ export default [
     plugins: [
       alias({
         entries: [
-          { find: './auth', replacement: './auth/index.browser' }
+          { find: './auth', replacement: './src/auth/index.browser' }
         ]
       }),
       resolve({
