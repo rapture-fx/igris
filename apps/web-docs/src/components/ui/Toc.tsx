@@ -32,7 +32,7 @@ export function Toc({ sections }) {
   }, [sections])
 
   return (
-    <div className="sticky top-24">
+    <div className="fixed top-24 w-64">
       <h4 className="text-lg font-semibold mb-4">On this page</h4>
       <ul className="space-y-2">
         {sections.map((section) => (
