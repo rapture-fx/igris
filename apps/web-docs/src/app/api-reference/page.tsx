@@ -70,10 +70,12 @@ export default function ApiReferencePage() {
         
       </div>
 
-      <div className="max-w-none">
+      <div className="flex justify-between">
+        <div className="flex justify-between">
+        <div className="max-w-none">
         {/* Quick Start */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-4 text-[#114dcd]">Quick Start</h2>
+          <h2 id="tldr" className="text-xl font-semibold mb-4 text-[#114dcd]">TL;DR</h2>
           <div className="border-b border-gray-200 mb-4"></div>
           
           
@@ -81,11 +83,9 @@ export default function ApiReferencePage() {
             <h3 className="text-lg font-semibold text-blue-800 mb-3">
               Base URL
             </h3>
-            <div className="bg-white rounded-lg p-4">
-              <code className="block text-sm text-gray-900">
+            <code className="block text-sm text-gray-900">
                 https://api.schlep-engine.com
               </code>
-            </div>
           </div>
 
           <div className="flex flex-col space-y-6">
@@ -124,35 +124,51 @@ export default function ApiReferencePage() {
 
         {/* SDKs and Libraries */}
         <section className="mb-12">
-          <h2 className="text-xl font-semibold mb-6 text-[#114dcd]">SDKs and Libraries</h2>
+          <h2 id="sdks-and-libraries" className="text-xl font-semibold mb-6 text-[#114dcd]">SDKs and Libraries</h2>
           
           <p className="text-sm text-gray-600 mb-6">
             For a smoother developer experience, we suggest using our official SDKs instead of making direct REST API calls.
           </p>
           
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-row flex-wrap gap-6">
             <Link href="/sdks/python" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="text-2xl mb-2">🐍</div>
-              <h4 className="font-medium text-gray-900">Python SDK</h4>
-              <p className="text-sm text-gray-600">Full async/await support</p>
+              <div className="flex items-center space-x-4">
+              <img src="/python.svg" alt="Python Logo" className="h-20 w-20" />
+              <div>
+                <h4 className="font-medium text-gray-900">Python SDK</h4>
+                <p className="text-sm text-gray-600">Full async/await support</p>
+              </div>
+            </div>
             </Link>
             
             <Link href="/sdks/javascript" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="text-2xl mb-2">⚡</div>
-              <h4 className="font-medium text-gray-900">JavaScript/TS</h4>
-              <p className="text-sm text-gray-600">Browser & Node.js</p>
+              <div className="flex items-center space-x-4">
+              <img src="/JS.svg" alt="JavaScript Logo" className="h-16 w-16 mb-2" />
+              <div>
+                <h4 className="font-medium text-gray-900">JavaScript/TS</h4>
+                <p className="text-sm text-gray-600">Browser & Node.js</p>
+              </div>
+            </div>
             </Link>
             
             <Link href="/sdks/go" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="text-2xl mb-2">🚀</div>
-              <h4 className="font-medium text-gray-900">Go SDK</h4>
-              <p className="text-sm text-gray-600">Cloud-native ready</p>
+              <div className="flex items-center space-x-4">
+              <img src="/GO.svg" alt="Go Logo" className="h-16 w-16 mb-2" />
+              <div>
+                <h4 className="font-medium text-gray-900">Go SDK</h4>
+                <p className="text-sm text-gray-600">Cloud-native ready</p>
+              </div>
+            </div>
             </Link>
             
             <Link href="/sdks/cli" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
-              <div className="text-2xl mb-2">🔧</div>
-              <h4 className="font-medium text-gray-900">CLI Tool</h4>
-              <p className="text-sm text-gray-600">Command-line interface</p>
+              <div className="flex items-center space-x-4">
+              <img src="/CLI.svg" alt="CLI Logo" className="h-16 w-16 mb-2" />
+              <div>
+                <h4 className="font-medium text-gray-900">CLI Tool</h4>
+                <p className="text-sm text-gray-600">Command-line interface</p>
+              </div>
+            </div>
             </Link>
           </div>
         </section>
@@ -161,7 +177,7 @@ export default function ApiReferencePage() {
 
         {/* API Sections */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">API Sections</h2>
+          <h2 id="api-sections" className="text-2xl font-semibold text-gray-900 mb-6">API Sections</h2>
           
           <div className="flex flex-col gap-6">
             {apiSections.map((section, index) => {
@@ -203,7 +219,7 @@ export default function ApiReferencePage() {
 
         {/* HTTP Status Codes */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">HTTP Status Codes</h2>
+          <h2 id="http-status-codes" className="text-2xl font-semibold text-gray-900 mb-6">HTTP Status Codes</h2>
           
           <div className="overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full border border-gray-200 rounded-lg">
@@ -285,7 +301,7 @@ export default function ApiReferencePage() {
 
         {/* Rate Limiting */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Rate Limiting</h2>
+          <h2 id="rate-limiting" className="text-2xl font-semibold text-gray-900 mb-6">Rate Limiting</h2>
           
           <p className="text-gray-600 mb-4">
             The API uses rate limiting to ensure fair usage. Rate limits are applied per API key or user account.
@@ -322,7 +338,7 @@ Retry-After: 3600`}
 
         {/* Error Handling */}
         <section className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Error Handling</h2>
+          <h2 id="error-handling" className="text-2xl font-semibold text-gray-900 mb-6">Error Handling</h2>
           
           <p className="text-gray-600 mb-4">
             All errors return a JSON response with a consistent structure:
@@ -371,7 +387,7 @@ Retry-After: 3600`}
 
         {/* Resources */}
         <section className="bg-gray-50 rounded-lg p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Additional Resources</h2>
+          <h2 id="additional-resources" className="text-xl font-semibold text-gray-900 mb-4">Additional Resources</h2>
           
           <div className="flex flex-col gap-6">
             <div>
@@ -438,6 +454,10 @@ Retry-After: 3600`}
             </div>
           </div>
         </section>
+        </div>
+        <div className="w-64 ml-8 hidden lg:block">
+          {/* TOC component will go here */}
+        </div>
       </div>
     </div>
   )
