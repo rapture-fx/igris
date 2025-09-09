@@ -5,18 +5,12 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   BookOpenIcon,
-  CodeBracketIcon,
   CommandLineIcon,
-  CubeIcon,
-  LightBulbIcon,
-  RocketLaunchIcon,
-  DocumentTextIcon,
-  ClockIcon,
   SparklesIcon,
-  ChevronRightIcon
+  ChevronRightIcon,
+  MagnifyingGlassIcon
 } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
-import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 const mainSections = [
   {

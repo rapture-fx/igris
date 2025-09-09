@@ -1,3 +1,4 @@
+import { CodeBlock } from '@/components/ui/CodeBlock'
 import Link from 'next/link'
 import { ArrowRightIcon, DocumentTextIcon, ShieldCheckIcon, CloudIcon, CogIcon } from '@heroicons/react/24/outline'
 
@@ -90,33 +91,33 @@ export default function ApiReferencePage() {
           <div className="flex flex-col space-y-6">
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">API Key Authentication</h3>
-              <div className="bg-gray-900 rounded-lg">
-                <pre className="text-sm text-gray-100 p-4">
-{`curl -X POST https://api.schlep-engine.com/api/v1/industry/financial/fraud-detection \
-  -H "Authorization: Bearer sk_your_api_key" \
-  -H "Content-Type: application/json" \
-  -d '{' \
-    "transaction_id": "txn_12345", \
-    "user_id": "user_67890", \
-    "transaction_amount": 2500.00, \
-    "merchant_category": "electronics" \
+              <CodeBlock
+                code={`curl -X POST https://api.schlep-engine.com/api/v1/industry/financial/fraud-detection \
+  -H \"Authorization: Bearer sk_your_api_key\" \
+  -H \"Content-Type: application/json\" \
+  -d '{ \
+    \"transaction_id\": \"txn_12345\", \
+    \"user_id\": \"user_67890\", \
+    \"transaction_amount\": 2500.00, \
+    \"merchant_category\": \"electronics\" \
   }'`}
-                </pre>
-              </div>
+                language="bash"
+                title="API Key Authentication"
+              />
             </div>
             
             <div>
               <h3 className="text-lg font-semibold text-gray-900 mb-3">User Authentication</h3>
-              <div className="bg-gray-900 rounded-lg">
-                <pre className="text-sm text-gray-100 p-4">
-{`curl -X POST https://api.schlep-engine.com/api/v1/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{'
-    "email": "user@example.com",
-    "password": "your_password"
-  }`}
-                </pre>
-              </div>
+              <CodeBlock
+                code={`curl -X POST https://api.schlep-engine.com/api/v1/auth/login \
+  -H \"Content-Type: application/json\" \
+  -d '{ \
+    \"email\": \"user@example.com\", \
+    \"password\": \"your_password\" \
+  }'`}
+                language="bash"
+                title="User Authentication"
+              />
             </div>
           </div>
         </section>
@@ -129,26 +130,26 @@ export default function ApiReferencePage() {
             For a smoother developer experience, we suggest using our official SDKs instead of making direct REST API calls.
           </p>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/sdks/python" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+          <div className="flex flex-col gap-4">
+            <Link href="/sdks/python" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
               <div className="text-2xl mb-2">🐍</div>
               <h4 className="font-medium text-gray-900">Python SDK</h4>
               <p className="text-sm text-gray-600">Full async/await support</p>
             </Link>
             
-            <Link href="/sdks/javascript" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+            <Link href="/sdks/javascript" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
               <div className="text-2xl mb-2">⚡</div>
               <h4 className="font-medium text-gray-900">JavaScript/TS</h4>
               <p className="text-sm text-gray-600">Browser & Node.js</p>
             </Link>
             
-            <Link href="/sdks/go" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+            <Link href="/sdks/go" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
               <div className="text-2xl mb-2">🚀</div>
               <h4 className="font-medium text-gray-900">Go SDK</h4>
               <p className="text-sm text-gray-600">Cloud-native ready</p>
             </Link>
             
-            <Link href="/sdks/cli" className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+            <Link href="/sdks/cli" className="block p-4 border-b border-gray-200 hover:bg-gray-50 transition-colors">
               <div className="text-2xl mb-2">🔧</div>
               <h4 className="font-medium text-gray-900">CLI Tool</h4>
               <p className="text-sm text-gray-600">Command-line interface</p>
@@ -162,11 +163,11 @@ export default function ApiReferencePage() {
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">API Sections</h2>
           
-          <div className="grid gap-6">
+          <div className="flex flex-col gap-6">
             {apiSections.map((section, index) => {
               const IconComponent = section.icon
               return (
-                <div key={index} className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors">
+                <div key={index} className="border-b border-gray-200 pb-6 mb-6">
                   <div className="flex items-start gap-4">
                     <IconComponent className={`h-8 w-8 ${section.color} mt-1 flex-shrink-0`} />
                     <div className="flex-1">
@@ -204,78 +205,78 @@ export default function ApiReferencePage() {
         <section className="mb-12">
           <h2 className="text-2xl font-semibold text-gray-900 mb-6">HTTP Status Codes</h2>
           
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-lg border border-gray-200">
             <table className="w-full border border-gray-200 rounded-lg">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Code</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meaning</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Code</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Meaning</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       200
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">OK</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Request succeeded</td>
+                  <td className="px-4 py-2 text-sm font-medium text-gray-900">OK</td>
+                  <td className="px-4 py-2 text-sm text-gray-600">Request succeeded</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                       201
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">Created</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Resource created successfully</td>
+                  <td className="px-4 py-2 text-sm font-medium text-gray-900">Created</td>
+                  <td className="px-4 py-2 text-sm text-gray-600">Resource created successfully</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                       400
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">Bad Request</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Invalid request parameters</td>
+                  <td className="px-4 py-2 text-sm font-medium text-gray-900">Bad Request</td>
+                  <td className="px-4 py-2 text-sm text-gray-600">Invalid request parameters</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       401
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">Unauthorized</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Invalid or missing authentication</td>
+                  <td className="px-4 py-2 text-sm font-medium text-gray-900">Unauthorized</td>
+                  <td className="px-4 py-2 text-sm text-gray-600">Invalid or missing authentication</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       403
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">Forbidden</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Insufficient permissions</td>
+                  <td className="px-4 py-2 text-sm font-medium text-gray-900">Forbidden</td>
+                  <td className="px-4 py-2 text-sm text-gray-600">Insufficient permissions</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       429
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">Too Many Requests</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Rate limit exceeded</td>
+                  <td className="px-4 py-2 text-sm font-medium text-gray-900">Too Many Requests</td>
+                  <td className="px-4 py-2 text-sm text-gray-600">Rate limit exceeded</td>
                 </tr>
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-2 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
                       500
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">Internal Server Error</td>
-                  <td className="px-6 py-4 text-sm text-gray-600">Server error occurred</td>
+                  <td className="px-4 py-2 text-sm font-medium text-gray-900">Internal Server Error</td>
+                  <td className="px-4 py-2 text-sm text-gray-600">Server error occurred</td>
                 </tr>
               </tbody>
             </table>
@@ -303,16 +304,16 @@ Retry-After: 3600`}
             </div>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mt-6">
-            <div className="text-center p-4 border border-gray-200 rounded-lg">
+          <div className="flex flex-col gap-6 mt-6">
+            <div className="text-center p-4 border-b border-gray-200">
               <div className="text-2xl font-bold text-blue-600 mb-1">1,000</div>
               <div className="text-sm text-gray-600">Requests per hour (Free)</div>
             </div>
-            <div className="text-center p-4 border border-gray-200 rounded-lg">
+            <div className="text-center p-4 border-b border-gray-200">
               <div className="text-2xl font-bold text-green-600 mb-1">10,000</div>
               <div className="text-sm text-gray-600">Requests per hour (Pro)</div>
             </div>
-            <div className="text-center p-4 border border-gray-200 rounded-lg">
+            <div className="text-center p-4 border-b border-gray-200">
               <div className="text-2xl font-bold text-purple-600 mb-1">100,000</div>
               <div className="text-sm text-gray-600">Requests per hour (Enterprise)</div>
             </div>
@@ -343,8 +344,8 @@ Retry-After: 3600`}
             </pre>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="border border-gray-200 rounded-lg p-4">
+          <div className="flex flex-col gap-6">
+            <div className="border-b border-gray-200 pb-4 mb-4">
               <h4 className="font-medium text-gray-900 mb-2">Common Error Codes</h4>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li><code>VALIDATION_ERROR</code> - Invalid request data</li>
@@ -354,7 +355,7 @@ Retry-After: 3600`}
                 <li><code>RESOURCE_NOT_FOUND</code> - Resource doesn't exist</li>
               </ul>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="border-b border-gray-200 pb-4 mb-4">
               <h4 className="font-medium text-gray-900 mb-2">Error Response Fields</h4>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li><code>code</code> - Machine-readable error code</li>
@@ -372,7 +373,7 @@ Retry-After: 3600`}
         <section className="bg-gray-50 rounded-lg p-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Additional Resources</h2>
           
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="flex flex-col gap-6">
             <div>
               <h3 className="font-medium text-gray-900 mb-3">📚 Documentation</h3>
               <ul className="space-y-2">

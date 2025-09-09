@@ -397,6 +397,14 @@ app.include_router(billing.router, prefix="/api/v1/billing", tags=["Billing & Us
 app.include_router(community.router, prefix="/api/v1/community", tags=["Community Features"])
 app.include_router(enterprise.router, tags=["Enterprise Features"])  # Already has prefix in router
 app.include_router(marketplace.router, prefix="/api/v1/marketplace", tags=["Marketplace"])
+
+# Include Dataset Marketplace
+try:
+    from app.api.v1.dataset_marketplace import router as dataset_marketplace_router
+    app.include_router(dataset_marketplace_router, tags=["Dataset Marketplace"])
+    logger.info("Dataset Marketplace API endpoints enabled")
+except ImportError as e:
+    logger.warning(f"Dataset Marketplace endpoints not available: {e}")
 app.include_router(security_admin.router, prefix="/api/v1/security-admin", tags=["Security Administration"])
 app.include_router(semantic_insights.router, prefix="/api/v1/semantic", tags=["Semantic Insights"])
 app.include_router(websocket_manager.router, prefix="/api/v1/websocket", tags=["WebSocket Manager"])

@@ -8,6 +8,7 @@ import javascript from 'react-syntax-highlighter/dist/esm/languages/hljs/javascr
 import bash from 'react-syntax-highlighter/dist/esm/languages/hljs/bash'
 import json from 'react-syntax-highlighter/dist/esm/languages/hljs/json'
 import curl from 'react-syntax-highlighter/dist/esm/languages/hljs/bash'
+import plaintext from 'react-syntax-highlighter/dist/esm/languages/hljs/plaintext'
 import { atomOneLight } from 'react-syntax-highlighter/dist/esm/styles/hljs'
 
 interface CodeBlockProps {
@@ -16,6 +17,7 @@ interface CodeBlockProps {
   title?: string
   showLineNumbers?: boolean
   showCopyButton?: boolean
+  backgroundColor?: 'gray' | 'white'
 }
 
 // Register languages
@@ -24,8 +26,10 @@ SyntaxHighlighter.registerLanguage('javascript', javascript)
 SyntaxHighlighter.registerLanguage('bash', bash)
 SyntaxHighlighter.registerLanguage('json', json)
 SyntaxHighlighter.registerLanguage('curl', curl)
+SyntaxHighlighter.registerLanguage('plaintext', plaintext)
+SyntaxHighlighter.registerLanguage('text', plaintext)
 
-export function CodeBlock({ code, language, title, showLineNumbers = false, showCopyButton = true }: CodeBlockProps) {
+export function CodeBlock({ code, language, title, showLineNumbers = false, showCopyButton = true, backgroundColor = 'gray' }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
   const [mounted, setMounted] = useState(false)
 
@@ -48,7 +52,7 @@ export function CodeBlock({ code, language, title, showLineNumbers = false, show
     ...atomOneLight,
     'hljs': {
       ...atomOneLight['hljs'],
-      background: '#f8f9fa',
+      background: backgroundColor === 'white' ? '#ffffff' : '#f8f9fa',
       padding: '1rem',
       borderRadius: '0.375rem',
       fontSize: '11px',
@@ -76,7 +80,7 @@ export function CodeBlock({ code, language, title, showLineNumbers = false, show
           </div>
         )}
         <div className="relative">
-          <pre className="bg-gray-50 border border-gray-200 rounded-lg p-4 overflow-x-auto">
+          <pre className={`${backgroundColor === 'white' ? 'bg-white' : 'bg-gray-50'} border border-gray-200 rounded-lg p-4 overflow-x-auto`}>
             <code className="text-sm font-mono block leading-relaxed">
               {code}
             </code>
@@ -107,7 +111,7 @@ export function CodeBlock({ code, language, title, showLineNumbers = false, show
             )}
           </button>
         )}
-        <div className="border border-gray-200 rounded-lg overflow-hidden">
+        <div className={`${backgroundColor === 'white' ? 'bg-white' : 'bg-gray-50'} border border-gray-200 rounded-lg overflow-hidden`}>
           <SyntaxHighlighter
             language={getLanguage(language)}
             style={customStyle}
@@ -115,10 +119,11 @@ export function CodeBlock({ code, language, title, showLineNumbers = false, show
             wrapLines={true}
             customStyle={{
               margin: 0,
-              fontSize: '11px',
-              lineHeight: '1.4',
+              fontSize: '14px',
+              lineHeight: '1.6',
               fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
             }}
+            PreTag={(preProps) => <div {...preProps} className={`${backgroundColor === 'white' ? 'bg-white' : 'bg-gray-50'} p-4`}/>}
           >
             {code}
           </SyntaxHighlighter>

@@ -150,9 +150,9 @@ schlep pipeline status my-pipeline --watch`
       {/* SDK Overview */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">Choose Your SDK</h2>
-        <div className="grid gap-8">
+        <div className="flex flex-col gap-8">
           {sdks.map((sdk, index) => (
-            <div key={index} className="border border-gray-200 rounded-lg p-6 hover:border-blue-300 transition-colors">
+            <div key={index} className="border-b border-gray-200 pb-8 mb-8">
               <div className="flex items-start gap-4">
                 <div className="text-3xl">{sdk.icon}</div>
                 <div className="flex-1">
@@ -206,83 +206,83 @@ schlep pipeline status my-pipeline --watch`
       {/* Comparison Table */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-6">SDK Comparison</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full border border-gray-200 rounded-lg">
+        <div className="overflow-x-auto rounded-lg border border-gray-200">
+          <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SDK</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Use Case</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Async</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Streaming</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Framework</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SDK</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Use Case</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Async</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Streaming</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Batch</th>
+                <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Framework</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-2 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="mr-2">🐍</span>
                     <span className="font-medium text-gray-900">Python SDK</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">Data Science & ML</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-gray-600">asyncio, httpx</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Data Science & ML</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-gray-600">asyncio, httpx</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-2 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="mr-2">⚡</span>
                     <span className="font-medium text-gray-900">JavaScript/TS</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">Web & Serverless</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-gray-600">Node.js, Browser</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Web & Serverless</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Node.js, Browser</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-2 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="mr-2">🚀</span>
                     <span className="font-medium text-gray-900">Go SDK</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">Cloud-Native & Microservices</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-gray-600">Context, Observability</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Cloud-Native & Microservices</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Context, Observability</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-2 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="mr-2">🔧</span>
                     <span className="font-medium text-gray-900">CLI Tool</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">DevOps & Automation</td>
-                <td className="px-6 py-4 text-sm text-gray-400">○</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-green-600">✓</td>
-                <td className="px-6 py-4 text-sm text-gray-600">Command Line</td>
+                <td className="px-4 py-2 text-sm text-gray-600">DevOps & Automation</td>
+                <td className="px-4 py-2 text-sm text-gray-400">○</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-green-600">✓</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Command Line</td>
               </tr>
               <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-4 py-2 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="mr-2">🛠️</span>
                     <span className="font-medium text-gray-900">OpenAPI Generator</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-600">Multi-Language Support</td>
-                <td className="px-6 py-4 text-sm text-yellow-600">Varies</td>
-                <td className="px-6 py-4 text-sm text-yellow-600">Varies</td>
-                <td className="px-6 py-4 text-sm text-yellow-600">Varies</td>
-                <td className="px-6 py-4 text-sm text-gray-600">Python, JS, Go, Java, C#</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Multi-Language Support</td>
+                <td className="px-4 py-2 text-sm text-yellow-600">Varies</td>
+                <td className="px-4 py-2 text-sm text-yellow-600">Varies</td>
+                <td className="px-4 py-2 text-sm text-yellow-600">Varies</td>
+                <td className="px-4 py-2 text-sm text-gray-600">Python, JS, Go, Java, C#</td>
               </tr>
             </tbody>
           </table>

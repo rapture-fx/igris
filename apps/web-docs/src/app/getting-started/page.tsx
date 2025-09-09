@@ -39,6 +39,19 @@ export default function GettingStartedPage() {
             </p>
           </div>
           
+          {/* Base URL */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-12">
+            <h3 className="text-2xl font-semibold text-gray-900 mb-6">Base URL</h3>
+            <p className="text-gray-600 mb-6 text-lg leading-relaxed">
+              All API requests should be made to our base URL:
+            </p>
+            <CodeBlock
+              code="https://api.schlep-engine.com/v1/"
+              language="text"
+              backgroundColor="white"
+            />
+          </div>
+          
           <div className="space-y-12">
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
               <h3 className="text-2xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -54,7 +67,11 @@ export default function GettingStartedPage() {
                   <KeyIcon className="h-5 w-5 text-blue-600 mr-2" />
                   <span className="text-sm font-semibold text-blue-900">Your API Key</span>
                 </div>
-                <code className="text-sm text-blue-800 font-mono bg-white px-3 py-2 rounded border">sk_test_4eC39HqLyjWDarjtT1zdp7dc</code>
+                <CodeBlock
+                  code={`sk_test_4eC39HqLyjWDarjtT1zdp7dc`}
+                  language="bash"
+                  title="API Key"
+                />
               </div>
             </div>
 
