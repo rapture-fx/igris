@@ -609,7 +609,7 @@ jobs:
         # Try building each frontend app individually
         cd apps/web-landing && npm run build || echo "⚠️ Landing build failed"
         cd ../web-admin && npm run build || echo "⚠️ Admin build failed"
-        cd ../web-docs && npm run build || echo "⚠️ Docs build failed"
+        cd ../web-docs && npm run build
 
   # Enhanced Security Scan for SDKs
   security-scan:
