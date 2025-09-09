@@ -35,9 +35,9 @@ const mainSections = [
       { name: 'Feature Maturity Roadmap', href: '/concepts/feature-maturity-roadmap' },
       { name: 'Jupyter Notebooks', href: '/integrations/jupyter' },
       { name: 'AWS SageMaker', href: '/integrations/aws-sagemaker' },
-      { name: 'Financial Services AI', href: '/industries/financial-services' },
-      { name: 'E-commerce AI', href: '/industries/ecommerce' },
-      { name: 'Manufacturing AI', href: '/industries/manufacturing' },
+      { name: 'Financial Services', href: '/industries/financial-services' },
+      { name: 'E-commerce', href: '/industries/ecommerce' },
+      { name: 'Manufacturing', href: '/industries/manufacturing' },
       { name: 'ML Model Training', href: '/use-cases/ml-training' },
       { name: 'Hyperparameter Optimization', href: '/use-cases/hyperparameter-optimization' },
       { name: 'Data Quality Monitoring', href: '/use-cases/quality-monitoring' },
@@ -130,7 +130,6 @@ const mainSections = [
       },
       {
         name: 'Financial Services',
-        href: "/api-reference/document-extraction",
         href: "/api-reference/financial-ai",
         children: [
           { name: 'Fraud Detection', href: '/api-reference/financial-ai#fraud-detection', method: 'POST' },
@@ -140,7 +139,6 @@ const mainSections = [
       },
       {
         name: 'E-commerce',
-        href: "/api-reference/financial-ai",
         href: "/api-reference/ecommerce-ai",
         children: [
           { name: 'Product Recommendations', href: '/api-reference/ecommerce-ai#recommendations', method: 'POST' },

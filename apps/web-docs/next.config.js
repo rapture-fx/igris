@@ -9,7 +9,7 @@ const nextConfig = {
   },
   typescript: {
     // Also ignore TypeScript errors during builds temporarily
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   experimental: {
     forceSwcTransforms: true,

@@ -1,19 +1,11 @@
-import { Toc } from '@/components/ui/Toc'
+'use client'
+
+import React from 'react'
 import { CodeBlock } from '@/components/ui/CodeBlock'
 import Link from 'next/link'
 import { ArrowRightIcon, DocumentTextIcon, ShieldCheckIcon, CloudIcon, CogIcon } from '@heroicons/react/24/outline'
 
 export default function ApiReferencePage() {
-  const tocSections = [
-    { id: 'tldr', title: 'TL;DR' },
-    { id: 'sdks-and-libraries', title: 'SDKs and Libraries' },
-    { id: 'api-sections', title: 'API Sections' },
-    { id: 'http-status-codes', title: 'HTTP Status Codes' },
-    { id: 'rate-limiting', title: 'Rate Limiting' },
-    { id: 'error-handling', title: 'Error Handling' },
-    { id: 'additional-resources', title: 'Additional Resources' },
-  ]
-
   const apiSections = [
     {
       title: 'Financial Services',
@@ -66,9 +58,8 @@ export default function ApiReferencePage() {
   ]
 
   return (
-    <div className="max-w-none mx-auto p-4 lg:grid lg:grid-cols-12 lg:gap-24">
-      <div className="lg:col-span-10">
-        <div className="max-w-none">
+    <div className="max-w-none mx-auto p-4">
+      <div className="max-w-none">
           <div className="mb-8">
             <h1 className="text-2xl font-semibold mb-4 text-[#114dcd]">
               Getting Started
@@ -457,11 +448,6 @@ Retry-After: 3600`}
               </div>
             </div>
           </section>
-        </div>
-      </div>
-      <div className="lg:col-span-2">
-        <div className="sticky top-24 pl-16">
-          <Toc sections={tocSections} />
         </div>
       </div>
     </div>

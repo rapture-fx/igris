@@ -92,7 +92,7 @@ export default [
     plugins: [
       alias({
         entries: [
-          { find: './auth', replacement: './src/auth/index.browser' }
+          
         ]
       }),
       resolve({
