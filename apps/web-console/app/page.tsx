@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { 
   Cpu, 
@@ -12,8 +12,14 @@ import {
   Terminal,
   Zap,
   Globe,
-  BarChart3
+  BarChart3,
+  User,
+  LogOut,
+  Webhook
 } from 'lucide-react'
+import { useAuth } from '../src/lib/auth/context'
+import LoginModal from '../src/components/auth/LoginModal'
+import WebhookTester from '../src/components/console/WebhookTester'
 
 interface IndustryCardProps {
   title: string
@@ -85,6 +91,44 @@ const IndustryCard: React.FC<IndustryCardProps> = ({
   )
 }
 
+const AuthButton: React.FC = () => {
+  const { isAuthenticated, user, logout } = useAuth()
+  const [showLoginModal, setShowLoginModal] = useState(false)
+
+  if (isAuthenticated && user) {
+    return (
+      <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
+          <User className="w-4 h-4" />
+          <span>{user.name}</span>
+        </div>
+        <button
+          onClick={logout}
+          className="flex items-center space-x-1 px-3 py-1 text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          <span>Sign out</span>
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setShowLoginModal(true)}
+        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        Sign in
+      </button>
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
+    </>
+  )
+}
+
 const ConsoleHeader: React.FC = () => {
   return (
     <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
@@ -113,9 +157,7 @@ const ConsoleHeader: React.FC = () => {
             <Link href="http://localhost:3000" className="text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
               Home
             </Link>
-            <Link href="http://localhost:3000/dashboard" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Dashboard
-            </Link>
+            <AuthButton />
           </nav>
         </div>
       </div>
@@ -151,6 +193,8 @@ const StatsSection: React.FC = () => {
 }
 
 export default function ConsolePage() {
+  const [showWebhookTester, setShowWebhookTester] = useState(false)
+  
   const industries = [
     {
       title: "AI Companies",
@@ -259,12 +303,21 @@ export default function ConsolePage() {
               <Globe className="w-5 h-5 text-green-600 dark:text-green-400" />
               <span className="font-medium text-gray-900 dark:text-white">Documentation</span>
             </Link>
-            <Link href="/status" className="flex items-center space-x-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors">
-              <Activity className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-              <span className="font-medium text-gray-900 dark:text-white">API Status</span>
-            </Link>
+            <button 
+              onClick={() => setShowWebhookTester(true)}
+              className="flex items-center space-x-3 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors w-full text-left"
+            >
+              <Webhook className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+              <span className="font-medium text-gray-900 dark:text-white">Webhook Tester</span>
+            </button>
           </div>
         </div>
+
+        {/* Webhook Tester Modal */}
+        <WebhookTester 
+          isOpen={showWebhookTester}
+          onClose={() => setShowWebhookTester(false)}
+        />
       </main>
     </div>
   )

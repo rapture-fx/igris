@@ -20,6 +20,7 @@ import {
   Bot
 } from 'lucide-react'
 import { apiClient } from '../../src/lib/api/client'
+import CodeGenerator from '../../src/components/console/CodeGenerator'
 
 interface APITest {
   id: string
@@ -72,8 +73,9 @@ const AIConsoleHeader = () => {
 const APITestCard: React.FC<{
   test: APITest
   onTest: (test: APITest) => void
+  onGenerateCode: (test: APITest) => void
   isLoading?: boolean
-}> = ({ test, onTest, isLoading }) => {
+}> = ({ test, onTest, onGenerateCode, isLoading }) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:shadow-md transition-shadow">
       <div className="flex items-start justify-between mb-4">
@@ -91,18 +93,27 @@ const APITestCard: React.FC<{
             </code>
           </div>
         </div>
-        <button
-          onClick={() => onTest(test)}
-          disabled={isLoading}
-          className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          {isLoading ? (
-            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-          ) : (
-            <Play className="w-4 h-4 mr-1" />
-          )}
-          Test API
-        </button>
+        <div className="flex space-x-2">
+          <button
+            onClick={() => onGenerateCode(test)}
+            className="inline-flex items-center px-3 py-2 border border-purple-600 text-purple-600 text-sm font-medium rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
+          >
+            <Code className="w-4 h-4 mr-1" />
+            Code
+          </button>
+          <button
+            onClick={() => onTest(test)}
+            disabled={isLoading}
+            className="inline-flex items-center px-3 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 mr-1" />
+            )}
+            Test API
+          </button>
+        </div>
       </div>
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
         {test.name}
@@ -187,6 +198,8 @@ export default function AIConsolePage() {
   const [response, setResponse] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | undefined>()
+  const [showCodeGenerator, setShowCodeGenerator] = useState(false)
+  const [codeGeneratorTest, setCodeGeneratorTest] = useState<APITest | null>(null)
 
   const aiTests: APITest[] = [
     {
@@ -329,6 +342,11 @@ export default function AIConsolePage() {
     }
   }
 
+  const handleGenerateCode = (test: APITest) => {
+    setCodeGeneratorTest(test)
+    setShowCodeGenerator(true)
+  }
+
   const statsCards = [
     { 
       icon: <Zap className="w-5 h-5" />, 
@@ -388,6 +406,7 @@ export default function AIConsolePage() {
                   key={test.id}
                   test={test}
                   onTest={handleTest}
+                  onGenerateCode={handleGenerateCode}
                   isLoading={isLoading && activeTest?.id === test.id}
                 />
               ))}
@@ -425,6 +444,17 @@ export default function AIConsolePage() {
             )}
           </div>
         </div>
+
+        {/* Code Generator Modal */}
+        {showCodeGenerator && (
+          <CodeGenerator 
+            test={codeGeneratorTest}
+            onClose={() => {
+              setShowCodeGenerator(false)
+              setCodeGeneratorTest(null)
+            }}
+          />
+        )}
       </main>
     </div>
   )

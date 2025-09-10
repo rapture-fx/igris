@@ -69,9 +69,9 @@ export default function ReinforcementLearningPage() {
               <div>
                 <h4 className="font-medium text-gray-800 mb-2">Required Dependencies:</h4>
                 <ul className="text-sm text-gray-700 space-y-1">
-                  <li>• PyTorch >= 1.9.0</li>
-                  <li>• stable-baselines3 >= 1.6.0</li>
-                  <li>• gym >= 0.21.0</li>
+                  <li>• PyTorch &gt;= 1.9.0</li>
+                  <li>• stable-baselines3 &gt;= 1.6.0</li>
+                  <li>• gym &gt;= 0.21.0</li>
                   <li>• tensorboard (optional, for monitoring)</li>
                 </ul>
               </div>
@@ -143,7 +143,7 @@ export default function ReinforcementLearningPage() {
           <div className="bg-white border border-gray-200 rounded-lg p-6">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold text-green-600">💰 Dynamic Pricing</h3>
-              <MaturityIndicator level="planned" showLabel={false} />
+              <MaturityIndicator level="planned" feature="" />
             </div>
             <p className="text-sm text-gray-600 mb-4">
               Planned: Advanced pricing optimization using market analysis. Currently provides rule-based pricing recommendations based on competition and demand patterns.
