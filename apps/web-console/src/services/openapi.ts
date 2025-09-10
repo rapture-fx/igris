@@ -453,6 +453,7 @@ export const AI_COMPANY_OPENAPI_SPEC: OpenAPISpec = {
   paths: {
     '/api/v1/manufacturing/digital-twin/create': {
       post: {
+        id: 'createDigitalTwin',
         operationId: 'createDigitalTwin',
         summary: 'Create AI Model Digital Twin',
         description: 'Create a digital twin of your ML model with full lifecycle tracking',
@@ -509,6 +510,7 @@ export const AI_COMPANY_OPENAPI_SPEC: OpenAPISpec = {
     },
     '/api/v1/manufacturing/digital-twin/{id}/insights': {
       get: {
+        id: 'getTwinInsights',
         operationId: 'getTwinInsights',
         summary: 'AI Twin Performance Analytics',
         description: 'Get comprehensive analytics for your AI model twin',
@@ -527,6 +529,7 @@ export const AI_COMPANY_OPENAPI_SPEC: OpenAPISpec = {
     },
     '/api/v1/datasets/catalog': {
       post: {
+        id: 'catalogDataset',
         operationId: 'catalogDataset',
         summary: 'Catalog Training Dataset',
         description: 'Register and catalog a new dataset in the marketplace',
@@ -555,6 +558,7 @@ export const AI_COMPANY_OPENAPI_SPEC: OpenAPISpec = {
     },
     '/api/v1/experiments/create': {
       post: {
+        id: 'createMLExperiment',
         operationId: 'createMLExperiment',
         summary: 'Create ML Experiment',
         description: 'Set up a comprehensive ML experiment with version control',
