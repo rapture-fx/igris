@@ -43,18 +43,21 @@ export default function Header() {
 
   const handleApiHover = () => {
     if (!isClicked) {
+      console.log('handleApiHover');
       setShowApiPanel(true)
     }
   }
 
   const handleApiLeave = () => {
     if (!isClicked) {
+      console.log('handleApiLeave');
       setShowApiPanel(false)
     }
   }
 
   const handleApiClick = (e: React.MouseEvent) => {
     e.preventDefault()
+    console.log('handleApiClick');
     setIsClicked(true)
     setShowApiPanel(true)
   }
