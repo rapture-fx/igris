@@ -1,4 +1,7 @@
-import { EndpointCard } from '../../components/ui/EndpointCard'
+'use client'
+
+import React from 'react'
+import { EndpointCard } from '../../../components/ui/EndpointCard'
 
 export default function AutomatedRetrainingPage() {
   return (
