@@ -1,45 +1,14 @@
 'use client'
 
-import { ApiLayout } from '@/components/ui/ApiLayout'
 import { CpuChipIcon, WrenchScrewdriverIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 
 export default function ManufacturingDataProcessingApiPage() {
-
-  const endpoints = [
-    {
-      method: 'POST',
-      path: '/api/v1/industry/manufacturing/predictive-maintenance',
-      description: 'Equipment failure prediction with multi-sensor data fusion, risk scoring, and cost-benefit analysis using statistical models.'
-    },
-    {
-      method: 'POST',
-      path: '/api/v1/industry/manufacturing/quality-control',
-      description: 'Real-time quality analysis with defect detection, grading (A/B/C/D), and compliance tracking.'
-    },
-    {
-      method: 'POST',
-      path: '/api/v1/industry/manufacturing/supply-chain',
-      description: 'Supply chain optimization with inventory management, ROI calculations, and resource allocation.'
-    },
-    {
-      method: 'POST',
-      path: '/api/v1/industry/manufacturing/sensor-processing',
-      description: 'Process streaming sensor data with outlier removal, smoothing, normalization, and real-time alerts.'
-    },
-    {
-      method: 'POST',
-      path: '/api/v1/industry/manufacturing/data-fusion',
-      description: 'Multi-sensor data fusion using Kalman filters for equipment cluster analysis and anomaly detection.'
-    }
-  ];
-
   return (
-    <ApiLayout
-      title="Manufacturing Data Processing Engine"
-      description="Transform messy manufacturing data into analysis-ready insights. Process sensor data, equipment telemetry, and production metrics with statistical algorithms."
-      icon={CpuChipIcon}
-      endpoints={endpoints}
-    >
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">Manufacturing Data Processing Engine</h1>
+        <p className="text-gray-600 text-lg">Transform messy manufacturing data into analysis-ready insights. Process sensor data, equipment telemetry, and production metrics with statistical algorithms.</p>
+      </div>
       <div className="space-y-8">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Messy Data to Analysis-Ready Pipeline</h2>
@@ -105,6 +74,6 @@ export default function ManufacturingDataProcessingApiPage() {
           </div>
         </div>
       </div>
-    </ApiLayout>
+    </div>
   )
 }

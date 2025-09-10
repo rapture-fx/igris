@@ -1,6 +1,5 @@
 'use client'
 
-import { ApiLayout } from '@/components/ui/ApiLayout'
 import { CogIcon, ChartBarIcon, BoltIcon } from '@heroicons/react/24/outline'
 
 export default function ManufacturingForecastingApiPage() {
@@ -49,12 +48,14 @@ export default function ManufacturingForecastingApiPage() {
   ];
 
   return (
-    <ApiLayout
-      title="Manufacturing Forecasting Engine"
-      description="Advanced time-series ML forecasting for manufacturing operations. Transform messy sensor data into actionable predictions with LSTM/GRU networks, Facebook Prophet, ARIMA/SARIMA, and ensemble methods."
-      icon={CogIcon}
-      endpoints={endpoints}
-    >
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">Manufacturing Forecasting Engine</h1>
+        <p className="text-gray-600 text-lg">
+          Advanced time-series ML forecasting for manufacturing operations. Transform messy sensor data into actionable predictions with LSTM/GRU networks, Facebook Prophet, ARIMA/SARIMA, and ensemble methods.
+        </p>
+      </div>
+
       <div className="space-y-8">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">Manufacturing Forecasting Engine Overview</h2>
@@ -121,6 +122,6 @@ export default function ManufacturingForecastingApiPage() {
           </div>
         </div>
       </div>
-    </ApiLayout>
+    </div>
   )
 }

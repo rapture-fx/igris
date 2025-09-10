@@ -22,24 +22,13 @@ export default function ManufacturingMESPage() {
             name: "order_details",
             type: "object",
             required: true,
-            description: "Production order information",
-            properties: [
-              { name: "product_id", type: "string", description: "Product identifier" },
-              { name: "quantity", type: "number", description: "Production quantity" },
-              { name: "priority", type: "string", description: "Order priority (low, normal, high, urgent)" },
-              { name: "due_date", type: "string", description: "Expected completion date (ISO 8601)" }
-            ]
+            description: "Production order information (product_id: Product identifier, quantity: Production quantity, priority: Order priority - low/normal/high/urgent, due_date: Expected completion date in ISO 8601 format)"
           },
           {
             name: "resource_requirements",
             type: "array",
             required: true,
-            description: "Required resources and constraints",
-            properties: [
-              { name: "resource_type", type: "string", description: "Type of resource (machine, operator, material)" },
-              { name: "resource_id", type: "string", description: "Specific resource identifier" },
-              { name: "duration_minutes", type: "number", description: "Estimated duration" }
-            ]
+            description: "Required resources and constraints (resource_type: Type of resource - machine/operator/material, resource_id: Specific resource identifier, duration_minutes: Estimated duration)"
           }
         ]}
         responses={[
@@ -203,26 +192,13 @@ const status = await response.json();`
             name: "inspection_data",
             type: "object",
             required: true,
-            description: "Quality inspection information",
-            properties: [
-              { name: "order_id", type: "string", description: "Production order identifier" },
-              { name: "operation_step", type: "string", description: "Manufacturing step being inspected" },
-              { name: "inspector_id", type: "string", description: "Quality inspector identifier" },
-              { name: "inspection_timestamp", type: "string", description: "Inspection time (ISO 8601)" }
-            ]
+            description: "Quality inspection information (order_id: Production order identifier, operation_step: Manufacturing step being inspected, inspector_id: Quality inspector identifier, inspection_timestamp: Inspection time in ISO 8601 format)"
           },
           {
             name: "measurements",
             type: "array",
             required: true,
-            description: "Quality measurements and results",
-            properties: [
-              { name: "parameter_name", type: "string", description: "Measured parameter" },
-              { name: "measured_value", type: "number", description: "Actual measurement" },
-              { name: "specification_min", type: "number", description: "Minimum acceptable value" },
-              { name: "specification_max", type: "number", description: "Maximum acceptable value" },
-              { name: "pass_fail", type: "boolean", description: "Whether measurement passes specification" }
-            ]
+            description: "Quality measurements and results (parameter_name: Measured parameter, measured_value: Actual measurement, specification_min: Minimum acceptable value, specification_max: Maximum acceptable value, pass_fail: Whether measurement passes specification)"
           }
         ]}
         responses={[
@@ -417,23 +393,13 @@ const utilization = await response.json();`
             name: "optimization_parameters",
             type: "object",
             required: true,
-            description: "Optimization constraints and objectives",
-            properties: [
-              { name: "optimization_horizon", type: "string", description: "Planning horizon (1d, 3d, 1w, 1m)" },
-              { name: "primary_objective", type: "string", description: "Main optimization goal (minimize_makespan, minimize_cost, maximize_throughput)" },
-              { name: "include_maintenance", type: "boolean", description: "Include scheduled maintenance windows" },
-              { name: "allow_overtime", type: "boolean", description: "Allow overtime scheduling" }
-            ]
+            description: "Optimization constraints and objectives (optimization_horizon: Planning horizon - 1d/3d/1w/1m, primary_objective: Main optimization goal - minimize_makespan/minimize_cost/maximize_throughput, include_maintenance: Include scheduled maintenance windows, allow_overtime: Allow overtime scheduling)"
           },
           {
             name: "constraints",
             type: "array",
             required: false,
-            description: "Additional scheduling constraints",
-            properties: [
-              { name: "constraint_type", type: "string", description: "Type of constraint (resource_availability, deadline, precedence)" },
-              { name: "constraint_details", type: "object", description: "Specific constraint parameters" }
-            ]
+            description: "Additional scheduling constraints (constraint_type: Type of constraint - resource_availability/deadline/precedence, constraint_details: Specific constraint parameters)"
           }
         ]}
         responses={[
@@ -513,7 +479,7 @@ const data = await response.json();`
       />
 
       <EndpointCard
-        method="WebSocket"
+        method="GET"
         path="/api/v1/manufacturing/mes/realtime-monitoring/{plant_id}"
         title="Real-time MES Monitoring"
         description="Establish WebSocket connection for real-time manufacturing execution monitoring and alerts."
@@ -548,6 +514,9 @@ const data = await response.json();`
           }
         ]}
         examples={{
+          curl: `curl -X GET "https://api.schlep-engine.com/api/v1/manufacturing/mes/realtime-monitoring/plant_001" \\
+  -H "Authorization: Bearer $API_KEY" \\
+  -H "Upgrade: websocket"`,
           javascript: `const ws = new WebSocket('wss://api.schlep-engine.com/api/v1/manufacturing/mes/realtime-monitoring/plant_001');
 
 ws.onopen = function(event) {

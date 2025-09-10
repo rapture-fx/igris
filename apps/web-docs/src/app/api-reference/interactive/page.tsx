@@ -507,7 +507,7 @@ export default function InteractiveApiPage() {
                       <input
                         type={prop.type === 'file' ? 'text' : 'text'}
                         value={requestData[key] || ''}
-                        onChange={(e) => setRequestData(prev => ({ ...prev, [key]: e.target.value }))}
+                        onChange={(e) => setRequestData((prev: any) => ({ ...prev, [key]: e.target.value }))}
                         placeholder={prop.example?.toString() || prop.description}
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       />

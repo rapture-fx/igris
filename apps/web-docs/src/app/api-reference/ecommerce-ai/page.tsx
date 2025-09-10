@@ -1,6 +1,5 @@
 'use client'
 
-import { ApiLayout } from '@/components/ui/ApiLayout'
 import { ShoppingCartIcon, ChartBarIcon, CurrencyDollarIcon } from '@heroicons/react/24/outline'
 
 export default function EcommerceAIApiPage() {
@@ -33,12 +32,14 @@ export default function EcommerceAIApiPage() {
   ]
 
   return (
-    <ApiLayout
-      title="E-commerce Analytics API" 
-      description="E-commerce data processing services including product recommendations, demand forecasting, pricing analysis, and business analytics using statistical models and data analysis."
-      icon={ShoppingCartIcon}
-      apiEndpoints={apiEndpoints}
-    >
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">E-commerce Analytics API</h1>
+        <p className="text-gray-600 text-lg">
+          E-commerce data processing services including product recommendations, demand forecasting, pricing analysis, and business analytics using statistical models and data analysis.
+        </p>
+      </div>
+
       <div className="space-y-8">
         <div>
           <h2 className="text-lg font-semibold text-gray-900 mb-4">E-commerce Analytics Overview</h2>
@@ -104,6 +105,6 @@ export default function EcommerceAIApiPage() {
           </div>
         </div>
       </div>
-    </ApiLayout>
+    </div>
   )
 }

@@ -633,6 +633,9 @@ const analytics = await response.json();`
           }
         ]}
         examples={{
+          curl: `curl -X GET "https://api.schlep-engine.com/api/v1/digital-twin/DT_ASSET_001_2024/realtime-sync" \\
+  -H "Authorization: Bearer $API_KEY" \\
+  -H "Upgrade: websocket"`,
           javascript: `const ws = new WebSocket('wss://api.schlep-engine.com/api/v1/digital-twin/DT_ASSET_001_2024/realtime-sync');
 
 ws.onopen = function(event) {

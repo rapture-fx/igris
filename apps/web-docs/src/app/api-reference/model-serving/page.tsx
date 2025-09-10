@@ -29,12 +29,7 @@ export default function ModelServingPage() {
             name: "deployment_config",
             type: "object",
             required: true,
-            description: "Deployment configuration",
-            properties: [
-              { name: "instances", type: "number", description: "Initial number of instances" },
-              { name: "auto_scaling", type: "boolean", description: "Enable auto-scaling" },
-              { name: "max_instances", type: "number", description: "Maximum instances for scaling" }
-            ]
+            description: "Deployment configuration object containing: instances (number) - Initial number of instances, auto_scaling (boolean) - Enable auto-scaling, max_instances (number) - Maximum instances for scaling"
           }
         ]}
         responses={[
@@ -112,11 +107,7 @@ const data = await response.json();`
             name: "data",
             type: "object",
             required: true,
-            description: "Input data for prediction",
-            properties: [
-              { name: "features", type: "array", description: "Feature vector for prediction" },
-              { name: "metadata", type: "object", description: "Optional prediction metadata" }
-            ]
+            description: "Input data for prediction containing: features (array) - Feature vector for prediction, metadata (object) - Optional prediction metadata"
           }
         ]}
         responses={[

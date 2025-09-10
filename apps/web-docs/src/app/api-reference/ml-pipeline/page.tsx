@@ -1,13 +1,16 @@
-import { ApiLayout } from '@/components/ui/ApiLayout'
 import { CpuChipIcon, ChartBarIcon, Cog6ToothIcon } from '@heroicons/react/24/outline'
 import { MaturityIndicator, MaturitySection } from '../../../components/ui/MaturityIndicator'
 
 export default function MlPipelineApiPage() {
   return (
-    <ApiLayout 
-      title={<div className="flex items-center gap-3">ML Pipeline <MaturityIndicator level="production" showLabel={false} /></div>}
-      description="Create, train, and deploy machine learning models with automated feature engineering and model selection. Production-ready with comprehensive testing and validation."
-    >
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">ML Pipeline</h1>
+        <p className="text-gray-600 text-lg">
+          Create, train, and deploy machine learning models with automated feature engineering and model selection. Production-ready with comprehensive testing and validation.
+        </p>
+      </div>
+
       {/* ML Pipeline Overview */}
       <section className="mb-12">
         <h2 className="text-2xl font-semibold text-gray-900 mb-4">ML Pipeline Overview</h2>
@@ -31,7 +34,7 @@ export default function MlPipelineApiPage() {
             <div className="flex items-center gap-3 mb-4">
               <CpuChipIcon className="h-6 w-6 text-blue-600" />
               <h3 className="font-semibold text-gray-900">AutoML</h3>
-              <MaturityIndicator level="production" showLabel={false} />
+              <MaturityIndicator level="production" feature="AutoML" />
             </div>
             <p className="text-gray-600 text-sm">
               Intelligent model selection with scikit-learn algorithms. Grid search and random search optimization. Classification, regression, clustering supported.
@@ -42,7 +45,7 @@ export default function MlPipelineApiPage() {
             <div className="flex items-center gap-3 mb-4">
               <ChartBarIcon className="h-6 w-6 text-green-600" />
               <h3 className="font-semibold text-gray-900">Real-time Inference</h3>
-              <MaturityIndicator level="production" showLabel={false} />
+              <MaturityIndicator level="production" feature="AutoML" />
             </div>
             <p className="text-gray-600 text-sm">
               Deploy models for real-time predictions. Validated performance: 50-200ms response time, 500+ concurrent users tested, 99.5% uptime.
@@ -53,7 +56,7 @@ export default function MlPipelineApiPage() {
             <div className="flex items-center gap-3 mb-4">
               <Cog6ToothIcon className="h-6 w-6 text-purple-600" />
               <h3 className="font-semibold text-gray-900">MLOps Ready</h3>
-              <MaturityIndicator level="beta" showLabel={false} />
+              <MaturityIndicator level="beta" feature="MLOps Ready" />
             </div>
             <p className="text-gray-600 text-sm">
               Model versioning and basic monitoring included. Advanced MLOps features (automated retraining, drift detection) in active development.
@@ -198,6 +201,6 @@ export default function MlPipelineApiPage() {
           <p className="text-gray-600 mb-4">Delete a pipeline and all associated models and data.</p>
         </div>
       </section>
-    </ApiLayout>
+    </div>
   )
 }

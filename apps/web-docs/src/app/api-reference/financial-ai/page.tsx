@@ -1,6 +1,5 @@
 'use client'
 
-import { ApiLayout } from '@/components/ui/ApiLayout'
 import { ShieldCheckIcon, CurrencyDollarIcon, DocumentMagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 export default function FinancialAIApiPage() {
@@ -316,12 +315,13 @@ getFinancialModels().then(models => {
   ]
 
   return (
-    <ApiLayout
-      title="Financial Services API"
-      description="Financial data processing services including fraud detection, credit risk assessment, and AML compliance screening using statistical models and rule-based analysis."
-      icon={ShieldCheckIcon}
-      codeExamples={codeExamples}
-      apiEndpoints={apiEndpoints}
-    />
+    <div className="space-y-8">
+      <div className="space-y-4">
+        <h1 className="text-3xl font-bold">Financial Services API</h1>
+        <p className="text-gray-600 text-lg">
+          Financial data processing services including fraud detection, credit risk assessment, and AML compliance screening using statistical models and rule-based analysis.
+        </p>
+      </div>
+    </div>
   )
 }
