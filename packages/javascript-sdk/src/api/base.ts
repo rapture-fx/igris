@@ -262,6 +262,18 @@ export abstract class BaseAPI {
     return response.success === true && response.data !== undefined;
   }
 
+  protected flattenObject(obj: any, prefix = ''): Record<string, string | number | boolean> {
+    return Object.keys(obj).reduce((acc, k) => {
+      const pre = prefix.length ? prefix + '.' : '';
+      if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
+        Object.assign(acc, this.flattenObject(obj[k], pre + k));
+      } else {
+        acc[pre + k] = obj[k];
+      }
+      return acc;
+    }, {} as Record<string, string | number | boolean>);
+  }
+
   /**
    * Retry operation with exponential backoff
    */

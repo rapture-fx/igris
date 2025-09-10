@@ -72,8 +72,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased overflow-x-hidden min-h-screen">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="fixed left-0 top-0 bottom-0 w-px bg-gray-200 z-50"></div>
-          <div className="fixed right-0 top-0 bottom-0 w-px bg-gray-200 z-50"></div>
+          
           {children}
         </ThemeProvider>
       </body>

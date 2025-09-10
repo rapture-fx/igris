@@ -87,7 +87,7 @@ export class AuthAPI extends BaseAPI {
     this.validateRequired({ updates }, ['updates']);
     
     return this.patch<UserInfo>('/me', {
-      params: updates
+      params: this.flattenObject(updates)
     });
   }
 
@@ -98,7 +98,7 @@ export class AuthAPI extends BaseAPI {
     this.validateRequired(request, ['current_password', 'new_password']);
     
     return this.post<{ message: string }>('/change-password', {
-      params: request
+      params: this.flattenObject(request)
     });
   }
 
@@ -109,7 +109,7 @@ export class AuthAPI extends BaseAPI {
     this.validateRequired(request, ['email']);
     
     return this.post<{ message: string }>('/password-reset', {
-      params: request
+      params: this.flattenObject(request)
     });
   }
 

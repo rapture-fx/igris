@@ -26,9 +26,9 @@
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
   "browser": {
-    "./src/auth/index.ts": "./src/auth/index.browser.ts"
+    "./dist/index.cjs.js": "./dist/index.browser.cjs.js",
+    "./dist/index.esm.js": "./dist/index.browser.esm.js"
   },
-  "browser": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
@@ -52,7 +52,7 @@
     "npm": ">=6.0.0"
   },
   "scripts": {
-    "build": "rollup -c --bundleConfigAsCjs",
+    "build": "rollup -c --bundleConfigAsCjs && rollup -c rollup.browser.config.js --bundleConfigAsCjs",
     "build:watch": "rollup -c -w",
     "dev": "rollup -c -w",
     "clean": "rimraf dist",

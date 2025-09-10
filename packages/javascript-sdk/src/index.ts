@@ -56,6 +56,8 @@ export {
 export {
   AuthManager,
   FileTokenStorage,
+  BrowserTokenStorage,
+  MemoryTokenStorage,
   createTokenStorage
 } from './auth';
 
