@@ -46,7 +46,12 @@ export default function Hero() {
             >
               Get Started <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
-            
+            <Link
+              href="http://localhost:3004"
+              className="inline-flex items-center justify-center border border-gray-300 text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              API Console <ChevronRight className="w-4 h-4 ml-1" />
+            </Link>
           </div>
           
           
