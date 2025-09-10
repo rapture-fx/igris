@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import { CogIcon, ChartBarIcon, CubeIcon, RocketLaunchIcon, WrenchScrewdriverIcon, CircuitBoardIcon } from '@heroicons/react/24/outline'
 

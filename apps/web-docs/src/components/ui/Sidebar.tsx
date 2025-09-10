@@ -18,37 +18,108 @@ const mainSections = [
     href: '/introduction',
     icon: BookOpenIcon,
     isMainSection: true,
-    children: [
-      { name: 'Overview', href: '/introduction' },
-      { name: 'Quick Start', href: '/introduction/quickstart' },
-      { name: 'Getting Started', href: '/getting-started' },
-      { name: 'Architecture Overview', href: '/concepts/architecture' },
-      { name: 'Data Processing Pipeline', href: '/concepts/pipeline' },
-      { name: 'ML Workflow', href: '/concepts/ml-workflow' },
-      { name: 'Reinforcement Learning', href: '/concepts/reinforcement-learning' },
-      { name: 'ML Model Optimization', href: '/concepts/ml-optimization' },
-      { name: 'Manufacturing Data Processing', href: '/concepts/manufacturing-data-processing' },
-      { name: 'Manufacturing Forecasting Engine', href: '/concepts/manufacturing-forecasting' },
-      { name: 'Multi-Sensor Data Fusion', href: '/concepts/multi-sensor-fusion' },
-      { name: 'Predictive Maintenance', href: '/concepts/predictive-maintenance' },
-      { name: 'Compatibility Mode', href: '/concepts/compatibility-mode' },
-      { name: 'Feature Maturity Roadmap', href: '/concepts/feature-maturity-roadmap' },
-      { name: 'Jupyter Notebooks', href: '/integrations/jupyter' },
-      { name: 'AWS SageMaker', href: '/integrations/aws-sagemaker' },
-      { name: 'Financial Services', href: '/industries/financial-services' },
-      { name: 'E-commerce', href: '/industries/ecommerce' },
-      { name: 'Manufacturing', href: '/industries/manufacturing' },
-      { name: 'ML Model Training', href: '/use-cases/ml-training' },
-      { name: 'Hyperparameter Optimization', href: '/use-cases/hyperparameter-optimization' },
-      { name: 'Data Quality Monitoring', href: '/use-cases/quality-monitoring' },
-      { name: 'Real-time Processing', href: '/use-cases/real-time-processing' },
-      { name: 'Fraud Detection', href: '/use-cases/fraud-detection' },
-      { name: 'Dynamic Pricing with RL', href: '/use-cases/dynamic-pricing' },
-      { name: 'Customer Analytics', href: '/use-cases/customer-analytics' },
-      { name: 'Security & Compliance', href: '/security/overview' },
-      { name: 'Best Practices', href: '/guides/best-practices' },
-      { name: 'Troubleshooting', href: '/guides/troubleshooting' },
-      { name: 'Pricing & Plans', href: '/introduction/pricing' },
+    groups: [
+      {
+        name: 'Getting Started',
+        href: '/introduction',
+        children: [
+          { name: 'Overview', href: '/introduction' },
+          { name: 'Quick Start', href: '/introduction/quickstart' },
+          { name: 'Architecture Overview', href: '/concepts/architecture' },
+          { name: 'Pricing & Plans', href: '/introduction/pricing' },
+        ]
+      },
+      {
+        name: 'Core Concepts',
+        href: '/concepts',
+        children: [
+          { name: 'Data Processing Pipeline', href: '/concepts/pipeline' },
+          { name: 'ML Workflow', href: '/concepts/ml-workflow' },
+          { name: 'Reinforcement Learning', href: '/concepts/reinforcement-learning' },
+          { name: 'ML Model Optimization', href: '/concepts/ml-optimization' },
+          { name: 'Compatibility Mode', href: '/concepts/compatibility-mode' },
+          { name: 'Feature Maturity Roadmap', href: '/concepts/feature-maturity-roadmap' },
+        ]
+      },
+      {
+        name: 'AI Company',
+        href: '/industries/ai-company',
+        children: [
+          { name: 'AI Company Overview', href: '/industries/ai-company' },
+          { name: 'Getting Started Guide', href: '/getting-started/ai-company' },
+          { name: 'MLOps Setup Tutorial', href: '/tutorials/mlops-setup' },
+          { name: 'AI Company Examples', href: '/examples/ai-company' },
+          { name: 'MLOps Workflow Guide', href: '/guides/mlops-workflows' },
+        ]
+      },
+      {
+        name: 'Manufacturing',
+        href: '/industries/manufacturing',
+        children: [
+          { name: 'Manufacturing Overview', href: '/industries/manufacturing' },
+          { name: 'Getting Started Guide', href: '/getting-started/manufacturing' },
+          { name: 'IoT Setup Tutorial', href: '/tutorials/manufacturing-iot-setup' },
+          { name: 'Digital Twin Tutorial', href: '/tutorials/digital-twin-setup' },
+          { name: 'Manufacturing Examples', href: '/examples/manufacturing' },
+          { name: 'Manufacturing Workflows', href: '/guides/manufacturing-workflows' },
+          { name: 'Data Processing', href: '/concepts/manufacturing-data-processing' },
+          { name: 'Forecasting Engine', href: '/concepts/manufacturing-forecasting' },
+          { name: 'Multi-Sensor Fusion', href: '/concepts/multi-sensor-fusion' },
+          { name: 'Predictive Maintenance', href: '/concepts/predictive-maintenance' },
+        ]
+      },
+      {
+        name: 'Financial Services',
+        href: '/industries/financial-services',
+        children: [
+          { name: 'Financial Services Overview', href: '/industries/financial-services' },
+          { name: 'Fraud Detection', href: '/use-cases/fraud-detection' },
+        ]
+      },
+      {
+        name: 'E-commerce',
+        href: '/industries/ecommerce',
+        children: [
+          { name: 'E-commerce Overview', href: '/industries/ecommerce' },
+          { name: 'Dynamic Pricing with RL', href: '/use-cases/dynamic-pricing' },
+          { name: 'Customer Analytics', href: '/use-cases/customer-analytics' },
+        ]
+      },
+      {
+        name: 'SDK Documentation',
+        href: '/sdk',
+        children: [
+          { name: 'Python SDK', href: '/sdk/python' },
+          { name: 'TypeScript SDK', href: '/sdk/typescript' },
+        ]
+      },
+      {
+        name: 'Use Cases',
+        href: '/use-cases',
+        children: [
+          { name: 'ML Model Training', href: '/use-cases/ml-training' },
+          { name: 'Hyperparameter Optimization', href: '/use-cases/hyperparameter-optimization' },
+          { name: 'Data Quality Monitoring', href: '/use-cases/quality-monitoring' },
+          { name: 'Real-time Processing', href: '/use-cases/real-time-processing' },
+        ]
+      },
+      {
+        name: 'Integrations',
+        href: '/integrations',
+        children: [
+          { name: 'Jupyter Notebooks', href: '/integrations/jupyter' },
+          { name: 'AWS SageMaker', href: '/integrations/aws-sagemaker' },
+        ]
+      },
+      {
+        name: 'Security & Support',
+        href: '/security',
+        children: [
+          { name: 'Security & Compliance', href: '/security/overview' },
+          { name: 'Best Practices', href: '/guides/best-practices' },
+          { name: 'Troubleshooting', href: '/guides/troubleshooting' },
+        ]
+      },
     ],
   },
   {
