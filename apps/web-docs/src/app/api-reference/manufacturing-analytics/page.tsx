@@ -7,88 +7,207 @@ export default function ManufacturingAnalyticsPage() {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold">Manufacturing Analytics API</h1>
+        <h1 className="text-3xl font-bold">Manufacturing Analytics & SPC API</h1>
         <p className="text-gray-600 text-lg">
-          Advanced real-time analytics, forecasting, and statistical process control for manufacturing operations.
+          Statistical Process Control (SPC) and advanced analytics for manufacturing quality monitoring, defect detection, and performance optimization.
         </p>
       </div>
 
       <EndpointCard
         method="POST"
-        endpoint="/api/v1/manufacturing/analytics/stream-analyze"
-        title="Stream Analytics"
-        description="Perform real-time analytics on streaming manufacturing data with <100ms response time."
+        path="/api/v1/manufacturing/analytics/spc-analysis"
+        title="Statistical Process Control Analysis"
+        description="Perform SPC analysis on manufacturing process data with control charts and capability studies."
         parameters={[
           {
-            name: "equipment_id",
+            name: "process_id",
             type: "string",
             required: true,
-            description: "Equipment identifier for analysis"
+            description: "Manufacturing process identifier"
+          },
+          {
+            name: "measurement_data",
+            type: "array",
+            required: true,
+            description: "Array of measurement values"
+          },
+          {
+            name: "control_limits",
+            type: "object",
+            required: false,
+            description: "Custom control limits (UCL, LCL)"
           },
           {
             name: "analysis_type",
-            type: "array",
-            required: true,
-            description: "Types of analysis to perform",
-            properties: [
-              { name: "predictive_maintenance", type: "boolean", description: "Enable predictive maintenance analysis" },
-              { name: "anomaly_detection", type: "boolean", description: "Enable anomaly detection" },
-              { name: "quality_prediction", type: "boolean", description: "Enable quality prediction" }
-            ]
+            type: "string",
+            required: false,
+            description: "Type of SPC analysis (xbar_r, xbar_s, individuals)"
           }
         ]}
-        response={{
-          "analysis_id": "analysis_abc123",
-          "equipment_id": "press_001",
-          "results": {
-            "health_score": 0.87,
-            "anomaly_probability": 0.12,
-            "quality_prediction": 0.94,
-            "maintenance_recommendation": "Schedule inspection within 7 days"
-          },
-          "processing_time_ms": 67,
-          "confidence": 0.92
-        }}
+        responses={[
+          {
+            status: 200,
+            description: 'SPC analysis completed successfully',
+            example: JSON.stringify({
+              "process_id": "PROC_001",
+              "analysis_type": "xbar_r",
+              "control_chart": {
+                "ucl": 25.6,
+                "lcl": 24.2,
+                "centerline": 24.9,
+                "out_of_control_points": [15, 23]
+              },
+              "capability_study": {
+                "cp": 1.33,
+                "cpk": 1.25,
+                "pp": 1.28,
+                "ppk": 1.22
+              },
+              "recommendations": [
+                "Investigate points 15 and 23 for special causes",
+                "Process capability is acceptable (Cpk > 1.0)"
+              ]
+            }, null, 2)
+          }
+        ]}
         examples={{
-          curl: `curl -X POST "https://api.schlep-engine.com/api/v1/manufacturing/analytics/stream-analyze" \\
+          curl: `curl -X POST "https://api.schlep-engine.com/api/v1/manufacturing/analytics/spc-analysis" \\
   -H "Authorization: Bearer $API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "equipment_id": "press_001",
-    "analysis_type": {
-      "predictive_maintenance": true,
-      "anomaly_detection": true,
-      "quality_prediction": true
-    }
+    "process_id": "PROC_001",
+    "measurement_data": [24.5, 24.8, 25.1, 24.6, 24.9],
+    "analysis_type": "xbar_r"
   }'`,
           python: `import requests
 
 response = requests.post(
-    "https://api.schlep-engine.com/api/v1/manufacturing/analytics/stream-analyze",
+    "https://api.schlep-engine.com/api/v1/manufacturing/analytics/spc-analysis",
     headers={"Authorization": f"Bearer {api_key}"},
     json={
-        "equipment_id": "press_001",
-        "analysis_type": {
-            "predictive_maintenance": True,
-            "anomaly_detection": True,
-            "quality_prediction": True
-        }
+        "process_id": "PROC_001",
+        "measurement_data": [24.5, 24.8, 25.1, 24.6, 24.9],
+        "analysis_type": "xbar_r"
     }
 )
 print(response.json())`,
-          javascript: `const response = await fetch('https://api.schlep-engine.com/api/v1/manufacturing/analytics/stream-analyze', {
+          javascript: `const response = await fetch('https://api.schlep-engine.com/api/v1/manufacturing/analytics/spc-analysis', {
   method: 'POST',
   headers: {
     'Authorization': \`Bearer \${apiKey}\`,
     'Content-Type': 'application/json',
   },
   body: JSON.stringify({
-    equipment_id: 'press_001',
-    analysis_type: {
-      predictive_maintenance: true,
-      anomaly_detection: true,
-      quality_prediction: true
+    process_id: 'PROC_001',
+    measurement_data: [24.5, 24.8, 25.1, 24.6, 24.9],
+    analysis_type: 'xbar_r'
+  })
+});
+const data = await response.json();`
+        }}
+      />
+
+      <EndpointCard
+        method="POST"
+        path="/api/v1/manufacturing/analytics/defect-detection"
+        title="Automated Defect Detection"
+        description="AI-powered defect detection and classification for manufacturing products."
+        parameters={[
+          {
+            name: "product_line",
+            type: "string",
+            required: true,
+            description: "Product line identifier"
+          },
+          {
+            name: "inspection_data",
+            type: "object",
+            required: true,
+            description: "Inspection measurements and images"
+          },
+          {
+            name: "detection_model",
+            type: "string",
+            required: false,
+            description: "AI model to use for detection"
+          },
+          {
+            name: "confidence_threshold",
+            type: "number",
+            required: false,
+            description: "Minimum confidence for defect classification"
+          }
+        ]}
+        responses={[
+          {
+            status: 200,
+            description: 'Defect detection completed successfully',
+            example: JSON.stringify({
+              "product_line": "LINE_A",
+              "inspection_id": "INS_12345",
+              "defects_detected": [
+                {
+                  "type": "surface_scratch",
+                  "confidence": 0.92,
+                  "location": {"x": 150, "y": 200},
+                  "severity": "minor"
+                },
+                {
+                  "type": "dimensional_variance",
+                  "confidence": 0.87,
+                  "measurement": "width_out_of_spec",
+                  "severity": "major"
+                }
+              ],
+              "overall_quality_score": 0.78,
+              "pass_fail_status": "fail",
+              "recommended_actions": [
+                "Reject item due to dimensional variance",
+                "Investigate tooling wear on Line A"
+              ]
+            }, null, 2)
+          }
+        ]}
+        examples={{
+          curl: `curl -X POST "https://api.schlep-engine.com/api/v1/manufacturing/analytics/defect-detection" \\
+  -H "Authorization: Bearer $API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "product_line": "LINE_A",
+    "inspection_data": {
+      "dimensions": {"width": 24.8, "height": 12.1},
+      "image_url": "https://storage.com/inspect_001.jpg"
+    },
+    "confidence_threshold": 0.85
+  }'`,
+          python: `import requests
+
+response = requests.post(
+    "https://api.schlep-engine.com/api/v1/manufacturing/analytics/defect-detection",
+    headers={"Authorization": f"Bearer {api_key}"},
+    json={
+        "product_line": "LINE_A",
+        "inspection_data": {
+            "dimensions": {"width": 24.8, "height": 12.1},
+            "image_url": "https://storage.com/inspect_001.jpg"
+        },
+        "confidence_threshold": 0.85
     }
+)
+print(response.json())`,
+          javascript: `const response = await fetch('https://api.schlep-engine.com/api/v1/manufacturing/analytics/defect-detection', {
+  method: 'POST',
+  headers: {
+    'Authorization': \`Bearer \${apiKey}\`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    product_line: 'LINE_A',
+    inspection_data: {
+      dimensions: {width: 24.8, height: 12.1},
+      image_url: 'https://storage.com/inspect_001.jpg'
+    },
+    confidence_threshold: 0.85
   })
 });
 const data = await response.json();`
@@ -97,9 +216,9 @@ const data = await response.json();`
 
       <EndpointCard
         method="GET"
-        endpoint="/api/v1/manufacturing/analytics/forecasts/{equipment_id}"
-        title="Get Equipment Forecasts"
-        description="Get predictive forecasts for equipment performance and maintenance needs."
+        path="/api/v1/manufacturing/analytics/oee-dashboard"
+        title="Overall Equipment Effectiveness (OEE)"
+        description="Real-time OEE calculation and dashboard data for manufacturing equipment."
         parameters={[
           {
             name: "equipment_id",
@@ -108,180 +227,278 @@ const data = await response.json();`
             description: "Equipment identifier"
           },
           {
-            name: "forecast_horizon",
+            name: "time_period",
             type: "string",
             required: false,
-            description: "Forecast time horizon (1d, 7d, 30d, 90d)"
+            description: "Time period for analysis (1h, 8h, 24h, 7d)"
+          },
+          {
+            name: "include_breakdown",
+            type: "boolean",
+            required: false,
+            description: "Include detailed breakdown of availability, performance, quality"
           }
         ]}
-        response={{
-          "equipment_id": "press_001",
-          "forecast_horizon": "30d",
-          "forecasts": {
-            "failure_probability": [
-              {"date": "2024-01-16", "probability": 0.05},
-              {"date": "2024-01-23", "probability": 0.12},
-              {"date": "2024-01-30", "probability": 0.28}
-            ],
-            "performance_degradation": {
-              "current_efficiency": 0.87,
-              "predicted_efficiency": 0.82,
-              "degradation_rate": 0.02
-            },
-            "maintenance_windows": [
-              {"start": "2024-01-25T08:00:00Z", "end": "2024-01-25T12:00:00Z", "type": "preventive"},
-              {"start": "2024-02-08T08:00:00Z", "end": "2024-02-08T16:00:00Z", "type": "major_service"}
-            ]
+        responses={[
+          {
+            status: 200,
+            description: 'OEE data retrieved successfully',
+            example: JSON.stringify({
+              "equipment_id": "MACHINE_001",
+              "time_period": "24h",
+              "oee_score": 0.78,
+              "availability": 0.85,
+              "performance": 0.92,
+              "quality": 0.96,
+              "breakdown": {
+                "planned_production_time": 1440,
+                "actual_runtime": 1224,
+                "downtime_minutes": 216,
+                "ideal_cycle_time": 60,
+                "total_pieces": 1180,
+                "good_pieces": 1133
+              },
+              "trends": [
+                {"hour": "00:00", "oee": 0.82},
+                {"hour": "01:00", "oee": 0.75}
+              ]
+            }, null, 2)
           }
+        ]}
+        examples={{
+          curl: `curl -X GET "https://api.schlep-engine.com/api/v1/manufacturing/analytics/oee-dashboard?equipment_id=MACHINE_001&time_period=24h" \\
+  -H "Authorization: Bearer $API_KEY"`,
+          python: `import requests
+
+response = requests.get(
+    "https://api.schlep-engine.com/api/v1/manufacturing/analytics/oee-dashboard",
+    headers={"Authorization": f"Bearer {api_key}"},
+    params={
+        "equipment_id": "MACHINE_001",
+        "time_period": "24h",
+        "include_breakdown": True
+    }
+)
+print(response.json())`,
+          javascript: `const response = await fetch('https://api.schlep-engine.com/api/v1/manufacturing/analytics/oee-dashboard?equipment_id=MACHINE_001&time_period=24h', {
+  headers: {
+    'Authorization': \`Bearer \${apiKey}\`
+  }
+});
+const oeeData = await response.json();`
         }}
       />
 
       <EndpointCard
         method="POST"
-        endpoint="/api/v1/manufacturing/analytics/spc/configure"
-        title="Configure Statistical Process Control"
-        description="Set up automated SPC monitoring with control limits and violation detection."
+        path="/api/v1/manufacturing/analytics/root-cause-analysis"
+        title="Root Cause Analysis"
+        description="AI-powered root cause analysis for manufacturing defects and process variations."
         parameters={[
           {
-            name: "process_id",
+            name: "incident_id",
             type: "string",
             required: true,
-            description: "Process identifier"
+            description: "Manufacturing incident identifier"
           },
           {
-            name: "spc_config",
+            name: "incident_data",
             type: "object",
             required: true,
-            description: "SPC configuration",
-            properties: [
-              { name: "control_limits", type: "object", description: "Upper and lower control limits" },
-              { name: "chart_type", type: "string", description: "Control chart type (x_bar, r_chart, p_chart, etc.)" },
-              { name: "sample_size", type: "number", description: "Sample size for control chart" },
-              { name: "violation_rules", type: "array", description: "Western Electric rules to monitor" }
-            ]
+            description: "Incident details and context"
+          },
+          {
+            name: "analysis_depth",
+            type: "string",
+            required: false,
+            description: "Analysis depth (basic, detailed, comprehensive)"
           }
         ]}
-        response={{
-          "spc_id": "spc_abc123",
-          "process_id": "quality_line_01",
-          "status": "active",
-          "control_limits": {
-            "ucl": 45.2,
-            "lcl": 38.8,
-            "center_line": 42.0
-          },
-          "monitoring_rules": [
-            "point_beyond_limits",
-            "two_of_three_beyond_2sigma",
-            "four_of_five_beyond_1sigma"
-          ],
-          "configured_at": "2024-01-15T10:00:00Z"
+        responses={[
+          {
+            status: 200,
+            description: 'Root cause analysis completed',
+            example: JSON.stringify({
+              "incident_id": "INC_001",
+              "analysis_timestamp": "2024-01-15T10:00:00Z",
+              "root_causes": [
+                {
+                  "cause": "Tool wear exceeding threshold",
+                  "probability": 0.85,
+                  "supporting_evidence": [
+                    "Dimensional drift pattern matches tool wear signature",
+                    "Tool change overdue by 150 cycles"
+                  ]
+                },
+                {
+                  "cause": "Material property variation",
+                  "probability": 0.23,
+                  "supporting_evidence": [
+                    "Batch material hardness 5% above specification"
+                  ]
+                }
+              ],
+              "recommended_actions": [
+                "Immediate tool replacement required",
+                "Implement predictive tool life monitoring",
+                "Review material incoming inspection"
+              ],
+              "prevention_strategies": [
+                "Reduce tool change interval by 10%",
+                "Add real-time tool condition monitoring"
+              ]
+            }, null, 2)
+          }
+        ]}
+        examples={{
+          curl: `curl -X POST "https://api.schlep-engine.com/api/v1/manufacturing/analytics/root-cause-analysis" \\
+  -H "Authorization: Bearer $API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "incident_id": "INC_001",
+    "incident_data": {
+      "defect_type": "dimensional_variance",
+      "equipment": "MACHINE_001",
+      "timestamp": "2024-01-15T09:30:00Z",
+      "process_parameters": {
+        "spindle_speed": 2400,
+        "feed_rate": 800
+      }
+    },
+    "analysis_depth": "detailed"
+  }'`,
+          python: `import requests
+
+response = requests.post(
+    "https://api.schlep-engine.com/api/v1/manufacturing/analytics/root-cause-analysis",
+    headers={"Authorization": f"Bearer {api_key}"},
+    json={
+        "incident_id": "INC_001",
+        "incident_data": {
+            "defect_type": "dimensional_variance",
+            "equipment": "MACHINE_001",
+            "timestamp": "2024-01-15T09:30:00Z",
+            "process_parameters": {
+                "spindle_speed": 2400,
+                "feed_rate": 800
+            }
+        },
+        "analysis_depth": "detailed"
+    }
+)
+print(response.json())`,
+          javascript: `const response = await fetch('https://api.schlep-engine.com/api/v1/manufacturing/analytics/root-cause-analysis', {
+  method: 'POST',
+  headers: {
+    'Authorization': \`Bearer \${apiKey}\`,
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    incident_id: 'INC_001',
+    incident_data: {
+      defect_type: 'dimensional_variance',
+      equipment: 'MACHINE_001',
+      timestamp: '2024-01-15T09:30:00Z',
+      process_parameters: {
+        spindle_speed: 2400,
+        feed_rate: 800
+      }
+    },
+    analysis_depth: 'detailed'
+  })
+});
+const data = await response.json();`
         }}
       />
 
       <EndpointCard
         method="GET"
-        endpoint="/api/v1/manufacturing/analytics/efficiency/{line_id}"
-        title="Get Production Efficiency Metrics"
-        description="Calculate and retrieve Overall Equipment Effectiveness (OEE) and efficiency metrics."
+        path="/api/v1/manufacturing/analytics/performance-trends"
+        title="Performance Trend Analysis"
+        description="Analyze manufacturing performance trends over time with predictive insights."
         parameters={[
           {
-            name: "line_id",
+            name: "production_line",
             type: "string",
             required: true,
             description: "Production line identifier"
           },
           {
-            name: "time_period",
+            name: "metrics",
+            type: "array",
+            required: false,
+            description: "Metrics to analyze (throughput, quality, efficiency)"
+          },
+          {
+            name: "time_range",
             type: "string",
             required: false,
-            description: "Time period for metrics (shift, day, week, month)"
-          }
-        ]}
-        response={{
-          "line_id": "production_line_01",
-          "time_period": "day",
-          "oee_metrics": {
-            "overall_oee": 0.72,
-            "availability": 0.85,
-            "performance": 0.89,
-            "quality": 0.95
+            description: "Analysis time range (1w, 1m, 3m, 6m)"
           },
-          "efficiency_breakdown": {
-            "planned_production_time": 480,
-            "actual_runtime": 408,
-            "downtime_minutes": 72,
-            "units_produced": 1450,
-            "target_units": 1600,
-            "quality_units": 1378
-          },
-          "improvement_recommendations": [
-            "Reduce setup time by 15 minutes per changeover",
-            "Address quality issues in station 3"
-          ]
-        }}
-      />
-
-      <EndpointCard
-        method="WebSocket"
-        endpoint="/api/v1/manufacturing/analytics/realtime/{equipment_id}"
-        title="Real-time Analytics WebSocket"
-        description="Establish WebSocket connection for real-time analytics updates."
-        parameters={[
           {
-            name: "equipment_id",
+            name: "forecast_horizon",
             type: "string",
-            required: true,
-            description: "Equipment identifier for real-time updates"
+            required: false,
+            description: "Forecast period (1w, 2w, 1m)"
           }
         ]}
-        response={{
-          "connection_established": true,
-          "equipment_id": "press_001",
-          "update_frequency": "1s",
-          "data_streams": [
-            "health_score",
-            "anomaly_probability",
-            "quality_prediction",
-            "efficiency_metrics"
-          ]
-        }}
+        responses={[
+          {
+            status: 200,
+            description: 'Performance trends retrieved successfully',
+            example: JSON.stringify({
+              "production_line": "LINE_A",
+              "analysis_period": "1m",
+              "trends": {
+                "throughput": {
+                  "current": 1250,
+                  "trend": "increasing",
+                  "change_rate": 0.05,
+                  "forecast": [1280, 1310, 1340]
+                },
+                "quality": {
+                  "current": 0.96,
+                  "trend": "stable",
+                  "change_rate": 0.001,
+                  "forecast": [0.96, 0.96, 0.97]
+                },
+                "efficiency": {
+                  "current": 0.82,
+                  "trend": "declining",
+                  "change_rate": -0.02,
+                  "forecast": [0.81, 0.80, 0.79]
+                }
+              },
+              "insights": [
+                "Throughput improving due to recent process optimization",
+                "Efficiency declining - investigate equipment maintenance",
+                "Quality remains stable within control limits"
+              ]
+            }, null, 2)
+          }
+        ]}
         examples={{
-          javascript: `const ws = new WebSocket('wss://api.schlep-engine.com/api/v1/manufacturing/analytics/realtime/press_001');
+          curl: `curl -X GET "https://api.schlep-engine.com/api/v1/manufacturing/analytics/performance-trends?production_line=LINE_A&time_range=1m" \\
+  -H "Authorization: Bearer $API_KEY"`,
+          python: `import requests
 
-ws.onopen = function(event) {
-    console.log('Connected to real-time analytics stream');
-    ws.send(JSON.stringify({
-        'auth_token': apiKey,
-        'subscribe': ['health_score', 'anomaly_probability']
-    }));
-};
-
-ws.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    console.log('Real-time analytics:', data);
-    // Handle real-time data updates
-};`,
-          python: `import websocket
-import json
-
-def on_message(ws, message):
-    data = json.loads(message)
-    print(f"Real-time analytics: {data}")
-
-def on_open(ws):
-    auth_msg = {
-        'auth_token': api_key,
-        'subscribe': ['health_score', 'anomaly_probability']
+response = requests.get(
+    "https://api.schlep-engine.com/api/v1/manufacturing/analytics/performance-trends",
+    headers={"Authorization": f"Bearer {api_key}"},
+    params={
+        "production_line": "LINE_A",
+        "metrics": ["throughput", "quality", "efficiency"],
+        "time_range": "1m",
+        "forecast_horizon": "2w"
     }
-    ws.send(json.dumps(auth_msg))
-
-ws = websocket.WebSocketApp(
-    "wss://api.schlep-engine.com/api/v1/manufacturing/analytics/realtime/press_001",
-    on_message=on_message,
-    on_open=on_open
 )
-ws.run_forever()`
+print(response.json())`,
+          javascript: `const response = await fetch('https://api.schlep-engine.com/api/v1/manufacturing/analytics/performance-trends?production_line=LINE_A&time_range=1m', {
+  headers: {
+    'Authorization': \`Bearer \${apiKey}\`
+  }
+});
+const trends = await response.json();`
         }}
       />
     </div>

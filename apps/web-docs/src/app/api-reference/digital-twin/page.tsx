@@ -22,36 +22,19 @@ export default function DigitalTwinPage() {
             name: "asset_details",
             type: "object",
             required: true,
-            description: "Physical asset information",
-            properties: [
-              { name: "asset_id", type: "string", description: "Unique asset identifier" },
-              { name: "asset_type", type: "string", description: "Type of equipment (cnc_machine, robot_arm, conveyor, etc.)" },
-              { name: "manufacturer", type: "string", description: "Equipment manufacturer" },
-              { name: "model", type: "string", description: "Equipment model number" }
-            ]
+            description: "Physical asset information (asset_id, asset_type, manufacturer, model)"
           },
           {
             name: "twin_configuration",
             type: "object",
             required: true,
-            description: "Digital twin simulation settings",
-            properties: [
-              { name: "physics_model", type: "string", description: "Physics simulation level (basic, detailed, high_fidelity)" },
-              { name: "update_frequency", type: "string", description: "Real-time sync frequency (1s, 5s, 30s, 1m)" },
-              { name: "simulation_fidelity", type: "string", description: "Simulation detail level (low, medium, high)" },
-              { name: "predictive_horizon", type: "string", description: "Prediction time window (1h, 8h, 24h, 7d)" }
-            ]
+            description: "Digital twin simulation settings (physics_model, update_frequency, simulation_fidelity, predictive_horizon)"
           },
           {
             name: "sensor_mapping",
             type: "array",
             required: true,
-            description: "Sensor data source configuration",
-            properties: [
-              { name: "sensor_id", type: "string", description: "Physical sensor identifier" },
-              { name: "parameter_type", type: "string", description: "Measured parameter (temperature, vibration, pressure, etc.)" },
-              { name: "mapping_function", type: "string", description: "Data transformation function" }
-            ]
+            description: "Sensor data source configuration array (sensor_id, parameter_type, mapping_function)"
           }
         ]}
         responses={[
@@ -266,24 +249,13 @@ const state = await response.json();`
             name: "scenario_config",
             type: "object",
             required: true,
-            description: "Scenario testing parameters",
-            properties: [
-              { name: "scenario_name", type: "string", description: "Descriptive scenario name" },
-              { name: "test_duration", type: "string", description: "Virtual test duration (1h, 8h, 24h, 7d)" },
-              { name: "parameter_changes", type: "array", description: "Parameters to modify during test" },
-              { name: "simulation_speed", type: "number", description: "Speed multiplier for simulation (1x to 1000x)" }
-            ]
+            description: "Scenario testing parameters (scenario_name, test_duration, parameter_changes, simulation_speed)"
           },
           {
             name: "test_parameters",
             type: "array",
             required: true,
-            description: "Parameters to modify during scenario",
-            properties: [
-              { name: "parameter_name", type: "string", description: "Parameter to change" },
-              { name: "new_value", type: "number", description: "New parameter value" },
-              { name: "change_schedule", type: "string", description: "When to apply change (immediate, scheduled)" }
-            ]
+            description: "Parameters to modify during scenario array (parameter_name, new_value, change_schedule)"
           }
         ]}
         responses={[
@@ -400,24 +372,13 @@ const data = await response.json();`
             name: "optimization_config",
             type: "object",
             required: true,
-            description: "Optimization objectives and constraints",
-            properties: [
-              { name: "primary_objective", type: "string", description: "Main goal (maximize_throughput, minimize_cost, optimize_quality, reduce_energy)" },
-              { name: "optimization_horizon", type: "string", description: "Planning horizon (1h, 8h, 24h, 7d)" },
-              { name: "algorithm", type: "string", description: "Optimization method (genetic_algorithm, particle_swarm, gradient_descent)" }
-            ]
+            description: "Optimization objectives and constraints (primary_objective, optimization_horizon, algorithm)"
           },
           {
             name: "constraints",
             type: "array",
             required: false,
-            description: "Operating constraints and limits",
-            properties: [
-              { name: "parameter_name", type: "string", description: "Constrained parameter" },
-              { name: "min_value", type: "number", description: "Minimum allowed value" },
-              { name: "max_value", type: "number", description: "Maximum allowed value" },
-              { name: "constraint_type", type: "string", description: "Type of constraint (hard_limit, soft_limit, preference)" }
-            ]
+            description: "Operating constraints and limits array (parameter_name, min_value, max_value, constraint_type)"
           }
         ]}
         responses={[
@@ -554,13 +515,7 @@ const data = await response.json();`
             name: "analytics_type",
             type: "array",
             required: false,
-            description: "Types of analytics to include",
-            properties: [
-              { name: "performance_trends", type: "boolean", description: "Include performance trend analysis" },
-              { name: "predictive_insights", type: "boolean", description: "Include predictive analytics" },
-              { name: "anomaly_detection", type: "boolean", description: "Include anomaly detection results" },
-              { name: "cost_analysis", type: "boolean", description: "Include cost and efficiency analysis" }
-            ]
+            description: "Types of analytics to include array (performance_trends, predictive_insights, anomaly_detection, cost_analysis)"
           },
           {
             name: "time_period",
@@ -643,7 +598,7 @@ const analytics = await response.json();`
       />
 
       <EndpointCard
-        method="WebSocket"
+        method="GET"
         path="/api/v1/digital-twin/{twin_id}/realtime-sync"
         title="Real-time Twin Synchronization"
         description="Establish WebSocket connection for real-time digital twin synchronization with live sensor data and simulation updates."

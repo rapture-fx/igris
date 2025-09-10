@@ -157,7 +157,7 @@ prediction = mlops.pipelines.predict(
     }
 )
 
-print(f"Predicted sales: ${prediction['prediction']:.2f}")
+print(f"Predicted sales: \${prediction['prediction']:.2f}")
 print(f"Confidence: {prediction['confidence']:.2%}")
 
 # Batch predictions
@@ -173,7 +173,7 @@ batch_predictions = mlops.pipelines.predict_batch(
 )
 
 for i, pred in enumerate(batch_predictions['predictions']):
-    print(f"Sample {i+1}: ${pred['prediction']:.2f} (confidence: {pred['confidence']:.2%})")
+    print(f"Sample {i+1}: \${pred['prediction']:.2f} (confidence: {pred['confidence']:.2%})")
 \`\`\`
 
 ## Experiment Tracking
@@ -239,7 +239,7 @@ response = mlops.serving.predict(
     data={'month': 5, 'region': 'west', 'product_category': 'home'}
 )
 
-print(f"Served prediction: ${response['prediction']:.2f}")
+print(f"Served prediction: \${response['prediction']:.2f}")
 \`\`\``
     },
     manufacturing: {
