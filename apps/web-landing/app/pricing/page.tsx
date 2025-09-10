@@ -15,7 +15,7 @@ export default function PricingPage() {
             <div className="text-center mb-16">
               <p className="text-base font-semibold leading-7 text-[#1A5799] text-center">Pricing</p>
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                Simplifies complex data handling
+                Develop, Grow, and Scale Your Data Operations
               </h1>
               <p className="text-center text-gray-600 mb-8">All options include Core Data Processing, API and Usage, Integration, Security Compliance, and Support.</p>
               

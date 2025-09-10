@@ -137,22 +137,22 @@ export default function Header() {
 
   return (
     <header 
-      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black ${scrolled ? 'scrolled' : ''}`}
+      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black border-b border-gray-300 ${scrolled ? 'scrolled' : ''}`}
     >
-      <div className="max-w-[85rem] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center">
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
                 <Image 
                   src="/Schlep Engine 14x11cm (16).svg" 
                   alt="Schlep Engine" 
-                  width={65} 
-                  height={65}
+                  width={60} 
+                  height={60}
                 />
               </Link>
             </div>
 
-            <nav className="hidden md:flex items-center justify-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
+            <nav className="hidden md:flex items-center space-x-8 ml-6">
                 <div 
                   ref={apiLinkRef}
                   onMouseEnter={handleApiHover}
@@ -383,6 +383,12 @@ export default function Header() {
             </nav>
 
             <div className="hidden md:flex items-center space-x-3 ml-auto">
+              <Link
+                href="http://localhost:3004"
+                className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:text-gray-300 dark:hover:bg-gray-800"
+              >
+                API Console
+              </Link>
               <Link
                 href="/auth"
                 className="bg-black text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:bg-[#fcfcf7] dark:text-black"

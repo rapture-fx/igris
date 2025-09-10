@@ -201,7 +201,7 @@ curl -X ${test.method} \\
         <div className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600">
           <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
             <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            <span>Replace "your_token_here" with your actual API token</span>
+            <span>Replace &quot;your_token_here&quot; with your actual API token</span>
           </div>
         </div>
       </div>

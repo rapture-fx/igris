@@ -1192,7 +1192,7 @@ const getClientForEnvironment = (env: Environment) => {
           return (
             <button
               key={key}
-              onClick={() => setActiveSection(key)}
+              onClick={() => setActiveSection(key as SectionKey)}
               className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
                 activeSection === key
                   ? 'bg-blue-100 text-blue-700 border border-blue-200'

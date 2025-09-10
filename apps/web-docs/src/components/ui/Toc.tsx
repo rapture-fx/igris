@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import { clsx } from 'clsx'
 
-export function Toc({ sections }) {
-  const [activeSection, setActiveSection] = useState(null)
+export function Toc({ sections }: { sections: any }) {
+  const [activeSection, setActiveSection] = useState<string | null>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -19,7 +19,7 @@ export function Toc({ sections }) {
       { threshold: 0.5 }
     )
 
-    const elements = sections.map((section) => document.getElementById(section.id)).filter(Boolean)
+    const elements = sections.map((section: any) => document.getElementById(section.id)).filter(Boolean)
     for (const element of elements) {
       observer.observe(element)
     }
@@ -35,7 +35,7 @@ export function Toc({ sections }) {
     <div className="fixed top-24 w-64">
       <h4 className="text-lg font-semibold mb-4">On this page</h4>
       <ul className="space-y-2">
-        {sections.map((section) => (
+        {sections.map((section: any) => (
           <li key={section.id}>
             <a
               href={`#${section.id}`}

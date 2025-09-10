@@ -108,7 +108,7 @@ const ResponseDisplay: React.FC<{
     return (
       <div className="bg-gray-800 rounded-lg p-6 text-center border-2 border-dashed border-gray-600">
         <Terminal className="w-8 h-8 text-gray-400 mx-auto mb-4" />
-        <p className="text-gray-400">Click "Test API" to see manufacturing data</p>
+        <p className="text-gray-400">Click &quot;Test API&quot; to see manufacturing data</p>
       </div>
     )
   }

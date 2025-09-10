@@ -43,10 +43,10 @@ export default function Benefits() {
     <section className="py-16 md:py-24 bg-white text-gray-900 dark:bg-black dark:text-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16">
-          <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-4 text-left">
+          <h2 className="text-3xl md:text-4xl font-semibold text-[#565656] mb-4 text-left">
             Core Data Processing Features
           </h2>
-          <p className="text-xl text-gray-700 dark:text-gray-300 max-w-2xl text-left">
+          <p className="text-xl text-[#565656] max-w-2xl text-left">
             Tools for cleaning, validating, and preparing data for analysis and machine learning
           </p>
         </div>
@@ -66,10 +66,10 @@ export default function Benefits() {
                     <Icon className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    <h3 className="text-lg font-semibold text-[#565656] mb-2">
                       {benefit.title}
                     </h3>
-                    <p className="text-gray-600 dark:text-gray-400 leading-relaxed text-sm">
+                    <p className="text-[#565656] leading-relaxed text-sm">
                       {benefit.description}
                     </p>
                   </div>

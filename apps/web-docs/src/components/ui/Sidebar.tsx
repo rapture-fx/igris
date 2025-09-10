@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
@@ -11,6 +11,15 @@ import {
   MagnifyingGlassIcon
 } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
+
+interface NavItem {
+  name: string;
+  href: string;
+}
+
+interface ApiNavItem extends NavItem {
+  method: string;
+}
 
 const mainSections = [
   {
@@ -27,7 +36,7 @@ const mainSections = [
           { name: 'Quick Start', href: '/introduction/quickstart' },
           { name: 'Architecture Overview', href: '/concepts/architecture' },
           { name: 'Pricing & Plans', href: '/introduction/pricing' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'Core Concepts',
@@ -39,7 +48,7 @@ const mainSections = [
           { name: 'ML Model Optimization', href: '/concepts/ml-optimization' },
           { name: 'Compatibility Mode', href: '/concepts/compatibility-mode' },
           { name: 'Feature Maturity Roadmap', href: '/concepts/feature-maturity-roadmap' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'AI Company',
@@ -50,7 +59,7 @@ const mainSections = [
           { name: 'MLOps Setup Tutorial', href: '/tutorials/mlops-setup' },
           { name: 'AI Company Examples', href: '/examples/ai-company' },
           { name: 'MLOps Workflow Guide', href: '/guides/mlops-workflows' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'Manufacturing',
@@ -66,7 +75,7 @@ const mainSections = [
           { name: 'Forecasting Engine', href: '/concepts/manufacturing-forecasting' },
           { name: 'Multi-Sensor Fusion', href: '/concepts/multi-sensor-fusion' },
           { name: 'Predictive Maintenance', href: '/concepts/predictive-maintenance' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'Financial Services',
@@ -74,7 +83,7 @@ const mainSections = [
         children: [
           { name: 'Financial Services Overview', href: '/industries/financial-services' },
           { name: 'Fraud Detection', href: '/use-cases/fraud-detection' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'E-commerce',
@@ -83,7 +92,7 @@ const mainSections = [
           { name: 'E-commerce Overview', href: '/industries/ecommerce' },
           { name: 'Dynamic Pricing with RL', href: '/use-cases/dynamic-pricing' },
           { name: 'Customer Analytics', href: '/use-cases/customer-analytics' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'SDK Documentation',
@@ -91,7 +100,7 @@ const mainSections = [
         children: [
           { name: 'Python SDK', href: '/sdk/python' },
           { name: 'TypeScript SDK', href: '/sdk/typescript' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'Use Cases',
@@ -101,7 +110,7 @@ const mainSections = [
           { name: 'Hyperparameter Optimization', href: '/use-cases/hyperparameter-optimization' },
           { name: 'Data Quality Monitoring', href: '/use-cases/quality-monitoring' },
           { name: 'Real-time Processing', href: '/use-cases/real-time-processing' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'Integrations',
@@ -109,7 +118,7 @@ const mainSections = [
         children: [
           { name: 'Jupyter Notebooks', href: '/integrations/jupyter' },
           { name: 'AWS SageMaker', href: '/integrations/aws-sagemaker' },
-        ]
+        ] as NavItem[]
       },
       {
         name: 'Security & Support',
@@ -118,7 +127,7 @@ const mainSections = [
           { name: 'Security & Compliance', href: '/security/overview' },
           { name: 'Best Practices', href: '/guides/best-practices' },
           { name: 'Troubleshooting', href: '/guides/troubleshooting' },
-        ]
+        ] as NavItem[]
       },
     ],
   },
@@ -133,7 +142,7 @@ const mainSections = [
       { name: 'Rate Limits', href: '/api-reference/rate-limits' },
       { name: 'Error Handling', href: '/api-reference/errors' },
       { name: 'WebSocket API', href: '/api-reference/websocket' },
-    ],
+    ] as NavItem[],
     groups: [
       {
         name: 'Authentication',
@@ -143,7 +152,7 @@ const mainSections = [
           { name: 'OAuth Callback', href: '/api-reference/authentication#oauth-callback', method: 'GET' },
           { name: 'OAuth Accounts', href: '/api-reference/authentication#oauth-accounts', method: 'GET' },
           { name: 'Unlink OAuth', href: '/api-reference/authentication#unlink-oauth', method: 'DELETE' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Users',
@@ -156,7 +165,7 @@ const mainSections = [
           { name: 'Delete User', href: '/api-reference/users#delete-user', method: 'DELETE' },
           { name: 'Activate User', href: '/api-reference/users#activate-user', method: 'POST' },
           { name: 'Deactivate User', href: '/api-reference/users#deactivate-user', method: 'POST' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Storage',
@@ -170,7 +179,7 @@ const mainSections = [
           { name: 'Share File', href: '/api-reference/storage#share-file', method: 'POST' },
           { name: 'Get Quota', href: '/api-reference/storage#get-quota', method: 'GET' },
           { name: 'Create Folder', href: '/api-reference/storage#create-folder', method: 'POST' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Data Processing',
@@ -186,7 +195,7 @@ const mainSections = [
           { name: 'Get Job', href: '/api-reference/data-processing#get-job', method: 'GET' },
           { name: 'Update Job', href: '/api-reference/data-processing#update-job', method: 'PUT' },
           { name: 'Delete Job', href: '/api-reference/data-processing#delete-job', method: 'DELETE' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Document Extraction',
@@ -197,7 +206,7 @@ const mainSections = [
           { name: 'Extract OCR Data', href: '/api-reference/document-extraction#extract-ocr-data', method: 'POST' },
           { name: 'List Extractions', href: '/api-reference/document-extraction#list-extractions', method: 'GET' },
           { name: 'Get Extraction', href: '/api-reference/document-extraction#get-extraction', method: 'GET' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Financial Services',
@@ -206,7 +215,7 @@ const mainSections = [
           { name: 'Fraud Detection', href: '/api-reference/financial-ai#fraud-detection', method: 'POST' },
           { name: 'Credit Risk Assessment', href: '/api-reference/financial-ai#credit-risk', method: 'POST' },
           { name: 'AML Compliance Check', href: '/api-reference/financial-ai#aml-check', method: 'POST' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'E-commerce',
@@ -215,7 +224,7 @@ const mainSections = [
           { name: 'Product Recommendations', href: '/api-reference/ecommerce-ai#recommendations', method: 'POST' },
           { name: 'Demand Forecasting', href: '/api-reference/ecommerce-ai#demand-forecast', method: 'POST' },
           { name: 'Price Optimization', href: '/api-reference/ecommerce-ai#price-optimization', method: 'POST' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Manufacturing Forecasting',
@@ -229,7 +238,7 @@ const mainSections = [
           { name: 'Energy Consumption Forecast', href: '/api-reference/manufacturing-forecasting#energy-consumption-forecast', method: 'POST' },
           { name: 'Real-time Dashboard', href: '/api-reference/manufacturing-forecasting#realtime-dashboard', method: 'GET' },
           { name: 'Batch Processing', href: '/api-reference/manufacturing-forecasting#batch-processing', method: 'POST' },
-        ]
+        ] as ApiNavItem[] as ApiNavItem[]
       },
       {
         name: 'Manufacturing Data Processing',
@@ -240,7 +249,7 @@ const mainSections = [
           { name: 'Supply Chain Optimization', href: '/api-reference/manufacturing#supply-chain', method: 'POST' },
           { name: 'Sensor Data Processing', href: '/api-reference/manufacturing#sensor-processing', method: 'POST' },
           { name: 'Multi-Sensor Data Fusion', href: '/api-reference/manufacturing#data-fusion', method: 'POST' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Streaming',
@@ -249,7 +258,7 @@ const mainSections = [
           { name: 'Create Connection', href: '/api-reference/streaming#create-connection', method: 'POST' },
           { name: 'WebSocket Connection', href: '/api-reference/streaming#websocket', method: 'WebSocket' },
           { name: 'List Connections', href: '/api-reference/streaming#list-connections', method: 'GET' },
-        ]
+        ] as ApiNavItem[]
       },
 
       {
@@ -259,7 +268,7 @@ const mainSections = [
           { name: 'Create Pipeline', href: '/api-reference/ml-pipeline#create-pipeline', method: 'POST' },
           { name: 'Get Pipeline Status', href: '/api-reference/ml-pipeline#get-status', method: 'GET' },
           { name: 'Deploy Model', href: '/api-reference/ml-pipeline#deploy-model', method: 'POST' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Reinforcement Learning',
@@ -269,7 +278,7 @@ const mainSections = [
           { name: 'Train Agent', href: '/api-reference/reinforcement-learning#train-agent', method: 'POST' },
           { name: 'Get Agent Status', href: '/api-reference/reinforcement-learning#get-status', method: 'GET' },
           { name: 'Deploy Agent', href: '/api-reference/reinforcement-learning#deploy-agent', method: 'POST' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Analytics',
@@ -289,7 +298,7 @@ const mainSections = [
           { name: 'Custom Reports', href: '/api-reference/analytics#custom-reports', method: 'POST' },
           { name: 'Performance Insights', href: '/api-reference/analytics#performance-insights', method: 'GET' },
           { name: 'Usage Patterns', href: '/api-reference/analytics#usage-patterns', method: 'GET' },
-        ]
+        ] as ApiNavItem[]
       },
       {
         name: 'Billing',
@@ -506,15 +515,49 @@ export function Sidebar() {
   const [activeSection, setActiveSection] = useState<string | null>(null)
   const [openGroups, setOpenGroups] = useState<Set<string>>(new Set())
 
-  const isActive = (href: string) => {
+  // Memoize the functions to avoid infinite re-renders
+  const isActive = React.useCallback((href: string) => {
     return pathname === href
-  }
+  }, [pathname])
 
-  const getActiveMainSection = () => {
+  const getActiveMainSection = React.useCallback(() => {
     if (pathname.startsWith('/api-reference')) return 'API Reference'
     if (pathname.startsWith('/changelog')) return 'Changelog'
     return 'Documentation' // Default for all other documentation pages
-  }
+  }, [pathname])
+
+  // Initialize groups that should be open based on current path
+  React.useEffect(() => {
+    const currentSection = getActiveMainSection()
+    const section = mainSections.find(s => s.name === currentSection)
+    
+    if (section?.groups) {
+      const groupsToOpen = new Set<string>()
+      
+      section.groups.forEach(group => {
+        // Check if current path matches any child in this group
+        if (group.children?.some(child => isActive(child.href))) {
+          groupsToOpen.add(group.name)
+        }
+      })
+      
+      // Only update if there are changes to avoid unnecessary re-renders
+      if (groupsToOpen.size > 0) {
+        setOpenGroups(prev => {
+          const newOpenGroups = new Set(prev)
+          groupsToOpen.forEach(group => newOpenGroups.add(group))
+          return newOpenGroups
+        })
+      }
+    }
+  }, [pathname, getActiveMainSection, isActive])
+
+  // Set the active section based on current path
+  React.useEffect(() => {
+    const currentSection = getActiveMainSection()
+    setActiveSection(currentSection)
+  }, [pathname, getActiveMainSection])
+
 
   const toggleGroup = (groupName: string) => {
     console.log('Toggling group:', groupName)
@@ -603,7 +646,7 @@ export function Sidebar() {
                   <div key={section.name} className="space-y-1 pt-4">
                     {/* Handle flat items first */}
                     {section.flatItems && section.flatItems.map((item) => {
-                      const getMethodColor = (method: string) => {
+                      const getMethodColor = (method?: string) => {
                         switch (method?.toUpperCase()) {
                           case 'GET': return 'bg-green-200 text-green-800'
                           case 'POST': return 'bg-blue-200 text-blue-800'
@@ -627,14 +670,14 @@ export function Sidebar() {
                               : 'text-gray-600 border-transparent'
                           )}
                         >
-                          {item.method ? (
+                          {'method' in item && item.method ? (
                             <div className="flex min-w-0 flex-1">
                               <div className="w-20 flex-shrink-0 flex items-center h-6 mr-2">
                                 <span className={clsx(
                                   'px-1.5 py-0.5 text-[9px] font-medium rounded leading-none inline-block',
-                                  getMethodColor(item.method)
+                                  getMethodColor('method' in item ? (item as ApiNavItem).method : undefined)
                                 )}>
-                                  {item.method}
+                                  {'method' in item ? (item as ApiNavItem).method : ''}
                                 </span>
                               </div>
                               <div className="flex items-center min-h-6">
@@ -660,9 +703,13 @@ export function Sidebar() {
                         <div key={group.name} className="mb-4">
                           {/* Group header with dropdown toggle */}
                           <div
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.preventDefault()
                               toggleGroup(group.name)
-                              router.push(group.href || '#')
+                              // Only navigate if the group has a valid href and it's not just a toggle
+                              if (group.href && group.href !== '#' && !openGroups.has(group.name)) {
+                                router.push(group.href)
+                              }
                             }}
                             className={clsx(
                               'w-full flex items-center justify-between px-3 py-1 transition-all duration-150 nav-link cursor-pointer group',
@@ -691,7 +738,7 @@ export function Sidebar() {
                           {openGroups.has(group.name) && (
                             <div className="ml-5 space-y-1 border-l border-gray-200 pl-1">
                               {group.children.map((child) => {
-                                const getMethodColor = (method: string) => {
+                                const getMethodColor = (method?: string) => {
                                   switch (method?.toUpperCase()) {
                                     case 'GET': return 'bg-green-200 text-green-800'
                                     case 'POST': return 'bg-blue-200 text-blue-800'
@@ -715,14 +762,14 @@ export function Sidebar() {
                                         : 'text-gray-600 border-transparent'
                                     )}
                                   >
-                                    {child.method ? (
+                                    {'method' in child && child.method ? (
                                       <div className="flex min-w-0 flex-1">
                                         <div className="w-20 flex-shrink-0 flex items-center h-6 mr-2">
                                           <span className={clsx(
                                             'px-1.5 py-0.5 text-[9px] font-medium rounded leading-none inline-block',
-                                            getMethodColor(child.method)
+                                            getMethodColor('method' in child ? (child as ApiNavItem).method : undefined)
                                           )}>
-                                            {child.method}
+                                            {'method' in child ? (child as ApiNavItem).method : ''}
                                           </span>
                                         </div>
                                         <div className="flex items-center min-h-6">
@@ -748,7 +795,7 @@ export function Sidebar() {
                     ) : (
                       /* Handle sections with flat children (Documentation, Changelog) */
                       section.children && section.children.map((child) => {
-                      const getMethodColor = (method: string) => {
+                      const getMethodColor = (method?: string) => {
                         switch (method?.toUpperCase()) {
                           case 'GET': return 'bg-green-200 text-green-800'
                           case 'POST': return 'bg-blue-200 text-blue-800'
@@ -772,14 +819,14 @@ export function Sidebar() {
                               : 'text-gray-600 border-transparent'
                           )}
                         >
-                          {child.method ? (
+                          {'method' in child && child.method ? (
                             <div className="flex min-w-0 flex-1">
                               <div className="w-20 flex-shrink-0 flex items-center h-6 mr-2">
                                 <span className={clsx(
                                   'px-1.5 py-0.5 text-[9px] font-medium rounded leading-none inline-block',
-                                  getMethodColor(child.method)
+                                  getMethodColor('method' in child ? (child as ApiNavItem).method : undefined)
                                 )}>
-                                  {child.method}
+                                  {'method' in child ? (child as ApiNavItem).method : ''}
                                 </span>
                               </div>
                               <div className="flex items-center min-h-6">

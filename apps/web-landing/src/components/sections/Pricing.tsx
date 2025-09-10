@@ -149,7 +149,7 @@ export default function Pricing() {
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Develop, Grow, and Scale Your Data Operations</h2>
+        
         
 
         <div className="flex justify-center mb-8">
@@ -173,7 +173,7 @@ export default function Pricing() {
 
         <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
           {plans.map((plan, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-lg p-6">
+            <div key={index} className="bg-white rounded-lg shadow-lg py-12 px-6">
               {plan.popular && (
                 <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
                   Most Popular
@@ -185,7 +185,7 @@ export default function Pricing() {
                 <span className="text-gray-600 text-base font-medium">{getPeriod()}</span>
               </p>
               <p className="text-sm text-gray-700 mb-6">{plan.tagline}</p>
-              <Link href={plan.ctaLink} className="inline-block bg-[#1A5799] text-white py-2 px-6 rounded-lg hover:bg-[#154A85] transition-colors duration-200">
+              <Link href={plan.ctaLink} className="inline-block bg-[#1A5799] text-white py-2 px-6 rounded-lg hover:bg-[#154A85] transition-colors duration-200 w-fit mx-auto">
                 {plan.cta}
               </Link>
             </div>

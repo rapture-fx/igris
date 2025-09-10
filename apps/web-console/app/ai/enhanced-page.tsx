@@ -120,7 +120,7 @@ const EnhancedAIConsoleHeader = () => {
   )
 }
 
-export default function AIConsolePage() {
+export default function EnhancedAIConsolePage() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint | undefined>()
   const [response, setResponse] = useState<ResponseData | undefined>()
   const [error, setError] = useState<any>()

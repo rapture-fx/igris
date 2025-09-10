@@ -259,7 +259,7 @@ export default function ConsolePage() {
   ]
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
       <ConsoleHeader />
       
       <main className="max-w-7xl mx-auto px-6 py-12">
@@ -269,7 +269,7 @@ export default function ConsolePage() {
             Interactive API Console
           </h2>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto mb-8">
-            Test, explore, and integrate with Schlep-Engine's industry-specific AI solutions. 
+            Test, explore, and integrate with Schlep-Engine&apos;s industry-specific AI solutions. 
             Real APIs, real results, production-ready endpoints.
           </p>
         </div>
@@ -282,7 +282,7 @@ export default function ConsolePage() {
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
             Choose Your Industry
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
             {industries.map((industry, index) => (
               <IndustryCard key={index} {...industry} />
             ))}
