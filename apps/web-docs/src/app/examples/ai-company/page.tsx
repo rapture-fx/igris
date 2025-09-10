@@ -1800,7 +1800,7 @@ if __name__ == "__main__":
               </button>
             </div>
             <pre className="bg-black text-green-400 p-4 rounded-lg overflow-x-auto text-sm max-h-96">
-              {codeExamples[activeExample]}
+              {codeExamples[activeExample as keyof typeof codeExamples]}
             </pre>
           </div>
         </div>

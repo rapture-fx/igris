@@ -83,6 +83,7 @@ export default function Header() {
   // Handle clicks outside the panel
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      console.log('handleClickOutside');
       if (
         apiPanelRef.current &&
         !apiPanelRef.current.contains(event.target as Node) &&
@@ -143,10 +144,10 @@ export default function Header() {
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
                 <Image 
-                  src="/Schlep-engine darkmode logo.svg" 
+                  src="/Schlep Engine 14x11cm (16).svg" 
                   alt="Schlep Engine" 
-                  width={60} 
-                  height={60}
+                  width={65} 
+                  height={65}
                 />
               </Link>
             </div>

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { CheckIcon, CogIcon, WrenchScrewdriverIcon, CircuitBoardIcon, ChartBarIcon, CubeIcon, KeyIcon } from '@heroicons/react/24/outline'
+import { CheckIcon, CogIcon, WrenchScrewdriverIcon, CpuChipIcon, ChartBarIcon, CubeIcon, KeyIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
 export default function ManufacturingGettingStarted() {
@@ -42,7 +42,7 @@ export default function ManufacturingGettingStarted() {
     {
       id: 2,
       title: "Install SDK & Configure IoT",
-      icon: CircuitBoardIcon,
+      icon: CpuChipIcon,
       description: "Install SDK and configure industrial protocol connections",
       content: (
         <div className="space-y-4">

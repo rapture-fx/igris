@@ -32,7 +32,7 @@ export default function Introduction() {
           <h1 className="text-xl font-bold tracking-tight text-gray-900">
             Enterprise Data Processing Platform
           </h1>
-          <MaturityIndicator level="production" showLabel={false} />
+          <MaturityIndicator level="production" feature="Enterprise Data Processing Platform" />
         </div>
         <p className="text-sm text-gray-600 mb-6 max-w-3xl">
           Production-ready data processing and machine learning platform with intelligent compatibility mode. 

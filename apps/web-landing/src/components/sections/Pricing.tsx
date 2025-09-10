@@ -10,16 +10,8 @@ export default function Pricing() {
 
   const plans = [
     {
-      name: "Personal",
-      title: "Personal",
-      monthlyPrice: 0,
-      cta: "Get started for free",
-      ctaLink: "/auth/register",
-      tagline: "The perfect starting point to prepare your first ML dataset."
-    },
-    {
-      name: "Developer",
-      title: "Developer",
+      name: "Develop",
+      title: "Develop",
       monthlyPrice: 49,
       cta: "Get started for free",
       ctaLink: "/auth/register",
@@ -28,11 +20,20 @@ export default function Pricing() {
     {
       name: "Growth",
       title: "Growth",
-      monthlyPrice: 199,
-      cta: "Contact Sales",
-      ctaLink: "/contact-sales",
+      monthlyPrice: 149,
+      cta: "Get started for free",
+      ctaLink: "/auth/register",
       tagline: "Accelerate your team's ML development and scale your data pipelines.",
       popular: true
+    },
+    {
+      name: "Scale",
+      title: "Scale",
+      monthlyPrice: 249,
+      cta: "Get started for free",
+      ctaLink: "/auth/register",
+      tagline: "Achieve enterprise-grade scale and compliance for your most demanding workloads.",
+      popular: false
     }
   ]
 
@@ -148,6 +149,7 @@ export default function Pricing() {
   return (
     <section className="py-16 md:py-24 bg-white">
       <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-4xl font-bold text-center text-gray-900 mb-12">Develop, Grow, and Scale Your Data Operations</h2>
         
 
         <div className="flex justify-center mb-8">
@@ -212,9 +214,9 @@ export default function Pricing() {
               {category.items.map((item, itemIndex) => (
                 <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
                   <div className="p-4 text-left text-sm text-gray-900">{item.name}</div>
-                  <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.free, 'Free')}</div>
-                  <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.developer, 'Developer')}</div>
+                  <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
                   <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
+                  <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
                 </div>
               ))}
             </React.Fragment>

@@ -802,9 +802,9 @@ client.update_config({
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-6">
           <CodeBlock
-            code={sections[activeSection].content}
+            code={sections[activeSection as keyof typeof sections].content}
             language="python"
-            title={sections[activeSection].title}
+            title={sections[activeSection as keyof typeof sections].title}
           />
         </div>
       </div>

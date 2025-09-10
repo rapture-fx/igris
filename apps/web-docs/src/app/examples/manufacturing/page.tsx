@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { CogIcon, ChartBarIcon, CubeIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline'
 import { CodeBlock } from '../../../components/ui/CodeBlock'
 
@@ -1248,18 +1248,18 @@ if __name__ == "__main__":
           {/* Example Header */}
           <div className="bg-gradient-to-r from-orange-50 to-amber-50 px-6 py-4 border-b border-gray-200">
             <div className="flex items-center space-x-3 mb-3">
-              {React.createElement(examples[activeExample].icon, {
+              {React.createElement(examples[activeExample as keyof typeof examples].icon, {
                 className: "h-8 w-8 text-orange-600"
               })}
               <h2 className="text-2xl font-semibold text-gray-900">
-                {examples[activeExample].title}
+                {examples[activeExample as keyof typeof examples].title}
               </h2>
             </div>
             <p className="text-gray-600 mb-4">
-              {examples[activeExample].description}
+              {examples[activeExample as keyof typeof examples].description}
             </p>
             <div className="flex flex-wrap gap-2">
-              {examples[activeExample].tags.map((tag) => (
+              {examples[activeExample as keyof typeof examples].tags.map((tag) => (
                 <span
                   key={tag}
                   className="px-3 py-1 text-sm bg-orange-200 text-orange-800 rounded-full"
@@ -1275,7 +1275,7 @@ if __name__ == "__main__":
             <div className="mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Complete Implementation</h3>
               <CodeBlock
-                code={examples[activeExample].implementation}
+                code={examples[activeExample as keyof typeof examples].implementation}
                 language="python"
                 title="Manufacturing Integration Example"
               />
@@ -1285,7 +1285,7 @@ if __name__ == "__main__":
             <div className="bg-green-50 rounded-lg p-4 border border-green-200">
               <h4 className="font-semibold text-green-900 mb-2">Key Benefits</h4>
               <ul className="space-y-1">
-                {examples[activeExample].benefits.map((benefit, index) => (
+                {examples[activeExample as keyof typeof examples].benefits.map((benefit, index) => (
                   <li key={index} className="text-green-800 text-sm flex items-center">
                     <span className="w-1.5 h-1.5 bg-green-600 rounded-full mr-2"></span>
                     {benefit}

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { CogIcon, ChartBarIcon, CubeIcon, RocketLaunchIcon, WrenchScrewdriverIcon, CircuitBoardIcon } from '@heroicons/react/24/outline'
+import { CogIcon, ChartBarIcon, CubeIcon, RocketLaunchIcon, WrenchScrewdriverIcon, CpuChipIcon } from '@heroicons/react/24/outline'
 
 export default function ManufacturingPage() {
   return (
@@ -61,7 +61,7 @@ export default function ManufacturingPage() {
         <div className="grid md:grid-cols-2 gap-8">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 flex items-center">
-              <CircuitBoardIcon className="h-5 w-5 text-orange-600 mr-2" />
+              <CpuChipIcon className="h-5 w-5 text-orange-600 mr-2" />
               Industrial Protocols
             </h3>
             <ul className="space-y-2 text-gray-600">

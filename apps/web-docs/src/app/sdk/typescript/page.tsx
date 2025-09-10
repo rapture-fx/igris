@@ -4,8 +4,10 @@ import { useState } from 'react'
 import { CodeBlock } from '../../../components/ui/CodeBlock'
 import { CommandLineIcon, CpuChipIcon, CogIcon, ChartBarIcon } from '@heroicons/react/24/outline'
 
+
+
 export default function TypeScriptSDKPage() {
-  const [activeSection, setActiveSection] = useState('installation')
+  const [activeSection, setActiveSection] = useState<SectionKey>('installation')
 
   const sections = {
     installation: {
@@ -1170,6 +1172,8 @@ const getClientForEnvironment = (env: Environment) => {
     }
   }
 
+  type SectionKey = keyof typeof sections;
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -1206,9 +1210,9 @@ const getClientForEnvironment = (env: Environment) => {
       <div className="bg-white rounded-xl border border-gray-200">
         <div className="p-6">
           <CodeBlock
-            code={sections[activeSection].content}
+            code={sections[activeSection as SectionKey].content}
             language="typescript"
-            title={sections[activeSection].title}
+            title={sections[activeSection as SectionKey].title}
           />
         </div>
       </div>

@@ -17,7 +17,20 @@ import {
   Terminal,
   Zap,
   GitBranch,
-  Bot
+  Bot,
+  Database,
+  Network,
+  Brain,
+  Monitor,
+  FileText,
+  Bug,
+  BarChart3,
+  Shield,
+  Clock,
+  Layers,
+  Users,
+  Key,
+  Workflow
 } from 'lucide-react'
 import { apiClient } from '../../src/lib/api/client'
 import CodeGenerator from '../../src/components/console/CodeGenerator'
@@ -50,10 +63,10 @@ const AIConsoleHeader = () => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  AI Companies Console
+                  Enterprise AI Platform Console
                 </h1>
                 <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Model serving, retraining, and ML framework integrations
+                  Digital Twins • Dataset Marketplace • MLOps • Real-time AI Orchestration
                 </p>
               </div>
             </div>
@@ -61,7 +74,7 @@ const AIConsoleHeader = () => {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
               <CheckCircle className="w-4 h-4" />
-              <span>15 APIs Available</span>
+              <span>47+ Enterprise APIs Available</span>
             </div>
           </div>
         </div>
@@ -200,94 +213,234 @@ export default function AIConsolePage() {
   const [error, setError] = useState<string | undefined>()
   const [showCodeGenerator, setShowCodeGenerator] = useState(false)
   const [codeGeneratorTest, setCodeGeneratorTest] = useState<APITest | null>(null)
+  const [activeDevTool, setActiveDevTool] = useState<string | null>(null)
 
   const aiTests: APITest[] = [
+    // Digital Twin AI Models
     {
-      id: 'list-models',
-      name: 'List Deployed Models',
-      description: 'Get all currently deployed ML models with their status and metadata',
-      endpoint: '/api/v1/serving/models',
-      method: 'GET',
-      category: 'Model Serving',
-      sampleResponse: {
-        success: true,
-        data: [
-          { id: 'model_123', name: 'fraud-detection-v2', status: 'active', accuracy: 0.94 },
-          { id: 'model_124', name: 'recommendation-engine', status: 'active', accuracy: 0.87 }
-        ]
-      }
-    },
-    {
-      id: 'model-predict',
-      name: 'Model Prediction',
-      description: 'Get real-time predictions from a deployed model',
-      endpoint: '/api/v1/serving/predict/fraud-detection-v2',
+      id: 'create-ai-twin',
+      name: 'Create AI Model Digital Twin',
+      description: 'Create a digital twin of your ML model with full lifecycle tracking, performance monitoring, and optimization',
+      endpoint: '/api/v1/manufacturing/digital-twin/create',
       method: 'POST',
-      category: 'Model Serving',
+      category: 'Digital Twin AI',
       sampleRequest: {
-        data: {
-          amount: 150.00,
-          merchant: "Amazon",
-          location: "US",
-          time: "2024-01-15T14:30:00Z"
+        twin_id: "ai_model_twin_001",
+        twin_name: "Fraud Detection Model Twin",
+        twin_type: "AI_MODEL",
+        configuration: {
+          model_type: "xgboost",
+          version: "2.1.0",
+          performance_targets: { accuracy: 0.95, latency_ms: 50 }
+        },
+        iot_integration: {
+          data_sources: ["real_time_transactions", "user_behavior"]
+        },
+        synchronization: {
+          auto_sync_enabled: true,
+          sync_interval_minutes: 15
         }
       }
     },
     {
-      id: 'deploy-model',
-      name: 'Deploy New Model',
-      description: 'Deploy a trained model to production with scaling configuration',
-      endpoint: '/api/v1/serving/deploy',
-      method: 'POST',
-      category: 'Model Serving',
-      sampleRequest: {
-        model_name: "sentiment-analyzer-v3",
-        model_path: "/models/sentiment-v3.pkl",
-        instances: 2,
-        auto_scaling: true
+      id: 'twin-analytics',
+      name: 'AI Twin Performance Analytics',
+      description: 'Get comprehensive analytics for your AI model twin including drift detection, performance degradation, and optimization recommendations',
+      endpoint: '/api/v1/manufacturing/digital-twin/ai_model_twin_001/insights',
+      method: 'GET',
+      category: 'Digital Twin AI',
+      sampleResponse: {
+        success: true,
+        performance_kpis: { accuracy: 0.94, precision: 0.92, recall: 0.96, f1_score: 0.94 },
+        drift_analysis: { data_drift: 0.03, concept_drift: 0.01, drift_severity: "low" },
+        predictions: [{ metric: "accuracy_7d", value: 0.93, confidence: 0.95 }],
+        recommendations: ["Retrain with latest 30 days data", "Increase monitoring frequency"]
       }
     },
     {
-      id: 'export-pytorch',
-      name: 'Export to PyTorch',
-      description: 'Export your data and models to PyTorch format with DataLoader',
-      endpoint: '/api/v1/export/pytorch',
+      id: 'ai-twin-optimize',
+      name: 'Optimize AI Model Parameters',
+      description: 'Use digital twin optimization to find optimal hyperparameters and deployment configurations',
+      endpoint: '/api/v1/manufacturing/digital-twin/ai_model_twin_001/optimize',
       method: 'POST',
-      category: 'ML Framework Export',
+      category: 'Digital Twin AI',
       sampleRequest: {
-        investigation_id: "inv_123",
-        framework: "pytorch",
-        task_type: "classification",
-        batch_size: 32
+        objectives: ["maximize_accuracy", "minimize_latency"],
+        constraints: { max_memory_gb: 8, max_cpu_cores: 4 }
+      }
+    },
+    
+    // Dataset Marketplace
+    {
+      id: 'catalog-dataset',
+      name: 'Catalog Training Dataset',
+      description: 'Register and catalog a new dataset in the marketplace with automatic quality assessment',
+      endpoint: '/api/v1/datasets/catalog',
+      method: 'POST',
+      category: 'Dataset Marketplace',
+      sampleRequest: {
+        name: "financial_fraud_detection_v3",
+        title: "Enhanced Fraud Detection Dataset",
+        description: "Comprehensive dataset with 2M+ transactions for fraud detection",
+        dataset_type: "structured",
+        file_path: "/datasets/fraud_detection_v3.parquet",
+        tags: ["fraud", "finance", "classification", "production-ready"],
+        access_level: "organization",
+        auto_quality_check: true
       }
     },
     {
-      id: 'auto-label',
-      name: 'Auto-Label Data',
-      description: 'Automatically label your data using few-shot learning and active learning',
-      endpoint: '/api/v1/auto-label/predict',
-      method: 'POST',
-      category: 'Auto-Labeling',
-      sampleRequest: {
-        model_key: "sentiment_model_v1",
-        data: [
-          { text: "This product is amazing!" },
-          { text: "Not satisfied with the quality." }
+      id: 'search-datasets',
+      name: 'Search Dataset Marketplace',
+      description: 'Search and discover datasets with advanced filtering and quality metrics',
+      endpoint: '/api/v1/datasets/search',
+      method: 'GET',
+      category: 'Dataset Marketplace',
+      sampleResponse: {
+        success: true,
+        datasets: [
+          {
+            id: "ds_001",
+            name: "financial_fraud_detection_v3",
+            quality_score: 0.95,
+            size_mb: 1500,
+            records: 2100000,
+            tags: ["fraud", "finance"]
+          }
         ]
       }
     },
     {
-      id: 'retraining-pipeline',
-      name: 'Create Retraining Pipeline',
-      description: 'Set up automated model retraining with drift detection',
-      endpoint: '/api/v1/retraining/pipeline',
+      id: 'dataset-quality',
+      name: 'Dataset Quality Assessment',
+      description: 'Get comprehensive quality analysis including completeness, consistency, and bias detection',
+      endpoint: '/api/v1/datasets/ds_001/quality',
+      method: 'GET',
+      category: 'Dataset Marketplace',
+      sampleResponse: {
+        overall_score: 0.95,
+        completeness: 0.98,
+        consistency: 0.94,
+        validity: 0.96,
+        bias_analysis: { demographic_bias: 0.02, geographic_bias: 0.01 },
+        recommendations: ["Review geographic distribution", "Add more diverse samples"]
+      }
+    },
+    
+    // Real-time AI Orchestration
+    {
+      id: 'realtime-stream-setup',
+      name: 'Setup Real-time AI Stream',
+      description: 'Configure real-time data streaming for AI model inference with auto-scaling',
+      endpoint: '/api/v1/streaming/setup',
       method: 'POST',
-      category: 'Automated Retraining',
+      category: 'Real-time Streaming',
+      sampleRequest: {
+        stream_name: "fraud_detection_stream",
+        model_endpoint: "fraud-detection-v2",
+        batch_size: 100,
+        max_latency_ms: 50,
+        auto_scaling: { min_instances: 2, max_instances: 20 }
+      }
+    },
+    {
+      id: 'stream-analytics',
+      name: 'Stream Processing Analytics',
+      description: 'Get real-time analytics on streaming AI inference performance and throughput',
+      endpoint: '/api/v1/streaming/fraud_detection_stream/metrics',
+      method: 'GET',
+      category: 'Real-time Streaming',
+      sampleResponse: {
+        throughput_per_second: 15000,
+        avg_latency_ms: 35,
+        error_rate_percent: 0.01,
+        prediction_accuracy: 0.94,
+        active_connections: 245
+      }
+    },
+    
+    // Advanced MLOps
+    {
+      id: 'create-experiment',
+      name: 'Create ML Experiment',
+      description: 'Set up a comprehensive ML experiment with version control, dataset linking, and automated tracking',
+      endpoint: '/api/v1/experiments/create',
+      method: 'POST',
+      category: 'MLOps Platform',
+      sampleRequest: {
+        name: "fraud_detection_v3_experiment",
+        description: "Testing new feature engineering approach",
+        dataset_ids: ["ds_001", "ds_002"],
+        model_config: {
+          algorithm: "xgboost",
+          hyperparameters: { n_estimators: 200, max_depth: 8 }
+        },
+        tracking: {
+          metrics: ["accuracy", "precision", "recall", "auc"],
+          auto_logging: true
+        }
+      }
+    },
+    {
+      id: 'automated-retraining',
+      name: 'Advanced Auto-Retraining Pipeline',
+      description: 'Create sophisticated retraining pipeline with data drift detection, A/B testing, and gradual rollout',
+      endpoint: '/api/v1/retraining/advanced-pipeline',
+      method: 'POST',
+      category: 'MLOps Platform',
       sampleRequest: {
         model_id: "fraud_detection_v2",
-        schedule: "daily",
-        drift_threshold: 0.1,
-        min_samples: 1000
+        trigger_conditions: {
+          data_drift_threshold: 0.1,
+          performance_drop_threshold: 0.02,
+          min_samples_required: 10000
+        },
+        retraining_config: {
+          validation_split: 0.2,
+          cross_validation_folds: 5,
+          hyperparameter_optimization: true
+        },
+        deployment_strategy: {
+          rollout_type: "canary",
+          canary_percentage: 10,
+          success_criteria: { accuracy_improvement: 0.01 }
+        }
+      }
+    },
+    
+    // Legacy Model Serving (Enhanced)
+    {
+      id: 'advanced-model-serving',
+      name: 'Enterprise Model Deployment',
+      description: 'Deploy models with advanced features: A/B testing, multi-version serving, and auto-scaling',
+      endpoint: '/api/v1/serving/enterprise-deploy',
+      method: 'POST',
+      category: 'Enhanced Model Serving',
+      sampleRequest: {
+        model_name: "fraud-detection-v3",
+        deployment_config: {
+          versions: [{ version: "v2", traffic_percentage: 80 }, { version: "v3", traffic_percentage: 20 }],
+          auto_scaling: { min_replicas: 3, max_replicas: 50, cpu_threshold: 70 },
+          monitoring: {
+            enable_drift_detection: true,
+            performance_alerts: true,
+            custom_metrics: ["business_impact", "false_positive_rate"]
+          }
+        }
+      }
+    },
+    {
+      id: 'model-explainability',
+      name: 'Model Explainability & Insights',
+      description: 'Generate comprehensive model explanations, feature importance, and bias analysis',
+      endpoint: '/api/v1/serving/fraud-detection-v3/explain',
+      method: 'POST',
+      category: 'Enhanced Model Serving',
+      sampleRequest: {
+        prediction_id: "pred_123456",
+        explanation_type: "comprehensive",
+        include_counterfactuals: true,
+        bias_analysis: true
       }
     }
   ]
@@ -301,8 +454,61 @@ export default function AIConsolePage() {
     try {
       let result
       
-      // Simulate API call with sample data
+      // Call actual API endpoints with sample data
       switch (test.id) {
+        // Digital Twin AI APIs
+        case 'create-ai-twin':
+          result = await apiClient.createDigitalTwin(test.sampleRequest)
+          break
+        case 'twin-analytics':
+          result = await apiClient.getTwinInsights('ai_model_twin_001', {
+            analytics_types: 'performance,anomaly,energy',
+            time_range_hours: 168,
+            include_predictions: true
+          })
+          break
+        case 'ai-twin-optimize':
+          result = await apiClient.optimizeTwinParameters('ai_model_twin_001', test.sampleRequest)
+          break
+          
+        // Dataset Marketplace APIs
+        case 'catalog-dataset':
+          result = await apiClient.catalogDataset(test.sampleRequest)
+          break
+        case 'search-datasets':
+          result = await apiClient.searchDatasets({
+            query: 'fraud detection',
+            tags: 'finance,classification',
+            quality_min: 0.9
+          })
+          break
+        case 'dataset-quality':
+          result = await apiClient.getDatasetQuality('ds_001')
+          break
+          
+        // Real-time Streaming APIs
+        case 'realtime-stream-setup':
+          result = await apiClient.setupRealtimeStream(test.sampleRequest)
+          break
+        case 'stream-analytics':
+          result = await apiClient.getStreamMetrics('fraud_detection_stream')
+          break
+          
+        // Advanced MLOps APIs
+        case 'create-experiment':
+          result = await apiClient.createMLExperiment(test.sampleRequest)
+          break
+        case 'automated-retraining':
+          result = await apiClient.createAdvancedRetrainingPipeline(test.sampleRequest)
+          break
+        case 'advanced-model-serving':
+          result = await apiClient.deployEnterpriseModel(test.sampleRequest)
+          break
+        case 'model-explainability':
+          result = await apiClient.explainModel('fraud-detection-v3', test.sampleRequest)
+          break
+          
+        // Legacy Model Serving APIs
         case 'list-models':
           result = await apiClient.getModelsList()
           break
@@ -325,7 +531,7 @@ export default function AIConsolePage() {
           // Fallback with sample response
           result = {
             success: true,
-            data: test.sampleResponse || { message: 'API test successful', timestamp: new Date().toISOString() },
+            data: test.sampleResponse || { message: 'Enterprise API test successful', timestamp: new Date().toISOString() },
             status: 200
           }
       }
@@ -349,28 +555,103 @@ export default function AIConsolePage() {
 
   const statsCards = [
     { 
-      icon: <Zap className="w-5 h-5" />, 
-      label: "Model Endpoints", 
-      value: "8", 
-      color: "text-yellow-600" 
-    },
-    { 
-      icon: <GitBranch className="w-5 h-5" />, 
-      label: "ML Frameworks", 
-      value: "5", 
-      color: "text-green-600" 
-    },
-    { 
-      icon: <Bot className="w-5 h-5" />, 
-      label: "Auto-Label APIs", 
-      value: "4", 
+      icon: <Cpu className="w-5 h-5" />, 
+      label: "Digital Twin Models", 
+      value: "23", 
       color: "text-blue-600" 
     },
     { 
+      icon: <GitBranch className="w-5 h-5" />, 
+      label: "Dataset Marketplace", 
+      value: "847", 
+      color: "text-green-600" 
+    },
+    { 
+      icon: <Zap className="w-5 h-5" />, 
+      label: "Real-time Streams", 
+      value: "156", 
+      color: "text-yellow-600" 
+    },
+    { 
       icon: <Activity className="w-5 h-5" />, 
-      label: "Avg Response", 
-      value: "45ms", 
+      label: "MLOps Pipelines", 
+      value: "89", 
       color: "text-purple-600" 
+    }
+  ]
+
+  const devTools = [
+    {
+      id: 'api-documentation',
+      name: 'Interactive API Documentation',
+      description: 'Browse comprehensive API documentation with live examples and testing',
+      icon: <FileText className="w-5 h-5" />,
+      color: 'text-blue-600',
+      data: {
+        endpoints: 47,
+        examples: 120,
+        schemas: 35
+      }
+    },
+    {
+      id: 'performance-monitoring',
+      name: 'Real-time Performance Monitor',
+      description: 'Monitor API performance, latency, and error rates in real-time',
+      icon: <Monitor className="w-5 h-5" />,
+      color: 'text-green-600',
+      data: {
+        avg_latency: '45ms',
+        success_rate: '99.8%',
+        requests_per_min: '15.2k'
+      }
+    },
+    {
+      id: 'debug-console',
+      name: 'Advanced Debug Console',
+      description: 'Debug API calls with detailed logging, tracing, and error analysis',
+      icon: <Bug className="w-5 h-5" />,
+      color: 'text-orange-600',
+      data: {
+        debug_sessions: 12,
+        active_traces: 5,
+        error_logs: 3
+      }
+    },
+    {
+      id: 'analytics-dashboard',
+      name: 'Usage Analytics Dashboard',
+      description: 'Analyze API usage patterns, popular endpoints, and user behavior',
+      icon: <BarChart3 className="w-5 h-5" />,
+      color: 'text-purple-600',
+      data: {
+        total_calls: '2.4M',
+        top_endpoint: 'predict',
+        usage_trend: '+12%'
+      }
+    },
+    {
+      id: 'security-center',
+      name: 'Security & Compliance Center',
+      description: 'Manage API keys, audit logs, rate limiting, and security policies',
+      icon: <Shield className="w-5 h-5" />,
+      color: 'text-red-600',
+      data: {
+        active_keys: 15,
+        security_score: 'A+',
+        compliance: '100%'
+      }
+    },
+    {
+      id: 'deployment-pipeline',
+      name: 'CI/CD Pipeline Manager',
+      description: 'Manage model deployments, versioning, and automated testing pipelines',
+      icon: <Workflow className="w-5 h-5" />,
+      color: 'text-indigo-600',
+      data: {
+        active_pipelines: 8,
+        deployments_today: 23,
+        success_rate: '96%'
+      }
     }
   ]
 
@@ -394,13 +675,14 @@ export default function AIConsolePage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Three Column Layout */}
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
           {/* API Tests */}
-          <div>
+          <div className="xl:col-span-2">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              AI Company APIs
+              Enterprise AI Platform APIs
             </h2>
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {aiTests.map((test) => (
                 <APITestCard
                   key={test.id}
@@ -413,35 +695,152 @@ export default function AIConsolePage() {
             </div>
           </div>
 
-          {/* Response Display */}
-          <div className="lg:sticky lg:top-24">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              API Response
-            </h2>
-            <ResponseDisplay 
-              response={response} 
-              isLoading={isLoading} 
-              error={error}
-            />
-            
-            {activeTest && (
-              <div className="mt-6 p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-2">
-                  Testing: {activeTest.name}
-                </h3>
-                <p className="text-sm text-purple-700 dark:text-purple-300">
-                  {activeTest.description}
-                </p>
-                {activeTest.sampleRequest && (
-                  <div className="mt-3">
-                    <p className="text-xs text-purple-600 dark:text-purple-400 mb-1">Sample Request:</p>
-                    <pre className="text-xs bg-purple-100 dark:bg-purple-900/40 p-2 rounded overflow-x-auto">
-                      {JSON.stringify(activeTest.sampleRequest, null, 2)}
-                    </pre>
+          {/* Dev Tools & Response Panel */}
+          <div className="space-y-8">
+            {/* Developer Tools */}
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                Developer Tools
+              </h2>
+              <div className="space-y-3">
+                {devTools.map((tool) => (
+                  <div
+                    key={tool.id}
+                    className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => setActiveDevTool(activeDevTool === tool.id ? null : tool.id)}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center space-x-3">
+                        <div className={`${tool.color}`}>{tool.icon}</div>
+                        <div>
+                          <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                            {tool.name}
+                          </h3>
+                        </div>
+                      </div>
+                      {activeDevTool === tool.id && (
+                        <CheckCircle className="w-4 h-4 text-green-500" />
+                      )}
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-3">
+                      {tool.description}
+                    </p>
+                    <div className="grid grid-cols-1 gap-2 text-xs">
+                      {Object.entries(tool.data).map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span className="text-gray-500 dark:text-gray-400 capitalize">
+                            {key.replace('_', ' ')}:
+                          </span>
+                          <span className="font-medium text-gray-900 dark:text-white">
+                            {value}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {activeDevTool === tool.id && (
+                      <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
+                        <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded text-xs">
+                          <div className="text-gray-700 dark:text-gray-300">
+                            {tool.id === 'api-documentation' && (
+                              <div>
+                                <div className="font-medium mb-2">Recent Updates:</div>
+                                <div className="space-y-1">
+                                  <div>✓ Digital Twin APIs documented</div>
+                                  <div>✓ Dataset Marketplace schemas added</div>
+                                  <div>✓ Real-time streaming examples updated</div>
+                                </div>
+                              </div>
+                            )}
+                            {tool.id === 'performance-monitoring' && (
+                              <div>
+                                <div className="font-medium mb-2">Live Metrics:</div>
+                                <div className="space-y-1">
+                                  <div>🔥 CPU: 34% | Memory: 2.1GB</div>
+                                  <div>📊 Active Connections: 245</div>
+                                  <div>⚡ Cache Hit Rate: 94.2%</div>
+                                </div>
+                              </div>
+                            )}
+                            {tool.id === 'debug-console' && (
+                              <div>
+                                <div className="font-medium mb-2">Debug Status:</div>
+                                <div className="space-y-1">
+                                  <div>🐛 Model prediction latency spike detected</div>
+                                  <div>🔍 Dataset quality check in progress</div>
+                                  <div>✅ All digital twins synchronized</div>
+                                </div>
+                              </div>
+                            )}
+                            {tool.id === 'analytics-dashboard' && (
+                              <div>
+                                <div className="font-medium mb-2">Usage Insights:</div>
+                                <div className="space-y-1">
+                                  <div>📈 Peak usage: 2:00-4:00 PM</div>
+                                  <div>🎯 Most used: Digital Twin APIs (45%)</div>
+                                  <div>🌍 Top regions: US (60%), EU (25%)</div>
+                                </div>
+                              </div>
+                            )}
+                            {tool.id === 'security-center' && (
+                              <div>
+                                <div className="font-medium mb-2">Security Status:</div>
+                                <div className="space-y-1">
+                                  <div>🔒 Rate limiting: 1000 req/min</div>
+                                  <div>🛡️ WAF: Active, 23 threats blocked</div>
+                                  <div>🔑 2FA enabled for all admin accounts</div>
+                                </div>
+                              </div>
+                            )}
+                            {tool.id === 'deployment-pipeline' && (
+                              <div>
+                                <div className="font-medium mb-2">Pipeline Status:</div>
+                                <div className="space-y-1">
+                                  <div>🚀 fraud-detection-v3: Deploying (80%)</div>
+                                  <div>✅ recommendation-engine: Healthy</div>
+                                  <div>⏳ sentiment-analyzer: Queue (3/5)</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                ))}
               </div>
-            )}
+            </div>
+
+            {/* Response Display */}
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                API Response
+              </h2>
+              <ResponseDisplay 
+                response={response} 
+                isLoading={isLoading} 
+                error={error}
+              />
+              
+              {activeTest && (
+                <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                  <h3 className="font-semibold text-purple-900 dark:text-purple-100 mb-1 text-sm">
+                    Testing: {activeTest.name}
+                  </h3>
+                  <p className="text-xs text-purple-700 dark:text-purple-300">
+                    {activeTest.description}
+                  </p>
+                  {activeTest.sampleRequest && (
+                    <div className="mt-2">
+                      <p className="text-xs text-purple-600 dark:text-purple-400 mb-1">Sample Request:</p>
+                      <pre className="text-xs bg-purple-100 dark:bg-purple-900/40 p-2 rounded overflow-x-auto max-h-32">
+                        {JSON.stringify(activeTest.sampleRequest, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 

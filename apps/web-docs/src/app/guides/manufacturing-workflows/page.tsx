@@ -1385,15 +1385,15 @@ await factory_orchestrator.execute_factory_optimization()`}
           <div className="grid md:grid-cols-4 gap-4 text-sm">
             <div>
               <div className="font-medium text-blue-900">Overall Equipment Effectiveness (OEE)</div>
-              <div className="text-blue-700">Target: >85%</div>
+              <div className="text-blue-700">Target: &gt;85%</div>
             </div>
             <div>
               <div className="font-medium text-blue-900">Predictive Maintenance Accuracy</div>
-              <div className="text-blue-700">Target: >90%</div>
+              <div className="text-blue-700">Target: &gt;90%</div>
             </div>
             <div>
               <div className="font-medium text-blue-900">Quality First Pass Yield</div>
-              <div className="text-blue-700">Target: >95%</div>
+              <div className="text-blue-700">Target: &gt;95%</div>
             </div>
             <div>
               <div className="font-medium text-blue-900">Energy Efficiency Improvement</div>

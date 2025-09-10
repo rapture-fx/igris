@@ -94,7 +94,7 @@ export default function TroubleshootingPage() {
                   <code className="text-xs text-green-400">pip install --upgrade schlep-engine && python -c "import schlep_engine; print('OK')"</code>
                 </div>
                 <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• Verify Python version >= 3.8</li>
+                  <li>• Verify Python version &gt;= 3.8</li>
                   <li>• Check virtual environment activation</li>
                   <li>• Try reinstalling with --force-reinstall flag</li>
                 </ul>
@@ -141,7 +141,7 @@ export default function TroubleshootingPage() {
                   <code className="text-xs text-green-400">npm install @schlep-engine/javascript-sdk && node --version</code>
                 </div>
                 <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• Verify Node.js version >= 16</li>
+                  <li>• Verify Node.js version &gt;= 16</li>
                   <li>• Clear npm cache: npm cache clean --force</li>
                   <li>• Delete node_modules and reinstall</li>
                 </ul>
@@ -165,7 +165,7 @@ export default function TroubleshootingPage() {
                   <code className="text-xs text-green-400">npm install typescript@latest @types/node</code>
                 </div>
                 <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• Update TypeScript to >= 4.5</li>
+                  <li>• Update TypeScript to &gt;= 4.5</li>
                   <li>• Check type imports and exports</li>
                   <li>• Verify tsconfig.json configuration</li>
                 </ul>
@@ -210,7 +210,7 @@ export default function TroubleshootingPage() {
                   <code className="text-xs text-green-400">go mod tidy && go mod download && go version</code>
                 </div>
                 <ul className="text-xs text-gray-500 space-y-1">
-                  <li>• Verify Go version >= 1.21</li>
+                  <li>• Verify Go version &gt;= 1.21</li>
                   <li>• Clean module cache: go clean -modcache</li>
                   <li>• Check GOPROXY and GOSUMDB settings</li>
                 </ul>

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { CircuitBoardIcon, CogIcon, WrenchScrewdriverIcon, ChartBarIcon, ServerIcon, PlayCircleIcon } from '@heroicons/react/24/outline'
+import { CpuChipIcon, CogIcon, WrenchScrewdriverIcon, ChartBarIcon, ServerIcon, PlayCircleIcon } from '@heroicons/react/24/outline'
 import { useState } from 'react'
 
 export default function ManufacturingIoTSetupTutorial() {
@@ -719,7 +719,7 @@ if __name__ == "__main__":
   const tabs = [
     { id: 'overview', name: 'Overview', icon: CogIcon },
     { id: 'opcua', name: 'OPC-UA Setup', icon: ServerIcon },
-    { id: 'mqtt', name: 'MQTT Setup', icon: CircuitBoardIcon },
+    { id: 'mqtt', name: 'MQTT Setup', icon: CpuChipIcon },
     { id: 'modbus', name: 'Modbus Setup', icon: WrenchScrewdriverIcon },
     { id: 'processing', name: 'Data Processing', icon: ChartBarIcon }
   ]
@@ -729,7 +729,7 @@ if __name__ == "__main__":
       {/* Header */}
       <div className="space-y-4">
         <div className="flex items-center space-x-3">
-          <CircuitBoardIcon className="h-8 w-8 text-orange-600" />
+          <CpuChipIcon className="h-8 w-8 text-orange-600" />
           <h1 className="text-3xl font-bold text-gray-900">Manufacturing IoT Setup Tutorial</h1>
         </div>
         <p className="text-xl text-gray-600">
