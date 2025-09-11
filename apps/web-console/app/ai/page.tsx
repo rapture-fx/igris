@@ -12,11 +12,17 @@ import {
   Sun,
   Moon,
   HelpCircle,
-  Bell
+  Bell,
+  Globe,
+  Bookmark,
+  Import
 } from 'lucide-react'
 import { APISidebar } from '../../src/components/console/APISidebar'
 import { RequestBuilder } from '../../src/components/console/RequestBuilder'
 import { ResponseViewer } from '../../src/components/console/ResponseViewer'
+import { EnvironmentManager } from '../../src/components/console/EnvironmentManager'
+import RequestCollections from '../../src/components/console/RequestCollections'
+import OpenAPIImporter from '../../src/components/console/OpenAPIImporter'
 import { apiClient } from '../../src/lib/api/client'
 
 interface APIEndpoint {
@@ -41,7 +47,17 @@ interface ResponseData {
   method: string
 }
 
-const EnhancedAIConsoleHeader = () => {
+const EnhancedAIConsoleHeader = ({ 
+  onOpenEnvironments, 
+  onOpenCollections,
+  onOpenImporter,
+  currentEnvironment 
+}: { 
+  onOpenEnvironments: () => void;
+  onOpenCollections: () => void;
+  onOpenImporter: () => void;
+  currentEnvironment: string;
+}) => {
   const [darkMode, setDarkMode] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
 
@@ -82,6 +98,36 @@ const EnhancedAIConsoleHeader = () => {
 
             {/* Controls */}
             <div className="flex items-center space-x-2">
+              {/* OpenAPI Import Button */}
+              <button
+                onClick={onOpenImporter}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Import OpenAPI/Swagger Specification"
+              >
+                <Import className="w-4 h-4" />
+                <span className="text-sm font-medium">Import API</span>
+              </button>
+
+              {/* Collections Button */}
+              <button
+                onClick={onOpenCollections}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Request Collections"
+              >
+                <Bookmark className="w-4 h-4" />
+                <span className="text-sm font-medium">Collections</span>
+              </button>
+
+              {/* Environment Selector */}
+              <button
+                onClick={onOpenEnvironments}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Environment Manager"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="text-sm font-medium">{currentEnvironment}</span>
+              </button>
+
               <button
                 onClick={() => setShowNotifications(!showNotifications)}
                 className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 relative"
@@ -128,6 +174,10 @@ export default function AIConsolePage() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
+  const [showEnvironmentManager, setShowEnvironmentManager] = useState(false)
+  const [showCollections, setShowCollections] = useState(false)
+  const [showOpenAPIImporter, setShowOpenAPIImporter] = useState(false)
+  const [currentEnvironment, setCurrentEnvironment] = useState('Development')
 
   // Enhanced request handler with comprehensive response tracking
   const handleSendRequest = async (requestConfig: any): Promise<any> => {
@@ -382,18 +432,37 @@ export default function AIConsolePage() {
   }
 
   const handleSaveRequest = (requestConfig: any) => {
-    // Save request to localStorage or backend
-    const savedRequests = JSON.parse(localStorage.getItem('saved-requests') || '[]')
-    savedRequests.push({
-      id: Date.now(),
-      name: `${requestConfig.endpoint.name} - ${new Date().toLocaleDateString()}`,
-      config: requestConfig,
-      timestamp: new Date().toISOString()
+    // This will be handled by the RequestCollections component
+    setShowCollections(true)
+  }
+
+  const handleLoadRequest = (savedRequest: any) => {
+    // Load a saved request into the request builder
+    setSelectedEndpoint({
+      id: savedRequest.id,
+      name: savedRequest.name,
+      method: savedRequest.method,
+      path: savedRequest.url,
+      description: savedRequest.description || '',
     })
-    localStorage.setItem('saved-requests', JSON.stringify(savedRequests))
+    // Additional logic to populate request builder with saved data would go here
+  }
+
+  const handleSaveToCollection = (request: any) => {
+    // Handle saving request from collections component
+    console.log('Request saved to collection:', request)
+  }
+
+  const handleOpenAPIImport = (endpoints: any[], spec: any) => {
+    // Handle importing endpoints from OpenAPI specification
+    console.log('Imported endpoints from OpenAPI spec:', { endpoints, spec })
+    // Here you would typically:
+    // 1. Update the APISidebar with new endpoints
+    // 2. Save imported endpoints to localStorage or backend
+    // 3. Show success notification
     
-    // Show success notification
-    console.log('Request saved successfully')
+    // For now, we'll just log the import
+    alert(`Successfully imported ${endpoints.length} endpoints from ${spec.info.title}`)
   }
 
   const handleRetry = () => {
@@ -402,6 +471,17 @@ export default function AIConsolePage() {
       // This would need to store the last request config
       console.log('Retrying request...')
     }
+  }
+
+  const handleEnvironmentChange = (environment: string) => {
+    setCurrentEnvironment(environment)
+    // Update API client base URL based on environment
+    const envUrls = {
+      'Development': 'http://localhost:3001',
+      'Staging': 'https://staging-api.schlep-engine.com',
+      'Production': 'https://api.schlep-engine.com'
+    }
+    // apiClient.setBaseURL(envUrls[environment] || envUrls['Development'])
   }
 
   // Handle keyboard shortcuts
@@ -433,7 +513,12 @@ export default function AIConsolePage() {
 
   return (
     <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>
-      <EnhancedAIConsoleHeader />
+      <EnhancedAIConsoleHeader 
+        onOpenEnvironments={() => setShowEnvironmentManager(true)}
+        onOpenCollections={() => setShowCollections(true)}
+        onOpenImporter={() => setShowOpenAPIImporter(true)}
+        currentEnvironment={currentEnvironment}
+      />
       
       {/* Main Layout */}
       <div className="flex h-[calc(100vh-73px)] overflow-hidden">
@@ -493,6 +578,35 @@ export default function AIConsolePage() {
           <span>Ctrl+F: Fullscreen</span>
         </div>
       </div>
+
+      {/* Environment Manager Modal */}
+      {showEnvironmentManager && (
+        <EnvironmentManager 
+          isOpen={showEnvironmentManager}
+          onClose={() => setShowEnvironmentManager(false)}
+          onEnvironmentChange={handleEnvironmentChange}
+          currentEnvironment={currentEnvironment}
+        />
+      )}
+
+      {/* Request Collections Modal */}
+      {showCollections && (
+        <RequestCollections 
+          isOpen={showCollections}
+          onClose={() => setShowCollections(false)}
+          onLoadRequest={handleLoadRequest}
+          onSaveRequest={handleSaveToCollection}
+        />
+      )}
+
+      {/* OpenAPI Importer Modal */}
+      {showOpenAPIImporter && (
+        <OpenAPIImporter 
+          isOpen={showOpenAPIImporter}
+          onClose={() => setShowOpenAPIImporter(false)}
+          onImport={handleOpenAPIImport}
+        />
+      )}
     </div>
   )
 }

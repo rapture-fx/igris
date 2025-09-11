@@ -21,7 +21,12 @@ import {
   Info,
   Zap,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  Upload,
+  File,
+  Image,
+  X,
+  FileText
 } from 'lucide-react'
 
 interface APIEndpoint {
@@ -61,6 +66,23 @@ interface Environment {
   color: string
 }
 
+interface UploadedFile {
+  id: string
+  name: string
+  size: number
+  type: string
+  file: File
+  preview?: string
+}
+
+interface FormField {
+  id: string
+  key: string
+  value: string
+  type: 'text' | 'file'
+  files?: UploadedFile[]
+}
+
 interface RequestBuilderProps {
   endpoint?: APIEndpoint
   onSendRequest: (config: any) => Promise<any>
@@ -89,6 +111,8 @@ export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSav
   const [pathParams, setPathParams] = useState<Record<string, string>>({})
   const [queryParams, setQueryParams] = useState<Record<string, string>>({})
   const [requestBody, setRequestBody] = useState<string>('')
+  const [bodyType, setBodyType] = useState<'json' | 'form-data' | 'raw' | 'none'>('json')
+  const [formFields, setFormFields] = useState<FormField[]>([])
   const [showAuthDetails, setShowAuthDetails] = useState(false)
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [requestTimeout, setRequestTimeout] = useState(30000)
@@ -224,6 +248,87 @@ export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSav
     setQueryParams(newParams)
   }
 
+  // File upload and form data helpers
+  const addFormField = () => {
+    const newField: FormField = {
+      id: `field_${Date.now()}`,
+      key: '',
+      value: '',
+      type: 'text'
+    }
+    setFormFields([...formFields, newField])
+  }
+
+  const removeFormField = (id: string) => {
+    setFormFields(formFields.filter(field => field.id !== id))
+  }
+
+  const updateFormField = (id: string, updates: Partial<FormField>) => {
+    setFormFields(formFields.map(field => 
+      field.id === id ? { ...field, ...updates } : field
+    ))
+  }
+
+  const handleFileUpload = (fieldId: string, files: FileList) => {
+    const uploadedFiles: UploadedFile[] = []
+    
+    Array.from(files).forEach(file => {
+      const uploadedFile: UploadedFile = {
+        id: `file_${Date.now()}_${Math.random()}`,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        file
+      }
+
+      // Create preview for images
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          uploadedFile.preview = e.target?.result as string
+        }
+        reader.readAsDataURL(file)
+      }
+
+      uploadedFiles.push(uploadedFile)
+    })
+
+    updateFormField(fieldId, { 
+      type: 'file', 
+      files: uploadedFiles 
+    })
+  }
+
+  const removeFile = (fieldId: string, fileId: string) => {
+    const field = formFields.find(f => f.id === fieldId)
+    if (field && field.files) {
+      const updatedFiles = field.files.filter(f => f.id !== fileId)
+      updateFormField(fieldId, { files: updatedFiles })
+    }
+  }
+
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes'
+    const k = 1024
+    const sizes = ['Bytes', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+  }
+
+  // Update Content-Type header based on body type
+  useEffect(() => {
+    if (bodyType === 'form-data') {
+      // Remove Content-Type header for form-data - browser will set it with boundary
+      const newHeaders = { ...headers }
+      delete newHeaders['Content-Type']
+      setHeaders(newHeaders)
+    } else if (bodyType === 'json') {
+      setHeaders({ ...headers, 'Content-Type': 'application/json' })
+    } else if (bodyType === 'raw') {
+      setHeaders({ ...headers, 'Content-Type': 'text/plain' })
+    }
+  }, [bodyType])
+
   const updateQueryParam = (oldKey: string, newKey: string, value: string) => {
     const newParams = { ...queryParams }
     if (oldKey !== newKey) {
@@ -289,13 +394,41 @@ export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSav
       ...buildAuthHeaders()
     }
 
+    let requestData: any = undefined
+    
+    if (['POST', 'PUT', 'PATCH'].includes(endpoint.method)) {
+      if (bodyType === 'form-data') {
+        // Create FormData for file uploads and form fields
+        const formData = new FormData()
+        
+        formFields.forEach(field => {
+          if (field.type === 'file' && field.files) {
+            field.files.forEach(uploadedFile => {
+              formData.append(field.key, uploadedFile.file)
+            })
+          } else if (field.type === 'text' && field.key && field.value) {
+            formData.append(field.key, field.value)
+          }
+        })
+        
+        requestData = formData
+        // Remove Content-Type header for FormData - browser will set it with boundary
+        delete finalHeaders['Content-Type']
+      } else if (bodyType === 'json') {
+        requestData = requestBody
+      } else if (bodyType === 'raw') {
+        requestData = requestBody
+      }
+    }
+
     const requestConfig = {
       method: endpoint.method,
       url: buildFinalUrl(),
       headers: finalHeaders,
-      data: ['POST', 'PUT', 'PATCH'].includes(endpoint.method) ? requestBody : undefined,
+      data: requestData,
       timeout: requestTimeout,
-      followRedirects
+      followRedirects,
+      bodyType
     }
 
     try {
@@ -651,26 +784,191 @@ export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSav
               <h3 className="text-lg font-medium text-gray-900 dark:text-white">
                 Request Body
               </h3>
-              <button
-                onClick={formatJSON}
-                className="flex items-center space-x-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
-              >
-                <RefreshCw className="w-4 h-4" />
-                <span>Format JSON</span>
-              </button>
+              <div className="flex items-center space-x-3">
+                {/* Body Type Selector */}
+                <select
+                  value={bodyType}
+                  onChange={(e) => setBodyType(e.target.value as any)}
+                  className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                >
+                  <option value="json">JSON</option>
+                  <option value="form-data">Form Data (multipart/form-data)</option>
+                  <option value="raw">Raw Text</option>
+                  <option value="none">None</option>
+                </select>
+                
+                {bodyType === 'json' && (
+                  <button
+                    onClick={formatJSON}
+                    className="flex items-center space-x-1 text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 transition-colors"
+                  >
+                    <RefreshCw className="w-4 h-4" />
+                    <span>Format JSON</span>
+                  </button>
+                )}
+              </div>
             </div>
-            <textarea
-              value={requestBody}
-              onChange={(e) => setRequestBody(e.target.value)}
-              placeholder="Enter JSON request body..."
-              rows={12}
-              className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
-            />
-            {requestBody && (
-              <div className="mt-2">
-                <div className="text-sm text-gray-600 dark:text-gray-400">
-                  {requestBody.split('\n').length} lines, {requestBody.length} characters
+
+            {/* JSON/Raw Body */}
+            {(bodyType === 'json' || bodyType === 'raw') && (
+              <>
+                <textarea
+                  value={requestBody}
+                  onChange={(e) => setRequestBody(e.target.value)}
+                  placeholder={bodyType === 'json' ? "Enter JSON request body..." : "Enter raw text..."}
+                  rows={12}
+                  className="w-full px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent font-mono text-sm"
+                />
+                {requestBody && (
+                  <div className="mt-2">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                      {requestBody.split('\n').length} lines, {requestBody.length} characters
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Form Data Body */}
+            {bodyType === 'form-data' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Add form fields and file uploads for multipart/form-data requests
+                  </p>
+                  <button
+                    onClick={addFormField}
+                    className="flex items-center space-x-1 px-3 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded-lg hover:bg-purple-200 dark:hover:bg-purple-900/30 transition-colors text-sm"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Field</span>
+                  </button>
                 </div>
+
+                {formFields.length === 0 && (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-gray-500 dark:text-gray-400">
+                      No form fields added yet. Click "Add Field" to get started.
+                    </p>
+                  </div>
+                )}
+
+                {formFields.map((field) => (
+                  <div key={field.id} className="flex items-start space-x-3 p-3 border border-gray-300 dark:border-gray-600 rounded-lg">
+                    <div className="flex-1 grid grid-cols-3 gap-3">
+                      {/* Field Key */}
+                      <input
+                        type="text"
+                        placeholder="Field name"
+                        value={field.key}
+                        onChange={(e) => updateFormField(field.id, { key: e.target.value })}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      />
+
+                      {/* Field Type Selector */}
+                      <select
+                        value={field.type}
+                        onChange={(e) => updateFormField(field.id, { type: e.target.value as 'text' | 'file', value: '', files: [] })}
+                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                      >
+                        <option value="text">Text</option>
+                        <option value="file">File</option>
+                      </select>
+
+                      {/* Field Value/File Input */}
+                      <div className="flex items-center space-x-2">
+                        {field.type === 'text' ? (
+                          <input
+                            type="text"
+                            placeholder="Field value"
+                            value={field.value}
+                            onChange={(e) => updateFormField(field.id, { value: e.target.value })}
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          />
+                        ) : (
+                          <input
+                            type="file"
+                            multiple
+                            onChange={(e) => e.target.files && handleFileUpload(field.id, e.target.files)}
+                            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 file:mr-4 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100"
+                          />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Remove Field Button */}
+                    <button
+                      onClick={() => removeFormField(field.id)}
+                      className="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      title="Remove field"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+
+                {/* File Previews */}
+                {formFields.some(field => field.files && field.files.length > 0) && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-gray-900 dark:text-white">Uploaded Files</h4>
+                    {formFields.map(field => (
+                      field.files && field.files.length > 0 && (
+                        <div key={field.id} className="space-y-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400">Field: {field.key}</p>
+                          <div className="grid grid-cols-2 gap-3">
+                            {field.files.map(file => (
+                              <div key={file.id} className="flex items-center space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg">
+                                {/* File Icon */}
+                                <div className="flex-shrink-0">
+                                  {file.type.startsWith('image/') ? (
+                                    file.preview ? (
+                                      <img src={file.preview} alt={file.name} className="w-10 h-10 object-cover rounded" />
+                                    ) : (
+                                      <Image className="w-10 h-10 text-blue-500" />
+                                    )
+                                  ) : file.type.includes('pdf') ? (
+                                    <FileText className="w-10 h-10 text-red-500" />
+                                  ) : (
+                                    <File className="w-10 h-10 text-gray-500" />
+                                  )}
+                                </div>
+                                
+                                {/* File Info */}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                                    {file.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {formatFileSize(file.size)}
+                                  </p>
+                                </div>
+
+                                {/* Remove File Button */}
+                                <button
+                                  onClick={() => removeFile(field.id, file.id)}
+                                  className="p-1 text-red-600 hover:bg-red-100 dark:hover:bg-red-900/20 rounded transition-colors"
+                                  title="Remove file"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* No Body Message */}
+            {bodyType === 'none' && (
+              <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
+                <p className="text-gray-500 dark:text-gray-400">
+                  No request body will be sent
+                </p>
               </div>
             )}
           </div>

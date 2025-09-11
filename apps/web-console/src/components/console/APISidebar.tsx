@@ -20,7 +20,6 @@ import {
   Search,
   Filter,
   Star,
-  History,
   Key,
   HardDrive,
   ScanText,
@@ -64,10 +63,9 @@ export function APISidebar({
 }: APISidebarProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(['authentication', 'storage', 'data-quality', 'advanced-ml'])
+    new Set()
   )
   const [showFavorites, setShowFavorites] = useState(false)
-  const [recentEndpoints] = useState<string[]>(['login', 'upload-file', 'quality-assessment', 'custom-training'])
 
   const apiCategories: APICategory[] = [
     {
@@ -727,52 +725,11 @@ export function APISidebar({
             <Star className="w-3 h-3" />
             <span>Favorites</span>
           </button>
-          <button className="flex items-center space-x-1 px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-            <History className="w-3 h-3" />
-            <span>Recent</span>
-          </button>
         </div>
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Recent Endpoints */}
-        {recentEndpoints.length > 0 && !searchQuery && (
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center">
-              <History className="w-4 h-4 mr-2" />
-              Recently Used
-            </h3>
-            <div className="space-y-1">
-              {recentEndpoints.slice(0, 3).map((endpointId) => {
-                const endpoint = apiCategories
-                  .flatMap(cat => cat.endpoints)
-                  .find(ep => ep.id === endpointId)
-                
-                if (!endpoint) return null
-
-                return (
-                  <button
-                    key={endpoint.id}
-                    onClick={() => onEndpointSelect(endpoint)}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                      selectedEndpoint?.id === endpoint.id
-                        ? 'bg-purple-100 text-purple-900 dark:bg-purple-900/30 dark:text-purple-100'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium truncate">{endpoint.name}</span>
-                      <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${getMethodColor(endpoint.method)}`}>
-                        {endpoint.method}
-                      </span>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* API Categories */}
         <div className="p-4 space-y-2">
