@@ -887,7 +887,7 @@ export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSav
                   <div className="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
                     <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-gray-500 dark:text-gray-400">
-                      No form fields added yet. Click "Add Field" to get started.
+                      No form fields added yet. Click &quot;Add Field&quot; to get started.
                     </p>
                   </div>
                 )}

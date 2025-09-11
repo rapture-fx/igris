@@ -906,7 +906,7 @@ export function TestCollections() {
                     No active test run
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 mb-6">
-                    Select a collection and click "Run Collection" to start testing
+                    Select a collection and click &quot;Run Collection&quot; to start testing
                   </p>
                   {selectedCollection && (
                     <button

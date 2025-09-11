@@ -577,7 +577,7 @@ export function Sidebar() {
   return (
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-[22.5rem] h-screen">
-        <div className="flex flex-col h-full bg-white border-r border-gray-200 transition-all duration-300 ease-in-out">
+        <div className="flex flex-col h-full bg-schlep-sidebar-background border-r border-gray-200 transition-all duration-300 ease-in-out">
           {/* Combined Logo, Search, and Navigation - now scrollable */}
           <div className="flex-1 flex flex-col pb-4 overflow-y-auto scrollbar-thin">
             <div className="pt-4">

@@ -87,160 +87,206 @@ export function EnhancedAPISidebar({
     toggleCategoryCollapse
   } = useConsolePreferences()
 
-  // Enhanced API categories with cross-vertical awareness
-  const apiCategories: APICategory[] = [
-    {
-      id: 'ai-core',
-      name: '🧠 Core AI & ML',
-      icon: <Brain className="w-4 h-4" />,
-      description: 'Essential AI and machine learning capabilities',
-      priority: 1,
-      vertical: 'ai',
-      use_cases: ['model-training', 'inference', 'mlops'],
-      endpoints: [
-        {
-          id: 'custom-training',
-          name: 'Custom Model Training',
-          method: 'POST',
-          path: '/api/v1/advanced-ml/train',
-          description: 'Train custom ML models with your data',
-          vertical: 'ai',
-          use_case: 'model-training',
-          related_endpoints: ['model-evaluation', 'feature-engineering']
-        },
-        {
-          id: 'model-evaluation',
-          name: 'Model Evaluation',
-          method: 'POST',
-          path: '/api/v1/advanced-ml/evaluate',
-          description: 'Evaluate model performance and metrics',
-          vertical: 'ai',
-          use_case: 'model-training'
-        },
-        {
-          id: 'advanced-model-serving',
-          name: 'Enterprise Deployment',
-          method: 'POST',
-          path: '/api/v1/serving/enterprise-deploy',
-          description: 'Deploy models with advanced features',
-          vertical: 'ai',
-          use_case: 'inference'
-        },
-        {
-          id: 'model-explainability',
-          name: 'Model Explainability',
-          method: 'POST',
-          path: '/api/v1/serving/{id}/explain',
-          description: 'Generate model explanations and insights',
-          vertical: 'ai',
-          use_case: 'inference',
-          beta: true
-        },
-        {
-          id: 'create-experiment',
-          name: 'Create ML Experiment',
-          method: 'POST',
-          path: '/api/v1/experiments/create',
-          description: 'Set up comprehensive ML experiment',
-          vertical: 'ai',
-          use_case: 'mlops'
-        }
-      ]
-    },
-    {
-      id: 'manufacturing-ai',
-      name: '🏭 Manufacturing AI',
-      icon: <Factory className="w-4 h-4" />,
-      description: 'AI-powered manufacturing and industrial solutions',
-      priority: 2,
-      vertical: 'manufacturing',
-      use_cases: ['predictive-maintenance', 'quality-control', 'optimization'],
-      endpoints: [
-        {
-          id: 'predictive-maintenance',
-          name: 'Predictive Maintenance',
-          method: 'POST',
-          path: '/api/v1/industry/manufacturing/predictive-maintenance',
-          description: 'AI-powered equipment maintenance predictions',
-          vertical: 'manufacturing',
-          use_case: 'predictive-maintenance',
-          related_endpoints: ['custom-training', 'anomaly-detection']
-        },
-        {
-          id: 'quality-control',
-          name: 'Quality Control AI',
-          method: 'POST',
-          path: '/api/v1/industry/manufacturing/quality-control',
-          description: 'Automated quality inspection using AI',
-          vertical: 'manufacturing',
-          use_case: 'quality-control',
-          related_endpoints: ['extract-pdf', 'model-explainability']
-        },
-        {
-          id: 'production-analytics',
-          name: 'Production Analytics',
-          method: 'POST',
-          path: '/api/v1/industry/manufacturing/production-analytics',
-          description: 'Real-time production line analytics',
-          vertical: 'manufacturing',
-          use_case: 'optimization'
-        },
-        {
-          id: 'supply-chain-optimization',
-          name: 'Supply Chain Optimization',
-          method: 'POST',
-          path: '/api/v1/industry/manufacturing/supply-chain',
-          description: 'AI-driven supply chain optimization',
-          vertical: 'manufacturing',
-          use_case: 'optimization',
-          related_endpoints: ['demand-forecasting', 'realtime-stream-setup']
-        }
-      ]
-    },
-    {
-      id: 'ecommerce-ai',
-      name: '🛒 E-commerce AI',
-      icon: <ShoppingCart className="w-4 h-4" />,
-      description: 'AI solutions for online retail and commerce',
-      priority: 3,
-      vertical: 'ecommerce',
-      endpoints: [
-        {
-          id: 'product-recommendations',
-          name: 'Product Recommendations',
-          method: 'POST',
-          path: '/api/v1/industry/ecommerce/recommendations',
-          description: 'Personalized product recommendation engine',
-          vertical: 'ecommerce',
-          related_endpoints: ['custom-training', 'stream-analytics']
-        },
-        {
-          id: 'demand-forecasting',
-          name: 'Demand Forecasting',
-          method: 'POST',
-          path: '/api/v1/industry/ecommerce/demand-forecast',
-          description: 'Predict product demand using historical data',
-          vertical: 'ecommerce',
-          related_endpoints: ['feature-engineering', 'time-series-analysis']
-        },
-        {
-          id: 'price-optimization',
-          name: 'Dynamic Pricing',
-          method: 'POST',
-          path: '/api/v1/industry/ecommerce/pricing',
-          description: 'AI-powered dynamic pricing optimization',
-          vertical: 'ecommerce',
-          beta: true
-        }
-      ]
-    },
+  // Real API categories based on actual backend endpoints
+  const apiCategories: APICategory[] = useMemo(() => [
     {
       id: 'data-processing',
-      name: '📊 Data Processing',
+      name: 'Data Processing',
       icon: <Database className="w-4 h-4" />,
-      description: 'ETL, transformation, and data preparation',
+      description: 'Core data processing and transformation services',
+      priority: 1,
+      vertical: 'ai',
+      use_cases: ['data-preparation', 'data-quality', 'validation'],
+      endpoints: [
+        {
+          id: 'data-investigations',
+          name: 'Data Investigations',
+          method: 'POST',
+          path: '/api/v1/data/processing/investigations',
+          description: 'Create and manage data investigation workflows',
+          vertical: 'ai'
+        },
+        {
+          id: 'data-quality',
+          name: 'Data Quality Analysis',
+          method: 'POST',
+          path: '/api/v1/quality',
+          description: 'Comprehensive data quality assessment and preparation',
+          vertical: 'ai'
+        },
+        {
+          id: 'document-extraction',
+          name: 'Document Extraction',
+          method: 'POST',
+          path: '/api/v1/extract',
+          description: 'Extract structured data from documents',
+          vertical: 'ai'
+        },
+        {
+          id: 'validation',
+          name: 'Use Case Validation',
+          method: 'POST',
+          path: '/api/v1/validation',
+          description: 'Validate data processing use cases',
+          vertical: 'ai'
+        }
+      ]
+    },
+    {
+      id: 'ml-pipeline',
+      name: 'ML Pipeline',
+      icon: <Brain className="w-4 h-4" />,
+      description: 'Machine learning pipeline management',
       priority: 2,
-      vertical: 'data-processing',
+      vertical: 'ai',
+      use_cases: ['model-training', 'prediction'],
+      endpoints: [
+        {
+          id: 'ml-create',
+          name: 'Create ML Pipeline',
+          method: 'POST',
+          path: '/api/v1/ml/create',
+          description: 'Create a new ML pipeline configuration',
+          vertical: 'ai'
+        },
+        {
+          id: 'ml-train',
+          name: 'Train Pipeline',
+          method: 'POST',
+          path: '/api/v1/ml/train/{pipeline_id}',
+          description: 'Train ML model with uploaded data',
+          vertical: 'ai'
+        },
+        {
+          id: 'ml-predict',
+          name: 'Make Predictions',
+          method: 'POST',
+          path: '/api/v1/ml/predict',
+          description: 'Generate predictions from trained models',
+          vertical: 'ai'
+        }
+      ]
+    },
+    {
+      id: 'advanced-ai',
+      name: 'Advanced AI Services',
+      icon: <Zap className="w-4 h-4" />,
+      description: 'High-level AI capabilities and orchestration',
+      priority: 3,
+      vertical: 'ai',
+      use_cases: ['analysis', 'insights'],
+      endpoints: [
+        {
+          id: 'intelligent-analysis',
+          name: 'Intelligent Analysis',
+          method: 'POST',
+          path: '/api/v1/ai/intelligent-analysis',
+          description: 'Comprehensive AI-powered data analysis',
+          vertical: 'ai'
+        },
+        {
+          id: 'auto-insights',
+          name: 'Auto Insights Generation',
+          method: 'POST',
+          path: '/api/v1/ai/auto-insights',
+          description: 'Generate automated insights using NLP',
+          vertical: 'ai'
+        },
+        {
+          id: 'predictive-analysis',
+          name: 'Predictive Analysis',
+          method: 'POST',
+          path: '/api/v1/ai/predictive-analysis',
+          description: 'Advanced predictive analytics and forecasting',
+          vertical: 'ai'
+        }
+      ]
+    },
+    {
+      id: 'model-serving',
+      name: 'Model Serving',
+      icon: <Monitor className="w-4 h-4" />,
+      description: 'Enterprise model deployment and serving',
+      priority: 4,
+      vertical: 'ai',
+      use_cases: ['deployment', 'inference'],
+      endpoints: [
+        {
+          id: 'model-deploy',
+          name: 'Deploy Model',
+          method: 'POST',
+          path: '/api/v1/serving/deploy',
+          description: 'Deploy ML models to production',
+          vertical: 'ai'
+        },
+        {
+          id: 'model-status',
+          name: 'Model Status',
+          method: 'GET',
+          path: '/api/v1/serving/{model_id}/status',
+          description: 'Check deployed model status',
+          vertical: 'ai'
+        },
+        {
+          id: 'platform-health',
+          name: 'Platform Health',
+          method: 'GET',
+          path: '/api/v1/serving/platform/health',
+          description: 'Model serving platform health check',
+          vertical: 'ai'
+        }
+      ]
+    },
+    {
+      id: 'industry-solutions',
+      name: 'Industry Solutions',
+      icon: <Building2 className="w-4 h-4" />,
+      description: 'Industry-specific AI solutions for different sectors',
+      priority: 5,
+      vertical: 'industry',
+      use_cases: ['financial', 'ecommerce', 'manufacturing'],
+      endpoints: [
+        {
+          id: 'fraud-detection',
+          name: 'Fraud Detection',
+          method: 'POST',
+          path: '/api/v1/industry/fraud-detection',
+          description: 'Financial fraud detection and analysis',
+          vertical: 'financial'
+        },
+        {
+          id: 'credit-risk',
+          name: 'Credit Risk Assessment',
+          method: 'POST',
+          path: '/api/v1/industry/credit-risk',
+          description: 'Credit risk assessment and scoring',
+          vertical: 'financial'
+        },
+        {
+          id: 'ecommerce-recommendations',
+          name: 'E-commerce Recommendations',
+          method: 'POST',
+          path: '/api/v1/industry/ecommerce/recommendations',
+          description: 'Product recommendations and demand forecasting',
+          vertical: 'ecommerce'
+        },
+        {
+          id: 'manufacturing-solutions',
+          name: 'Manufacturing Solutions',
+          method: 'POST',
+          path: '/api/v1/industry/manufacturing/predictive-maintenance',
+          description: 'Predictive maintenance and quality control',
+          vertical: 'manufacturing'
+        }
+      ]
+    },
+    {
+      id: 'real-time-streaming',
+      name: 'Real-Time Streaming',
+      icon: <Zap className="w-4 h-4" />,
+      description: 'Real-time data streaming and processing',
+      priority: 6,
+      vertical: 'streaming',
       endpoints: [
         {
           id: 'batch-upload',
@@ -367,7 +413,7 @@ export function EnhancedAPISidebar({
         }
       ]
     }
-  ]
+  ], [])
 
   // Filter categories and endpoints based on preferences
   const visibleCategories = useMemo(() => {
