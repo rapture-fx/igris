@@ -281,7 +281,20 @@ pnpm install
 # Start development server
 pnpm dev
 
-# Server will start at http://localhost:3001
+# Server will start at http://localhost:3002
+```
+
+**Web API Console:**
+```bash
+cd apps/web-console
+
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+
+# Server will start at http://localhost:3004
 ```
 
 **Web Documentation:**
@@ -294,7 +307,7 @@ pnpm install
 # Start development server
 pnpm dev
 
-# Server will start at http://localhost:3002
+# Server will start at http://localhost:3005
 ```
 
 **Web Landing Page:**
@@ -338,6 +351,7 @@ schlep-engine/
 │   │   ├── tests/          # API tests
 │   │   └── scripts/        # Utility scripts
 │   ├── web-admin/          # Admin dashboard (Next.js)
+│   ├── web-console/        # API console (Next.js)
 │   ├── web-docs/           # Documentation site (Next.js)
 │   └── web-landing/        # Landing page (Next.js)
 ├── docs/                   # Documentation
@@ -915,9 +929,10 @@ cp .env.development.template .env
 
 ### Development URLs
 - API: http://localhost:8000
-- Admin Dashboard: http://localhost:3001
-- Documentation: http://localhost:3002
 - Landing Page: http://localhost:3000
+- Admin Dashboard: http://localhost:3002
+- API Console: http://localhost:3004
+- Documentation: http://localhost:3005
 - Mailhog: http://localhost:8025
 - Prometheus: http://localhost:9090
 - Grafana: http://localhost:3000

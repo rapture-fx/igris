@@ -664,17 +664,17 @@ export function APISidebar({
 
   if (collapsed) {
     return (
-      <div className="w-16 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4">
+      <div className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4" style={{backgroundColor: '#f7f7f3'}}>
         <button
           onClick={onToggleCollapse}
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+          className="p-2 text-gray-600 dark:text-gray-400 transition-colors"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
         {apiCategories.slice(0, 4).map((category) => (
           <div
             key={category.id}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer"
+            className="p-2 text-gray-600 dark:text-gray-400 transition-colors cursor-pointer"
             title={category.name}
           >
             {category.icon}
@@ -685,107 +685,83 @@ export function APISidebar({
   }
 
   return (
-    <div className="w-80 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full">
+    <div className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full" style={{backgroundColor: '#f7f7f3'}}>
       {/* Header */}
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+      <div className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            AI Company APIs
-          </h2>
+          
           <button
             onClick={onToggleCollapse}
-            className="p-1 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+            className="p-1 text-gray-600 dark:text-gray-400 transition-colors"
           >
-            <ChevronDown className="w-4 h-4 rotate-90" />
+            <ChevronDown className="w-4 h-4 rotate-90" style={{ color: '#114dcd' }} />
           </button>
         </div>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <input
-            type="text"
-            placeholder="Search endpoints..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-          />
-        </div>
+        
 
         {/* Quick Filters */}
         <div className="flex items-center space-x-2 mt-3">
-          <button
-            onClick={() => setShowFavorites(!showFavorites)}
-            className={`flex items-center space-x-1 px-2 py-1 text-xs rounded-full transition-colors ${
-              showFavorites 
-                ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
-                : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            <Star className="w-3 h-3" />
-            <span>Favorites</span>
-          </button>
+          
         </div>
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
 
         {/* API Categories */}
         <div className="p-4 space-y-2">
           {filteredCategories.map((category) => (
-            <div key={category.id} className="border border-gray-200 dark:border-gray-700 rounded-lg">
+            <div key={category.id} className="relative">
               {/* Category Header */}
               <button
                 onClick={() => toggleCategory(category.id)}
-                className="w-full px-4 py-3 text-left flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors rounded-t-lg"
+                className="w-full px-4 py-3 text-left flex items-center justify-between transition-colors rounded-t-lg"
               >
                 <div className="flex items-center space-x-3">
-                  <div className="text-purple-600 dark:text-purple-400">
+                  <div style={{ color: '#114dcd' }}>
                     {category.icon}
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">
+                    <h3 className="font-normal text-gray-500 dark:text-gray-500 text-sm">
                       {category.name}
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {category.endpoints.length} endpoints
-                    </p>
+                    
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
-                    {category.endpoints.length}
-                  </span>
+                  
                   {expandedCategories.has(category.id) ? (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                    <ChevronDown className="w-4 h-4" style={{ color: '#114dcd' }} />
                   ) : (
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                    <ChevronRight className="w-4 h-4" style={{ color: '#114dcd' }} />
                   )}
                 </div>
               </button>
 
+              {/* Git Branch Line */}
+              {expandedCategories.has(category.id) && (
+                <div className="absolute left-11 top-12 bottom-0 w-px bg-gray-300 dark:bg-gray-600 z-10"></div>
+              )}
+
               {/* Category Endpoints */}
               {expandedCategories.has(category.id) && (
-                <div className="border-t border-gray-200 dark:border-gray-700">
+                <div>
                   {category.endpoints.map((endpoint) => (
                     <button
                       key={endpoint.id}
                       onClick={() => onEndpointSelect(endpoint)}
-                      className={`w-full text-left px-4 py-3 border-b border-gray-100 dark:border-gray-600 last:border-b-0 transition-colors ${
-                        selectedEndpoint?.id === endpoint.id
-                          ? 'bg-purple-50 border-l-4 border-l-purple-500 dark:bg-purple-900/20'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                      }`}
+                      className="w-full text-left pl-20 pr-4 py-3 transition-colors relative"
                     >
+                      {/* Branch connector */}
+                      <div className="absolute left-11 top-0 w-6 h-6 border-l border-b border-gray-300 dark:border-gray-600 rounded-bl-md"></div>
+                      
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center space-x-2">
                           <span className={`px-2 py-0.5 text-xs font-medium rounded ${getMethodColor(endpoint.method)}`}>
                             {endpoint.method}
                           </span>
-                          {endpoint.favorite && (
-                            <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                          )}
+                          
                           {endpoint.beta && (
                             <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">
                               BETA
@@ -798,13 +774,13 @@ export function APISidebar({
                           )}
                         </div>
                       </div>
-                      <h4 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">
+                      <h4 className="font-medium text-gray-500 dark:text-gray-500 mb-1 text-xs">
                         {endpoint.name}
                       </h4>
                       <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                         {endpoint.description}
                       </p>
-                      <code className="text-xs text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/20 px-2 py-1 rounded">
+                      <code className="text-xs px-2 py-1 rounded" style={{ color: '#114dcd' }}>
                         {endpoint.path}
                       </code>
                     </button>
@@ -817,15 +793,8 @@ export function APISidebar({
       </div>
 
       {/* Footer Stats */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
-        <div className="text-center">
-          <div className="text-sm font-medium text-gray-900 dark:text-white">
-            {apiCategories.reduce((acc, cat) => acc + cat.endpoints.length, 0)} Total Endpoints
-          </div>
-          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            Across {apiCategories.length} categories
-          </div>
-        </div>
+      <div className="p-4" style={{backgroundColor: '#f0f0ec'}}>
+        
       </div>
     </div>
   )

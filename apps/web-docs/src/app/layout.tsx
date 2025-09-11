@@ -15,7 +15,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen">
       <div className="w-full flex">
-        <div className="w-[35rem] h-screen sticky top-0 z-40">
+        <div className="w-80 h-screen sticky top-0 z-40 flex-shrink-0">
           <Sidebar />
         </div>
         <div className="flex-1">
@@ -23,8 +23,8 @@ function AppContent({ children }: { children: React.ReactNode }) {
             <Header />
           </div>
           <main className="flex-1 overflow-y-auto transition-colors duration-300">
-            <div className="pt-8 pb-6 pr-6 w-full" style={{ paddingLeft: '1rem' }}>
-              <div className="flex flex-col items-start max-w-4xl">
+            <div className="pt-8 pb-6 px-6 w-full">
+              <div className="flex flex-col items-start max-w-4xl mx-auto">
                 {children}
               </div>
             </div>

@@ -12,7 +12,8 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   experimental: {
-    forceSwcTransforms: true,
+    // Disabled forceSwcTransforms to fix JSX parsing issues
+    // forceSwcTransforms: true,
   },
   async redirects() {
     return [

@@ -26,8 +26,9 @@ schlep-engine/
 ├── apps/                          # Applications
 │   ├── api/                       # FastAPI backend (Python) - Port 3001
 │   ├── web-admin/                 # Admin dashboard (Next.js) - Port 3002
+│   ├── web-console/               # API Console (Next.js) - Port 3004
 │   ├── web-landing/               # Landing page (Next.js) - Port 3000
-│   └── web-docs/                  # Documentation (Next.js) - Port 3003
+│   └── web-docs/                  # Documentation (Next.js) - Port 3005
 ├── packages/                      # Shared packages
 │   ├── ui/                        # Shared UI components
 │   ├── types/                     # TypeScript type definitions
@@ -93,8 +94,9 @@ docker-compose -f infrastructure/vultr/docker-compose.production.yml up -d
    # Or start individual services
    pnpm dev:api      # FastAPI backend → localhost:3001
    pnpm dev:admin    # Admin dashboard → localhost:3002
+   pnpm dev:console  # API Console → localhost:3004
    pnpm dev:landing  # Landing page → localhost:3000
-   pnpm dev:docs     # Documentation → localhost:3003
+   pnpm dev:docs     # Documentation → localhost:3005
    ```
 
 3. **Using Docker for local development:**
@@ -116,6 +118,7 @@ docker-compose -f infrastructure/vultr/docker-compose.production.yml up -d
 ### Individual Application Commands
 - `pnpm dev:api` - Start API backend only
 - `pnpm dev:admin` - Start admin dashboard only
+- `pnpm dev:console` - Start API console only
 - `pnpm dev:landing` - Start landing page only
 - `pnpm dev:docs` - Start API documentation only
 
@@ -144,9 +147,15 @@ docker-compose -f infrastructure/vultr/docker-compose.production.yml up -d
 - **Features:** Marketing site, User onboarding, Product showcase
 - **URL:** https://schlep-engine.com
 
+#### API Console (`apps/web-console/`)
+- **Framework:** Next.js 14 (React 18)
+- **Port:** 3004
+- **Features:** Interactive API testing, Endpoint explorer, Request/response visualization
+- **URL:** https://console.schlep-engine.com (planned)
+
 #### Documentation (`apps/web-docs/`)
 - **Framework:** Next.js 14 (React 18)
-- **Port:** 3003
+- **Port:** 3005
 - **Features:** API docs, Integration guides, Developer resources
 - **URL:** https://docs.schlep-engine.com
 

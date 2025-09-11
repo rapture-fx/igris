@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { 
   Cpu, 
   Factory,
-  Gear, 
+   
   ShoppingCart, 
   Building2,
   Activity,
@@ -48,7 +48,7 @@ const IndustryCard: React.FC<IndustryCardProps> = ({
 }) => {
   return (
     <Link href={link} className="group">
-      <div className={`relative overflow-hidden rounded-sm border bg-white px-6 py-2 shadow-md transition-all duration-300 hover:shadow-lg hover:scale-[1.02] dark:bg-gray-800`} style={{ borderColor: '#a0c0f0' }}>
+      <div className={`relative overflow-hidden rounded-sm border bg-white px-6 py-2 shadow-md transition-all duration-300 hover:shadow-md dark:bg-gray-800`} style={{ borderColor: '#a0c0f0' }}>
         
         
         {/* Content */}
@@ -61,7 +61,7 @@ const IndustryCard: React.FC<IndustryCardProps> = ({
                   {icon}
                 </div>
               </div>
-              <h3 className="text-lg font-normal text-gray-900 dark:text-white my-0">
+              <h3 className="text-lg font-normal text-gray-900 dark:text-white my-0 font-mono">
                 {title}
               </h3>
             </div>
@@ -104,10 +104,10 @@ const AuthButton: React.FC = () => {
     <>
       <button
         onClick={() => setShowLoginModal(true)}
-        className="px-3 py-1.5 text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+        className="px-3 py-1.5 text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-md font-mono"
         style={{ backgroundColor: '#e9eef9', color: '#114dcd' }}
       >
-        Sign in
+        Dashboard
       </button>
       <LoginModal
         isOpen={showLoginModal}
@@ -125,24 +125,20 @@ const ConsoleHeader: React.FC = () => {
           {/* Logo and title */}
           <div className="flex items-center space-x-3">
             <div>
-              <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-12 h-12" />
+              <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[52px] h-[52px]" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Schlep-engine
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                API Console
-              </p>
+              
+              
             </div>
           </div>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="http://localhost:3005" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <Link href="http://localhost:3005" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono">
               Docs
             </Link>
-            <Link href="http://localhost:3000" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+            <Link href="http://localhost:3000" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono">
               Home
             </Link>
             <AuthButton />
@@ -177,7 +173,7 @@ export default function ConsolePage() {
     {
       title: "Manufacture",
       description: "IoT monitoring, predictive maintenance, and supply chain optimization for smart factories",
-      icon: <Gear className="w-6 h-6" />,
+      icon: <Factory className="w-6 h-6" />,
       link: "/manufacturing",
       apiCount: 12,
       features: [
@@ -233,7 +229,7 @@ export default function ConsolePage() {
 
         {/* Industry Cards */}
         <div className="mb-16 pt-12">
-          <h3 className="text-2xl font-semibold mb-8 text-center" style={{ color: '#1f53d0' }}>
+          <h3 className="text-2xl font-normal mb-8 text-center font-mono" style={{ color: '#1f53d0' }}>
             Choose Your Industry
           </h3>
           <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
@@ -245,7 +241,7 @@ export default function ConsolePage() {
 
         {/* Quick Actions */}
         <div className="mt-80">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6 text-center">
+          <h3 className="text-lg font-normal text-gray-900 dark:text-white mb-6 text-center font-mono">
             Essentials
           </h3>
           <div className="flex flex-wrap justify-center gap-4">
@@ -253,18 +249,18 @@ export default function ConsolePage() {
             
             <Link href="/security" className="flex items-center space-x-3 p-4 transition-colors">
               <Shield className="w-5 h-5" style={{ color: '#1f53d0' }} />
-              <span className="font-normal text-gray-500 dark:text-gray-500">Security Console</span>
+              <span className="text-sm font-normal text-gray-500 dark:text-gray-500 font-mono">Security Console</span>
             </Link>
             <Link href="/testing" className="flex items-center space-x-3 p-4 transition-colors">
               <TestTube className="w-5 h-5" style={{ color: '#1f53d0' }} />
-              <span className="font-normal text-gray-500 dark:text-gray-500">Test Collections</span>
+              <span className="text-sm font-normal text-gray-500 dark:text-gray-500 font-mono">Test Collections</span>
             </Link>
             <button 
               onClick={() => setShowWebhookTester(true)}
               className="flex items-center space-x-3 p-4 transition-colors text-left"
             >
               <Webhook className="w-5 h-5" style={{ color: '#1f53d0' }} />
-              <span className="font-normal text-gray-500 dark:text-gray-500">Webhook Tester</span>
+              <span className="text-sm font-normal text-gray-500 dark:text-gray-500 font-mono">Webhook Tester</span>
             </button>
           </div>
         </div>

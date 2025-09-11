@@ -53,20 +53,10 @@
     visibility: visible !important;
   }
 
-  /* Prevent any component from becoming invisible */
-  * {
-    visibility: visible !important;
-  }
-
-  /* Force light mode for all components */
-  .min-h-screen,
-  main,
-  div,
-  section,
-  article {
-    background-color: #f5f4f2 !important;
-    color: #111827 !important;
-    opacity: 1 !important;
+  /* Minimal fixes without breaking layout */
+  body {
+    background-color: #f5f4f2;
+    color: #111827;
   }
 
   /* Apply Apple system font to headings with smaller sizes */

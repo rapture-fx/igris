@@ -15,7 +15,10 @@ import {
   Bell,
   Globe,
   Bookmark,
-  Import
+  Import,
+  Lock,
+  Clock,
+  Code2
 } from 'lucide-react'
 import { APISidebar } from '../../src/components/console/APISidebar'
 import { RequestBuilder } from '../../src/components/console/RequestBuilder'
@@ -23,6 +26,9 @@ import { ResponseViewer } from '../../src/components/console/ResponseViewer'
 import { EnvironmentManager } from '../../src/components/console/EnvironmentManager'
 import RequestCollections from '../../src/components/console/RequestCollections'
 import OpenAPIImporter from '../../src/components/console/OpenAPIImporter'
+import { AuthenticationManager } from '../../src/components/console/AuthenticationManager'
+import { RequestHistory } from '../../src/components/console/RequestHistory'
+// import { CodeGenerator } from '../../src/components/console/CodeGenerator'
 import { apiClient } from '../../src/lib/api/client'
 
 interface APIEndpoint {
@@ -51,18 +57,24 @@ const EnhancedAIConsoleHeader = ({
   onOpenEnvironments, 
   onOpenCollections,
   onOpenImporter,
+  onOpenAuth,
+  onOpenHistory,
+  onOpenCodeGen,
   currentEnvironment 
 }: { 
   onOpenEnvironments: () => void;
   onOpenCollections: () => void;
   onOpenImporter: () => void;
+  onOpenAuth: () => void;
+  onOpenHistory: () => void;
+  onOpenCodeGen: () => void;
   currentEnvironment: string;
 }) => {
   const [darkMode, setDarkMode] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50">
+    <header className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50" style={{backgroundColor: '#f7f7f3'}}>
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -98,6 +110,36 @@ const EnhancedAIConsoleHeader = ({
 
             {/* Controls */}
             <div className="flex items-center space-x-2">
+              {/* Authentication Button */}
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Authentication Manager"
+              >
+                <Lock className="w-4 h-4" />
+                <span className="text-sm font-medium">Auth</span>
+              </button>
+
+              {/* Request History Button */}
+              <button
+                onClick={onOpenHistory}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Request History"
+              >
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">History</span>
+              </button>
+
+              {/* Code Generator Button */}
+              <button
+                onClick={onOpenCodeGen}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Generate Code"
+              >
+                <Code2 className="w-4 h-4" />
+                <span className="text-sm font-medium">Code</span>
+              </button>
+
               {/* OpenAPI Import Button */}
               <button
                 onClick={onOpenImporter}
@@ -177,7 +219,13 @@ export default function AIConsolePage() {
   const [showEnvironmentManager, setShowEnvironmentManager] = useState(false)
   const [showCollections, setShowCollections] = useState(false)
   const [showOpenAPIImporter, setShowOpenAPIImporter] = useState(false)
+  const [showAuthManager, setShowAuthManager] = useState(false)
+  const [showRequestHistory, setShowRequestHistory] = useState(false)
+  const [showCodeGenerator, setShowCodeGenerator] = useState(false)
   const [currentEnvironment, setCurrentEnvironment] = useState('Development')
+  const [authConfigs, setAuthConfigs] = useState([])
+  const [requestHistory, setRequestHistory] = useState([])
+  const [currentRequestConfig, setCurrentRequestConfig] = useState(null)
 
   // Enhanced request handler with comprehensive response tracking
   const handleSendRequest = async (requestConfig: any): Promise<any> => {
@@ -189,7 +237,35 @@ export default function AIConsolePage() {
     
     try {
       // Extract components from request config
-      const { method, url, headers, data, timeout } = requestConfig
+      let { method, url, headers, data, timeout } = requestConfig
+      
+      // Apply active authentication configs
+      const activeAuth = authConfigs.find(auth => auth.active)
+      if (activeAuth) {
+        headers = { ...headers }
+        
+        switch (activeAuth.type) {
+          case 'api-key':
+            if (activeAuth.config.headerName && activeAuth.config.value) {
+              headers[activeAuth.config.headerName] = activeAuth.config.value
+            }
+            break
+          case 'bearer-token':
+            if (activeAuth.config.token) {
+              headers['Authorization'] = `Bearer ${activeAuth.config.token}`
+            }
+            break
+          case 'basic-auth':
+            if (activeAuth.config.username && activeAuth.config.password) {
+              const credentials = btoa(`${activeAuth.config.username}:${activeAuth.config.password}`)
+              headers['Authorization'] = `Basic ${credentials}`
+            }
+            break
+        }
+      }
+      
+      // Store current request config for code generation
+      setCurrentRequestConfig({ method, url, headers, body: data })
       
       console.log('Sending request:', {
         method,
@@ -410,6 +486,34 @@ export default function AIConsolePage() {
         })
       }
 
+      // Save to request history
+      const historyItem = {
+        id: `req_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        method,
+        url,
+        status: responseData.status,
+        statusText: responseData.statusText,
+        duration: responseData.duration,
+        size: responseData.size,
+        headers: headers,
+        body: data,
+        response: result?.success ? {
+          data: result.data,
+          headers: responseData.headers,
+          status: responseData.status,
+          statusText: responseData.statusText
+        } : undefined,
+        error: result?.success ? undefined : {
+          message: result?.error || 'Request failed',
+          code: `HTTP_${result?.status || 500}`
+        }
+      }
+      
+      const updatedHistory = [historyItem, ...requestHistory].slice(0, 100) // Keep last 100 requests
+      setRequestHistory(updatedHistory)
+      localStorage.setItem('api-console-request-history', JSON.stringify(updatedHistory))
+
       return result
 
     } catch (err) {
@@ -417,7 +521,7 @@ export default function AIConsolePage() {
       const duration = endTime - startTime
 
       console.error('Request failed:', err)
-      setError({
+      const errorDetails = {
         message: err instanceof Error ? err.message : 'Network error occurred',
         code: 'NETWORK_ERROR',
         details: {
@@ -425,7 +529,23 @@ export default function AIConsolePage() {
           method: requestConfig.method,
           duration: duration
         }
-      })
+      }
+      setError(errorDetails)
+
+      // Save error to request history
+      const historyItem = {
+        id: `req_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        method: requestConfig.method,
+        url: requestConfig.url,
+        headers: requestConfig.headers,
+        body: requestConfig.data,
+        error: errorDetails
+      }
+      
+      const updatedHistory = [historyItem, ...requestHistory].slice(0, 100)
+      setRequestHistory(updatedHistory)
+      localStorage.setItem('api-console-request-history', JSON.stringify(updatedHistory))
     } finally {
       setLoading(false)
     }
@@ -512,11 +632,14 @@ export default function AIConsolePage() {
   }, [selectedEndpoint, loading, sidebarCollapsed, isFullscreen])
 
   return (
-    <div className={`min-h-screen bg-gray-50 dark:bg-gray-900 ${darkMode ? 'dark' : ''}`}>
+    <div className={`min-h-screen dark:bg-gray-900 ${darkMode ? 'dark' : ''}`} style={{backgroundColor: '#f7f7f3'}}>
       <EnhancedAIConsoleHeader 
         onOpenEnvironments={() => setShowEnvironmentManager(true)}
         onOpenCollections={() => setShowCollections(true)}
         onOpenImporter={() => setShowOpenAPIImporter(true)}
+        onOpenAuth={() => setShowAuthManager(true)}
+        onOpenHistory={() => setShowRequestHistory(true)}
+        onOpenCodeGen={() => selectedEndpoint && setShowCodeGenerator(true)}
         currentEnvironment={currentEnvironment}
       />
       
@@ -551,33 +674,9 @@ export default function AIConsolePage() {
         </div>
       </div>
 
-      {/* Fullscreen Toggle */}
-      <button
-        onClick={() => setIsFullscreen(!isFullscreen)}
-        className="fixed bottom-6 right-6 p-3 bg-purple-600 text-white rounded-full shadow-lg hover:bg-purple-700 transition-colors z-50"
-        title="Toggle fullscreen"
-      >
-        {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-      </button>
+      
 
-      {/* Status Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-6 py-2 text-xs text-gray-600 dark:text-gray-400 flex items-center justify-between">
-        <div className="flex items-center space-x-6">
-          <span>Endpoint: {selectedEndpoint?.name || 'None selected'}</span>
-          {response && (
-            <>
-              <span>Status: {response.status}</span>
-              <span>Time: {response.duration.toFixed(0)}ms</span>
-              <span>Size: {(response.size / 1024).toFixed(1)}KB</span>
-            </>
-          )}
-        </div>
-        <div className="flex items-center space-x-4">
-          <span>Ctrl+Enter: Send Request</span>
-          <span>Ctrl+B: Toggle Sidebar</span>
-          <span>Ctrl+F: Fullscreen</span>
-        </div>
-      </div>
+      
 
       {/* Environment Manager Modal */}
       {showEnvironmentManager && (
@@ -605,6 +704,46 @@ export default function AIConsolePage() {
           isOpen={showOpenAPIImporter}
           onClose={() => setShowOpenAPIImporter(false)}
           onImport={handleOpenAPIImport}
+        />
+      )}
+
+      {/* Authentication Manager Modal */}
+      {showAuthManager && (
+        <AuthenticationManager 
+          isOpen={showAuthManager}
+          onClose={() => setShowAuthManager(false)}
+          onAuthChange={setAuthConfigs}
+          currentAuth={authConfigs}
+        />
+      )}
+
+      {/* Request History Modal */}
+      {showRequestHistory && (
+        <RequestHistory 
+          isOpen={showRequestHistory}
+          onClose={() => setShowRequestHistory(false)}
+          onReplayRequest={(request) => {
+            // Load request into request builder
+            setSelectedEndpoint({
+              id: `replay_${Date.now()}`,
+              name: `${request.method} ${request.url}`,
+              method: request.method as any,
+              path: request.url,
+              description: 'Replayed request from history'
+            })
+            setCurrentRequestConfig(request)
+            setShowRequestHistory(false)
+          }}
+          requests={requestHistory}
+        />
+      )}
+
+      {/* Code Generator Modal */}
+      {showCodeGenerator && currentRequestConfig && (
+        <CodeGenerator 
+          isOpen={showCodeGenerator}
+          onClose={() => setShowCodeGenerator(false)}
+          requestConfig={currentRequestConfig}
         />
       )}
     </div>
