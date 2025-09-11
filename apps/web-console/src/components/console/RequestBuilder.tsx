@@ -88,9 +88,11 @@ interface RequestBuilderProps {
   onSendRequest: (config: any) => Promise<any>
   loading?: boolean
   onSaveRequest?: (config: any) => void
+  onOpenCodeGen?: () => void
+  onRequestConfigChange?: (config: any) => void
 }
 
-export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSaveRequest }: RequestBuilderProps) {
+export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSaveRequest, onOpenCodeGen, onRequestConfigChange }: RequestBuilderProps) {
   const [environment, setEnvironment] = useState<Environment>({
     id: 'production',
     name: 'Production',
@@ -385,6 +387,42 @@ export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSav
     
     return authHeaders
   }
+
+  const buildCurrentRequestConfig = () => {
+    if (!endpoint) return null
+
+    const authHeaders = buildAuthHeaders()
+    
+    const finalHeaders: Record<string, string> = {
+      ...authHeaders,
+      ...headers
+    }
+
+    if (requestBody && (endpoint.method === 'POST' || endpoint.method === 'PUT' || endpoint.method === 'PATCH')) {
+      if (bodyType === 'json') {
+        finalHeaders['Content-Type'] = 'application/json'
+      } else if (bodyType === 'form-data') {
+        finalHeaders['Content-Type'] = 'multipart/form-data'
+      } else if (bodyType === 'form-urlencoded') {
+        finalHeaders['Content-Type'] = 'application/x-www-form-urlencoded'
+      }
+    }
+
+    return {
+      method: endpoint.method,
+      url: buildFinalUrl(),
+      headers: finalHeaders,
+      body: requestBody || undefined
+    }
+  }
+
+  // Update the request config whenever the form changes
+  useEffect(() => {
+    if (onRequestConfigChange) {
+      const config = buildCurrentRequestConfig()
+      onRequestConfigChange(config)
+    }
+  }, [endpoint, environment, auth, headers, pathParams, queryParams, requestBody, bodyType, formFields, onRequestConfigChange])
 
   const handleSendRequest = async () => {
     if (!endpoint) return
@@ -1034,18 +1072,29 @@ export function RequestBuilder({ endpoint, onSendRequest, loading = false, onSav
               <span>Environment: {environment.name}</span>
             </div>
           </div>
-          <button
-            onClick={handleSendRequest}
-            disabled={loading}
-            className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? (
-              <RefreshCw className="w-5 h-5 animate-spin" />
-            ) : (
-              <Zap className="w-5 h-5" />
+          <div className="flex items-center space-x-3">
+            {onOpenCodeGen && (
+              <button
+                onClick={onOpenCodeGen}
+                className="flex items-center space-x-2 px-4 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              >
+                <Code2 className="w-5 h-5" />
+                <span>Code</span>
+              </button>
             )}
-            <span>{loading ? 'Sending...' : 'Send Request'}</span>
-          </button>
+            <button
+              onClick={handleSendRequest}
+              disabled={loading}
+              className="flex items-center space-x-2 px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {loading ? (
+                <RefreshCw className="w-5 h-5 animate-spin" />
+              ) : (
+                <Zap className="w-5 h-5" />
+              )}
+              <span>{loading ? 'Sending...' : 'Send Request'}</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>

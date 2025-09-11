@@ -5,14 +5,7 @@ import Link from 'next/link'
 import { 
   ArrowLeft,
   Cpu,
-  Settings,
   CheckCircle,
-  Maximize2,
-  Minimize2,
-  Sun,
-  Moon,
-  HelpCircle,
-  Bell,
   Globe,
   Bookmark,
   Import,
@@ -28,7 +21,6 @@ import RequestCollections from '../../src/components/console/RequestCollections'
 import OpenAPIImporter from '../../src/components/console/OpenAPIImporter'
 import { AuthenticationManager } from '../../src/components/console/AuthenticationManager'
 import { RequestHistory } from '../../src/components/console/RequestHistory'
-// import { CodeGenerator } from '../../src/components/console/CodeGenerator'
 import { apiClient } from '../../src/lib/api/client'
 
 interface APIEndpoint {
@@ -53,158 +45,126 @@ interface ResponseData {
   method: string
 }
 
-const EnhancedAIConsoleHeader = ({ 
-  onOpenEnvironments, 
-  onOpenCollections,
-  onOpenImporter,
-  onOpenAuth,
-  onOpenHistory,
-  onOpenCodeGen,
-  currentEnvironment 
-}: { 
+interface HeaderProps {
   onOpenEnvironments: () => void;
   onOpenCollections: () => void;
   onOpenImporter: () => void;
   onOpenAuth: () => void;
   onOpenHistory: () => void;
-  onOpenCodeGen: () => void;
   currentEnvironment: string;
-}) => {
-  const [darkMode, setDarkMode] = useState(false)
-  const [showNotifications, setShowNotifications] = useState(false)
+}
 
-  return (
-    <header className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50" style={{backgroundColor: '#f7f7f3'}}>
-      <div className="px-6 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <Link 
-              href="/" 
-              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Console
-            </Link>
-            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600"></div>
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                <Cpu className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                  AI Company API Console
-                </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Interactive API testing and development environment
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            {/* Status Indicator */}
-            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
-              <CheckCircle className="w-4 h-4" />
-              <span>All Systems Operational</span>
-            </div>
+function EnhancedAIConsoleHeader(props: HeaderProps) {
+  const {
+    onOpenEnvironments,
+    onOpenCollections,
+    onOpenImporter,
+    onOpenAuth,
+    onOpenHistory,
+    currentEnvironment
+  } = props;
 
-            {/* Controls */}
-            <div className="flex items-center space-x-2">
-              {/* Authentication Button */}
-              <button
-                onClick={onOpenAuth}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Authentication Manager"
-              >
-                <Lock className="w-4 h-4" />
-                <span className="text-sm font-medium">Auth</span>
-              </button>
-
-              {/* Request History Button */}
-              <button
-                onClick={onOpenHistory}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Request History"
-              >
-                <Clock className="w-4 h-4" />
-                <span className="text-sm font-medium">History</span>
-              </button>
-
-              {/* Code Generator Button */}
-              <button
-                onClick={onOpenCodeGen}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Generate Code"
-              >
-                <Code2 className="w-4 h-4" />
-                <span className="text-sm font-medium">Code</span>
-              </button>
-
-              {/* OpenAPI Import Button */}
-              <button
-                onClick={onOpenImporter}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Import OpenAPI/Swagger Specification"
-              >
-                <Import className="w-4 h-4" />
-                <span className="text-sm font-medium">Import API</span>
-              </button>
-
-              {/* Collections Button */}
-              <button
-                onClick={onOpenCollections}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Request Collections"
-              >
-                <Bookmark className="w-4 h-4" />
-                <span className="text-sm font-medium">Collections</span>
-              </button>
-
-              {/* Environment Selector */}
-              <button
-                onClick={onOpenEnvironments}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Environment Manager"
-              >
-                <Globe className="w-4 h-4" />
-                <span className="text-sm font-medium">{currentEnvironment}</span>
-              </button>
-
-              <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 relative"
-                title="Notifications"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                title="Toggle theme"
-              >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-
-              <button
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                title="Help"
-              >
-                <HelpCircle className="w-5 h-5" />
-              </button>
-
-              <button
-                className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                title="Settings"
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+  return React.createElement(
+    'div',
+    {
+      className: 'border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50',
+      style: { backgroundColor: '#f7f7f3' }
+    },
+    React.createElement(
+      'div',
+      { className: 'px-6 py-4' },
+      React.createElement(
+        'div',
+        { className: 'flex items-center justify-between' },
+        React.createElement(
+          'div',
+          { className: 'flex items-center space-x-4' },
+          React.createElement(
+            'div',
+            { className: 'flex items-center space-x-3' },
+            React.createElement(
+              'div',
+              { className: 'p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg' },
+              React.createElement(Cpu, { className: 'w-6 h-6 text-purple-600 dark:text-purple-400' })
+            )
+          ),
+          React.createElement('div', { className: 'h-6 w-px bg-gray-300 dark:bg-gray-600' }),
+          React.createElement(
+            Link,
+            {
+              href: '/',
+              className: 'flex items-center text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors'
+            },
+            React.createElement(ArrowLeft, { className: 'w-4 h-4 mr-1' }),
+            'Back to Console'
+          )
+        ),
+        React.createElement(
+          'div',
+          { className: 'flex items-center space-x-4' },
+          React.createElement(
+            'div',
+            { className: 'flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm' },
+            React.createElement(CheckCircle, { className: 'w-4 h-4' }),
+            React.createElement('span', null, 'All Systems Operational')
+          ),
+          React.createElement(
+            'div',
+            { className: 'flex items-center space-x-2' },
+            React.createElement(
+              'button',
+              {
+                onClick: onOpenAuth,
+                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
+                title: 'Authentication Manager'
+              },
+              React.createElement(Lock, { className: 'w-4 h-4' }),
+              React.createElement('span', { className: 'text-sm font-medium' }, 'Auth')
+            ),
+            React.createElement(
+              'button',
+              {
+                onClick: onOpenHistory,
+                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
+                title: 'Request History'
+              },
+              React.createElement(Clock, { className: 'w-4 h-4' }),
+              React.createElement('span', { className: 'text-sm font-medium' }, 'History')
+            ),
+            React.createElement(
+              'button',
+              {
+                onClick: onOpenImporter,
+                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
+                title: 'Import OpenAPI/Swagger Specification'
+              },
+              React.createElement(Import, { className: 'w-4 h-4' }),
+              React.createElement('span', { className: 'text-sm font-medium' }, 'Import API')
+            ),
+            React.createElement(
+              'button',
+              {
+                onClick: onOpenCollections,
+                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
+                title: 'Request Collections'
+              },
+              React.createElement(Bookmark, { className: 'w-4 h-4' }),
+              React.createElement('span', { className: 'text-sm font-medium' }, 'Collections')
+            ),
+            React.createElement(
+              'button',
+              {
+                onClick: onOpenEnvironments,
+                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
+                title: 'Environment Manager'
+              },
+              React.createElement(Globe, { className: 'w-4 h-4' }),
+              React.createElement('span', { className: 'text-sm font-medium' }, currentEnvironment)
+            )
+          )
+        )
+      )
+    )
   )
 }
 
@@ -221,11 +181,11 @@ export default function AIConsolePage() {
   const [showOpenAPIImporter, setShowOpenAPIImporter] = useState(false)
   const [showAuthManager, setShowAuthManager] = useState(false)
   const [showRequestHistory, setShowRequestHistory] = useState(false)
-  const [showCodeGenerator, setShowCodeGenerator] = useState(false)
   const [currentEnvironment, setCurrentEnvironment] = useState('Development')
   const [authConfigs, setAuthConfigs] = useState([])
   const [requestHistory, setRequestHistory] = useState([])
   const [currentRequestConfig, setCurrentRequestConfig] = useState(null)
+  const [liveRequestConfig, setLiveRequestConfig] = useState(null)
 
   // Enhanced request handler with comprehensive response tracking
   const handleSendRequest = async (requestConfig: any): Promise<any> => {
@@ -593,15 +553,19 @@ export default function AIConsolePage() {
     }
   }
 
-  const handleEnvironmentChange = (environment: string) => {
-    setCurrentEnvironment(environment)
+  const handleEnvironmentChange = (environment: any) => {
+    // Handle both string and object types
+    const envName = typeof environment === 'string' ? environment : environment?.name || 'Development'
+    setCurrentEnvironment(envName)
     // Update API client base URL based on environment
-    const envUrls = {
-      'Development': 'http://localhost:3001',
-      'Staging': 'https://staging-api.schlep-engine.com',
-      'Production': 'https://api.schlep-engine.com'
-    }
-    // apiClient.setBaseURL(envUrls[environment] || envUrls['Development'])
+    const baseUrl = typeof environment === 'object' && environment?.baseUrl 
+      ? environment.baseUrl 
+      : {
+          'Development': 'http://localhost:3001',
+          'Staging': 'https://staging-api.schlep-engine.com',
+          'Production': 'https://api.schlep-engine.com'
+        }[envName] || 'http://localhost:3001'
+    // apiClient.setBaseURL(baseUrl)
   }
 
   // Handle keyboard shortcuts
@@ -639,7 +603,6 @@ export default function AIConsolePage() {
         onOpenImporter={() => setShowOpenAPIImporter(true)}
         onOpenAuth={() => setShowAuthManager(true)}
         onOpenHistory={() => setShowRequestHistory(true)}
-        onOpenCodeGen={() => selectedEndpoint && setShowCodeGenerator(true)}
         currentEnvironment={currentEnvironment}
       />
       
@@ -660,7 +623,8 @@ export default function AIConsolePage() {
             endpoint={selectedEndpoint}
             onSendRequest={handleSendRequest}
             loading={loading}
-            onSaveRequest={handleSaveRequest}
+                onSaveRequest={handleSaveRequest}
+            onRequestConfigChange={setLiveRequestConfig}
           />
 
           {/* Response Viewer */}
@@ -738,14 +702,6 @@ export default function AIConsolePage() {
         />
       )}
 
-      {/* Code Generator Modal */}
-      {showCodeGenerator && currentRequestConfig && (
-        <CodeGenerator 
-          isOpen={showCodeGenerator}
-          onClose={() => setShowCodeGenerator(false)}
-          requestConfig={currentRequestConfig}
-        />
-      )}
     </div>
   )
 }
