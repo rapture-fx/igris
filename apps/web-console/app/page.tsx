@@ -48,29 +48,22 @@ const IndustryCard: React.FC<IndustryCardProps> = ({
 }) => {
   return (
     <Link href={link} className="group">
-      <div className={`relative overflow-hidden rounded-sm border bg-white px-6 py-2 shadow-md transition-all duration-300 hover:shadow-md dark:bg-gray-800`} style={{ borderColor: '#a0c0f0' }}>
+      <div className={`relative overflow-hidden rounded-sm border bg-white px-6 py-4 shadow-md transition-all duration-300 hover:shadow-md dark:bg-gray-800 flex items-center`} style={{ borderColor: '#a0c0f0' }}>
         
         
         {/* Content */}
-        <div className="relative z-10">
+        <div className="relative z-10 flex items-center w-full">
           {/* Icon and header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center">
-                <div className={`w-6 h-6 flex items-center justify-center`} style={{ color: '#1f53d0' }}>
-                  {icon}
-                </div>
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center justify-center">
+              <div className={`w-6 h-6 flex items-center justify-center`} style={{ color: '#1f53d0' }}>
+                {icon}
               </div>
-              <h3 className="text-lg font-normal text-gray-900 dark:text-white my-0 font-mono">
-                {title}
-              </h3>
             </div>
-            
+            <h3 className="text-lg font-normal text-gray-900 dark:text-white my-0 font-mono">
+              {title}
+            </h3>
           </div>
-          
-
-          
-
           
         </div>
       </div>

@@ -22,7 +22,7 @@ function AppContent({ children }: { children: React.ReactNode }) {
           <div className="sticky top-0 z-50">
             <Header />
           </div>
-          <main className="flex-1 overflow-y-auto transition-colors duration-300">
+          <main className="flex-1 overflow-y-auto transition-colors duration-300 bg-schlep-background">
             <div className="pt-8 pb-6 px-6 w-full">
               <div className="flex flex-col items-start max-w-4xl mx-auto">
                 {children}

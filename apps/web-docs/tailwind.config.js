@@ -15,6 +15,7 @@ module.exports = {
         'schlep-orange': '#ff6b6b',
         'schlep-dark-blue': '#1800ad',
         'schlep-active-blue': '#114dcd',
+        'schlep-background': '#f5f4f2',
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif'],

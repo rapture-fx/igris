@@ -11,18 +11,9 @@ import {
   Import,
   Lock,
   Clock,
-  Settings,
-  Sparkles,
-  BarChart3,
-  Brain
+  Code2
 } from 'lucide-react'
-
-// Enhanced components
-import { EnhancedAPISidebar } from '../../src/components/console/EnhancedAPISidebar'
-import { CrossVerticalSuggestions } from '../../src/components/console/CrossVerticalSuggestions'
-import { ProgressiveDisclosurePanel, DisclosureSection, DisclosureTip } from '../../src/components/console/ProgressiveDisclosurePanel'
-import { ConsoleSettings } from '../../src/components/console/ConsoleSettings'
-import { ConsolePreferencesProvider, useConsolePreferences } from '../../src/contexts/ConsolePreferencesContext'
+import { APISidebar } from '../../src/components/console/APISidebar'
 import { RequestBuilder } from '../../src/components/console/RequestBuilder'
 import { ResponseViewer } from '../../src/components/console/ResponseViewer'
 import { EnvironmentManager } from '../../src/components/console/EnvironmentManager'
@@ -40,9 +31,6 @@ interface APIEndpoint {
   description: string
   deprecated?: boolean
   beta?: boolean
-  vertical: string
-  use_case?: string
-  related_endpoints?: string[]
 }
 
 interface ResponseData {
@@ -63,7 +51,6 @@ interface HeaderProps {
   onOpenImporter: () => void;
   onOpenAuth: () => void;
   onOpenHistory: () => void;
-  onOpenSettings: () => void;
   currentEnvironment: string;
 }
 
@@ -74,11 +61,8 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
     onOpenImporter,
     onOpenAuth,
     onOpenHistory,
-    onOpenSettings,
     currentEnvironment
   } = props;
-  
-  const { preferences } = useConsolePreferences();
 
   return React.createElement(
     'div',
@@ -98,21 +82,7 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
           React.createElement(
             'div',
             { className: 'flex items-center space-x-3' },
-            React.createElement('img', { src: '/Docs Schlep-engne.svg', alt: 'Schlep Engine Logo', className: 'w-8 h-8' }),
-            React.createElement(
-              'div',
-              { className: 'flex items-center space-x-2' },
-              React.createElement(Brain, { className: 'w-5 h-5 text-blue-600 dark:text-blue-400' }),
-              React.createElement('h1', { className: 'text-lg font-semibold text-gray-900 dark:text-white' }, 'AI Console'),
-              preferences.interface_mode === 'advanced' && React.createElement(
-                'div',
-                { className: 'flex items-center space-x-1' },
-                React.createElement(Sparkles, { className: 'w-4 h-4 text-purple-500' }),
-                React.createElement('span', { 
-                  className: 'px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded' 
-                }, 'Cross-Vertical Mode')
-              )
-            )
+            React.createElement('img', { src: '/Docs Schlep-engne.svg', alt: 'Schlep Engine Logo', className: 'w-8 h-8' })
           ),
           React.createElement('div', { className: 'h-6 w-px bg-gray-300 dark:bg-gray-600' }),
           React.createElement(
@@ -133,12 +103,6 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
             { className: 'flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm' },
             React.createElement(CheckCircle, { className: 'w-4 h-4' }),
             React.createElement('span', null, 'All Systems Operational')
-          ),
-          preferences.enabled_verticals.length > 3 && React.createElement(
-            'div',
-            { className: 'flex items-center space-x-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-full text-sm' },
-            React.createElement(BarChart3, { className: 'w-4 h-4' }),
-            React.createElement('span', null, `${preferences.enabled_verticals.length} Categories`)
           ),
           React.createElement(
             'div',
@@ -192,16 +156,6 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
               },
               React.createElement(Globe, { className: 'w-4 h-4' }),
               React.createElement('span', { className: 'text-sm font-medium' }, currentEnvironment)
-            ),
-            React.createElement(
-              'button',
-              {
-                onClick: onOpenSettings,
-                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
-                title: 'Console Settings'
-              },
-              React.createElement(Settings, { className: 'w-4 h-4' }),
-              React.createElement('span', { className: 'text-sm font-medium' }, 'Settings')
             )
           )
         )
@@ -210,7 +164,7 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
   )
 }
 
-function AIConsoleContent() {
+export default function AIConsolePage() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint | undefined>()
   const [response, setResponse] = useState<ResponseData | undefined>()
   const [error, setError] = useState<any>()
@@ -218,16 +172,11 @@ function AIConsoleContent() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [darkMode, setDarkMode] = useState(false)
-  
-  // Modal states
   const [showEnvironmentManager, setShowEnvironmentManager] = useState(false)
   const [showCollections, setShowCollections] = useState(false)
   const [showOpenAPIImporter, setShowOpenAPIImporter] = useState(false)
   const [showAuthManager, setShowAuthManager] = useState(false)
   const [showRequestHistory, setShowRequestHistory] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
-  
-  // Console state
   const [currentEnvironment, setCurrentEnvironment] = useState('Development')
   const [authConfigs, setAuthConfigs] = useState<any[]>([])
   const [requestHistory, setRequestHistory] = useState<any[]>([])
@@ -571,7 +520,6 @@ function AIConsoleContent() {
       method: savedRequest.method,
       path: savedRequest.url,
       description: savedRequest.description || '',
-      vertical: savedRequest.vertical || 'ai'
     })
     // Additional logic to populate request builder with saved data would go here
   }
@@ -652,103 +600,29 @@ function AIConsoleContent() {
         onOpenImporter={() => setShowOpenAPIImporter(true)}
         onOpenAuth={() => setShowAuthManager(true)}
         onOpenHistory={() => setShowRequestHistory(true)}
-        onOpenSettings={() => setShowSettings(true)}
         currentEnvironment={currentEnvironment}
       />
       
       {/* Main Layout */}
       <div className="flex h-[calc(100vh-73px)] overflow-hidden">
-        {/* Enhanced Sidebar */}
-        <EnhancedAPISidebar 
+        {/* Sidebar */}
+        <APISidebar 
           onEndpointSelect={setSelectedEndpoint}
           selectedEndpoint={selectedEndpoint}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-          onOpenSettings={() => setShowSettings(true)}
         />
 
         {/* Main Content Area */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Request Builder with Enhanced Features */}
-          <div className="flex-1 min-w-0">
-            <RequestBuilder 
-              endpoint={selectedEndpoint}
-              onSendRequest={handleSendRequest}
-              loading={loading}
-              onSaveRequest={handleSaveRequest}
-              onRequestConfigChange={setLiveRequestConfig}
-            />
-
-            {/* Progressive Disclosure Panel - shown when no endpoint selected */}
-            {!selectedEndpoint && (
-              <div className="p-6">
-                <div className="max-w-2xl">
-                  <div className="mb-6">
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                      Welcome to Enhanced AI Console
-                    </h2>
-                    <p className="text-gray-600 dark:text-gray-400">
-                      Your unified interface for AI APIs with cross-vertical capabilities
-                    </p>
-                  </div>
-                  
-                  <ProgressiveDisclosurePanel sections={[
-                    {
-                      id: 'getting-started',
-                      title: 'Getting Started with AI APIs',
-                      description: 'Learn the basics of using the AI console',
-                      level: 'beginner' as const,
-                      defaultExpanded: true,
-                      content: React.createElement(DisclosureSection, null,
-                        React.createElement(DisclosureTip, { type: 'info' as const },
-                          'Welcome to the Enhanced AI Console! This interface now supports cross-vertical API access, allowing you to build complete AI workflows that span multiple domains.'
-                        ),
-                        React.createElement('div', { className: 'space-y-2 text-sm text-gray-600 dark:text-gray-400' },
-                          React.createElement('p', null, '1. ', React.createElement('strong', null, 'Select an API'), ' from the sidebar to get started'),
-                          React.createElement('p', null, '2. ', React.createElement('strong', null, 'Configure your request'), ' using the request builder'),
-                          React.createElement('p', null, '3. ', React.createElement('strong', null, 'Send the request'), ' and view the response'),
-                          React.createElement('p', null, '4. ', React.createElement('strong', null, 'Explore suggestions'), ' for related APIs from other verticals')
-                        )
-                      )
-                    },
-                    {
-                      id: 'cross-vertical-features',
-                      title: 'Cross-Vertical Capabilities',
-                      description: 'Discover APIs from manufacturing, e-commerce, and more',
-                      level: 'intermediate' as const,
-                      content: React.createElement(DisclosureSection, null,
-                        React.createElement(DisclosureTip, { type: 'success' as const },
-                          'The enhanced console now shows you related APIs from other verticals to help you build complete solutions.'
-                        ),
-                        React.createElement('div', { className: 'space-y-3' },
-                          React.createElement('div', null,
-                            React.createElement('h4', { className: 'font-medium text-gray-900 dark:text-white' }, 'Available Verticals:'),
-                            React.createElement('ul', { className: 'text-sm text-gray-600 dark:text-gray-400 ml-4' },
-                              React.createElement('li', null, '• ', React.createElement('strong', null, 'Core AI & ML'), ' - Model training, inference, MLOps'),
-                              React.createElement('li', null, '• ', React.createElement('strong', null, 'Manufacturing AI'), ' - Predictive maintenance, quality control'),
-                              React.createElement('li', null, '• ', React.createElement('strong', null, 'E-commerce AI'), ' - Recommendations, demand forecasting'),
-                              React.createElement('li', null, '• ', React.createElement('strong', null, 'Document Processing'), ' - PDF extraction, OCR, parsing'),
-                              React.createElement('li', null, '• ', React.createElement('strong', null, 'Data Processing'), ' - ETL, transformation, validation')
-                            )
-                          )
-                        )
-                      )
-                    }
-                  ]} />
-                </div>
-              </div>
-            )}
-
-            {/* Cross-Vertical Suggestions */}
-            {selectedEndpoint && (
-              <div className="p-6 border-t border-gray-200 dark:border-gray-700">
-                <CrossVerticalSuggestions 
-                  selectedEndpoint={selectedEndpoint}
-                  onEndpointSelect={setSelectedEndpoint}
-                />
-              </div>
-            )}
-          </div>
+          {/* Request Builder */}
+          <RequestBuilder 
+            endpoint={selectedEndpoint}
+            onSendRequest={handleSendRequest}
+            loading={loading}
+                onSaveRequest={handleSaveRequest}
+            onRequestConfigChange={setLiveRequestConfig}
+          />
 
           {/* Response Viewer */}
           <ResponseViewer 
@@ -761,11 +635,9 @@ function AIConsoleContent() {
         </div>
       </div>
 
-      {/* Console Settings Modal */}
-      <ConsoleSettings 
-        isOpen={showSettings}
-        onClose={() => setShowSettings(false)}
-      />
+      
+
+      
 
       {/* Environment Manager Modal */}
       {showEnvironmentManager && (
@@ -815,8 +687,7 @@ function AIConsoleContent() {
               name: `${request.method} ${request.url}`,
               method: request.method as any,
               path: request.url,
-              description: 'Replayed request from history',
-              vertical: request.vertical || 'ai'
+              description: 'Replayed request from history'
             })
             setCurrentRequestConfig(request)
             setShowRequestHistory(false)
@@ -826,13 +697,5 @@ function AIConsoleContent() {
       )}
 
     </div>
-  )
-}
-
-export default function AIConsolePage() {
-  return (
-    <ConsolePreferencesProvider>
-      <AIConsoleContent />
-    </ConsolePreferencesProvider>
   )
 }

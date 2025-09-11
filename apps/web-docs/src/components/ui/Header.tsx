@@ -3,18 +3,13 @@
 import React from 'react'
 import { HomeIcon, SunIcon, MoonIcon } from '@heroicons/react/24/outline'
 import { SearchComponent } from './SearchComponent'
-import { Breadcrumb } from './Breadcrumb'
 
 export function Header() {
   return (
-    <header className="relative w-full z-50 bg-white transition-colors duration-300 rounded-tl-3xl">
+    <header className="relative w-full z-50 bg-schlep-background transition-colors duration-300 rounded-tl-3xl">
       <div className="w-full px-4 py-4">
         <div className="flex items-center justify-between h-12">
-          {/* Left side - Breadcrumb aligned with main content */}
-          <div className="flex items-center" style={{ marginLeft: '1rem' }}>
-            <Breadcrumb />
-          </div>
-          
+          <div></div>
           {/* Right side - Actions */}
           <div className="flex items-center gap-3 pr-8">
             {/* Theme Toggle - disabled for now */}
