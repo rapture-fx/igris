@@ -25,7 +25,9 @@ const getInitialTheme = (): Theme => {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme)
+  // Always start with 'light' to avoid hydration mismatch, then update on client
+  const [theme, setThemeState] = useState<Theme>('light')
+  const [isClient, setIsClient] = useState(false)
 
   const applyTheme = useCallback((themeToApply: Theme) => {
     const root = document.documentElement
@@ -43,9 +45,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Check for saved theme only on client side to avoid hydration mismatch
   useEffect(() => {
-    applyTheme(theme)
-  }, [theme, applyTheme])
+    setIsClient(true)
+    const savedTheme = getInitialTheme()
+    setThemeState(savedTheme)
+  }, [])
+
+  useEffect(() => {
+    if (isClient) {
+      applyTheme(theme)
+    }
+  }, [theme, applyTheme, isClient])
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme)

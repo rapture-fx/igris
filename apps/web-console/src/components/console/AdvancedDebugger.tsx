@@ -868,6 +868,187 @@ export function AdvancedDebugger() {
             </div>
           </div>
         )}
+
+        {activeTab === 'profiler' && (
+          <div className="flex-1 p-6 overflow-y-auto">
+            <div className="max-w-6xl mx-auto">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+                CPU & Memory Profiler
+              </h2>
+              
+              {/* Real-time Metrics */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">CPU Usage</h3>
+                    <Activity className="w-5 h-5 text-blue-500" />
+                  </div>
+                  <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                    {activeSession?.traces.length > 0 
+                      ? Math.round(activeSession.traces[activeSession.traces.length - 1]?.performance.cpu || 0)
+                      : 0}%
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
+                      style={{ 
+                        width: `${activeSession?.traces.length > 0 
+                          ? activeSession.traces[activeSession.traces.length - 1]?.performance.cpu || 0
+                          : 0}%` 
+                      }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    Average: {activeSession?.traces.length > 0 
+                      ? Math.round(activeSession.traces.reduce((acc, t) => acc + t.performance.cpu, 0) / activeSession.traces.length)
+                      : 0}%
+                  </p>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Memory Usage</h3>
+                    <Database className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
+                    {activeSession?.traces.length > 0 
+                      ? Math.round(activeSession.traces[activeSession.traces.length - 1]?.performance.memory || 0)
+                      : 0}MB
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                      style={{ 
+                        width: `${Math.min((activeSession?.traces.length > 0 
+                          ? activeSession.traces[activeSession.traces.length - 1]?.performance.memory || 0
+                          : 0) / 100 * 100, 100)}%` 
+                      }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    Peak: {activeSession?.traces.length > 0 
+                      ? Math.round(Math.max(...activeSession.traces.map(t => t.performance.memory)))
+                      : 0}MB
+                  </p>
+                </div>
+
+                <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Render Time</h3>
+                    <Timer className="w-5 h-5 text-purple-500" />
+                  </div>
+                  <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
+                    {activeSession?.traces.length > 0 
+                      ? Math.round(activeSession.traces[activeSession.traces.length - 1]?.performance.renderTime || 0)
+                      : 0}ms
+                  </div>
+                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                    <div 
+                      className="bg-purple-500 h-2 rounded-full transition-all duration-300" 
+                      style={{ 
+                        width: `${Math.min((activeSession?.traces.length > 0 
+                          ? activeSession.traces[activeSession.traces.length - 1]?.performance.renderTime || 0
+                          : 0) / 16 * 100, 100)}%` 
+                      }}
+                    />
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                    Target: &lt;16ms (60fps)
+                  </p>
+                </div>
+              </div>
+
+              {/* Performance History Chart */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-8">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Performance Over Time
+                </h3>
+                <div className="h-64 flex items-end space-x-1">
+                  {activeSession?.traces.slice(-20).map((trace, index) => (
+                    <div key={trace.id} className="flex-1 flex flex-col justify-end space-y-1">
+                      {/* CPU Bar */}
+                      <div 
+                        className="bg-blue-500 w-full rounded-t transition-all duration-300"
+                        style={{ height: `${(trace.performance.cpu / 100) * 80}px` }}
+                        title={`CPU: ${trace.performance.cpu.toFixed(1)}%`}
+                      />
+                      {/* Memory Bar */}
+                      <div 
+                        className="bg-green-500 w-full transition-all duration-300"
+                        style={{ height: `${(trace.performance.memory / 100) * 80}px` }}
+                        title={`Memory: ${trace.performance.memory.toFixed(1)}MB`}
+                      />
+                      {/* Render Time Bar */}
+                      <div 
+                        className="bg-purple-500 w-full rounded-b transition-all duration-300"
+                        style={{ height: `${Math.min((trace.performance.renderTime / 16) * 40, 40)}px` }}
+                        title={`Render: ${trace.performance.renderTime.toFixed(1)}ms`}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex items-center justify-center space-x-6 mt-4 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-blue-500 rounded" />
+                    <span className="text-gray-600 dark:text-gray-400">CPU Usage</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-green-500 rounded" />
+                    <span className="text-gray-600 dark:text-gray-400">Memory Usage</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 bg-purple-500 rounded" />
+                    <span className="text-gray-600 dark:text-gray-400">Render Time</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Performance Alerts */}
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+                  Performance Alerts
+                </h3>
+                <div className="space-y-3">
+                  {activeSession?.traces.filter(trace => 
+                    trace.performance.cpu > 80 || 
+                    trace.performance.memory > 90 || 
+                    trace.performance.renderTime > 16
+                  ).slice(-5).map((trace) => (
+                    <div key={trace.id} className="flex items-start space-x-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                      <AlertTriangle className="w-5 h-5 text-yellow-600 mt-0.5" />
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900 dark:text-white">
+                          Performance Issue Detected
+                        </div>
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          {trace.performance.cpu > 80 && `High CPU usage: ${trace.performance.cpu.toFixed(1)}% `}
+                          {trace.performance.memory > 90 && `High memory usage: ${trace.performance.memory.toFixed(1)}MB `}
+                          {trace.performance.renderTime > 16 && `Slow render: ${trace.performance.renderTime.toFixed(1)}ms `}
+                          • {trace.method} {trace.url}
+                        </div>
+                        <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                          {new Date(trace.timestamp).toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {(!activeSession?.traces.some(trace => 
+                    trace.performance.cpu > 80 || 
+                    trace.performance.memory > 90 || 
+                    trace.performance.renderTime > 16
+                  )) && (
+                    <div className="text-center py-8">
+                      <CheckCircle2 className="w-8 h-8 text-green-500 mx-auto mb-2" />
+                      <div className="text-gray-600 dark:text-gray-400">
+                        No performance issues detected
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

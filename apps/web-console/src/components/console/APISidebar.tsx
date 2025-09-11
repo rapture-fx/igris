@@ -20,7 +20,13 @@ import {
   Search,
   Filter,
   Star,
-  History
+  History,
+  Key,
+  HardDrive,
+  ScanText,
+  CheckCircle,
+  BarChart3,
+  Users
 } from 'lucide-react'
 
 interface APIEndpoint {
@@ -58,46 +64,389 @@ export function APISidebar({
 }: APISidebarProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(['digital-twin', 'mlops', 'dataset-marketplace'])
+    new Set(['authentication', 'storage', 'data-quality', 'advanced-ml'])
   )
   const [showFavorites, setShowFavorites] = useState(false)
-  const [recentEndpoints] = useState<string[]>(['create-ai-twin', 'dataset-quality', 'realtime-stream-setup'])
+  const [recentEndpoints] = useState<string[]>(['login', 'upload-file', 'quality-assessment', 'custom-training'])
 
   const apiCategories: APICategory[] = [
     {
-      id: 'digital-twin',
-      name: 'Digital Twin AI',
-      icon: <Cpu className="w-4 h-4" />,
-      description: 'AI model digital twins with lifecycle tracking',
+      id: 'authentication',
+      name: 'Authentication & Users',
+      icon: <Key className="w-4 h-4" />,
+      description: 'User management, API keys, and authentication services',
       endpoints: [
         {
-          id: 'create-ai-twin',
-          name: 'Create AI Model Twin',
+          id: 'login',
+          name: 'User Login',
           method: 'POST',
-          path: '/api/v1/manufacturing/digital-twin/create',
-          description: 'Create a digital twin of your ML model',
+          path: '/api/v1/auth/login',
+          description: 'Authenticate user and get access token',
           favorite: true
         },
         {
-          id: 'twin-analytics',
-          name: 'AI Twin Analytics',
-          method: 'GET',
-          path: '/api/v1/manufacturing/digital-twin/{id}/insights',
-          description: 'Get comprehensive analytics for AI model twin'
-        },
-        {
-          id: 'ai-twin-optimize',
-          name: 'Optimize AI Parameters',
+          id: 'register',
+          name: 'User Registration',
           method: 'POST',
-          path: '/api/v1/manufacturing/digital-twin/{id}/optimize',
-          description: 'Use digital twin optimization for hyperparameters'
+          path: '/api/v1/auth/register',
+          description: 'Register new user account'
         },
         {
-          id: 'twin-synchronize',
-          name: 'Synchronize Twin',
+          id: 'api-keys',
+          name: 'Manage API Keys',
+          method: 'GET',
+          path: '/api/v1/auth/api-keys',
+          description: 'List and manage API keys'
+        },
+        {
+          id: 'user-profile',
+          name: 'User Profile',
+          method: 'GET',
+          path: '/api/v1/users/profile',
+          description: 'Get current user profile information'
+        },
+        {
+          id: 'update-profile',
+          name: 'Update Profile',
           method: 'PUT',
-          path: '/api/v1/manufacturing/digital-twin/{id}/sync',
-          description: 'Sync digital twin with real-world model'
+          path: '/api/v1/users/profile',
+          description: 'Update user profile settings'
+        }
+      ]
+    },
+    {
+      id: 'storage',
+      name: 'Storage & File Management',
+      icon: <HardDrive className="w-4 h-4" />,
+      description: 'Data storage, file management, and model artifact storage',
+      endpoints: [
+        {
+          id: 'upload-file',
+          name: 'Upload File',
+          method: 'POST',
+          path: '/api/v1/storage/upload',
+          description: 'Upload files and datasets to storage',
+          favorite: true
+        },
+        {
+          id: 'list-files',
+          name: 'List Files',
+          method: 'GET',
+          path: '/api/v1/storage/files',
+          description: 'List stored files and datasets'
+        },
+        {
+          id: 'download-file',
+          name: 'Download File',
+          method: 'GET',
+          path: '/api/v1/storage/files/{id}/download',
+          description: 'Download stored files and datasets'
+        },
+        {
+          id: 'delete-file',
+          name: 'Delete File',
+          method: 'DELETE',
+          path: '/api/v1/storage/files/{id}',
+          description: 'Delete files from storage'
+        },
+        {
+          id: 'storage-usage',
+          name: 'Storage Usage',
+          method: 'GET',
+          path: '/api/v1/storage/usage',
+          description: 'Get storage usage statistics'
+        }
+      ]
+    },
+    {
+      id: 'document-extraction',
+      name: 'Document Extraction',
+      icon: <ScanText className="w-4 h-4" />,
+      description: 'Extract and process data from documents and PDFs',
+      endpoints: [
+        {
+          id: 'extract-pdf',
+          name: 'Extract PDF Data',
+          method: 'POST',
+          path: '/api/v1/extract/pdf',
+          description: 'Extract structured data from PDF documents',
+          favorite: true
+        },
+        {
+          id: 'extract-text',
+          name: 'Extract Text',
+          method: 'POST',
+          path: '/api/v1/extract/text',
+          description: 'Extract plain text from various document formats'
+        },
+        {
+          id: 'extract-tables',
+          name: 'Extract Tables',
+          method: 'POST',
+          path: '/api/v1/extract/tables',
+          description: 'Extract tabular data from documents'
+        },
+        {
+          id: 'extract-metadata',
+          name: 'Extract Metadata',
+          method: 'POST',
+          path: '/api/v1/extract/metadata',
+          description: 'Extract document metadata and properties'
+        },
+        {
+          id: 'batch-extraction',
+          name: 'Batch Extraction',
+          method: 'POST',
+          path: '/api/v1/extract/batch',
+          description: 'Process multiple documents in batch'
+        }
+      ]
+    },
+    {
+      id: 'data-quality',
+      name: 'Data Quality & Preparation',
+      icon: <CheckCircle className="w-4 h-4" />,
+      description: 'Data validation, cleaning, and quality assessment',
+      endpoints: [
+        {
+          id: 'quality-assessment',
+          name: 'Quality Assessment',
+          method: 'POST',
+          path: '/api/v1/quality/assess',
+          description: 'Comprehensive data quality analysis',
+          favorite: true
+        },
+        {
+          id: 'data-cleaning',
+          name: 'Data Cleaning',
+          method: 'POST',
+          path: '/api/v1/quality/clean',
+          description: 'Automated data cleaning and preparation'
+        },
+        {
+          id: 'schema-validation',
+          name: 'Schema Validation',
+          method: 'POST',
+          path: '/api/v1/quality/validate-schema',
+          description: 'Validate data against expected schema'
+        },
+        {
+          id: 'anomaly-detection',
+          name: 'Anomaly Detection',
+          method: 'POST',
+          path: '/api/v1/quality/anomalies',
+          description: 'Detect anomalies and outliers in data'
+        },
+        {
+          id: 'data-profiling',
+          name: 'Data Profiling',
+          method: 'POST',
+          path: '/api/v1/quality/profile',
+          description: 'Generate comprehensive data profiles'
+        }
+      ]
+    },
+    {
+      id: 'advanced-ml',
+      name: 'Advanced ML',
+      icon: <Brain className="w-4 h-4" />,
+      description: 'Custom model training and advanced machine learning',
+      endpoints: [
+        {
+          id: 'custom-training',
+          name: 'Custom Model Training',
+          method: 'POST',
+          path: '/api/v1/advanced-ml/train',
+          description: 'Train custom ML models with your data',
+          favorite: true
+        },
+        {
+          id: 'model-evaluation',
+          name: 'Model Evaluation',
+          method: 'POST',
+          path: '/api/v1/advanced-ml/evaluate',
+          description: 'Evaluate model performance and metrics'
+        },
+        {
+          id: 'feature-engineering',
+          name: 'Feature Engineering',
+          method: 'POST',
+          path: '/api/v1/advanced-ml/features',
+          description: 'Automated feature engineering and selection'
+        },
+        {
+          id: 'model-comparison',
+          name: 'Model Comparison',
+          method: 'POST',
+          path: '/api/v1/advanced-ml/compare',
+          description: 'Compare multiple models statistically'
+        },
+        {
+          id: 'ensemble-methods',
+          name: 'Ensemble Methods',
+          method: 'POST',
+          path: '/api/v1/advanced-ml/ensemble',
+          description: 'Create ensemble models for better performance'
+        }
+      ]
+    },
+    {
+      id: 'analytics-monitoring',
+      name: 'Analytics & Monitoring',
+      icon: <BarChart3 className="w-4 h-4" />,
+      description: 'Usage analytics, performance monitoring, and insights',
+      endpoints: [
+        {
+          id: 'usage-analytics',
+          name: 'Usage Analytics',
+          method: 'GET',
+          path: '/api/v1/analytics/usage',
+          description: 'Get detailed API usage analytics',
+          favorite: true
+        },
+        {
+          id: 'performance-metrics',
+          name: 'Performance Metrics',
+          method: 'GET',
+          path: '/api/v1/analytics/performance',
+          description: 'Monitor API performance and response times'
+        },
+        {
+          id: 'error-tracking',
+          name: 'Error Tracking',
+          method: 'GET',
+          path: '/api/v1/analytics/errors',
+          description: 'Track and analyze API errors'
+        },
+        {
+          id: 'custom-dashboards',
+          name: 'Custom Dashboards',
+          method: 'POST',
+          path: '/api/v1/analytics/dashboards',
+          description: 'Create custom analytics dashboards'
+        },
+        {
+          id: 'alerts-notifications',
+          name: 'Alerts & Notifications',
+          method: 'POST',
+          path: '/api/v1/analytics/alerts',
+          description: 'Set up monitoring alerts and notifications'
+        }
+      ]
+    },
+    {
+      id: 'data-ingestion',
+      name: 'Data Ingestion & ETL',
+      icon: <Database className="w-4 h-4" />,
+      description: 'High-volume data processing and transformation pipelines',
+      endpoints: [
+        {
+          id: 'batch-upload',
+          name: 'Batch Data Upload',
+          method: 'POST',
+          path: '/api/v1/data/batch/upload',
+          description: 'Upload large datasets for batch processing',
+          favorite: true
+        },
+        {
+          id: 'streaming-ingest',
+          name: 'Real-time Ingestion',
+          method: 'POST',
+          path: '/api/v1/data/stream/ingest',
+          description: 'Set up real-time data streaming pipelines'
+        },
+        {
+          id: 'data-transform',
+          name: 'Data Transformation',
+          method: 'POST',
+          path: '/api/v1/data/transform',
+          description: 'Apply transformations and feature engineering'
+        },
+        {
+          id: 'pipeline-status',
+          name: 'Pipeline Status',
+          method: 'GET',
+          path: '/api/v1/data/pipeline/{id}/status',
+          description: 'Monitor data processing pipeline status'
+        },
+        {
+          id: 'data-validation',
+          name: 'Data Validation',
+          method: 'POST',
+          path: '/api/v1/data/validate',
+          description: 'Validate data quality and schema compliance'
+        }
+      ]
+    },
+    {
+      id: 'labeling-annotation',
+      name: 'Data Labeling & Annotation',
+      icon: <FileText className="w-4 h-4" />,
+      description: 'Automated and human-assisted data labeling services',
+      endpoints: [
+        {
+          id: 'auto-label',
+          name: 'Auto-Labeling',
+          method: 'POST',
+          path: '/api/v1/labeling/auto-label',
+          description: 'Automatically label data using ML models'
+        },
+        {
+          id: 'human-annotation',
+          name: 'Human Annotation',
+          method: 'POST',
+          path: '/api/v1/labeling/human-annotation',
+          description: 'Create human annotation projects'
+        },
+        {
+          id: 'label-quality',
+          name: 'Label Quality Check',
+          method: 'GET',
+          path: '/api/v1/labeling/{id}/quality',
+          description: 'Assess annotation quality and consistency'
+        },
+        {
+          id: 'annotation-export',
+          name: 'Export Annotations',
+          method: 'GET',
+          path: '/api/v1/labeling/{id}/export',
+          description: 'Export labeled data in various formats'
+        }
+      ]
+    },
+    {
+      id: 'training-infrastructure',
+      name: 'Training Infrastructure',
+      icon: <Bot className="w-4 h-4" />,
+      description: 'Scalable ML training on distributed compute clusters',
+      endpoints: [
+        {
+          id: 'training-job',
+          name: 'Create Training Job',
+          method: 'POST',
+          path: '/api/v1/training/jobs/create',
+          description: 'Launch distributed training jobs'
+        },
+        {
+          id: 'gpu-cluster',
+          name: 'GPU Cluster Status',
+          method: 'GET',
+          path: '/api/v1/training/cluster/status',
+          description: 'Monitor GPU cluster availability and usage'
+        },
+        {
+          id: 'hyperparameter-tuning',
+          name: 'Hyperparameter Tuning',
+          method: 'POST',
+          path: '/api/v1/training/hyperparameter-tuning',
+          description: 'Automated hyperparameter optimization'
+        },
+        {
+          id: 'training-metrics',
+          name: 'Training Metrics',
+          method: 'GET',
+          path: '/api/v1/training/jobs/{id}/metrics',
+          description: 'Real-time training progress and metrics'
         }
       ]
     },

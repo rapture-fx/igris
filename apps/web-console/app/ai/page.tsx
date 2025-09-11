@@ -155,18 +155,123 @@ export default function AIConsolePage() {
       if (endpoint) {
         // Route to appropriate API method based on endpoint ID
         switch (endpoint.id) {
-          case 'create-ai-twin':
-            result = await apiClient.createDigitalTwin(data ? JSON.parse(data) : {})
+          // Authentication & Users
+          case 'login':
+            result = await apiClient.login(data ? JSON.parse(data) : {})
             break
-          case 'twin-analytics':
-            result = await apiClient.getTwinInsights('ai_model_twin_001', {
-              analytics_types: 'performance,anomaly,energy',
-              time_range_hours: 168,
-              include_predictions: true
-            })
+          case 'register':
+            result = await apiClient.register(data ? JSON.parse(data) : {})
             break
-          case 'ai-twin-optimize':
-            result = await apiClient.optimizeTwinParameters('ai_model_twin_001', data ? JSON.parse(data) : {})
+          case 'api-keys':
+            result = await apiClient.getApiKeys()
+            break
+          case 'user-profile':
+            result = await apiClient.getUserProfile()
+            break
+          case 'update-profile':
+            result = await apiClient.updateUserProfile(data ? JSON.parse(data) : {})
+            break
+          
+          // Storage & File Management
+          case 'upload-file':
+            result = await apiClient.uploadFile(data ? JSON.parse(data) : {})
+            break
+          case 'list-files':
+            result = await apiClient.listFiles()
+            break
+          case 'download-file':
+            result = await apiClient.downloadFile('file_123')
+            break
+          case 'delete-file':
+            result = await apiClient.deleteFile('file_123')
+            break
+          case 'storage-usage':
+            result = await apiClient.getStorageUsage()
+            break
+          
+          // Document Extraction
+          case 'extract-pdf':
+            result = await apiClient.extractPdfData(data ? JSON.parse(data) : {})
+            break
+          case 'extract-text':
+            result = await apiClient.extractText(data ? JSON.parse(data) : {})
+            break
+          case 'extract-tables':
+            result = await apiClient.extractTables(data ? JSON.parse(data) : {})
+            break
+          case 'extract-metadata':
+            result = await apiClient.extractMetadata(data ? JSON.parse(data) : {})
+            break
+          case 'batch-extraction':
+            result = await apiClient.batchExtraction(data ? JSON.parse(data) : {})
+            break
+          
+          // Data Quality & Preparation
+          case 'quality-assessment':
+            result = await apiClient.assessDataQuality(data ? JSON.parse(data) : {})
+            break
+          case 'data-cleaning':
+            result = await apiClient.cleanData(data ? JSON.parse(data) : {})
+            break
+          case 'schema-validation':
+            result = await apiClient.validateSchema(data ? JSON.parse(data) : {})
+            break
+          case 'anomaly-detection':
+            result = await apiClient.detectAnomalies(data ? JSON.parse(data) : {})
+            break
+          case 'data-profiling':
+            result = await apiClient.profileData(data ? JSON.parse(data) : {})
+            break
+          
+          // Advanced ML
+          case 'custom-training':
+            result = await apiClient.trainCustomModel(data ? JSON.parse(data) : {})
+            break
+          case 'model-evaluation':
+            result = await apiClient.evaluateModel(data ? JSON.parse(data) : {})
+            break
+          case 'feature-engineering':
+            result = await apiClient.engineerFeatures(data ? JSON.parse(data) : {})
+            break
+          case 'model-comparison':
+            result = await apiClient.compareModels(data ? JSON.parse(data) : {})
+            break
+          case 'ensemble-methods':
+            result = await apiClient.createEnsemble(data ? JSON.parse(data) : {})
+            break
+          
+          // Analytics & Monitoring
+          case 'usage-analytics':
+            result = await apiClient.getUsageAnalytics()
+            break
+          case 'performance-metrics':
+            result = await apiClient.getPerformanceMetrics()
+            break
+          case 'error-tracking':
+            result = await apiClient.getErrorTracking()
+            break
+          case 'custom-dashboards':
+            result = await apiClient.createCustomDashboard(data ? JSON.parse(data) : {})
+            break
+          case 'alerts-notifications':
+            result = await apiClient.setupAlertsNotifications(data ? JSON.parse(data) : {})
+            break
+          
+          // Data Ingestion & ETL (existing)
+          case 'batch-upload':
+            result = await apiClient.batchDataUpload(data ? JSON.parse(data) : {})
+            break
+          case 'streaming-ingest':
+            result = await apiClient.setupStreamingIngestion(data ? JSON.parse(data) : {})
+            break
+          case 'data-transform':
+            result = await apiClient.transformData(data ? JSON.parse(data) : {})
+            break
+          case 'auto-label':
+            result = await apiClient.autoLabelData(data ? JSON.parse(data) : {})
+            break
+          case 'training-job':
+            result = await apiClient.createTrainingJob(data ? JSON.parse(data) : {})
             break
           case 'catalog-dataset':
             result = await apiClient.catalogDataset(data ? JSON.parse(data) : {})

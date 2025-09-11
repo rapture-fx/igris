@@ -15,7 +15,9 @@ import {
   BarChart3,
   User,
   LogOut,
-  Webhook
+  Webhook,
+  Shield,
+  TestTube
 } from 'lucide-react'
 import { useAuth } from '../src/lib/auth/context'
 import LoginModal from '../src/components/auth/LoginModal'
@@ -294,7 +296,7 @@ export default function ConsolePage() {
           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
             Quick Actions
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <Link href="/playground" className="flex items-center space-x-3 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors">
               <Terminal className="w-5 h-5 text-blue-600 dark:text-blue-400" />
               <span className="font-medium text-gray-900 dark:text-white">API Playground</span>
@@ -302,6 +304,14 @@ export default function ConsolePage() {
             <Link href="http://localhost:3003" className="flex items-center space-x-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
               <Globe className="w-5 h-5 text-green-600 dark:text-green-400" />
               <span className="font-medium text-gray-900 dark:text-white">Documentation</span>
+            </Link>
+            <Link href="/security" className="flex items-center space-x-3 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+              <Shield className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <span className="font-medium text-gray-900 dark:text-white">Security Console</span>
+            </Link>
+            <Link href="/testing" className="flex items-center space-x-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-colors">
+              <TestTube className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+              <span className="font-medium text-gray-900 dark:text-white">Test Collections</span>
             </Link>
             <button 
               onClick={() => setShowWebhookTester(true)}
