@@ -48,19 +48,19 @@ const IndustryCard: React.FC<IndustryCardProps> = ({
 }) => {
   return (
     <Link href={link} className="group">
-      <div className={`relative overflow-hidden rounded-sm border bg-white px-6 py-4 shadow-md transition-all duration-300 hover:shadow-md dark:bg-gray-800 flex items-center`} style={{ borderColor: '#a0c0f0' }}>
+      <div className={`relative overflow-hidden rounded-sm border bg-white px-3 py-3 shadow-md transition-all duration-300 hover:shadow-md dark:bg-gray-800 flex items-center`} style={{ borderColor: '#a0c0f0' }}>
         
         
         {/* Content */}
         <div className="relative z-10 flex items-center w-full">
           {/* Icon and header */}
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center">
-              <div className={`w-6 h-6 flex items-center justify-center`} style={{ color: '#1f53d0' }}>
+              <div className={`w-5 h-5 flex items-center justify-center`} style={{ color: '#1f53d0' }}>
                 {icon}
               </div>
             </div>
-            <h3 className="text-lg font-normal text-gray-900 dark:text-white my-0 font-mono">
+            <h3 className="text-sm font-normal text-gray-700 dark:text-gray-300 my-0 font-mono">
               {title}
             </h3>
           </div>
@@ -112,22 +112,13 @@ const AuthButton: React.FC = () => {
 
 const ConsoleHeader: React.FC = () => {
   return (
-    <header className="dark:bg-gray-900 sticky top-0 z-50" style={{backgroundColor: '#f7f7f3'}}>
-      <div className="max-w-screen-2xl mx-auto px-6 py-4">
+    <header className="dark:bg-gray-900 sticky top-0 z-50 w-1/2" style={{backgroundColor: '#f7f7f3'}}>
+      <div className="px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo and title */}
           <div className="flex items-center space-x-3">
-            <div>
-              <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[52px] h-[52px]" />
-            </div>
-            <div>
-              
-              
-            </div>
+            <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[52px] h-[52px]" />
           </div>
-
-          {/* Navigation */}
-          <nav className="hidden md:flex items-center space-x-6">
+          <nav className="flex items-center space-x-6">
             <Link href="http://localhost:3005" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono">
               Docs
             </Link>
@@ -211,59 +202,63 @@ export default function ConsolePage() {
   ]
 
   return (
-    <div className="min-h-screen dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
+    <div className="min-h-screen flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
       <ConsoleHeader />
       
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Hero Section */}
-        
+      <div className="flex-grow flex flex-row min-h-0 relative">
+        <div className="grid grid-cols-2 flex-grow min-h-0">
+          <div className="p-12">
+            {/* Industry Cards */}
+            <div className="mb-16 mt-32">
+              <h3 className="text-2xl font-normal mb-8 text-center font-mono" style={{ color: '#1f53d0' }}>
+                Choose Your Industry
+              </h3>
+              <div className="grid grid-cols-1 gap-6 max-w-md mx-auto">
+                {industries.map((industry, index) => (
+                  <IndustryCard key={index} {...industry} />
+                ))}
+              </div>
+            </div>
 
-        
+            {/* Quick Actions */}
+            <div className="mt-80">
+              <h3 className="text-sm font-normal text-gray-500 dark:text-gray-500 mb-6 text-center font-mono">
+                Essentials
+              </h3>
+              <div className="flex flex-wrap justify-center gap-4">
 
-        {/* Industry Cards */}
-        <div className="mb-16 pt-12">
-          <h3 className="text-2xl font-normal mb-8 text-center font-mono" style={{ color: '#1f53d0' }}>
-            Choose Your Industry
-          </h3>
-          <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
-            {industries.map((industry, index) => (
-              <IndustryCard key={index} {...industry} />
-            ))}
+
+                <Link href="/security" className="flex items-center space-x-3 p-4 text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  <Shield className="w-5 h-5" style={{ color: '#1f53d0' }} />
+                  <span className="text-sm font-normal font-mono">Security Console</span>
+                </Link>
+                <Link href="/testing" className="flex items-center space-x-3 p-4 text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  <TestTube className="w-5 h-5" style={{ color: '#1f53d0' }} />
+                  <span className="text-sm font-normal font-mono">Test Collections</span>
+                </Link>
+                <button
+                  onClick={() => setShowWebhookTester(true)}
+                  className="flex items-center space-x-3 p-4 text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
+                >
+                  <Webhook className="w-5 h-5" style={{ color: '#1f53d0' }} />
+                  <span className="text-sm font-normal font-mono">Webhook Tester</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Webhook Tester Modal */}
+            <WebhookTester
+              isOpen={showWebhookTester}
+              onClose={() => setShowWebhookTester(false)}
+            />
           </div>
         </div>
-
-        {/* Quick Actions */}
-        <div className="mt-80">
-          <h3 className="text-lg font-normal text-gray-900 dark:text-white mb-6 text-center font-mono">
-            Essentials
-          </h3>
-          <div className="flex flex-wrap justify-center gap-4">
-            
-            
-            <Link href="/security" className="flex items-center space-x-3 p-4 transition-colors">
-              <Shield className="w-5 h-5" style={{ color: '#1f53d0' }} />
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-500 font-mono">Security Console</span>
-            </Link>
-            <Link href="/testing" className="flex items-center space-x-3 p-4 transition-colors">
-              <TestTube className="w-5 h-5" style={{ color: '#1f53d0' }} />
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-500 font-mono">Test Collections</span>
-            </Link>
-            <button 
-              onClick={() => setShowWebhookTester(true)}
-              className="flex items-center space-x-3 p-4 transition-colors text-left"
-            >
-              <Webhook className="w-5 h-5" style={{ color: '#1f53d0' }} />
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-500 font-mono">Webhook Tester</span>
-            </button>
-          </div>
+        
+        {/* Image positioned to cover right half from top to bottom */}
+        <div className="fixed top-0 right-0 w-1/2 h-screen border-l border-gray-200 dark:border-gray-700">
+          <img src="/Landing Page Description.svg" alt="Landing Page Description" className="w-full h-full object-cover" />
         </div>
-
-        {/* Webhook Tester Modal */}
-        <WebhookTester 
-          isOpen={showWebhookTester}
-          onClose={() => setShowWebhookTester(false)}
-        />
-      </main>
+      </div>
     </div>
   )
 }

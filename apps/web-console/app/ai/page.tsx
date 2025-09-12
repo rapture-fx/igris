@@ -78,135 +78,105 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
     currentEnvironment
   } = props;
   
-  const { preferences } = useConsolePreferences();
+  const { preferences, isHydrated } = useConsolePreferences();
 
-  return React.createElement(
-    'div',
-    {
-      className: 'border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50',
-      style: { backgroundColor: '#f7f7f3' }
-    },
-    React.createElement(
-      'div',
-      { className: 'px-6 py-4' },
-      React.createElement(
-        'div',
-        { className: 'flex items-center justify-between' },
-        React.createElement(
-          'div',
-          { className: 'flex items-center space-x-4' },
-          React.createElement(
-            'div',
-            { className: 'flex items-center space-x-3' },
-            React.createElement('img', { src: '/Docs Schlep-engne.svg', alt: 'Schlep Engine Logo', className: 'w-8 h-8' }),
-            React.createElement(
-              'div',
-              { className: 'flex items-center space-x-2' },
-              React.createElement(Brain, { className: 'w-5 h-5 text-blue-600 dark:text-blue-400' }),
-              React.createElement('h1', { className: 'text-lg font-semibold text-gray-900 dark:text-white' }, 'AI Console'),
-              preferences.interface_mode === 'advanced' && React.createElement(
-                'div',
-                { className: 'flex items-center space-x-1' },
-                React.createElement(Sparkles, { className: 'w-4 h-4 text-purple-500' }),
-                React.createElement('span', { 
-                  className: 'px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded' 
-                }, 'Cross-Vertical Mode')
-              )
-            )
-          ),
-          React.createElement('div', { className: 'h-6 w-px bg-gray-300 dark:bg-gray-600' }),
-          React.createElement(
-            Link,
-            {
-              href: '/',
-              className: 'flex items-center text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors'
-            },
-            React.createElement(ArrowLeft, { className: 'w-4 h-4 mr-1' }),
-            'Back to Console'
-          )
-        ),
-        React.createElement(
-          'div',
-          { className: 'flex items-center space-x-4' },
-          React.createElement(
-            'div',
-            { className: 'flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm' },
-            React.createElement(CheckCircle, { className: 'w-4 h-4' }),
-            React.createElement('span', null, 'All Systems Operational')
-          ),
-          preferences.enabled_verticals.length > 3 && React.createElement(
-            'div',
-            { className: 'flex items-center space-x-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-full text-sm' },
-            React.createElement(BarChart3, { className: 'w-4 h-4' }),
-            React.createElement('span', null, `${preferences.enabled_verticals.length} Categories`)
-          ),
-          React.createElement(
-            'div',
-            { className: 'flex items-center space-x-2' },
-            React.createElement(
-              'button',
-              {
-                onClick: onOpenAuth,
-                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
-                title: 'Authentication Manager'
-              },
-              React.createElement(Lock, { className: 'w-4 h-4' }),
-              React.createElement('span', { className: 'text-sm font-medium' }, 'Auth')
-            ),
-            React.createElement(
-              'button',
-              {
-                onClick: onOpenHistory,
-                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
-                title: 'Request History'
-              },
-              React.createElement(Clock, { className: 'w-4 h-4' }),
-              React.createElement('span', { className: 'text-sm font-medium' }, 'History')
-            ),
-            React.createElement(
-              'button',
-              {
-                onClick: onOpenImporter,
-                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
-                title: 'Import OpenAPI/Swagger Specification'
-              },
-              React.createElement(Import, { className: 'w-4 h-4' }),
-              React.createElement('span', { className: 'text-sm font-medium' }, 'Import API')
-            ),
-            React.createElement(
-              'button',
-              {
-                onClick: onOpenCollections,
-                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
-                title: 'Request Collections'
-              },
-              React.createElement(Bookmark, { className: 'w-4 h-4' }),
-              React.createElement('span', { className: 'text-sm font-medium' }, 'Collections')
-            ),
-            React.createElement(
-              'button',
-              {
-                onClick: onOpenEnvironments,
-                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
-                title: 'Environment Manager'
-              },
-              React.createElement(Globe, { className: 'w-4 h-4' }),
-              React.createElement('span', { className: 'text-sm font-medium' }, currentEnvironment)
-            ),
-            React.createElement(
-              'button',
-              {
-                onClick: onOpenSettings,
-                className: 'flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600',
-                title: 'Console Settings'
-              },
-              React.createElement(Settings, { className: 'w-4 h-4' }),
-              React.createElement('span', { className: 'text-sm font-medium' }, 'Settings')
-            )
-          )
-        )
-      )
-    )
+  return (
+    <div
+      className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
+      style={{ backgroundColor: '#f7f7f3' }}
+    >
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <img src="/Docs Schlep-engne.svg" alt="Schlep Engine Logo" className="w-8 h-8" />
+              <div className="flex items-center space-x-2">
+                <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">AI Console</h1>
+                {isHydrated && preferences.interface_mode === 'advanced' && (
+                  <div className="flex items-center space-x-1">
+                    <Sparkles className="w-4 h-4 text-purple-500" />
+                    <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded">
+                      Cross-Vertical Mode
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+            <Link
+              href="/"
+              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to Console
+            </Link>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
+              <CheckCircle className="w-4 h-4" />
+              <span>All Systems Operational</span>
+            </div>
+            {isHydrated && preferences.enabled_verticals.length > 3 && (
+              <div className="flex items-center space-x-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-full text-sm">
+                <BarChart3 className="w-4 h-4" />
+                <span>{preferences.enabled_verticals.length} Categories</span>
+              </div>
+            )}
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Authentication Manager"
+              >
+                <Lock className="w-4 h-4" />
+                <span className="text-sm font-medium">Auth</span>
+              </button>
+              <button
+                onClick={onOpenHistory}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Request History"
+              >
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">History</span>
+              </button>
+              <button
+                onClick={onOpenImporter}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Import OpenAPI/Swagger Specification"
+              >
+                <Import className="w-4 h-4" />
+                <span className="text-sm font-medium">Import API</span>
+              </button>
+              <button
+                onClick={onOpenCollections}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Request Collections"
+              >
+                <Bookmark className="w-4 h-4" />
+                <span className="text-sm font-medium">Collections</span>
+              </button>
+              <button
+                onClick={onOpenEnvironments}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Environment Manager"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="text-sm font-medium">{currentEnvironment}</span>
+              </button>
+              <button
+                onClick={onOpenSettings}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Console Settings"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-medium">Settings</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -700,9 +670,7 @@ function AIConsoleContent() {
                       level: 'beginner' as const,
                       defaultExpanded: true,
                       content: React.createElement(DisclosureSection, null,
-                        React.createElement(DisclosureTip, { type: 'info' as const },
-                          'Welcome to the Enhanced AI Console! This interface now supports cross-vertical API access, allowing you to build complete AI workflows that span multiple domains.'
-                        ),
+                        React.createElement(DisclosureTip, { type: 'info' as const, children: 'Welcome to the Enhanced AI Console! This interface now supports cross-vertical API access, allowing you to build complete AI workflows that span multiple domains.' }),
                         React.createElement('div', { className: 'space-y-2 text-sm text-gray-600 dark:text-gray-400' },
                           React.createElement('p', null, '1. ', React.createElement('strong', null, 'Select an API'), ' from the sidebar to get started'),
                           React.createElement('p', null, '2. ', React.createElement('strong', null, 'Configure your request'), ' using the request builder'),
@@ -717,9 +685,7 @@ function AIConsoleContent() {
                       description: 'Discover APIs from manufacturing, e-commerce, and more',
                       level: 'intermediate' as const,
                       content: React.createElement(DisclosureSection, null,
-                        React.createElement(DisclosureTip, { type: 'success' as const },
-                          'The enhanced console now shows you related APIs from other verticals to help you build complete solutions.'
-                        ),
+                        React.createElement(DisclosureTip, { type: 'success' as const, children: 'The enhanced console now shows you related APIs from other verticals to help you build complete solutions.' }),
                         React.createElement('div', { className: 'space-y-3' },
                           React.createElement('div', null,
                             React.createElement('h4', { className: 'font-medium text-gray-900 dark:text-white' }, 'Available Verticals:'),
@@ -816,7 +782,7 @@ function AIConsoleContent() {
               method: request.method as any,
               path: request.url,
               description: 'Replayed request from history',
-              vertical: request.vertical || 'ai'
+              vertical: 'ai'
             })
             setCurrentRequestConfig(request)
             setShowRequestHistory(false)

@@ -165,22 +165,17 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 font-mono">
+      <div className="shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden" style={{backgroundColor: '#f7f7f3'}}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/20 rounded-lg">
-              <Webhook className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Webhook Tester
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Test webhook endpoints with sample payloads
-              </p>
-            </div>
+          <div>
+            <h2 className="text-xl" style={{color: '#114dcd'}}>
+              Webhook Tester
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Test webhook endpoints with sample payloads
+            </p>
           </div>
           <button
             onClick={onClose}
@@ -196,7 +191,7 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
             <div className="space-y-6">
               {/* Webhook URL */}
               <div>
-                <label htmlFor="webhook-url" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label htmlFor="webhook-url" className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
                   Webhook URL
                 </label>
                 <input
@@ -205,13 +200,13 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                   value={webhookUrl}
                   onChange={(e) => setWebhookUrl(e.target.value)}
                   placeholder="https://your-site.com/webhooks/schlep-engine"
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                 />
               </div>
 
               {/* Event Selection */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
                   Select Event Type
                 </label>
                 <div className="space-y-2">
@@ -219,15 +214,16 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                     <div
                       key={test.id}
                       onClick={() => setSelectedTest(test)}
-                      className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                      className={`p-3 border cursor-pointer transition-colors ${
                         selectedTest?.id === test.id
-                          ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20'
+                          ? 'bg-blue-50 dark:bg-blue-900/20'
                           : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
                       }`}
+                      style={selectedTest?.id === test.id ? { borderColor: '#114dcd' } : {}}
                     >
                       <div className="flex items-center justify-between">
                         <div>
-                          <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                          <h4 className="text-sm text-gray-900 dark:text-white">
                             {test.name}
                           </h4>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -247,7 +243,13 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
               <button
                 onClick={handleSendWebhook}
                 disabled={!webhookUrl || !selectedTest || isLoading}
-                className="w-full flex items-center justify-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center px-4 py-1 text-sm text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                style={{
+                  backgroundColor: '#114dcd',
+                  ':hover': { backgroundColor: '#0d3ba3' }
+                }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#0d3ba3'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = '#114dcd'}
               >
                 {isLoading ? (
                   <>
@@ -257,7 +259,7 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                 ) : (
                   <>
                     <Send className="w-4 h-4 mr-2" />
-                    Send Webhook
+                    Send
                   </>
                 )}
               </button>
@@ -271,7 +273,7 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
               {selectedTest && (
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    <h3 className="text-sm text-gray-700 dark:text-gray-300">
                       Payload Preview
                     </h3>
                     <button
@@ -281,9 +283,34 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                       <Copy className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                    <pre className="text-sm text-gray-100">
-                      {JSON.stringify(selectedTest.samplePayload, null, 2)}
+                  <div className="bg-white p-4 overflow-x-auto border shadow-md" style={{
+                    borderColor: '#a0c0f0',
+                    scrollbarWidth: 'thin',
+                    scrollbarColor: '#cbd5e1 transparent'
+                  }}>
+                    <style jsx>{`
+                      div::-webkit-scrollbar {
+                        height: 6px;
+                      }
+                      div::-webkit-scrollbar-track {
+                        background: transparent;
+                      }
+                      div::-webkit-scrollbar-thumb {
+                        background-color: #cbd5e1;
+                        border-radius: 3px;
+                      }
+                      div::-webkit-scrollbar-thumb:hover {
+                        background-color: #94a3b8;
+                      }
+                    `}</style>
+                    <pre className="text-sm text-gray-900">
+                      <code dangerouslySetInnerHTML={{
+                        __html: JSON.stringify(selectedTest.samplePayload, null, 2)
+                          .replace(/"([^"]+)":/g, '<span style="color: #114dcd">"$1":</span>')
+                          .replace(/: "([^"]+)"/g, ': <span style="color: #22c55e">"$1"</span>')
+                          .replace(/: (\d+\.?\d*)/g, ': <span style="color: #f59e0b">$1</span>')
+                          .replace(/: (true|false|null)/g, ': <span style="color: #ef4444">$1</span>')
+                      }} />
                     </pre>
                   </div>
                 </div>
@@ -292,20 +319,41 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
               {/* Response */}
               {result && (
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <h3 className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                     Response
                   </h3>
-                  <div className="space-y-2">
-                    <div className={`px-3 py-2 rounded-lg text-sm ${
-                      result.status >= 200 && result.status < 300
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
-                    }`}>
+                  <div>
+                    <div className={`text-sm p-4`}>
                       Status: {result.status} {result.statusText}
                     </div>
-                    <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                      <pre className="text-sm text-gray-100">
-                        {JSON.stringify(result, null, 2)}
+                    <div className="bg-white p-4 overflow-x-auto border shadow-md" style={{
+                      borderColor: '#a0c0f0',
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: '#cbd5e1 transparent'
+                    }}>
+                      <style jsx>{`
+                        div::-webkit-scrollbar {
+                          height: 6px;
+                        }
+                        div::-webkit-scrollbar-track {
+                          background: transparent;
+                        }
+                        div::-webkit-scrollbar-thumb {
+                          background-color: #cbd5e1;
+                          border-radius: 3px;
+                        }
+                        div::-webkit-scrollbar-thumb:hover {
+                          background-color: #94a3b8;
+                        }
+                      `}</style>
+                      <pre className="text-sm text-gray-900">
+                        <code dangerouslySetInnerHTML={{
+                          __html: JSON.stringify(result, null, 2)
+                            .replace(/"([^"]+)":/g, '<span style="color: #114dcd">"$1":</span>')
+                            .replace(/: "([^"]+)"/g, ': <span style="color: #22c55e">"$1"</span>')
+                            .replace(/: (\d+\.?\d*)/g, ': <span style="color: #f59e0b">$1</span>')
+                            .replace(/: (true|false|null)/g, ': <span style="color: #ef4444">$1</span>')
+                        }} />
                       </pre>
                     </div>
                   </div>

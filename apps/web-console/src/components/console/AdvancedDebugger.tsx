@@ -884,23 +884,23 @@ export function AdvancedDebugger() {
                     <Activity className="w-5 h-5 text-blue-500" />
                   </div>
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
-                    {activeSession?.traces.length > 0 
-                      ? Math.round(activeSession.traces[activeSession.traces.length - 1]?.performance.cpu || 0)
+                    {activeSession?.traces?.length && activeSession.traces.length > 0 
+                      ? Math.round(activeSession.traces?.[activeSession.traces?.length - 1]?.performance?.cpu || 0)
                       : 0}%
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full transition-all duration-300" 
                       style={{ 
-                        width: `${activeSession?.traces.length > 0 
-                          ? activeSession.traces[activeSession.traces.length - 1]?.performance.cpu || 0
+                        width: `${activeSession?.traces?.length && activeSession.traces.length > 0 
+                          ? activeSession.traces?.[activeSession.traces?.length - 1]?.performance?.cpu || 0
                           : 0}%` 
                       }}
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    Average: {activeSession?.traces.length > 0 
-                      ? Math.round(activeSession.traces.reduce((acc, t) => acc + t.performance.cpu, 0) / activeSession.traces.length)
+                    Average: {activeSession?.traces?.length && activeSession.traces.length > 0 
+                      ? Math.round(activeSession.traces.reduce((acc, t) => acc + (t.performance?.cpu || 0), 0) / activeSession.traces.length)
                       : 0}%
                   </p>
                 </div>
@@ -911,22 +911,22 @@ export function AdvancedDebugger() {
                     <Database className="w-5 h-5 text-green-500" />
                   </div>
                   <div className="text-3xl font-bold text-green-600 dark:text-green-400 mb-2">
-                    {activeSession?.traces.length > 0 
-                      ? Math.round(activeSession.traces[activeSession.traces.length - 1]?.performance.memory || 0)
+                    {activeSession?.traces?.length && activeSession.traces.length > 0 
+                      ? Math.round(activeSession.traces?.[activeSession.traces?.length - 1]?.performance?.memory || 0)
                       : 0}MB
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div 
                       className="bg-green-500 h-2 rounded-full transition-all duration-300" 
                       style={{ 
-                        width: `${Math.min((activeSession?.traces.length > 0 
-                          ? activeSession.traces[activeSession.traces.length - 1]?.performance.memory || 0
+                        width: `${Math.min((activeSession?.traces?.length > 0 
+                          ? activeSession.traces?.[activeSession.traces?.length - 1]?.performance?.memory || 0
                           : 0) / 100 * 100, 100)}%` 
                       }}
                     />
                   </div>
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-                    Peak: {activeSession?.traces.length > 0 
+                    Peak: {activeSession?.traces?.length > 0 
                       ? Math.round(Math.max(...activeSession.traces.map(t => t.performance.memory)))
                       : 0}MB
                   </p>
@@ -938,16 +938,16 @@ export function AdvancedDebugger() {
                     <Timer className="w-5 h-5 text-purple-500" />
                   </div>
                   <div className="text-3xl font-bold text-purple-600 dark:text-purple-400 mb-2">
-                    {activeSession?.traces.length > 0 
-                      ? Math.round(activeSession.traces[activeSession.traces.length - 1]?.performance.renderTime || 0)
+                    {activeSession?.traces?.length > 0 
+                      ? Math.round(activeSession.traces?.[activeSession.traces?.length - 1]?.performance.renderTime || 0)
                       : 0}ms
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div 
                       className="bg-purple-500 h-2 rounded-full transition-all duration-300" 
                       style={{ 
-                        width: `${Math.min((activeSession?.traces.length > 0 
-                          ? activeSession.traces[activeSession.traces.length - 1]?.performance.renderTime || 0
+                        width: `${Math.min((activeSession?.traces?.length > 0 
+                          ? activeSession.traces?.[activeSession.traces?.length - 1]?.performance.renderTime || 0
                           : 0) / 16 * 100, 100)}%` 
                       }}
                     />

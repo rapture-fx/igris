@@ -32,6 +32,7 @@ interface ConsolePreferencesContextType {
   removeFromFavorites: (endpointId: string) => void
   addToRecent: (endpointId: string) => void
   toggleCategoryCollapse: (categoryId: string) => void
+  isHydrated: boolean
 }
 
 const defaultPreferences: ConsolePreferences = {
@@ -55,9 +56,11 @@ const ConsolePreferencesContext = createContext<ConsolePreferencesContextType | 
 
 export function ConsolePreferencesProvider({ children }: { children: React.ReactNode }) {
   const [preferences, setPreferences] = useState<ConsolePreferences>(defaultPreferences)
+  const [isHydrated, setIsHydrated] = useState(false)
 
   // Load preferences from localStorage on mount
   useEffect(() => {
+    setIsHydrated(true)
     try {
       const stored = localStorage.getItem('schlep-console-preferences')
       if (stored) {
@@ -69,14 +72,16 @@ export function ConsolePreferencesProvider({ children }: { children: React.React
     }
   }, [])
 
-  // Save preferences to localStorage when they change
+  // Save preferences to localStorage when they change (only after hydration)
   useEffect(() => {
-    try {
-      localStorage.setItem('schlep-console-preferences', JSON.stringify(preferences))
-    } catch (error) {
-      console.warn('Failed to save console preferences:', error)
+    if (isHydrated) {
+      try {
+        localStorage.setItem('schlep-console-preferences', JSON.stringify(preferences))
+      } catch (error) {
+        console.warn('Failed to save console preferences:', error)
+      }
     }
-  }, [preferences])
+  }, [preferences, isHydrated])
 
   const updatePreferences = (updates: Partial<ConsolePreferences>) => {
     setPreferences(prev => ({ ...prev, ...updates }))
@@ -150,7 +155,8 @@ export function ConsolePreferencesProvider({ children }: { children: React.React
       addToFavorites,
       removeFromFavorites,
       addToRecent,
-      toggleCategoryCollapse
+      toggleCategoryCollapse,
+      isHydrated
     }}>
       {children}
     </ConsolePreferencesContext.Provider>
