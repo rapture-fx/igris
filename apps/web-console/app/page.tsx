@@ -207,7 +207,7 @@ export default function ConsolePage() {
       
       <div className="flex-grow flex flex-row min-h-0 relative">
         <div className="grid grid-cols-2 flex-grow min-h-0">
-          <div className="p-12">
+          <div className="p-6">
             {/* Industry Cards */}
             <div className="mb-16 mt-32">
               <h3 className="text-2xl font-normal mb-8 text-center font-mono" style={{ color: '#1f53d0' }}>
@@ -221,7 +221,7 @@ export default function ConsolePage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="mt-80">
+            <div className="mt-[200px]">
               <h3 className="text-sm font-normal text-gray-500 dark:text-gray-500 mb-6 text-center font-mono">
                 Essentials
               </h3>
