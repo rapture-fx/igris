@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(lsof:*)",
+      "Bash(pnpm run dev:*)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
