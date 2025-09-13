@@ -97,8 +97,7 @@ const AuthButton: React.FC = () => {
     <>
       <button
         onClick={() => setShowLoginModal(true)}
-        className="px-3 py-1.5 text-sm rounded-lg hover:bg-blue-700 transition-colors shadow-md font-mono"
-        style={{ backgroundColor: '#e9eef9', color: '#114dcd' }}
+        className="text-sm text-gray-500 dark:text-gray-500 dark:hover:text-blue-400 transition-colors font-mono hover:text-blue-600"
       >
         Dashboard
       </button>
@@ -115,16 +114,17 @@ const ConsoleHeader: React.FC = () => {
     <header className="dark:bg-gray-900 sticky top-0 z-50 w-1/2" style={{backgroundColor: '#f7f7f3'}}>
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
+          
           <div className="flex items-center space-x-3">
-            <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[52px] h-[52px]" />
+            <Link href="http://localhost:3000">
+              <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[52px] h-[52px]" />
+            </Link>
           </div>
-          <nav className="flex items-center space-x-6">
+          <nav className="flex items-center justify-center flex-grow space-x-6">
             <Link href="http://localhost:3005" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono">
               Docs
             </Link>
-            <Link href="http://localhost:3000" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono">
-              Home
-            </Link>
+            
             <AuthButton />
           </nav>
         </div>
@@ -246,6 +246,8 @@ export default function ConsolePage() {
               </div>
             </div>
 
+            
+
             {/* Webhook Tester Modal */}
             <WebhookTester
               isOpen={showWebhookTester}
@@ -259,6 +261,7 @@ export default function ConsolePage() {
           <img src="/Landing Page Description.svg" alt="Landing Page Description" className="w-full h-full object-cover" />
         </div>
       </div>
+      
     </div>
   )
 }

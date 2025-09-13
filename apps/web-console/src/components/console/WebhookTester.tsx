@@ -243,7 +243,7 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
               <button
                 onClick={handleSendWebhook}
                 disabled={!webhookUrl || !selectedTest || isLoading}
-                className="flex items-center justify-center px-4 py-1 text-sm text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center px-4 py-1 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 style={{
                   backgroundColor: '#114dcd',
                   ':hover': { backgroundColor: '#0d3ba3' }
