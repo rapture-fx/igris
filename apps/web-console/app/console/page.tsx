@@ -1,0 +1,687 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { 
+  ArrowLeft,
+  Cpu,
+  Factory,
+  ShoppingCart,
+  Building2,
+  CheckCircle,
+  Globe,
+  Bookmark,
+  Import,
+  Lock,
+  Clock,
+  Settings,
+  Sparkles,
+  BarChart3,
+  Brain,
+  Search,
+  Copy,
+  Code2,
+  Zap
+} from 'lucide-react'
+
+// Enhanced components
+import { UnifiedAPISidebar } from '../../src/components/console/UnifiedAPISidebar'
+import { UnifiedRequestBuilder } from '../../src/components/console/UnifiedRequestBuilder'
+import { UnifiedResponseViewer } from '../../src/components/console/UnifiedResponseViewer'
+import { CodeSnippetGenerator } from '../../src/components/console/CodeSnippetGenerator'
+import { JWTAuthManager } from '../../src/components/console/JWTAuthManager'
+import { RateLimitDisplay } from '../../src/components/console/RateLimitDisplay'
+import { SimpleConsoleSettings } from '../../src/components/console/SimpleConsoleSettings'
+import { EnvironmentManager } from '../../src/components/console/EnvironmentManager'
+import { RequestHistory } from '../../src/components/console/RequestHistory'
+import { AuthenticationManager } from '../../src/components/console/AuthenticationManager'
+import { apiClient } from '../../src/lib/api/client'
+
+export type Industry = 'ai' | 'manufacturing' | 'ecommerce' | 'fintech'
+
+interface APIEndpoint {
+  id: string
+  name: string
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+  path: string
+  description: string
+  deprecated?: boolean
+  beta?: boolean
+  industry: Industry
+  tags: string[]
+  schema?: any
+  examples?: any[]
+}
+
+interface ResponseData {
+  status: number
+  statusText: string
+  data: any
+  headers: Record<string, string>
+  duration: number
+  size: number
+  timestamp: string
+  url: string
+  method: string
+  rateLimitRemaining?: number
+  rateLimitReset?: string
+}
+
+const industryConfig = {
+  ai: {
+    title: 'AI Companies',
+    description: 'Data processing services for AI/ML training data preparation and model support',
+    icon: <Cpu className="w-5 h-5" />,
+    color: '#8b5cf6', // purple
+    bgColor: '#f3f4f6'
+  },
+  manufacturing: {
+    title: 'Manufacturing',
+    description: 'Data processing for IoT sensor data, production metrics, and operational intelligence',
+    icon: <Factory className="w-5 h-5" />,
+    color: '#f97316', // orange
+    bgColor: '#f9fafb'
+  },
+  ecommerce: {
+    title: 'E-commerce',
+    description: 'Data processing for customer analytics, transaction data, and business intelligence',
+    icon: <ShoppingCart className="w-5 h-5" />,
+    color: '#10b981', // green
+    bgColor: '#f0fdf4'
+  },
+  fintech: {
+    title: 'FinTech',
+    description: 'Data processing for financial analytics, compliance reporting, and risk assessment',
+    icon: <Building2 className="w-5 h-5" />,
+    color: '#3b82f6', // blue
+    bgColor: '#eff6ff'
+  }
+}
+
+interface ConsoleHeaderProps {
+  selectedIndustry: Industry | 'all'
+  onIndustryChange: (industry: Industry | 'all') => void
+  onOpenEnvironments: () => void
+  onOpenAuth: () => void
+  onOpenHistory: () => void
+  onOpenSettings: () => void
+  currentEnvironment: string
+}
+
+function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
+  const {
+    selectedIndustry,
+    onIndustryChange,
+    onOpenEnvironments,
+    onOpenAuth,
+    onOpenHistory,
+    onOpenSettings,
+    currentEnvironment
+  } = props
+
+  return (
+    <div
+      className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
+      style={{ backgroundColor: '#f7f7f3' }}
+    >
+      <div className="px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
+              <img src="/Docs Schlep-engne.svg" alt="Schlep Engine Logo" className="w-8 h-8" />
+              <div className="flex items-center space-x-2">
+                <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Schlep-engine Enterprise</h1>
+                <div className="flex items-center space-x-1">
+                  <Sparkles className="w-4 h-4 text-purple-500" />
+                  <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded">
+                    Data Platform
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+            <Link
+              href="/"
+              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to Home
+            </Link>
+          </div>
+
+          {/* Industry Filter Tabs */}
+          <div className="flex items-center space-x-1 bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
+            <button
+              onClick={() => onIndustryChange('all')}
+              className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                selectedIndustry === 'all'
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+              }`}
+            >
+              All APIs
+            </button>
+            {Object.entries(industryConfig).map(([key, config]) => (
+              <button
+                key={key}
+                onClick={() => onIndustryChange(key as Industry)}
+                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center space-x-2 ${
+                  selectedIndustry === key
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                {config.icon}
+                <span>{config.title}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
+              <CheckCircle className="w-4 h-4" />
+              <span>All Systems Operational</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={onOpenAuth}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Authentication Manager"
+              >
+                <Lock className="w-4 h-4" />
+                <span className="text-sm font-medium">Auth</span>
+              </button>
+              <button
+                onClick={onOpenHistory}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Request History"
+              >
+                <Clock className="w-4 h-4" />
+                <span className="text-sm font-medium">History</span>
+              </button>
+              <button
+                onClick={onOpenEnvironments}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Environment Manager"
+              >
+                <Globe className="w-4 h-4" />
+                <span className="text-sm font-medium">{currentEnvironment}</span>
+              </button>
+              <button
+                onClick={onOpenSettings}
+                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Console Settings"
+              >
+                <Settings className="w-4 h-4" />
+                <span className="text-sm font-medium">Settings</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function UnifiedConsolePage() {
+  const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all')
+  const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint | undefined>()
+  const [response, setResponse] = useState<ResponseData | undefined>()
+  const [error, setError] = useState<any>()
+  const [loading, setLoading] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  
+  // Modal states
+  const [showEnvironmentManager, setShowEnvironmentManager] = useState(false)
+  const [showAuthManager, setShowAuthManager] = useState(false)
+  const [showRequestHistory, setShowRequestHistory] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [showCodeGenerator, setShowCodeGenerator] = useState(false)
+  
+  // Console state
+  const [currentEnvironment, setCurrentEnvironment] = useState('Development')
+  const [authConfigs, setAuthConfigs] = useState<any[]>([])
+  const [requestHistory, setRequestHistory] = useState<any[]>([])
+  const [currentRequestConfig, setCurrentRequestConfig] = useState<any>(null)
+  const [jwtToken, setJwtToken] = useState<string>('')
+
+  // Search and filter state
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const handleIndustryChange = (industry: Industry | 'all') => {
+    setSelectedIndustry(industry)
+    setSelectedEndpoint(undefined) // Clear selected endpoint when switching industries
+  }
+
+  const handleSendRequest = async (requestConfig: any): Promise<any> => {
+    setLoading(true)
+    setError(undefined)
+    setResponse(undefined)
+
+    const startTime = performance.now()
+    
+    try {
+      let { method, url, headers, data, timeout } = requestConfig
+      
+      // Apply JWT authentication if available
+      if (jwtToken) {
+        headers = { ...headers, 'Authorization': `Bearer ${jwtToken}` }
+      }
+      
+      // Apply other auth configs
+      const activeAuth = authConfigs.find(auth => auth.active)
+      if (activeAuth) {
+        headers = { ...headers }
+        
+        switch (activeAuth.type) {
+          case 'api-key':
+            if (activeAuth.config.headerName && activeAuth.config.value) {
+              headers[activeAuth.config.headerName] = activeAuth.config.value
+            }
+            break
+          case 'bearer-token':
+            if (activeAuth.config.token) {
+              headers['Authorization'] = `Bearer ${activeAuth.config.token}`
+            }
+            break
+          case 'basic-auth':
+            if (activeAuth.config.username && activeAuth.config.password) {
+              const credentials = btoa(`${activeAuth.config.username}:${activeAuth.config.password}`)
+              headers['Authorization'] = `Basic ${credentials}`
+            }
+            break
+        }
+      }
+      
+      setCurrentRequestConfig({ method, url, headers, body: data })
+
+      // Route to appropriate API method based on endpoint
+      let result = await simulateAPICall(selectedEndpoint, data ? JSON.parse(data) : {})
+
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      // Simulate rate limiting info
+      const rateLimitRemaining = Math.floor(Math.random() * 100) + 50
+      const rateLimitReset = new Date(Date.now() + 3600000).toISOString()
+
+      const responseData: ResponseData = {
+        status: result?.status || 200,
+        statusText: result?.status === 200 ? 'OK' : 'Error',
+        data: result?.data || result,
+        headers: {
+          'content-type': 'application/json',
+          'x-response-time': `${duration.toFixed(2)}ms`,
+          'x-request-id': `req_${Date.now()}`,
+          'x-rate-limit-remaining': rateLimitRemaining.toString(),
+          'x-rate-limit-reset': Math.floor(Date.now() / 1000 + 3600).toString(),
+          'access-control-allow-origin': '*',
+          'server': 'Schlep-Engine API v2.1.0',
+          'cache-control': 'no-cache',
+          'connection': 'keep-alive'
+        },
+        duration: duration,
+        size: JSON.stringify(result?.data || result).length,
+        timestamp: new Date().toISOString(),
+        url: url,
+        method: method,
+        rateLimitRemaining,
+        rateLimitReset
+      }
+
+      if (result?.success) {
+        setResponse(responseData)
+      } else {
+        setError({
+          message: result?.error || 'Request failed',
+          code: `HTTP_${result?.status || 500}`,
+          details: result?.data || {}
+        })
+      }
+
+      // Save to request history
+      const historyItem = {
+        id: `req_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        method,
+        url,
+        status: responseData.status,
+        statusText: responseData.statusText,
+        duration: responseData.duration,
+        size: responseData.size,
+        headers: headers,
+        body: data,
+        industry: selectedEndpoint?.industry,
+        endpoint: selectedEndpoint?.name
+      }
+      
+      const updatedHistory = [historyItem, ...requestHistory].slice(0, 100)
+      setRequestHistory(updatedHistory)
+      localStorage.setItem('unified-console-history', JSON.stringify(updatedHistory))
+
+      return result
+
+    } catch (err) {
+      const endTime = performance.now()
+      const duration = endTime - startTime
+
+      const errorDetails = {
+        message: err instanceof Error ? err.message : 'Network error occurred',
+        code: 'NETWORK_ERROR',
+        details: {
+          url: requestConfig.url,
+          method: requestConfig.method,
+          duration: duration
+        }
+      }
+      setError(errorDetails)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const simulateAPICall = async (endpoint?: APIEndpoint, data?: any) => {
+    if (!endpoint) return { success: false, error: 'No endpoint selected' }
+    
+    // Simulate network delay
+    await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 200))
+    
+    // Mock response based on actual API endpoints
+    if (endpoint.path.includes('/data/upload')) {
+      return {
+        success: true,
+        data: {
+          investigation_id: `inv_${Date.now()}`,
+          filename: data?.filename || 'sample_data.csv',
+          file_size: Math.floor(Math.random() * 1000000) + 50000,
+          status: 'uploaded',
+          message: 'File uploaded successfully. Processing started in background.'
+        },
+        status: 200
+      }
+    }
+    
+    if (endpoint.path.includes('/investigations')) {
+      if (endpoint.method === 'GET' && endpoint.path.includes('{investigation_id}')) {
+        return {
+          success: true,
+          data: {
+            investigation_id: data?.investigation_id || `inv_${Date.now()}`,
+            status: 'completed',
+            progress_percentage: 100.0,
+            quality_score: 0.87,
+            insights: {
+              patterns: ['seasonal_trend', 'weekly_pattern', 'outlier_detection'],
+              schema: { columns: 15, data_types: { numeric: 8, text: 5, date: 2 } },
+              statistics: { total_records: 45230, columns: 15 }
+            },
+            recommendations: [
+              'Consider removing outliers in column_A',
+              'Apply log transformation to normalize skewed data',
+              'Split date columns for better temporal analysis'
+            ],
+            anomalies: [
+              { type: 'outlier', column: 'price', count: 23, severity: 'medium' },
+              { type: 'missing_values', column: 'category', count: 156, severity: 'low' }
+            ]
+          },
+          status: 200
+        }
+      }
+      
+      if (endpoint.method === 'GET') {
+        return {
+          success: true,
+          data: [
+            {
+              id: `inv_${Date.now() - 1000}`,
+              name: 'Customer Analysis Q4',
+              description: 'Customer behavior analysis for Q4 2024',
+              status: 'completed',
+              progress_percentage: 100.0,
+              quality_score: 0.92,
+              created_at: new Date(Date.now() - 86400000).toISOString(),
+              updated_at: new Date(Date.now() - 3600000).toISOString()
+            },
+            {
+              id: `inv_${Date.now() - 2000}`,
+              name: 'Sales Data Processing',
+              description: 'Monthly sales data cleaning and analysis',
+              status: 'processing',
+              progress_percentage: 65.0,
+              quality_score: null,
+              created_at: new Date(Date.now() - 7200000).toISOString(),
+              updated_at: new Date(Date.now() - 1800000).toISOString()
+            }
+          ],
+          status: 200
+        }
+      }
+    }
+    
+    if (endpoint.path.includes('/pipelines/stats')) {
+      return {
+        success: true,
+        data: {
+          active: 3,
+          completed: 47,
+          failed: 2
+        },
+        status: 200
+      }
+    }
+    
+    if (endpoint.path.includes('quick-insights')) {
+      return {
+        success: true,
+        data: {
+          status: 'completed',
+          progress: 100,
+          quality_score: 0.89,
+          total_records: 12450,
+          issues_found: 5,
+          patterns_found: 8,
+          last_updated: new Date().toISOString()
+        },
+        status: 200
+      }
+    }
+    
+    // Default response for processing jobs
+    return {
+      success: true,
+      data: {
+        message: 'Data processing operation completed successfully',
+        endpoint: endpoint.name,
+        processing_type: endpoint.path.includes('job') ? 'background_job' : 'data_pipeline',
+        timestamp: new Date().toISOString(),
+        request_id: `req_${Date.now()}`,
+        status: 'success'
+      },
+      status: 200
+    }
+  }
+
+  const generateMockData = (industry: Industry) => {
+    switch (industry) {
+      case 'ai':
+        return {
+          model_accuracy: 0.94,
+          processing_time_ms: Math.floor(Math.random() * 100) + 20,
+          confidence_score: 0.95,
+          predictions: [
+            { class: 'positive', probability: 0.85 },
+            { class: 'negative', probability: 0.15 }
+          ]
+        }
+      case 'manufacturing':
+        return {
+          equipment_status: 'operational',
+          efficiency: 0.87,
+          maintenance_score: 8.5,
+          anomalies_detected: 2,
+          production_rate: 145.7
+        }
+      case 'ecommerce':
+        return {
+          recommended_products: ['product_123', 'product_456', 'product_789'],
+          conversion_probability: 0.23,
+          demand_forecast: {
+            next_week: 2500,
+            confidence: 0.88
+          },
+          price_optimization: {
+            suggested_price: 24.99,
+            expected_lift: 0.12
+          }
+        }
+      case 'fintech':
+        return {
+          fraud_score: 0.15,
+          risk_category: 'low',
+          compliance_status: 'passed',
+          aml_check: {
+            status: 'clear',
+            last_updated: new Date().toISOString()
+          },
+          credit_score: 750
+        }
+      default:
+        return {}
+    }
+  }
+
+  const handleEnvironmentChange = (environment: any) => {
+    const envName = typeof environment === 'string' ? environment : environment?.name || 'Development'
+    setCurrentEnvironment(envName)
+  }
+
+  // Load request history on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('unified-console-history')
+    if (savedHistory) {
+      setRequestHistory(JSON.parse(savedHistory))
+    }
+  }, [])
+
+  return (
+    <div className="min-h-screen dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
+      <UnifiedConsoleHeader 
+        selectedIndustry={selectedIndustry}
+        onIndustryChange={handleIndustryChange}
+        onOpenEnvironments={() => setShowEnvironmentManager(true)}
+        onOpenAuth={() => setShowAuthManager(true)}
+        onOpenHistory={() => setShowRequestHistory(true)}
+        onOpenSettings={() => setShowSettings(true)}
+        currentEnvironment={currentEnvironment}
+      />
+      
+      {/* Main Layout */}
+      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+        {/* Unified Sidebar */}
+        <UnifiedAPISidebar 
+          selectedIndustry={selectedIndustry}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onEndpointSelect={setSelectedEndpoint}
+          selectedEndpoint={selectedEndpoint}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+        />
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Request Builder */}
+          <div className="flex-1 min-w-0">
+            <UnifiedRequestBuilder 
+              endpoint={selectedEndpoint}
+              selectedIndustry={selectedIndustry}
+              onSendRequest={handleSendRequest}
+              loading={loading}
+              onShowCodeGenerator={() => setShowCodeGenerator(true)}
+            />
+          </div>
+
+          {/* Response Viewer */}
+          <UnifiedResponseViewer 
+            response={response}
+            error={error}
+            loading={loading}
+            endpoint={selectedEndpoint}
+            onShowCodeGenerator={() => setShowCodeGenerator(true)}
+          />
+        </div>
+      </div>
+
+      {/* Rate Limit Display */}
+      {response && (
+        <RateLimitDisplay 
+          remaining={response.rateLimitRemaining}
+          reset={response.rateLimitReset}
+        />
+      )}
+
+      {/* JWT Auth Manager */}
+      <JWTAuthManager 
+        token={jwtToken}
+        onTokenChange={setJwtToken}
+      />
+
+      {/* Code Snippet Generator Modal */}
+      {showCodeGenerator && currentRequestConfig && (
+        <CodeSnippetGenerator 
+          isOpen={showCodeGenerator}
+          onClose={() => setShowCodeGenerator(false)}
+          requestConfig={currentRequestConfig}
+          response={response}
+        />
+      )}
+
+      {/* Console Settings Modal */}
+      <SimpleConsoleSettings 
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+      />
+
+      {/* Environment Manager Modal */}
+      {showEnvironmentManager && (
+        <EnvironmentManager 
+          onEnvironmentChange={handleEnvironmentChange}
+        />
+      )}
+
+      {/* Authentication Manager Modal */}
+      {showAuthManager && (
+        <AuthenticationManager 
+          isOpen={showAuthManager}
+          onClose={() => setShowAuthManager(false)}
+          onAuthChange={setAuthConfigs}
+          currentAuth={authConfigs}
+        />
+      )}
+
+      {/* Request History Modal */}
+      {showRequestHistory && (
+        <RequestHistory 
+          isOpen={showRequestHistory}
+          onClose={() => setShowRequestHistory(false)}
+          onReplayRequest={(request) => {
+            setSelectedEndpoint({
+              id: `replay_${Date.now()}`,
+              name: `${request.method} ${request.url}`,
+              method: request.method as any,
+              path: request.url,
+              description: 'Replayed request from history',
+              industry: request.industry || 'ai',
+              tags: ['replayed']
+            })
+            setCurrentRequestConfig(request)
+            setShowRequestHistory(false)
+          }}
+          requests={requestHistory}
+        />
+      )}
+    </div>
+  )
+}

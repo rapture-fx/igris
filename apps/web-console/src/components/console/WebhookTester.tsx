@@ -216,10 +216,9 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                       onClick={() => setSelectedTest(test)}
                       className={`p-3 border cursor-pointer transition-colors ${
                         selectedTest?.id === test.id
-                          ? 'bg-blue-50 dark:bg-blue-900/20'
+                          ? 'bg-white dark:bg-white'
                           : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
                       }`}
-                      style={selectedTest?.id === test.id ? { borderColor: '#114dcd' } : {}}
                     >
                       <div className="flex items-center justify-between">
                         <div>
@@ -230,7 +229,7 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                             {test.description}
                           </p>
                         </div>
-                        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded" style={{ color: '#114dcd' }}>
                           {test.event}
                         </code>
                       </div>

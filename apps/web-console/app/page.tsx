@@ -21,9 +21,12 @@ import {
   Shield,
   TestTube
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useAuth } from '../src/lib/auth/context'
 import LoginModal from '../src/components/auth/LoginModal'
 import WebhookTester from '../src/components/console/WebhookTester'
+import IndustryDropdown from '../src/components/console/IndustryDropdown'
+import EssentialsDropdown from '../src/components/console/EssentialsDropdown'
 
 interface IndustryCardProps {
   title: string
@@ -120,11 +123,7 @@ const ConsoleHeader: React.FC = () => {
               <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[52px] h-[52px]" />
             </Link>
           </div>
-          <nav className="flex items-center justify-center flex-grow space-x-6">
-            <Link href="http://localhost:3005" className="text-sm text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-mono">
-              Docs
-            </Link>
-            
+          <nav className="flex items-center justify-end flex-grow space-x-6">
             <AuthButton />
           </nav>
         </div>
@@ -137,68 +136,21 @@ const ConsoleHeader: React.FC = () => {
 
 export default function ConsolePage() {
   const [showWebhookTester, setShowWebhookTester] = useState(false)
+  const router = useRouter()
   
   const industries = [
-    {
-      title: "AI",
-      description: "Model serving, automated retraining, and ML framework integrations for AI/ML teams",
-      icon: <Cpu className="w-6 h-6" />,
-      link: "/ai",
-      apiCount: 15,
-      features: [
-        "Model Serving & Deployment",
-        "Automated Retraining Pipelines", 
-        "ML Framework Export",
-        "Auto-Labeling & Active Learning"
-      ],
-      color: "purple",
-      bgGradient: "bg-gradient-to-br from-purple-500 to-purple-600"
-    },
-    {
-      title: "Manufacture",
-      description: "IoT monitoring, predictive maintenance, and supply chain optimization for smart factories",
-      icon: <Factory className="w-6 h-6" />,
-      link: "/manufacturing",
-      apiCount: 12,
-      features: [
-        "Predictive Maintenance",
-        "Quality Control AI",
-        "IoT Dashboard & Analytics",
-        "Supply Chain Optimization"
-      ],
-      color: "orange",
-      bgGradient: "bg-gradient-to-br from-orange-500 to-orange-600"
-    },
-    {
-      title: "E-commerce",
-      description: "Recommendation engines, demand forecasting, and price optimization for online retailers",
-      icon: <ShoppingCart className="w-6 h-6" />,
-      link: "/ecommerce",
-      apiCount: 10,
-      features: [
-        "Product Recommendations",
-        "Demand Forecasting",
-        "Dynamic Price Optimization",
-        "Customer Segmentation"
-      ],
-      color: "green",
-      bgGradient: "bg-gradient-to-br from-green-500 to-green-600"
-    },
-    {
-      title: "Fintech",
-      description: "Fraud detection, credit scoring, and AML compliance for fintech and banking",
-      icon: <Building2 className="w-6 h-6" />,
-      link: "/financial",
-      apiCount: 8,
-      features: [
-        "Real-time Fraud Detection",
-        "Credit Risk Assessment", 
-        "AML Compliance Screening",
-        "Financial Analytics"
-      ],
-      color: "blue",
-      bgGradient: "bg-gradient-to-br from-blue-500 to-blue-600"
-    }
+    { title: "AI Companies", link: "/ai", icon: <Cpu className="w-4 h-4" /> },
+    { title: "Manufacturing", link: "/manufacturing", icon: <Factory className="w-4 h-4" /> },
+    { title: "E-commerce", link: "/ecommerce", icon: <ShoppingCart className="w-4 h-4" /> },
+    { title: "FinTech", link: "/financial", icon: <Building2 className="w-4 h-4" /> }
+  ]
+
+  const essentials = [
+    { title: "API Console", link: "/console", icon: <Terminal className="w-4 h-4" /> },
+    { title: "Docs", link: "http://localhost:3005", icon: <Globe className="w-4 h-4" /> },
+    { title: "Security Console", link: "/security", icon: <Shield className="w-4 h-4" /> },
+    { title: "Test Collections", link: "/testing", icon: <TestTube className="w-4 h-4" /> },
+    { title: "Webhook Tester", onClick: () => setShowWebhookTester(true), icon: <Webhook className="w-4 h-4" /> }
   ]
 
   return (
@@ -208,41 +160,29 @@ export default function ConsolePage() {
       <div className="flex-grow flex flex-row min-h-0 relative">
         <div className="grid grid-cols-2 flex-grow min-h-0">
           <div className="p-6">
-            {/* Industry Cards */}
+            {/* Industry Dropdown */}
             <div className="mb-16 mt-32">
-              <h3 className="text-2xl font-normal mb-8 text-center font-mono" style={{ color: '#1f53d0' }}>
-                Choose Your Industry
-              </h3>
-              <div className="grid grid-cols-1 gap-6 max-w-md mx-auto">
-                {industries.map((industry, index) => (
-                  <IndustryCard key={index} {...industry} />
-                ))}
+              <div className="flex justify-center">
+                <IndustryDropdown
+                  industries={industries}
+                  onSelect={(link) => router.push(link)}
+                />
               </div>
             </div>
 
-            {/* Quick Actions */}
-            <div className="mt-[200px]">
-              <h3 className="text-sm font-normal text-gray-500 dark:text-gray-500 mb-6 text-center font-mono">
-                Essentials
-              </h3>
-              <div className="flex flex-wrap justify-center gap-4">
-
-
-                <Link href="/security" className="flex items-center space-x-3 p-4 text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  <Shield className="w-5 h-5" style={{ color: '#1f53d0' }} />
-                  <span className="text-sm font-normal font-mono">Security Console</span>
-                </Link>
-                <Link href="/testing" className="flex items-center space-x-3 p-4 text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                  <TestTube className="w-5 h-5" style={{ color: '#1f53d0' }} />
-                  <span className="text-sm font-normal font-mono">Test Collections</span>
-                </Link>
-                <button
-                  onClick={() => setShowWebhookTester(true)}
-                  className="flex items-center space-x-3 p-4 text-gray-500 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
-                >
-                  <Webhook className="w-5 h-5" style={{ color: '#1f53d0' }} />
-                  <span className="text-sm font-normal font-mono">Webhook Tester</span>
-                </button>
+            {/* Essentials Dropdown */}
+            <div className="mb-16">
+              <div className="flex justify-center">
+                <EssentialsDropdown
+                  essentials={essentials}
+                  onSelect={(item) => {
+                    if (item.link) {
+                      router.push(item.link)
+                    } else if (item.onClick) {
+                      item.onClick()
+                    }
+                  }}
+                />
               </div>
             </div>
 
