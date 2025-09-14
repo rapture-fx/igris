@@ -23,7 +23,7 @@ const EssentialsDropdown: React.FC<EssentialsDropdownProps> = ({ essentials, onS
       <div>
         <button
           type="button"
-          className="inline-flex justify-between w-full px-4 py-2 text-xl font-medium text-gray-700 hover:text-blue-600 focus:outline-none font-mono"
+          className="inline-flex justify-between w-full px-4 py-2 text-2xl font-medium text-gray-700 hover:text-blue-600 focus:outline-none font-mono"
           id="essentials-menu-button"
           aria-expanded="true"
           aria-haspopup="true"
