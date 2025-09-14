@@ -4,7 +4,9 @@
       "Bash(python3:*)",
       "Bash(lsof:*)",
       "Bash(pnpm run dev:*)",
-      "Bash(pkill:*)"
+      "Bash(pkill:*)",
+      "Bash(find:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": []

@@ -8,6 +8,7 @@ while improving model performance.
 
 import logging
 import json
+import os
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 from enum import Enum
@@ -454,11 +455,84 @@ class HyperparameterOptimizer:
             logger.error(f"Failed to get final model metrics: {str(e)}")
             return {}
     
-    def _save_checkpoint(self, episode: int):
-        """Save training checkpoint."""
-        checkpoint_path = f"./checkpoints/rl_optimization/{self.optimization_session.id}/episode_{episode}"
-        self.agent.save(checkpoint_path)
-        logger.info(f"Saved checkpoint at episode {episode}")
+    async def _save_checkpoint(self, episode: int):
+        """Save training checkpoint with cloud backup and comprehensive metadata."""
+        from app.services.rl.storage.rl_model_manager import rl_model_manager
+
+        try:
+            # Generate model ID from optimization session
+            model_id = f"rl_optimizer_{self.optimization_session.id}"
+
+            # Prepare performance metrics
+            performance_metrics = {
+                "episode": episode,
+                "best_performance": self.best_performance,
+                "current_performance": self.performance_history[-1] if self.performance_history else 0.0,
+                "total_episodes": len(self.performance_history),
+                "convergence_episode": self._find_convergence_episode(),
+                "improvement_rate": self._calculate_improvement_rate(),
+                "optimization_session_id": str(self.optimization_session.id)
+            }
+
+            # Prepare hyperparameters
+            current_hyperparams = self.best_hyperparameters.copy() if self.best_hyperparameters else {}
+
+            # Additional training metadata
+            training_metadata = {
+                "optimization_type": "hyperparameter_optimization",
+                "agent_type": type(self.agent).__name__ if self.agent else "unknown",
+                "environment": str(self.env) if hasattr(self, 'env') else "unknown",
+                "total_training_time": getattr(self, 'total_training_time', 0),
+                "stable_baselines3_available": self.stable_baselines3_available,
+                "compatibility_mode": not self.stable_baselines3_available
+            }
+
+            # Save with comprehensive backup
+            save_result = await rl_model_manager.save_model_with_backup(
+                agent=self.agent,
+                model_id=model_id,
+                episode=episode,
+                performance_metrics=performance_metrics,
+                hyperparameters=current_hyperparams,
+                training_metadata=training_metadata,
+                session_id=str(self.optimization_session.id)
+            )
+
+            if save_result["success"]:
+                logger.info(
+                    f"Successfully saved RL model checkpoint at episode {episode} "
+                    f"with cloud backup. Save ID: {save_result['save_id']}"
+                )
+
+                # Store save result for later reference
+                if not hasattr(self, 'checkpoint_saves'):
+                    self.checkpoint_saves = []
+                self.checkpoint_saves.append(save_result)
+
+                return save_result
+            else:
+                logger.error(f"Failed to save checkpoint: {save_result.get('error', 'Unknown error')}")
+                return save_result
+
+        except Exception as e:
+            logger.error(f"Error saving checkpoint at episode {episode}: {e}")
+
+            # Fallback to old method if new method fails
+            try:
+                checkpoint_path = f"./checkpoints/rl_optimization/{self.optimization_session.id}/episode_{episode}"
+                os.makedirs(os.path.dirname(checkpoint_path), exist_ok=True)
+
+                if hasattr(self.agent, 'save'):
+                    self.agent.save(checkpoint_path)
+                    logger.info(f"Saved checkpoint using fallback method at episode {episode}")
+                    return {"success": True, "local_path": checkpoint_path, "method": "fallback"}
+                else:
+                    logger.warning("Agent does not support saving")
+                    return {"success": False, "error": "Agent does not support saving"}
+
+            except Exception as fallback_error:
+                logger.error(f"Fallback save also failed: {fallback_error}")
+                return {"success": False, "error": str(fallback_error)}
     
     def load_checkpoint(self, checkpoint_path: str):
         """Load a training checkpoint."""

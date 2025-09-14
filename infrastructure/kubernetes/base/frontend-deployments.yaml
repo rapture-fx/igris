@@ -1,0 +1,569 @@
+# Landing Page Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: landing-deployment
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: landing
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: landing
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: landing
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/version: v1.0.0
+        deployment: blue
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/api/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: landing
+        image: ghcr.io/schlep-engine/landing:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NEXT_PUBLIC_DOCS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_DOCS_URL
+        - name: NEXT_PUBLIC_ADMIN_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_ADMIN_URL
+        - name: NEXT_PUBLIC_APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_APP_ENV
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
+        volumeMounts:
+        - name: nextjs-cache
+          mountPath: /app/.next/cache
+        - name: temp-storage
+          mountPath: /tmp
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: nextjs-cache
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: 500Mi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - landing
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: landing-service
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: landing
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    app.kubernetes.io/name: landing
+    app.kubernetes.io/component: frontend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+# Admin Dashboard Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-deployment
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: admin
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: admin
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: admin
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/version: v1.0.0
+        deployment: blue
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/api/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: admin
+        image: ghcr.io/schlep-engine/admin:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NEXT_PUBLIC_APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_APP_ENV
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
+        volumeMounts:
+        - name: nextjs-cache
+          mountPath: /app/.next/cache
+        - name: temp-storage
+          mountPath: /tmp
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: nextjs-cache
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: 500Mi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - admin
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-service
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: admin
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    app.kubernetes.io/name: admin
+    app.kubernetes.io/component: frontend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+# Documentation Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: docs-deployment
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: docs
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: docs
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: docs
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/version: v1.0.0
+        deployment: blue
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/api/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: docs
+        image: ghcr.io/schlep-engine/docs:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NEXT_PUBLIC_APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_APP_ENV
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
+        volumeMounts:
+        - name: nextjs-cache
+          mountPath: /app/.next/cache
+        - name: temp-storage
+          mountPath: /tmp
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: nextjs-cache
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: 500Mi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - docs
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: docs-service
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: docs
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    app.kubernetes.io/name: docs
+    app.kubernetes.io/component: frontend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP
+---
+# Web Console Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: console-deployment
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: console
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/version: v1.0.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: console
+      app.kubernetes.io/component: frontend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: console
+        app.kubernetes.io/component: frontend
+        app.kubernetes.io/version: v1.0.0
+        deployment: blue
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "3000"
+        prometheus.io/path: "/api/metrics"
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      containers:
+      - name: console
+        image: ghcr.io/schlep-engine/console:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+          protocol: TCP
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_API_URL
+        - name: NEXT_PUBLIC_APP_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: schlep-engine-config
+              key: NEXT_PUBLIC_APP_ENV
+        resources:
+          requests:
+            memory: "384Mi"
+            cpu: "300m"
+          limits:
+            memory: "768Mi"
+            cpu: "600m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: http
+          initialDelaySeconds: 20
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 12
+        volumeMounts:
+        - name: nextjs-cache
+          mountPath: /app/.next/cache
+        - name: temp-storage
+          mountPath: /tmp
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+      volumes:
+      - name: nextjs-cache
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: temp-storage
+        emptyDir:
+          sizeLimit: 500Mi
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - console
+              topologyKey: kubernetes.io/hostname
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: console-service
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: console
+    app.kubernetes.io/component: frontend
+spec:
+  selector:
+    app.kubernetes.io/name: console
+    app.kubernetes.io/component: frontend
+  ports:
+  - name: http
+    protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: ClusterIP

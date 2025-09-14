@@ -597,4 +597,100 @@ class ServiceImprovementLog(Base):
     
     # Relationships
     learning_rule = relationship("LearningRule")
-    organization = relationship("Organization") 
+    organization = relationship("Organization")
+
+class RLModel(Base):
+    """Reinforcement Learning Model Registry"""
+    __tablename__ = "rl_models"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    model_id = Column(String(255), unique=True, nullable=False, index=True)  # External unique identifier
+    name = Column(String(255), nullable=False)
+    description = Column(Text)
+
+    # Model metadata
+    model_type = Column(String(100), default="hyperparameter_optimization")  # optimization_type
+    algorithm = Column(String(100))  # PPO, A2C, SAC, etc.
+    environment = Column(String(255))  # Training environment description
+
+    # Status and lifecycle
+    is_active = Column(Boolean, default=True)
+    is_production = Column(Boolean, default=False)
+
+    # Performance tracking
+    best_performance = Column(Float)
+    total_episodes_trained = Column(Integer, default=0)
+
+    # Ownership
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relationships
+    versions = relationship("RLModelVersion", back_populates="model", cascade="all, delete-orphan")
+    user = relationship("User")
+    organization = relationship("Organization")
+
+    # Indexes for performance
+    __table_args__ = (
+        Index('idx_rl_models_model_id', 'model_id'),
+        Index('idx_rl_models_organization', 'organization_id', 'created_at'),
+        Index('idx_rl_models_active', 'is_active', 'updated_at'),
+    )
+
+class RLModelVersion(Base):
+    """RL Model Version with training metadata and performance tracking"""
+    __tablename__ = "rl_model_versions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    model_id = Column(UUID(as_uuid=True), ForeignKey("rl_models.id", ondelete="CASCADE"), nullable=False)
+
+    # Version information
+    version = Column(String(255), nullable=False)  # e.g., "episode_100_20231201_120000"
+    episode = Column(Integer, nullable=False)
+
+    # Performance metrics at time of save
+    performance_metrics = Column(JSON, nullable=False, default={})
+
+    # Training configuration
+    hyperparameters = Column(JSON, nullable=False, default={})
+    training_metadata = Column(JSON, default={})  # Additional training info
+
+    # Session tracking
+    session_id = Column(String(255), index=True)  # Links to optimization session
+
+    # Storage locations
+    local_path = Column(String(1024))  # Local filesystem path
+    cloud_url = Column(String(1024))   # Cloud storage URL
+    backup_url = Column(String(1024))  # Backup storage URL
+
+    # File integrity
+    file_hash = Column(String(64))     # SHA-256 hash for integrity verification
+    file_size = Column(Integer)        # File size in bytes
+
+    # Status
+    is_active = Column(Boolean, default=False)  # Current active version for the model
+    is_archived = Column(Boolean, default=False)
+
+    # Compatibility information
+    stable_baselines3_version = Column(String(50))
+    python_version = Column(String(20))
+    dependencies = Column(JSON, default={})
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    archived_at = Column(DateTime(timezone=True))
+
+    # Relationships
+    model = relationship("RLModel", back_populates="versions")
+
+    # Indexes for performance
+    __table_args__ = (
+        Index('idx_rl_model_versions_model_version', 'model_id', 'version'),
+        Index('idx_rl_model_versions_session', 'session_id', 'created_at'),
+        Index('idx_rl_model_versions_active', 'model_id', 'is_active'),
+        Index('idx_rl_model_versions_episode', 'model_id', 'episode'),
+    ) 

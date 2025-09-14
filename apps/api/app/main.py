@@ -29,6 +29,7 @@ from app.middleware.audit_middleware import AuditMiddleware
 from app.middleware.encryption_middleware import EncryptionMiddleware
 from app.middleware.request_validation_sanitization import RequestValidationSanitizationMiddleware
 from app.middleware.csrf_protection import CSRFProtectionMiddleware
+from app.auth.enhanced_security import SecurityLevel
 from app.database.connection import engine, Base
 # Import only core working modules for now
 from app.api.v1 import (
@@ -246,11 +247,88 @@ try:
 except Exception as e:
     logger.warning(f"Failed to enable request validation middleware: {e}")
 
+# CRITICAL: Rate limiting middleware must be enabled for security
 try:
-    app.add_middleware(RateLimitingMiddleware)
-    logger.info("Rate limiting middleware enabled")
+    # Enhanced rate limiting configuration with user-based limits
+    from app.middleware.rate_limiting_middleware import RateLimitingMiddleware, RateLimitConfig, RateLimitType
+
+    # Create enhanced rate limiting configuration
+    rate_limit_config = RateLimitConfig(
+        requests_per_minute=100,  # Base IP limit
+        requests_per_hour=1000,
+        rate_limit_type=RateLimitType.IP_BASED,
+        bypass_for_admin=True,
+        security_level_multipliers={
+            SecurityLevel.LOW: 2.0,      # More permissive for low-security endpoints
+            SecurityLevel.MEDIUM: 1.0,   # Default
+            SecurityLevel.HIGH: 0.5,     # More restrictive for high-security endpoints
+            SecurityLevel.CRITICAL: 0.2  # Very restrictive for critical endpoints
+        }
+    )
+
+    # Enhanced path-specific configurations
+    path_configs = {
+        "/api/v1/auth": RateLimitConfig(
+            requests_per_minute=10,
+            requests_per_hour=50,
+            rate_limit_type=RateLimitType.IP_BASED,
+            bypass_for_admin=False,
+            error_message="Authentication rate limit exceeded"
+        ),
+        "/api/v1/ml": RateLimitConfig(
+            requests_per_minute=20,
+            requests_per_hour=200,
+            rate_limit_type=RateLimitType.USER_BASED,
+            bypass_for_admin=True,
+            error_message="ML endpoint rate limit exceeded"
+        ),
+        "/api/v1/rl": RateLimitConfig(
+            requests_per_minute=5,
+            requests_per_hour=50,
+            rate_limit_type=RateLimitType.USER_BASED,
+            bypass_for_admin=True,
+            error_message="RL endpoint rate limit exceeded"
+        ),
+        "/api/v1/admin": RateLimitConfig(
+            requests_per_minute=30,
+            requests_per_hour=300,
+            rate_limit_type=RateLimitType.USER_BASED,
+            bypass_for_admin=False,  # Even admins are rate limited
+            error_message="Admin endpoint rate limit exceeded"
+        )
+    }
+
+    app.add_middleware(
+        RateLimitingMiddleware,
+        enabled=True,
+        default_config=rate_limit_config,
+        path_configs=path_configs,
+        exclude_paths={'/health', '/metrics', '/docs', '/openapi.json', '/system/info'}
+    )
+    logger.info("Enhanced rate limiting middleware enabled with user-based limits")
+
+except ImportError as ie:
+    logger.error(f"Rate limiting middleware import failed: {ie}")
+    if settings.ENVIRONMENT == "production":
+        logger.critical("SECURITY CRITICAL: Rate limiting middleware failed to import in production!")
+        raise RuntimeError("Rate limiting middleware is required for production deployment")
+    else:
+        logger.warning("Rate limiting disabled in development mode due to import error")
+
 except Exception as e:
-    logger.warning(f"Failed to enable rate limiting middleware: {e}")
+    logger.error(f"Failed to enable rate limiting middleware: {e}")
+    if settings.ENVIRONMENT == "production":
+        logger.critical("SECURITY CRITICAL: Rate limiting middleware failed to initialize in production!")
+        # In production, fail hard rather than continue without rate limiting
+        capture_exception(
+            e,
+            severity=ErrorSeverity.CRITICAL,
+            category=ErrorCategory.SECURITY,
+            extra_data={"middleware": "rate_limiting", "environment": settings.ENVIRONMENT}
+        )
+        raise RuntimeError("Rate limiting middleware is critical for production security")
+    else:
+        logger.warning("Rate limiting disabled in development mode")
 
 try:
     app.add_middleware(AuditMiddleware)
