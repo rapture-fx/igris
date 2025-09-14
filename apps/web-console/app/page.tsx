@@ -3,11 +3,12 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { 
-  Cpu, 
+  BrainCircuit, 
+  Store, 
+  Landmark, 
   Factory,
    
-  ShoppingCart, 
-  Building2,
+  
   Activity,
   ArrowRight,
   
@@ -139,10 +140,10 @@ export default function ConsolePage() {
   const router = useRouter()
   
   const industries = [
-    { title: "AI Companies", link: "/ai", icon: <Cpu className="w-4 h-4" /> },
+    { title: "AI Companies", link: "/ai", icon: <BrainCircuit className="w-4 h-4" /> },
     { title: "Manufacturing", link: "/manufacturing", icon: <Factory className="w-4 h-4" /> },
-    { title: "E-commerce", link: "/ecommerce", icon: <ShoppingCart className="w-4 h-4" /> },
-    { title: "FinTech", link: "/financial", icon: <Building2 className="w-4 h-4" /> }
+    { title: "E-commerce", link: "/ecommerce", icon: <Store className="w-4 h-4" /> },
+    { title: "FinTech", link: "/financial", icon: <Landmark className="w-4 h-4" /> }
   ]
 
   const essentials = [
