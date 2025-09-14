@@ -1,0 +1,548 @@
+# Default Deny All Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: network-policy
+    app.kubernetes.io/component: security
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# API Backend Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: api-network-policy
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: api
+      app.kubernetes.io/component: backend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 8000
+  # Allow ingress from monitoring namespace for metrics
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+  # Allow ingress from same namespace (for blue-green deployments)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine
+    ports:
+    - protocol: TCP
+      port: 8000
+    - protocol: TCP
+      port: 9090
+  egress:
+  # Allow egress to PostgreSQL
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgres
+          app.kubernetes.io/component: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow egress to Redis
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/component: cache
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow egress to Kubernetes API server
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 6443
+  # Allow egress for DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow egress for external APIs (HTTPS)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+  # Allow egress for SMTP
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 587
+    - protocol: TCP
+      port: 465
+---
+# Database Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgres-network-policy
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgres
+      app.kubernetes.io/component: database
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from API backend
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: api
+          app.kubernetes.io/component: backend
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow ingress from stream consumer
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: stream-consumer
+          app.kubernetes.io/component: streaming
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow ingress from monitoring for metrics
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgres-exporter
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow ingress from Grafana
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: grafana
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow replication between postgres instances
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  egress:
+  # Allow egress for DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow replication traffic
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+---
+# Redis Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: redis-network-policy
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: cache
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from API backend
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: api
+          app.kubernetes.io/component: backend
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow ingress from stream producer
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: stream-producer
+          app.kubernetes.io/component: streaming
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow ingress from stream consumer
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: stream-consumer
+          app.kubernetes.io/component: streaming
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow ingress from monitoring for metrics
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    ports:
+    - protocol: TCP
+      port: 9121  # Redis exporter
+  # Allow replication between Redis instances
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 26379  # Sentinel
+  egress:
+  # Allow egress for DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow replication traffic
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 26379
+---
+# Frontend Applications Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: frontend-network-policy
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: frontend
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from ingress controller
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Allow ingress from monitoring for metrics
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    ports:
+    - protocol: TCP
+      port: 3000
+  egress:
+  # Allow egress to API backend
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: api
+          app.kubernetes.io/component: backend
+    ports:
+    - protocol: TCP
+      port: 8000
+  # Allow egress for DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow egress for external APIs and CDNs
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+# Stream Services Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: stream-services-network-policy
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: stream-services
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/component: streaming
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from monitoring for metrics
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    ports:
+    - protocol: TCP
+      port: 9091  # Stream producer metrics
+    - protocol: TCP
+      port: 9092  # Stream consumer metrics
+  egress:
+  # Allow egress to Redis
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/component: cache
+    ports:
+    - protocol: TCP
+      port: 6379
+  # Allow egress to PostgreSQL (for stream consumer)
+  - to:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: postgres
+          app.kubernetes.io/component: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  # Allow egress for DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+# Monitoring Namespace Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring-network-policy
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: monitoring
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow ingress from ingress controller to Grafana
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    ports:
+    - protocol: TCP
+      port: 3000
+  # Allow inter-monitoring communication
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    ports:
+    - protocol: TCP
+      port: 9090  # Prometheus
+    - protocol: TCP
+      port: 3000  # Grafana
+    - protocol: TCP
+      port: 9093  # Alertmanager
+    - protocol: TCP
+      port: 9094  # Grafana clustering
+    - protocol: TCP
+      port: 3100  # Loki
+    - protocol: TCP
+      port: 3200  # Tempo
+  egress:
+  # Allow egress to schlep-engine namespace for scraping
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine
+    ports:
+    - protocol: TCP
+      port: 8000   # API
+    - protocol: TCP
+      port: 9090   # API metrics
+    - protocol: TCP
+      port: 9091   # Stream producer metrics
+    - protocol: TCP
+      port: 9092   # Stream consumer metrics
+    - protocol: TCP
+      port: 9121   # Redis exporter
+    - protocol: TCP
+      port: 9187   # Postgres exporter
+    - protocol: TCP
+      port: 3000   # Frontend health checks
+  # Allow egress to kube-system for Kubernetes metrics
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+    ports:
+    - protocol: TCP
+      port: 10250  # Kubelet
+    - protocol: TCP
+      port: 10251  # Kube-scheduler
+    - protocol: TCP
+      port: 10252  # Kube-controller-manager
+  # Allow egress to Kubernetes API server
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 6443
+  # Allow egress for DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow egress for external notifications (Slack, email, etc.)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 587
+    - protocol: TCP
+      port: 465
+---
+# Node Exporter Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: node-exporter-network-policy
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: node-exporter
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow ingress from Prometheus
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: prometheus
+    ports:
+    - protocol: TCP
+      port: 9100
+---
+# Ingress Controller Network Policy
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-nginx-network-policy
+  namespace: ingress-nginx
+  labels:
+    app.kubernetes.io/name: ingress-nginx
+    app.kubernetes.io/component: network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: ingress-nginx
+  policyTypes:
+  - Egress
+  egress:
+  # Allow egress to schlep-engine services
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine
+    ports:
+    - protocol: TCP
+      port: 8000  # API
+    - protocol: TCP
+      port: 3000  # Frontend apps
+  # Allow egress to monitoring services
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: schlep-engine-monitoring
+    ports:
+    - protocol: TCP
+      port: 3000  # Grafana
+    - protocol: TCP
+      port: 9090  # Prometheus
+  # Allow egress for DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53

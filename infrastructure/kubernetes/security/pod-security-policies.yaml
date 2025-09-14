@@ -1,0 +1,528 @@
+# Pod Security Standards - Restricted Policy for Production
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: schlep-engine
+  labels:
+    name: schlep-engine
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: schlep-engine-monitoring
+  labels:
+    name: schlep-engine-monitoring
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+---
+# Security Context Constraints for OpenShift (if applicable)
+apiVersion: security.openshift.io/v1
+kind: SecurityContextConstraints
+metadata:
+  name: schlep-engine-restricted
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: scc
+allowHostDirVolumePlugin: false
+allowHostIPC: false
+allowHostNetwork: false
+allowHostPID: false
+allowHostPorts: false
+allowPrivilegeEscalation: false
+allowPrivilegedContainer: false
+allowedCapabilities: []
+defaultAddCapabilities: []
+fsGroup:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+  - max: 65535
+groups: []
+priority: null
+readOnlyRootFilesystem: true
+requiredDropCapabilities:
+- ALL
+runAsUser:
+  type: MustRunAsNonRoot
+seLinuxContext:
+  type: MustRunAs
+supplementalGroups:
+  type: MustRunAs
+  ranges:
+  - min: 1000
+  - max: 65535
+users:
+- system:serviceaccount:schlep-engine:schlep-engine-api
+- system:serviceaccount:schlep-engine:postgres
+- system:serviceaccount:schlep-engine:redis
+- system:serviceaccount:schlep-engine-monitoring:prometheus
+- system:serviceaccount:schlep-engine-monitoring:grafana
+volumes:
+- configMap
+- downwardAPI
+- emptyDir
+- persistentVolumeClaim
+- projected
+- secret
+---
+# RBAC Configuration for API Service Account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: schlep-engine
+  name: schlep-engine-api-role
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: rbac
+rules:
+# Allow reading ConfigMaps and Secrets
+- apiGroups: [""]
+  resources: ["configmaps", "secrets"]
+  verbs: ["get", "list"]
+# Allow reading pod information for health checks
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+# Allow creating events for logging
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: schlep-engine-api-binding
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: rbac
+subjects:
+- kind: ServiceAccount
+  name: schlep-engine-api
+  namespace: schlep-engine
+roleRef:
+  kind: Role
+  name: schlep-engine-api-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# RBAC Configuration for PostgreSQL Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgres
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: database
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: schlep-engine
+  name: postgres-role
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: rbac
+rules:
+# Minimal permissions for PostgreSQL
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgres-binding
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: postgres
+    app.kubernetes.io/component: rbac
+subjects:
+- kind: ServiceAccount
+  name: postgres
+  namespace: schlep-engine
+roleRef:
+  kind: Role
+  name: postgres-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# RBAC Configuration for Redis Service Account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: redis
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: cache
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: schlep-engine
+  name: redis-role
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: rbac
+rules:
+# Minimal permissions for Redis
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create"]
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: redis-binding
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: rbac
+subjects:
+- kind: ServiceAccount
+  name: redis
+  namespace: schlep-engine
+roleRef:
+  kind: Role
+  name: redis-role
+  apiGroup: rbac.authorization.k8s.io
+---
+# OPA Gatekeeper Policies
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredsecuritycontext
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: gatekeeper
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredSecurityContext
+      validation:
+        type: object
+        properties:
+          runAsNonRoot:
+            type: boolean
+          runAsUser:
+            type: object
+            properties:
+              rule:
+                type: string
+              ranges:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    min:
+                      type: integer
+                    max:
+                      type: integer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredsecuritycontext
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.securityContext.runAsNonRoot
+          msg := "Container must run as non-root user"
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.allowPrivilegeEscalation
+          msg := "Container must not allow privilege escalation"
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not container.securityContext.readOnlyRootFilesystem
+          msg := "Container must have read-only root filesystem"
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          container.securityContext.capabilities.add[_] != "NET_BIND_SERVICE"
+          msg := "Container cannot add capabilities except NET_BIND_SERVICE"
+        }
+---
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: K8sRequiredSecurityContext
+metadata:
+  name: must-have-security-context
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: gatekeeper
+spec:
+  match:
+    - apiGroups: ["apps"]
+      kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+      namespaces: ["schlep-engine", "schlep-engine-monitoring"]
+  parameters:
+    runAsNonRoot: true
+    runAsUser:
+      rule: "MustRunAs"
+      ranges:
+      - min: 1000
+        max: 65535
+---
+# Constraint for required resource limits
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredresources
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: gatekeeper
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredResources
+      validation:
+        type: object
+        properties:
+          limits:
+            type: array
+            items:
+              type: string
+          requests:
+            type: array
+            items:
+              type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredresources
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          required := input.parameters.limits
+          provided := container.resources.limits
+          missing := required[_]
+          not provided[missing]
+          msg := sprintf("Container is missing required resource limit: %v", [missing])
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          required := input.parameters.requests
+          provided := container.resources.requests
+          missing := required[_]
+          not provided[missing]
+          msg := sprintf("Container is missing required resource request: %v", [missing])
+        }
+---
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: K8sRequiredResources
+metadata:
+  name: must-have-resources
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: gatekeeper
+spec:
+  match:
+    - apiGroups: ["apps"]
+      kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+      namespaces: ["schlep-engine", "schlep-engine-monitoring"]
+  parameters:
+    limits: ["memory", "cpu"]
+    requests: ["memory", "cpu"]
+---
+# Image scanning and admission controller webhook
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionWebhook
+metadata:
+  name: schlep-engine-image-scanner
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: image-scanner
+webhooks:
+- name: image-scanner.schlep-engine.com
+  clientConfig:
+    service:
+      name: image-scanner-webhook
+      namespace: schlep-engine-monitoring
+      path: "/validate"
+  rules:
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: ["apps"]
+    apiVersions: ["v1"]
+    resources: ["deployments", "statefulsets", "daemonsets"]
+  - operations: ["CREATE", "UPDATE"]
+    apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["pods"]
+  namespaceSelector:
+    matchLabels:
+      name: schlep-engine
+  admissionReviewVersions: ["v1", "v1beta1"]
+  sideEffects: None
+  failurePolicy: Fail
+---
+# Falco Security Monitoring Rules
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: falco-rules
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: falco
+    app.kubernetes.io/component: security
+data:
+  schlep_engine_rules.yaml: |
+    - rule: Schlep Engine Suspicious Network Activity
+      desc: Detect suspicious network activity in Schlep Engine
+      condition: >
+        k8s_audit and ka.target.namespace="schlep-engine" and
+        (ka.verb in (create, update, patch) and
+         ka.target.resource contains "networkpolicies")
+      output: >
+        Suspicious network policy change in Schlep Engine
+        (user=%ka.user.name verb=%ka.verb resource=%ka.target.resource)
+      priority: WARNING
+      tags: [k8s_audit, network, schlep-engine]
+
+    - rule: Schlep Engine Privilege Escalation Attempt
+      desc: Detect privilege escalation attempts
+      condition: >
+        spawned_process and container and
+        k8s.ns.name="schlep-engine" and
+        (proc.name in (su, sudo, doas) or
+         (proc.name=sh and proc.args contains "sudo"))
+      output: >
+        Privilege escalation attempt in Schlep Engine
+        (container=%container.name user=%user.name proc=%proc.cmdline)
+      priority: CRITICAL
+      tags: [privilege_escalation, schlep-engine]
+
+    - rule: Schlep Engine Unauthorized File Access
+      desc: Detect unauthorized file access attempts
+      condition: >
+        open_read and container and k8s.ns.name="schlep-engine" and
+        (fd.filename startswith "/etc/shadow" or
+         fd.filename startswith "/etc/passwd" or
+         fd.filename startswith "/root/" or
+         fd.filename contains "/var/lib/postgresql/data" and
+         not k8s.pod.name contains "postgres")
+      output: >
+        Unauthorized file access in Schlep Engine
+        (container=%container.name file=%fd.name proc=%proc.cmdline)
+      priority: HIGH
+      tags: [file_access, schlep-engine]
+
+    - rule: Schlep Engine Database Connection Anomaly
+      desc: Detect unusual database connection patterns
+      condition: >
+        outbound and container and k8s.ns.name="schlep-engine" and
+        fd.sport!=5432 and fd.dport=5432 and
+        not k8s.pod.name contains "api" and
+        not k8s.pod.name contains "consumer"
+      output: >
+        Unusual database connection in Schlep Engine
+        (container=%container.name dest=%fd.rip:%fd.rport proc=%proc.cmdline)
+      priority: WARNING
+      tags: [database, network, schlep-engine]
+
+    - rule: Schlep Engine Redis Access Anomaly
+      desc: Detect unusual Redis access patterns
+      condition: >
+        outbound and container and k8s.ns.name="schlep-engine" and
+        fd.sport!=6379 and fd.dport=6379 and
+        not k8s.pod.name contains "api" and
+        not k8s.pod.name contains "producer" and
+        not k8s.pod.name contains "consumer"
+      output: >
+        Unusual Redis access in Schlep Engine
+        (container=%container.name dest=%fd.rip:%fd.rport proc=%proc.cmdline)
+      priority: WARNING
+      tags: [redis, network, schlep-engine]
+---
+# Service Mesh Security Policies (Istio)
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: schlep-engine-api-authz
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: security
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api
+      app.kubernetes.io/component: backend
+  rules:
+  - from:
+    - source:
+        principals: ["cluster.local/ns/ingress-nginx/sa/ingress-nginx"]
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+        paths: ["/api/*", "/health", "/metrics"]
+  - when:
+    - key: request.headers[authorization]
+      notValues: [""]
+---
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: schlep-engine-mtls
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: istio
+spec:
+  mtls:
+    mode: STRICT
+---
+# Pod Security Policy (deprecated but included for older clusters)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: schlep-engine-restricted
+  labels:
+    app.kubernetes.io/name: security
+    app.kubernetes.io/component: psp
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1000
+        max: 65535
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1000
+        max: 65535
+  readOnlyRootFilesystem: true
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false

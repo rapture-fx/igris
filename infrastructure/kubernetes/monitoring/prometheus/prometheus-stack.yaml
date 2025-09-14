@@ -1,0 +1,550 @@
+# Prometheus Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'schlep-engine-prod'
+        region: 'us-east-1'
+
+    # Alertmanager configuration
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager-service.schlep-engine-monitoring.svc.cluster.local:9093
+
+    # Rules files
+    rule_files:
+      - "rules/*.yml"
+
+    # Scrape configurations
+    scrape_configs:
+      # Kubernetes API server
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - default
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+          action: keep
+          regex: default;kubernetes;https
+
+      # Kubernetes nodes (kubelet)
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+        - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - target_label: __address__
+          replacement: kubernetes.default.svc:443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/$1/proxy/metrics
+
+      # Kubernetes node cadvisor
+      - job_name: 'kubernetes-cadvisor'
+        kubernetes_sd_configs:
+        - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+        - action: labelmap
+          regex: __meta_kubernetes_node_label_(.+)
+        - target_label: __address__
+          replacement: kubernetes.default.svc:443
+        - source_labels: [__meta_kubernetes_node_name]
+          regex: (.+)
+          target_label: __metrics_path__
+          replacement: /api/v1/nodes/$1/proxy/metrics/cadvisor
+        metric_relabel_configs:
+        - source_labels: [__name__]
+          regex: '(container_tasks_state|container_memory_failures_total)'
+          action: drop
+
+      # Kubernetes service endpoints
+      - job_name: 'kubernetes-service-endpoints'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - schlep-engine
+            - schlep-engine-monitoring
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_service_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_service_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_service_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_service_name]
+          action: replace
+          target_label: kubernetes_name
+
+      # Kubernetes pods
+      - job_name: 'kubernetes-pods'
+        kubernetes_sd_configs:
+        - role: pod
+          namespaces:
+            names:
+            - schlep-engine
+            - schlep-engine-monitoring
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+          action: keep
+          regex: true
+        - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+          action: replace
+          target_label: __metrics_path__
+          regex: (.+)
+        - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+          action: replace
+          regex: ([^:]+)(?::\d+)?;(\d+)
+          replacement: $1:$2
+          target_label: __address__
+        - action: labelmap
+          regex: __meta_kubernetes_pod_label_(.+)
+        - source_labels: [__meta_kubernetes_namespace]
+          action: replace
+          target_label: kubernetes_namespace
+        - source_labels: [__meta_kubernetes_pod_name]
+          action: replace
+          target_label: kubernetes_pod_name
+
+      # Schlep Engine API
+      - job_name: 'schlep-engine-api'
+        static_configs:
+        - targets:
+          - 'api-service.schlep-engine.svc.cluster.local:9090'
+        scrape_interval: 15s
+        metrics_path: '/metrics'
+        relabel_configs:
+        - target_label: service
+          replacement: 'schlep-engine-api'
+
+      # Redis monitoring
+      - job_name: 'redis'
+        static_configs:
+        - targets:
+          - 'redis-master.schlep-engine.svc.cluster.local:9121'
+          - 'redis-replica.schlep-engine.svc.cluster.local:9121'
+        scrape_interval: 15s
+        metrics_path: '/metrics'
+        relabel_configs:
+        - target_label: service
+          replacement: 'redis'
+
+      # PostgreSQL monitoring
+      - job_name: 'postgres'
+        static_configs:
+        - targets:
+          - 'postgres-exporter-service.schlep-engine.svc.cluster.local:9187'
+        scrape_interval: 15s
+        metrics_path: '/metrics'
+        relabel_configs:
+        - target_label: service
+          replacement: 'postgres'
+
+      # Node Exporter
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+        - role: endpoints
+          namespaces:
+            names:
+            - schlep-engine-monitoring
+        relabel_configs:
+        - source_labels: [__meta_kubernetes_service_name]
+          action: keep
+          regex: node-exporter
+        - target_label: service
+          replacement: 'node-exporter'
+
+  # Alert rules
+  alert_rules.yml: |
+    groups:
+    - name: schlep-engine.rules
+      rules:
+      # High CPU usage
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High CPU usage detected on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for more than 2 minutes on {{ $labels.instance }}"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High memory usage detected on {{ $labels.instance }}"
+          description: "Memory usage is above 85% for more than 2 minutes on {{ $labels.instance }}"
+
+      # API response time
+      - alert: APIHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service="schlep-engine-api"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "API response time is high"
+          description: "95th percentile response time is above 500ms for 5 minutes"
+
+      # API error rate
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{service="schlep-engine-api",status=~"5.."}[5m]) / rate(http_requests_total{service="schlep-engine-api"}[5m]) * 100 > 5
+        for: 3m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is above 5% for 3 minutes"
+
+      # Database connection issues
+      - alert: DatabaseConnectionFailed
+        expr: postgres_up{service="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "Database connection failed"
+          description: "PostgreSQL database is not responding"
+
+      # Redis connection issues
+      - alert: RedisConnectionFailed
+        expr: redis_up{service="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis connection failed"
+          description: "Redis cache is not responding"
+
+      # Pod restart rate
+      - alert: PodRestartingFrequently
+        expr: rate(kube_pod_container_status_restarts_total{namespace="schlep-engine"}[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "Pod is restarting frequently"
+          description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted more than once in 15 minutes"
+
+      # Stream processing lag
+      - alert: StreamProcessingLag
+        expr: redis_stream_lag{service="redis"} > 10000
+        for: 2m
+        labels:
+          severity: warning
+          service: streaming
+        annotations:
+          summary: "Stream processing lag detected"
+          description: "Redis stream processing lag is above 10000 messages"
+
+      # Disk space usage
+      - alert: DiskSpaceHigh
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Disk space is running low"
+          description: "Available disk space is below 15% on {{ $labels.instance }}"
+---
+# Prometheus StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prometheus
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+spec:
+  serviceName: prometheus-headless
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+      app.kubernetes.io/component: monitoring
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: prometheus
+        app.kubernetes.io/component: monitoring
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: prometheus
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        fsGroup: 65534
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.45.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - '--config.file=/etc/prometheus/prometheus.yml'
+        - '--storage.tsdb.path=/prometheus'
+        - '--storage.tsdb.retention.time=30d'
+        - '--storage.tsdb.retention.size=50GB'
+        - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+        - '--web.console.templates=/usr/share/prometheus/consoles'
+        - '--web.enable-lifecycle'
+        - '--web.enable-admin-api'
+        - '--web.route-prefix=/'
+        - '--web.external-url=https://prometheus.schlep-engine.com'
+        - '--query.timeout=30s'
+        - '--query.max-concurrency=20'
+        - '--query.max-samples=50000000'
+        ports:
+        - containerPort: 9090
+          name: web
+          protocol: TCP
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus
+        - name: prometheus-storage
+          mountPath: /prometheus
+        - name: rules
+          mountPath: /etc/prometheus/rules
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: web
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: web
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /-/ready
+            port: web
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 15
+      # Configuration reload sidecar
+      - name: config-reloader
+        image: jimmidyson/configmap-reload:v0.8.0
+        imagePullPolicy: IfNotPresent
+        args:
+        - --volume-dir=/etc/prometheus
+        - --webhook-url=http://127.0.0.1:9090/-/reload
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus
+          readOnly: true
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-config
+      - name: rules
+        configMap:
+          name: prometheus-config
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - prometheus
+              topologyKey: kubernetes.io/hostname
+  volumeClaimTemplates:
+  - metadata:
+      name: prometheus-storage
+      labels:
+        app.kubernetes.io/name: prometheus
+        app.kubernetes.io/component: monitoring
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 100Gi
+---
+# Prometheus Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+spec:
+  selector:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+  ports:
+  - name: web
+    protocol: TCP
+    port: 9090
+    targetPort: web
+  type: ClusterIP
+---
+# Prometheus Headless Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-headless
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+spec:
+  selector:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+  ports:
+  - name: web
+    protocol: TCP
+    port: 9090
+    targetPort: web
+  clusterIP: None
+---
+# Prometheus ServiceAccount
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+---
+# Prometheus ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources:
+  - configmaps
+  verbs: ["get"]
+- apiGroups:
+  - networking.k8s.io
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+# Prometheus ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: monitoring
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: schlep-engine-monitoring

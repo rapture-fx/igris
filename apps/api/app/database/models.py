@@ -693,4 +693,106 @@ class RLModelVersion(Base):
         Index('idx_rl_model_versions_session', 'session_id', 'created_at'),
         Index('idx_rl_model_versions_active', 'model_id', 'is_active'),
         Index('idx_rl_model_versions_episode', 'model_id', 'episode'),
+    )
+
+class DataLineageNode(Base):
+    """Data Lineage Node - represents a data entity in the lineage graph"""
+    __tablename__ = "data_lineage_nodes"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    node_id = Column(String(255), unique=True, nullable=False, index=True)  # External unique identifier
+    name = Column(String(500), nullable=False)
+    type = Column(String(100), nullable=False)  # dataset, model, transformation, etc.
+    version = Column(String(100), nullable=False)
+
+    # Content and metadata
+    metadata = Column(JSON, default={})
+    schema = Column(JSON, default={})  # Data schema if applicable
+    hash = Column(String(64))  # Content hash for verification
+
+    # Size and statistics
+    size_bytes = Column(Integer)
+    row_count = Column(Integer)
+    column_count = Column(Integer)
+
+    # Ownership and tracking
+    created_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"))
+    session_id = Column(String(255), index=True)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Status
+    is_active = Column(Boolean, default=True)
+    is_archived = Column(Boolean, default=False)
+
+    # Relationships
+    user = relationship("User")
+    organization = relationship("Organization")
+
+    # Self-referential relationships through edges
+    outgoing_edges = relationship("DataLineageEdge", foreign_keys="DataLineageEdge.source_node_id", back_populates="source_node")
+    incoming_edges = relationship("DataLineageEdge", foreign_keys="DataLineageEdge.target_node_id", back_populates="target_node")
+
+    # Indexes for performance
+    __table_args__ = (
+        Index('idx_lineage_nodes_node_id', 'node_id'),
+        Index('idx_lineage_nodes_type_created', 'type', 'created_at'),
+        Index('idx_lineage_nodes_session', 'session_id', 'created_at'),
+        Index('idx_lineage_nodes_hash', 'hash'),
+        Index('idx_lineage_nodes_organization', 'organization_id', 'type'),
+    )
+
+class DataLineageEdge(Base):
+    """Data Lineage Edge - represents relationships between data entities"""
+    __tablename__ = "data_lineage_edges"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    edge_id = Column(String(255), unique=True, nullable=False, index=True)
+
+    # Node references
+    source_node_id = Column(String(255), nullable=True, index=True)  # Null for root nodes (ingestion)
+    target_node_id = Column(String(255), nullable=False, index=True)
+
+    # Event details
+    event_type = Column(String(100), nullable=False)  # data_ingestion, transformation, etc.
+    transformation_details = Column(JSON, default={})
+
+    # Performance metrics
+    processing_time = Column(Float)  # Processing time in seconds
+    memory_usage = Column(Integer)   # Memory usage in bytes
+    cpu_usage = Column(Float)        # CPU usage percentage
+
+    # Ownership and tracking
+    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    session_id = Column(String(255), index=True)
+    job_id = Column(String(255), index=True)  # Link to processing job
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    started_at = Column(DateTime(timezone=True))
+    completed_at = Column(DateTime(timezone=True))
+
+    # Status
+    status = Column(String(50), default="completed")  # pending, running, completed, failed
+
+    # Quality metrics
+    data_quality_score = Column(Float)  # Quality score after transformation
+    validation_passed = Column(Boolean, default=True)
+
+    # Relationships
+    user = relationship("User")
+    source_node = relationship("DataLineageNode", foreign_keys=[source_node_id], back_populates="outgoing_edges")
+    target_node = relationship("DataLineageNode", foreign_keys=[target_node_id], back_populates="incoming_edges")
+
+    # Indexes for performance
+    __table_args__ = (
+        Index('idx_lineage_edges_edge_id', 'edge_id'),
+        Index('idx_lineage_edges_source_target', 'source_node_id', 'target_node_id'),
+        Index('idx_lineage_edges_target_event', 'target_node_id', 'event_type'),
+        Index('idx_lineage_edges_session', 'session_id', 'created_at'),
+        Index('idx_lineage_edges_event_type', 'event_type', 'created_at'),
+        Index('idx_lineage_edges_user_created', 'user_id', 'created_at'),
     ) 

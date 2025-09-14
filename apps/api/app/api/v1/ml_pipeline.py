@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 import logging
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.database.connection import get_async_session
 from app.auth.unified_auth_system import get_current_user
@@ -204,8 +204,40 @@ async def train_ml_pipeline(
             joblib.dump(model, f"{model_dir}/model.pkl")
             joblib.dump(scaler, f"{model_dir}/scaler.pkl")
             
+            # ENHANCED: Track model performance with monitoring system
+            from app.services.monitoring.ml_performance_monitor import ml_performance_monitor, PerformanceMetrics
+
+            try:
+                # Create performance metrics object
+                performance_metrics = PerformanceMetrics(
+                    model_id=pipeline_id,
+                    timestamp=datetime.utcnow().replace(tzinfo=timezone.utc),
+                    accuracy=metrics.get('accuracy'),
+                    precision=metrics.get('precision'),
+                    recall=metrics.get('recall'),
+                    f1_score=metrics.get('f1_score'),
+                    auc_score=metrics.get('roc_auc'),
+                    mae=metrics.get('mae'),
+                    mse=metrics.get('mse'),
+                    rmse=metrics.get('rmse'),
+                    r2_score=metrics.get('r2_score')
+                )
+
+                # Update performance monitoring
+                monitoring_result = await ml_performance_monitor.update_model_performance(
+                    model_id=pipeline_id,
+                    performance_metrics=performance_metrics,
+                    batch_size=len(X_train)
+                )
+
+                logger.info(f"Performance monitoring updated for {pipeline_id}: {monitoring_result.get('alerts_triggered', 0)} alerts triggered")
+
+            except Exception as monitoring_error:
+                logger.warning(f"Failed to update performance monitoring: {monitoring_error}")
+                # Don't fail the entire pipeline if monitoring fails
+
             logger.info(f"Successfully trained {model_type} model with metrics: {metrics}")
-            
+
             return MLPipelineResponse(
                 success=True,
                 message="ML pipeline training completed successfully",
