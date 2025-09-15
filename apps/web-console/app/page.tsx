@@ -118,13 +118,13 @@ const ConsoleHeader: React.FC = () => {
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
           
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-6">
             <Link href="http://localhost:3000">
-              <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[52px] h-[52px]" />
+              <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[40px] h-[40px]" />
             </Link>
+            <AuthButton />
           </div>
           <nav className="flex items-center justify-end flex-grow space-x-6">
-            <AuthButton />
           </nav>
         </div>
       </div>
@@ -197,8 +197,8 @@ export default function ConsolePage() {
         </div>
         
         {/* Image positioned to cover right half from top to bottom */}
-        <div className="fixed top-0 right-0 w-1/2 h-screen border-l border-gray-200 dark:border-gray-700">
-          <img src="/Landing Page Description.svg" alt="Landing Page Description" className="w-full h-full object-cover" />
+        <div className="fixed top-0 right-0 w-1/2 h-screen border-gray-200 dark:border-gray-700 pt-4 pr-4 pb-4">
+          <img src="/Landing Page Description.svg" alt="Landing Page Description" className="w-full h-full object-cover rounded-lg" />
         </div>
       </div>
       
