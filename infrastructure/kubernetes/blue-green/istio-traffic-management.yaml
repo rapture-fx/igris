@@ -1,0 +1,435 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: schlep-engine-gateway
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: gateway
+    app.kubernetes.io/component: istio
+    deployment.schlep-engine.com/component: traffic-management
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - api.schlep-engine.com
+    - schlep-engine.com
+    - admin.schlep-engine.com
+    - docs.schlep-engine.com
+    - console.schlep-engine.com
+    tls:
+      httpsRedirect: true
+  - port:
+      number: 443
+      name: https
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: schlep-engine-tls
+    hosts:
+    - api.schlep-engine.com
+    - schlep-engine.com
+    - admin.schlep-engine.com
+    - docs.schlep-engine.com
+    - console.schlep-engine.com
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: api-blue-green-vs
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: traffic-routing
+    deployment.schlep-engine.com/type: blue-green
+spec:
+  hosts:
+  - api.schlep-engine.com
+  gateways:
+  - schlep-engine-gateway
+  http:
+  # Health check routing - always go to active deployment
+  - match:
+    - uri:
+        prefix: "/health"
+    - uri:
+        prefix: "/api/v1/health"
+    route:
+    - destination:
+        host: api-service-blue
+        port:
+          number: 80
+      weight: 100
+    headers:
+      response:
+        add:
+          X-Deployment-Color: "blue"
+          X-Traffic-Type: "health-check"
+  # Canary deployment header-based routing
+  - match:
+    - headers:
+        X-Canary-Deployment:
+          exact: "green"
+    route:
+    - destination:
+        host: api-service-green
+        port:
+          number: 80
+      weight: 100
+    headers:
+      response:
+        add:
+          X-Deployment-Color: "green"
+          X-Traffic-Type: "canary"
+  # Beta testing with custom header
+  - match:
+    - headers:
+        X-Beta-User:
+          exact: "true"
+    route:
+    - destination:
+        host: api-service-green
+        port:
+          number: 80
+      weight: 100
+    headers:
+      response:
+        add:
+          X-Deployment-Color: "green"
+          X-Traffic-Type: "beta"
+  # Gradual rollout based on user segment
+  - match:
+    - headers:
+        User-Segment:
+          exact: "early-adopters"
+    route:
+    - destination:
+        host: api-service-green
+        port:
+          number: 80
+      weight: 100
+    - destination:
+        host: api-service-blue
+        port:
+          number: 80
+      weight: 0
+    headers:
+      response:
+        add:
+          X-Deployment-Color: "green"
+          X-Traffic-Type: "early-adopter"
+  # Default traffic routing with weighted distribution
+  - route:
+    - destination:
+        host: api-service-blue
+        port:
+          number: 80
+      weight: 100  # Initially 100% to blue
+    - destination:
+        host: api-service-green
+        port:
+          number: 80
+      weight: 0    # Initially 0% to green
+    headers:
+      response:
+        add:
+          X-Deployment-Color: "blue"
+          X-Traffic-Type: "production"
+    fault:
+      delay:
+        percentage:
+          value: 0.001  # 0.001% delay for chaos engineering
+        fixedDelay: 5s
+    timeout: 30s
+    retries:
+      attempts: 3
+      perTryTimeout: 10s
+      retryOn: 5xx,reset,connect-failure,refused-stream
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: frontend-blue-green-vs
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/component: traffic-routing
+    deployment.schlep-engine.com/type: blue-green
+spec:
+  hosts:
+  - schlep-engine.com
+  - admin.schlep-engine.com
+  - docs.schlep-engine.com
+  - console.schlep-engine.com
+  gateways:
+  - schlep-engine-gateway
+  http:
+  # Admin dashboard routing
+  - match:
+    - uri:
+        prefix: "/admin"
+    headers:
+      X-Canary-Deployment:
+        exact: "green"
+    route:
+    - destination:
+        host: admin-service-green
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: "/admin"
+    route:
+    - destination:
+        host: admin-service-blue
+        port:
+          number: 80
+  # Documentation routing
+  - match:
+    - uri:
+        prefix: "/docs"
+    headers:
+      X-Canary-Deployment:
+        exact: "green"
+    route:
+    - destination:
+        host: docs-service-green
+        port:
+          number: 80
+  - match:
+    - uri:
+        prefix: "/docs"
+    route:
+    - destination:
+        host: docs-service-blue
+        port:
+          number: 80
+  # Main application routing
+  - route:
+    - destination:
+        host: landing-service-blue
+        port:
+          number: 80
+      weight: 100
+    - destination:
+        host: landing-service-green
+        port:
+          number: 80
+      weight: 0
+    headers:
+      response:
+        add:
+          X-Deployment-Color: "blue"
+          Cache-Control: "public, max-age=300"
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-destination-rule
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: destination-rule
+    deployment.schlep-engine.com/type: blue-green
+spec:
+  host: api-service-blue
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+        tcpKeepalive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+    loadBalancer:
+      simple: LEAST_CONN
+    outlierDetection:
+      consecutiveGatewayErrors: 5
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 50
+  subsets:
+  - name: blue
+    labels:
+      deployment: blue
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 100
+        http:
+          http1MaxPendingRequests: 50
+  - name: green
+    labels:
+      deployment: green
+    trafficPolicy:
+      connectionPool:
+        tcp:
+          maxConnections: 100
+        http:
+          http1MaxPendingRequests: 50
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: api-service-green-destination-rule
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: api
+    app.kubernetes.io/component: destination-rule
+    deployment.schlep-engine.com/type: blue-green
+spec:
+  host: api-service-green
+  trafficPolicy:
+    connectionPool:
+      tcp:
+        maxConnections: 100
+        connectTimeout: 10s
+        tcpKeepalive:
+          time: 7200s
+          interval: 75s
+      http:
+        http1MaxPendingRequests: 50
+        http2MaxRequests: 100
+        maxRequestsPerConnection: 2
+        maxRetries: 3
+        consecutiveGatewayErrors: 5
+        interval: 30s
+        baseEjectionTime: 30s
+        maxEjectionPercent: 50
+    loadBalancer:
+      simple: LEAST_CONN
+    outlierDetection:
+      consecutiveGatewayErrors: 5
+      consecutive5xxErrors: 5
+      interval: 30s
+      baseEjectionTime: 30s
+      maxEjectionPercent: 50
+      minHealthPercent: 50
+---
+# Traffic splitting configuration map for dynamic updates
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traffic-split-config
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: traffic-split
+    app.kubernetes.io/component: configuration
+    deployment.schlep-engine.com/type: blue-green
+data:
+  # Traffic split percentages (updated during deployment)
+  blue-percentage: "100"
+  green-percentage: "0"
+  # Deployment status
+  active-deployment: "blue"
+  canary-enabled: "false"
+  # Feature flags
+  enable-header-routing: "true"
+  enable-beta-testing: "true"
+  enable-chaos-engineering: "false"
+  # Rollout configuration
+  rollout-strategy: "gradual"  # gradual, immediate, canary
+  rollout-increment: "10"      # percentage increment for gradual rollout
+  rollout-interval: "300"      # seconds between rollout increments
+  # Monitoring thresholds
+  error-rate-threshold: "5"    # percentage
+  latency-threshold: "1000"    # milliseconds
+  success-rate-threshold: "95" # percentage
+---
+# ServiceMonitor for traffic metrics
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: istio-proxy-traffic-monitor
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: istio-proxy
+    app.kubernetes.io/component: monitoring
+    deployment.schlep-engine.com/type: blue-green
+spec:
+  selector:
+    matchLabels:
+      app: istio-proxy
+  endpoints:
+  - port: http-monitoring
+    interval: 30s
+    path: /stats/prometheus
+    relabelings:
+    - sourceLabels: [__meta_kubernetes_pod_label_deployment]
+      targetLabel: deployment_color
+    - sourceLabels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+      targetLabel: service_name
+  namespaceSelector:
+    matchNames:
+    - schlep-engine
+---
+# PeerAuthentication for mTLS
+apiVersion: security.istio.io/v1beta1
+kind: PeerAuthentication
+metadata:
+  name: schlep-engine-mtls
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: peer-authentication
+    app.kubernetes.io/component: security
+    deployment.schlep-engine.com/type: blue-green
+spec:
+  mtls:
+    mode: STRICT
+---
+# AuthorizationPolicy for blue-green deployments
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: blue-green-authorization
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: authorization-policy
+    app.kubernetes.io/component: security
+    deployment.schlep-engine.com/type: blue-green
+spec:
+  rules:
+  # Allow traffic to blue deployment (production)
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    when:
+    - key: destination.labels[deployment]
+      values: ["blue"]
+  # Allow traffic to green deployment (canary/testing)
+  - to:
+    - operation:
+        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+    when:
+    - key: destination.labels[deployment]
+      values: ["green"]
+    - key: request.headers[X-Canary-Deployment]
+      values: ["green"]
+  # Allow health checks to both deployments
+  - to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/health", "/api/v1/health", "/health/*"]
+  # Allow monitoring traffic
+  - to:
+    - operation:
+        methods: ["GET"]
+        paths: ["/metrics", "/stats/prometheus"]
+    when:
+    - key: source.labels[app]
+      values: ["prometheus"]

@@ -1,0 +1,156 @@
+---
+# Vault Initialization Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init
+  namespace: vault-system
+  labels:
+    app.kubernetes.io/name: vault-init
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault-init
+    spec:
+      serviceAccountName: vault
+      restartPolicy: OnFailure
+      containers:
+      - name: vault-init
+        image: hashicorp/vault:1.15.0
+        env:
+        - name: VAULT_ADDR
+          value: "https://vault.vault-system.svc.cluster.local:8200"
+        - name: VAULT_SKIP_VERIFY
+          value: "false"
+        - name: VAULT_CACERT
+          value: "/vault/tls/ca.crt"
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+
+          echo "Waiting for Vault to be ready..."
+          until vault status; do
+            echo "Vault not ready, waiting..."
+            sleep 5
+          done
+
+          # Check if Vault is already initialized
+          if vault status | grep -q "Initialized.*true"; then
+            echo "Vault is already initialized"
+            exit 0
+          fi
+
+          echo "Initializing Vault..."
+          vault operator init \
+            -key-shares=5 \
+            -key-threshold=3 \
+            -format=json > /tmp/vault-init.json
+
+          # Store unseal keys and root token in Kubernetes secrets
+          UNSEAL_KEY_1=$(cat /tmp/vault-init.json | jq -r '.unseal_keys_b64[0]')
+          UNSEAL_KEY_2=$(cat /tmp/vault-init.json | jq -r '.unseal_keys_b64[1]')
+          UNSEAL_KEY_3=$(cat /tmp/vault-init.json | jq -r '.unseal_keys_b64[2]')
+          UNSEAL_KEY_4=$(cat /tmp/vault-init.json | jq -r '.unseal_keys_b64[3]')
+          UNSEAL_KEY_5=$(cat /tmp/vault-init.json | jq -r '.unseal_keys_b64[4]')
+          ROOT_TOKEN=$(cat /tmp/vault-init.json | jq -r '.root_token')
+
+          # Create secret with unseal keys (encrypted at rest in etcd)
+          kubectl create secret generic vault-unseal-keys \
+            --from-literal=key1="$UNSEAL_KEY_1" \
+            --from-literal=key2="$UNSEAL_KEY_2" \
+            --from-literal=key3="$UNSEAL_KEY_3" \
+            --from-literal=key4="$UNSEAL_KEY_4" \
+            --from-literal=key5="$UNSEAL_KEY_5" \
+            --namespace=vault-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Create secret with root token (for emergency use only)
+          kubectl create secret generic vault-root-token \
+            --from-literal=token="$ROOT_TOKEN" \
+            --namespace=vault-system \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          echo "Vault initialization complete"
+
+          # Unseal Vault
+          echo "Unsealing Vault..."
+          vault operator unseal "$UNSEAL_KEY_1"
+          vault operator unseal "$UNSEAL_KEY_2"
+          vault operator unseal "$UNSEAL_KEY_3"
+
+          echo "Vault is now unsealed and ready"
+        volumeMounts:
+        - name: tls
+          mountPath: /vault/tls
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: vault-tls
+---
+# Vault Auto-Unseal Job (runs after initialization)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-unseal
+  namespace: vault-system
+  labels:
+    app.kubernetes.io/name: vault-unseal
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault-unseal
+    spec:
+      serviceAccountName: vault
+      restartPolicy: OnFailure
+      containers:
+      - name: vault-unseal
+        image: hashicorp/vault:1.15.0
+        env:
+        - name: VAULT_ADDR
+          value: "https://vault.vault-system.svc.cluster.local:8200"
+        - name: VAULT_SKIP_VERIFY
+          value: "false"
+        - name: VAULT_CACERT
+          value: "/vault/tls/ca.crt"
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+
+          echo "Checking Vault seal status..."
+
+          # Check if Vault is sealed
+          if ! vault status | grep -q "Sealed.*true"; then
+            echo "Vault is already unsealed"
+            exit 0
+          fi
+
+          echo "Vault is sealed, attempting to unseal..."
+
+          # Get unseal keys from Kubernetes secret
+          UNSEAL_KEY_1=$(kubectl get secret vault-unseal-keys -n vault-system -o jsonpath='{.data.key1}' | base64 -d)
+          UNSEAL_KEY_2=$(kubectl get secret vault-unseal-keys -n vault-system -o jsonpath='{.data.key2}' | base64 -d)
+          UNSEAL_KEY_3=$(kubectl get secret vault-unseal-keys -n vault-system -o jsonpath='{.data.key3}' | base64 -d)
+
+          # Unseal Vault
+          vault operator unseal "$UNSEAL_KEY_1"
+          vault operator unseal "$UNSEAL_KEY_2"
+          vault operator unseal "$UNSEAL_KEY_3"
+
+          echo "Vault successfully unsealed"
+        volumeMounts:
+        - name: tls
+          mountPath: /vault/tls
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: vault-tls

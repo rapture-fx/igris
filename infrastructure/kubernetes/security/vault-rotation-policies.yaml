@@ -1,0 +1,377 @@
+---
+# Vault Configuration Job for Secret Rotation Policies
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-configure-rotation
+  namespace: vault-system
+  labels:
+    app.kubernetes.io/name: vault-configure
+    app.kubernetes.io/version: "1.0.0"
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vault-configure
+    spec:
+      serviceAccountName: vault
+      restartPolicy: OnFailure
+      containers:
+      - name: vault-configure
+        image: hashicorp/vault:1.15.0
+        env:
+        - name: VAULT_ADDR
+          value: "https://vault.vault-system.svc.cluster.local:8200"
+        - name: VAULT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: vault-root-token
+              key: token
+        - name: VAULT_SKIP_VERIFY
+          value: "false"
+        - name: VAULT_CACERT
+          value: "/vault/tls/ca.crt"
+        command:
+        - sh
+        - -c
+        - |
+          set -e
+
+          echo "Waiting for Vault to be ready and unsealed..."
+          until vault status | grep -q "Sealed.*false"; do
+            echo "Vault not ready or sealed, waiting..."
+            sleep 10
+          done
+
+          echo "Vault is ready, configuring secret rotation policies..."
+
+          # Enable database secrets engine
+          vault secrets enable -path=database database || echo "Database engine already enabled"
+
+          # Configure PostgreSQL database connection
+          vault write database/config/postgresql \
+            plugin_name=postgresql-database-plugin \
+            connection_url="postgresql://{{username}}:{{password}}@postgres.schlep-engine.svc.cluster.local:5432/schlep_engine?sslmode=prefer" \
+            allowed_roles="schlep-engine-role" \
+            username="postgres" \
+            password="$POSTGRES_ADMIN_PASSWORD" \
+            password_policy="postgresql-password-policy"
+
+          # Create password policy for PostgreSQL
+          vault write sys/policies/password/postgresql-password-policy policy=-<<EOF
+          length = 32
+          rule "charset" {
+            charset = "abcdefghijklmnopqrstuvwxyz"
+            min-chars = 8
+          }
+          rule "charset" {
+            charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+            min-chars = 8
+          }
+          rule "charset" {
+            charset = "0123456789"
+            min-chars = 8
+          }
+          rule "charset" {
+            charset = "!@#$%^&*"
+            min-chars = 4
+          }
+          EOF
+
+          # Create database role with rotation
+          vault write database/roles/schlep-engine-role \
+            db_name=postgresql \
+            creation_statements="CREATE ROLE \"{{name}}\" WITH LOGIN PASSWORD '{{password}}' VALID UNTIL '{{expiration}}'; GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO \"{{name}}\"; GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO \"{{name}}\";" \
+            revocation_statements="REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA public FROM \"{{name}}\"; REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public FROM \"{{name}}\"; DROP ROLE IF EXISTS \"{{name}}\";" \
+            default_ttl="24h" \
+            max_ttl="72h"
+
+          # Enable Redis database connection (if using Vault Enterprise or Redis plugin)
+          # Configure Redis connection for credential rotation
+          vault write database/config/redis \
+            plugin_name=redis-database-plugin \
+            connection_url="redis://redis.schlep-engine.svc.cluster.local:6379" \
+            allowed_roles="redis-role" \
+            username="default" \
+            password="$REDIS_ADMIN_PASSWORD" || echo "Redis plugin not available in OSS version"
+
+          # Enable KV v2 secrets engine for application secrets
+          vault secrets enable -path=secret kv-v2 || echo "KV engine already enabled"
+
+          # Create secret rotation policies for application secrets
+          vault policy write schlep-engine-secrets - <<EOF
+          # Read/write access to application secrets
+          path "secret/data/application/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+
+          # Read/write access to database secrets
+          path "secret/data/database/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+
+          # Read/write access to OAuth secrets
+          path "secret/data/oauth/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+
+          # Read/write access to storage secrets
+          path "secret/data/storage/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+
+          # Read/write access to monitoring secrets
+          path "secret/data/monitoring/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+
+          # Read/write access to SMTP secrets
+          path "secret/data/smtp/*" {
+            capabilities = ["create", "read", "update", "delete", "list"]
+          }
+
+          # Database credential generation
+          path "database/creds/schlep-engine-role" {
+            capabilities = ["read"]
+          }
+
+          # Auth token creation for app authentication
+          path "auth/token/create" {
+            capabilities = ["create", "update"]
+          }
+          EOF
+
+          # Enable Kubernetes auth method
+          vault auth enable -path=kubernetes kubernetes || echo "Kubernetes auth already enabled"
+
+          # Configure Kubernetes auth
+          vault write auth/kubernetes/config \
+            kubernetes_host="https://kubernetes.default.svc.cluster.local" \
+            kubernetes_ca_cert=@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+
+          # Create Kubernetes auth role for schlep-engine
+          vault write auth/kubernetes/role/schlep-engine \
+            bound_service_account_names=schlep-engine-vault-auth \
+            bound_service_account_namespaces=schlep-engine \
+            policies=schlep-engine-secrets \
+            ttl=24h
+
+          # Enable periodic token renewal for long-running processes
+          vault write auth/kubernetes/role/schlep-engine-long \
+            bound_service_account_names=schlep-engine-vault-auth \
+            bound_service_account_namespaces=schlep-engine \
+            policies=schlep-engine-secrets \
+            ttl=24h \
+            max_ttl=720h \
+            period=24h
+
+          # Enable JWT auth for application instances
+          vault auth enable -path=jwt jwt || echo "JWT auth already enabled"
+
+          # Configure JWT auth for service-to-service authentication
+          vault write auth/jwt/config \
+            bound_issuer="schlep-engine" \
+            jwks_url="https://vault.vault-system.svc.cluster.local:8200/v1/identity/oidc/keys"
+
+          echo "Secret rotation policies configured successfully"
+        volumeMounts:
+        - name: tls
+          mountPath: /vault/tls
+          readOnly: true
+      volumes:
+      - name: tls
+        secret:
+          secretName: vault-tls
+---
+# CronJob for automated database credential rotation
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: database-credential-rotation
+  namespace: vault-system
+  labels:
+    app.kubernetes.io/name: credential-rotation
+    app.kubernetes.io/component: database
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: vault
+          restartPolicy: OnFailure
+          containers:
+          - name: rotate-credentials
+            image: hashicorp/vault:1.15.0
+            env:
+            - name: VAULT_ADDR
+              value: "https://vault.vault-system.svc.cluster.local:8200"
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-rotation-token
+                  key: token
+            command:
+            - sh
+            - -c
+            - |
+              set -e
+
+              echo "Starting database credential rotation..."
+
+              # Rotate PostgreSQL credentials
+              echo "Rotating PostgreSQL credentials..."
+              NEW_CREDS=$(vault read -format=json database/creds/schlep-engine-role)
+
+              if [ $? -eq 0 ]; then
+                echo "New database credentials generated successfully"
+
+                # Update the secret in Vault KV store for External Secrets to pick up
+                USERNAME=$(echo "$NEW_CREDS" | jq -r '.data.username')
+                PASSWORD=$(echo "$NEW_CREDS" | jq -r '.data.password')
+
+                vault kv put secret/database/postgres \
+                  username="$USERNAME" \
+                  password="$PASSWORD" \
+                  rotation_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  rotated_by="automated-rotation"
+
+                echo "Database credentials rotated and stored in KV store"
+
+                # Trigger External Secrets refresh by updating annotation
+                kubectl annotate externalsecret schlep-engine-external-secrets \
+                  -n schlep-engine \
+                  force-sync="$(date +%s)" --overwrite
+
+                echo "External Secrets refresh triggered"
+              else
+                echo "Failed to generate new database credentials"
+                exit 1
+              fi
+            volumeMounts:
+            - name: tls
+              mountPath: /vault/tls
+              readOnly: true
+          volumes:
+          - name: tls
+            secret:
+              secretName: vault-tls
+---
+# CronJob for JWT signing key rotation
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jwt-key-rotation
+  namespace: vault-system
+  labels:
+    app.kubernetes.io/name: credential-rotation
+    app.kubernetes.io/component: jwt
+spec:
+  schedule: "0 3 */7 * *"  # Weekly on Sunday at 3 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 2
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: vault
+          restartPolicy: OnFailure
+          containers:
+          - name: rotate-jwt-keys
+            image: hashicorp/vault:1.15.0
+            env:
+            - name: VAULT_ADDR
+              value: "https://vault.vault-system.svc.cluster.local:8200"
+            - name: VAULT_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vault-rotation-token
+                  key: token
+            command:
+            - sh
+            - -c
+            - |
+              set -e
+
+              echo "Starting JWT signing key rotation..."
+
+              # Generate new JWT signing key (32-byte key for HMAC-SHA256)
+              NEW_JWT_KEY=$(openssl rand -base64 32)
+
+              # Store old key for grace period (allow verification of existing tokens)
+              OLD_JWT_KEY=$(vault kv get -field=secret_key secret/application/jwt 2>/dev/null || echo "")
+
+              if [ ! -z "$OLD_JWT_KEY" ]; then
+                vault kv put secret/application/jwt-old \
+                  secret_key="$OLD_JWT_KEY" \
+                  rotation_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                  expires_at="$(date -u -d '+7 days' +%Y-%m-%dT%H:%M:%SZ)"
+              fi
+
+              # Store new JWT key
+              vault kv put secret/application/jwt \
+                secret_key="$NEW_JWT_KEY" \
+                algorithm="HS256" \
+                rotation_date="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+                rotated_by="automated-rotation"
+
+              echo "JWT signing key rotated successfully"
+
+              # Trigger External Secrets refresh
+              kubectl annotate externalsecret schlep-engine-external-secrets \
+                -n schlep-engine \
+                jwt-rotation="$(date +%s)" --overwrite
+
+              echo "JWT key rotation completed"
+            volumeMounts:
+            - name: tls
+              mountPath: /vault/tls
+              readOnly: true
+          volumes:
+          - name: tls
+            secret:
+              secretName: vault-tls
+---
+# Service Account for rotation jobs
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vault-rotation
+  namespace: vault-system
+  labels:
+    app.kubernetes.io/name: vault-rotation
+---
+# ClusterRole for rotation operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vault-rotation
+  labels:
+    app.kubernetes.io/name: vault-rotation
+rules:
+- apiGroups: ["external-secrets.io"]
+  resources: ["externalsecrets"]
+  verbs: ["get", "list", "patch", "update"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "patch", "update"]
+---
+# ClusterRoleBinding for rotation operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vault-rotation
+  labels:
+    app.kubernetes.io/name: vault-rotation
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vault-rotation
+subjects:
+- kind: ServiceAccount
+  name: vault-rotation
+  namespace: vault-system

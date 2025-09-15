@@ -1,0 +1,421 @@
+# Advanced Tiered Alerting Rules with Business Impact Classification
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-advanced-alerts
+  namespace: schlep-engine-monitoring
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/component: alerting
+data:
+  advanced_alert_rules.yml: |
+    groups:
+    # =================================================================
+    # EMERGENCY TIER - Critical business impact, immediate response
+    # =================================================================
+    - name: emergency.business.impact
+      interval: 30s
+      rules:
+      # Complete service outage
+      - alert: EmergencyServiceDown
+        expr: up{service="schlep-engine-api"} == 0
+        for: 30s
+        labels:
+          severity: emergency
+          tier: emergency
+          business_impact: critical
+          category: service_availability
+          sla_breach: "true"
+          runbook_url: "https://runbooks.schlep-engine.com/emergency/service-down"
+          dashboard_url: "https://grafana.schlep-engine.com/d/service-overview"
+          escalation_level: "page_oncall"
+        annotations:
+          summary: "EMERGENCY: Schlep Engine API is completely down"
+          description: "The main API service has been unavailable for {{ $value }} seconds. This affects all users and revenue generation."
+          impact: "100% user impact, complete revenue loss"
+          sla_impact: "Primary SLA breach - 99.9% uptime violated"
+          action_required: "Immediate investigation and recovery"
+          escalation_time: "0 minutes"
+
+      # Database cluster failure
+      - alert: EmergencyDatabaseClusterDown
+        expr: (count(up{service="postgres"} == 1) / count(up{service="postgres"})) < 0.5
+        for: 1m
+        labels:
+          severity: emergency
+          tier: emergency
+          business_impact: critical
+          category: data_infrastructure
+          sla_breach: "true"
+          runbook_url: "https://runbooks.schlep-engine.com/emergency/database-cluster"
+          escalation_level: "page_oncall"
+        annotations:
+          summary: "EMERGENCY: Database cluster majority failure"
+          description: "More than 50% of database nodes are down. Data consistency and availability at risk."
+          impact: "Data operations severely impacted, potential data loss risk"
+          sla_impact: "Data consistency SLA at risk"
+          action_required: "Immediate database recovery procedures"
+
+      # Critical business metric failure
+      - alert: EmergencyRevenueStreamDown
+        expr: rate(business_transactions_total{status="completed"}[5m]) < 0.1 * rate(business_transactions_total{status="completed"}[1h] offset 1h)
+        for: 2m
+        labels:
+          severity: emergency
+          tier: emergency
+          business_impact: critical
+          category: business_revenue
+          sla_breach: "true"
+          runbook_url: "https://runbooks.schlep-engine.com/emergency/revenue-loss"
+          escalation_level: "page_oncall"
+        annotations:
+          summary: "EMERGENCY: Revenue stream severely degraded"
+          description: "Transaction completion rate has dropped by 90% compared to historical baseline"
+          impact: "Direct revenue impact, customer trust at risk"
+          sla_impact: "Business SLA breach - transaction processing"
+          action_required: "Immediate business impact investigation"
+
+    # =================================================================
+    # CRITICAL TIER - Severe degradation, response within 15 minutes
+    # =================================================================
+    - name: critical.business.impact
+      interval: 45s
+      rules:
+      # High API error rate with business impact
+      - alert: CriticalAPIErrorRateSpike
+        expr: (rate(http_requests_total{service="schlep-engine-api",status=~"5.."}[5m]) / rate(http_requests_total{service="schlep-engine-api"}[5m])) * 100 > 15
+        for: 3m
+        labels:
+          severity: critical
+          tier: critical
+          business_impact: high
+          category: api_reliability
+          sla_breach: "true"
+          runbook_url: "https://runbooks.schlep-engine.com/critical/api-errors"
+          dashboard_url: "https://grafana.schlep-engine.com/d/api-errors"
+          escalation_level: "alert_team"
+        annotations:
+          summary: "CRITICAL: API error rate exceeds 15%"
+          description: "API error rate is {{ $value | printf \"%.1f\" }}% over the last 5 minutes"
+          impact: "Significant user experience degradation, customer complaints likely"
+          sla_impact: "API reliability SLA at risk - 99.5% success rate"
+          action_required: "Investigate error patterns and implement fixes"
+          response_time_sla: "15 minutes"
+
+      # Database performance critical degradation
+      - alert: CriticalDatabasePerformanceDegradation
+        expr: histogram_quantile(0.95, rate(postgres_query_duration_seconds_bucket[5m])) > 5.0
+        for: 5m
+        labels:
+          severity: critical
+          tier: critical
+          business_impact: high
+          category: database_performance
+          sla_breach: "true"
+          runbook_url: "https://runbooks.schlep-engine.com/critical/database-performance"
+          escalation_level: "alert_team"
+        annotations:
+          summary: "CRITICAL: Database query performance severely degraded"
+          description: "95th percentile query time is {{ $value | printf \"%.2f\" }}s, exceeding 5s threshold"
+          impact: "User experience severely impacted, timeout errors likely"
+          sla_impact: "Database performance SLA breach"
+          action_required: "Investigate slow queries and optimize database"
+
+      # Security breach detected
+      - alert: CriticalSecurityBreachDetected
+        expr: rate(security_events_total{severity="critical"}[5m]) > 5
+        for: 1m
+        labels:
+          severity: critical
+          tier: critical
+          business_impact: high
+          category: security
+          sla_breach: "true"
+          runbook_url: "https://runbooks.schlep-engine.com/critical/security-breach"
+          escalation_level: "page_security_team"
+        annotations:
+          summary: "CRITICAL: Multiple critical security events detected"
+          description: "{{ $value | printf \"%.0f\" }} critical security events detected in the last 5 minutes"
+          impact: "Potential data breach, customer data at risk"
+          sla_impact: "Security SLA breach - immediate containment required"
+          action_required: "Activate security incident response plan"
+
+      # ML model accuracy critical drop
+      - alert: CriticalMLModelAccuracyDrop
+        expr: ml_model_accuracy_score < 0.7
+        for: 10m
+        labels:
+          severity: critical
+          tier: critical
+          business_impact: high
+          category: ml_performance
+          sla_breach: "true"
+          runbook_url: "https://runbooks.schlep-engine.com/critical/ml-accuracy"
+          escalation_level: "alert_ml_team"
+        annotations:
+          summary: "CRITICAL: ML model accuracy dropped below threshold"
+          description: "Model accuracy is {{ $value | printf \"%.3f\" }}, below critical threshold of 0.7"
+          impact: "Model predictions unreliable, business decisions affected"
+          sla_impact: "ML performance SLA breach"
+          action_required: "Investigate model drift and retrain if necessary"
+
+    # =================================================================
+    # HIGH TIER - Significant issues, response within 1 hour
+    # =================================================================
+    - name: high.business.impact
+      interval: 60s
+      rules:
+      # API response time degradation
+      - alert: HighAPIResponseTimeDegradation
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service="schlep-engine-api"}[10m])) > 2.0
+        for: 10m
+        labels:
+          severity: high
+          tier: high
+          business_impact: medium
+          category: api_performance
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/high/api-performance"
+          dashboard_url: "https://grafana.schlep-engine.com/d/api-performance"
+          escalation_level: "alert_team"
+        annotations:
+          summary: "HIGH: API response time degraded"
+          description: "95th percentile API response time is {{ $value | printf \"%.3f\" }}s"
+          impact: "User experience degraded, potential customer dissatisfaction"
+          sla_impact: "Approaching performance SLA limits"
+          action_required: "Investigate performance bottlenecks"
+          response_time_sla: "1 hour"
+
+      # Business transaction failure rate elevated
+      - alert: HighBusinessTransactionFailureRate
+        expr: (rate(business_transactions_total{status="failed"}[10m]) / rate(business_transactions_total[10m])) * 100 > 5
+        for: 15m
+        labels:
+          severity: high
+          tier: high
+          business_impact: medium
+          category: business_transactions
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/high/transaction-failures"
+          escalation_level: "alert_team"
+        annotations:
+          summary: "HIGH: Business transaction failure rate elevated"
+          description: "Transaction failure rate is {{ $value | printf \"%.1f\" }}%"
+          impact: "Revenue loss, customer experience degraded"
+          sla_impact: "Business transaction SLA at risk"
+          action_required: "Investigate transaction processing pipeline"
+
+      # Data quality score degraded
+      - alert: HighDataQualityDegradation
+        expr: data_quality_score < 0.85
+        for: 20m
+        labels:
+          severity: high
+          tier: high
+          business_impact: medium
+          category: data_quality
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/high/data-quality"
+          escalation_level: "alert_data_team"
+        annotations:
+          summary: "HIGH: Data quality score degraded"
+          description: "Data quality score is {{ $value | printf \"%.3f\" }}, below threshold of 0.85"
+          impact: "ML model performance may degrade, business insights affected"
+          sla_impact: "Data quality SLA approaching breach"
+          action_required: "Investigate data pipeline and quality issues"
+
+      # Memory pressure on critical services
+      - alert: HighMemoryPressureCriticalService
+        expr: (container_memory_usage_bytes{pod=~"api-.*"} / container_spec_memory_limit_bytes) * 100 > 80
+        for: 15m
+        labels:
+          severity: high
+          tier: high
+          business_impact: medium
+          category: resource_utilization
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/high/memory-pressure"
+          escalation_level: "alert_team"
+        annotations:
+          summary: "HIGH: Memory pressure on critical service"
+          description: "Memory usage is {{ $value | printf \"%.1f\" }}% on {{ $labels.pod }}"
+          impact: "Service performance degradation, potential OOM kills"
+          sla_impact: "Service stability at risk"
+          action_required: "Scale up resources or optimize memory usage"
+
+    # =================================================================
+    # WARNING TIER - Early warning, response within 4 hours
+    # =================================================================
+    - name: warning.business.impact
+      interval: 120s
+      rules:
+      # API success rate declining
+      - alert: WarningAPISuccessRateDecline
+        expr: (rate(http_requests_total{service="schlep-engine-api",status=~"2.."}[15m]) / rate(http_requests_total{service="schlep-engine-api"}[15m])) * 100 < 95
+        for: 20m
+        labels:
+          severity: warning
+          tier: warning
+          business_impact: low
+          category: api_reliability
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/warning/api-success-rate"
+          escalation_level: "notify_team"
+        annotations:
+          summary: "WARNING: API success rate declining"
+          description: "API success rate is {{ $value | printf \"%.1f\" }}%, below 95% threshold"
+          impact: "Early indication of potential issues"
+          sla_impact: "Monitor for SLA breach potential"
+          action_required: "Monitor trends and investigate if continues"
+          response_time_sla: "4 hours"
+
+      # Database connection pool utilization high
+      - alert: WarningDatabaseConnectionPoolHigh
+        expr: postgres_stat_database_numbackends / postgres_settings_max_connections * 100 > 70
+        for: 30m
+        labels:
+          severity: warning
+          tier: warning
+          business_impact: low
+          category: database_resources
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/warning/db-connections"
+          escalation_level: "notify_team"
+        annotations:
+          summary: "WARNING: Database connection pool utilization high"
+          description: "Database connection usage is {{ $value | printf \"%.1f\" }}%"
+          impact: "Potential for connection exhaustion under load"
+          sla_impact: "Early warning for capacity planning"
+          action_required: "Monitor and plan for capacity increase"
+
+      # Disk space utilization warning
+      - alert: WarningDiskSpaceUtilization
+        expr: (node_filesystem_size_bytes{mountpoint="/"} - node_filesystem_free_bytes{mountpoint="/"}) / node_filesystem_size_bytes{mountpoint="/"} * 100 > 75
+        for: 60m
+        labels:
+          severity: warning
+          tier: warning
+          business_impact: low
+          category: infrastructure_capacity
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/warning/disk-space"
+          escalation_level: "notify_team"
+        annotations:
+          summary: "WARNING: Disk space utilization high"
+          description: "Disk usage is {{ $value | printf \"%.1f\" }}% on {{ $labels.instance }}"
+          impact: "Preventive maintenance required"
+          sla_impact: "Plan for capacity expansion"
+          action_required: "Clean up logs or expand storage"
+
+    # =================================================================
+    # INFO TIER - Informational alerts, daily review
+    # =================================================================
+    - name: info.business.trends
+      interval: 300s
+      rules:
+      # Business metrics trending
+      - alert: InfoBusinessMetricsTrending
+        expr: increase(business_transactions_total[1h]) / increase(business_transactions_total[1h] offset 24h) < 0.9
+        for: 2h
+        labels:
+          severity: info
+          tier: info
+          business_impact: none
+          category: business_trends
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/info/business-trends"
+          escalation_level: "daily_review"
+        annotations:
+          summary: "INFO: Business transactions trending below yesterday"
+          description: "Transaction volume is {{ $value | printf \"%.1f\" }}x compared to same time yesterday"
+          impact: "Business intelligence - trend monitoring"
+          sla_impact: "No SLA impact"
+          action_required: "Review business trends in daily standup"
+
+      # API usage patterns
+      - alert: InfoAPIUsagePatternChange
+        expr: rate(http_requests_total{service="schlep-engine-api"}[1h]) / rate(http_requests_total{service="schlep-engine-api"}[1h] offset 24h) > 1.5
+        for: 4h
+        labels:
+          severity: info
+          tier: info
+          business_impact: none
+          category: usage_patterns
+          sla_breach: "false"
+          runbook_url: "https://runbooks.schlep-engine.com/info/usage-patterns"
+          escalation_level: "daily_review"
+        annotations:
+          summary: "INFO: API usage increased significantly"
+          description: "API request rate is {{ $value | printf \"%.1f\" }}x compared to yesterday"
+          impact: "Capacity planning insight"
+          sla_impact: "Monitor for capacity needs"
+          action_required: "Review for capacity planning"
+
+    # =================================================================
+    # SLA MONITORING - Dedicated SLA breach tracking
+    # =================================================================
+    - name: sla.monitoring
+      interval: 60s
+      rules:
+      # API Availability SLA (99.9% monthly)
+      - alert: SLAAPIAvailabilityBreach
+        expr: (1 - (rate(http_requests_total{service="schlep-engine-api",status=~"5.."}[30d]) / rate(http_requests_total{service="schlep-engine-api"}[30d]))) * 100 < 99.9
+        for: 5m
+        labels:
+          severity: critical
+          tier: critical
+          business_impact: high
+          category: sla_breach
+          sla_breach: "true"
+          sla_type: "availability"
+          sla_target: "99.9%"
+          runbook_url: "https://runbooks.schlep-engine.com/sla/availability-breach"
+          escalation_level: "page_management"
+        annotations:
+          summary: "SLA BREACH: API availability below 99.9%"
+          description: "30-day API availability is {{ $value | printf \"%.3f\" }}%"
+          impact: "SLA breach - customer credits may apply"
+          sla_impact: "Contract SLA violation"
+          action_required: "Immediate SLA recovery plan activation"
+
+      # API Response Time SLA (95% under 1s)
+      - alert: SLAAPIResponseTimeBreach
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{service="schlep-engine-api"}[30d])) > 1.0
+        for: 10m
+        labels:
+          severity: high
+          tier: high
+          business_impact: high
+          category: sla_breach
+          sla_breach: "true"
+          sla_type: "performance"
+          sla_target: "95% under 1s"
+          runbook_url: "https://runbooks.schlep-engine.com/sla/response-time-breach"
+          escalation_level: "alert_management"
+        annotations:
+          summary: "SLA BREACH: API response time SLA violated"
+          description: "95th percentile response time over 30 days is {{ $value | printf \"%.3f\" }}s"
+          impact: "Performance SLA breach"
+          sla_impact: "Customer experience commitment violated"
+          action_required: "Performance optimization required"
+
+      # Data Processing SLA (99.5% success rate)
+      - alert: SLADataProcessingBreach
+        expr: (rate(ml_pipeline_jobs_total{status="success"}[30d]) / rate(ml_pipeline_jobs_total[30d])) * 100 < 99.5
+        for: 15m
+        labels:
+          severity: high
+          tier: high
+          business_impact: high
+          category: sla_breach
+          sla_breach: "true"
+          sla_type: "data_processing"
+          sla_target: "99.5% success"
+          runbook_url: "https://runbooks.schlep-engine.com/sla/data-processing-breach"
+          escalation_level: "alert_management"
+        annotations:
+          summary: "SLA BREACH: Data processing success rate below 99.5%"
+          description: "30-day data processing success rate is {{ $value | printf \"%.2f\" }}%"
+          impact: "Data pipeline SLA breach"
+          sla_impact: "Data processing commitment violated"
+          action_required: "Data pipeline reliability improvement"

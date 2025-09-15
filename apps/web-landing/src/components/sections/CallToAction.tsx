@@ -28,7 +28,7 @@ export default function CallToAction() {
             </p>
             <a
               href="/dashboard"
-              className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:bg-[#fcfcf7] dark:text-black inline-block"
+              className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg dark:bg-[#fcfcf7] dark:text-black inline-block"
             >
               Get Started for Free
             </a>

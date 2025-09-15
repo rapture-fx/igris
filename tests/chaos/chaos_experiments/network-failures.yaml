@@ -1,0 +1,332 @@
+---
+# Network Latency Injection Chaos Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-network-latency
+  namespace: staging
+  labels:
+    name: pod-network-latency
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: ["apps"]
+        resources: ["deployments","statefulsets","replicasets","daemonsets"]
+        verbs: ["list","get"]
+      - apiGroups: ["apps"]
+        resources: ["deployments/status","statefulsets/status"]
+        verbs: ["get"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name pod-network-latency
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_CONTAINER
+      value: ''
+    - name: NETWORK_INTERFACE
+      value: 'eth0'
+    - name: TC_IMAGE
+      value: 'gaiadocker/iproute2'
+    - name: NETWORK_LATENCY
+      value: '2000'
+    - name: JITTER
+      value: '0'
+    - name: CONTAINER_RUNTIME
+      value: 'containerd'
+    - name: SOCKET_PATH
+      value: '/run/containerd/containerd.sock'
+    - name: TOTAL_CHAOS_DURATION
+      value: '60'
+    - name: RAMP_TIME
+      value: ''
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: PODS_AFFECTED_PERC
+      value: ''
+    - name: TARGET_PODS
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: pod-network-latency
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0
+---
+# Network Packet Loss Chaos Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-network-loss
+  namespace: staging
+  labels:
+    name: pod-network-loss
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: ["apps"]
+        resources: ["deployments","statefulsets","replicasets","daemonsets"]
+        verbs: ["list","get"]
+      - apiGroups: ["apps"]
+        resources: ["deployments/status","statefulsets/status"]
+        verbs: ["get"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name pod-network-loss
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_CONTAINER
+      value: ''
+    - name: NETWORK_INTERFACE
+      value: 'eth0'
+    - name: TC_IMAGE
+      value: 'gaiadocker/iproute2'
+    - name: NETWORK_PACKET_LOSS_PERCENTAGE
+      value: '10'
+    - name: CONTAINER_RUNTIME
+      value: 'containerd'
+    - name: SOCKET_PATH
+      value: '/run/containerd/containerd.sock'
+    - name: TOTAL_CHAOS_DURATION
+      value: '60'
+    - name: RAMP_TIME
+      value: ''
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: PODS_AFFECTED_PERC
+      value: ''
+    - name: TARGET_PODS
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: pod-network-loss
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0
+---
+# Network Corruption Chaos Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-network-corruption
+  namespace: staging
+  labels:
+    name: pod-network-corruption
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: ["apps"]
+        resources: ["deployments","statefulsets","replicasets","daemonsets"]
+        verbs: ["list","get"]
+      - apiGroups: ["apps"]
+        resources: ["deployments/status","statefulsets/status"]
+        verbs: ["get"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name pod-network-corruption
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_CONTAINER
+      value: ''
+    - name: NETWORK_INTERFACE
+      value: 'eth0'
+    - name: TC_IMAGE
+      value: 'gaiadocker/iproute2'
+    - name: NETWORK_PACKET_CORRUPTION_PERCENTAGE
+      value: '5'
+    - name: CONTAINER_RUNTIME
+      value: 'containerd'
+    - name: SOCKET_PATH
+      value: '/run/containerd/containerd.sock'
+    - name: TOTAL_CHAOS_DURATION
+      value: '60'
+    - name: RAMP_TIME
+      value: ''
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: PODS_AFFECTED_PERC
+      value: ''
+    - name: TARGET_PODS
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: pod-network-corruption
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0
+---
+# Network Partition Simulation
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-network-partition
+  namespace: staging
+  labels:
+    name: pod-network-partition
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: ["apps"]
+        resources: ["deployments","statefulsets","replicasets","daemonsets"]
+        verbs: ["list","get"]
+      - apiGroups: ["apps"]
+        resources: ["deployments/status","statefulsets/status"]
+        verbs: ["get"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name pod-network-partition
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_CONTAINER
+      value: ''
+    - name: NETWORK_INTERFACE
+      value: 'eth0'
+    - name: TC_IMAGE
+      value: 'gaiadocker/iproute2'
+    - name: DESTINATION_IPS
+      value: ''
+    - name: DESTINATION_HOSTS
+      value: ''
+    - name: CONTAINER_RUNTIME
+      value: 'containerd'
+    - name: SOCKET_PATH
+      value: '/run/containerd/containerd.sock'
+    - name: TOTAL_CHAOS_DURATION
+      value: '60'
+    - name: RAMP_TIME
+      value: ''
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: PODS_AFFECTED_PERC
+      value: ''
+    - name: TARGET_PODS
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: pod-network-partition
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0

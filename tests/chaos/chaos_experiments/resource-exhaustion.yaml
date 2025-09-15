@@ -1,0 +1,396 @@
+---
+# CPU Stress Chaos Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-cpu-hog
+  namespace: staging
+  labels:
+    name: pod-cpu-hog
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: ["apps"]
+        resources: ["deployments","statefulsets","replicasets","daemonsets"]
+        verbs: ["list","get"]
+      - apiGroups: ["apps"]
+        resources: ["deployments/status","statefulsets/status"]
+        verbs: ["get"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name pod-cpu-hog
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_CONTAINER
+      value: ''
+    - name: CPU_CORES
+      value: '1'
+    - name: CPU_LOAD
+      value: '100'
+    - name: TOTAL_CHAOS_DURATION
+      value: '60'
+    - name: RAMP_TIME
+      value: ''
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: STRESS_IMAGE
+      value: 'alexeiled/stress-ng:latest-ubuntu'
+    - name: CONTAINER_RUNTIME
+      value: 'containerd'
+    - name: SOCKET_PATH
+      value: '/run/containerd/containerd.sock'
+    - name: PODS_AFFECTED_PERC
+      value: ''
+    - name: TARGET_PODS
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: pod-cpu-hog
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0
+---
+# Memory Stress Chaos Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-memory-hog
+  namespace: staging
+  labels:
+    name: pod-memory-hog
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: ["apps"]
+        resources: ["deployments","statefulsets","replicasets","daemonsets"]
+        verbs: ["list","get"]
+      - apiGroups: ["apps"]
+        resources: ["deployments/status","statefulsets/status"]
+        verbs: ["get"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name pod-memory-hog
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_CONTAINER
+      value: ''
+    - name: MEMORY_CONSUMPTION
+      value: '500'
+    - name: NUMBER_OF_WORKERS
+      value: '1'
+    - name: TOTAL_CHAOS_DURATION
+      value: '60'
+    - name: RAMP_TIME
+      value: ''
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: STRESS_IMAGE
+      value: 'alexeiled/stress-ng:latest-ubuntu'
+    - name: CONTAINER_RUNTIME
+      value: 'containerd'
+    - name: SOCKET_PATH
+      value: '/run/containerd/containerd.sock'
+    - name: PODS_AFFECTED_PERC
+      value: ''
+    - name: TARGET_PODS
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: pod-memory-hog
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0
+---
+# Disk IO Stress Chaos Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: pod-io-stress
+  namespace: staging
+  labels:
+    name: pod-io-stress
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Namespaced
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: ["apps"]
+        resources: ["deployments","statefulsets","replicasets","daemonsets"]
+        verbs: ["list","get"]
+      - apiGroups: ["apps"]
+        resources: ["deployments/status","statefulsets/status"]
+        verbs: ["get"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name pod-io-stress
+    command:
+    - /bin/bash
+    env:
+    - name: TARGET_CONTAINER
+      value: ''
+    - name: FILESYSTEM_UTILIZATION_PERCENTAGE
+      value: '10'
+    - name: FILESYSTEM_UTILIZATION_BYTES
+      value: ''
+    - name: NUMBER_OF_WORKERS
+      value: '4'
+    - name: VOLUME_MOUNT_PATH
+      value: ''
+    - name: TOTAL_CHAOS_DURATION
+      value: '120'
+    - name: RAMP_TIME
+      value: ''
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: STRESS_IMAGE
+      value: 'alexeiled/stress-ng:latest-ubuntu'
+    - name: CONTAINER_RUNTIME
+      value: 'containerd'
+    - name: SOCKET_PATH
+      value: '/run/containerd/containerd.sock'
+    - name: PODS_AFFECTED_PERC
+      value: ''
+    - name: TARGET_PODS
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: pod-io-stress
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0
+---
+# Node Memory Hog Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: node-memory-hog
+  namespace: staging
+  labels:
+    name: node-memory-hog
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Cluster
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: [""]
+        resources: ["nodes"]
+        verbs: ["get","list"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name node-memory-hog
+    command:
+    - /bin/bash
+    env:
+    - name: TOTAL_CHAOS_DURATION
+      value: '120'
+    - name: RAMP_TIME
+      value: ''
+    - name: NODE_CPU_CORE
+      value: ''
+    - name: MEMORY_CONSUMPTION_PERCENTAGE
+      value: '30'
+    - name: MEMORY_CONSUMPTION_MEBIBYTES
+      value: ''
+    - name: NUMBER_OF_WORKERS
+      value: '1'
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: STRESS_IMAGE
+      value: 'alexeiled/stress-ng:latest-ubuntu'
+    - name: TARGET_NODES
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: node-memory-hog
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0
+---
+# Node CPU Hog Experiment
+apiVersion: litmuschaos.io/v1alpha1
+kind: ChaosExperiment
+metadata:
+  name: node-cpu-hog
+  namespace: staging
+  labels:
+    name: node-cpu-hog
+    app.kubernetes.io/part-of: litmus
+    app.kubernetes.io/component: chaosexperiment
+    app.kubernetes.io/version: 3.9.0
+spec:
+  definition:
+    scope: Cluster
+    permissions:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["create","delete","get","list","patch","update", "deletecollection"]
+      - apiGroups: [""]
+        resources: ["events"]
+        verbs: ["create","get","list","patch","update"]
+      - apiGroups: [""]
+        resources: ["configmaps"]
+        verbs: ["get","list",]
+      - apiGroups: [""]
+        resources: ["pods/log"]
+        verbs: ["get","list","watch"]
+      - apiGroups: [""]
+        resources: ["pods/exec"]
+        verbs: ["get","list","create"]
+      - apiGroups: [""]
+        resources: ["nodes"]
+        verbs: ["get","list"]
+      - apiGroups: ["litmuschaos.io"]
+        resources: ["chaosengines","chaosexperiments","chaosresults"]
+        verbs: ["create","list","get","patch","update","delete"]
+      - apiGroups: ["batch"]
+        resources: ["jobs"]
+        verbs: ["create","list","get","delete","deletecollection"]
+    image: "litmuschaos/go-runner:3.9.0"
+    imagePullPolicy: Always
+    args:
+    - -c
+    - ./experiments -name node-cpu-hog
+    command:
+    - /bin/bash
+    env:
+    - name: TOTAL_CHAOS_DURATION
+      value: '60'
+    - name: RAMP_TIME
+      value: ''
+    - name: NODE_CPU_CORE
+      value: '2'
+    - name: CPU_LOAD
+      value: '100'
+    - name: LIB_IMAGE
+      value: 'litmuschaos/go-runner:3.9.0'
+    - name: STRESS_IMAGE
+      value: 'alexeiled/stress-ng:latest-ubuntu'
+    - name: TARGET_NODES
+      value: ''
+    - name: NODE_LABEL
+      value: ''
+    - name: SEQUENCE
+      value: 'parallel'
+    labels:
+      name: node-cpu-hog
+      app.kubernetes.io/part-of: litmus
+      app.kubernetes.io/component: experiment-job
+      app.kubernetes.io/version: 3.9.0

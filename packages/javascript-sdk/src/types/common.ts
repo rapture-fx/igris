@@ -96,7 +96,7 @@ export interface RequestConfig {
   params?: Record<string, string | number | boolean>;
   timeout?: number;
   signal?: AbortSignal;
-  onUploadProgress?: (progress: ProgressEvent) => void;
+  onUploadProgress?: ProgressCallback;
 }
 
 /**

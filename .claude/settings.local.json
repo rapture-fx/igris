@@ -11,7 +11,10 @@
       "Bash(pip install:*)",
       "Bash(alembic current:*)",
       "Bash(alembic history:*)",
-      "Bash(alembic:*)"
+      "Bash(alembic:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx next build:*)",
+      "Read(//tmp/**)"
     ],
     "deny": [],
     "ask": []

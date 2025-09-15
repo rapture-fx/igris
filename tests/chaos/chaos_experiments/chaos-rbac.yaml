@@ -1,0 +1,115 @@
+---
+# RBAC for Chaos Experiments in specific namespaces
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: chaos-serviceaccount
+  namespace: staging
+  labels:
+    name: chaos-serviceaccount
+    app.kubernetes.io/part-of: litmus
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: staging
+  name: chaos-role
+  labels:
+    name: chaos-role
+    app.kubernetes.io/part-of: litmus
+rules:
+  # Chaos experiments permissions for staging namespace
+  - apiGroups: [""]
+    resources: ["pods", "events", "configmaps", "secrets", "services", "endpoints"]
+    verbs: ["create", "list", "get", "patch", "update", "delete", "deletecollection"]
+  - apiGroups: [""]
+    resources: ["pods/exec", "pods/log", "pods/eviction"]
+    verbs: ["create", "list", "get", "patch", "update", "delete"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["create", "list", "get", "patch", "update", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets", "daemonsets"]
+    verbs: ["list", "get", "patch", "update"]
+  - apiGroups: ["apps"]
+    resources: ["deployments/scale", "replicasets/scale"]
+    verbs: ["patch", "update"]
+  - apiGroups: ["litmuschaos.io"]
+    resources: ["chaosengines", "chaosexperiments", "chaosresults"]
+    verbs: ["create", "list", "get", "patch", "update", "delete"]
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["create", "list", "get", "patch", "update", "delete"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: chaos-role-binding
+  namespace: staging
+  labels:
+    name: chaos-role-binding
+    app.kubernetes.io/part-of: litmus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: chaos-role
+subjects:
+- kind: ServiceAccount
+  name: chaos-serviceaccount
+  namespace: staging
+---
+# Separate RBAC for production namespace (more restrictive)
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: chaos-serviceaccount-prod
+  namespace: production
+  labels:
+    name: chaos-serviceaccount-prod
+    app.kubernetes.io/part-of: litmus
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: production
+  name: chaos-role-prod
+  labels:
+    name: chaos-role-prod
+    app.kubernetes.io/part-of: litmus
+rules:
+  # More restrictive permissions for production
+  - apiGroups: [""]
+    resources: ["pods", "events", "configmaps"]
+    verbs: ["list", "get"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "replicasets"]
+    verbs: ["list", "get"]
+  - apiGroups: ["litmuschaos.io"]
+    resources: ["chaosengines", "chaosexperiments", "chaosresults"]
+    verbs: ["create", "list", "get", "patch", "update"]
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: chaos-role-binding-prod
+  namespace: production
+  labels:
+    name: chaos-role-binding-prod
+    app.kubernetes.io/part-of: litmus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: chaos-role-prod
+subjects:
+- kind: ServiceAccount
+  name: chaos-serviceaccount-prod
+  namespace: production

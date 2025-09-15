@@ -1,84 +1,84 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Menu, X, ChevronRight } from 'lucide-react'
-import { usePathname } from 'next/navigation'
-import { useTheme } from "next-themes"
+import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { Menu, X, ChevronRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { useTheme } from "next-themes";
 
 export default function Header() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [showProductPanel, setShowProductPanel] = useState(false)
-  const [showApiPanel, setShowApiPanel] = useState(false)
-  const [isClicked, setIsClicked] = useState(false)
-  const [showDocsPanel, setShowDocsPanel] = useState(false)
-  const pathname = usePathname()
-  const [scrolled, setScrolled] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
-  const productLinkRef = useRef<HTMLDivElement>(null)
-  const apiPanelRef = useRef<HTMLDivElement>(null)
-  const apiLinkRef = useRef<HTMLDivElement>(null)
-  const docsPanelRef = useRef<HTMLDivElement>(null)
-  const docsLinkRef = useRef<HTMLDivElement>(null)
-  const { theme } = useTheme()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showProductPanel, setShowProductPanel] = useState(false);
+  const [showApiPanel, setShowApiPanel] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+  const [showDocsPanel, setShowDocsPanel] = useState(false);
+  const pathname = usePathname();
+  const [scrolled, setScrolled] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const productLinkRef = useRef<HTMLDivElement>(null);
+  const apiPanelRef = useRef<HTMLDivElement>(null);
+  const apiLinkRef = useRef<HTMLDivElement>(null);
+  const docsPanelRef = useRef<HTMLDivElement>(null);
+  const docsLinkRef = useRef<HTMLDivElement>(null);
+  const { theme } = useTheme();
   
   const handleProductHover = () => {
     if (!isClicked) {
       setShowProductPanel(true)
     }
-  }
+  };
   
   const handleProductLeave = () => {
     if (!isClicked) {
       setShowProductPanel(false)
     }
-  }
+  };
   
   const handleProductClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsClicked(true)
     setShowProductPanel(true)
-  }
+  };
 
   const handleApiHover = () => {
     if (!isClicked) {
       console.log('handleApiHover');
       setShowApiPanel(true)
     }
-  }
+  };
 
   const handleApiLeave = () => {
     if (!isClicked) {
       console.log('handleApiLeave');
       setShowApiPanel(false)
     }
-  }
+  };
 
   const handleApiClick = (e: React.MouseEvent) => {
     e.preventDefault()
     console.log('handleApiClick');
     setIsClicked(true)
     setShowApiPanel(true)
-  }
+  };
 
   const handleDocsHover = () => {
     if (!isClicked) {
       setShowDocsPanel(true)
     }
-  }
+  };
 
   const handleDocsLeave = () => {
     if (!isClicked) {
       setShowDocsPanel(false)
     }
-  }
+  };
 
   const handleDocsClick = (e: React.MouseEvent) => {
     e.preventDefault()
     setIsClicked(true)
     setShowDocsPanel(true)
-  }
+  };
   
   // Handle clicks outside the panel
   useEffect(() => {
@@ -90,8 +90,8 @@ export default function Header() {
         apiLinkRef.current &&
         !apiLinkRef.current.contains(event.target as Node)
       ) {
-        setShowApiPanel(false)
-        setIsClicked(false)
+        setShowApiPanel(false);
+        setIsClicked(false);
       }
       if (
         docsPanelRef.current &&
@@ -99,8 +99,8 @@ export default function Header() {
         docsLinkRef.current &&
         !docsLinkRef.current.contains(event.target as Node)
       ) {
-        setShowDocsPanel(false)
-        setIsClicked(false)
+        setShowDocsPanel(false);
+        setIsClicked(false);
       }
       if (
         panelRef.current &&
@@ -108,14 +108,14 @@ export default function Header() {
         productLinkRef.current &&
         !productLinkRef.current.contains(event.target as Node)
       ) {
-        setShowProductPanel(false)
-        setIsClicked(false)
+        setShowProductPanel(false);
+        setIsClicked(false);
       }
-    }
+    };
 
     if (showApiPanel || showDocsPanel || showProductPanel) {
-      document.addEventListener('mousedown', handleClickOutside)
-      return () => document.removeEventListener('mousedown', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showApiPanel, showDocsPanel, showProductPanel])
 
@@ -136,9 +136,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black font-inconsolata ${scrolled ? 'scrolled' : ''}`}
-    >
+    <header className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black font-inconsolata ${scrolled ? 'scrolled' : ''}`}>
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center">
             <div className="flex items-center">
@@ -387,7 +385,7 @@ export default function Header() {
               <Link
                 href="/auth"
                 style={{ backgroundColor: '#1f53d0' }}
-                className="text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inconsolata"
+                className="text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-bold text-sm shadow-md hover:shadow-lg font-inconsolata"
               >
                 Sign Up
               </Link>
@@ -479,6 +477,7 @@ export default function Header() {
             </div>
           )}
         </div>
+      </div>
     </header>
   )
 }
