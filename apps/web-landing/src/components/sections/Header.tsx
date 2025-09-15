@@ -143,12 +143,13 @@ export default function Header() {
         <div className="flex items-center">
             <div className="flex items-center">
               <Link href="/" className="flex items-center">
-                <Image 
-                  src="/Schlep Engine 14x11cm (16).svg" 
-                  alt="Schlep Engine" 
-                  width={60} 
-                  height={60}
+                <Image
+                  src="/Docs Schlep-engne.svg"
+                  alt="Schlep Engine"
+                  width={40}
+                  height={40}
                 />
+                <span className="ml-3 text-xl font-bold text-gray-900 dark:text-white font-inconsolata">Schlep-engine</span>
               </Link>
             </div>
 
@@ -183,15 +184,15 @@ export default function Header() {
                         {/* Column 1: Core Data APIs */}
                         <div className="relative">
                           <div className="w-fit mx-auto space-y-3 pr-6">
-                            <h4 className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Core Data</h4>
+                            <h4 className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 font-inconsolata">Core Data</h4>
                             
                             <Link 
                               href="/docs/api-reference" 
                               className="flex items-start rounded-md hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors duration-200 group cursor-pointer p-2"
                             >
                               <div className="flex-1 min-w-0">
-                                <h5 className="text-gray-900 dark:text-white text-xs group-hover:text-gray-700 dark:group-hover:text-gray-300">Data Processing</h5>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">Automate data cleaning and transformation.</p>
+                                <h5 className="text-gray-900 dark:text-white text-xs group-hover:text-gray-700 dark:group-hover:text-gray-300 font-inconsolata">Data Processing</h5>
+                                <p className="text-xs text-gray-600 dark:text-gray-400 font-inconsolata">Automate data cleaning and transformation.</p>
                               </div>
                             </Link>
 
@@ -240,7 +241,7 @@ export default function Header() {
                         {/* Column 2: ML & Advanced APIs */}
                         <div className="relative">
                           <div className="w-fit mx-auto space-y-3 px-6">
-                            <h4 className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">ML & Advanced</h4>
+                            <h4 className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 font-inconsolata">ML & Advanced</h4>
                             
                             <Link 
                               href="/docs/use-cases/ml-training" 
@@ -297,7 +298,7 @@ export default function Header() {
                         {/* Column 3: Integrations & Connectivity */}
                         <div className="relative">
                           <div className="w-fit mx-auto space-y-3 pl-6">
-                            <h4 className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2">Integrations</h4>
+                            <h4 className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 font-inconsolata">Integrations</h4>
                             
                             <Link 
                               href="/docs/integrations" 
@@ -355,7 +356,7 @@ export default function Header() {
                       
                       <div className="pt-3 mt-12">
                         <div className="text-left">
-                          <Link href="/docs" className="text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 text-xs">
+                          <Link href="/docs" className="text-gray-900 dark:text-white hover:text-gray-700 dark:hover:text-gray-300 text-xs font-inconsolata">
                             See full API Reference →
                           </Link>
                         </div>
@@ -384,14 +385,9 @@ export default function Header() {
 
             <div className="hidden md:flex items-center space-x-3">
               <Link
-                href="http://localhost:3004"
-                className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:text-gray-300 dark:hover:bg-gray-800 font-inconsolata"
-              >
-                API Console
-              </Link>
-              <Link
                 href="/auth"
-                className="bg-black text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:bg-[#fcfcf7] dark:text-black font-inconsolata"
+                style={{ backgroundColor: '#1f53d0' }}
+                className="text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inconsolata"
               >
                 Sign Up
               </Link>

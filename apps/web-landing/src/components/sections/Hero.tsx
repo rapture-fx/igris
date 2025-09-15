@@ -15,10 +15,16 @@ export default function Hero() {
           <div className="flex justify-center gap-4">
             <Link
               href="/dashboard"
-              style={{ backgroundColor: '#e9eef9', color: '#114dcd' }}
-              className="inline-flex items-center justify-center text-white px-6 py-3 rounded-full hover:bg-gray-800 transition-all duration-300 font-semibold text-base shadow-xl hover:shadow-2xl dark:bg-[#fcfcf7] dark:text-black font-inconsolata"
+              style={{ backgroundColor: '#1f53d0' }}
+              className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inconsolata"
             >
-              Get Started <ChevronRight className="w-5 h-5 ml-2" />
+              Get Started <ChevronRight className="w-4 h-4 ml-2" />
+            </Link>
+            <Link
+              href="http://localhost:3004"
+              className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:text-gray-300 dark:hover:bg-gray-800 font-inconsolata border border-gray-200 dark:border-gray-700"
+            >
+              API Console
             </Link>
           </div>
         </div>

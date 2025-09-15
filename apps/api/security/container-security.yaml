@@ -1,0 +1,350 @@
+# Container Security Configuration
+# ===============================
+#
+# Comprehensive container security policies and configurations
+# for Docker and Kubernetes deployments.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: security-hardening-config
+  namespace: schlep-engine
+data:
+  # Security Policies
+  security-policy.yaml: |
+    apiVersion: v1
+    kind: SecurityPolicy
+    spec:
+      # Container Security Standards
+      container_security:
+        # Run as non-root user
+        run_as_non_root: true
+        run_as_user: 1000
+        run_as_group: 1000
+
+        # Read-only filesystem
+        read_only_root_filesystem: true
+
+        # Drop all capabilities and add only required ones
+        security_context:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - ALL
+            add:
+              - NET_BIND_SERVICE  # Only if needed for port binding
+
+        # Resource limits
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+            ephemeral-storage: "1Gi"
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+            ephemeral-storage: "100Mi"
+
+      # Network Security
+      network_security:
+        # Network policies
+        network_policy_enabled: true
+
+        # Ingress rules
+        ingress:
+          - from:
+            - namespaceSelector:
+                matchLabels:
+                  name: schlep-engine
+          - ports:
+            - protocol: TCP
+              port: 8000
+
+        # Egress rules (restrictive)
+        egress:
+          - to: []
+            ports:
+            - protocol: TCP
+              port: 443  # HTTPS
+            - protocol: TCP
+              port: 53   # DNS
+            - protocol: UDP
+              port: 53   # DNS
+          - to:
+            - namespaceSelector:
+                matchLabels:
+                  name: database
+            ports:
+            - protocol: TCP
+              port: 5432  # PostgreSQL
+          - to:
+            - namespaceSelector:
+                matchLabels:
+                  name: redis
+            ports:
+            - protocol: TCP
+              port: 6379  # Redis
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: schlep-engine-netpol
+  namespace: schlep-engine
+spec:
+  podSelector:
+    matchLabels:
+      app: schlep-engine-api
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - podSelector:
+        matchLabels:
+          app: schlep-engine-web
+    ports:
+    - protocol: TCP
+      port: 8000
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: schlep-engine-api-pod
+  namespace: schlep-engine
+  labels:
+    app: schlep-engine-api
+  annotations:
+    # Container security annotations
+    container.apparmor.security.beta.kubernetes.io/api: runtime/default
+    seccomp.security.alpha.kubernetes.io/pod: runtime/default
+spec:
+  # Security context for the pod
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    supplementalGroups: [1000]
+    seccompProfile:
+      type: RuntimeDefault
+
+  # Service account with minimal permissions
+  serviceAccountName: schlep-engine-api-sa
+  automountServiceAccountToken: false
+
+  containers:
+  - name: api
+    image: schlep-engine/api:latest
+    imagePullPolicy: Always
+
+    # Security context for container
+    securityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+        add:
+        - NET_BIND_SERVICE
+
+    # Resource limits and requests
+    resources:
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+        ephemeral-storage: "1Gi"
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+        ephemeral-storage: "100Mi"
+
+    # Environment variables from secrets
+    env:
+    - name: SECRET_KEY
+      valueFrom:
+        secretKeyRef:
+          name: schlep-engine-secrets
+          key: secret-key
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: schlep-engine-secrets
+          key: database-url
+    - name: REDIS_URL
+      valueFrom:
+        secretKeyRef:
+          name: schlep-engine-secrets
+          key: redis-url
+
+    # Health checks
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8000
+        scheme: HTTP
+      initialDelaySeconds: 30
+      periodSeconds: 30
+      timeoutSeconds: 5
+      failureThreshold: 3
+
+    readinessProbe:
+      httpGet:
+        path: /health
+        port: 8000
+        scheme: HTTP
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 3
+      failureThreshold: 3
+
+    # Volume mounts for writable directories
+    volumeMounts:
+    - name: tmp-volume
+      mountPath: /tmp
+    - name: logs-volume
+      mountPath: /app/logs
+    - name: cache-volume
+      mountPath: /app/cache
+
+    ports:
+    - containerPort: 8000
+      protocol: TCP
+
+  volumes:
+  - name: tmp-volume
+    emptyDir:
+      sizeLimit: 100Mi
+  - name: logs-volume
+    emptyDir:
+      sizeLimit: 500Mi
+  - name: cache-volume
+    emptyDir:
+      sizeLimit: 200Mi
+
+  # Restart policy
+  restartPolicy: Always
+
+  # DNS policy
+  dnsPolicy: ClusterFirst
+
+  # Node selection (if needed for security zones)
+  nodeSelector:
+    security-zone: "restricted"
+
+---
+# Service Account with minimal permissions
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: schlep-engine-api-sa
+  namespace: schlep-engine
+automountServiceAccountToken: false
+
+---
+# Role with minimal required permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: schlep-engine-api-role
+  namespace: schlep-engine
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list"]
+  resourceNames: ["security-hardening-config"]
+
+---
+# Role binding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: schlep-engine-api-rolebinding
+  namespace: schlep-engine
+subjects:
+- kind: ServiceAccount
+  name: schlep-engine-api-sa
+  namespace: schlep-engine
+roleRef:
+  kind: Role
+  name: schlep-engine-api-role
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Pod Security Policy (deprecated but included for older clusters)
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: schlep-engine-psp
+  namespace: schlep-engine
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  allowedCapabilities:
+    - NET_BIND_SERVICE
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1000
+        max: 1000
+  seLinux:
+    rule: 'RunAsAny'
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1000
+        max: 1000
+  readOnlyRootFilesystem: true
+
+---
+# Pod Security Standards (for newer Kubernetes versions)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: schlep-engine
+  labels:
+    # Pod Security Standards
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted

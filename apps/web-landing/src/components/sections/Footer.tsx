@@ -63,7 +63,7 @@ export default function Footer() {
   ]
 
   return (
-    <footer className="bg-white dark:bg-black text-gray-900 dark:text-white">
+    <footer className="bg-white dark:bg-black text-gray-900 dark:text-white font-inconsolata">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 max-w-6xl mx-auto">
@@ -71,13 +71,12 @@ export default function Footer() {
             <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
               <div className="flex flex-col">
                 <div className="flex items-center mb-4">
-                  <Image 
-                    src="/Schlep Engine 14x11cm (16).svg" 
-                    alt="Schlep-engine" 
-                    width={40} 
+                  <Image
+                    src="/Docs Schlep-engne.svg"
+                    alt="Schlep-engine"
+                    width={40}
                     height={40}
                   />
-                  <span className="ml-2 text-lg font-bold">Schlep-engine</span>
                 </div>
               </div>
             </div>
@@ -85,7 +84,7 @@ export default function Footer() {
             {/* Footer Sections */}
             {footerSections.map((section, index) => (
               <div key={index} className="lg:col-span-1">
-                <h3 className="text-base font-semibold mb-4 text-gray-900 dark:text-white">
+                <h3 className="text-base font-semibold mb-4 text-gray-900 dark:text-white font-inconsolata">
                   {section.title}
                 </h3>
                 <ul className="space-y-2">
@@ -93,7 +92,7 @@ export default function Footer() {
                     <li key={linkIndex}>
                       <Link
                         href={link.href}
-                        className="text-xs text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                        className="text-xs text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 font-inconsolata"
                       >
                         {link.name}
                       </Link>
@@ -106,7 +105,7 @@ export default function Footer() {
 
           {/* Copyright and Theme Switcher */}
           <div className="pt-6 mt-12 flex justify-between items-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-left">
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-left font-inconsolata">
               © 2024 Schlep-engine. All rights reserved.
             </p>
             <ThemeSwitcher />
