@@ -136,8 +136,8 @@ export default function Header() {
   }, []);
 
   return (
-    <header 
-      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black ${scrolled ? 'scrolled' : ''}`}
+    <header
+      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black font-inconsolata ${scrolled ? 'scrolled' : ''}`}
     >
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center">
@@ -160,7 +160,7 @@ export default function Header() {
                   onClick={handleApiClick}
                   className="cursor-pointer relative"
                 >
-                  <Link href="/" className={`text-sm transition-colors duration-200 ${pathname === '/' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+                  <Link href="/" className={`text-sm transition-colors duration-200 font-inconsolata ${pathname === '/' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
                     Platform
                   </Link>
                   
@@ -363,20 +363,20 @@ export default function Header() {
                     </div>
                   )}
                 </div>
-                <Link 
-                  href="/solutions" 
-                  className={`text-sm transition-colors duration-200 ${pathname === '/solutions' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+                <Link
+                  href="/solutions"
+                  className={`text-sm transition-colors duration-200 font-inconsolata ${pathname === '/solutions' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
                   Solution
                 </Link>
-                <Link 
-                  href="http://localhost:3003/api-reference" 
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                <Link
+                  href="http://localhost:3003/api-reference"
+                  className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 font-inconsolata"
                 >
                   Docs
                 </Link>
-                <Link 
-                  href="/pricing" 
-                  className={`text-sm transition-colors duration-200 ${pathname === '/pricing' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+                <Link
+                  href="/pricing"
+                  className={`text-sm transition-colors duration-200 font-inconsolata ${pathname === '/pricing' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
                   Pricing
                 </Link>
                 
@@ -385,13 +385,13 @@ export default function Header() {
             <div className="hidden md:flex items-center space-x-3">
               <Link
                 href="http://localhost:3004"
-                className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:text-gray-300 dark:hover:bg-gray-800"
+                className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:text-gray-300 dark:hover:bg-gray-800 font-inconsolata"
               >
                 API Console
               </Link>
               <Link
                 href="/auth"
-                className="bg-black text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:bg-[#fcfcf7] dark:text-black"
+                className="bg-black text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:bg-[#fcfcf7] dark:text-black font-inconsolata"
               >
                 Sign Up
               </Link>
@@ -416,65 +416,65 @@ export default function Header() {
           {mobileMenuOpen && (
             <div className="md:hidden mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
               <div className="flex flex-col space-y-3">
-                <Link 
-                  href="#product" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="#product"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Product
                 </Link>
-                <Link 
-                  href="/industries/ecommerce" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="/industries/ecommerce"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   E-commerce
                 </Link>
-                <Link 
-                  href="/industries/financial-services" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="/industries/financial-services"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Financial Services
                 </Link>
-                <Link 
-                  href="/industries/manufacturing" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="/industries/manufacturing"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Manufacturing
                 </Link>
-                <Link 
-                  href="/sales-collateral" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="/sales-collateral"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Case Studies & ROI
                 </Link>
-                <Link 
-                  href="/docs" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="/docs"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Docs
                 </Link>
-                <Link 
-                  href="/pricing" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="/pricing"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Pricing
                 </Link>
-                <Link 
-                  href="/signin" 
-                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2"
+                <Link
+                  href="/signin"
+                  className="text-base text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 py-2 font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Sign In
                 </Link>
                 <Link
                   href="#get-started"
-                  className="bg-[#468BE6] text-beige-secondary px-5 py-2.5 rounded-xl hover:bg-[#3a7bd5] transition-colors duration-200 font-medium text-sm text-center"
+                  className="bg-[#468BE6] text-beige-secondary px-5 py-2.5 rounded-xl hover:bg-[#3a7bd5] transition-colors duration-200 font-medium text-sm text-center font-inconsolata"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   Try it for Free
