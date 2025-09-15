@@ -137,7 +137,7 @@ export default function Header() {
 
   return (
     <header 
-      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black border-b border-gray-300 ${scrolled ? 'scrolled' : ''}`}
+      className={`fixed top-0 left-0 w-full z-50 px-6 py-4 bg-white dark:bg-black ${scrolled ? 'scrolled' : ''}`}
     >
       <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center">
@@ -152,7 +152,7 @@ export default function Header() {
               </Link>
             </div>
 
-            <nav className="hidden md:flex items-center space-x-8 ml-6">
+            <nav className="hidden md:flex justify-center flex-grow space-x-8 mr-auto">
                 <div 
                   ref={apiLinkRef}
                   onMouseEnter={handleApiHover}
@@ -382,7 +382,7 @@ export default function Header() {
                 
             </nav>
 
-            <div className="hidden md:flex items-center space-x-3 ml-auto">
+            <div className="hidden md:flex items-center space-x-3">
               <Link
                 href="http://localhost:3004"
                 className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:text-gray-300 dark:hover:bg-gray-800"

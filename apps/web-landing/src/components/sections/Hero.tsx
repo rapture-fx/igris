@@ -1,60 +1,26 @@
 'use client'
-
-import React, { useEffect } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
-
 export default function Hero() {
-  // Diagnostic logging for Hero section
-  useEffect(() => {
-    console.log('🔍 Hero Component Mounted')
-    console.log('🔍 Hero classes: min-h-screen pt-32 pb-16')
-    
-    const heroElement = document.querySelector('section')
-    if (heroElement) {
-      const rect = heroElement.getBoundingClientRect()
-      console.log('🔍 Hero dimensions:', {
-        width: rect.width,
-        height: rect.height,
-        top: rect.top,
-        paddingTop: window.getComputedStyle(heroElement).paddingTop
-      })
-    }
-  }, [])
-
   return (
     <section className="relative min-h-screen overflow-hidden bg-white dark:bg-black pt-32 pb-16">
-      {/* Layer 1: Grid Background */}
-      
-
-      
-
-      {/* Layer 3: Content */}
-      <div className="absolute inset-0 mx-auto max-w-screen-xl border-l-2 border-r-2 border-gray-300"></div>
-
-      {/* Layer 3: Content */}
       <div className="relative z-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="text-left pt-40 pl-16">
-          <h1 style={{ color: '#1f53d0' }} className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-2 leading-tight py-8">
-            Messy data to ML-ready in API calls.
+        <div className="text-center pt-40 font-mono">
+          <h1 style={{ color: '#1f53d0' }} className="text-2xl md:text-3xl font-extrabold text-gray-900 dark:text-white mb-4 leading-tight font-mono">
+            Messy Data to ML-ready in API Calls.
           </h1>
-          <p className="text-base md:text-lg text-gray-400 mb-12 max-w-3xl leading-relaxed">
-            Simplifies complex data handling through a unified API.
-          </p>
-          <div className="flex justify-start gap-3">
+          <p className="text-sm md:text-base text-gray-500 mb-12 max-w-3xl mx-auto leading-relaxed font-mono">Your Data-Driven Decisions, Simplified.</p>
+          <div className="flex justify-center gap-4">
             <Link
               href="/dashboard"
               style={{ backgroundColor: '#e9eef9', color: '#114dcd' }}
-              className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg dark:bg-[#fcfcf7] dark:text-black"
+              className="inline-flex items-center justify-center text-white px-6 py-3 rounded-full hover:bg-gray-800 transition-all duration-300 font-semibold text-base shadow-xl hover:shadow-2xl dark:bg-[#fcfcf7] dark:text-black font-mono"
             >
-              Get Started <ChevronRight className="w-4 h-4 ml-1" />
+              Get Started <ChevronRight className="w-5 h-5 ml-2" />
             </Link>
-            
           </div>
-          
-          
-          
         </div>
       </div>
     </section>

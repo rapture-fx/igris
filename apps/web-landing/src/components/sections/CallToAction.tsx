@@ -22,7 +22,7 @@ export default function CallToAction() {
           />
           
           <div className="relative z-10 text-left">
-            <h2 className="text-2xl md:text-3xl font-bold mb-4">Accelerate your machine learning workflows.</h2>
+            <h2 className="text-2xl md:text-3xl font-bold mb-4">Your Data-Driven Decisions</h2>
             <p className="text-base mb-8 opacity-90 max-w-2xl">
               Start building powerful ML pipelines and simplify your data handling today.
             </p>
