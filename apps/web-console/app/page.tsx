@@ -196,10 +196,7 @@ export default function ConsolePage() {
           </div>
         </div>
         
-        {/* Image positioned to cover right half from top to bottom */}
-        <div className="fixed top-0 right-0 w-1/2 h-screen border-gray-200 dark:border-gray-700 pt-4 pr-4 pb-4">
-          <img src="/Landing Page Description.svg" alt="Landing Page Description" className="w-full h-full object-cover rounded-lg" />
-        </div>
+        
       </div>
       
     </div>

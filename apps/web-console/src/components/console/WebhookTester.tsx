@@ -242,13 +242,19 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
               <button
                 onClick={handleSendWebhook}
                 disabled={!webhookUrl || !selectedTest || isLoading}
-                className="flex items-center justify-center px-4 py-1 text-sm text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center justify-center px-4 py-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors border"
                 style={{
-                  backgroundColor: '#114dcd',
-                  ':hover': { backgroundColor: '#0d3ba3' }
+                  borderColor: '#114dcd',
+                  color: '#114dcd',
                 }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = '#0d3ba3'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = '#114dcd'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#114dcd';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#114dcd';
+                }}
               >
                 {isLoading ? (
                   <>
@@ -295,11 +301,11 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                         background: transparent;
                       }
                       div::-webkit-scrollbar-thumb {
-                        background-color: #cbd5e1;
+                        background-color: #f7f7f3;
                         border-radius: 3px;
                       }
                       div::-webkit-scrollbar-thumb:hover {
-                        background-color: #94a3b8;
+                        background-color: #f7f7f3;
                       }
                     `}</style>
                     <pre className="text-sm text-gray-900">
@@ -338,11 +344,11 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                           background: transparent;
                         }
                         div::-webkit-scrollbar-thumb {
-                          background-color: #cbd5e1;
+                          background-color: #f7f7f3;
                           border-radius: 3px;
                         }
                         div::-webkit-scrollbar-thumb:hover {
-                          background-color: #94a3b8;
+                          background-color: #f7f7f3;
                         }
                       `}</style>
                       <pre className="text-sm text-gray-900">
