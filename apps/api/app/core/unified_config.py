@@ -145,19 +145,19 @@ class UnifiedSettings(BaseSettings):
     
     @property
     def ASYNC_DATABASE_URI(self) -> str:
-        """Generate async database URI with connection pooling"""
+        """Generate async database URI without connection pooling parameters"""
         # If DATABASE_URL is already set (like from Supabase), use it
         if self.DATABASE_URL and self.DATABASE_URL != "postgresql://postgres:postgres@localhost:5432/schlep_engine_dev":
             # Convert postgresql:// to postgresql+asyncpg:// for SQLAlchemy async
             if self.DATABASE_URL.startswith("postgresql://"):
                 return self.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
             return self.DATABASE_URL
-        
-        # Fallback to component-based construction
+
+        # Fallback to component-based construction without pool parameters
+        # Pool parameters should be passed to create_async_engine, not in URL
         return (
             f"postgresql+asyncpg://{self.DB_USER}:{self.DB_PASSWORD}@"
             f"{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
-            f"?pool_size={self.DB_POOL_SIZE}&max_overflow={self.DB_MAX_OVERFLOW}"
         )
     
     @property

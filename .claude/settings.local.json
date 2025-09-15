@@ -6,7 +6,12 @@
       "Bash(pnpm run dev:*)",
       "Bash(pkill:*)",
       "Bash(find:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(alembic current:*)",
+      "Bash(alembic history:*)",
+      "Bash(alembic:*)"
     ],
     "deny": [],
     "ask": []

@@ -94,21 +94,44 @@ async def assess_data_quality(
     assessment_id = str(uuid.uuid4())
     
     try:
-        # Parse request data
+        # Parse request data with proper error handling
         try:
             quality_request = DataQualityRequest.parse_raw(request_data)
-        except:
+        except Exception as parse_error:
+            logger.warning(f"Failed to parse request data, using defaults: {parse_error}")
             quality_request = DataQualityRequest()
         
-        # Validate file type
-        if not file.filename.lower().endswith(('.csv', '.xlsx', '.json', '.parquet')):
+        # Validate file input
+        if not file or not file.filename:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="File must be CSV, XLSX, JSON, or Parquet"
+                detail="No file provided"
             )
-        
-        # Read file content
-        content = await file.read()
+
+        # Validate file type
+        supported_extensions = ('.csv', '.xlsx', '.json', '.parquet')
+        if not file.filename.lower().endswith(supported_extensions):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"File must be one of: {', '.join(supported_extensions)}"
+            )
+
+        # Read file content with size validation
+        try:
+            content = await file.read()
+        except Exception as read_error:
+            logger.error(f"Failed to read uploaded file: {read_error}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Failed to read uploaded file"
+            )
+
+        if len(content) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Uploaded file is empty"
+            )
+
         if len(content) > 100 * 1024 * 1024:  # 100MB limit
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
@@ -117,87 +140,173 @@ async def assess_data_quality(
         
         logger.info(f"Processing data quality assessment {assessment_id} for file {file.filename}")
         
-        # Implement actual data analysis with pandas/numpy
+        # Load and validate data with comprehensive error handling
         try:
-            # Load data based on file type
-            if file.filename.lower().endswith('.csv'):
-                df = pd.read_csv(io.BytesIO(content))
-            elif file.filename.lower().endswith('.xlsx'):
-                df = pd.read_excel(io.BytesIO(content))
-            elif file.filename.lower().endswith('.json'):
-                df = pd.read_json(io.BytesIO(content))
-            elif file.filename.lower().endswith('.parquet'):
-                df = pd.read_parquet(io.BytesIO(content))
+            # Load data based on file type with specific error handling
+            file_extension = file.filename.lower().split('.')[-1]
+
+            if file_extension == 'csv':
+                try:
+                    df = pd.read_csv(io.BytesIO(content))
+                except pd.errors.EmptyDataError:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="CSV file is empty or contains no data"
+                    )
+                except pd.errors.ParserError as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid CSV format: {str(e)}"
+                    )
+            elif file_extension == 'xlsx':
+                try:
+                    df = pd.read_excel(io.BytesIO(content))
+                except Exception as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid Excel format: {str(e)}"
+                    )
+            elif file_extension == 'json':
+                try:
+                    df = pd.read_json(io.BytesIO(content))
+                except ValueError as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid JSON format: {str(e)}"
+                    )
+            elif file_extension == 'parquet':
+                try:
+                    df = pd.read_parquet(io.BytesIO(content))
+                except Exception as e:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=f"Invalid Parquet format: {str(e)}"
+                    )
             else:
-                raise ValueError("Unsupported file format")
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Unsupported file format"
+                )
+
+            # Validate loaded dataframe
+            if df.empty:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="File contains no data rows"
+                )
+
+            if len(df.columns) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="File contains no columns"
+                )
+
+            logger.info(f"Successfully loaded dataframe with shape: {df.shape}")
+
+            # Additional validation for reasonable data size
+            if len(df) > 1000000:  # 1M rows
+                logger.warning(f"Large dataset detected: {len(df)} rows")
+
+            if len(df.columns) > 1000:  # 1000 columns
+                logger.warning(f"Wide dataset detected: {len(df.columns)} columns")
             
-            logger.info(f"Loaded dataframe with shape: {df.shape}")
-            
-            # Generate real column profiles
+            # Generate real column profiles with error handling
             column_profiles = []
             for column in df.columns:
-                col_data = df[column]
+                try:
+                    col_data = df[column]
+
+                    # Basic statistics with safe calculations
+                    null_count = int(col_data.isnull().sum())
+                    null_percentage = (null_count / len(df)) * 100 if len(df) > 0 else 0.0
+                    unique_count = int(col_data.nunique())
+                    unique_percentage = (unique_count / len(df)) * 100 if len(df) > 0 else 0.0
+
+                    # Data type detection
+                    data_type = str(col_data.dtype)
+                    if pd.api.types.is_numeric_dtype(col_data):
+                        data_type = "numeric" if col_data.dtype in ['float64', 'float32'] else "integer"
+                    elif pd.api.types.is_datetime64_any_dtype(col_data):
+                        data_type = "datetime"
+                    else:
+                        data_type = "string"
+
+                    # Value frequency analysis with error handling
+                    try:
+                        value_counts = col_data.value_counts()
+                        most_frequent = str(value_counts.index[0]) if len(value_counts) > 0 else None
+                        least_frequent = str(value_counts.index[-1]) if len(value_counts) > 0 else None
+                    except Exception:
+                        most_frequent = None
+                        least_frequent = None
+
+                    # Outlier detection for numeric columns with safe calculation
+                    outliers_count = 0
+                    if pd.api.types.is_numeric_dtype(col_data) and not col_data.isna().all():
+                        try:
+                            Q1 = col_data.quantile(0.25)
+                            Q3 = col_data.quantile(0.75)
+                            IQR = Q3 - Q1
+                            if pd.notna(Q1) and pd.notna(Q3) and IQR > 0:
+                                outliers = col_data[(col_data < Q1 - 1.5 * IQR) | (col_data > Q3 + 1.5 * IQR)]
+                                outliers_count = len(outliers)
+                        except Exception:
+                            outliers_count = 0
+
+                    # Quality score calculation
+                    quality_score = 1.0
+                    quality_score -= (null_percentage / 100) * 0.5  # Penalize missing values
+                    if unique_percentage < 1:  # Very low uniqueness
+                        quality_score -= 0.2
+                    if outliers_count > len(df) * 0.05:  # More than 5% outliers
+                        quality_score -= 0.2
+                    quality_score = max(0.0, quality_score)
+
+                    profile = ColumnProfile(
+                        column_name=column,
+                        data_type=data_type,
+                        null_count=int(null_count),
+                        null_percentage=float(null_percentage),
+                        unique_count=int(unique_count),
+                        unique_percentage=float(unique_percentage),
+                        most_frequent_value=most_frequent,
+                        least_frequent_value=least_frequent,
+                        quality_score=float(quality_score)
+                    )
                 
-                # Basic statistics
-                null_count = col_data.isnull().sum()
-                null_percentage = (null_count / len(df)) * 100
-                unique_count = col_data.nunique()
-                unique_percentage = (unique_count / len(df)) * 100
-                
-                # Data type detection
-                data_type = str(col_data.dtype)
-                if pd.api.types.is_numeric_dtype(col_data):
-                    data_type = "numeric" if col_data.dtype in ['float64', 'float32'] else "integer"
-                elif pd.api.types.is_datetime64_any_dtype(col_data):
-                    data_type = "datetime"
-                else:
-                    data_type = "string"
-                
-                # Value frequency analysis
-                value_counts = col_data.value_counts()
-                most_frequent = str(value_counts.index[0]) if len(value_counts) > 0 else None
-                least_frequent = str(value_counts.index[-1]) if len(value_counts) > 0 else None
-                
-                # Outlier detection for numeric columns
-                outliers_count = 0
-                if pd.api.types.is_numeric_dtype(col_data):
-                    Q1 = col_data.quantile(0.25)
-                    Q3 = col_data.quantile(0.75)
-                    IQR = Q3 - Q1
-                    outliers = col_data[(col_data < Q1 - 1.5 * IQR) | (col_data > Q3 + 1.5 * IQR)]
-                    outliers_count = len(outliers)
-                
-                # Quality score calculation
-                quality_score = 1.0
-                quality_score -= (null_percentage / 100) * 0.5  # Penalize missing values
-                if unique_percentage < 1:  # Very low uniqueness
-                    quality_score -= 0.2
-                if outliers_count > len(df) * 0.05:  # More than 5% outliers
-                    quality_score -= 0.2
-                quality_score = max(0.0, quality_score)
-                
-                profile = ColumnProfile(
-                    column_name=column,
-                    data_type=data_type,
-                    null_count=int(null_count),
-                    null_percentage=float(null_percentage),
-                    unique_count=int(unique_count),
-                    unique_percentage=float(unique_percentage),
-                    most_frequent_value=most_frequent,
-                    least_frequent_value=least_frequent,
-                    quality_score=float(quality_score)
-                )
-                
-                # Add numeric statistics if applicable
-                if pd.api.types.is_numeric_dtype(col_data):
-                    profile.mean = float(col_data.mean()) if not col_data.isna().all() else None
-                    profile.median = float(col_data.median()) if not col_data.isna().all() else None
-                    profile.std_dev = float(col_data.std()) if not col_data.isna().all() else None
-                    profile.min_value = float(col_data.min()) if not col_data.isna().all() else None
-                    profile.max_value = float(col_data.max()) if not col_data.isna().all() else None
-                    profile.outliers_count = outliers_count
-                
-                column_profiles.append(profile)
+                    # Add numeric statistics if applicable with safe calculations
+                    if pd.api.types.is_numeric_dtype(col_data) and not col_data.isna().all():
+                        try:
+                            profile.mean = float(col_data.mean()) if pd.notna(col_data.mean()) else None
+                            profile.median = float(col_data.median()) if pd.notna(col_data.median()) else None
+                            profile.std_dev = float(col_data.std()) if pd.notna(col_data.std()) else None
+                            profile.min_value = float(col_data.min()) if pd.notna(col_data.min()) else None
+                            profile.max_value = float(col_data.max()) if pd.notna(col_data.max()) else None
+                            profile.outliers_count = outliers_count
+                        except Exception:
+                            # Set defaults if numeric calculations fail
+                            profile.mean = None
+                            profile.median = None
+                            profile.std_dev = None
+                            profile.min_value = None
+                            profile.max_value = None
+                            profile.outliers_count = 0
+
+                    column_profiles.append(profile)
+
+                except Exception as col_error:
+                    logger.error(f"Error processing column '{column}': {col_error}")
+                    # Create a minimal profile for failed columns
+                    error_profile = ColumnProfile(
+                        column_name=str(column),
+                        data_type="unknown",
+                        null_count=len(df),
+                        null_percentage=100.0,
+                        unique_count=0,
+                        unique_percentage=0.0,
+                        quality_score=0.0
+                    )
+                    column_profiles.append(error_profile)
                 
         except Exception as data_error:
             logger.error(f"Data processing error: {data_error}")
@@ -206,155 +315,119 @@ async def assess_data_quality(
                 detail=f"Failed to process data file: {str(data_error)}"
             )
         
-        # Keep original mock data as fallback for demo
-        mock_column_profiles = [
-            ColumnProfile(
-                column_name="customer_id",
-                data_type="integer",
-                null_count=0,
-                null_percentage=0.0,
-                unique_count=1000,
-                unique_percentage=100.0,
-                most_frequent_value=None,
-                least_frequent_value=None,
-                min_value=1,
-                max_value=1000,
-                outliers_count=0,
-                quality_score=1.0
-            ),
-            ColumnProfile(
-                column_name="email",
-                data_type="string",
-                null_count=15,
-                null_percentage=1.5,
-                unique_count=985,
-                unique_percentage=98.5,
-                most_frequent_value="user@example.com",
-                least_frequent_value=None,
-                outliers_count=3,  # malformed emails
-                quality_score=0.92
-            ),
-            ColumnProfile(
-                column_name="age",
-                data_type="integer",
-                null_count=8,
-                null_percentage=0.8,
-                unique_count=65,
-                unique_percentage=6.5,
-                mean=34.5,
-                median=33.0,
-                std_dev=12.8,
-                min_value=18,
-                max_value=150,  # outlier
-                outliers_count=2,
-                quality_score=0.88
-            ),
-            ColumnProfile(
-                column_name="income",
-                data_type="float",
-                null_count=45,
-                null_percentage=4.5,
-                unique_count=892,
-                unique_percentage=89.2,
-                mean=75000.0,
-                median=68000.0,
-                std_dev=28000.0,
-                min_value=0.0,  # suspicious
-                max_value=500000.0,
-                outliers_count=12,
-                quality_score=0.78
-            )
-        ]
-        
-        mock_issues = [
-            {
-                "issue_type": "missing_values",
-                "severity": "medium",
-                "columns_affected": ["email", "age", "income"],
-                "description": "Missing values detected in key columns",
-                "impact": "May reduce model performance",
-                "count": 68
-            },
-            {
-                "issue_type": "outliers",
-                "severity": "high",
-                "columns_affected": ["age", "income"],
-                "description": "Extreme outliers detected that may skew analysis",
-                "impact": "Can significantly impact model training",
-                "count": 14
-            },
-            {
-                "issue_type": "data_format",
-                "severity": "low",
-                "columns_affected": ["email"],
-                "description": "Some email addresses have invalid format",
-                "impact": "May cause validation errors",
-                "count": 3
-            },
-            {
-                "issue_type": "suspicious_values",
-                "severity": "medium",
-                "columns_affected": ["income"],
-                "description": "Zero income values may indicate data entry errors",
-                "impact": "May indicate incomplete or erroneous data",
-                "count": 5
-            }
-        ]
-        
-        mock_recommendations = [
-            "Consider imputing missing values in 'email' column using forward fill or domain-specific rules",
-            "Remove or cap extreme outliers in 'age' column (values > 100)",
-            "Investigate zero income values - consider removing or flagging as special cases",
-            "Validate and correct malformed email addresses",
-            "Consider log transformation for 'income' column to reduce skewness",
-            "Add data validation rules to prevent future data quality issues"
-        ]
-        
-        mock_bias_analysis = {
-            "demographic_bias": {
-                "age_distribution": {
-                    "young_adults_percentage": 45.2,
-                    "middle_aged_percentage": 38.7,
-                    "seniors_percentage": 16.1,
-                    "bias_score": 0.15,
-                    "recommendation": "Age distribution is moderately skewed towards younger demographics"
-                },
-                "gender_representation": {
-                    "balance_score": 0.85,
-                    "recommendation": "Good gender balance in dataset"
-                }
-            },
-            "feature_correlation_bias": {
-                "high_correlation_pairs": [
-                    {"feature1": "income", "feature2": "education_level", "correlation": 0.78}
-                ],
-                "bias_risk": "medium",
-                "recommendation": "Monitor for potential bias in income-education correlation"
-            }
-        }
-        
+        # Generate comprehensive issues analysis based on real data
+        issues_found = []
+
+        for profile in column_profiles:
+            # Missing values analysis
+            if profile.null_percentage > 15:
+                issues_found.append({
+                    "issue_type": "missing_values",
+                    "severity": "high",
+                    "columns_affected": [profile.column_name],
+                    "description": f"High missing values in column '{profile.column_name}': {profile.null_percentage:.1f}%",
+                    "impact": "High missing values can significantly impact model performance",
+                    "count": profile.null_count
+                })
+            elif profile.null_percentage > 5:
+                issues_found.append({
+                    "issue_type": "missing_values",
+                    "severity": "medium",
+                    "columns_affected": [profile.column_name],
+                    "description": f"Moderate missing values in column '{profile.column_name}': {profile.null_percentage:.1f}%",
+                    "impact": "May reduce model performance",
+                    "count": profile.null_count
+                })
+
+            # Outliers analysis
+            if profile.outliers_count and profile.outliers_count > len(df) * 0.05:
+                severity = "high" if profile.outliers_count > len(df) * 0.1 else "medium"
+                issues_found.append({
+                    "issue_type": "outliers",
+                    "severity": severity,
+                    "columns_affected": [profile.column_name],
+                    "description": f"High outlier count in column '{profile.column_name}': {profile.outliers_count} outliers ({(profile.outliers_count/len(df)*100):.1f}%)",
+                    "impact": "Outliers can skew analysis and reduce model accuracy",
+                    "count": profile.outliers_count
+                })
+
+            # Low uniqueness analysis
+            if profile.unique_percentage < 1 and profile.data_type != "integer":
+                issues_found.append({
+                    "issue_type": "low_uniqueness",
+                    "severity": "medium",
+                    "columns_affected": [profile.column_name],
+                    "description": f"Very low uniqueness in column '{profile.column_name}': {profile.unique_percentage:.1f}%",
+                    "impact": "Low uniqueness may indicate data quality issues or limited information value",
+                    "count": profile.unique_count
+                })
+
+        # Generate detailed recommendations based on real analysis
+        recommendations = []
+
+        for profile in column_profiles:
+            if profile.null_percentage > 10:
+                if profile.data_type == "numeric":
+                    recommendations.append(f"Consider median/mean imputation for numeric column '{profile.column_name}' with {profile.null_percentage:.1f}% missing values")
+                elif profile.data_type == "string":
+                    recommendations.append(f"Consider mode imputation or 'Unknown' category for string column '{profile.column_name}' with {profile.null_percentage:.1f}% missing values")
+                else:
+                    recommendations.append(f"Review missing value strategy for column '{profile.column_name}' - {profile.null_percentage:.1f}% missing")
+
+            if profile.outliers_count and profile.outliers_count > len(df) * 0.05:
+                recommendations.append(f"Review outliers in column '{profile.column_name}' - consider capping, transformation, or removal of {profile.outliers_count} outliers")
+
+            if profile.quality_score < 0.7:
+                recommendations.append(f"Column '{profile.column_name}' has low quality score ({profile.quality_score:.2f}) - requires attention for data quality improvement")
+
+        # Add general recommendations
+        if overall_quality_score < 0.8:
+            recommendations.append("Overall data quality is below optimal threshold - consider comprehensive data cleaning")
+
+        recommendations.append("Implement data validation rules to prevent future quality issues")
+        recommendations.append("Consider setting up automated data quality monitoring")
+
         # Calculate overall quality score from real data
         overall_quality_score = sum(profile.quality_score for profile in column_profiles) / len(column_profiles) if column_profiles else 0.0
         
-        # Generate basic issues and recommendations based on real analysis
-        issues_found = []
-        recommendations = []
-        
-        for profile in column_profiles:
-            if profile.null_percentage > 10:
-                issues_found.append(f"High missing values in column '{profile.column_name}': {profile.null_percentage:.1f}%")
-                recommendations.append(f"Consider imputation strategies for column '{profile.column_name}'")
-            
-            if profile.outliers_count and profile.outliers_count > len(df) * 0.05:
-                issues_found.append(f"High outlier count in column '{profile.column_name}': {profile.outliers_count} outliers")
-                recommendations.append(f"Review outliers in column '{profile.column_name}' - may indicate data quality issues")
-        
-        # Basic bias analysis
+        # Enhanced bias analysis based on actual data
         bias_analysis = {
             "potential_bias_detected": False,
             "bias_score": 0.1,
-            "bias_details": "Basic bias analysis completed - no major issues detected"
+            "column_imbalances": [],
+            "recommendations": []
         }
+
+        # Check for potential bias indicators
+        for profile in column_profiles:
+            # Check for extreme imbalances in categorical data
+            if profile.data_type == "string" and profile.unique_count > 1:
+                # If one value dominates (>80%), flag as potential bias
+                if profile.unique_percentage < 20 and profile.null_percentage < 50:
+                    bias_analysis["potential_bias_detected"] = True
+                    bias_analysis["column_imbalances"].append({
+                        "column": profile.column_name,
+                        "issue": "High class imbalance",
+                        "dominant_value_frequency": f"{100 - profile.unique_percentage:.1f}%"
+                    })
+                    bias_analysis["recommendations"].append(f"Review class distribution in '{profile.column_name}' for potential sampling bias")
+
+            # Check for suspicious numeric ranges
+            if profile.data_type in ["numeric", "integer"] and profile.min_value is not None and profile.max_value is not None:
+                range_ratio = profile.max_value / profile.min_value if profile.min_value > 0 else float('inf')
+                if range_ratio > 1000:  # Very wide range might indicate outliers or bias
+                    bias_analysis["column_imbalances"].append({
+                        "column": profile.column_name,
+                        "issue": "Extreme value range",
+                        "range": f"{profile.min_value} to {profile.max_value}"
+                    })
+
+        # Update bias score based on findings
+        if bias_analysis["potential_bias_detected"]:
+            bias_analysis["bias_score"] = min(0.8, 0.1 + len(bias_analysis["column_imbalances"]) * 0.1)
+
+        if not bias_analysis["recommendations"]:
+            bias_analysis["recommendations"] = ["No significant bias indicators detected in current analysis"]
         
         processing_time = (datetime.utcnow() - start_time).total_seconds()
         
@@ -362,14 +435,14 @@ async def assess_data_quality(
             success=True,
             assessment_id=assessment_id,
             filename=file.filename,
-            total_rows=quality_assessment_result['total_rows'],
-            total_columns=quality_assessment_result['total_columns'],
-            overall_quality_score=quality_assessment_result['overall_quality_score'],
+            total_rows=len(df),
+            total_columns=len(df.columns),
+            overall_quality_score=overall_quality_score,
             column_profiles=column_profiles,
             issues_found=issues_found,
             recommendations=recommendations,
             bias_analysis=bias_analysis,
-            processing_time=quality_assessment_result['processing_time']
+            processing_time=processing_time
         )
         
     except HTTPException:
@@ -613,11 +686,11 @@ async def download_processed_data(
 ):
     """Download processed/cleaned data"""
     try:
-        # For now, return 404
-        # TODO: Implement file storage and download
+        # File storage and download functionality not implemented
+        # This endpoint is a placeholder for future file storage integration
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Processed file not found"
+            detail="Processed file not found - file storage not implemented"
         )
     except HTTPException:
         raise

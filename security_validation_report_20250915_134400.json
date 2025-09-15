@@ -1,0 +1,187 @@
+{
+  "timestamp": "2025-09-15T13:44:00.278023",
+  "environment": "production",
+  "overall_status": "CRITICAL_ISSUES",
+  "critical_issues": 2,
+  "high_issues": 0,
+  "medium_issues": 0,
+  "low_issues": 0,
+  "results": [
+    {
+      "category": "Environment",
+      "check_name": "ENVIRONMENT Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "ENVIRONMENT is correctly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Environment",
+      "check_name": "DEBUG Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "DEBUG is correctly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Environment",
+      "check_name": "BYPASS_AUTH Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "BYPASS_AUTH is correctly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Environment",
+      "check_name": "CSRF_PROTECTION_ENABLED Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "CSRF_PROTECTION_ENABLED is correctly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Environment",
+      "check_name": "RATE_LIMITING_ENABLED Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "RATE_LIMITING_ENABLED is correctly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Secret Keys",
+      "check_name": "SECRET_KEY Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "SECRET_KEY is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Secret Keys",
+      "check_name": "JWT_SECRET_KEY Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "JWT_SECRET_KEY is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Secret Keys",
+      "check_name": "POSTGRES_PASSWORD Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "POSTGRES_PASSWORD is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Secret Keys",
+      "check_name": "REDIS_PASSWORD Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "REDIS_PASSWORD is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Secret Keys",
+      "check_name": "ENCRYPTION_KEY Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "ENCRYPTION_KEY is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Secret Keys",
+      "check_name": "CSRF_SECRET Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "CSRF_SECRET is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Secret Keys",
+      "check_name": "COOKIE_SECRET Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "COOKIE_SECRET is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "OAuth Configuration",
+      "check_name": "Google Client ID Placeholder",
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "message": "GOOGLE_CLIENT_ID contains placeholder value",
+      "recommendation": "Replace with actual client ID from google OAuth app",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "OAuth Configuration",
+      "check_name": "Github Client ID Placeholder",
+      "status": "FAIL",
+      "severity": "CRITICAL",
+      "message": "GITHUB_CLIENT_ID contains placeholder value",
+      "recommendation": "Replace with actual client ID from github OAuth app",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Database Security",
+      "check_name": "PostgreSQL Password Strong",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "PostgreSQL password meets strength requirements",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Redis Security",
+      "check_name": "Redis Password Strong",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "Redis password meets strength requirements",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "Encryption",
+      "check_name": "Encryption Key Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "Encryption key is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "CORS Security",
+      "check_name": "CORS Origins Restricted",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "CORS origins are properly restricted",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    },
+    {
+      "category": "API Keys",
+      "check_name": "SENTRY_DSN Valid",
+      "status": "PASS",
+      "severity": "LOW",
+      "message": "SENTRY_DSN is properly configured",
+      "recommendation": "",
+      "current_value": "[REDACTED]"
+    }
+  ],
+  "next_steps": [
+    "\ud83d\udea8 CRITICAL: Fix these issues before deploying to production:",
+    "   \u2022 Google Client ID Placeholder: Replace with actual client ID from google OAuth app",
+    "   \u2022 Github Client ID Placeholder: Replace with actual client ID from github OAuth app"
+  ]
+}

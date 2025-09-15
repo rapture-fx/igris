@@ -343,15 +343,37 @@ except Exception as e:
 # except Exception as e:
 #     logger.warning(f"Failed to enable encryption middleware: {e}")
 
-# Enable CSRF protection for production
+# Enable CSRF protection with environment-specific configuration
 try:
-    if settings.ENVIRONMENT == "production":
-        app.add_middleware(CSRFProtectionMiddleware)
-        logger.info("CSRF protection middleware enabled")
+    # Always enable CSRF protection for security consistency
+    csrf_enabled = os.getenv("CSRF_PROTECTION_ENABLED", "true").lower() == "true"
+
+    if csrf_enabled:
+        # Configure CSRF based on environment
+        csrf_secure_cookie = settings.ENVIRONMENT == "production"
+        csrf_exempt_paths = {'/health', '/metrics', '/docs', '/openapi.json', '/system/info'}
+
+        # Add development-specific exempt paths if not in production
+        if settings.ENVIRONMENT != "production":
+            csrf_exempt_paths.update({'/debug', '/test'})
+
+        app.add_middleware(
+            CSRFProtectionMiddleware,
+            enabled=True,
+            exempt_paths=csrf_exempt_paths,
+            cookie_secure=csrf_secure_cookie
+        )
+        logger.info(f"CSRF protection middleware enabled for {settings.ENVIRONMENT} environment")
     else:
-        logger.info("CSRF protection disabled in development")
+        logger.warning("CSRF protection is disabled via CSRF_PROTECTION_ENABLED=false")
+        if settings.ENVIRONMENT == "production":
+            logger.critical("SECURITY WARNING: CSRF protection disabled in production!")
+
 except Exception as e:
-    logger.warning(f"Failed to enable CSRF protection middleware: {e}")
+    logger.error(f"Failed to enable CSRF protection middleware: {e}")
+    if settings.ENVIRONMENT == "production":
+        logger.critical("SECURITY CRITICAL: CSRF protection middleware failed in production!")
+        raise RuntimeError("CSRF protection is critical for production security")
 
 # Global exception handlers
 @app.exception_handler(RequestValidationError)

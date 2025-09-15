@@ -72,37 +72,31 @@ def setup_performance_monitoring(engine_instance):
             logger.error(f"Error in query performance tracking: {e}")
 
 try:
-    # Enhanced performance-optimized connection arguments
+    # Basic connection arguments compatible with asyncpg
     connect_args = {
-        "application_name": f"schlep-engine-{settings.ENVIRONMENT}",
-        "connect_timeout": 15,  # Increased for better reliability
-        "command_timeout": 60,  # Increased for complex queries
-        # Performance optimizations
-        "server_side_cursors": True,
-        "prepared_statement_cache_size": 200,  # Increased cache
-        "prepared_statement_name_func": lambda: f"__asyncpg_stmt_{hash(time.time())}__",
-        # Connection optimizations
-        "tcp_keepalives_idle": 600,  # Keep connection alive
-        "tcp_keepalives_interval": 30,
-        "tcp_keepalives_count": 3,
-        "tcp_user_timeout": 30000,  # 30 seconds
+        "server_settings": {
+            "application_name": f"schlep-engine-{settings.ENVIRONMENT}",
+        },
+        "command_timeout": 60,  # Timeout for commands
     }
     
-    # Add SSL configuration for production or Supabase
+    # Add SSL configuration for production or Supabase (asyncpg format)
     if settings.ENVIRONMENT == "production" or settings.is_supabase_enabled:
         connect_args.update({
-            "sslmode": "require",
+            "ssl": "require",
         })
-        
+
         # Add client certificates only if they exist (for self-hosted PostgreSQL)
         if not settings.is_supabase_enabled:
             connect_args.update({
-                "sslcert": "/app/certs/client-cert.pem",
-                "sslkey": "/app/certs/client-key.pem", 
-                "sslrootcert": "/app/certs/ca-cert.pem",
+                "ssl": {
+                    "cert": "/app/certs/client-cert.pem",
+                    "key": "/app/certs/client-key.pem",
+                    "ca": "/app/certs/ca-cert.pem",
+                }
             })
     else:
-        connect_args["sslmode"] = "prefer"
+        connect_args["ssl"] = "prefer"
     
     # Enhanced performance-optimized async engine with better pool management
     async_engine = create_async_engine(
@@ -123,8 +117,7 @@ try:
             "autocommit": False,
             "compiled_cache": {},  # Enable query compilation caching
         },
-        # Connection event handlers
-        pool_events=True,  # Enable pool event tracking
+        # Connection event handlers removed - pool_events expects iterable, not boolean
     )
     
     # Create sync engine for migrations (build sync URL without query params)
@@ -160,30 +153,33 @@ try:
     
     # Set up connection pool event monitoring for async engine
     if async_engine:
-        @event.listens_for(async_engine, "connect")
+        # Attach events to the sync_engine for async compatibility
+        sync_engine = async_engine.sync_engine
+
+        @event.listens_for(sync_engine, "connect")
         def receive_connect(dbapi_connection, connection_record):
             """Log new database connections"""
             logger.debug("New database connection established")
-        
-        @event.listens_for(async_engine, "checkout")
+
+        @event.listens_for(sync_engine, "checkout")
         def receive_checkout(dbapi_connection, connection_record, connection_proxy):
             """Monitor connection checkout from pool"""
-            pool = async_engine.pool
+            pool = sync_engine.pool
             if pool.checkedout() > (pool.size() * 0.8):  # 80% utilization warning
                 logger.warning(f"High connection pool utilization: {pool.checkedout()}/{pool.size()}")
-        
-        @event.listens_for(async_engine, "invalid")
-        def receive_invalid(dbapi_connection, connection_record, exception):
+
+        @event.listens_for(sync_engine.pool, "invalidate")
+        def receive_invalidate(dbapi_connection, connection_record, exception):
             """Track invalid connections"""
             query_performance_metrics["connection_errors"] += 1
             logger.error(f"Database connection invalidated: {exception}")
-        
-        @event.listens_for(async_engine, "soft_invalidate")
-        def receive_soft_invalid(dbapi_connection, connection_record, exception):
+
+        @event.listens_for(sync_engine.pool, "soft_invalidate")
+        def receive_soft_invalidate(dbapi_connection, connection_record, exception):
             """Track soft connection invalidations"""
             logger.warning(f"Database connection soft invalidated: {exception}")
-        
-        setup_performance_monitoring(async_engine.sync_engine)
+
+        setup_performance_monitoring(sync_engine)
     
     logger.info("Database engines initialized successfully")
     

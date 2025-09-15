@@ -75,17 +75,33 @@ class EnhancedOAuthSecurityValidator:
         issues = []
         recommendations = []
         security_score = 100
-        
-        # Check if credentials are provided
-        if not client_id or client_id == "REPLACE_WITH_ACTUAL_GOOGLE_CLIENT_ID":
-            issues.append("Google Client ID is missing or still placeholder")
-            recommendations.append("Get Google Client ID from Google Cloud Console OAuth section")
+
+        # Check if credentials are provided (only flag placeholders in development)
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+
+        if not client_id:
+            issues.append("Google Client ID is missing")
+            recommendations.append("Set GOOGLE_CLIENT_ID environment variable with value from Google Cloud Console")
             security_score -= 50
-        
-        if not client_secret or client_secret == "REPLACE_WITH_ACTUAL_GOOGLE_CLIENT_SECRET":
-            issues.append("Google Client Secret is missing or still placeholder")
-            recommendations.append("Get Google Client Secret from Google Cloud Console OAuth section")
+        elif client_id == "REPLACE_WITH_ACTUAL_GOOGLE_CLIENT_ID":
+            if environment == "production":
+                issues.append("CRITICAL: Google Client ID is still placeholder in production")
+                recommendations.append("URGENT: Replace GOOGLE_CLIENT_ID with actual value from Google Cloud Console")
+                security_score -= 50
+            else:
+                recommendations.append("Replace GOOGLE_CLIENT_ID placeholder with actual value for testing")
+
+        if not client_secret:
+            issues.append("Google Client Secret is missing")
+            recommendations.append("Set GOOGLE_CLIENT_SECRET environment variable with value from Google Cloud Console")
             security_score -= 50
+        elif client_secret == "REPLACE_WITH_ACTUAL_GOOGLE_CLIENT_SECRET":
+            if environment == "production":
+                issues.append("CRITICAL: Google Client Secret is still placeholder in production")
+                recommendations.append("URGENT: Replace GOOGLE_CLIENT_SECRET with actual value from Google Cloud Console")
+                security_score -= 50
+            else:
+                recommendations.append("Replace GOOGLE_CLIENT_SECRET placeholder with actual value for testing")
         
         # Validate client ID format
         if client_id and not client_id.startswith("REPLACE_WITH"):
@@ -143,17 +159,33 @@ class EnhancedOAuthSecurityValidator:
         issues = []
         recommendations = []
         security_score = 100
-        
-        # Check if credentials are provided
-        if not client_id or client_id == "REPLACE_WITH_ACTUAL_GITHUB_CLIENT_ID":
-            issues.append("GitHub Client ID is missing or still placeholder")
-            recommendations.append("Create GitHub OAuth App in Developer Settings and get Client ID")
+
+        # Check if credentials are provided (only flag placeholders in development)
+        environment = os.getenv("ENVIRONMENT", "development").lower()
+
+        if not client_id:
+            issues.append("GitHub Client ID is missing")
+            recommendations.append("Set GITHUB_CLIENT_ID environment variable with value from GitHub OAuth App")
             security_score -= 50
-        
-        if not client_secret or client_secret == "REPLACE_WITH_ACTUAL_GITHUB_CLIENT_SECRET":
-            issues.append("GitHub Client Secret is missing or still placeholder") 
-            recommendations.append("Get GitHub Client Secret from OAuth App settings")
+        elif client_id == "REPLACE_WITH_ACTUAL_GITHUB_CLIENT_ID":
+            if environment == "production":
+                issues.append("CRITICAL: GitHub Client ID is still placeholder in production")
+                recommendations.append("URGENT: Replace GITHUB_CLIENT_ID with actual value from GitHub OAuth App")
+                security_score -= 50
+            else:
+                recommendations.append("Replace GITHUB_CLIENT_ID placeholder with actual value for testing")
+
+        if not client_secret:
+            issues.append("GitHub Client Secret is missing")
+            recommendations.append("Set GITHUB_CLIENT_SECRET environment variable with value from GitHub OAuth App")
             security_score -= 50
+        elif client_secret == "REPLACE_WITH_ACTUAL_GITHUB_CLIENT_SECRET":
+            if environment == "production":
+                issues.append("CRITICAL: GitHub Client Secret is still placeholder in production")
+                recommendations.append("URGENT: Replace GITHUB_CLIENT_SECRET with actual value from GitHub OAuth App")
+                security_score -= 50
+            else:
+                recommendations.append("Replace GITHUB_CLIENT_SECRET placeholder with actual value for testing")
         
         # Validate client ID format (GitHub uses random strings)
         if client_id and not client_id.startswith("REPLACE_WITH"):
