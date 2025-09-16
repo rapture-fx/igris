@@ -1,0 +1,385 @@
+name: OAuth E2E Testing
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'apps/web-*/**'
+      - 'packages/ui/**'
+      - 'apps/api/app/auth/**'
+      - 'cypress/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'apps/web-*/**'
+      - 'packages/ui/**'
+      - 'apps/api/app/auth/**'
+      - 'cypress/**'
+  schedule:
+    # Run OAuth tests daily at 3 AM UTC
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+env:
+  # Test environment configuration
+  NODE_ENV: test
+  DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+  REDIS_URL: redis://localhost:6379/0
+  JWT_SECRET_KEY: test_jwt_secret_key_for_oauth_testing_123456789
+  ENCRYPTION_KEY: test_encryption_key_for_oauth_testing_123456789
+
+  # OAuth test configuration (mock providers)
+  GOOGLE_CLIENT_ID: test_google_client_id
+  GOOGLE_CLIENT_SECRET: test_google_client_secret
+  GITHUB_CLIENT_ID: test_github_client_id
+  GITHUB_CLIENT_SECRET: test_github_client_secret
+
+  # Test-specific settings
+  ENABLE_OAUTH_TESTING: true
+  ENABLE_MOCK_OAUTH: true
+  CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+
+jobs:
+  setup-test-environment:
+    name: Setup Test Environment
+    runs-on: ubuntu-latest
+    outputs:
+      api-ready: ${{ steps.health-check.outputs.ready }}
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install Python dependencies
+      working-directory: ./apps/api
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Install Node.js dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run database migrations
+      working-directory: ./apps/api
+      run: |
+        export DATABASE_URL="postgresql://test_user:test_password@localhost:5432/test_db"
+        alembic upgrade head
+
+    - name: Start API server
+      working-directory: ./apps/api
+      run: |
+        export DATABASE_URL="postgresql://test_user:test_password@localhost:5432/test_db"
+        export REDIS_URL="redis://localhost:6379/0"
+        export ENVIRONMENT=testing
+        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+        echo $! > api_server.pid
+
+    - name: Wait for API server
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:8000/health; do sleep 2; done'
+
+    - name: Health check API
+      id: health-check
+      run: |
+        response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8000/health)
+        if [ $response -eq 200 ]; then
+          echo "ready=true" >> $GITHUB_OUTPUT
+        else
+          echo "ready=false" >> $GITHUB_OUTPUT
+          exit 1
+        fi
+
+    - name: Cache API server PID
+      run: echo "API_PID=$(cat ./apps/api/api_server.pid)" >> $GITHUB_ENV
+
+  oauth-unit-tests:
+    name: OAuth Unit Tests
+    runs-on: ubuntu-latest
+    needs: setup-test-environment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run OAuth unit tests
+      run: |
+        pnpm --filter @schlep-engine/ui test:oauth
+        pnpm test:auth
+
+    - name: Upload unit test coverage
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage/lcov.info
+        flags: oauth-unit-tests
+
+  cypress-oauth-tests:
+    name: Cypress OAuth E2E Tests
+    runs-on: ubuntu-latest
+    needs: setup-test-environment
+    if: needs.setup-test-environment.outputs.api-ready == 'true'
+
+    strategy:
+      matrix:
+        spec:
+          - "cypress/e2e/oauth/google-oauth.cy.ts"
+          - "cypress/e2e/oauth/github-oauth.cy.ts"
+          - "cypress/e2e/oauth/oauth-edge-cases.cy.ts"
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Build frontend applications
+      run: |
+        pnpm build:admin
+        pnpm build:landing
+
+    - name: Start frontend applications
+      run: |
+        pnpm --filter @schlep-engine/web-admin start &
+        echo $! > admin_server.pid
+        pnpm --filter @schlep-engine/web-landing start &
+        echo $! > landing_server.pid
+
+    - name: Wait for frontend servers
+      run: |
+        timeout 60 bash -c 'until curl -f http://localhost:3000; do sleep 2; done'
+        timeout 60 bash -c 'until curl -f http://localhost:3002; do sleep 2; done'
+
+    - name: Run Cypress OAuth tests
+      uses: cypress-io/github-action@v6
+      with:
+        spec: ${{ matrix.spec }}
+        browser: chrome
+        headless: true
+        record: ${{ secrets.CYPRESS_RECORD_KEY != '' }}
+        parallel: true
+        group: 'OAuth E2E Tests'
+      env:
+        CYPRESS_baseUrl: http://localhost:3000
+        CYPRESS_API_BASE_URL: http://localhost:8000
+        CYPRESS_ENABLE_OAUTH_TESTING: true
+        CYPRESS_ENABLE_MOCK_OAUTH: true
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Cypress screenshots
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cypress-screenshots-${{ matrix.spec }}
+        path: cypress/screenshots
+        retention-days: 7
+
+    - name: Upload Cypress videos
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: cypress-videos-${{ matrix.spec }}
+        path: cypress/videos
+        retention-days: 7
+
+  oauth-security-tests:
+    name: OAuth Security Tests
+    runs-on: ubuntu-latest
+    needs: setup-test-environment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install security testing tools
+      run: |
+        pip install requests pytest pytest-asyncio
+
+    - name: Run OAuth security tests
+      working-directory: ./tests/security
+      run: |
+        python -m pytest oauth_security_tests.py -v
+        python test_oauth_vulnerabilities.py
+
+    - name: Upload security test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: oauth-security-test-results
+        path: tests/security/reports/
+        retention-days: 30
+
+  oauth-performance-tests:
+    name: OAuth Performance Tests
+    runs-on: ubuntu-latest
+    needs: setup-test-environment
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run OAuth performance tests
+      run: |
+        pnpm test:oauth:performance
+
+    - name: Upload performance reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: oauth-performance-reports
+        path: test-results/performance/
+        retention-days: 14
+
+  oauth-test-report:
+    name: Generate OAuth Test Report
+    runs-on: ubuntu-latest
+    needs: [oauth-unit-tests, cypress-oauth-tests, oauth-security-tests, oauth-performance-tests]
+    if: always()
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v4
+
+    - name: Generate comprehensive test report
+      run: |
+        mkdir -p oauth-test-reports
+
+        # Create test summary
+        echo "# OAuth Testing Report" > oauth-test-reports/summary.md
+        echo "" >> oauth-test-reports/summary.md
+        echo "**Workflow:** ${{ github.workflow }}" >> oauth-test-reports/summary.md
+        echo "**Run:** ${{ github.run_id }}" >> oauth-test-reports/summary.md
+        echo "**Commit:** ${{ github.sha }}" >> oauth-test-reports/summary.md
+        echo "**Date:** $(date -u)" >> oauth-test-reports/summary.md
+        echo "" >> oauth-test-reports/summary.md
+
+        # Test results summary
+        echo "## Test Results" >> oauth-test-reports/summary.md
+        echo "" >> oauth-test-reports/summary.md
+        echo "| Test Suite | Status |" >> oauth-test-reports/summary.md
+        echo "|------------|--------|" >> oauth-test-reports/summary.md
+        echo "| OAuth Unit Tests | ${{ needs.oauth-unit-tests.result }} |" >> oauth-test-reports/summary.md
+        echo "| Cypress E2E Tests | ${{ needs.cypress-oauth-tests.result }} |" >> oauth-test-reports/summary.md
+        echo "| Security Tests | ${{ needs.oauth-security-tests.result }} |" >> oauth-test-reports/summary.md
+        echo "| Performance Tests | ${{ needs.oauth-performance-tests.result }} |" >> oauth-test-reports/summary.md
+
+    - name: Upload test report
+      uses: actions/upload-artifact@v4
+      with:
+        name: oauth-test-report
+        path: oauth-test-reports/
+        retention-days: 30
+
+    - name: Comment PR with test results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync('oauth-test-reports/summary.md', 'utf8');
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+
+  cleanup:
+    name: Cleanup Test Environment
+    runs-on: ubuntu-latest
+    needs: [oauth-unit-tests, cypress-oauth-tests, oauth-security-tests, oauth-performance-tests]
+    if: always()
+
+    steps:
+    - name: Cleanup test data
+      run: |
+        echo "Cleaning up test environment..."
+        # This would clean up any test data, stop servers, etc.
+        # Implementation depends on your specific cleanup needs

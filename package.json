@@ -30,6 +30,10 @@
     "clean": "pnpm --parallel --filter \"@schlep-engine/*\" clean",
     "lint": "pnpm --parallel --filter \"@schlep-engine/*\" lint",
     "test": "pnpm --parallel --filter \"@schlep-engine/*\" test",
+    "test:oauth": "cypress run --spec 'cypress/e2e/oauth/**/*.cy.ts'",
+    "test:oauth:open": "cypress open --config specPattern='cypress/e2e/oauth/**/*.cy.ts'",
+    "test:oauth:performance": "cypress run --spec 'cypress/e2e/oauth/**/*.cy.ts' --env performance=true",
+    "test:auth": "pnpm --filter @schlep-engine/ui test --testPathPattern=auth",
     "type-check": "pnpm --parallel --filter \"@schlep-engine/*\" type-check",
     "deps:check": "node scripts/check-dependencies.js",
     "deps:sync": "node scripts/sync-dependencies.js",
@@ -37,6 +41,8 @@
     "deps:update": "pnpm update --latest --interactive",
     "deps:outdated": "pnpm outdated --recursive",
     "security:scan": "pnpm audit && node scripts/security-scan.js",
+    "security:scan:python": "python3 scripts/check-python-dependencies.py",
+    "security:scan:all": "pnpm security:scan && pnpm security:scan:python",
     "postinstall": "node scripts/post-install.js"
   },
   "devDependencies": {

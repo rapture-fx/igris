@@ -1,0 +1,473 @@
+# Schlep-engine Tiered Alerting Configuration
+# Business Impact-Based Alert Management
+
+# =====================================
+# ALERT SEVERITY DEFINITIONS
+# =====================================
+
+severity_levels:
+  critical:
+    impact: "High business impact - revenue loss, customer-facing outages"
+    sla_response_time: "5 minutes"
+    escalation_time: "15 minutes"
+    notification_channels: ["pagerduty", "slack-critical", "email", "sms"]
+    business_hours_only: false
+    auto_escalate: true
+
+  high:
+    impact: "Medium business impact - service degradation, performance issues"
+    sla_response_time: "15 minutes"
+    escalation_time: "30 minutes"
+    notification_channels: ["slack-alerts", "email"]
+    business_hours_only: false
+    auto_escalate: true
+
+  medium:
+    impact: "Low business impact - non-critical feature issues"
+    sla_response_time: "1 hour"
+    escalation_time: "4 hours"
+    notification_channels: ["slack-warnings", "email"]
+    business_hours_only: true
+    auto_escalate: false
+
+  low:
+    impact: "Minimal business impact - informational alerts"
+    sla_response_time: "24 hours"
+    escalation_time: "never"
+    notification_channels: ["slack-info"]
+    business_hours_only: true
+    auto_escalate: false
+
+# =====================================
+# BUSINESS IMPACT METRICS
+# =====================================
+
+business_metrics:
+  revenue_impact:
+    critical:
+      - "API completely unavailable (> 50% error rate)"
+      - "Payment processing down"
+      - "Data processing pipeline completely failed"
+      - "User authentication system down"
+    high:
+      - "API degraded performance (> 20% error rate)"
+      - "ML pipeline processing delays > 1 hour"
+      - "File upload system unavailable"
+      - "Admin dashboard inaccessible"
+    medium:
+      - "Non-critical API endpoints slow (> 5s response time)"
+      - "Background job delays"
+      - "Email notifications delayed"
+    low:
+      - "Documentation site slow"
+      - "Analytics dashboard slow"
+      - "Log ingestion delays"
+
+  customer_impact:
+    critical:
+      - "Customer unable to login (> 10% login failures)"
+      - "Data loss or corruption detected"
+      - "Security breach detected"
+      - "Customer data export failures"
+    high:
+      - "Slow customer experience (> 10s load times)"
+      - "Feature unavailable affecting > 50% users"
+      - "OAuth providers unavailable"
+    medium:
+      - "Feature unavailable affecting < 10% users"
+      - "Minor UI issues"
+      - "Non-critical integrations down"
+    low:
+      - "Cosmetic issues"
+      - "Feature requests and feedback delays"
+
+# =====================================
+# ALERT RULES
+# =====================================
+
+alert_rules:
+  # CRITICAL ALERTS
+  api_completely_down:
+    severity: critical
+    condition: "api_success_rate < 0.5"
+    window: "2m"
+    description: "API success rate below 50%"
+    business_impact: "Revenue loss - customers cannot use the service"
+    runbook: "https://docs.schlep-engine.com/runbooks/api-down"
+
+  database_connection_failure:
+    severity: critical
+    condition: "database_connections_active == 0"
+    window: "1m"
+    description: "No active database connections"
+    business_impact: "Complete service outage"
+    runbook: "https://docs.schlep-engine.com/runbooks/database-down"
+
+  payment_processing_down:
+    severity: critical
+    condition: "payment_success_rate < 0.8"
+    window: "5m"
+    description: "Payment processing success rate below 80%"
+    business_impact: "Direct revenue loss"
+    runbook: "https://docs.schlep-engine.com/runbooks/payments-down"
+
+  security_breach_detected:
+    severity: critical
+    condition: "security_events_count > 10"
+    window: "1m"
+    description: "High number of security events detected"
+    business_impact: "Potential data breach - customer trust and compliance"
+    runbook: "https://docs.schlep-engine.com/runbooks/security-incident"
+
+  # HIGH ALERTS
+  api_degraded_performance:
+    severity: high
+    condition: "api_error_rate > 0.2"
+    window: "5m"
+    description: "API error rate above 20%"
+    business_impact: "Customer experience degradation"
+    runbook: "https://docs.schlep-engine.com/runbooks/api-degraded"
+
+  slow_response_times:
+    severity: high
+    condition: "api_response_time_p95 > 10"
+    window: "5m"
+    description: "95th percentile response time above 10 seconds"
+    business_impact: "Poor customer experience leading to churn"
+    runbook: "https://docs.schlep-engine.com/runbooks/slow-api"
+
+  ml_pipeline_failures:
+    severity: high
+    condition: "ml_pipeline_failure_rate > 0.3"
+    window: "10m"
+    description: "ML pipeline failure rate above 30%"
+    business_impact: "Core feature unavailable"
+    runbook: "https://docs.schlep-engine.com/runbooks/ml-pipeline-down"
+
+  high_memory_usage:
+    severity: high
+    condition: "memory_usage_percent > 85"
+    window: "10m"
+    description: "Memory usage consistently above 85%"
+    business_impact: "Risk of service instability and crashes"
+    runbook: "https://docs.schlep-engine.com/runbooks/high-memory"
+
+  # MEDIUM ALERTS
+  increased_error_rate:
+    severity: medium
+    condition: "api_error_rate > 0.05"
+    window: "15m"
+    description: "API error rate above 5%"
+    business_impact: "Minor customer experience issues"
+    runbook: "https://docs.schlep-engine.com/runbooks/increased-errors"
+
+  background_job_delays:
+    severity: medium
+    condition: "background_job_queue_length > 1000"
+    window: "30m"
+    description: "Background job queue backing up"
+    business_impact: "Delayed processing affecting user experience"
+    runbook: "https://docs.schlep-engine.com/runbooks/job-queue-backup"
+
+  disk_space_warning:
+    severity: medium
+    condition: "disk_usage_percent > 75"
+    window: "15m"
+    description: "Disk usage above 75%"
+    business_impact: "Risk of service disruption if not addressed"
+    runbook: "https://docs.schlep-engine.com/runbooks/disk-space"
+
+  oauth_provider_slow:
+    severity: medium
+    condition: "oauth_response_time > 30"
+    window: "10m"
+    description: "OAuth provider response time above 30 seconds"
+    business_impact: "Login delays affecting user experience"
+    runbook: "https://docs.schlep-engine.com/runbooks/oauth-slow"
+
+  # LOW ALERTS
+  cache_hit_rate_low:
+    severity: low
+    condition: "redis_cache_hit_rate < 0.7"
+    window: "1h"
+    description: "Cache hit rate below 70%"
+    business_impact: "Potential performance optimization opportunity"
+    runbook: "https://docs.schlep-engine.com/runbooks/low-cache-hits"
+
+  log_ingestion_slow:
+    severity: low
+    condition: "log_ingestion_rate < 100"
+    window: "1h"
+    description: "Log ingestion rate below normal"
+    business_impact: "Monitoring and debugging capabilities reduced"
+    runbook: "https://docs.schlep-engine.com/runbooks/slow-logging"
+
+  certificate_expiry_warning:
+    severity: low
+    condition: "ssl_certificate_days_until_expiry < 30"
+    window: "24h"
+    description: "SSL certificate expires in less than 30 days"
+    business_impact: "Future service disruption if not renewed"
+    runbook: "https://docs.schlep-engine.com/runbooks/cert-renewal"
+
+# =====================================
+# ESCALATION POLICIES
+# =====================================
+
+escalation_policies:
+  critical_escalation:
+    levels:
+      - level: 1
+        timeout: "5m"
+        notify: ["oncall-primary"]
+      - level: 2
+        timeout: "10m"
+        notify: ["oncall-secondary", "engineering-manager"]
+      - level: 3
+        timeout: "15m"
+        notify: ["cto", "ceo"]
+    applies_to: ["critical"]
+
+  high_escalation:
+    levels:
+      - level: 1
+        timeout: "15m"
+        notify: ["oncall-primary"]
+      - level: 2
+        timeout: "30m"
+        notify: ["oncall-secondary"]
+      - level: 3
+        timeout: "1h"
+        notify: ["engineering-manager"]
+    applies_to: ["high"]
+
+  medium_escalation:
+    levels:
+      - level: 1
+        timeout: "1h"
+        notify: ["engineering-team"]
+      - level: 2
+        timeout: "4h"
+        notify: ["engineering-manager"]
+    applies_to: ["medium"]
+    business_hours_only: true
+
+  low_escalation:
+    levels:
+      - level: 1
+        timeout: "24h"
+        notify: ["engineering-team"]
+    applies_to: ["low"]
+    business_hours_only: true
+
+# =====================================
+# NOTIFICATION CHANNELS
+# =====================================
+
+notification_channels:
+  pagerduty:
+    type: "pagerduty"
+    integration_key: "${PAGERDUTY_INTEGRATION_KEY}"
+    severity_mapping:
+      critical: "critical"
+      high: "error"
+      medium: "warning"
+      low: "info"
+
+  slack-critical:
+    type: "slack"
+    webhook_url: "${SLACK_CRITICAL_WEBHOOK}"
+    channel: "#alerts-critical"
+    mention_users: ["@channel"]
+
+  slack-alerts:
+    type: "slack"
+    webhook_url: "${SLACK_ALERTS_WEBHOOK}"
+    channel: "#alerts"
+    mention_users: ["@here"]
+
+  slack-warnings:
+    type: "slack"
+    webhook_url: "${SLACK_WARNINGS_WEBHOOK}"
+    channel: "#warnings"
+
+  slack-info:
+    type: "slack"
+    webhook_url: "${SLACK_INFO_WEBHOOK}"
+    channel: "#monitoring"
+
+  email:
+    type: "email"
+    smtp_host: "${SMTP_HOST}"
+    smtp_port: 587
+    username: "${SMTP_USERNAME}"
+    password: "${SMTP_PASSWORD}"
+    from_address: "alerts@schlep-engine.com"
+
+  sms:
+    type: "sms"
+    provider: "twilio"
+    account_sid: "${TWILIO_ACCOUNT_SID}"
+    auth_token: "${TWILIO_AUTH_TOKEN}"
+
+# =====================================
+# CONTACT GROUPS
+# =====================================
+
+contact_groups:
+  oncall-primary:
+    members:
+      - type: "pagerduty"
+        schedule: "primary-oncall"
+      - type: "sms"
+        number: "${PRIMARY_ONCALL_PHONE}"
+
+  oncall-secondary:
+    members:
+      - type: "pagerduty"
+        schedule: "secondary-oncall"
+      - type: "email"
+        address: "${SECONDARY_ONCALL_EMAIL}"
+
+  engineering-team:
+    members:
+      - type: "slack"
+        channel: "#engineering"
+      - type: "email"
+        address: "engineering@schlep-engine.com"
+
+  engineering-manager:
+    members:
+      - type: "email"
+        address: "eng-manager@schlep-engine.com"
+      - type: "sms"
+        number: "${ENG_MANAGER_PHONE}"
+
+  cto:
+    members:
+      - type: "email"
+        address: "cto@schlep-engine.com"
+      - type: "sms"
+        number: "${CTO_PHONE}"
+
+  ceo:
+    members:
+      - type: "email"
+        address: "ceo@schlep-engine.com"
+
+# =====================================
+# BUSINESS HOURS CONFIGURATION
+# =====================================
+
+business_hours:
+  timezone: "UTC"
+  weekdays:
+    monday: { start: "09:00", end: "17:00" }
+    tuesday: { start: "09:00", end: "17:00" }
+    wednesday: { start: "09:00", end: "17:00" }
+    thursday: { start: "09:00", end: "17:00" }
+    friday: { start: "09:00", end: "17:00" }
+  holidays:
+    - "2024-01-01"  # New Year's Day
+    - "2024-07-04"  # Independence Day
+    - "2024-12-25"  # Christmas Day
+
+# =====================================
+# ALERT ROUTING RULES
+# =====================================
+
+routing_rules:
+  # Route based on service
+  - match:
+      service: "api"
+      severity: "critical"
+    route_to: "critical_escalation"
+
+  - match:
+      service: "database"
+      severity: "critical"
+    route_to: "critical_escalation"
+
+  - match:
+      service: "payments"
+    route_to: "critical_escalation"  # All payment alerts are critical
+
+  # Route based on alert type
+  - match:
+      alert_type: "security"
+    route_to: "critical_escalation"
+
+  - match:
+      alert_type: "performance"
+      severity: ["critical", "high"]
+    route_to: "high_escalation"
+
+  # Default routing
+  - match:
+      severity: "critical"
+    route_to: "critical_escalation"
+
+  - match:
+      severity: "high"
+    route_to: "high_escalation"
+
+  - match:
+      severity: "medium"
+    route_to: "medium_escalation"
+
+  - match:
+      severity: "low"
+    route_to: "low_escalation"
+
+# =====================================
+# ALERT SUPPRESSION RULES
+# =====================================
+
+suppression_rules:
+  # Suppress redundant alerts during known maintenance
+  maintenance_window:
+    suppress_all: true
+    schedule:
+      - start: "2024-01-15T02:00:00Z"
+        end: "2024-01-15T04:00:00Z"
+        description: "Database maintenance"
+
+  # Suppress low-priority alerts during critical incidents
+  critical_incident_suppression:
+    suppress_severities: ["low", "medium"]
+    condition: "active_critical_alerts > 0"
+
+  # Rate limiting for noisy alerts
+  rate_limiting:
+    rules:
+      - alert_name: "high_memory_usage"
+        max_alerts: 1
+        window: "1h"
+      - alert_name: "slow_response_times"
+        max_alerts: 3
+        window: "30m"
+
+# =====================================
+# ALERT ENRICHMENT
+# =====================================
+
+enrichment:
+  # Add business context to alerts
+  business_context:
+    revenue_impact_calculator: true
+    customer_impact_estimator: true
+    sla_impact_analyzer: true
+
+  # Add technical context
+  technical_context:
+    related_logs: true
+    recent_deployments: true
+    dependency_status: true
+    historical_patterns: true
+
+  # Add resolution guidance
+  resolution_guidance:
+    suggested_actions: true
+    runbook_links: true
+    escalation_contact: true
+    previous_resolutions: true
