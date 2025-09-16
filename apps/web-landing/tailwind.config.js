@@ -37,6 +37,8 @@ module.exports = {
         'cs-monkey': ['Space Mono', 'monospace'],
         'inconsolata': ['Inconsolata', 'monospace'],
         'ibm-plex-mono': ['IBM Plex Mono', 'monospace'],
+        'sf-mono': ['SF Mono', 'monospace'],
+        'inter': ['Inter', 'sans-serif'],
       },
       fontSize: {
         'hero': ['clamp(2.5rem, 5vw, 4rem)', { lineHeight: '1.1' }],

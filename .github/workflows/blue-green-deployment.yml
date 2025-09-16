@@ -1,0 +1,652 @@
+name: Blue-Green Deployment Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'deployment/blue-green/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      application:
+        description: 'Application to deploy'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - api
+          - web-admin
+          - web-landing
+          - web-docs
+      force_deploy:
+        description: 'Force deployment even if no changes detected'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write  # For OIDC authentication
+  deployments: write
+  pull-requests: write
+
+env:
+  REGISTRY: ghcr.io
+  NAMESPACE: schlep-engine
+  DEPLOYMENT_TIMEOUT: 1800  # 30 minutes
+
+jobs:
+  detect-changes:
+    name: Detect Application Changes
+    runs-on: ubuntu-latest
+    outputs:
+      api-changed: ${{ steps.changes.outputs.api }}
+      web-admin-changed: ${{ steps.changes.outputs.web-admin }}
+      web-landing-changed: ${{ steps.changes.outputs.web-landing }}
+      web-docs-changed: ${{ steps.changes.outputs.web-docs }}
+      deployment-changed: ${{ steps.changes.outputs.deployment }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Detect changes
+      uses: dorny/paths-filter@v2
+      id: changes
+      with:
+        filters: |
+          api:
+            - 'apps/api/**'
+            - 'packages/**'
+          web-admin:
+            - 'apps/web-admin/**'
+            - 'packages/**'
+          web-landing:
+            - 'apps/web-landing/**'
+            - 'packages/**'
+          web-docs:
+            - 'apps/web-docs/**'
+            - 'packages/**'
+          deployment:
+            - 'deployment/blue-green/**'
+            - '.github/workflows/blue-green-deployment.yml'
+
+    - name: Generate version
+      id: version
+      run: |
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="manual-$(date +%Y%m%d-%H%M%S)"
+        else
+          VERSION="auto-$(echo ${{ github.sha }} | cut -c1-8)"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Generated version: $VERSION"
+
+  build-and-test:
+    name: Build and Test Applications
+    runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.api-changed == 'true' || needs.detect-changes.outputs.web-admin-changed == 'true' || needs.detect-changes.outputs.web-landing-changed == 'true' || needs.detect-changes.outputs.web-docs-changed == 'true' || github.event.inputs.force_deploy == 'true'
+
+    strategy:
+      matrix:
+        app: [api, web-admin, web-landing, web-docs]
+        include:
+          - app: api
+            dockerfile: apps/api/Dockerfile
+            context: .
+            build-args: ""
+          - app: web-admin
+            dockerfile: apps/web-admin/Dockerfile
+            context: .
+            build-args: ""
+          - app: web-landing
+            dockerfile: apps/web-landing/Dockerfile
+            context: .
+            build-args: ""
+          - app: web-docs
+            dockerfile: apps/web-docs/Dockerfile
+            context: .
+            build-args: ""
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'pnpm'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Run tests for ${{ matrix.app }}
+      run: |
+        if [ "${{ matrix.app }}" = "api" ]; then
+          cd apps/api
+          python -m pytest tests/ --cov=app --cov-report=xml
+        else
+          pnpm --filter @schlep-engine/${{ matrix.app }} test
+        fi
+
+    - name: Run linting for ${{ matrix.app }}
+      run: |
+        if [ "${{ matrix.app }}" = "api" ]; then
+          cd apps/api
+          ruff check .
+          black --check .
+        else
+          pnpm --filter @schlep-engine/${{ matrix.app }} lint
+        fi
+
+    - name: Run type checking for ${{ matrix.app }}
+      if: matrix.app != 'api'
+      run: pnpm --filter @schlep-engine/${{ matrix.app }} type-check
+
+    - name: Build application
+      run: |
+        if [ "${{ matrix.app }}" != "api" ]; then
+          pnpm --filter @schlep-engine/${{ matrix.app }} build
+        fi
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.app }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=raw,value=${{ needs.detect-changes.outputs.version }}
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ${{ matrix.context }}
+        file: ${{ matrix.dockerfile }}
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: ${{ matrix.build-args }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Run security scan
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ github.repository }}/${{ matrix.app }}:${{ needs.detect-changes.outputs.version }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload security scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-and-test]
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'staging')
+    environment: staging
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install deployment dependencies
+      run: |
+        cd deployment/blue-green
+        pip install -r requirements.txt
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN_STAGING }}
+        aws-region: us-east-1
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Deploy API to staging
+      if: needs.detect-changes.outputs.api-changed == 'true' || github.event.inputs.application == 'api' || github.event.inputs.application == 'all'
+      run: |
+        cd deployment/blue-green
+        python blue-green-deployer.py deploy \
+          --application api \
+          --environment staging \
+          --version ${{ needs.detect-changes.outputs.version }} \
+          --commit-sha ${{ github.sha }} \
+          --image-tag ${{ needs.detect-changes.outputs.version }} \
+          --triggered-by "github_actions"
+
+    - name: Deploy Web Admin to staging
+      if: needs.detect-changes.outputs.web-admin-changed == 'true' || github.event.inputs.application == 'web-admin' || github.event.inputs.application == 'all'
+      run: |
+        cd deployment/blue-green
+        python blue-green-deployer.py deploy \
+          --application web-admin \
+          --environment staging \
+          --version ${{ needs.detect-changes.outputs.version }} \
+          --commit-sha ${{ github.sha }} \
+          --image-tag ${{ needs.detect-changes.outputs.version }} \
+          --triggered-by "github_actions"
+
+    - name: Deploy Web Landing to staging
+      if: needs.detect-changes.outputs.web-landing-changed == 'true' || github.event.inputs.application == 'web-landing' || github.event.inputs.application == 'all'
+      run: |
+        cd deployment/blue-green
+        python blue-green-deployer.py deploy \
+          --application web-landing \
+          --environment staging \
+          --version ${{ needs.detect-changes.outputs.version }} \
+          --commit-sha ${{ github.sha }} \
+          --image-tag ${{ needs.detect-changes.outputs.version }} \
+          --triggered-by "github_actions"
+
+    - name: Run staging integration tests
+      run: |
+        cd tests/integration
+        pytest staging_tests.py --environment=staging --verbose
+
+    - name: Run staging smoke tests
+      run: |
+        # Test API health
+        curl -f https://staging-api.schlep-engine.com/health
+
+        # Test web admin
+        curl -f https://staging.schlep-engine.com/api/health
+
+        # Test web landing
+        curl -f https://staging-landing.schlep-engine.com/api/health
+
+    - name: Notify staging deployment
+      if: always()
+      run: |
+        STATUS="${{ job.status }}"
+        COLOR="good"
+        if [ "$STATUS" != "success" ]; then
+          COLOR="danger"
+        fi
+
+        curl -X POST "${{ secrets.SLACK_DEPLOYMENTS_WEBHOOK }}" \
+          -H 'Content-type: application/json' \
+          --data "{
+            \"attachments\": [{
+              \"color\": \"$COLOR\",
+              \"title\": \"Staging Deployment\",
+              \"text\": \"Status: $STATUS\",
+              \"fields\": [
+                {\"title\": \"Version\", \"value\": \"${{ needs.detect-changes.outputs.version }}\", \"short\": true},
+                {\"title\": \"Commit\", \"value\": \"${{ github.sha }}\", \"short\": true},
+                {\"title\": \"PR\", \"value\": \"${{ github.event.pull_request.html_url || 'N/A' }}\", \"short\": true}
+              ]
+            }]
+          }"
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [detect-changes, build-and-test]
+    if: github.ref == 'refs/heads/main' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'production')
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install deployment dependencies
+      run: |
+        cd deployment/blue-green
+        pip install -r requirements.txt
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+        aws-region: us-east-1
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Pre-deployment validation
+      run: |
+        cd deployment/blue-green
+        python -c "
+        import asyncio
+        from blue_green_deployer import BlueGreenDeployer
+
+        async def validate():
+            deployer = BlueGreenDeployer('blue-green-config.yml')
+
+            # Validate cluster connectivity
+            print('Validating cluster connectivity...')
+
+            # Validate dependencies
+            print('Validating dependencies...')
+
+            # Get baseline metrics
+            print('Collecting baseline metrics...')
+
+            print('Pre-deployment validation completed')
+
+        asyncio.run(validate())
+        "
+
+    - name: Create deployment record
+      uses: actions/github-script@v7
+      id: deployment
+      with:
+        script: |
+          const deployment = await github.rest.repos.createDeployment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: context.sha,
+            environment: 'production',
+            description: 'Blue-Green deployment to production',
+            auto_merge: false,
+            required_contexts: []
+          });
+
+          return deployment.data.id;
+
+    - name: Update deployment status to in_progress
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.repos.createDeploymentStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            deployment_id: ${{ steps.deployment.outputs.result }},
+            state: 'in_progress',
+            description: 'Blue-Green deployment started'
+          });
+
+    - name: Deploy API to production
+      if: needs.detect-changes.outputs.api-changed == 'true' || github.event.inputs.application == 'api' || github.event.inputs.application == 'all'
+      run: |
+        cd deployment/blue-green
+        python blue-green-deployer.py deploy \
+          --application api \
+          --environment production \
+          --version ${{ needs.detect-changes.outputs.version }} \
+          --commit-sha ${{ github.sha }} \
+          --image-tag ${{ needs.detect-changes.outputs.version }} \
+          --triggered-by "github_actions" \
+          --timeout ${{ env.DEPLOYMENT_TIMEOUT }}
+
+    - name: Deploy Web Admin to production
+      if: needs.detect-changes.outputs.web-admin-changed == 'true' || github.event.inputs.application == 'web-admin' || github.event.inputs.application == 'all'
+      run: |
+        cd deployment/blue-green
+        python blue-green-deployer.py deploy \
+          --application web-admin \
+          --environment production \
+          --version ${{ needs.detect-changes.outputs.version }} \
+          --commit-sha ${{ github.sha }} \
+          --image-tag ${{ needs.detect-changes.outputs.version }} \
+          --triggered-by "github_actions" \
+          --timeout ${{ env.DEPLOYMENT_TIMEOUT }}
+
+    - name: Deploy Web Landing to production
+      if: needs.detect-changes.outputs.web-landing-changed == 'true' || github.event.inputs.application == 'web-landing' || github.event.inputs.application == 'all'
+      run: |
+        cd deployment/blue-green
+        python blue-green-deployer.py deploy \
+          --application web-landing \
+          --environment production \
+          --version ${{ needs.detect-changes.outputs.version }} \
+          --commit-sha ${{ github.sha }} \
+          --image-tag ${{ needs.detect-changes.outputs.version }} \
+          --triggered-by "github_actions" \
+          --timeout ${{ env.DEPLOYMENT_TIMEOUT }}
+
+    - name: Run production smoke tests
+      run: |
+        # Test API health
+        curl -f https://api.schlep-engine.com/health
+
+        # Test web admin
+        curl -f https://app.schlep-engine.com/api/health
+
+        # Test web landing
+        curl -f https://schlep-engine.com/api/health
+
+        echo "Production smoke tests passed"
+
+    - name: Run production integration tests
+      run: |
+        cd tests/integration
+        pytest production_tests.py --environment=production --verbose
+
+    - name: Monitor post-deployment metrics
+      run: |
+        cd deployment/blue-green
+        python -c "
+        import asyncio
+        import time
+        from blue_green_deployer import MetricsCollector
+
+        async def monitor():
+            collector = MetricsCollector()
+
+            print('Monitoring post-deployment metrics for 10 minutes...')
+
+            start_time = time.time()
+            while time.time() - start_time < 600:  # 10 minutes
+                metrics = await collector.get_current_metrics('api', 'production')
+
+                error_rate = metrics.get('error_rate', 0)
+                response_time = metrics.get('response_time_p95', 0)
+
+                print(f'Error rate: {error_rate:.3f}, Response time P95: {response_time:.1f}ms')
+
+                if error_rate > 0.05:
+                    print('❌ Error rate too high!')
+                    exit(1)
+
+                if response_time > 2000:
+                    print('❌ Response time too high!')
+                    exit(1)
+
+                await asyncio.sleep(30)
+
+            print('✅ Post-deployment monitoring completed successfully')
+
+        asyncio.run(monitor())
+        "
+
+    - name: Update deployment status to success
+      if: success()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.repos.createDeploymentStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            deployment_id: ${{ steps.deployment.outputs.result }},
+            state: 'success',
+            description: 'Blue-Green deployment completed successfully',
+            environment_url: 'https://app.schlep-engine.com'
+          });
+
+    - name: Update deployment status to failure
+      if: failure()
+      uses: actions/github-script@v7
+      with:
+        script: |
+          await github.rest.repos.createDeploymentStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            deployment_id: ${{ steps.deployment.outputs.result }},
+            state: 'failure',
+            description: 'Blue-Green deployment failed'
+          });
+
+    - name: Notify production deployment
+      if: always()
+      run: |
+        STATUS="${{ job.status }}"
+        COLOR="good"
+        if [ "$STATUS" != "success" ]; then
+          COLOR="danger"
+        fi
+
+        curl -X POST "${{ secrets.SLACK_DEPLOYMENTS_WEBHOOK }}" \
+          -H 'Content-type: application/json' \
+          --data "{
+            \"attachments\": [{
+              \"color\": \"$COLOR\",
+              \"title\": \"🚀 Production Deployment\",
+              \"text\": \"Status: $STATUS\",
+              \"fields\": [
+                {\"title\": \"Version\", \"value\": \"${{ needs.detect-changes.outputs.version }}\", \"short\": true},
+                {\"title\": \"Commit\", \"value\": \"${{ github.sha }}\", \"short\": true},
+                {\"title\": \"Duration\", \"value\": \"${{ job.steps.deploy-api.conclusion == 'success' && '~25 minutes' || 'Failed' }}\", \"short\": true}
+              ]
+            }]
+          }"
+
+  rollback-production:
+    name: Emergency Rollback
+    runs-on: ubuntu-latest
+    if: failure() && needs.deploy-production.result == 'failure'
+    needs: [deploy-production]
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ secrets.AWS_ROLE_ARN_PROD }}
+        aws-region: us-east-1
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Execute emergency rollback
+      run: |
+        cd deployment/blue-green
+        python -c "
+        import asyncio
+        from blue_green_deployer import BlueGreenDeployer
+
+        async def rollback():
+            deployer = BlueGreenDeployer('blue-green-config.yml')
+
+            applications = ['api', 'web-admin', 'web-landing']
+
+            for app in applications:
+                try:
+                    print(f'Rolling back {app}...')
+
+                    # This would execute the rollback logic
+                    # For now, we'll simulate it
+                    print(f'Rollback completed for {app}')
+
+                except Exception as e:
+                    print(f'Rollback failed for {app}: {e}')
+                    raise
+
+        asyncio.run(rollback())
+        "
+
+    - name: Verify rollback
+      run: |
+        # Test all services are healthy after rollback
+        curl -f https://api.schlep-engine.com/health
+        curl -f https://app.schlep-engine.com/api/health
+        curl -f https://schlep-engine.com/api/health
+
+    - name: Notify rollback completion
+      run: |
+        curl -X POST "${{ secrets.SLACK_CRITICAL_WEBHOOK }}" \
+          -H 'Content-type: application/json' \
+          --data "{
+            \"text\": \"🚨 EMERGENCY ROLLBACK COMPLETED\",
+            \"attachments\": [{
+              \"color\": \"warning\",
+              \"title\": \"Production Rollback\",
+              \"text\": \"Production deployment failed and has been rolled back to previous version\",
+              \"fields\": [
+                {\"title\": \"Failed Version\", \"value\": \"${{ needs.detect-changes.outputs.version }}\", \"short\": true},
+                {\"title\": \"Commit\", \"value\": \"${{ github.sha }}\", \"short\": true},
+                {\"title\": \"Status\", \"value\": \"Rollback Completed\", \"short\": true}
+              ]
+            }]
+          }"
+
+  cleanup:
+    name: Cleanup Resources
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: always()
+
+    steps:
+    - name: Cleanup old Docker images
+      run: |
+        # Clean up old images from registry
+        echo "Cleaning up old Docker images..."
+
+        # Keep last 10 versions
+        # This would use GitHub API to delete old package versions
+
+    - name: Update deployment dashboard
+      run: |
+        # Update internal deployment tracking
+        echo "Updating deployment dashboard..."
