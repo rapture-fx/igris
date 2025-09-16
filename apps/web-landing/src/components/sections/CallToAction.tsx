@@ -1,3 +1,5 @@
+'use client';
+import React from 'react'
 import Link from 'next/link'
 
 export default function CallToAction() {
@@ -32,6 +34,43 @@ export default function CallToAction() {
             >
               Get Started for Free
             </a>
+            <div className="mt-8 p-4 rounded-lg" style={{ backgroundColor: 'white', border: '1px solid #114dcd' }}>
+              <pre className="text-sm overflow-x-auto"><code>
+import schlep_engine as se
+
+# Initialize Schlep Engine client
+client = se.Client(api_key="YOUR_API_KEY")
+
+# Define input data (messy data)
+messy_data = {
+    "records": [
+        {"id": "1", "name": "  John Doe  ", "email": "john.doe@example.com ", "age": "30"},
+        {"id": "2", "name": "Jane Smith", "email": "jane.smith@example.com", "age": "twenty-five"},
+        {"id": "3", "name": "Peter Jones", "email": "peter.jones@example.com", "age": "45.5"},
+    ]
+}
+
+# Define data cleaning and preparation pipeline
+pipeline = se.Pipeline([
+    se.operations.TrimWhitespace(fields=["name", "email"]),
+    se.operations.ConvertToType(field="age", target_type="integer", on_error="set_null"),
+    se.operations.RemoveDuplicates(field="email"),
+    se.operations.NormalizeText(field="name", case="title"),
+    se.operations.ValidateSchema(schema={
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "email": {"type": "string", "pattern": "^[^@]+@[^@]+\.[^@]+$"},
+        "age": {"type": ["integer", "null"]}
+    })
+])
+
+# Process data
+cleaned_data = client.process_data(data=messy_data, pipeline=pipeline)
+
+# Output ML-ready data
+print(cleaned_data)
+              </code></pre>
+            </div>
           </div>
         </div>
       </div>

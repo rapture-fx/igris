@@ -74,8 +74,8 @@ export default function Footer() {
                   <Image
                     src="/Docs Schlep-engne.svg"
                     alt="Schlep-engine"
-                    width={40}
-                    height={40}
+                    width={30}
+                    height={30}
                   />
                 </div>
               </div>
@@ -84,7 +84,7 @@ export default function Footer() {
             {/* Footer Sections */}
             {footerSections.map((section, index) => (
               <div key={index} className="lg:col-span-1">
-                <h3 className="text-base font-semibold mb-4 text-gray-900 dark:text-white font-inter">
+                <h3 className="text-base font-normal mb-4 text-gray-900 dark:text-white font-inter">
                   {section.title}
                 </h3>
                 <ul className="space-y-2">
