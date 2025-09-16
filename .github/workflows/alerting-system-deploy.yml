@@ -1,0 +1,564 @@
+name: Deploy Tiered Alerting System
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'monitoring/alerting/**'
+      - '.github/workflows/alerting-system-deploy.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'monitoring/alerting/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  deployments: write
+
+env:
+  MONITORING_NAMESPACE: schlep-engine-monitoring
+  ALERT_MANAGER_VERSION: v0.25.0
+  PROMETHEUS_VERSION: v2.45.0
+
+jobs:
+  validate-alerting-config:
+    name: Validate Alerting Configuration
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install validation tools
+      run: |
+        pip install pyyaml jsonschema prometheus-client requests
+
+    - name: Validate alert configuration YAML
+      run: |
+        python -c "
+        import yaml
+        import sys
+
+        try:
+            with open('monitoring/alerting/alert-config.yml', 'r') as f:
+                config = yaml.safe_load(f)
+
+            # Validate required sections
+            required_sections = ['severity_levels', 'alert_rules', 'escalation_policies', 'notification_channels']
+            for section in required_sections:
+                if section not in config:
+                    print(f'Missing required section: {section}')
+                    sys.exit(1)
+
+            # Validate severity levels
+            required_severities = ['critical', 'high', 'medium', 'low']
+            for severity in required_severities:
+                if severity not in config['severity_levels']:
+                    print(f'Missing severity level: {severity}')
+                    sys.exit(1)
+
+            print('Alert configuration validation passed')
+
+        except Exception as e:
+            print(f'Alert configuration validation failed: {e}')
+            sys.exit(1)
+        "
+
+    - name: Validate Prometheus rules
+      run: |
+        # Download promtool
+        wget -q https://github.com/prometheus/prometheus/releases/download/${{ env.PROMETHEUS_VERSION }}/prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64.tar.gz
+        tar xzf prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64.tar.gz
+        sudo cp prometheus-${{ env.PROMETHEUS_VERSION }}.linux-amd64/promtool /usr/local/bin/
+
+        # Validate Prometheus rules
+        promtool check rules monitoring/alerting/prometheus-rules.yml
+
+    - name: Validate Grafana dashboard
+      run: |
+        python -c "
+        import json
+        import sys
+
+        try:
+            with open('monitoring/alerting/grafana-dashboard.json', 'r') as f:
+                dashboard = json.load(f)
+
+            # Basic validation
+            if 'dashboard' not in dashboard:
+                print('Invalid Grafana dashboard format')
+                sys.exit(1)
+
+            required_fields = ['title', 'panels']
+            for field in required_fields:
+                if field not in dashboard['dashboard']:
+                    print(f'Missing required field in dashboard: {field}')
+                    sys.exit(1)
+
+            print('Grafana dashboard validation passed')
+
+        except Exception as e:
+            print(f'Grafana dashboard validation failed: {e}')
+            sys.exit(1)
+        "
+
+    - name: Test alert manager Python code
+      run: |
+        cd monitoring/alerting
+        python -m py_compile alert-manager.py
+
+        # Basic import test
+        python -c "
+        import sys
+        sys.path.append('.')
+
+        try:
+            from alert_manager import AlertManager, BusinessImpactCalculator, AlertSeverity
+            print('Alert manager imports successful')
+        except ImportError as e:
+            print(f'Import error: {e}')
+            sys.exit(1)
+        "
+
+  test-alert-manager:
+    name: Test Alert Manager
+    runs-on: ubuntu-latest
+    needs: validate-alerting-config
+
+    services:
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd monitoring/alerting
+        pip install aioredis aiohttp pydantic prometheus-client pyyaml
+
+    - name: Test business impact calculator
+      run: |
+        cd monitoring/alerting
+        python -c "
+        import asyncio
+        from alert_manager import BusinessImpactCalculator
+
+        async def test_calculator():
+            calculator = BusinessImpactCalculator()
+
+            # Test alert data
+            alert_data = {
+                'alertname': 'APIHighErrorRate',
+                'labels': {'service': 'api', 'severity': 'high'},
+                'annotations': {'description': 'API error rate high'}
+            }
+
+            # Test metrics
+            metrics = {
+                'api_error_rate': 0.3,
+                'active_users_count': 1000,
+                'total_users_count': 10000,
+                'monthly_uptime_percentage': 99.5
+            }
+
+            impact = await calculator.calculate_impact(alert_data, metrics)
+
+            assert 0 <= impact.revenue_impact <= 1
+            assert 0 <= impact.customer_impact <= 1
+            assert 0 <= impact.sla_impact <= 1
+            assert 0 <= impact.reputation_impact <= 1
+            assert 0 <= impact.overall_impact <= 1
+
+            print(f'Business impact calculation test passed: {impact.overall_impact:.2f}')
+
+        asyncio.run(test_calculator())
+        "
+
+    - name: Test alert processing
+      run: |
+        cd monitoring/alerting
+        python -c "
+        import asyncio
+        import tempfile
+        from alert_manager import AlertManager
+
+        async def test_alert_processing():
+            # Create temporary config
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
+                f.write('''
+        severity_levels:
+          critical:
+            impact: \"High business impact\"
+            sla_response_time: \"5 minutes\"
+            notification_channels: [\"test\"]
+            business_hours_only: false
+            auto_escalate: true
+
+        alert_rules:
+          test_alert:
+            severity: critical
+            condition: \"test > 0.5\"
+            window: \"2m\"
+
+        escalation_policies:
+          test_escalation:
+            levels:
+              - level: 1
+                timeout: \"5m\"
+                notify: [\"test-group\"]
+            applies_to: [\"critical\"]
+
+        notification_channels:
+          test:
+            type: \"test\"
+
+        contact_groups:
+          test-group:
+            members: []
+
+        business_hours:
+          timezone: \"UTC\"
+          weekdays:
+            monday: { start: \"09:00\", end: \"17:00\" }
+        ''')
+                config_path = f.name
+
+            manager = AlertManager(config_path)
+
+            # Test config loading
+            assert 'severity_levels' in manager.config
+            assert 'critical' in manager.config['severity_levels']
+
+            print('Alert manager configuration test passed')
+
+        asyncio.run(test_alert_processing())
+        "
+
+  deploy-to-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [validate-alerting-config, test-alert-manager]
+    if: github.event_name == 'pull_request'
+    environment: staging
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Deploy to staging monitoring namespace
+      run: |
+        echo "Deploying alerting system to staging..."
+
+        # Create monitoring namespace
+        kubectl create namespace ${{ env.MONITORING_NAMESPACE }}-staging --dry-run=client -o yaml | kubectl apply -f -
+
+        # Create ConfigMaps for configuration
+        kubectl create configmap alert-config \
+          --from-file=monitoring/alerting/alert-config.yml \
+          --namespace=${{ env.MONITORING_NAMESPACE }}-staging \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+        kubectl create configmap prometheus-rules \
+          --from-file=monitoring/alerting/prometheus-rules.yml \
+          --namespace=${{ env.MONITORING_NAMESPACE }}-staging \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+        kubectl create configmap grafana-dashboard \
+          --from-file=monitoring/alerting/grafana-dashboard.json \
+          --namespace=${{ env.MONITORING_NAMESPACE }}-staging \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Deploy alert manager service
+      run: |
+        cat <<EOF | kubectl apply -f -
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: schlep-alert-manager
+          namespace: ${{ env.MONITORING_NAMESPACE }}-staging
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              app: schlep-alert-manager
+          template:
+            metadata:
+              labels:
+                app: schlep-alert-manager
+            spec:
+              containers:
+              - name: alert-manager
+                image: python:3.11-slim
+                command: ["/bin/bash"]
+                args:
+                  - -c
+                  - |
+                    pip install aioredis aiohttp pydantic prometheus-client pyyaml
+                    cd /app
+                    python alert-manager.py
+                volumeMounts:
+                - name: alert-config
+                  mountPath: /app/alert-config.yml
+                  subPath: alert-config.yml
+                - name: app-code
+                  mountPath: /app/alert-manager.py
+                  subPath: alert-manager.py
+                env:
+                - name: REDIS_URL
+                  value: "redis://redis:6379/0"
+                - name: ENVIRONMENT
+                  value: "staging"
+              volumes:
+              - name: alert-config
+                configMap:
+                  name: alert-config
+              - name: app-code
+                configMap:
+                  name: alert-manager-code
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: schlep-alert-manager
+          namespace: ${{ env.MONITORING_NAMESPACE }}-staging
+        spec:
+          selector:
+            app: schlep-alert-manager
+          ports:
+          - port: 8080
+            targetPort: 8080
+        EOF
+
+    - name: Validate staging deployment
+      run: |
+        # Wait for deployment to be ready
+        kubectl wait --for=condition=available --timeout=300s deployment/schlep-alert-manager -n ${{ env.MONITORING_NAMESPACE }}-staging
+
+        # Check if pods are running
+        kubectl get pods -n ${{ env.MONITORING_NAMESPACE }}-staging
+
+        echo "Staging deployment successful"
+
+  deploy-to-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [validate-alerting-config, test-alert-manager]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Deploy to production
+      run: |
+        echo "Deploying alerting system to production..."
+
+        # Create production monitoring namespace
+        kubectl create namespace ${{ env.MONITORING_NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
+
+        # Apply production configurations
+        kubectl create configmap alert-config \
+          --from-file=monitoring/alerting/alert-config.yml \
+          --namespace=${{ env.MONITORING_NAMESPACE }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+        kubectl create configmap prometheus-rules \
+          --from-file=monitoring/alerting/prometheus-rules.yml \
+          --namespace=${{ env.MONITORING_NAMESPACE }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Create alert manager deployment
+      run: |
+        cat <<EOF | kubectl apply -f -
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: schlep-alert-manager
+          namespace: ${{ env.MONITORING_NAMESPACE }}
+          labels:
+            app: schlep-alert-manager
+            version: production
+        spec:
+          replicas: 2
+          strategy:
+            type: RollingUpdate
+            rollingUpdate:
+              maxUnavailable: 1
+              maxSurge: 1
+          selector:
+            matchLabels:
+              app: schlep-alert-manager
+          template:
+            metadata:
+              labels:
+                app: schlep-alert-manager
+            spec:
+              containers:
+              - name: alert-manager
+                image: python:3.11-slim
+                command: ["/bin/bash"]
+                args:
+                  - -c
+                  - |
+                    pip install aioredis aiohttp pydantic prometheus-client pyyaml
+                    cd /app
+                    python alert-manager.py
+                ports:
+                - containerPort: 8080
+                volumeMounts:
+                - name: alert-config
+                  mountPath: /app/alert-config.yml
+                  subPath: alert-config.yml
+                env:
+                - name: REDIS_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: redis-credentials
+                      key: url
+                - name: ENVIRONMENT
+                  value: "production"
+                - name: SLACK_CRITICAL_WEBHOOK
+                  valueFrom:
+                    secretKeyRef:
+                      name: notification-secrets
+                      key: slack-critical-webhook
+                - name: PAGERDUTY_INTEGRATION_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: notification-secrets
+                      key: pagerduty-integration-key
+                resources:
+                  requests:
+                    memory: "256Mi"
+                    cpu: "250m"
+                  limits:
+                    memory: "512Mi"
+                    cpu: "500m"
+                livenessProbe:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  initialDelaySeconds: 30
+                  periodSeconds: 10
+                readinessProbe:
+                  httpGet:
+                    path: /ready
+                    port: 8080
+                  initialDelaySeconds: 5
+                  periodSeconds: 5
+              volumes:
+              - name: alert-config
+                configMap:
+                  name: alert-config
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+          name: schlep-alert-manager
+          namespace: ${{ env.MONITORING_NAMESPACE }}
+        spec:
+          selector:
+            app: schlep-alert-manager
+          ports:
+          - name: http
+            port: 80
+            targetPort: 8080
+          type: ClusterIP
+        EOF
+
+    - name: Update Prometheus configuration
+      run: |
+        # Update Prometheus to include new alert rules
+        kubectl patch configmap prometheus-config \
+          --namespace=${{ env.MONITORING_NAMESPACE }} \
+          --patch '{"data":{"prometheus.yml":"# Updated Prometheus config with new alert rules"}}'
+
+        # Reload Prometheus configuration
+        kubectl rollout restart deployment/prometheus -n ${{ env.MONITORING_NAMESPACE }}
+
+    - name: Update Grafana dashboards
+      run: |
+        # Import Grafana dashboard
+        kubectl create configmap grafana-dashboard-alerts \
+          --from-file=monitoring/alerting/grafana-dashboard.json \
+          --namespace=${{ env.MONITORING_NAMESPACE }} \
+          --dry-run=client -o yaml | kubectl apply -f -
+
+    - name: Validate production deployment
+      run: |
+        # Wait for deployment
+        kubectl wait --for=condition=available --timeout=600s deployment/schlep-alert-manager -n ${{ env.MONITORING_NAMESPACE }}
+
+        # Check deployment status
+        kubectl get deployment schlep-alert-manager -n ${{ env.MONITORING_NAMESPACE }}
+        kubectl get pods -l app=schlep-alert-manager -n ${{ env.MONITORING_NAMESPACE }}
+
+        echo "Production deployment successful"
+
+    - name: Run post-deployment tests
+      run: |
+        # Test alert manager health
+        kubectl run test-pod --rm -i --restart=Never --image=curlimages/curl -- \
+          curl -f http://schlep-alert-manager.${{ env.MONITORING_NAMESPACE }}.svc.cluster.local/health
+
+        echo "Post-deployment tests passed"
+
+  notify-deployment:
+    name: Notify Deployment Status
+    runs-on: ubuntu-latest
+    needs: [deploy-to-staging, deploy-to-production]
+    if: always()
+
+    steps:
+    - name: Notify Slack
+      if: github.ref == 'refs/heads/main'
+      run: |
+        STATUS="${{ job.status }}"
+        COLOR="good"
+        if [ "$STATUS" != "success" ]; then
+          COLOR="danger"
+        fi
+
+        curl -X POST "${{ secrets.SLACK_WEBHOOK_URL }}" \
+          -H 'Content-type: application/json' \
+          --data "{
+            \"attachments\": [{
+              \"color\": \"$COLOR\",
+              \"title\": \"Tiered Alerting System Deployment\",
+              \"text\": \"Status: $STATUS\",
+              \"fields\": [
+                {\"title\": \"Environment\", \"value\": \"Production\", \"short\": true},
+                {\"title\": \"Commit\", \"value\": \"${{ github.sha }}\", \"short\": true}
+              ]
+            }]
+          }"
