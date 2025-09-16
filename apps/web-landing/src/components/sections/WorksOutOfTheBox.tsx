@@ -1,6 +1,7 @@
+'use client'
 
-import React from 'react'
-import { Zap, BarChart2, Lock, DollarSign, Cloud, GitBranch, Activity, Users, MessageSquare } from 'lucide-react'
+import React, { useState } from 'react'
+import { Zap, BarChart2, Cloud, GitBranch } from 'lucide-react'
 
 const features = [
   {
@@ -25,7 +26,47 @@ const features = [
   },
 ]
 
+const pythonCode = `<code><span style="color: #114dcd;">import</span> schlep_engine
+
+schlep = schlep_engine.Schlep(api_key="YOUR_API_KEY")
+
+result = schlep.process_file("my_file.pdf")
+
+print(result)</code>`;
+const jsCode = `<code><span style="color: #114dcd;">import</span> { Schlep } from 'schlep-engine';
+
+const schlep = new Schlep({ apiKey: 'YOUR_API_KEY' });
+
+const result = await schlep.processFile('my_file.pdf');
+
+console.log(result);</code>`;
+const goCode = `<code><span style="color: #114dcd;">import</span> "github.com/schlep-engine/schlep-go"
+
+schlep := schlep.New(schlep.WithAPIKey("YOUR_API_KEY"))
+
+result, err := schlep.ProcessFile("my_file.pdf")
+
+fmt.Println(result)</code>`;
+const cliCode = `<code>$ schlep process_file my_file.pdf --api-key YOUR_API_KEY</code>`;
+
 export default function WorksOutOfTheBox() {
+  const [activeTab, setActiveTab] = useState('python');
+
+  const getCode = () => {
+    switch (activeTab) {
+      case 'python':
+        return pythonCode;
+      case 'javascript':
+        return jsCode;
+      case 'go':
+        return goCode;
+      case 'cli':
+        return cliCode;
+      default:
+        return pythonCode;
+    }
+  }
+
   return (
     <section className="py-20 sm:py-24 lg:py-32 bg-gray-50 dark:bg-black text-gray-900 dark:text-white">
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
@@ -58,72 +99,26 @@ export default function WorksOutOfTheBox() {
         <div className="mt-16 max-w-4xl mx-auto">
           <div className="flex gap-1 mb-0">
             <button
-              className="px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 border-b-0"
-              id="python-tab-sdk"
-              onClick={() => {
-                document.getElementById('python-tab-sdk').className = "px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 border-b-0";
-                document.getElementById('js-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('go-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('cli-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('code-content-sdk').innerHTML = `<code><span style="color: #114dcd;">import</span> schlep_engine
-
-schlep = schlep_engine.Schlep(api_key="YOUR_API_KEY")
-
-result = schlep.process_file("my_file.pdf")
-
-print(result)</code>`;
-              }}
+              className={`px-4 py-2 text-xs font-medium ${activeTab === 'python' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
+              onClick={() => setActiveTab('python')}
             >
               Python
             </button>
             <button
-              className="px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0"
-              id="js-tab-sdk"
-              onClick={() => {
-                document.getElementById('python-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('js-tab-sdk').className = "px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 border-b-0";
-                document.getElementById('go-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('cli-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('code-content-sdk').innerHTML = `<code><span style="color: #114dcd;">import</span> { Schlep } from 'schlep-engine';
-
-const schlep = new Schlep({ apiKey: 'YOUR_API_KEY' });
-
-const result = await schlep.processFile('my_file.pdf');
-
-console.log(result);</code>`;
-              }}
+              className={`px-4 py-2 text-xs font-medium ${activeTab === 'javascript' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
+              onClick={() => setActiveTab('javascript')}
             >
               JavaScript
             </button>
             <button
-              className="px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0"
-              id="go-tab-sdk"
-              onClick={() => {
-                document.getElementById('python-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('js-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('go-tab-sdk').className = "px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 border-b-0";
-                document.getElementById('cli-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('code-content-sdk').innerHTML = `<code><span style="color: #114dcd;">import</span> "github.com/schlep-engine/schlep-go"
-
-schlep := schlep.New(schlep.WithAPIKey("YOUR_API_KEY"))
-
-result, err := schlep.ProcessFile("my_file.pdf")
-
-fmt.Println(result)</code>`;
-              }}
+              className={`px-4 py-2 text-xs font-medium ${activeTab === 'go' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
+              onClick={() => setActiveTab('go')}
             >
               Go
             </button>
             <button
-              className="px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0"
-              id="cli-tab-sdk"
-              onClick={() => {
-                document.getElementById('python-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('js-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('go-tab-sdk').className = "px-4 py-2 text-xs font-medium text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0";
-                document.getElementById('cli-tab-sdk').className = "px-4 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 border-b-0";
-                document.getElementById('code-content-sdk').innerHTML = `<code>$ schlep process_file my_file.pdf --api-key YOUR_API_KEY</code>`;
-              }}
+              className={`px-4 py-2 text-xs font-medium ${activeTab === 'cli' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
+              onClick={() => setActiveTab('cli')}
             >
               CLI
             </button>
@@ -138,14 +133,7 @@ fmt.Println(result)</code>`;
             <div className="p-4 flex">
               <pre
                 className="text-xs overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
-                id="code-content-sdk"
-                dangerouslySetInnerHTML={{ __html: `<code><span style="color: #114dcd;">import</span> schlep_engine
-
-schlep = schlep_engine.Schlep(api_key="YOUR_API_KEY")
-
-result = schlep.process_file("my_file.pdf")
-
-print(result)</code>` }}
+                dangerouslySetInnerHTML={{ __html: getCode() }}
               ></pre>
             </div>
           </div>
