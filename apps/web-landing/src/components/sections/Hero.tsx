@@ -6,17 +6,17 @@ import { ChevronRight } from 'lucide-react'
 
 const pythonCode = `<code><span style="color: #114dcd;">import</span> requests
 
-<span style="color: #6b7280;"># Upload a PDF, extract data</span>
-files = {<span style="color: #4b5563;">'file'</span>: <span style="color: #114dcd;">open</span>(<span style="color: #4b5563;">'financial_report.pdf'</span>, <span style="color: #4b5563;">'rb'</span>)}
+<span style="color: #6b7280;"># Upload a CSV, extract data</span>
+files = {<span style="color: #4b5563;">'file'</span>: <span style="color: #114dcd;">open</span>(<span style="color: #4b5563;">'sales_data.csv'</span>, <span style="color: #4b5563;">'rb'</span>)}
 res = <span style="color: #114dcd;">requests.post</span>(
-  <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/extract/pdf'</span>,
+  <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/extract/csv'</span>,
   headers={<span style="color: #4b5563;">'Authorization'</span>: <span style="color: #4b5563;">'Bearer API_KEY'</span>},
   files=files
 )
 
 <span style="color: #6b7280;"># Train a model in one call</span>
 train = {
-  <span style="color: #4b5563;">"features"</span>: <span style="color: #114dcd;">res.json</span>()[<span style="color: #4b5563;">"tables"</span>][<span style="color: #dc2626;">0</span>][<span style="color: #4b5563;">"data"</span>],
+  <span style="color: #4b5563;">"features"</span>: <span style="color: #114dcd;">res.json</span>()[<span style="color: #4b5563;">"data"</span>],
   <span style="color: #4b5563;">"target_column"</span>: <span style="color: #4b5563;">"revenue_category"</span>
 }
 ml = <span style="color: #114dcd;">requests.post</span>(
@@ -29,21 +29,18 @@ ml = <span style="color: #114dcd;">requests.post</span>(
 
 <span style="color: #114dcd;"># → Accuracy: 0.89</span></code>`
 
-const curlCode = `<code><span style="color: #6b7280;"># Upload a PDF, extract data</span>
+const curlCode = `<code><span style="color: #6b7280;"># Upload a CSV, extract data</span>
 <span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST \
-  <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/extract/pdf'</span> \
+  <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/extract/csv'</span> \
   <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer API_KEY'</span> \
-  <span style="color: #dc2626;">-F</span> <span style="color: #4b5563;">'file=@financial_report.pdf'</span>
+  <span style="color: #dc2626;">-F</span> <span style="color: #4b5563;">'file=@sales_data.csv'</span>
 
 <span style="color: #6b7280;"># Train a model in one call</span>
 <span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST \
   <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/ml/train/new_pipeline'</span> \
   <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer API_KEY'</span> \
   <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> \
-  <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'+{
-    "features": [extracted_data],
-    "target_column": "revenue_category"
-  }'</span>
+  <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{"features": [extracted_data], "target_column": "revenue_category"}'</span>
 
 <span style="color: #114dcd;"># → {"accuracy": 0.89, "model_id": "rf_abc123"}</span></code>`
 
@@ -116,7 +113,7 @@ export default function Hero() {
             >
               <div className="flex items-center justify-between p-4">
                 <h3 className="text-sm font-medium text-gray-800">
-                  PDF → ML Model, Done.
+                  Data → ML Model, Done.
                 </h3>
               </div>
               <button

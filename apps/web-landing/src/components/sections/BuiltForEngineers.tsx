@@ -27,9 +27,9 @@ const features = [
 
 export default function BuiltForEngineers() {
   return (
-    <section className="py-20 sm:py-24 lg:py-32 bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
-        <div className="lg:text-center">
+        <div>
           <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-center font-inter">Built for engineers shipping ML at speed.</h2>
           <p className="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
             An API-first platform for data preparation.

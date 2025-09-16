@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Link from 'next/link'
 import { Zap, BarChart2, Cloud, GitBranch } from 'lucide-react'
 
 const features = [
@@ -52,6 +53,7 @@ const cliCode = `<code>$ schlep process_file my_file.pdf --api-key YOUR_API_KEY<
 export default function WorksOutOfTheBox() {
   const [activeTab, setActiveTab] = useState('python');
 
+
   const getCode = () => {
     switch (activeTab) {
       case 'python':
@@ -68,7 +70,7 @@ export default function WorksOutOfTheBox() {
   }
 
   return (
-    <section className="py-20 sm:py-24 lg:py-32 bg-gray-50 dark:bg-black text-gray-900 dark:text-white">
+    <section className="py-20 sm:py-24 lg:py-32 dark:bg-black text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="lg:text-center">
           <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-center font-inter">Works out of the box</h2>
@@ -97,7 +99,7 @@ export default function WorksOutOfTheBox() {
         </div>
 
         <div className="mt-16 max-w-4xl mx-auto">
-          <div className="flex gap-1 mb-0">
+          <div className="flex gap-1 mb-2 relative z-50">
             <button
               className={`px-4 py-2 text-xs font-medium ${activeTab === 'python' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
               onClick={() => setActiveTab('python')}
@@ -124,10 +126,11 @@ export default function WorksOutOfTheBox() {
             </button>
           </div>
           <div
-            className="bg-white text-left shadow-lg relative"
+            className="bg-white text-left shadow-lg relative z-10"
             style={{
               border: '1px solid #114dcd',
               boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+              marginTop: '-1px'
             }}
           >
             <div className="p-4 flex">
@@ -136,6 +139,20 @@ export default function WorksOutOfTheBox() {
                 dangerouslySetInnerHTML={{ __html: getCode() }}
               ></pre>
             </div>
+          </div>
+          <div className="mt-8 flex justify-center items-center space-x-40">
+            <Link href="/sdks/python">
+              <img src="/py.svg" alt="Python" className="h-16 w-16" />
+            </Link>
+            <Link href="/sdks/javascript">
+              <img src="/node.svg" alt="JavaScript" className="h-16 w-16" />
+            </Link>
+            <Link href="/sdks/go">
+              <img src="/go.svg" alt="Go" className="h-20 w-20" />
+            </Link>
+            <Link href="/sdks/cli">
+              <img src="/cli.svg" alt="CLI" className="h-14 w-14" />
+            </Link>
           </div>
         </div>
       </div>
