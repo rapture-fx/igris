@@ -36,6 +36,7 @@ module.exports = {
         'sf-text': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Text', 'system-ui', 'sans-serif'],
         'cs-monkey': ['Space Mono', 'monospace'],
         'inconsolata': ['Inconsolata', 'monospace'],
+        'ibm-plex-mono': ['IBM Plex Mono', 'monospace'],
       },
       fontSize: {
         'hero': ['clamp(2.5rem, 5vw, 4rem)', { lineHeight: '1.1' }],

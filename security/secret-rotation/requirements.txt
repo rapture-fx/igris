@@ -1,0 +1,47 @@
+# Schlep-engine Secret Rotation System Dependencies
+
+# Core async libraries
+aiohttp>=3.9.0
+aioredis>=2.0.1
+asyncio-throttle>=1.0.2
+asyncpg>=0.29.0
+
+# Kubernetes client
+kubernetes>=28.1.0
+
+# HashiCorp Vault client
+hvac>=2.1.0
+
+# Cryptography and security
+cryptography>=41.0.7
+pyjwt>=2.8.0
+pyotp>=2.9.0
+
+# Configuration and data handling
+pyyaml>=6.0.1
+pydantic>=2.5.0
+jsonschema>=4.20.0
+
+# Cloud provider SDKs
+boto3>=1.34.0           # AWS
+google-cloud-secret-manager>=2.17.0  # Google Cloud
+azure-keyvault-secrets>=4.7.0        # Azure
+
+# External service clients
+stripe>=7.8.0           # Stripe API
+sendgrid>=6.10.0        # SendGrid API
+requests>=2.31.0        # General HTTP requests
+
+# Monitoring and logging
+prometheus-client>=0.19.0
+structlog>=23.2.0
+
+# Testing and development
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.12.0
+pytest-cov>=4.1.0
+
+# Security scanning tools (for development)
+bandit>=1.7.5
+safety>=2.3.0
