@@ -1,3 +1,4 @@
+import WorksOutOfTheBox from '../src/components/sections/WorksOutOfTheBox';
 import BuiltForEngineers from '../src/components/sections/BuiltForEngineers';
 import Header from '../src/components/sections/Header'
 import AudienceTabs from '../src/components/sections/AudienceTabs'
@@ -24,6 +25,7 @@ export default function HomePage() {
       <main>
         <Hero />
         <BuiltForEngineers />
+        <WorksOutOfTheBox />
 
         <Benefits />
         <HowItWorks />
