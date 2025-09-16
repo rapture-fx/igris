@@ -1,3 +1,4 @@
+import BuiltForEngineers from '../src/components/sections/BuiltForEngineers';
 import Header from '../src/components/sections/Header'
 import AudienceTabs from '../src/components/sections/AudienceTabs'
 import Hero from '../src/components/sections/Hero';
@@ -22,6 +23,7 @@ export default function HomePage() {
       <Header />
       <main>
         <Hero />
+        <BuiltForEngineers />
 
         <Benefits />
         <HowItWorks />

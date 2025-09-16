@@ -21,7 +21,7 @@ export default function Hero() {
         }, "Messy Data to ML-ready in API Calls."),
 
         React.createElement('p', {
-          className: "text-sm md:text-base text-gray-500 mb-12 max-w-3xl mx-auto leading-relaxed font-sf-mono"
+          className: "text-sm md:text-base text-gray-800 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-inter"
         }, "The data prep API for speed: convert messy inputs into clean, ML-ready outputs, at scale."),
 
         React.createElement('div', {
