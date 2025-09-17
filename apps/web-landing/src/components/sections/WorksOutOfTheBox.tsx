@@ -73,33 +73,17 @@ export default function WorksOutOfTheBox() {
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-black text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="lg:text-center">
-          <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-center font-inter">Works out of the box</h2>
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
-            Data preparation for everyone.
+          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+          <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
+            Train ML Models from Raw Data in 3 Calls.
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
             Schlep-engine is designed to be easy to use for everyone, from data scientists to business analysts.
           </p>
         </div>
 
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
-            {features.map((feature) => (
-              <div key={feature.name} className="relative pl-16">
-                <dt className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg dark:bg-gray-800">
-                    <feature.icon className="h-6 w-6 text-gray-700 dark:text-gray-300" aria-hidden="true" />
-                  </div>
-                  {feature.name}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-700 dark:text-gray-400">{feature.description}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-
         <div className="mt-16 max-w-4xl mx-auto">
-          <div className="flex gap-1 mb-2 relative z-50">
+          <div className="flex gap-4 mb-6 relative z-50 justify-center">
             <button
               className={`px-4 py-2 text-xs font-medium ${activeTab === 'python' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
               onClick={() => setActiveTab('python')}
@@ -154,6 +138,22 @@ export default function WorksOutOfTheBox() {
               <img src="/cli.svg" alt="CLI" className="h-14 w-14" />
             </Link>
           </div>
+        </div>
+
+        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
+          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
+            {features.map((feature) => (
+              <div key={feature.name} className="relative pl-16">
+                <dt className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
+                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg dark:bg-gray-800">
+                    <feature.icon className="h-6 w-6 text-gray-700 dark:text-gray-300" aria-hidden="true" />
+                  </div>
+                  {feature.name}
+                </dt>
+                <dd className="mt-2 text-base leading-7 text-gray-700 dark:text-gray-400">{feature.description}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </div>
     </section>

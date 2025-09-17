@@ -27,10 +27,10 @@ const features = [
 
 export default function BuiltForEngineers() {
   return (
-    <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+    <section className="py-56 sm:py-60 lg:py-64 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div>
-          <h2 className="text-base font-semibold leading-7 text-gray-500 dark:text-gray-400 font-inter">Built for engineers shipping ML at speed.</h2>
+          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>
           <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
             <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
           </p>
@@ -39,20 +39,22 @@ export default function BuiltForEngineers() {
           </p>
         </div>
 
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
+        <div className="mx-auto mt-16 max-w-6xl sm:mt-20 lg:mt-24">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((feature) => (
-              <div key={feature.name} className="relative pl-16">
-                <dt className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg dark:bg-gray-800">
-                    <feature.icon className="h-6 w-6 text-gray-700 dark:text-gray-300" aria-hidden="true" />
+              <div key={feature.name} className="text-center">
+                <div className="flex justify-center mb-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg dark:bg-gray-800">
+                    <feature.icon className="h-8 w-8 text-gray-700 dark:text-gray-300" aria-hidden="true" />
                   </div>
+                </div>
+                <h3 className="text-base font-semibold leading-7 text-gray-900 dark:text-white mb-2">
                   {feature.name}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-700 dark:text-gray-400">{feature.description}</dd>
+                </h3>
+                <p className="text-sm leading-6 text-gray-700 dark:text-gray-400">{feature.description}</p>
               </div>
             ))}
-          </dl>
+          </div>
         </div>
       </div>
     </section>
