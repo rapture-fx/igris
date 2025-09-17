@@ -1,27 +1,22 @@
 
 import React from 'react'
-import { Zap, BarChart2, Lock, DollarSign, Cloud, GitBranch, Activity, Users, MessageSquare } from 'lucide-react'
+import { Zap, Code, Wrench, DollarSign } from 'lucide-react'
 
 const features = [
   {
-    name: 'Streamlined Data Pipelines',
-    description: 'Build, test, and deploy data pipelines with a simple, intuitive API.',
+    name: 'Speed & Productivity',
+    description: '3 API calls vs weeks of setup. From raw data to trained model in minutes, not months. No ML infrastructure costs - pay only for usage.',
     icon: Zap,
   },
   {
-    name: 'Automated Data Cleaning',
-    description: 'Automatically clean and prepare your data for machine learning models.',
-    icon: BarChart2,
+    name: 'Engineering-First Design',
+    description: 'API-native architecture with multiple SDKs. Production-ready from day 1 with built-in monitoring.',
+    icon: Code,
   },
   {
-    name: 'Scalable Infrastructure',
-    description: 'Scale your data processing from a single file to millions of records.',
-    icon: Cloud,
-  },
-  {
-    name: 'Seamless Integrations',
-    description: 'Integrate with your existing tools and workflows with ease.',
-    icon: GitBranch,
+    name: 'Eliminate ML Engineering Overhead',
+    description: 'Auto preprocessing, smart feature engineering, model optimization, and deployment automation.',
+    icon: Wrench,
   },
 ]
 
@@ -40,18 +35,18 @@ export default function BuiltForEngineers() {
         </div>
 
         <div className="mx-auto mt-16 max-w-6xl sm:mt-20 lg:mt-24">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((feature) => (
-              <div key={feature.name} className="text-center">
-                <div className="flex justify-center mb-4">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-lg dark:bg-gray-800">
-                    <feature.icon className="h-8 w-8 text-gray-700 dark:text-gray-300" aria-hidden="true" />
-                  </div>
+              <div key={feature.name} className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700 flex flex-col" style={{ height: '360px' }}>
+                <div className="flex items-center mb-4">
+                  <feature.icon className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-4" aria-hidden="true" />
+                  <h3 className="text-lg font-semibold leading-7 text-gray-900 dark:text-white">
+                    {feature.name}
+                  </h3>
                 </div>
-                <h3 className="text-base font-semibold leading-7 text-gray-900 dark:text-white mb-2">
-                  {feature.name}
-                </h3>
-                <p className="text-sm leading-6 text-gray-700 dark:text-gray-400">{feature.description}</p>
+                <div>
+                  <p className="text-sm leading-6 text-gray-600 dark:text-gray-300">{feature.description}</p>
+                </div>
               </div>
             ))}
           </div>

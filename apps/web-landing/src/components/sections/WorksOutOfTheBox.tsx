@@ -3,7 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Zap, BarChart2, Cloud, GitBranch } from 'lucide-react'
-import WorkflowDiagram from './WorkflowDiagram'
+import VerticalWorkflow from './VerticalWorkflow'
 
 const features = [
   {
@@ -74,7 +74,7 @@ export default function WorksOutOfTheBox() {
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-black text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="lg:text-center">
-          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs that speak your language</h2>
+          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
           <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
             Train ML Models from Raw Data in 3 Calls.
           </p>
@@ -83,7 +83,7 @@ export default function WorksOutOfTheBox() {
           </p>
         </div>
 
-        <WorkflowDiagram />
+        <VerticalWorkflow />
 
         <div className="mt-16 max-w-4xl mx-auto">
           <div className="flex gap-4 mb-6 relative z-50 justify-center">
