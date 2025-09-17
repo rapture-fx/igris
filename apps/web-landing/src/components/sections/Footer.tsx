@@ -9,55 +9,48 @@ export default function Footer() {
   const { theme } = useTheme()
   const footerSections = [
     {
-      title: "Product",
+      title: "APIs",
       links: [
-        { name: "High-Performance Processing", href: "#high-performance-processing" },
-        { name: "Multi-format Support", href: "#multi-format-support" },
-        { name: "Document Extraction API", href: "#document-extraction-api" },
-        { name: "Data Quality API", href: "#data-quality-api" },
-        { name: "ML Pipeline API", href: "#ml-pipeline-api" },
-        { name: "File Storage API", href: "#storage-api" },
-        { name: "Validation API", href: "#validation-api" },
+        { name: "ML Pipeline", href: "https://docs.schlep-engine.com/api/ml-pipeline" },
+        { name: "Data Processing", href: "https://docs.schlep-engine.com/api/data-processing" },
+        { name: "Document Extraction", href: "https://docs.schlep-engine.com/api/document-extraction" },
+        { name: "Data Quality", href: "https://docs.schlep-engine.com/api/data-quality" },
+        { name: "File Storage", href: "https://docs.schlep-engine.com/api/storage" },
+        { name: "RL Optimization", href: "https://docs.schlep-engine.com/api/rl-optimization" },
+        { name: "Manufacturing Analytics", href: "https://docs.schlep-engine.com/api/manufacturing" }
       ]
     },
     {
       title: "Resources",
       links: [
-        { name: "Blog", href: "#blog" },
-        { name: "Case Studies", href: "#cases" },
-        { name: "Help Center", href: "#help" },
-        { name: "Community", href: "#community" },
-        { name: "Getting Started", href: "#getting-started" },
-        { name: "API Reference", href: "#api-reference" },
-        { name: "Tutorials", href: "#tutorials" },
-        { name: "Best Practices", href: "#best-practices" }
+        { name: "Documentation", href: "https://docs.schlep-engine.com" },
+        { name: "Getting Started", href: "https://docs.schlep-engine.com/getting-started" },
+        { name: "API Reference", href: "https://docs.schlep-engine.com/api-reference" },
+        { name: "GitHub", href: "https://github.com/schlep-engine" },
+        { name: "Admin Dashboard", href: "https://admin.schlep-engine.com" },
+        { name: "Support", href: "/support" }
       ]
     },
     {
       title: "Security",
       links: [
-        { name: "Security Overview", href: "#security-overview" },
-        { name: "Data Encryption", href: "#data-encryption" },
-        { name: "Access Control", href: "#access-control" },
-        { name: "Compliance", href: "#compliance" },
-        { name: "Audit Logs", href: "#audit-logs" },
-        { name: "Vulnerability Reports", href: "#vulnerability-reports" }
+        { name: "Security Overview", href: "https://docs.schlep-engine.com/security" },
+        { name: "Authentication", href: "https://docs.schlep-engine.com/security/auth" },
+        { name: "Data Protection", href: "https://docs.schlep-engine.com/security/data-protection" },
+        { name: "API Security", href: "https://docs.schlep-engine.com/security/api" },
+        { name: "Audit Logs", href: "https://docs.schlep-engine.com/security/audit-logs" },
+        { name: "Report Vulnerability", href: "/security/report" }
       ]
     },
     {
-      title: "Compliance",
+      title: "Company",
       links: [
-        { name: "Privacy Policy", href: "#privacy" },
-        { name: "Terms of Service", href: "#terms" },
-        { name: "Contact", href: "#contact" },
-        { name: "SOC2", href: "#" },
-        { name: "GDPR", href: "#" },
-        { name: "HIPAA", href: "#" },
-        { name: "PCI DSS", href: "#" },
-        { name: "ISO/IEC 27001:2013", href: "#" },
-        { name: "NIST Cybersecurity Framework", href: "#" },
-        { name: "CCPA", href: "#" },
-        { name: "FedRAMP", href: "#" }
+        { name: "Privacy Policy", href: "/privacy" },
+        { name: "Terms of Service", href: "/terms" },
+        { name: "Contact", href: "/contact" },
+        { name: "Documentation", href: "https://docs.schlep-engine.com" },
+        { name: "API Console", href: "https://console.schlep-engine.com" },
+        { name: "Status", href: "/status" }
       ]
     }
   ]

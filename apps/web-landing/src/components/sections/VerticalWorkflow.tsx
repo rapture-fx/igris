@@ -51,7 +51,7 @@ features: ["age", "income", "purchase"]`,
 
   return (
     <div className="mt-16 mb-16">
-      <h3 className="text-2xl font-normal text-gray-900 dark:text-white text-center mb-12 font-inter">
+      <h3 className="text-xl font-normal text-gray-900 dark:text-white text-center mb-12 font-inter">
         How Schlep-engine Works
       </h3>
 
@@ -63,9 +63,9 @@ features: ["age", "income", "purchase"]`,
         {steps.map((step, index) => (
           <div key={step.id} className="relative">
             {/* Git-style blue dot */}
-            <div className="absolute left-1/2 top-6 transform -translate-x-1/2">
-              <div className="w-4 h-4 rounded-full shadow-lg flex items-center justify-center" style={{ backgroundColor: '#f7f7f3' }}>
-                <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>
+            <div className="absolute left-1/2 top-6 transform -translate-x-2">
+              <div className="w-4 h-4 rounded-full shadow-md flex items-center justify-center" style={{ backgroundColor: '#f7f7f3' }}>
+                <div className="w-2.5 h-2.5 bg-blue-600 rounded-full opacity-90"></div>
               </div>
             </div>
 
