@@ -51,47 +51,60 @@ features: ["age", "income", "purchase"]`,
 
   return (
     <div className="mt-16 mb-16">
-      <h3 className="text-2xl font-semibold text-gray-900 dark:text-white text-center mb-12 font-inter">
+      <h3 className="text-2xl font-normal text-gray-900 dark:text-white text-center mb-12 font-inter">
         How Schlep-engine Works
       </h3>
 
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto relative">
+        {/* Full vertical git branch line */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-600 transform -translate-x-0.5"></div>
+
         {steps.map((step, index) => (
           <div key={step.id} className="relative">
-            {/* Vertical connector line */}
-            {index < steps.length - 1 && (
-              <div className="absolute left-6 top-12 w-0.5 h-20 bg-gradient-to-b from-blue-400 to-blue-300 dark:from-blue-500 dark:to-blue-400"></div>
-            )}
+            {/* Git-style branch connector */}
+            <div className="absolute left-1/2 top-6">
+              <svg width="32" height="16" className="text-gray-300 dark:text-gray-600">
+                <path
+                  d="M0,8 Q8,8 16,0"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </div>
 
             <div className="flex flex-col lg:flex-row items-start gap-8 pb-12">
               {/* Left Side - Step Info */}
-              <div className="lg:w-1/2 space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30 border-2 border-blue-200 dark:border-blue-700">
-                    <step.icon className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+              <div className="lg:w-1/2 space-y-4 pr-8">
+                <div>
+                  <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                    Step {step.id}
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                      Step {step.id}
-                    </div>
-                    <h4 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {step.title}
-                    </h4>
-                  </div>
+                  <h4 className="text-xl font-normal text-gray-900 dark:text-white">
+                    {step.title}
+                  </h4>
                 </div>
 
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed pl-16">
+                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                   {step.description}
                 </p>
               </div>
 
               {/* Right Side - Visual */}
-              <div className="lg:w-1/2">
-              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 shadow-sm">
+              <div className="lg:w-1/2 pl-8">
+              <div className="bg-white dark:bg-gray-800 border p-6 shadow-lg hover:shadow-xl transition-shadow duration-300" style={{ borderColor: '#114dcd80' }}>
                 {step.visual.type === "code" && (
                   <div>
                     <pre className="text-sm font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                      {step.visual.content}
+                      <code dangerouslySetInnerHTML={{
+                        __html: step.visual.content
+                          .replace(/POST/g, '<span style="color: #114dcd; font-weight: 600;">POST</span>')
+                          .replace(/\/api\/v1\/[^\s\n]*/g, '<span style="color: #114dcd;">$&</span>')
+                          .replace(/(file:|features:)/g, '<span style="color: #114dcd;">$1</span>')
+                          .replace(/(\[.*?\])/g, '<span style="color: #114dcd;">$1</span>')
+                          .replace(/"([^"]*)"(?=:)/g, '"<span style="color: #114dcd;">$1</span>"')
+                      }} />
                     </pre>
                     {step.visual.progress && (
                       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
@@ -110,7 +123,13 @@ features: ["age", "income", "purchase"]`,
 
                 {step.visual.type === "json" && (
                   <pre className="text-sm font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                    {step.visual.content}
+                    <code dangerouslySetInnerHTML={{
+                      __html: step.visual.content
+                        .replace(/"([^"]*)":/g, '"<span style="color: #114dcd;">$1</span>":')
+                        .replace(/:\s*"([^"]*)"/g, ': "<span style="color: #16a34a;">$1</span>"')
+                        .replace(/:\s*([\d.]+)/g, ': <span style="color: #dc2626;">$1</span>')
+                        .replace(/\{|\}/g, '<span style="color: #6b7280;">$&</span>')
+                    }} />
                   </pre>
                 )}
               </div>

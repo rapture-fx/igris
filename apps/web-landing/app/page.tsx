@@ -28,15 +28,6 @@ export default function HomePage() {
         <BuiltForEngineers />
         <WorksOutOfTheBox />
         <SecuritySection />
-
-        <Benefits />
-        <HowItWorks />
-        <AudienceTabs />
-        <AdditionalFeatures />
-        <SecurityFeatures />
-        <Integrations />
-
-        <LatestUpdate />
         <CallToAction />
       </main>
       <Footer />

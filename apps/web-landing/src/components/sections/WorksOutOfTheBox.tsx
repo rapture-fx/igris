@@ -28,32 +28,43 @@ const features = [
   },
 ]
 
-const pythonCode = `<code><span style="color: #114dcd;">import</span> schlep_engine
+const pythonCode = `from schlep_engine import SchlepEngineClient
 
-schlep = schlep_engine.Schlep(api_key="YOUR_API_KEY")
+client = SchlepEngineClient(api_key="YOUR_API_KEY")
 
-result = schlep.process_file("my_file.pdf")
+result = client.data.process_data("sales_data.csv")
 
-print(result)</code>`;
-const jsCode = `<code><span style="color: #114dcd;">import</span> { Schlep } from 'schlep-engine';
+print(result)`;
 
-const schlep = new Schlep({ apiKey: 'YOUR_API_KEY' });
+const jsCode = `import { SchlepEngineClient } from '@schlep-engine/javascript-sdk';
 
-const result = await schlep.processFile('my_file.pdf');
+const client = new SchlepEngineClient({
+  apiKey: 'YOUR_API_KEY'
+});
 
-console.log(result);</code>`;
-const goCode = `<code><span style="color: #114dcd;">import</span> "github.com/schlep-engine/schlep-go"
+const result = await client.data.processFile(file);
 
-schlep := schlep.New(schlep.WithAPIKey("YOUR_API_KEY"))
+console.log(result);`;
 
-result, err := schlep.ProcessFile("my_file.pdf")
+const goCode = `import "github.com/schlep-engine/go-sdk"
 
-fmt.Println(result)</code>`;
-const cliCode = `<code>$ schlep process_file my_file.pdf --api-key YOUR_API_KEY</code>`;
+client := schlep.NewClient("YOUR_API_KEY")
+
+result, err := client.Data.ProcessFile("sales_data.csv")
+
+fmt.Println(result)`;
+
+const cliCode = `schlep data process sales_data.csv --api-key YOUR_API_KEY`;
 
 export default function WorksOutOfTheBox() {
   const [activeTab, setActiveTab] = useState('python');
 
+  const handleCopyClick = () => {
+    const codeToCopy = getCode();
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(codeToCopy);
+    }
+  };
 
   const getCode = () => {
     switch (activeTab) {
@@ -68,6 +79,12 @@ export default function WorksOutOfTheBox() {
       default:
         return pythonCode;
     }
+  }
+
+
+  const getLineNumbers = () => {
+    const lines = getCode().split('\n').length;
+    return Array.from({ length: lines }, (_, i) => i + 1).join('\n');
   }
 
   return (
@@ -86,77 +103,49 @@ export default function WorksOutOfTheBox() {
         <VerticalWorkflow />
 
         <div className="mt-16 max-w-4xl mx-auto">
-          <div className="flex gap-4 mb-6 relative z-50 justify-center">
-            <button
-              className={`px-4 py-2 text-xs font-medium ${activeTab === 'python' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
-              onClick={() => setActiveTab('python')}
-            >
-              Python
+          <h3 className="text-xl font-normal text-gray-900 dark:text-white text-center mb-8 font-inter">
+            Schlep-engine in your stack
+          </h3>
+          <div className="flex justify-center items-center space-x-16 mb-8">
+            <button onClick={() => setActiveTab('python')}>
+              <img src="/py.svg" alt="Python" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'python' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
             </button>
-            <button
-              className={`px-4 py-2 text-xs font-medium ${activeTab === 'javascript' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
-              onClick={() => setActiveTab('javascript')}
-            >
-              JavaScript
+            <button onClick={() => setActiveTab('javascript')}>
+              <img src="/node.svg" alt="JavaScript" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
             </button>
-            <button
-              className={`px-4 py-2 text-xs font-medium ${activeTab === 'go' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
-              onClick={() => setActiveTab('go')}
-            >
-              Go
+            <button onClick={() => setActiveTab('go')}>
+              <img src="/go.svg" alt="Go" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
             </button>
-            <button
-              className={`px-4 py-2 text-xs font-medium ${activeTab === 'cli' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
-              onClick={() => setActiveTab('cli')}
-            >
-              CLI
+            <button onClick={() => setActiveTab('cli')}>
+              <img src="/cli.svg" alt="CLI" className={`h-14 w-14 transition-opacity cursor-pointer ${activeTab === 'cli' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
             </button>
           </div>
           <div
             className="bg-white text-left shadow-lg relative z-10"
             style={{
               border: '1px solid #114dcd',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-              marginTop: '-1px'
+              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
             }}
           >
+
             <div className="p-4 flex">
+              <div
+                className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
+                style={{ color: '#9ca3af' }}
+              >
+                <div
+                  className="text-xs font-mono leading-relaxed whitespace-pre"
+                >
+                  {getLineNumbers()}
+                </div>
+              </div>
               <pre
                 className="text-xs overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
-                dangerouslySetInnerHTML={{ __html: getCode() }}
-              ></pre>
+              >
+                {getCode()}
+              </pre>
             </div>
           </div>
-          <div className="mt-8 flex justify-center items-center space-x-40">
-            <Link href="/sdks/python">
-              <img src="/py.svg" alt="Python" className="h-16 w-16" />
-            </Link>
-            <Link href="/sdks/javascript">
-              <img src="/node.svg" alt="JavaScript" className="h-16 w-16" />
-            </Link>
-            <Link href="/sdks/go">
-              <img src="/go.svg" alt="Go" className="h-20 w-20" />
-            </Link>
-            <Link href="/sdks/cli">
-              <img src="/cli.svg" alt="CLI" className="h-14 w-14" />
-            </Link>
-          </div>
-        </div>
-
-        <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
-          <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
-            {features.map((feature) => (
-              <div key={feature.name} className="relative pl-16">
-                <dt className="text-base font-semibold leading-7 text-gray-900 dark:text-white">
-                  <div className="absolute left-0 top-0 flex h-10 w-10 items-center justify-center rounded-lg dark:bg-gray-800">
-                    <feature.icon className="h-6 w-6 text-gray-700 dark:text-gray-300" aria-hidden="true" />
-                  </div>
-                  {feature.name}
-                </dt>
-                <dd className="mt-2 text-base leading-7 text-gray-700 dark:text-gray-400">{feature.description}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
       </div>
     </section>
