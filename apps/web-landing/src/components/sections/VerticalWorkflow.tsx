@@ -10,7 +10,7 @@ const VerticalWorkflow = () => {
       icon: Upload,
       visual: {
         type: "code",
-        content: `POST /api/v1/data/upload
+        content: `POST /api/v1/storage/upload
 file: training_data.csv`
       }
     },
@@ -21,7 +21,7 @@ file: training_data.csv`
       icon: Zap,
       visual: {
         type: "code",
-        content: `POST /api/v1/train/new_pipeline
+        content: `POST /api/v1/ml/train/new_pipeline
 features: ["age", "income", "purchase"]`,
         progress: [
           "Epoch 3/10 — Accuracy: 0.82",
@@ -31,8 +31,8 @@ features: ["age", "income", "purchase"]`,
     },
     {
       id: 3,
-      title: "Deploy Instantly",
-      description: "Turn your trained model into a production-ready API endpoint in seconds. Monitor metrics and start making predictions immediately.",
+      title: "Production Deploy",
+      description: "Get your trained model with performance metrics and deployment-ready configuration. Streamlined Docker-based production setup.",
       icon: Download,
       visual: {
         type: "json",
@@ -56,39 +56,36 @@ features: ["age", "income", "purchase"]`,
       </h3>
 
       <div className="max-w-5xl mx-auto relative">
-        {/* Full vertical git branch line */}
-        <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-gray-300 dark:bg-gray-600 transform -translate-x-0.5"></div>
+        {/* Full vertical git branch line with fade effect */}
+        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300 dark:bg-gray-600 transform -translate-x-0.5"></div>
+        <div className="absolute left-1/2 bottom-0 w-px h-16 transform -translate-x-0.5" style={{ background: 'linear-gradient(to bottom, rgba(209, 213, 219, 1), rgba(209, 213, 219, 0))' }}></div>
 
         {steps.map((step, index) => (
           <div key={step.id} className="relative">
-            {/* Git-style branch connector */}
-            <div className="absolute left-1/2 top-6">
-              <svg width="32" height="16" className="text-gray-300 dark:text-gray-600">
-                <path
-                  d="M0,8 Q8,8 16,0"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeLinecap="round"
-                />
-              </svg>
+            {/* Git-style blue dot */}
+            <div className="absolute left-1/2 top-6 transform -translate-x-1/2">
+              <div className="w-4 h-4 rounded-full shadow-lg flex items-center justify-center" style={{ backgroundColor: '#f7f7f3' }}>
+                <div className="w-2.5 h-2.5 bg-blue-600 rounded-full"></div>
+              </div>
             </div>
 
             <div className="flex flex-col lg:flex-row items-start gap-8 pb-12">
               {/* Left Side - Step Info */}
-              <div className="lg:w-1/2 space-y-4 pr-8">
-                <div>
-                  <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
-                    Step {step.id}
+              <div className="lg:w-1/2 pr-8">
+                <div className="bg-white dark:bg-gray-800 border p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 space-y-4" style={{ borderColor: '#114dcd80' }}>
+                  <div>
+                    <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
+                      Step {step.id}
+                    </div>
+                    <h4 className="text-xl font-normal text-gray-900 dark:text-white">
+                      {step.title}
+                    </h4>
                   </div>
-                  <h4 className="text-xl font-normal text-gray-900 dark:text-white">
-                    {step.title}
-                  </h4>
-                </div>
 
-                <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                  {step.description}
-                </p>
+                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
               </div>
 
               {/* Right Side - Visual */}

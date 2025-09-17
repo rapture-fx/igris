@@ -5,17 +5,17 @@ import { Zap, Code, Wrench, DollarSign } from 'lucide-react'
 const features = [
   {
     name: 'Speed & Productivity',
-    description: '3 API calls vs weeks of setup. From raw data to trained model in minutes, not months. No ML infrastructure costs - pay only for usage.',
+    description: '3 API calls vs weeks of setup. From raw data to trained model in minutes, not months. 155,876+ lines of production-validated code.',
     icon: Zap,
   },
   {
-    name: 'Engineering-First Design',
-    description: 'API-native architecture with multiple SDKs. Production-ready from day 1 with built-in monitoring.',
+    name: 'Developer-First APIs',
+    description: 'API-native architecture with Python, Node.js, Go SDKs. Production-ready from day 1 with built-in monitoring and admin dashboard.',
     icon: Code,
   },
   {
-    name: 'Eliminate ML Engineering Overhead',
-    description: 'Auto preprocessing, smart feature engineering, model optimization, and deployment automation.',
+    name: 'Enterprise ML Platform',
+    description: 'Auto preprocessing, smart feature engineering, model optimization. Manufacturing & industrial IoT specialization.',
     icon: Wrench,
   },
 ]
