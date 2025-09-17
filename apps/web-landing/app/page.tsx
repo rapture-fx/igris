@@ -6,6 +6,7 @@ import Hero from '../src/components/sections/Hero';
 import CardSection from '../src/components/sections/CardSection';
 import AdditionalFeatures from '../src/components/sections/AdditionalFeatures'
 import SecurityFeatures from '../src/components/sections/SecurityFeatures'
+import SecuritySection from '../src/components/sections/SecuritySection'
 import AudienceGuide from '../src/components/sections/AudienceGuide'
 import Integrations from '../src/components/sections/Integrations'
 import Benefits from '../src/components/sections/Benefits'
@@ -26,6 +27,7 @@ export default function HomePage() {
         <Hero />
         <BuiltForEngineers />
         <WorksOutOfTheBox />
+        <SecuritySection />
 
         <Benefits />
         <HowItWorks />

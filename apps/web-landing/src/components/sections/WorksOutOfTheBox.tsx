@@ -73,12 +73,12 @@ export default function WorksOutOfTheBox() {
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-black text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="lg:text-center">
-          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs that speak your language</h2>
           <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
             Train ML Models from Raw Data in 3 Calls.
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-            Schlep-engine is designed to be easy to use for everyone, from data scientists to business analysts.
+            Upload, train, deploy. Three API calls handle the entire ML pipeline from messy data to production models.
           </p>
         </div>
 
