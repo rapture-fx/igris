@@ -56,7 +56,7 @@ export default function Hero() {
 
   return (
     <div
-      className="relative min-h-screen overflow-hidden dark:bg-gray-900 pt-32 pb-16"
+      className="relative min-h-screen overflow-visible dark:bg-gray-900 pt-16 pb-16"
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="relative z-20 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
@@ -69,7 +69,7 @@ export default function Hero() {
           </h1>
 
           <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-inter">
-            The data prep API for speed: convert messy inputs into clean, ML-ready outputs, at scale.
+            An API-first pipeline for speed: turn messy inputs into ML-ready outputs, train models instantly, and scale without friction.
           </p>
 
           <div className="flex justify-center gap-4">
@@ -88,8 +88,9 @@ export default function Hero() {
             </Link>
           </div>
 
-          <div className="mt-16 max-w-4xl mx-auto">
-            <div className="flex gap-1 mb-0">
+          <div className="mt-24 max-w-4xl mx-auto relative">
+
+            <div className="flex gap-1 mb-0 relative z-10">
               <button
                 className={`px-4 py-2 text-xs font-medium ${activeTab === 'python' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
                 onClick={() => setActiveTab('python')}
@@ -105,7 +106,7 @@ export default function Hero() {
             </div>
 
             <div
-              className="bg-white text-left shadow-lg relative"
+              className="bg-white text-left shadow-lg relative z-10"
               style={{
                 border: '1px solid #114dcd',
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
@@ -113,7 +114,7 @@ export default function Hero() {
             >
               <div className="flex items-center justify-between p-4">
                 <h3 className="text-sm font-medium text-gray-800">
-                  Data → ML Model, Done.
+                  From CSV to Model in one call.
                 </h3>
               </div>
               <button
@@ -156,6 +157,26 @@ export default function Hero() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* SVG positioned at bottom edge of hero */}
+      <div className="absolute left-1/2 bottom-0 pointer-events-none" style={{
+        transform: 'translateX(-50%) translateY(20%)',
+        width: '200vw',
+        height: '100vh',
+        zIndex: 1
+      }}>
+        <div className="relative w-full h-full">
+          <img
+            src="/BG hero.svg"
+            alt=""
+            className="w-full h-full object-contain opacity-65"
+            style={{
+              maskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 80%)',
+              WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 80%)'
+            }}
+          />
         </div>
       </div>
     </div>
