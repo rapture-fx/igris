@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { Zap, BarChart2, Cloud, GitBranch } from 'lucide-react'
+import { Zap, BarChart2, Cloud, GitBranch, ArrowUpRight } from 'lucide-react'
 import VerticalWorkflow from './VerticalWorkflow'
 
 const features = [
@@ -145,6 +145,18 @@ export default function WorksOutOfTheBox() {
                 {getCode()}
               </pre>
             </div>
+          </div>
+
+          {/* Explore Docs Button */}
+          <div className="mt-8 text-center">
+            <Link
+              href="https://docs.schlep-engine.com"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+              style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
+            >
+              Explore Docs
+              <ArrowUpRight className="ml-2 h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>
