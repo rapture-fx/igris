@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import Link from 'next/link'
 import { Zap, BarChart2, Cloud, GitBranch } from 'lucide-react'
+import WorkflowDiagram from './WorkflowDiagram'
 
 const features = [
   {
@@ -81,6 +82,8 @@ export default function WorksOutOfTheBox() {
             Upload, train, deploy. Three API calls handle the entire ML pipeline from messy data to production models.
           </p>
         </div>
+
+        <WorkflowDiagram />
 
         <div className="mt-16 max-w-4xl mx-auto">
           <div className="flex gap-4 mb-6 relative z-50 justify-center">
