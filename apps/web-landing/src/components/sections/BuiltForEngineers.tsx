@@ -30,9 +30,9 @@ export default function BuiltForEngineers() {
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div>
-          <h2 className="text-base font-semibold leading-7 text-[#1A5799] text-center font-inter">Built for engineers shipping ML at speed.</h2>
-          <p className="mt-2 text-2xl font-semibold tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
-            An API-first platform for data preparation.
+          <h2 className="text-base font-semibold leading-7 text-gray-500 dark:text-gray-400 font-inter">Built for engineers shipping ML at speed.</h2>
+          <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
+            <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
             Schlep-engine is designed to help you get from messy data to production-ready models in record time.
