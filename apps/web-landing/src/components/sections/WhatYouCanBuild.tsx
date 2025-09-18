@@ -8,11 +8,11 @@ const useCases = [
   {
     icon: Brain,
     title: 'AI Company',
-    description: 'ML model training and data pipelines',
+    description: 'Complete MLOps platform for AI companies',
     examples: [
-      'CSV to trained model APIs',
-      'Automated data quality assessment',
-      'Model persistence and metadata tracking'
+      'Model registry with versioning and lineage tracking',
+      'Advanced experiment tracking with real-time metrics',
+      'Production model serving with canary deployments'
     ],
     cta: 'Explore AI Solutions',
     link: '/industries/ai-company'
@@ -63,7 +63,7 @@ export default function WhatYouCanBuild() {
           <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">
             What You Can Build
           </h2>
-          <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
+          <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
             Turn data into <span style={{ color: '#114dcd' }}>advantage</span>
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-inter">
@@ -75,7 +75,8 @@ export default function WhatYouCanBuild() {
           {useCases.map((useCase) => (
             <div
               key={useCase.title}
-              className="bg-gray-50 dark:bg-gray-800 rounded-xl p-6 hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700"
+              className="bg-gray-50 dark:bg-gray-800 rounded-xl p-8 hover:shadow-lg transition-all duration-300 border border-gray-200 dark:border-gray-700 flex flex-col"
+              style={{ height: '360px' }}
             >
               <div className="flex items-center mb-4">
                 <useCase.icon className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-3" />
