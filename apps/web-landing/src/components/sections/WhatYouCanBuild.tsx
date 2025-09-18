@@ -117,7 +117,7 @@ export default function WhatYouCanBuild() {
               <button
                 key={index}
                 onClick={() => setCurrentCard(index)}
-                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${
                   currentCard === index
                     ? 'bg-blue-600 scale-125'
                     : 'bg-gray-300 hover:bg-gray-400'
