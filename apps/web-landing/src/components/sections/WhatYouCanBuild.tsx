@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useRef } from 'react'
 import { Brain, Factory, CreditCard, ShoppingBag, ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 
@@ -16,14 +16,16 @@ const useCases = [
     ],
     cta: 'Explore Data + ML Pipelines',
     link: '/industries/ai-company',
-    accent: 'from-blue-50 to-indigo-50',
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600'
+    accent: 'from-white to-white',
+    iconBg: 'bg-white',
+    iconColor: 'text-blue-600',
+    isCustomIcon: true,
+    customIconSrc: '/ML card.svg'
   },
   {
     icon: Factory,
     title: 'Manufacturing',
-    description: 'Sensor data processing and forecasting',
+    description: 'From sensor ingestion to predictive deployment. API-first pipelines that process manufacturing data, train predictive models, and serve insights without overhead.',
     examples: [
       'Equipment failure prediction from sensor data',
       'Batch processing for manufacturing analytics',
@@ -31,14 +33,16 @@ const useCases = [
     ],
     cta: 'See Manufacturing Use Cases',
     link: '/industries/manufacturing',
-    accent: 'from-emerald-50 to-green-50',
+    accent: 'from-white to-white',
     iconBg: 'bg-emerald-100',
-    iconColor: 'text-emerald-600'
+    iconColor: 'text-emerald-600',
+    isCustomIcon: true,
+    customIconSrc: '/Manufacture.svg'
   },
   {
     icon: CreditCard,
     title: 'Financial Services',
-    description: 'Transaction analysis and risk scoring',
+    description: 'From transaction ingestion to fraud deployment. API-first pipelines that process financial data, train risk models, and serve predictions without overhead.',
     examples: [
       'Fraud detection with risk scoring APIs',
       'Transaction data quality assessment',
@@ -46,14 +50,16 @@ const useCases = [
     ],
     cta: 'View FinTech Solutions',
     link: '/industries/financial-services',
-    accent: 'from-amber-50 to-orange-50',
+    accent: 'from-white to-white',
     iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600'
+    iconColor: 'text-amber-600',
+    isCustomIcon: true,
+    customIconSrc: '/Financial.svg'
   },
   {
     icon: ShoppingBag,
     title: 'E-commerce',
-    description: 'Customer data processing and analytics',
+    description: 'From customer ingestion to recommendation deployment. API-first pipelines that process commerce data, train behavior models, and serve insights without overhead.',
     examples: [
       'Customer behavior data preprocessing',
       'Sales data quality assessment',
@@ -61,13 +67,32 @@ const useCases = [
     ],
     cta: 'Discover E-commerce Tools',
     link: '/industries/ecommerce',
-    accent: 'from-purple-50 to-violet-50',
+    accent: 'from-white to-white',
     iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600'
+    iconColor: 'text-purple-600',
+    isCustomIcon: true,
+    customIconSrc: '/ecommerce.svg'
   }
 ]
 
 export default function WhatYouCanBuild() {
+  const [currentCard, setCurrentCard] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const lastScrollTime = useRef(0)
+
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault()
+
+    // Throttle scrolling to make it less sensitive
+    const now = Date.now()
+    if (now - lastScrollTime.current < 300) return
+    lastScrollTime.current = now
+
+    const direction = e.deltaY > 0 ? 1 : -1
+    const newCard = Math.max(0, Math.min(useCases.length - 1, currentCard + direction))
+    setCurrentCard(newCard)
+  }
+
   return (
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -84,50 +109,107 @@ export default function WhatYouCanBuild() {
           </p>
         </div>
 
-        {/* 2x2 Grid of Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
-          {useCases.map((useCase) => (
-            <div
-              key={useCase.title}
-              className={`bg-gradient-to-br ${useCase.accent} rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 flex flex-col justify-between`}
-              style={{ minHeight: '200px' }}
-            >
-              {/* Icon and Title */}
-              <div>
-                <div className={`inline-flex items-center justify-center w-12 h-12 ${useCase.iconBg} rounded-xl mb-6`}>
-                  <useCase.icon className={`h-6 w-6 ${useCase.iconColor}`} />
+        {/* Card Stack with Navigation */}
+        <div className="max-w-4xl mx-auto relative flex items-center gap-8">
+          {/* Navigation Dots */}
+          <div className="flex flex-col space-y-4">
+            {useCases.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentCard(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  currentCard === index
+                    ? 'bg-blue-600 scale-125'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Stacked Cards */}
+          <div
+            ref={containerRef}
+            className="flex-1 relative cursor-pointer"
+            style={{ height: '280px' }}
+            onWheel={handleWheel}
+          >
+            {useCases.map((useCase, index) => {
+              const isActive = index === currentCard;
+              const stackOrder = index - currentCard;
+              const isVisible = Math.abs(stackOrder) <= 2;
+
+              return (
+                <div
+                  key={useCase.title}
+                  className={`absolute w-full transition-all duration-500 ease-in-out ${
+                    isVisible ? 'opacity-100' : 'opacity-0'
+                  }`}
+                  style={{
+                    zIndex: isActive ? 10 : Math.max(0, 5 - Math.abs(stackOrder)),
+                    transform: `translateY(${stackOrder * 8}px) translateX(${Math.abs(stackOrder) * 4}px)`,
+                    filter: isActive ? 'none' : `brightness(${1 - Math.abs(stackOrder) * 0.1})`,
+                  }}
+                >
+                  <div
+                    className={`bg-gradient-to-br ${useCase.accent} rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-6 ${(index === 1 || index === 3) ? 'flex-row-reverse' : ''}`}
+                    style={{ minHeight: '200px' }}
+                  >
+                    {/* Left Column - Icon */}
+                    <div className="flex-1 flex items-center justify-center">
+                      {useCase.isCustomIcon ? (
+                        <img
+                          src={useCase.customIconSrc}
+                          alt={useCase.title}
+                          className="h-60 w-60"
+                        />
+                      ) : (
+                        <div className={`inline-flex items-center justify-center w-24 h-24 ${useCase.iconBg} rounded-xl`}>
+                          <useCase.icon className={`h-12 w-12 ${useCase.iconColor}`} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Right Column - Content */}
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="bg-white border border-gray-200 rounded-xl p-10 shadow-md w-full flex flex-col justify-between" style={{ height: '160px', width: '100%' }}>
+                        <div>
+                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 font-inter">
+                            {useCase.title}
+                          </h3>
+
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 font-inter leading-relaxed">
+                            {useCase.description}
+                          </p>
+
+                          {/* Bullet Points - Fixed height container */}
+                          <div className="mb-6" style={{ minHeight: '72px' }}>
+                            <ul className="space-y-2">
+                              {useCase.examples.map((example, exampleIndex) => (
+                                <li key={exampleIndex} className="flex items-start text-sm text-gray-600 dark:text-gray-300 font-inter">
+                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                                  <span className="leading-relaxed">{example}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        {/* CTA Button */}
+                        <Link
+                          href={useCase.link}
+                          className="inline-flex items-center justify-center px-6 py-3 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md font-inter group self-start"
+                          style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
+                        >
+                          {useCase.cta}
+                          <ArrowUpRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 font-inter">
-                  {useCase.title}
-                </h3>
-
-                <p className="text-sm text-gray-600 dark:text-gray-300 mb-6 font-inter leading-relaxed">
-                  {useCase.description}
-                </p>
-
-                {/* Bullet Points */}
-                <ul className="space-y-3 mb-8">
-                  {useCase.examples.map((example, index) => (
-                    <li key={index} className="flex items-start text-sm text-gray-600 dark:text-gray-300 font-inter">
-                      <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                      <span className="leading-relaxed">{example}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* CTA Button */}
-              <Link
-                href={useCase.link}
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md font-inter group w-full"
-                style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
-              >
-                {useCase.cta}
-                <ArrowUpRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </Link>
-            </div>
-          ))}
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>
