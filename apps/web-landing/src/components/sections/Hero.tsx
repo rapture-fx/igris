@@ -4,7 +4,8 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
-const pythonCode = `<code><span style="color: #114dcd;">import</span> requests
+const pythonCode = `<code><span style="color: #6b7280;"># From CSV to Model in one call.</span>
+<span style="color: #114dcd;">import</span> requests
 
 <span style="color: #6b7280;"># Upload a CSV, extract data</span>
 files = {<span style="color: #4b5563;">'file'</span>: <span style="color: #114dcd;">open</span>(<span style="color: #4b5563;">'sales_data.csv'</span>, <span style="color: #4b5563;">'rb'</span>)}
@@ -27,9 +28,12 @@ ml = <span style="color: #114dcd;">requests.post</span>(
 
 <span style="color: #114dcd;">print</span>(f<span style="color: #4b5563;">"Accuracy: {ml.json()['accuracy']:.2f}"</span>)
 
-<span style="color: #114dcd;"># → Accuracy: 0.89</span></code>`
+<span style="color: #114dcd;"># → Accuracy: 0.89</span>
+</code>`
 
-const curlCode = `<code><span style="color: #6b7280;"># Upload a CSV, extract data</span>
+const curlCode = `<code><span style="color: #6b7280;"># From CSV to Model in one call.</span>
+
+<span style="color: #6b7280;"># Upload a CSV, extract data</span>
 <span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST \
   <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/extract/csv'</span> \
   <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer API_KEY'</span> \
@@ -42,7 +46,15 @@ const curlCode = `<code><span style="color: #6b7280;"># Upload a CSV, extract da
   <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> \
   <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{"features": [extracted_data], "target_column": "revenue_category"}'</span>
 
-<span style="color: #114dcd;"># → {"accuracy": 0.89, "model_id": "rf_abc123"}</span></code>`
+<span style="color: #114dcd;"># → {"accuracy": 0.89, "model_id": "rf_abc123"}</span>
+
+
+
+
+
+
+
+</code>`
 
 export default function Hero() {
   const [activeTab, setActiveTab] = useState('python');
@@ -63,12 +75,12 @@ export default function Hero() {
         <div className="text-center pt-40 font-ibm-plex-mono">
           <h1
             style={{ color: '#1f53d0' }}
-            className="text-2xl md:text-3xl font-medium text-gray-900 dark:text-white mb-8 leading-tight font-inter"
+            className="text-4xl md:text-5xl font-medium text-gray-900 dark:text-white mb-8 leading-tight font-inter"
           >
             Messy Data to ML-ready in API Calls.
           </h1>
 
-          <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-inter">
+          <p className="text-base md:text-lg text-gray-800 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-inter">
             An API-first pipeline for speed: turn messy inputs into ML-ready outputs, train models instantly, and scale without friction.
           </p>
 
@@ -88,22 +100,7 @@ export default function Hero() {
             </Link>
           </div>
 
-          <div className="mt-24 max-w-4xl mx-auto relative">
-
-            <div className="flex gap-1 mb-0 relative z-10">
-              <button
-                className={`px-4 py-2 text-xs font-medium ${activeTab === 'python' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
-                onClick={() => setActiveTab('python')}
-              >
-                Python
-              </button>
-              <button
-                className={`px-4 py-2 text-xs font-medium ${activeTab === 'curl' ? 'text-blue-600 bg-blue-50 border border-blue-200 border-b-0' : 'text-gray-500 hover:text-gray-700 bg-gray-50 border border-gray-200 border-b-0'}`}
-                onClick={() => setActiveTab('curl')}
-              >
-                cURL
-              </button>
-            </div>
+          <div className="mt-24 max-w-5xl mx-auto relative">
 
             <div
               className="bg-white text-left shadow-lg relative z-10"
@@ -113,43 +110,54 @@ export default function Hero() {
               }}
             >
               <div className="flex items-center justify-between p-4">
-                <h3 className="text-sm font-medium text-gray-800">
-                  From CSV to Model in one call.
-                </h3>
-              </div>
-              <button
-                className="absolute top-3 right-3 p-2 text-gray-400 hover:text-gray-600 transition-colors"
-                onClick={handleCopyClick}
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+                <div className="flex gap-1">
+                  <button
+                    className={`px-3 py-1 text-xs font-medium rounded ${activeTab === 'python' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                    onClick={() => setActiveTab('python')}
+                  >
+                    Python
+                  </button>
+                  <button
+                    className={`px-3 py-1 text-xs font-medium rounded ${activeTab === 'curl' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
+                    onClick={() => setActiveTab('curl')}
+                  >
+                    cURL
+                  </button>
+                </div>
+                <button
+                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  onClick={handleCopyClick}
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </button>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+              </div>
 
-              <div className="p-4 flex">
+              <div className="p-4 flex min-h-96">
                 <div
                   className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
                   style={{ color: '#9ca3af' }}
                 >
                   <div
-                    className="text-xs font-mono leading-relaxed whitespace-pre"
+                    className="text-sm font-mono leading-relaxed whitespace-pre"
                     id="line-numbers"
                   >
-                    {activeTab === 'python' ? '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23' : '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17'}
+                    {activeTab === 'python' ? '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25' : '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25'}
                   </div>
                 </div>
                 <pre
-                  className="text-xs overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
+                  className="text-sm overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
                   dangerouslySetInnerHTML={{
                     __html: activeTab === 'python' ? pythonCode : curlCode
                   }}

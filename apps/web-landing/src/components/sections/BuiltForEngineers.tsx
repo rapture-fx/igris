@@ -1,21 +1,22 @@
 
 import React from 'react'
-import { Zap, Code, Wrench, DollarSign } from 'lucide-react'
+import { Zap, Code, Wrench, DollarSign, ArrowUpRight } from 'lucide-react'
+import Link from 'next/link'
 
 const features = [
   {
-    name: 'Speed & Productivity',
-    description: '3 API calls vs weeks of setup. From raw data to trained model in minutes, not months. 155,876+ lines of production-validated code.',
+    name: 'API-First Architecture',
+    description: 'Clean REST APIs for data processing and ML workflows. Upload CSV, train models, and get predictions with simple HTTP calls. Built with FastAPI for speed and reliability.',
     icon: Zap,
   },
   {
-    name: 'Developer-First APIs',
-    description: 'API-native architecture with Python, Node.js, Go SDKs. Production-ready from day 1 with built-in monitoring and admin dashboard.',
+    name: 'Developer Experience',
+    description: 'Straightforward APIs that handle the complexity for you. Focus on your data and business logic, not ML infrastructure setup and maintenance.',
     icon: Code,
   },
   {
-    name: 'Enterprise ML Platform',
-    description: 'Auto preprocessing, smart feature engineering, model optimization. Manufacturing & industrial IoT specialization.',
+    name: 'Data to Model Pipeline',
+    description: 'Automated data processing and model training workflows. From messy CSV files to trained models through API calls instead of complex ML pipeline setup.',
     icon: Wrench,
   },
 ]
@@ -30,7 +31,7 @@ export default function BuiltForEngineers() {
             <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-            Schlep-engine is designed to help you get from messy data to production-ready models in record time.
+            Simple APIs for complex ML workflows. Skip the infrastructure setup and get straight to training models and processing data.
           </p>
         </div>
 
@@ -49,6 +50,18 @@ export default function BuiltForEngineers() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Button moved below cards */}
+          <div className="mt-10 text-center">
+            <Link
+              href="/#pricing"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+              style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
+            >
+              Explore Schlep-engine
+              <ArrowUpRight className="ml-2 h-4 w-4" />
+            </Link>
           </div>
         </div>
       </div>
