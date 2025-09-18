@@ -171,7 +171,7 @@ export default function WhatYouCanBuild() {
 
                     {/* Right Column - Content */}
                     <div className="flex-1 flex items-center justify-center">
-                      <div className="bg-white border border-gray-200 rounded-xl p-10 shadow-md w-full flex flex-col justify-between" style={{ height: '160px', width: '100%' }}>
+                      <div className="bg-white border border-gray-200 rounded-xl p-10 shadow-md w-full h-full flex flex-col justify-between">
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 font-inter">
                             {useCase.title}
@@ -181,17 +181,15 @@ export default function WhatYouCanBuild() {
                             {useCase.description}
                           </p>
 
-                          {/* Bullet Points - Fixed height container */}
-                          <div className="mb-6" style={{ minHeight: '72px' }}>
-                            <ul className="space-y-2">
-                              {useCase.examples.map((example, exampleIndex) => (
-                                <li key={exampleIndex} className="flex items-start text-sm text-gray-600 dark:text-gray-300 font-inter">
-                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                                  <span className="leading-relaxed">{example}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
+                          {/* Bullet Points */}
+                          <ul className="space-y-2 mb-6">
+                            {useCase.examples.map((example, exampleIndex) => (
+                              <li key={exampleIndex} className="flex items-start text-sm text-gray-600 dark:text-gray-300 font-inter">
+                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                                <span className="leading-relaxed">{example}</span>
+                              </li>
+                            ))}
+                          </ul>
                         </div>
 
                         {/* CTA Button */}
