@@ -25,7 +25,7 @@ export default function CallToAction() {
             <div>
               <h2 className="text-2xl md:text-3xl font-medium mb-4 leading-tight font-inter" style={{ color: '#1f53d0' }}>Secure at every layer. Built to scale.</h2>
               <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300">
-                Start building powerful ML pipelines and simplify your data handling today.
+                Build a powerful ML pipelines and simplify your data handling.
               </p>
               <a
                 href="/dashboard"
