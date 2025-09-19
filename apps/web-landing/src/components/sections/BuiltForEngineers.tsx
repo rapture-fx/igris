@@ -1,29 +1,26 @@
 
 import React from 'react'
-import { Zap, Code, Wrench, DollarSign, ArrowUpRight } from 'lucide-react'
+import { ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
 
 const features = [
   {
     name: 'API-First Architecture',
-    description: 'Clean REST APIs for data processing and ML workflows. Upload CSV, train models, and get predictions with simple HTTP calls. Built with FastAPI for speed and reliability.',
-    icon: Zap,
+    description: 'REST APIs for data and ML workflows. Upload CSVs, train models, and get predictions with simple HTTP calls. Built on FastAPI for speed and reliability.',
   },
   {
     name: 'Developer Experience',
-    description: 'Straightforward APIs that handle the complexity for you. Focus on your data and business logic, not ML infrastructure setup and maintenance.',
-    icon: Code,
+    description: 'APIs that hide the heavy lifting. Focus on your data and logic, not infrastructure setup or maintenance.',
   },
   {
     name: 'Data to Model Pipeline',
-    description: 'Automated data processing and model training workflows. From messy CSV files to trained models through API calls instead of complex ML pipeline setup.',
-    icon: Wrench,
+    description: 'From messy CSVs to trained models. Automate processing and training through API calls—no complex pipeline setup required.',
   },
 ]
 
 export default function BuiltForEngineers() {
   return (
-    <section className="py-56 sm:py-60 lg:py-64 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+    <section className="pt-56 pb-20 sm:pt-60 sm:pb-24 lg:pt-64 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div>
           <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>
@@ -31,25 +28,44 @@ export default function BuiltForEngineers() {
             <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-            Simple APIs for complex ML workflows. Skip the infrastructure setup and get straight to training models and processing data.
+            Most ML projects stall on infrastructure. Schlep-engine removes that bottleneck with simple APIs that take you from messy data to working models—fast.
           </p>
         </div>
 
         <div className="mx-auto mt-16 max-w-6xl sm:mt-20 lg:mt-24">
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((feature) => (
-              <div key={feature.name} className="bg-white dark:bg-gray-800 rounded-xl p-8 shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200 dark:border-gray-700 flex flex-col" style={{ height: '360px' }}>
-                <div className="flex items-center mb-4">
-                  <feature.icon className="h-8 w-8 text-blue-600 dark:text-blue-400 mr-4" aria-hidden="true" />
-                  <h3 className="text-lg font-semibold leading-7 text-gray-900 dark:text-white">
-                    {feature.name}
-                  </h3>
-                </div>
-                <div>
-                  <p className="text-sm leading-6 text-gray-600 dark:text-gray-300">{feature.description}</p>
-                </div>
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+            </div>
+
+            <div className="border border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
+                {features.map((feature, index) => {
+                  return (
+                    <div key={feature.name} className={`p-16 text-left ${index < 2 ? 'border-r border-gray-200 dark:border-gray-700' : ''}`} style={{ minHeight: '450px' }}>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                        {feature.name}
+                      </h3>
+                      <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  );
+                })}
               </div>
-            ))}
+            </div>
           </div>
 
           {/* Button moved below cards */}

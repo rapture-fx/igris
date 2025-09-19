@@ -2,11 +2,8 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useTheme } from "next-themes"
-import { ThemeSwitcher } from '@/components/ThemeSwitcher'
 
 export default function Footer() {
-  const { theme } = useTheme()
   const footerSections = [
     {
       title: "APIs",
@@ -96,12 +93,11 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Copyright and Theme Switcher */}
-          <div className="pt-6 mt-12 flex justify-between items-center">
+          {/* Copyright */}
+          <div className="pt-6 mt-12">
             <p className="text-sm text-gray-500 dark:text-gray-400 text-left font-inter">
-              © 2024 Schlep-engine. All rights reserved.
+              © 2024 Schlep-engine.
             </p>
-            <ThemeSwitcher />
           </div>
         </div>
       </div>
