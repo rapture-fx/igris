@@ -7,41 +7,54 @@ import React, { useState } from 'react'
 export default function Pricing() {
   const [selectedQuota, setSelectedQuota] = useState('100')
   const [billingPeriod, setBillingPeriod] = useState('monthly') // 'monthly' or 'yearly'
+  const [selectedApiCount, setSelectedApiCount] = useState('100k')
+
+  const apiCountOptions = [
+    { value: '100k', label: '100K API calls', priceMultiplier: { develop: 1, growth: 1, scale: 1 } },
+    { value: '500k', label: '500K API calls', priceMultiplier: { develop: 1.5, growth: 1.3, scale: 1.2 } },
+    { value: '1m', label: '1M API calls', priceMultiplier: { develop: 2, growth: 1.5, scale: 1.3 } },
+    { value: '5m', label: '5M API calls', priceMultiplier: { develop: 3, growth: 2, scale: 1.5 } },
+    { value: 'unlimited', label: 'Unlimited', priceMultiplier: { develop: 4, growth: 2.5, scale: 1.8 } }
+  ]
 
   const plans = [
     {
       name: "Develop",
       title: "Develop",
-      monthlyPrice: 49,
+      basePrice: 49,
       cta: "Get started for free",
       ctaLink: "/auth/register",
-      tagline: "Go from raw data to model-ready in minutes.",
+      tagline: "Perfect for individuals and small teams prototyping ML workflows.",
     },
     {
       name: "Growth",
       title: "Growth",
-      monthlyPrice: 149,
+      basePrice: 149,
       cta: "Get started for free",
       ctaLink: "/auth/register",
-      tagline: "Accelerate your team's ML development and scale your data pipelines.",
+      tagline: "For growing teams who need faster pipelines and collaboration.",
       popular: true
     },
     {
       name: "Scale",
       title: "Scale",
-      monthlyPrice: 249,
+      basePrice: 249,
       cta: "Get started for free",
       ctaLink: "/auth/register",
-      tagline: "Achieve enterprise-grade scale and compliance for your most demanding workloads.",
+      tagline: "Enterprise-grade performance, compliance, and scale without the infra burden.",
       popular: false
     }
   ]
 
-  const getPrice = (monthlyPrice: number) => {
+  const getPrice = (plan: any) => {
+    const selectedOption = apiCountOptions.find(option => option.value === selectedApiCount);
+    const multiplier = selectedOption?.priceMultiplier[plan.name.toLowerCase()] || 1;
+    const adjustedPrice = plan.basePrice * multiplier;
+
     if (billingPeriod === 'yearly') {
-      return monthlyPrice * 10; // 2 months free for yearly
+      return Math.round(adjustedPrice * 10); // 2 months free for yearly
     }
-    return monthlyPrice;
+    return Math.round(adjustedPrice);
   };
 
   const getPeriod = () => {
@@ -55,68 +68,70 @@ export default function Pricing() {
     {
       category: "Core Data Processing",
       items: [
-        { name: "AI-Powered Data Cleaning & Validation", free: "Basic", developer: "Advanced", growth: "Custom AI Models" },
-        { name: "Multi-Format File Support", free: "CSV, JSON, Excel", developer: "All Common Formats", growth: "All + Custom Formats" },
-        { name: "Document & Image Data Extraction", free: true, developer: true, growth: true },
-        { name: "ML-Ready Data Preparation", free: "Basic", developer: "Advanced", growth: "Custom Pipelines" },
-        { name: "Unified Pipeline Orchestration", free: false, developer: true, growth: true },
-        { name: "Real-time Data Streaming", free: false, developer: true, growth: true },
-        { name: "Auto-labeling & Data Enrichment", free: false, developer: true, growth: true }
+        { name: "AI-Powered Data Cleaning & Validation", develop: "Advanced", growth: "Custom AI Models", scale: "Enterprise AI Models" },
+        { name: "Multi-Format File Support", develop: "All Common Formats", growth: "All + Custom Formats", scale: "All + Enterprise Formats" },
+        { name: "Document & Image Data Extraction", develop: true, growth: true, scale: true },
+        { name: "ML-Ready Data Preparation", develop: "Advanced", growth: "Custom Pipelines", scale: "Enterprise Pipelines" },
+        { name: "Unified Pipeline Orchestration", develop: true, growth: true, scale: true },
+        { name: "Real-time Data Streaming", develop: true, growth: true, scale: true },
+        { name: "Auto-labeling & Data Enrichment", develop: true, growth: true, scale: true }
       ]
     },
     {
       category: "API & Usage",
       items: [
-        { name: "API Calls per Month", free: "1,000", developer: "100,000", growth: "Unlimited" },
-        { name: "Bandwidth", free: "5 GB", developer: "500 GB", growth: "Unlimited" },
-        { name: "Storage", free: "1 GB", developer: "100 GB", growth: "Unlimited" },
-        { name: "Real-time Processing", free: true, developer: true, growth: true },
-        { name: "Batch Processing", free: "Small jobs", developer: "Large jobs", growth: "Enterprise scale" },
-        { name: "Concurrent Processing Jobs", free: "1", developer: "10", growth: "Unlimited" }
+        { name: "API Calls per Month", develop: { type: 'dropdown', options: apiCountOptions.map(opt => opt.label) }, growth: { type: 'dropdown', options: apiCountOptions.map(opt => opt.label) }, scale: { type: 'dropdown', options: apiCountOptions.map(opt => opt.label) } },
+        { name: "Bandwidth", develop: "500 GB", growth: "Unlimited", scale: "Unlimited" },
+        { name: "Storage", develop: "100 GB", growth: "Unlimited", scale: "Unlimited" },
+        { name: "Real-time Processing", develop: true, growth: true, scale: true },
+        { name: "Batch Processing", develop: "Large jobs", growth: "Enterprise scale", scale: "Enterprise scale+" },
+        { name: "Concurrent Processing Jobs", develop: "10", growth: "Unlimited", scale: "Unlimited" }
       ]
     },
     {
       category: "Integrations & Connectivity",
       items: [
-        { name: "Standard Data Source Connectors", free: "3 connectors", developer: "All standard", growth: "All + Custom" },
-        { name: "Database Integrations (SQL, NoSQL)", free: true, developer: true, growth: true },
-        { name: "Cloud Storage Integrations (S3, GCS, Azure)", free: false, developer: true, growth: true },
-        { name: "Real-time Data Streaming (WebSockets)", free: false, developer: true, growth: true },
-        { name: "RESTful APIs", free: true, developer: true, growth: true },
-        { name: "Custom Integrations & Webhooks", free: false, developer: "Limited", growth: "Unlimited" }
+        { name: "Standard Data Source Connectors", develop: "All standard", growth: "All + Custom", scale: "All + Enterprise" },
+        { name: "Database Integrations (SQL, NoSQL)", develop: true, growth: true, scale: true },
+        { name: "Cloud Storage Integrations (S3, GCS, Azure)", develop: true, growth: true, scale: true },
+        { name: "Real-time Data Streaming (WebSockets)", develop: true, growth: true, scale: true },
+        { name: "RESTful APIs", develop: true, growth: true, scale: true },
+        { name: "Custom Integrations & Webhooks", develop: "Limited", growth: "Unlimited", scale: "Unlimited" }
       ]
     },
     {
       category: "Security & Compliance",
       items: [
-        { name: "2FA & Multi-layered Authentication", free: true, developer: true, growth: true },
-        { name: "SSO (SAML/OAuth)", free: false, developer: true, growth: true },
-        { name: "Data Encryption (at rest & in transit)", free: true, developer: true, growth: true },
-        { name: "Comprehensive Audit Logs", free: "Basic", developer: "Advanced", growth: "Enterprise" },
-        { name: "Role-Based Access Control (RBAC)", free: false, developer: true, growth: true },
-        { name: "GDPR & Privacy Compliance", free: true, developer: true, growth: true },
-        { name: "SOC2 Type II Compliance", free: false, developer: false, growth: true },
-        { name: "HIPAA Compliance", free: false, developer: false, growth: true },
-        { name: "Enterprise Security Certifications", free: false, developer: false, growth: true }
+        { name: "2FA & Multi-layered Authentication", develop: true, growth: true, scale: true },
+        { name: "SSO (SAML/OAuth)", develop: true, growth: true, scale: true },
+        { name: "Data Encryption (at rest & in transit)", develop: true, growth: true, scale: true },
+        { name: "Comprehensive Audit Logs", develop: "Advanced", growth: "Enterprise", scale: "Enterprise+" },
+        { name: "Role-Based Access Control (RBAC)", develop: true, growth: true, scale: true },
+        { name: "GDPR & Privacy Compliance", develop: true, growth: true, scale: true },
+        { name: "SOC2 Type II Compliance", develop: false, growth: true, scale: true },
+        { name: "HIPAA Compliance", develop: false, growth: true, scale: true },
+        { name: "Enterprise Security Certifications", develop: false, growth: true, scale: true }
       ]
     },
     {
       category: "Monitoring & Analytics",
       items: [
-        { name: "Usage Analytics & Reporting", free: "Basic", developer: "Advanced", growth: "Custom" },
-        { name: "Real-time Performance Monitoring", free: false, developer: true, growth: true },
-        { name: "Custom Dashboards & Alerts", free: false, developer: "Standard", growth: "Unlimited" },
-        { name: "API Performance & Error Tracking", free: "Basic", developer: "Advanced", growth: "Enterprise" },
-        { name: "Data Quality Monitoring", free: false, developer: true, growth: true },
-        { name: "Predictive Analytics", free: false, developer: "Limited", growth: "Advanced" }
+        { name: "Usage Analytics & Reporting", develop: "Advanced", growth: "Custom", scale: "Enterprise Custom" },
+        { name: "Real-time Performance Monitoring", develop: true, growth: true, scale: true },
+        { name: "Custom Dashboards & Alerts", develop: "Standard", growth: "Unlimited", scale: "Unlimited" },
+        { name: "API Performance & Error Tracking", develop: "Advanced", growth: "Enterprise", scale: "Enterprise+" },
+        { name: "Data Quality Monitoring", develop: true, growth: true, scale: true },
+        { name: "Predictive Analytics", develop: "Limited", growth: "Advanced", scale: "Enterprise" }
       ]
     },
     {
       category: "Team & Support",
       items: [
-        { name: "Team Members", free: "1", developer: "10", growth: "Unlimited" },
-        { name: "Email Support", free: true, developer: true, growth: true },
-        { name: "Priority Support", free: false, developer: true, growth: true }
+        { name: "Team Members", develop: "10", growth: "Unlimited", scale: "Unlimited" },
+        { name: "Email Support", develop: true, growth: true, scale: true },
+        { name: "Priority Support", develop: true, growth: true, scale: true },
+        { name: "Dedicated Account Manager", develop: false, growth: false, scale: true },
+        { name: "24/7 Phone Support", develop: false, growth: false, scale: true }
       ]
     }
   ];
@@ -129,11 +144,11 @@ export default function Pricing() {
         <div className="relative inline-block text-left">
           <select
             className="block appearance-none w-full bg-white border border-gray-300 text-gray-900 py-2 px-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            value={selectedQuota}
-            onChange={(e) => setSelectedQuota(e.target.value)}
+            value={selectedApiCount}
+            onChange={(e) => setSelectedApiCount(e.target.value)}
           >
-            {value.options.map((option: string) => (
-              <option key={option} value={option}>{option}</option>
+            {apiCountOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
             ))}
           </select>
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
@@ -147,23 +162,24 @@ export default function Pricing() {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-white">
+    <section>
       <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
-        
-        
 
+        {/* Billing Period Selection */}
         <div className="flex justify-center mb-8">
             <div className="inline-flex rounded-md shadow-sm" role="group">
               <button
                 type="button"
-                className={`py-2 px-4 text-sm font-medium rounded-l-lg ${billingPeriod === 'monthly' ? 'bg-[#1A5799] text-white' : 'bg-white text-gray-900'}`}
+                className={`py-2 px-4 text-sm font-medium rounded-l-lg ${billingPeriod === 'monthly' ? 'text-white' : 'bg-white text-gray-900'}`}
+                style={billingPeriod === 'monthly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
                 onClick={() => setBillingPeriod('monthly')}
               >
                 Monthly
               </button>
               <button
                 type="button"
-                className={`py-2 px-4 text-sm font-medium rounded-r-lg ${billingPeriod === 'yearly' ? 'bg-[#1A5799] text-white' : 'bg-white text-gray-900'}`}
+                className={`py-2 px-4 text-sm font-medium rounded-r-lg ${billingPeriod === 'yearly' ? 'text-white' : 'bg-white text-gray-900'}`}
+                style={billingPeriod === 'yearly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
                 onClick={() => setBillingPeriod('yearly')}
               >
                 Yearly (2 months free)
@@ -171,56 +187,96 @@ export default function Pricing() {
             </div>
           </div>
 
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {plans.map((plan, index) => (
-            <div key={index} className="bg-white rounded-lg shadow-lg py-12 px-6">
-              {plan.popular && (
-                <span className="inline-block bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-                  Most Popular
-                </span>
-              )}
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.title}</h3>
-              <p className="text-4xl font-bold text-gray-900 mb-4">
-                ${getPrice(plan.monthlyPrice)}
-                <span className="text-gray-600 text-base font-medium">{getPeriod()}</span>
-              </p>
-              <p className="text-sm text-gray-700 mb-6">{plan.tagline}</p>
-              <Link href={plan.ctaLink} className="inline-block bg-[#1A5799] text-white py-2 px-6 rounded-lg hover:bg-[#154A85] transition-colors duration-200 w-fit mx-auto">
-                {plan.cta}
-              </Link>
+        {/* Pricing Table Header */}
+        <div className="mt-12">
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
             </div>
-          ))}
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+            </div>
+
+            <div className="min-w-full border border-gray-300">
+              <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
+                {plans.map((plan, index) => (
+                  <div key={index} className="px-12 pt-8 pb-8 text-left border-r border-gray-300 last:border-r-0 flex flex-col h-full min-h-[400px]">
+                    <div className="mb-4">
+                      <h3 className="text-2xl font-medium mb-2" style={{ color: '#1f53d0' }}>{plan.title}</h3>
+                      <p className="text-4xl font-medium text-gray-900 mb-4">
+                        ${getPrice(plan)}
+                        {getPeriod()}
+                      </p>
+                      <p className="text-sm text-gray-700">{plan.tagline}</p>
+                    </div>
+                    <div className="mt-auto">
+                      <Link href={plan.ctaLink} className="inline-block text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200" style={{ backgroundColor: '#1f53d0' }}>
+                        {plan.cta}
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Pricing Table */}
-        <div className="mt-12 overflow-x-auto">
-          <div className="bg-white rounded-lg shadow-lg min-w-full">
-          {/* Table Header */}
-          <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
-            <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">Features</div>
-            {plans.map((plan, index) => (
-              <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{plan.title}</h3>
-              </div>
-            ))}
-          </div>
+        <div className="mt-12">
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+            </div>
 
-          {/* Table Body */}
-          {features.map((category, catIndex) => (
-            <React.Fragment key={catIndex}>
-              <div className="grid grid-cols-4 bg-gray-100 border-b border-gray-200">
-                <div className="p-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider col-span-4">{category.category}</div>
-              </div>
-              {category.items.map((item, itemIndex) => (
-                <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
-                  <div className="p-4 text-left text-sm text-gray-900">{item.name}</div>
-                  <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
-                  <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
-                  <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
+            <div className="min-w-full">
+            {/* Table Header */}
+            <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
+              <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">Features</div>
+              {plans.map((plan, index) => (
+                <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.title}</h3>
                 </div>
               ))}
-            </React.Fragment>
-          ))}
+            </div>
+
+            {/* Table Body */}
+            {features.map((category, catIndex) => (
+              <React.Fragment key={catIndex}>
+                <div className="grid grid-cols-4 bg-gray-100 border-b border-gray-200">
+                  <div className="p-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider col-span-4">{category.category}</div>
+                </div>
+                {category.items.map((item, itemIndex) => (
+                  <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
+                    <div className="p-4 text-left text-sm text-gray-900">{item.name}</div>
+                    <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
+                    <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
+                    <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
         </div>
       </div>
     </div>
