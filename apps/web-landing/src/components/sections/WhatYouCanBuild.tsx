@@ -157,11 +157,13 @@ export default function WhatYouCanBuild() {
                     {/* Left Column - Icon */}
                     <div className="flex-1 flex items-center justify-center">
                       {useCase.isCustomIcon ? (
-                        <img
-                          src={useCase.customIconSrc}
-                          alt={useCase.title}
-                          className="h-60 w-60"
-                        />
+                        <div className="h-60 w-60 flex items-center justify-center">
+                          <img
+                            src={useCase.customIconSrc}
+                            alt={useCase.title}
+                            className="h-60 w-60 object-contain"
+                          />
+                        </div>
                       ) : (
                         <div className={`inline-flex items-center justify-center w-24 h-24 ${useCase.iconBg} rounded-xl`}>
                           <useCase.icon className={`h-12 w-12 ${useCase.iconColor}`} />

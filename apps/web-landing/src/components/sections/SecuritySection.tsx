@@ -54,7 +54,7 @@ export default function SecuritySection() {
             <span style={{ color: '#114dcd' }}>Secure by Default</span>
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-            Built with security at every layer. From API authentication to data encryption, every request is protected by enterprise-grade security measures.
+            From API authentication to data encryption, every request is protected by enterprise-grade security measures.
           </p>
         </div>
 
