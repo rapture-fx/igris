@@ -21,7 +21,7 @@ export default function Pricing() {
     {
       name: "Develop",
       title: "Develop",
-      basePrice: 49,
+      basePrice: 99,
       cta: "Get started for free",
       ctaLink: "/auth/register",
       tagline: "Perfect for individuals and small teams prototyping ML workflows.",
@@ -29,7 +29,7 @@ export default function Pricing() {
     {
       name: "Growth",
       title: "Growth",
-      basePrice: 149,
+      basePrice: 299,
       cta: "Get started for free",
       ctaLink: "/auth/register",
       tagline: "For growing teams who need faster pipelines and collaboration.",
@@ -38,7 +38,7 @@ export default function Pricing() {
     {
       name: "Scale",
       title: "Scale",
-      basePrice: 249,
+      basePrice: 599,
       cta: "Get started for free",
       ctaLink: "/auth/register",
       tagline: "Enterprise-grade performance, compliance, and scale without the infra burden.",
@@ -68,70 +68,59 @@ export default function Pricing() {
     {
       category: "Core Data Processing",
       items: [
-        { name: "AI-Powered Data Cleaning & Validation", develop: "Advanced", growth: "Custom AI Models", scale: "Enterprise AI Models" },
-        { name: "Multi-Format File Support", develop: "All Common Formats", growth: "All + Custom Formats", scale: "All + Enterprise Formats" },
-        { name: "Document & Image Data Extraction", develop: true, growth: true, scale: true },
-        { name: "ML-Ready Data Preparation", develop: "Advanced", growth: "Custom Pipelines", scale: "Enterprise Pipelines" },
-        { name: "Unified Pipeline Orchestration", develop: true, growth: true, scale: true },
-        { name: "Real-time Data Streaming", develop: true, growth: true, scale: true },
-        { name: "Auto-labeling & Data Enrichment", develop: true, growth: true, scale: true }
+        { name: "ML-Ready Data Preparation Pipeline", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "Multi-Source Data Connections", develop: "5 Sources", growth: "15+ Sources", scale: "All Sources + Custom" },
+        { name: "Real-time Processing", develop: false, growth: true, scale: true },
+        { name: "Automated Error Recovery", develop: false, growth: "Basic", scale: "Advanced" },
+        { name: "Large Dataset Processing", develop: "1GB", growth: "50GB", scale: "Unlimited" }
+      ]
+    },
+    {
+      category: "ML & AI Features",
+      items: [
+        { name: "ML Framework Support", develop: "TensorFlow Only", growth: "TensorFlow + PyTorch", scale: "All Frameworks + Custom" },
+        { name: "Model Registry & Version Control", develop: false, growth: "Basic", scale: "Enterprise" },
+        { name: "Automated Feature Engineering", develop: "Basic", growth: "Advanced", scale: "Custom AI Models" }
       ]
     },
     {
       category: "API & Usage",
       items: [
-        { name: "API Calls per Month", develop: { type: 'dropdown', options: apiCountOptions.map(opt => opt.label) }, growth: { type: 'dropdown', options: apiCountOptions.map(opt => opt.label) }, scale: { type: 'dropdown', options: apiCountOptions.map(opt => opt.label) } },
-        { name: "Bandwidth", develop: "500 GB", growth: "Unlimited", scale: "Unlimited" },
-        { name: "Storage", develop: "100 GB", growth: "Unlimited", scale: "Unlimited" },
-        { name: "Real-time Processing", develop: true, growth: true, scale: true },
-        { name: "Batch Processing", develop: "Large jobs", growth: "Enterprise scale", scale: "Enterprise scale+" },
-        { name: "Concurrent Processing Jobs", develop: "10", growth: "Unlimited", scale: "Unlimited" }
-      ]
-    },
-    {
-      category: "Integrations & Connectivity",
-      items: [
-        { name: "Standard Data Source Connectors", develop: "All standard", growth: "All + Custom", scale: "All + Enterprise" },
-        { name: "Database Integrations (SQL, NoSQL)", develop: true, growth: true, scale: true },
-        { name: "Cloud Storage Integrations (S3, GCS, Azure)", develop: true, growth: true, scale: true },
-        { name: "Real-time Data Streaming (WebSockets)", develop: true, growth: true, scale: true },
-        { name: "RESTful APIs", develop: true, growth: true, scale: true },
-        { name: "Custom Integrations & Webhooks", develop: "Limited", growth: "Unlimited", scale: "Unlimited" }
+        { name: "API Calls per Month", develop: "10K", growth: "100K", scale: "Unlimited" },
+        { name: "REST API Access", develop: true, growth: true, scale: true },
+        { name: "Real-time Updates", develop: false, growth: true, scale: true },
+        { name: "Webhook Integration", develop: false, growth: true, scale: true },
+        { name: "Custom Integrations", develop: false, growth: "Limited", scale: "Unlimited" }
       ]
     },
     {
       category: "Security & Compliance",
       items: [
-        { name: "2FA & Multi-layered Authentication", develop: true, growth: true, scale: true },
-        { name: "SSO (SAML/OAuth)", develop: true, growth: true, scale: true },
-        { name: "Data Encryption (at rest & in transit)", develop: true, growth: true, scale: true },
-        { name: "Comprehensive Audit Logs", develop: "Advanced", growth: "Enterprise", scale: "Enterprise+" },
-        { name: "Role-Based Access Control (RBAC)", develop: true, growth: true, scale: true },
-        { name: "GDPR & Privacy Compliance", develop: true, growth: true, scale: true },
-        { name: "SOC2 Type II Compliance", develop: false, growth: true, scale: true },
-        { name: "HIPAA Compliance", develop: false, growth: true, scale: true },
-        { name: "Enterprise Security Certifications", develop: false, growth: true, scale: true }
+        { name: "Multi-Factor Authentication", develop: false, growth: true, scale: true },
+        { name: "Single Sign-On (SSO)", develop: false, growth: false, scale: true },
+        { name: "Data Encryption", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "SOC2 & GDPR Compliance", develop: false, growth: false, scale: true },
+        { name: "Audit Logs", develop: false, growth: "30 Days", scale: "7 Years" },
+        { name: "Advanced Security Controls", develop: false, growth: "Basic", scale: "Enterprise" }
       ]
     },
     {
-      category: "Monitoring & Analytics",
+      category: "Monitoring & Performance",
       items: [
-        { name: "Usage Analytics & Reporting", develop: "Advanced", growth: "Custom", scale: "Enterprise Custom" },
-        { name: "Real-time Performance Monitoring", develop: true, growth: true, scale: true },
-        { name: "Custom Dashboards & Alerts", develop: "Standard", growth: "Unlimited", scale: "Unlimited" },
-        { name: "API Performance & Error Tracking", develop: "Advanced", growth: "Enterprise", scale: "Enterprise+" },
-        { name: "Data Quality Monitoring", develop: true, growth: true, scale: true },
-        { name: "Predictive Analytics", develop: "Limited", growth: "Advanced", scale: "Enterprise" }
+        { name: "Performance Monitoring", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "Intelligent Alerts", develop: false, growth: "Email Only", scale: "Multi-channel" },
+        { name: "Usage Analytics", develop: "Basic", growth: "Advanced", scale: "Custom Dashboards" },
+        { name: "99.9% SLA Guarantee", develop: false, growth: false, scale: true }
       ]
     },
     {
       category: "Team & Support",
       items: [
-        { name: "Team Members", develop: "10", growth: "Unlimited", scale: "Unlimited" },
-        { name: "Email Support", develop: true, growth: true, scale: true },
-        { name: "Priority Support", develop: true, growth: true, scale: true },
+        { name: "Team Members", develop: "3", growth: "15", scale: "Unlimited" },
+        { name: "Email Support", develop: "Business Hours", growth: "24/7", scale: "24/7" },
+        { name: "Priority Support", develop: false, growth: true, scale: true },
         { name: "Dedicated Account Manager", develop: false, growth: false, scale: true },
-        { name: "24/7 Phone Support", develop: false, growth: false, scale: true }
+        { name: "99.9% Uptime SLA", develop: false, growth: false, scale: true }
       ]
     }
   ];
@@ -214,7 +203,7 @@ export default function Pricing() {
                       <h3 className="text-2xl font-medium mb-2" style={{ color: '#1f53d0' }}>{plan.title}</h3>
                       <p className="text-4xl font-medium text-gray-900 mb-4">
                         ${getPrice(plan)}
-                        {getPeriod()}
+                        <span className="text-lg text-gray-600">{getPeriod()}</span>
                       </p>
                       <p className="text-sm text-gray-700">{plan.tagline}</p>
                     </div>
@@ -251,11 +240,13 @@ export default function Pricing() {
 
             <div className="min-w-full">
             {/* Table Header */}
-            <div className="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
-              <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">Features</div>
+            <div className="grid grid-cols-4 border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
+              <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
+                <h3 className="text-2xl font-medium text-gray-900 mb-2">Features</h3>
+              </div>
               {plans.map((plan, index) => (
                 <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
-                <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.title}</h3>
+                <h3 className="text-2xl font-medium text-gray-900 mb-2">{plan.title}</h3>
                 </div>
               ))}
             </div>
@@ -263,8 +254,8 @@ export default function Pricing() {
             {/* Table Body */}
             {features.map((category, catIndex) => (
               <React.Fragment key={catIndex}>
-                <div className="grid grid-cols-4 bg-gray-100 border-b border-gray-200">
-                  <div className="p-4 text-left text-sm font-semibold text-gray-900 uppercase tracking-wider col-span-4">{category.category}</div>
+                <div className="grid grid-cols-4 border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
+                  <div className="p-4 text-left text-sm font-semibold tracking-wider col-span-4" style={{ color: '#1f53d0' }}>{category.category}</div>
                 </div>
                 {category.items.map((item, itemIndex) => (
                   <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
