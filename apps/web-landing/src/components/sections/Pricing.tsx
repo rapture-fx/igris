@@ -66,68 +66,70 @@ export default function Pricing() {
 
   const features = [
     {
-      category: "Core Data Processing",
+      category: "API-first Pipeline Platform",
       items: [
-        { name: "ML-Ready Data Preparation Pipeline", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
-        { name: "Multi-Source Data Connections", develop: "5 Sources", growth: "15+ Sources", scale: "All Sources + Custom" },
-        { name: "Real-time Processing", develop: false, growth: true, scale: true },
-        { name: "Automated Error Recovery", develop: false, growth: "Basic", scale: "Advanced" },
-        { name: "Large Dataset Processing", develop: "1GB", growth: "50GB", scale: "Unlimited" }
+        { name: "7-Stage Data Preparation Pipeline", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "Multi-Source Data Orchestration", develop: "5 Sources", growth: "15+ Sources", scale: "All Sources + Custom" },
+        { name: "Real-time Pipeline Processing", develop: false, growth: true, scale: true },
+        { name: "Automated Error Recovery & Rollback", develop: false, growth: true, scale: true },
+        { name: "Large Dataset Processing", develop: "1GB", growth: "50GB", scale: "Unlimited" },
+        { name: "Pipeline State Management", develop: true, growth: true, scale: true }
       ]
     },
     {
-      category: "ML & AI Features",
+      category: "ML Data Preparation",
       items: [
-        { name: "ML Framework Support", develop: "TensorFlow Only", growth: "TensorFlow + PyTorch", scale: "All Frameworks + Custom" },
-        { name: "Model Registry & Version Control", develop: false, growth: "Basic", scale: "Enterprise" },
-        { name: "Automated Feature Engineering", develop: "Basic", growth: "Advanced", scale: "Custom AI Models" }
+        { name: "ML Framework Export Support", develop: "TensorFlow Only", growth: "TensorFlow + PyTorch", scale: "All Frameworks + Custom" },
+        { name: "Data Registry & Version Control", develop: false, growth: true, scale: true },
+        { name: "Feature Engineering Pipeline", develop: "Basic", growth: "Advanced", scale: "Custom Pipelines" }
       ]
     },
     {
-      category: "API & Usage",
+      category: "API-first Architecture",
       items: [
+        { name: "REST API Endpoints (40+)", develop: true, growth: true, scale: true },
         { name: "API Calls per Month", develop: "10K", growth: "100K", scale: "Unlimited" },
-        { name: "REST API Access", develop: true, growth: true, scale: true },
-        { name: "Real-time Updates", develop: false, growth: true, scale: true },
+        { name: "Real-time WebSocket Updates", develop: true, growth: true, scale: true },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
-        { name: "Custom Integrations", develop: false, growth: "Limited", scale: "Unlimited" }
+        { name: "Custom API Integrations", develop: false, growth: true, scale: true },
+        { name: "OpenAPI Documentation", develop: true, growth: true, scale: true }
       ]
     },
     {
       category: "Security & Compliance",
       items: [
-        { name: "Multi-Factor Authentication", develop: false, growth: true, scale: true },
-        { name: "Single Sign-On (SSO)", develop: false, growth: false, scale: true },
+        { name: "Multi-Factor Authentication", develop: true, growth: true, scale: true },
+        { name: "Single Sign-On (SSO)", develop: false, growth: true, scale: true },
         { name: "Data Encryption", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
-        { name: "SOC2 & GDPR Compliance", develop: false, growth: false, scale: true },
+        { name: "SOC2 & GDPR Compliance", develop: false, growth: true, scale: true },
         { name: "Audit Logs", develop: false, growth: "30 Days", scale: "7 Years" },
-        { name: "Advanced Security Controls", develop: false, growth: "Basic", scale: "Enterprise" }
+        { name: "Advanced Security Controls", develop: false, growth: true, scale: true }
       ]
     },
     {
-      category: "Monitoring & Performance",
+      category: "Platform Monitoring & Analytics",
       items: [
-        { name: "Performance Monitoring", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
-        { name: "Intelligent Alerts", develop: false, growth: "Email Only", scale: "Multi-channel" },
-        { name: "Usage Analytics", develop: "Basic", growth: "Advanced", scale: "Custom Dashboards" },
-        { name: "99.9% SLA Guarantee", develop: false, growth: false, scale: true }
+        { name: "Pipeline Performance Monitoring", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "Intelligent Pipeline Alerts", develop: false, growth: true, scale: true },
+        { name: "Usage Analytics & Reporting", develop: "Basic", growth: "Advanced", scale: "Custom Dashboards" },
+        { name: "99.9% Platform SLA", develop: false, growth: false, scale: true }
       ]
     },
     {
-      category: "Team & Support",
+      category: "Platform Service & Support",
       items: [
         { name: "Team Members", develop: "3", growth: "15", scale: "Unlimited" },
-        { name: "Email Support", develop: "Business Hours", growth: "24/7", scale: "24/7" },
-        { name: "Priority Support", develop: false, growth: true, scale: true },
+        { name: "Platform Support", develop: "Business Hours", growth: "24/7", scale: "24/7" },
+        { name: "Priority Pipeline Support", develop: false, growth: true, scale: true },
         { name: "Dedicated Account Manager", develop: false, growth: false, scale: true },
-        { name: "99.9% Uptime SLA", develop: false, growth: false, scale: true }
+        { name: "99.9% Platform Uptime SLA", develop: false, growth: false, scale: true }
       ]
     }
   ];
 
   const renderFeatureValue = (value: any, planName: string) => {
     if (typeof value === 'boolean') {
-      return value ? <div className="flex items-center justify-center"><Check className="w-5 h-5 text-green-500" /></div> : <div className="flex items-center justify-center"><X className="w-5 h-5 text-red-500" /></div>;
+      return value ? <div className="flex items-center justify-center"><Check className="w-5 h-5" style={{ color: '#1f53d0' }} /></div> : <div className="flex items-center justify-center"></div>;
     } else if (typeof value === 'object' && value.type === 'dropdown') {
       return (
         <div className="relative inline-block text-left">
@@ -146,7 +148,7 @@ export default function Pricing() {
         </div>
       );
     } else {
-      return <span className="text-gray-700">{value}</span>;
+      return <span className="text-gray-600">{value}</span>;
     }
   };
 
@@ -238,9 +240,9 @@ export default function Pricing() {
               <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
             </div>
 
-            <div className="min-w-full">
+            <div className="min-w-full overflow-auto">
             {/* Table Header */}
-            <div className="grid grid-cols-4 border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
+            <div className="grid grid-cols-4 border-b border-gray-200 sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#f7f7f3' }}>
               <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
                 <h3 className="text-2xl font-medium text-gray-900 mb-2">Features</h3>
               </div>
@@ -259,7 +261,7 @@ export default function Pricing() {
                 </div>
                 {category.items.map((item, itemIndex) => (
                   <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
-                    <div className="p-4 text-left text-sm text-gray-900">{item.name}</div>
+                    <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
                     <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
                     <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
                     <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
