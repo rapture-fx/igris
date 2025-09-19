@@ -99,13 +99,13 @@ export default function WhatYouCanBuild() {
         {/* Section Header */}
         <div className="text-center mb-20">
           <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">
-            What You Can Build
+            Built for every scale
           </h2>
           <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
             Turn data into <span style={{ color: '#114dcd' }}>advantage</span>
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
-            Real solutions powered by Schlep-engine across industries. From AI startups to enterprise manufacturing.
+            Across industries, Schlep-engine powers the work behind the scenes.
           </p>
         </div>
 

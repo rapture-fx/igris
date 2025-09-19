@@ -7,6 +7,10 @@ import asyncio
 import hashlib
 import secrets
 import uuid
+import pyotp
+import qrcode
+import io
+import base64
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Union
 from enum import Enum
@@ -149,6 +153,205 @@ class UnifiedAuthService:
         await redis.delete(await self.get_failed_attempts_key(identifier))
         await redis.delete(await self.get_lockout_key(identifier))
     
+    # Session Management & Token Revocation
+    async def revoke_token(self, token: str) -> bool:
+        """Revoke a specific token by adding it to blacklist"""
+        try:
+            # Decode token to get expiration
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            exp = payload.get("exp")
+            jti = payload.get("jti")  # JWT ID for unique identification
+
+            if not jti:
+                # For tokens without JTI, use token hash
+                jti = hashlib.sha256(token.encode()).hexdigest()[:16]
+
+            redis_client = await get_redis_client()
+
+            # Calculate TTL based on token expiration
+            current_time = datetime.utcnow().timestamp()
+            ttl = max(1, int(exp - current_time)) if exp else 3600  # Default 1 hour if no exp
+
+            # Add to blacklist with expiration
+            await redis_client.setex(f"blacklist:token:{jti}", ttl, "revoked")
+
+            logger.info(f"Token revoked successfully: {jti}")
+            return True
+
+        except JWTError as e:
+            logger.error(f"Failed to revoke token: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error revoking token: {e}")
+            return False
+
+    async def revoke_all_user_tokens(self, user_id: uuid.UUID) -> bool:
+        """Revoke all tokens for a specific user"""
+        try:
+            redis_client = await get_redis_client()
+
+            # Set a revocation timestamp for the user
+            revocation_time = datetime.utcnow().timestamp()
+            await redis_client.setex(f"user_token_revocation:{user_id}", 86400 * 7, str(revocation_time))  # 7 days
+
+            logger.info(f"All tokens revoked for user: {user_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to revoke all user tokens: {e}")
+            return False
+
+    async def is_token_revoked(self, token: str) -> bool:
+        """Check if a token has been revoked"""
+        try:
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+            jti = payload.get("jti")
+            user_id = payload.get("sub")
+            iat = payload.get("iat")  # Issued at time
+
+            if not jti:
+                jti = hashlib.sha256(token.encode()).hexdigest()[:16]
+
+            redis_client = await get_redis_client()
+
+            # Check if specific token is blacklisted
+            is_blacklisted = await redis_client.exists(f"blacklist:token:{jti}")
+            if is_blacklisted:
+                return True
+
+            # Check if all user tokens were revoked after this token was issued
+            if user_id and iat:
+                user_revocation = await redis_client.get(f"user_token_revocation:{user_id}")
+                if user_revocation:
+                    revocation_time = float(user_revocation.decode())
+                    if iat < revocation_time:
+                        return True
+
+            return False
+
+        except Exception as e:
+            logger.error(f"Error checking token revocation: {e}")
+            return False  # Fail open for availability
+
+    # Multi-Factor Authentication (MFA)
+    def generate_mfa_secret(self) -> str:
+        """Generate a new TOTP secret for MFA"""
+        return pyotp.random_base32()
+
+    def generate_mfa_qr_code(self, user: User, secret: str) -> str:
+        """Generate QR code for MFA setup"""
+        try:
+            totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+                name=user.email,
+                issuer_name="Schlep-engine"
+            )
+
+            # Generate QR code
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(totp_uri)
+            qr.make(fit=True)
+
+            # Create QR code image
+            img = qr.make_image(fill_color="black", back_color="white")
+            buffer = io.BytesIO()
+            img.save(buffer, format='PNG')
+            buffer.seek(0)
+
+            # Encode as base64
+            qr_code_base64 = base64.b64encode(buffer.getvalue()).decode()
+            return f"data:image/png;base64,{qr_code_base64}"
+
+        except Exception as e:
+            logger.error(f"Error generating MFA QR code: {e}")
+            raise HTTPException(status_code=500, detail="Failed to generate MFA QR code")
+
+    def verify_mfa_token(self, secret: str, token: str) -> bool:
+        """Verify TOTP token against secret"""
+        try:
+            totp = pyotp.TOTP(secret)
+            return totp.verify(token, valid_window=1)  # Allow 1 step tolerance
+        except Exception as e:
+            logger.error(f"Error verifying MFA token: {e}")
+            return False
+
+    def generate_backup_codes(self, count: int = 8) -> List[str]:
+        """Generate backup codes for MFA"""
+        return [secrets.token_hex(4).upper() for _ in range(count)]
+
+    async def enable_mfa_for_user(self, db: AsyncSession, user: User, mfa_token: str) -> Dict[str, Any]:
+        """Enable MFA for a user after token verification"""
+        try:
+            # Generate secret if not exists
+            if not user.mfa_secret:
+                secret = self.generate_mfa_secret()
+                user.mfa_secret = secret
+            else:
+                secret = user.mfa_secret
+
+            # Verify the provided token
+            if not self.verify_mfa_token(secret, mfa_token):
+                raise HTTPException(status_code=400, detail="Invalid MFA token")
+
+            # Generate backup codes
+            backup_codes = self.generate_backup_codes()
+
+            # Update user
+            user.mfa_enabled = True
+            user.mfa_method = "totp"  # Assuming MFAMethod enum has TOTP
+            user.mfa_backup_codes = backup_codes
+
+            await db.commit()
+
+            logger.info(f"MFA enabled for user: {user.id}")
+
+            return {
+                "success": True,
+                "backup_codes": backup_codes,
+                "message": "MFA enabled successfully"
+            }
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error enabling MFA: {e}")
+            raise HTTPException(status_code=500, detail="Failed to enable MFA")
+
+    async def disable_mfa_for_user(self, db: AsyncSession, user: User, password: str) -> bool:
+        """Disable MFA for a user after password verification"""
+        try:
+            # Verify password
+            if not self.verify_password(password, user.hashed_password):
+                raise HTTPException(status_code=400, detail="Invalid password")
+
+            # Disable MFA
+            user.mfa_enabled = False
+            user.mfa_method = None
+            user.mfa_secret = None
+            user.mfa_backup_codes = None
+
+            await db.commit()
+
+            # Revoke all existing tokens to force re-login
+            await self.revoke_all_user_tokens(user.id)
+
+            logger.info(f"MFA disabled for user: {user.id}")
+            return True
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error disabling MFA: {e}")
+            raise HTTPException(status_code=500, detail="Failed to disable MFA")
+
+    def verify_backup_code(self, user: User, backup_code: str) -> bool:
+        """Verify and consume a backup code"""
+        if not user.mfa_backup_codes or backup_code.upper() not in user.mfa_backup_codes:
+            return False
+
+        # Remove used backup code
+        user.mfa_backup_codes.remove(backup_code.upper())
+        return True
+
     # JWT Token Management
     def create_access_token(self, user: User, remember_me: bool = False) -> str:
         """Create JWT access token"""
@@ -166,6 +369,7 @@ class UnifiedAuthService:
             "org_id": str(user.organization_id) if user.organization_id else None,
             "exp": expire,
             "iat": datetime.utcnow(),
+            "jti": secrets.token_urlsafe(16),  # JWT ID for revocation
             "type": "access",
             "remember_me": remember_me
         }
@@ -186,10 +390,15 @@ class UnifiedAuthService:
         
         return jwt.encode(payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     
-    def verify_token(self, token: str) -> Dict[str, Any]:
-        """Verify and decode JWT token"""
+    async def verify_token(self, token: str) -> Dict[str, Any]:
+        """Verify and decode JWT token with revocation check"""
         try:
             payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
+
+            # Check if token has been revoked
+            if await self.is_token_revoked(token):
+                raise HTTPException(status_code=401, detail="Token has been revoked")
+
             return payload
         except JWTError as e:
             raise HTTPException(status_code=401, detail=f"Invalid token: {str(e)}")

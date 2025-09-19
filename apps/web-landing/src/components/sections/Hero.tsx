@@ -144,7 +144,7 @@ export default function Hero() {
                 </button>
               </div>
 
-              <div className="p-4 flex min-h-96">
+              <div className="p-4 flex min-h-96 max-w-full">
                 <div
                   className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
                   style={{ color: '#9ca3af' }}
@@ -157,7 +157,7 @@ export default function Hero() {
                   </div>
                 </div>
                 <pre
-                  className="text-sm overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
+                  className="text-sm overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow min-w-0"
                   dangerouslySetInnerHTML={{
                     __html: activeTab === 'python' ? pythonCode : curlCode
                   }}

@@ -8,6 +8,7 @@ Production-ready API key authentication with proper hashing, validation, and aud
 import hashlib
 import secrets
 import logging
+import asyncio
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 from dataclasses import dataclass
@@ -315,6 +316,153 @@ class SecureAPIKeyManager:
             await db.commit()
         except Exception as e:
             logger.error(f"Failed to update API key status: {e}")
+
+    # API Key Rotation Features
+    async def rotate_api_key(
+        self,
+        db: AsyncSession,
+        api_key_id: str,
+        user_id: str,
+        grace_period_hours: int = 24
+    ) -> Optional[Dict[str, Any]]:
+        """Rotate an API key with grace period"""
+        try:
+            # Get existing key
+            stmt = select(APIKey).where(APIKey.id == api_key_id, APIKey.user_id == user_id)
+            result = await db.execute(stmt)
+            old_key = result.scalar_one_or_none()
+
+            if not old_key:
+                return None
+
+            # Generate new API key
+            new_api_key = self.generate_api_key(old_key.key_prefix if hasattr(old_key, 'key_prefix') else 'sk_')
+            new_key_hash = self.hash_api_key(new_api_key)
+
+            # Create new key with same properties
+            grace_expire = datetime.utcnow() + timedelta(hours=grace_period_hours)
+
+            new_db_key = APIKey(
+                id=secrets.token_urlsafe(16),
+                user_id=user_id,
+                name=f"{old_key.name} (Rotated)",
+                key_hash=new_key_hash,
+                scopes=old_key.scopes,
+                status=APIKeyStatus.ACTIVE.value,
+                expires_at=old_key.expires_at,
+                created_at=datetime.utcnow(),
+                updated_at=datetime.utcnow()
+            )
+
+            # Update old key to expired after grace period
+            old_key.status = APIKeyStatus.SUSPENDED.value  # Suspended during grace period
+            old_key.expires_at = grace_expire
+            old_key.updated_at = datetime.utcnow()
+
+            db.add(new_db_key)
+            await db.commit()
+
+            logger.info(f"API key rotated successfully. Old key suspended until: {grace_expire}")
+
+            return {
+                "new_key": new_api_key,
+                "new_key_id": new_db_key.id,
+                "grace_period_expires": grace_expire,
+                "old_key_id": api_key_id
+            }
+
+        except Exception as e:
+            await db.rollback()
+            logger.error(f"Failed to rotate API key: {e}")
+            return None
+
+    async def auto_rotate_expiring_keys(self, db: AsyncSession, days_before_expiry: int = 7) -> List[Dict[str, Any]]:
+        """Automatically rotate keys that are close to expiry"""
+        try:
+            expiry_threshold = datetime.utcnow() + timedelta(days=days_before_expiry)
+
+            # Find keys expiring soon
+            stmt = select(APIKey).where(
+                APIKey.expires_at <= expiry_threshold,
+                APIKey.status == APIKeyStatus.ACTIVE.value
+            )
+            result = await db.execute(stmt)
+            expiring_keys = result.scalars().all()
+
+            rotated_keys = []
+
+            for key in expiring_keys:
+                rotation_result = await self.rotate_api_key(
+                    db, key.id, key.user_id, grace_period_hours=48
+                )
+
+                if rotation_result:
+                    rotated_keys.append({
+                        "user_id": key.user_id,
+                        "old_key_name": key.name,
+                        "new_key_id": rotation_result["new_key_id"],
+                        "expires_at": key.expires_at
+                    })
+
+            logger.info(f"Auto-rotated {len(rotated_keys)} expiring API keys")
+            return rotated_keys
+
+        except Exception as e:
+            logger.error(f"Failed to auto-rotate expiring keys: {e}")
+            return []
+
+    async def force_rotate_user_keys(self, db: AsyncSession, user_id: str, reason: str = "Security rotation") -> bool:
+        """Force rotation of all active keys for a user (security incident response)"""
+        try:
+            # Get all active keys for user
+            stmt = select(APIKey).where(
+                APIKey.user_id == user_id,
+                APIKey.status == APIKeyStatus.ACTIVE.value
+            )
+            result = await db.execute(stmt)
+            active_keys = result.scalars().all()
+
+            rotated_count = 0
+
+            for key in active_keys:
+                rotation_result = await self.rotate_api_key(
+                    db, key.id, user_id, grace_period_hours=1  # Very short grace period for security
+                )
+
+                if rotation_result:
+                    rotated_count += 1
+
+            logger.warning(f"Force rotated {rotated_count} API keys for user {user_id}. Reason: {reason}")
+            return rotated_count > 0
+
+        except Exception as e:
+            logger.error(f"Failed to force rotate user keys: {e}")
+            return False
+
+    async def cleanup_expired_keys(self, db: AsyncSession) -> int:
+        """Clean up expired and suspended API keys"""
+        try:
+            current_time = datetime.utcnow()
+
+            # Delete keys that have been expired/suspended for more than 30 days
+            cleanup_threshold = current_time - timedelta(days=30)
+
+            stmt = delete(APIKey).where(
+                APIKey.expires_at <= cleanup_threshold,
+                APIKey.status.in_([APIKeyStatus.EXPIRED.value, APIKeyStatus.SUSPENDED.value])
+            )
+
+            result = await db.execute(stmt)
+            await db.commit()
+
+            deleted_count = result.rowcount
+            logger.info(f"Cleaned up {deleted_count} expired API keys")
+
+            return deleted_count
+
+        except Exception as e:
+            logger.error(f"Failed to cleanup expired keys: {e}")
+            return 0
 
 # Global API key manager instance
 api_key_manager = SecureAPIKeyManager()

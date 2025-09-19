@@ -3,43 +3,43 @@ import { Shield, Lock, Key, Eye, CheckCircle, AlertTriangle, Database, Globe } f
 
 const securityFeatures = [
   {
-    name: 'API-First Security',
-    description: 'Built-in API authentication, rate limiting, and request validation with comprehensive threat detection.',
+    name: 'Complete MFA System',
+    description: 'TOTP with QR code setup, backup codes, OAuth 2.0 integration, and automatic MFA enforcement for sensitive operations.',
     icon: Shield,
   },
   {
-    name: 'End-to-End Encryption',
-    description: 'All data is encrypted in transit and at rest using industry-standard AES-256 encryption.',
+    name: 'Token Revocation System',
+    description: 'Instant token blacklisting, session revocation, and Redis-backed token validation with automatic cleanup.',
     icon: Lock,
   },
   {
-    name: 'Advanced Authentication',
-    description: 'Multi-layered auth with JWT tokens, API keys, OAuth 2.0, and automated key rotation.',
+    name: 'API Key Auto-Rotation',
+    description: 'Automatic key rotation before expiry, grace periods for seamless transitions, and emergency rotation capabilities.',
     icon: Key,
   },
   {
-    name: 'Real-time Monitoring',
-    description: 'Continuous security monitoring with ML-based threat detection and instant alerting.',
+    name: 'Advanced Rate Limiting',
+    description: 'Sliding window algorithms, distributed Redis limits, GraphQL query complexity analysis, and DDoS protection.',
     icon: Eye,
   },
   {
-    name: 'Compliance Ready',
-    description: 'SOC 2, GDPR, and HIPAA compliant infrastructure with comprehensive audit logging.',
+    name: 'Compliance Automation',
+    description: 'GDPR/HIPAA audit trails, PII masking, data retention policies, and automated compliance reporting.',
     icon: CheckCircle,
   },
   {
-    name: 'Threat Prevention',
-    description: 'Advanced DDoS protection, SQL injection prevention, and automated incident response.',
+    name: 'Zero-Trust Validation',
+    description: 'Comprehensive input sanitization, SQL/NoSQL injection prevention, and XSS protection with pattern detection.',
     icon: AlertTriangle,
   },
   {
-    name: 'Secure Data Isolation',
-    description: 'Multi-tenant architecture with complete data isolation and encrypted storage.',
+    name: 'Encrypted Infrastructure',
+    description: 'AES-256 encryption, field-level data protection, secure PostgreSQL connections, and encrypted backups.',
     icon: Database,
   },
   {
-    name: 'Network Security',
-    description: 'VPC isolation, WAF protection, and secure API gateways with global edge security.',
+    name: 'Security-First Headers',
+    description: 'HSTS preload, Content Security Policy, CORS validation, and comprehensive security headers on all responses.',
     icon: Globe,
   },
 ]
@@ -49,12 +49,12 @@ export default function SecuritySection() {
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-6xl px-6 lg:px-8">
         <div className="text-center">
-          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Enterprise-grade protection</h2>
+          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">End-to-End Safeguards</h2>
           <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
             <span style={{ color: '#114dcd' }}>Secure by Default</span>
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-            From API authentication to data encryption, every request is protected by enterprise-grade security measures.
+            From API authentication to data encryption, every layer is secured without compromise.
           </p>
         </div>
 
