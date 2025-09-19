@@ -51,19 +51,36 @@ export default function BuiltForEngineers() {
             </div>
 
             <div className="border border-gray-200 dark:border-gray-700">
-              <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
-                {features.map((feature, index) => {
-                  return (
-                    <div key={feature.name} className={`p-16 text-left ${index < 2 ? 'border-r border-gray-200 dark:border-gray-700' : ''}`} style={{ minHeight: '450px' }}>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-                        {feature.name}
-                      </h3>
-                      <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                        {feature.description}
-                      </p>
-                    </div>
-                  );
-                })}
+              <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
+                {/* Left side - 2 rows */}
+                <div className="border-r border-gray-200 dark:border-gray-700">
+                  <div className="p-16 text-left border-b border-gray-200 dark:border-gray-700" style={{ minHeight: '225px' }}>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                      {features[0].name}
+                    </h3>
+                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {features[0].description}
+                    </p>
+                  </div>
+                  <div className="p-16 text-left" style={{ minHeight: '225px' }}>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                      {features[1].name}
+                    </h3>
+                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {features[1].description}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right side - single tall column */}
+                <div className="p-16 text-left" style={{ minHeight: '450px' }}>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                    {features[2].name}
+                  </h3>
+                  <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                    {features[2].description}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
