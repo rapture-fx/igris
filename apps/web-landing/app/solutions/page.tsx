@@ -10,7 +10,7 @@ export default function SolutionsPage() {
       {/* Hero Section */}
       <section className="pt-40 pb-20 sm:pt-40 sm:pb-24 lg:pt-40 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="text-center py-16 px-8 relative" style={{
+          <div className="text-center py-24 px-8 relative" style={{
             borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
             borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
             borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
@@ -127,7 +127,7 @@ export default function SolutionsPage() {
       </section>
 
       {/* Manufacturing Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: 'white' }}>
+      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-left mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Smart Manufacturing</h2>
@@ -296,7 +296,7 @@ export default function SolutionsPage() {
       </section>
 
       {/* E-commerce Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: 'white' }}>
+      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-left mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">E-commerce & Retail</h2>
