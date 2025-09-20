@@ -3,6 +3,7 @@
 import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headphones } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState } from 'react'
+import Image from 'next/image'
 
 export default function Pricing() {
   const [selectedQuota, setSelectedQuota] = useState('100')
@@ -109,7 +110,7 @@ export default function Pricing() {
       name: "Develop",
       title: "Develop",
       basePrice: 99,
-      cta: "Get started for free",
+      cta: "Start Develop for free",
       ctaLink: "/auth/register",
       tagline: "Perfect for individuals and small teams prototyping ML workflows.",
       highlights: [
@@ -123,7 +124,7 @@ export default function Pricing() {
       name: "Growth",
       title: "Growth",
       basePrice: 299,
-      cta: "Get started for free",
+      cta: "Start Growth for free",
       ctaLink: "/auth/register",
       tagline: "For growing teams who need faster pipelines and collaboration.",
       popular: true,
@@ -139,7 +140,7 @@ export default function Pricing() {
       name: "Scale",
       title: "Scale",
       basePrice: 599,
-      cta: "Get started for free",
+      cta: "Start to Scale for free",
       ctaLink: "/auth/register",
       tagline: "Enterprise-grade performance, compliance, and scale without the infra burden.",
       popular: false,
@@ -158,15 +159,12 @@ export default function Pricing() {
     const adjustedPrice = plan.basePrice * multiplier;
 
     if (billingPeriod === 'yearly') {
-      return Math.round(adjustedPrice * 10);
+      return Math.round((adjustedPrice * 10) / 12);
     }
     return Math.round(adjustedPrice);
   };
 
   const getPeriod = () => {
-    if (billingPeriod === 'yearly') {
-      return '/ year';
-    }
     return '/ month';
   };
 
@@ -270,33 +268,75 @@ export default function Pricing() {
 
         {/* Billing Period Selection */}
         <div className="flex justify-end mb-8">
-          <div className="inline-flex rounded-md shadow-sm" role="group">
-            <button
-              type="button"
-              className={`py-2 px-4 text-sm font-medium rounded-l-lg ${billingPeriod === 'monthly' ? 'text-white' : 'bg-white text-gray-900'}`}
-              style={billingPeriod === 'monthly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
+          <div className="flex items-center space-x-4">
+            <span
+              className={`text-sm font-medium cursor-pointer ${billingPeriod === 'monthly' ? 'text-blue-600' : 'text-gray-600'}`}
+              style={billingPeriod === 'monthly' ? { color: '#1f53d0' } : {}}
               onClick={() => setBillingPeriod('monthly')}
             >
               Monthly
-            </button>
-            <button
-              type="button"
-              className={`py-2 px-4 text-sm font-medium rounded-r-lg ${billingPeriod === 'yearly' ? 'text-white' : 'bg-white text-gray-900'}`}
-              style={billingPeriod === 'yearly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
+            </span>
+
+            {/* Toggle Switch */}
+            <div className="relative">
+              <input
+                type="checkbox"
+                id="billing-toggle"
+                className="sr-only"
+                checked={billingPeriod === 'yearly'}
+                onChange={(e) => setBillingPeriod(e.target.checked ? 'yearly' : 'monthly')}
+              />
+              <label
+                htmlFor="billing-toggle"
+                className="block w-12 h-6 rounded-full cursor-pointer relative transition-all duration-300 ease-in-out"
+                style={{
+                  backgroundColor: billingPeriod === 'yearly' ? '#1f53d0' : '#e5e7eb',
+                  boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}
+              >
+                <div
+                  className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
+                  style={{
+                    left: billingPeriod === 'yearly' ? '26px' : '2px',
+                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
+                  }}
+                />
+              </label>
+            </div>
+
+            <span
+              className={`text-sm font-medium cursor-pointer ${billingPeriod === 'yearly' ? 'text-blue-600' : 'text-gray-600'}`}
+              style={billingPeriod === 'yearly' ? { color: '#1f53d0' } : {}}
               onClick={() => setBillingPeriod('yearly')}
             >
-              Yearly (2 months free)
-            </button>
+              Yearly
+            </span>
           </div>
         </div>
 
         {/* Pricing Table Header */}
         <div className="mt-12">
-          <div className="relative p-8">
-            <div className="min-w-full">
+          <div className="relative p-8" style={{
+            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
+            </div>
+
+            <div className="min-w-full" style={{ border: '1px solid rgba(74, 123, 214, 0.15)' }}>
               <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="px-12 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative">
+                  <div key={index} className="px-12 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative" style={{ borderRight: index < plans.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
                     {plan.popular && (
                       <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-medium" style={{ border: '0.5px solid rgba(31, 83, 208, 0.3)', color: '#1f53d0' }}>
                         Where Most Start
@@ -304,10 +344,16 @@ export default function Pricing() {
                     )}
                     <div className="mb-6">
                       <h3 className="text-2xl font-medium mb-2" style={{ color: '#1f53d0' }}>{plan.title}</h3>
-                      <p className="text-4xl font-medium text-gray-900 mb-4">
+                      <p className="text-4xl font-medium text-gray-900 mb-2">
                         ${getPrice(plan)}
                         <span className="text-lg text-gray-600">{getPeriod()}</span>
                       </p>
+                      {billingPeriod === 'yearly' && (
+                        <p className="text-sm text-gray-500 mb-4">*billed annually - <span style={{ color: '#1f53d0' }}>Save 17%</span></p>
+                      )}
+                      {billingPeriod === 'monthly' && (
+                        <div className="mb-4"></div>
+                      )}
                       <p className="text-sm text-gray-700 mb-6">{plan.tagline}</p>
 
                       {/* Key Highlights */}
@@ -321,7 +367,23 @@ export default function Pricing() {
                       </div>
                     </div>
                     <div className="mt-auto">
-                      <Link href={plan.ctaLink} className="inline-block text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center font-medium" style={{ backgroundColor: '#1f53d0' }}>
+                      <Link
+                        href={plan.ctaLink}
+                        className={`inline-block py-3 px-6 rounded-lg transition-colors duration-200 text-center font-medium ${
+                          plan.name === 'Develop'
+                            ? 'text-blue-600 bg-white border border-blue-600 hover:bg-blue-50'
+                            : plan.name === 'Scale'
+                            ? 'hover:bg-blue-100'
+                            : 'text-white hover:bg-blue-700'
+                        }`}
+                        style={
+                          plan.name === 'Develop'
+                            ? { borderColor: '#1f53d0', color: '#1f53d0' }
+                            : plan.name === 'Scale'
+                            ? { backgroundColor: '#e9eef9', color: '#1f53d0' }
+                            : { backgroundColor: '#1f53d0' }
+                        }
+                      >
                         {plan.cta}
                       </Link>
                     </div>
@@ -338,12 +400,12 @@ export default function Pricing() {
 
             <div className="min-w-full overflow-auto">
               {/* Table Header */}
-              <div className="grid grid-cols-4 sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#f7f7f3' }}>
+              <div className="grid grid-cols-4 sticky top-0 z-20 shadow-sm border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
                 <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Features</h3>
                 </div>
                 {plans.map((plan, index) => (
-                  <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
+                  <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
                     <h3 className="text-lg font-medium text-gray-900 mb-2">{plan.title}</h3>
                   </div>
                 ))}
@@ -352,15 +414,15 @@ export default function Pricing() {
               {/* Table Body */}
               {features.map((category, catIndex) => (
                 <React.Fragment key={catIndex}>
-                  <div className="grid grid-cols-4" style={{ backgroundColor: '#f7f7f3' }}>
+                  <div className="grid grid-cols-4 border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
                     <div className="p-4 text-left text-sm font-semibold tracking-wider col-span-4" style={{ color: '#1f53d0' }}>{category.category}</div>
                   </div>
                   {category.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="grid grid-cols-4 last:border-b-0">
+                    <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
                       <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
-                      <div className="p-4 text-center">{renderFeatureValue(item.develop, 'Develop')}</div>
-                      <div className="p-4 text-center">{renderFeatureValue(item.growth, 'Growth')}</div>
-                      <div className="p-4 text-center">{renderFeatureValue(item.scale, 'Scale')}</div>
+                      <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
+                      <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
+                      <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
                     </div>
                   ))}
                 </React.Fragment>
@@ -447,28 +509,32 @@ export default function Pricing() {
                 <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
                 <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
               </div>
-              <div className="text-center">
-                <h3 className="text-2xl md:text-3xl font-medium mb-4 leading-tight" style={{ color: '#1f53d0' }}>
-                  Still have questions?
-                </h3>
-                <p className="text-base mb-8 opacity-90 text-gray-700">
-                  Our team is here to help you choose the right plan for your needs.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Link
-                    href="/contact"
-                    className="inline-flex items-center justify-center bg-white text-blue-600 px-5 py-2.5 border border-blue-600 hover:bg-blue-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
-                    style={{ borderColor: '#1f53d0', color: '#1f53d0' }}
-                  >
-                    Contact Sales
-                  </Link>
-                  <Link
-                    href="/docs"
-                    className="inline-flex items-center justify-center text-white px-5 py-2.5 hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
-                    style={{ backgroundColor: '#1f53d0' }}
-                  >
-                    View Documentation
-                  </Link>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div className="text-left">
+                  <h3 className="text-2xl md:text-3xl font-medium mb-4 leading-tight" style={{ color: '#1f53d0' }}>
+                    Understand your return
+                  </h3>
+                  <p className="text-base mb-8 opacity-90 text-gray-700">
+                    Optimize your choice with our ROI calculator and pick the plan that delivers the most value.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-start">
+                    <Link
+                      href="/contact"
+                      className="text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
+                      style={{ backgroundColor: '#1f53d0' }}
+                    >
+                      Run the numbers
+                    </Link>
+                  </div>
+                </div>
+                <div className="flex justify-center md:justify-end">
+                  <Image
+                    src="/Financial.svg"
+                    alt="Financial analysis illustration"
+                    width={300}
+                    height={300}
+                    className="max-w-full h-auto"
+                  />
                 </div>
               </div>
             </div>
