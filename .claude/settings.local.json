@@ -14,7 +14,9 @@
       "Bash(alembic:*)",
       "Bash(mkdir:*)",
       "Bash(npx next build:*)",
-      "Read(//tmp/**)"
+      "Read(//tmp/**)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []
