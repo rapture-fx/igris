@@ -1,13 +1,22 @@
 'use client'
 
-import { Check, X, ChevronDown } from 'lucide-react'
+import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headphones } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState } from 'react'
 
 export default function Pricing() {
   const [selectedQuota, setSelectedQuota] = useState('100')
-  const [billingPeriod, setBillingPeriod] = useState('monthly') // 'monthly' or 'yearly'
+  const [billingPeriod, setBillingPeriod] = useState('monthly')
   const [selectedApiCount, setSelectedApiCount] = useState('100k')
+  const [openFaqItems, setOpenFaqItems] = useState([])
+
+  const toggleFaqItem = (itemId) => {
+    setOpenFaqItems(prev =>
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    )
+  }
 
   const apiCountOptions = [
     { value: '100k', label: '100K API calls', priceMultiplier: { develop: 1, growth: 1, scale: 1 } },
@@ -15,6 +24,84 @@ export default function Pricing() {
     { value: '1m', label: '1M API calls', priceMultiplier: { develop: 2, growth: 1.5, scale: 1.3 } },
     { value: '5m', label: '5M API calls', priceMultiplier: { develop: 3, growth: 2, scale: 1.5 } },
     { value: 'unlimited', label: 'Unlimited', priceMultiplier: { develop: 4, growth: 2.5, scale: 1.8 } }
+  ]
+
+  const faqData = [
+    {
+      category: "General Pricing",
+      items: [
+        {
+          id: "free-trial",
+          question: "Is there a free trial?",
+          answer: "Yes! All plans come with a free trial period. You can explore our platform and test your data pipelines before making any commitment."
+        },
+        {
+          id: "api-limits",
+          question: "What happens if I exceed my API limits?",
+          answer: "You'll receive notifications as you approach your limits. You can upgrade your plan anytime or purchase additional API calls through our self-service portal."
+        },
+        {
+          id: "change-plans",
+          question: "Can I change plans anytime?",
+          answer: "Absolutely! You can upgrade or downgrade your plan at any time. Changes take effect immediately, and billing is prorated."
+        },
+        {
+          id: "annual-discount",
+          question: "Do you offer annual discounts?",
+          answer: "Yes! Choose yearly billing to get 2 months free (equivalent to ~17% discount) on all plans."
+        }
+      ]
+    },
+    {
+      category: "Technical & Features",
+      items: [
+        {
+          id: "data-sources",
+          question: "What data sources do you support?",
+          answer: "We support 40+ data sources including databases (PostgreSQL, MySQL, MongoDB), cloud storage (AWS S3, GCP, Azure), APIs, CSV, JSON, and more. Custom connectors available on Scale plan."
+        },
+        {
+          id: "ml-frameworks",
+          question: "Which ML frameworks are supported?",
+          answer: "Develop plan supports TensorFlow, Growth adds PyTorch, and Scale includes all major frameworks plus custom framework support."
+        },
+        {
+          id: "data-scaling",
+          question: "How does data processing scaling work?",
+          answer: "Processing limits are based on dataset size: Develop (1GB), Growth (50GB), Scale (unlimited). Our platform auto-scales to handle your data volume efficiently."
+        },
+        {
+          id: "data-security",
+          question: "Is my data secure?",
+          answer: "Yes! All plans include encryption in transit and at rest. Growth and Scale plans add SOC2/GDPR compliance, audit logs, and advanced security controls."
+        }
+      ]
+    },
+    {
+      category: "Support & Enterprise",
+      items: [
+        {
+          id: "support-levels",
+          question: "What support do I get?",
+          answer: "Develop includes business hours support, Growth and Scale get 24/7 support. Scale plans also include a dedicated account manager and priority support."
+        },
+        {
+          id: "enterprise-solutions",
+          question: "Do you offer enterprise solutions?",
+          answer: "Yes! Our Scale plan includes enterprise features like unlimited processing, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
+        },
+        {
+          id: "custom-quote",
+          question: "Can I get a custom quote?",
+          answer: "Absolutely! If you have specific requirements or need higher limits, our team can create a custom plan tailored to your needs. Contact our sales team."
+        },
+        {
+          id: "refund-policy",
+          question: "What's your refund policy?",
+          answer: "We offer a 30-day money-back guarantee on all plans. If you're not satisfied, we'll provide a full refund within the first 30 days."
+        }
+      ]
+    }
   ]
 
   const plans = [
@@ -25,6 +112,12 @@ export default function Pricing() {
       cta: "Get started for free",
       ctaLink: "/auth/register",
       tagline: "Perfect for individuals and small teams prototyping ML workflows.",
+      highlights: [
+        { icon: Database, text: "Process up to 1GB datasets" },
+        { icon: Zap, text: "5 data source connections" },
+        { icon: Users, text: "3 team members" },
+        { icon: Headphones, text: "Business hours support" }
+      ]
     },
     {
       name: "Growth",
@@ -33,7 +126,14 @@ export default function Pricing() {
       cta: "Get started for free",
       ctaLink: "/auth/register",
       tagline: "For growing teams who need faster pipelines and collaboration.",
-      popular: true
+      popular: true,
+      highlights: [
+        { icon: Database, text: "Process up to 50GB datasets" },
+        { icon: Zap, text: "Real-time pipeline processing" },
+        { icon: Users, text: "15 team members + collaboration" },
+        { icon: Shield, text: "Advanced security & compliance" },
+        { icon: Headphones, text: "24/7 priority support" }
+      ]
     },
     {
       name: "Scale",
@@ -42,17 +142,23 @@ export default function Pricing() {
       cta: "Get started for free",
       ctaLink: "/auth/register",
       tagline: "Enterprise-grade performance, compliance, and scale without the infra burden.",
-      popular: false
+      popular: false,
+      highlights: [
+        { icon: Database, text: "Unlimited dataset processing" },
+        { icon: Zap, text: "Enterprise performance & SLA" },
+        { icon: Users, text: "Unlimited teams + account manager" },
+        { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" }
+      ]
     }
   ]
 
-  const getPrice = (plan: any) => {
+  const getPrice = (plan) => {
     const selectedOption = apiCountOptions.find(option => option.value === selectedApiCount);
     const multiplier = selectedOption?.priceMultiplier[plan.name.toLowerCase()] || 1;
     const adjustedPrice = plan.basePrice * multiplier;
 
     if (billingPeriod === 'yearly') {
-      return Math.round(adjustedPrice * 10); // 2 months free for yearly
+      return Math.round(adjustedPrice * 10);
     }
     return Math.round(adjustedPrice);
   };
@@ -125,11 +231,17 @@ export default function Pricing() {
         { name: "99.9% Platform Uptime SLA", develop: false, growth: false, scale: true }
       ]
     }
-  ];
+  ]
 
-  const renderFeatureValue = (value: any, planName: string) => {
+  const renderFeatureValue = (value, planName) => {
     if (typeof value === 'boolean') {
-      return value ? <div className="flex items-center justify-center"><Check className="w-5 h-5" style={{ color: '#1f53d0' }} /></div> : <div className="flex items-center justify-center"></div>;
+      return value ? (
+        <div className="flex items-center justify-center">
+          <Check className="w-5 h-5" style={{ color: '#1f53d0' }} />
+        </div>
+      ) : (
+        <div className="flex items-center justify-center"></div>
+      );
     } else if (typeof value === 'object' && value.type === 'dropdown') {
       return (
         <div className="relative inline-block text-left">
@@ -158,59 +270,74 @@ export default function Pricing() {
 
         {/* Billing Period Selection */}
         <div className="flex justify-center mb-8">
-            <div className="inline-flex rounded-md shadow-sm" role="group">
-              <button
-                type="button"
-                className={`py-2 px-4 text-sm font-medium rounded-l-lg ${billingPeriod === 'monthly' ? 'text-white' : 'bg-white text-gray-900'}`}
-                style={billingPeriod === 'monthly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
-                onClick={() => setBillingPeriod('monthly')}
-              >
-                Monthly
-              </button>
-              <button
-                type="button"
-                className={`py-2 px-4 text-sm font-medium rounded-r-lg ${billingPeriod === 'yearly' ? 'text-white' : 'bg-white text-gray-900'}`}
-                style={billingPeriod === 'yearly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
-                onClick={() => setBillingPeriod('yearly')}
-              >
-                Yearly (2 months free)
-              </button>
-            </div>
+          <div className="inline-flex rounded-md shadow-sm" role="group">
+            <button
+              type="button"
+              className={`py-2 px-4 text-sm font-medium rounded-l-lg ${billingPeriod === 'monthly' ? 'text-white' : 'bg-white text-gray-900'}`}
+              style={billingPeriod === 'monthly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
+              onClick={() => setBillingPeriod('monthly')}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              className={`py-2 px-4 text-sm font-medium rounded-r-lg ${billingPeriod === 'yearly' ? 'text-white' : 'bg-white text-gray-900'}`}
+              style={billingPeriod === 'yearly' ? { backgroundColor: '#e9eef9', color: '#1f53d0' } : {}}
+              onClick={() => setBillingPeriod('yearly')}
+            >
+              Yearly (2 months free)
+            </button>
           </div>
+        </div>
 
         {/* Pricing Table Header */}
         <div className="mt-12">
           <div className="relative p-8" style={{
-            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
             </div>
 
-            <div className="min-w-full border border-gray-300">
+            <div className="min-w-full" style={{ border: '1px solid rgba(74, 123, 214, 0.15)' }}>
               <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="px-12 pt-8 pb-8 text-left border-r border-gray-300 last:border-r-0 flex flex-col h-full min-h-[400px]">
-                    <div className="mb-4">
+                  <div key={index} className="px-12 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative" style={{ borderRight: index < plans.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
+                    {plan.popular && (
+                      <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-medium" style={{ border: '0.5px solid rgba(31, 83, 208, 0.3)', color: '#1f53d0' }}>
+                        Where Most Start
+                      </div>
+                    )}
+                    <div className="mb-6">
                       <h3 className="text-2xl font-medium mb-2" style={{ color: '#1f53d0' }}>{plan.title}</h3>
                       <p className="text-4xl font-medium text-gray-900 mb-4">
                         ${getPrice(plan)}
                         <span className="text-lg text-gray-600">{getPeriod()}</span>
                       </p>
-                      <p className="text-sm text-gray-700">{plan.tagline}</p>
+                      <p className="text-sm text-gray-700 mb-6">{plan.tagline}</p>
+
+                      {/* Key Highlights */}
+                      <div className="space-y-3 mb-6">
+                        {plan.highlights.map((highlight, highlightIndex) => (
+                          <div key={highlightIndex} className="flex items-center space-x-3">
+                            <highlight.icon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                            <span className="text-sm text-gray-600">{highlight.text}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div className="mt-auto">
-                      <Link href={plan.ctaLink} className="inline-block text-white py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200" style={{ backgroundColor: '#1f53d0' }}>
+                      <Link href={plan.ctaLink} className="inline-block text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-center font-medium" style={{ backgroundColor: '#1f53d0' }}>
                         {plan.cta}
                       </Link>
                     </div>
@@ -224,55 +351,162 @@ export default function Pricing() {
         {/* Pricing Table */}
         <div className="mt-12">
           <div className="relative p-8" style={{
-            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
             </div>
 
             <div className="min-w-full overflow-auto">
-            {/* Table Header */}
-            <div className="grid grid-cols-4 border-b border-gray-200 sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#f7f7f3' }}>
-              <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
-                <h3 className="text-2xl font-medium text-gray-900 mb-2">Features</h3>
-              </div>
-              {plans.map((plan, index) => (
-                <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
-                <h3 className="text-2xl font-medium text-gray-900 mb-2">{plan.title}</h3>
+              {/* Table Header */}
+              <div className="grid grid-cols-4 sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#f7f7f3', borderBottom: '1px solid rgba(74, 123, 214, 0.15)' }}>
+                <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Features</h3>
                 </div>
-              ))}
-            </div>
-
-            {/* Table Body */}
-            {features.map((category, catIndex) => (
-              <React.Fragment key={catIndex}>
-                <div className="grid grid-cols-4 border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
-                  <div className="p-4 text-left text-sm font-semibold tracking-wider col-span-4" style={{ color: '#1f53d0' }}>{category.category}</div>
-                </div>
-                {category.items.map((item, itemIndex) => (
-                  <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
-                    <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
-                    <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
-                    <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
-                    <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
+                {plans.map((plan, index) => (
+                  <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">{plan.title}</h3>
                   </div>
                 ))}
-              </React.Fragment>
-            ))}
+              </div>
+
+              {/* Table Body */}
+              {features.map((category, catIndex) => (
+                <React.Fragment key={catIndex}>
+                  <div className="grid grid-cols-4" style={{ backgroundColor: '#f7f7f3', borderBottom: '1px solid rgba(74, 123, 214, 0.15)' }}>
+                    <div className="p-4 text-left text-sm font-semibold tracking-wider col-span-4" style={{ color: '#1f53d0' }}>{category.category}</div>
+                  </div>
+                  {category.items.map((item, itemIndex) => (
+                    <div key={itemIndex} className="grid grid-cols-4 last:border-b-0" style={{ borderBottom: itemIndex < category.items.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
+                      <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
+                      <div className="p-4 text-center" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>{renderFeatureValue(item.develop, 'Develop')}</div>
+                      <div className="p-4 text-center" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>{renderFeatureValue(item.growth, 'Growth')}</div>
+                      <div className="p-4 text-center" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>{renderFeatureValue(item.scale, 'Scale')}</div>
+                    </div>
+                  ))}
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         </div>
+
+        {/* FAQ Section */}
+        <div className="mt-20">
+          <div className="max-w-6xl mx-auto">
+            <div className="p-8">
+              <div className="border border-gray-200">
+                <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
+                  {/* Left side - FAQ Title */}
+                  <div className="border-r border-gray-200">
+                    <div className="p-16 text-left">
+                      <h3 className="text-2xl md:text-3xl font-semibold mb-6" style={{ color: '#1f53d0' }}>
+                        Frequently Asked<br />Questions
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Right side - FAQ Accordion */}
+                  <div className="p-16 text-left">
+                    <div className="space-y-6">
+                      {faqData.map((category, catIndex) => (
+                        <div key={catIndex}>
+                          <h4 className="text-base font-medium mb-4" style={{ color: '#1f53d0' }}>
+                            {category.category}
+                          </h4>
+                          <div className="space-y-3">
+                            {category.items.map((item) => {
+                              const isOpen = openFaqItems.includes(item.id)
+                              return (
+                                <div key={item.id} className="border-b border-gray-200 pb-3">
+                                  <button
+                                    className="w-full text-left flex justify-between items-center text-sm text-gray-600 hover:text-gray-900 transition-colors"
+                                    onClick={() => toggleFaqItem(item.id)}
+                                    type="button"
+                                  >
+                                    <span>{item.question}</span>
+                                    {isOpen ? (
+                                      <ChevronUp className="w-4 h-4 text-gray-500 flex-shrink-0 ml-2" />
+                                    ) : (
+                                      <ChevronDown className="w-4 h-4 text-gray-500 flex-shrink-0 ml-2" />
+                                    )}
+                                  </button>
+                                  {isOpen && (
+                                    <div className="mt-2">
+                                      <p className="text-gray-600 leading-relaxed text-sm">{item.answer}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Contact CTA */}
+        <div className="mt-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#f7f7f3' }}>
+          <div className="max-w-6xl mx-auto">
+            <div className="text-left p-8 relative" style={{
+              borderTop: '1px solid rgba(74, 123, 214, 0.15)',
+              borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
+              borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
+              borderRight: '1px solid rgba(74, 123, 214, 0.15)'
+            }}>
+              {/* Top left bleeding cross */}
+              <div className="absolute -top-4 -left-4 w-8 h-8">
+                <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
+                <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
+              </div>
+              {/* Bottom right bleeding cross */}
+              <div className="absolute -bottom-4 -right-4 w-8 h-8">
+                <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
+                <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
+              </div>
+              <div className="text-center">
+                <h3 className="text-2xl md:text-3xl font-medium mb-4 leading-tight" style={{ color: '#1f53d0' }}>
+                  Still have questions?
+                </h3>
+                <p className="text-base mb-8 opacity-90 text-gray-700">
+                  Our team is here to help you choose the right plan for your needs.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Link
+                    href="/contact"
+                    className="inline-flex items-center justify-center bg-white text-blue-600 px-5 py-2.5 border border-blue-600 hover:bg-blue-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                    style={{ borderColor: '#1f53d0', color: '#1f53d0' }}
+                  >
+                    Contact Sales
+                  </Link>
+                  <Link
+                    href="/docs"
+                    className="inline-flex items-center justify-center text-white px-5 py-2.5 hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                    style={{ backgroundColor: '#1f53d0' }}
+                  >
+                    View Documentation
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
     </section>
   )
 }
