@@ -269,7 +269,7 @@ export default function Pricing() {
       <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Billing Period Selection */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-end mb-8">
           <div className="inline-flex rounded-md shadow-sm" role="group">
             <button
               type="button"
@@ -292,27 +292,11 @@ export default function Pricing() {
 
         {/* Pricing Table Header */}
         <div className="mt-12">
-          <div className="relative p-8" style={{
-            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
-          }}>
-            {/* Top left bleeding cross */}
-            <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
-            </div>
-            {/* Bottom right bleeding cross */}
-            <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
-            </div>
-
-            <div className="min-w-full" style={{ border: '1px solid rgba(74, 123, 214, 0.15)' }}>
+          <div className="relative p-8">
+            <div className="min-w-full">
               <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="px-12 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative" style={{ borderRight: index < plans.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
+                  <div key={index} className="px-12 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative">
                     {plan.popular && (
                       <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-medium" style={{ border: '0.5px solid rgba(31, 83, 208, 0.3)', color: '#1f53d0' }}>
                         Where Most Start
@@ -350,31 +334,16 @@ export default function Pricing() {
 
         {/* Pricing Table */}
         <div className="mt-12">
-          <div className="relative p-8" style={{
-            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
-          }}>
-            {/* Top left bleeding cross */}
-            <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
-            </div>
-            {/* Bottom right bleeding cross */}
-            <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
-            </div>
+          <div className="relative p-8">
 
             <div className="min-w-full overflow-auto">
               {/* Table Header */}
-              <div className="grid grid-cols-4 sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#f7f7f3', borderBottom: '1px solid rgba(74, 123, 214, 0.15)' }}>
+              <div className="grid grid-cols-4 sticky top-0 z-20 shadow-sm" style={{ backgroundColor: '#f7f7f3' }}>
                 <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Features</h3>
                 </div>
                 {plans.map((plan, index) => (
-                  <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>
+                  <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
                     <h3 className="text-lg font-medium text-gray-900 mb-2">{plan.title}</h3>
                   </div>
                 ))}
@@ -383,15 +352,15 @@ export default function Pricing() {
               {/* Table Body */}
               {features.map((category, catIndex) => (
                 <React.Fragment key={catIndex}>
-                  <div className="grid grid-cols-4" style={{ backgroundColor: '#f7f7f3', borderBottom: '1px solid rgba(74, 123, 214, 0.15)' }}>
+                  <div className="grid grid-cols-4" style={{ backgroundColor: '#f7f7f3' }}>
                     <div className="p-4 text-left text-sm font-semibold tracking-wider col-span-4" style={{ color: '#1f53d0' }}>{category.category}</div>
                   </div>
                   {category.items.map((item, itemIndex) => (
-                    <div key={itemIndex} className="grid grid-cols-4 last:border-b-0" style={{ borderBottom: itemIndex < category.items.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
+                    <div key={itemIndex} className="grid grid-cols-4 last:border-b-0">
                       <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
-                      <div className="p-4 text-center" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>{renderFeatureValue(item.develop, 'Develop')}</div>
-                      <div className="p-4 text-center" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>{renderFeatureValue(item.growth, 'Growth')}</div>
-                      <div className="p-4 text-center" style={{ borderLeft: '1px solid rgba(74, 123, 214, 0.15)' }}>{renderFeatureValue(item.scale, 'Scale')}</div>
+                      <div className="p-4 text-center">{renderFeatureValue(item.develop, 'Develop')}</div>
+                      <div className="p-4 text-center">{renderFeatureValue(item.growth, 'Growth')}</div>
+                      <div className="p-4 text-center">{renderFeatureValue(item.scale, 'Scale')}</div>
                     </div>
                   ))}
                 </React.Fragment>
