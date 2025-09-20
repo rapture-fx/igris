@@ -75,7 +75,7 @@ export default function Hero() {
         <div className="text-center pt-40 font-ibm-plex-mono">
           <h1
             style={{ color: '#1f53d0' }}
-            className="text-4xl md:text-5xl font-medium text-gray-900 dark:text-white mb-8 leading-tight font-inter"
+            className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8 leading-tight font-inter"
           >
             Messy Data to ML-ready in API Calls.
           </h1>

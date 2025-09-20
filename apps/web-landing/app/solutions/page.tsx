@@ -8,12 +8,28 @@ export default function SolutionsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-56 pb-20 sm:pt-60 sm:pb-24 lg:pt-64 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+      <section className="pt-40 pb-20 sm:pt-40 sm:pb-24 lg:pt-40 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="text-center">
+          <div className="text-center py-16 px-8 relative" style={{
+            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+            </div>
+
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Industry-specific solutions</h2>
-            <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
-              <span style={{ color: '#114dcd' }}>Transform your industry</span> with clean data
+            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
+              <span style={{ color: '#1f53d0' }}>Transform your industry</span> with clean data
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
               From AI companies to manufacturing, financial services to e-commerce—Schlep Engine turns complex data challenges into competitive advantages across every industry.
@@ -24,7 +40,7 @@ export default function SolutionsPage() {
 
       {/* AI Companies Section */}
       <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">AI & Machine Learning</h2>
             <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
@@ -96,10 +112,10 @@ export default function SolutionsPage() {
             </div>
           </div>
 
-          {/* Use Cases */}
+          {/* Use Cases & Getting Started */}
           <div className="border-t border-gray-200 pt-12">
             <h3 className="text-xl font-semibold text-gray-900 mb-8 text-center font-inter">What AI Companies Build</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
               <div className="text-center">
                 <h4 className="font-medium text-gray-900 mb-2 font-inter">Model Registry</h4>
                 <p className="text-sm text-gray-600 font-inter">Versioning, lineage tracking, and metadata management for production ML models</p>
@@ -113,13 +129,33 @@ export default function SolutionsPage() {
                 <p className="text-sm text-gray-600 font-inter">Production deployment with canary releases and A/B testing capabilities</p>
               </div>
             </div>
+
+            {/* Self-Service Actions */}
+            <div className="bg-blue-50 rounded-lg p-8 text-center">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Start Building Today</h4>
+              <p className="text-gray-600 mb-6 font-inter">Upload your dataset and see results in minutes. No setup required.</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                >
+                  Start Free Trial
+                </Link>
+                <Link
+                  href="/docs"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-blue-300 text-blue-700 hover:bg-blue-100 transition-all duration-200 font-medium text-sm font-inter"
+                >
+                  View Documentation
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Manufacturing Section */}
       <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: 'white' }}>
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Smart Manufacturing</h2>
             <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
@@ -196,7 +232,7 @@ export default function SolutionsPage() {
           </div>
 
           {/* Results */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="text-center p-6 bg-green-50 rounded-lg">
               <div className="text-3xl font-bold" style={{ color: '#059669' }}>40%</div>
               <div className="text-sm text-gray-600 font-inter mt-2">Downtime Reduction</div>
@@ -210,12 +246,34 @@ export default function SolutionsPage() {
               <div className="text-sm text-gray-600 font-inter mt-2">Annual Savings</div>
             </div>
           </div>
+
+          {/* Self-Service Actions */}
+          <div className="bg-green-50 rounded-lg p-8 text-center">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Connect Your MES System</h4>
+            <p className="text-gray-600 mb-6 font-inter">Ready-made connectors for SAP, Siemens, and Rockwell. Setup in under 30 minutes.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-white hover:bg-green-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                style={{ backgroundColor: '#059669' }}
+              >
+                Start Integration
+              </Link>
+              <Link
+                href="/docs/manufacturing"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border text-green-700 hover:bg-green-100 transition-all duration-200 font-medium text-sm font-inter"
+                style={{ borderColor: '#059669' }}
+              >
+                Integration Guide
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Financial Services Section */}
       <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Financial Technology</h2>
             <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
@@ -290,7 +348,7 @@ export default function SolutionsPage() {
           {/* Compliance Features */}
           <div className="border-t border-gray-200 pt-12 mb-12">
             <h3 className="text-xl font-semibold text-gray-900 mb-8 text-center font-inter">Compliance & Risk Management</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
               <div className="p-6 bg-white rounded-lg shadow-sm">
                 <h4 className="font-medium text-gray-900 mb-2 font-inter">Credit Risk Assessment</h4>
                 <p className="text-sm text-gray-600 font-inter">Advanced credit risk scoring with gradient boosting models and comprehensive risk grade classification</p>
@@ -308,13 +366,35 @@ export default function SolutionsPage() {
                 <p className="text-sm text-gray-600 font-inter">PCI DSS, Basel III, GDPR, and AML/KYC compliance with automated audit trails</p>
               </div>
             </div>
+
+            {/* Self-Service Actions */}
+            <div className="bg-red-50 rounded-lg p-8 text-center">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Test Fraud Detection</h4>
+              <p className="text-gray-600 mb-6 font-inter">Upload sample transaction data and see fraud detection in action. Immediate results.</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-white hover:bg-red-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                  style={{ backgroundColor: '#dc2626' }}
+                >
+                  Start Free Analysis
+                </Link>
+                <Link
+                  href="/docs/fraud-detection"
+                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border text-red-700 hover:bg-red-100 transition-all duration-200 font-medium text-sm font-inter"
+                  style={{ borderColor: '#dc2626' }}
+                >
+                  API Documentation
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* E-commerce Section */}
       <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: 'white' }}>
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">E-commerce & Retail</h2>
             <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
@@ -391,7 +471,7 @@ export default function SolutionsPage() {
           </div>
 
           {/* Results */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             <div className="text-center p-6 bg-purple-50 rounded-lg">
               <div className="text-3xl font-bold" style={{ color: '#7c3aed' }}>35%</div>
               <div className="text-sm text-gray-600 font-inter mt-2">Revenue Increase</div>
@@ -403,6 +483,28 @@ export default function SolutionsPage() {
             <div className="text-center p-6 bg-purple-50 rounded-lg">
               <div className="text-3xl font-bold" style={{ color: '#7c3aed' }}>+2.3%</div>
               <div className="text-sm text-gray-600 font-inter mt-2">Conversion Rate</div>
+            </div>
+          </div>
+
+          {/* Self-Service Actions */}
+          <div className="bg-purple-50 rounded-lg p-8 text-center">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Try Recommendations Engine</h4>
+            <p className="text-gray-600 mb-6 font-inter">Upload customer data and get personalized recommendations instantly. See results in real-time.</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="/pricing"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-white hover:bg-purple-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                style={{ backgroundColor: '#7c3aed' }}
+              >
+                Try Recommendations
+              </Link>
+              <Link
+                href="/docs/ecommerce"
+                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border text-purple-700 hover:bg-purple-100 transition-all duration-200 font-medium text-sm font-inter"
+                style={{ borderColor: '#7c3aed' }}
+              >
+                See Examples
+              </Link>
             </div>
           </div>
         </div>
