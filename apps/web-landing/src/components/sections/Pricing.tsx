@@ -369,7 +369,7 @@ export default function Pricing() {
                     <div className="mt-auto">
                       <Link
                         href={plan.ctaLink}
-                        className={`inline-block py-3 px-6 rounded-lg transition-colors duration-200 text-center font-medium ${
+                        className={`inline-block py-2.5 px-5 rounded-lg transition-colors duration-200 text-center font-medium shadow-md hover:shadow-lg ${
                           plan.name === 'Develop'
                             ? 'text-blue-600 bg-white border border-blue-600 hover:bg-blue-50'
                             : plan.name === 'Scale'

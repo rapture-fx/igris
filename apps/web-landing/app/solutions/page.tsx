@@ -29,10 +29,10 @@ export default function SolutionsPage() {
 
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Industry-specific solutions</h2>
             <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
-              <span style={{ color: '#1f53d0' }}>Transform your industry</span> with clean data
+              <span style={{ color: '#1f53d0' }}>Clarity and scale, built to fit your industry.</span>
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
-              From AI companies to manufacturing, financial services to e-commerce—Schlep Engine turns complex data challenges into competitive advantages across every industry.
+              Across industries, Schlep-engine delivers clean, reliable data pipelines built to match your workflows and scale with your needs.
             </p>
           </div>
         </div>
@@ -43,8 +43,8 @@ export default function SolutionsPage() {
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">AI & Machine Learning</h2>
-            <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
-              <span style={{ color: '#114dcd' }}>Complete MLOps platform</span> from data to deployment
+            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+              Complete MLOps platform from data to deployment
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
               Stop losing weeks to data preparation. Get enterprise-grade MLOps infrastructure with model registry, experiment tracking, and automated lineage tracking.
@@ -158,8 +158,8 @@ export default function SolutionsPage() {
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Smart Manufacturing</h2>
-            <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
-              <span style={{ color: '#059669' }}>Predictive maintenance</span> and smart operations
+            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+              Predictive maintenance and smart operations
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
               Connect existing MES systems to unlock predictive insights. Reduce downtime with equipment failure prediction and optimize production with real-time analytics.
@@ -276,8 +276,8 @@ export default function SolutionsPage() {
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Financial Technology</h2>
-            <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
-              <span style={{ color: '#dc2626' }}>Advanced fraud detection</span> and risk management
+            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+              Advanced fraud detection and risk management
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
               Process sensitive financial data with confidence. Advanced fraud detection, risk scoring APIs, and comprehensive compliance management protect your business.
@@ -397,8 +397,8 @@ export default function SolutionsPage() {
         <div className="mx-auto max-w-6xl px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">E-commerce & Retail</h2>
-            <p className="mt-2 text-3xl font-medium tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
-              <span style={{ color: '#7c3aed' }}>Smart recommendations</span> and customer analytics
+            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+              Smart recommendations and customer analytics
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
               Transform customer data into revenue growth. Advanced recommendation engines, demand forecasting, and behavioral analytics drive personalization at scale.
