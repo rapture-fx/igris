@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowUpRight, Bot, Factory, DollarSign, ShoppingCart } from 'lucide-react'
+import { ArrowUpRight, Bot, Factory, DollarSign, ShoppingCart, ChevronRight } from 'lucide-react'
 
 export default function SolutionsPage() {
   return (
@@ -103,25 +103,6 @@ export default function SolutionsPage() {
               </div>
             </div>
 
-            {/* Self-Service Actions */}
-            <div className="bg-blue-50 rounded-lg p-8 text-left">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Start Building Today</h4>
-              <p className="text-gray-600 mb-6 font-inter">Upload your dataset and see results in minutes. No setup required.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                >
-                  Start Free Trial
-                </Link>
-                <Link
-                  href="/docs"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-blue-300 text-blue-700 hover:bg-blue-100 transition-all duration-200 font-medium text-sm font-inter"
-                >
-                  View Documentation
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -185,27 +166,6 @@ export default function SolutionsPage() {
           </div>
 
 
-          {/* Self-Service Actions */}
-          <div className="bg-green-50 rounded-lg p-8 text-left">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Connect Your MES System</h4>
-            <p className="text-gray-600 mb-6 font-inter">Ready-made connectors for SAP, Siemens, and Rockwell. Setup in under 30 minutes.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-white hover:bg-green-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                style={{ backgroundColor: '#059669' }}
-              >
-                Start Integration
-              </Link>
-              <Link
-                href="/docs/manufacturing"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border text-green-700 hover:bg-green-100 transition-all duration-200 font-medium text-sm font-inter"
-                style={{ borderColor: '#059669' }}
-              >
-                Integration Guide
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -270,27 +230,6 @@ export default function SolutionsPage() {
               </div>
             </div>
 
-            {/* Self-Service Actions */}
-            <div className="bg-red-50 rounded-lg p-8 text-left">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Test Fraud Detection</h4>
-              <p className="text-gray-600 mb-6 font-inter">Upload sample transaction data and see fraud detection in action. Immediate results.</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-white hover:bg-red-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                  style={{ backgroundColor: '#dc2626' }}
-                >
-                  Start Free Analysis
-                </Link>
-                <Link
-                  href="/docs/fraud-detection"
-                  className="inline-flex items-center justify-center px-6 py-3 rounded-xl border text-red-700 hover:bg-red-100 transition-all duration-200 font-medium text-sm font-inter"
-                  style={{ borderColor: '#dc2626' }}
-                >
-                  API Documentation
-                </Link>
-              </div>
-            </div>
           </div>
         </div>
       </section>
@@ -354,58 +293,55 @@ export default function SolutionsPage() {
           </div>
 
 
-          {/* Self-Service Actions */}
-          <div className="bg-purple-50 rounded-lg p-8 text-left">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 font-inter">Try Recommendations Engine</h4>
-            <p className="text-gray-600 mb-6 font-inter">Upload customer data and get personalized recommendations instantly. See results in real-time.</p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/pricing"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl text-white hover:bg-purple-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                style={{ backgroundColor: '#7c3aed' }}
-              >
-                Try Recommendations
-              </Link>
-              <Link
-                href="/docs/ecommerce"
-                className="inline-flex items-center justify-center px-6 py-3 rounded-xl border text-purple-700 hover:bg-purple-100 transition-all duration-200 font-medium text-sm font-inter"
-                style={{ borderColor: '#7c3aed' }}
-              >
-                See Examples
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 
       {/* Bottom CTA Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Ready to transform your industry?</h2>
-            <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
-              <span style={{ color: '#114dcd' }}>Join hundreds of companies</span> already scaling with Schlep Engine
-            </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
-              From startups to enterprise, teams across every industry use Schlep Engine to accelerate their data processing and unlock new insights.
-            </p>
-          </div>
+      <section className="py-20 px-4 sm:px-6 lg:px-8 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+        <div className="max-w-6xl mx-auto">
+          <div className="text-left p-8 relative" style={{
+            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+              {/* Left Column - Content */}
+              <div>
+                <h2 className="text-2xl md:text-3xl font-medium mb-4 leading-tight font-inter" style={{ color: '#1f53d0' }}>Secure at every layer. Built to scale.</h2>
+                <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300">
+                  Build a powerful ML pipelines and simplify your data handling.
+                </p>
+                <Link
+                  href="/pricing"
+                  className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                  style={{ backgroundColor: '#1f53d0' }}
+                >
+                  Get Started <ChevronRight className="w-4 h-4 ml-2" />
+                </Link>
+              </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="/pricing"
-              className="inline-flex items-center justify-center px-6 py-3 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-              style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
-            >
-              View Pricing
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center px-6 py-3 rounded-xl border border-gray-300 hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter text-gray-700"
-            >
-              Talk to Sales
-            </Link>
+              {/* Right Column - SVG */}
+              <div className="flex justify-center lg:justify-end">
+                <Image
+                  src="/CTA.svg"
+                  alt="CTA Illustration"
+                  width={300}
+                  height={300}
+                  className="w-full max-w-sm"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </section>
