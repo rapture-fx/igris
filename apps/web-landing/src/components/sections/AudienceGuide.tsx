@@ -7,7 +7,7 @@ import { Code, MousePointerClick } from 'lucide-react'
 export default function AudienceGuide() {
   return (
     <section className="py-16 md:py-24 bg-[#111111] text-beige-secondary">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.h2
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

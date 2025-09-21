@@ -264,7 +264,7 @@ export default function Pricing() {
 
   return (
     <section>
-      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Billing Period Selection */}
         <div className="flex justify-end mb-8">
@@ -316,7 +316,7 @@ export default function Pricing() {
 
         {/* Pricing Table Header */}
         <div className="mt-12">
-          <div className="relative p-8" style={{
+          <div className="relative p-0" style={{
             borderTop: '1px solid rgba(74, 123, 214, 0.15)',
             borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
             borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
@@ -336,7 +336,7 @@ export default function Pricing() {
             <div className="min-w-full" style={{ border: '1px solid rgba(74, 123, 214, 0.15)' }}>
               <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="px-12 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative" style={{ borderRight: index < plans.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
+                  <div key={index} className="px-6 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative" style={{ borderRight: index < plans.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
                     {plan.popular && (
                       <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-medium" style={{ border: '0.5px solid rgba(31, 83, 208, 0.3)', color: '#1f53d0' }}>
                         Where Most Start
@@ -433,7 +433,7 @@ export default function Pricing() {
 
         {/* FAQ Section */}
         <div className="mt-20">
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-7xl mx-auto">
             <div className="p-8">
               <div className="border border-gray-200">
                 <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
@@ -491,8 +491,8 @@ export default function Pricing() {
         </div>
 
         {/* Contact CTA */}
-        <div className="mt-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#f7f7f3' }}>
-          <div className="max-w-6xl mx-auto">
+        <div className="mt-12" style={{ backgroundColor: '#f7f7f3' }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-left p-8 relative" style={{
               borderTop: '1px solid rgba(74, 123, 214, 0.15)',
               borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
