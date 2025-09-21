@@ -103,10 +103,10 @@ export default function Hero() {
           <div className="mt-24 max-w-5xl mx-auto relative">
 
             <div
-              className="bg-white text-left shadow-lg relative z-10"
+              className="bg-white text-left relative z-10"
               style={{
                 border: '1px solid #114dcd',
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
               }}
             >
               <div className="flex items-center justify-between p-4">
@@ -168,25 +168,6 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* SVG positioned at bottom edge of hero */}
-      <div className="absolute left-1/2 bottom-0 pointer-events-none" style={{
-        transform: 'translateX(-50%) translateY(20%)',
-        width: '200vw',
-        height: '100vh',
-        zIndex: 1
-      }}>
-        <div className="relative w-full h-full">
-          <img
-            src="/BG hero.svg"
-            alt=""
-            className="w-full h-full object-contain opacity-65"
-            style={{
-              maskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 80%)',
-              WebkitMaskImage: 'radial-gradient(ellipse 80% 80% at center, black 40%, transparent 80%)'
-            }}
-          />
-        </div>
-      </div>
     </div>
   );
 }

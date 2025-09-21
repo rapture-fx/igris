@@ -27,8 +27,7 @@ export default function SolutionsPage() {
               <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
             </div>
 
-            <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Industry-specific solutions</h2>
-            <p className="mt-2 text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
+            <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
               <span style={{ color: '#1f53d0' }}>Clarity and scale, built to fit your industry.</span>
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
