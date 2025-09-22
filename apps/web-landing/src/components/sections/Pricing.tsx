@@ -2,14 +2,13 @@
 
 import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headphones, Cpu, Settings, Activity, Lock } from 'lucide-react'
 import Link from 'next/link'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
-import PricingSlider from './PricingSlider'
 
 export default function Pricing() {
   const [selectedQuota, setSelectedQuota] = useState('100')
   const [billingPeriod, setBillingPeriod] = useState('monthly')
-  const [apiCalls, setApiCalls] = useState(100000) // Default to 100k
+  const [apiCalls, setApiCalls] = useState(5000000) // Default to 5M
   const [openFaqItems, setOpenFaqItems] = useState<string[]>([])
   const [openFeatureCategories, setOpenFeatureCategories] = useState<number[]>([])
 
@@ -18,20 +17,20 @@ export default function Pricing() {
     {
       name: 'Develop',
       basePrice: 99,
-      includedCalls: 100000, // 100k
-      additionalCostPer10k: 1.5
+      includedCalls: 5000000, // 5M
+      additionalCostPer1k: 0.08
     },
     {
       name: 'Growth',
       basePrice: 299,
-      includedCalls: 1000000, // 1M
-      additionalCostPer10k: 1.0
+      includedCalls: 25000000, // 25M
+      additionalCostPer1k: 0.06
     },
     {
       name: 'Scale',
       basePrice: 599,
-      includedCalls: 5000000, // 5M
-      additionalCostPer10k: 0.75
+      includedCalls: 100000000, // 100M
+      additionalCostPer1k: 0.04
     }
   ];
 
@@ -41,13 +40,13 @@ export default function Pricing() {
     }
 
     const additionalCalls = calls - plan.includedCalls;
-    const additional10kBlocks = Math.ceil(additionalCalls / 10000);
-    const additionalCost = additional10kBlocks * plan.additionalCostPer10k;
+    const additional1kBlocks = Math.ceil(additionalCalls / 1000);
+    const additionalCost = additional1kBlocks * plan.additionalCostPer1k;
 
     return plan.basePrice + additionalCost;
   };
 
-  const getRecommendedPlan = () => {
+  const recommendedPlan = useMemo(() => {
     const costs = pricingPlans.map(plan => ({
       ...plan,
       totalCost: calculateUsageCost(plan, apiCalls)
@@ -56,7 +55,7 @@ export default function Pricing() {
     return costs.reduce((min, current) =>
       current.totalCost < min.totalCost ? current : min
     );
-  };
+  }, [apiCalls]);
 
   const formatNumber = (num: number) => {
     if (num >= 1000000) {
@@ -127,7 +126,7 @@ export default function Pricing() {
         {
           id: "data-scaling",
           question: "How does data processing scaling work?",
-          answer: "Processing limits are based on dataset size: Develop (1GB), Growth (50GB), Scale (unlimited). Our platform auto-scales to handle your data volume efficiently."
+          answer: "Processing limits are based on dataset size: Develop (500MB), Growth (1GB), Scale (2GB datasets + 500GB monthly). Our platform auto-scales to handle your data volume efficiently."
         },
         {
           id: "data-security",
@@ -147,7 +146,7 @@ export default function Pricing() {
         {
           id: "enterprise-solutions",
           question: "Do you offer enterprise solutions?",
-          answer: "Yes! Our Scale plan includes enterprise features like unlimited processing, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
+          answer: "Yes! Our Scale plan includes enterprise features like 500GB monthly processing, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
         },
         {
           id: "custom-quote",
@@ -172,9 +171,11 @@ export default function Pricing() {
       ctaLink: "/auth/register",
       tagline: "Perfect for individuals and small teams prototyping ML workflows.",
       highlights: [
-        { icon: Database, text: "Process up to 1GB datasets" },
+        { icon: Activity, text: "5M API calls included" },
+        { icon: Database, text: "Process up to 500MB datasets" },
         { icon: Zap, text: "5 data source connections" },
         { icon: Users, text: "3 team members" },
+        { icon: Shield, text: "Basic security & encryption" },
         { icon: Headphones, text: "Business hours support" }
       ]
     },
@@ -187,7 +188,8 @@ export default function Pricing() {
       tagline: "For growing teams who need faster pipelines and collaboration.",
       popular: true,
       highlights: [
-        { icon: Database, text: "Process up to 50GB datasets" },
+        { icon: Activity, text: "25M API calls included" },
+        { icon: Database, text: "Process up to 1GB datasets" },
         { icon: Zap, text: "Real-time pipeline processing" },
         { icon: Users, text: "15 team members + collaboration" },
         { icon: Shield, text: "Advanced security & compliance" },
@@ -203,10 +205,12 @@ export default function Pricing() {
       tagline: "Enterprise-grade performance, compliance, and scale without the infra burden.",
       popular: false,
       highlights: [
-        { icon: Database, text: "Unlimited dataset processing" },
+        { icon: Activity, text: "100M API calls included" },
+        { icon: Database, text: "2GB datasets + 500GB monthly processing" },
         { icon: Zap, text: "Enterprise performance & SLA" },
-        { icon: Users, text: "Unlimited teams + account manager" },
-        { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" }
+        { icon: Users, text: "100 team members + account manager" },
+        { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" },
+        { icon: Headphones, text: "Dedicated account manager" }
       ]
     }
   ];
@@ -217,10 +221,15 @@ export default function Pricing() {
 
     const usageCost = calculateUsageCost(pricingPlan, apiCalls);
 
+    // Safety guard against invalid calculations
+    if (!usageCost || isNaN(usageCost) || usageCost < 0) {
+      return plan.basePrice;
+    }
+
     if (billingPeriod === 'yearly') {
       return Math.round((usageCost * 10) / 12);
     }
-    return usageCost;
+    return Math.round(usageCost);
   };
 
   const getPeriod = () => {
@@ -304,7 +313,7 @@ export default function Pricing() {
         { name: "Multi-Source Data Orchestration", develop: "5 Sources", growth: "15+ Sources", scale: "All Sources + Custom" },
         { name: "Real-time Pipeline Processing", develop: false, growth: true, scale: true },
         { name: "Automated Error Recovery & Rollback", develop: false, growth: true, scale: true },
-        { name: "Large Dataset Processing", develop: "1GB", growth: "50GB", scale: "Unlimited" },
+        { name: "Large Dataset Processing", develop: "500MB", growth: "1GB", scale: "2GB + 500GB monthly" },
         { name: "Pipeline State Management", develop: true, growth: true, scale: true }
       ]
     },
@@ -322,7 +331,7 @@ export default function Pricing() {
       icon: Settings,
       items: [
         { name: "REST API Endpoints (40+)", develop: true, growth: true, scale: true },
-        { name: "API Calls per Month", develop: "100K", growth: "1M", scale: "5M+" },
+        { name: "API Calls per Month", develop: "5M", growth: "25M", scale: "100M+" },
         { name: "Real-time WebSocket Updates", develop: true, growth: true, scale: true },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
         { name: "Custom API Integrations", develop: false, growth: true, scale: true },
@@ -355,7 +364,7 @@ export default function Pricing() {
       category: "Platform Service & Support",
       icon: Headphones,
       items: [
-        { name: "Team Members", develop: "3", growth: "15", scale: "Unlimited" },
+        { name: "Team Members", develop: "3", growth: "15", scale: "100" },
         { name: "Platform Support", develop: "Business Hours", growth: "24/7", scale: "24/7" },
         { name: "Priority Pipeline Support", develop: false, growth: true, scale: true },
         { name: "Dedicated Account Manager", develop: false, growth: false, scale: true },
@@ -430,8 +439,6 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Pricing Slider */}
-        <PricingSlider />
 
         {/* Pricing Table Header */}
         <div className="mt-12">
@@ -453,9 +460,9 @@ export default function Pricing() {
             </div>
 
             <div className="min-w-full">
-              <div className="grid grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
+              <div className="grid grid-cols-1 md:grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="px-6 pt-8 pb-8 text-left last:border-r-0 flex flex-col h-full min-h-[500px] relative transition-all duration-300" style={{ borderRight: index < plans.length - 1 ? '1px solid rgba(74, 123, 214, 0.15)' : 'none' }}>
+                  <div key={index} className="px-6 pt-8 pb-8 text-left flex flex-col h-full min-h-[500px] relative transition-all duration-300 md:border-r border-gray-200 last:border-r-0">
                     {plan.popular && (
                       <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-medium" style={{ border: '0.5px solid rgba(31, 83, 208, 0.3)', color: '#1f53d0' }}>
                         Where Most Start
@@ -464,7 +471,7 @@ export default function Pricing() {
                     <div className="mb-6">
                       <h3 className="text-2xl font-medium mb-2" style={{ color: '#1f53d0' }}>{plan.title}</h3>
                       <p className="text-4xl font-medium text-gray-900 mb-2">
-                        $<AnimatedNumber key={`${plan.name}-${billingPeriod}`} value={getPrice(plan)} />
+                        $<AnimatedNumber key={`${plan.name}-${billingPeriod}-${apiCalls}`} value={getPrice(plan)} />
                         <span className="text-lg text-gray-600">{getPeriod()}</span>
                       </p>
                       {billingPeriod === 'yearly' && (

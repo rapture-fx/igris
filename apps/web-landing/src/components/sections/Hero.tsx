@@ -75,13 +75,13 @@ export default function Hero() {
         <div className="text-center pt-40 font-ibm-plex-mono">
           <h1
             style={{ color: '#1f53d0' }}
-            className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-8 leading-tight font-inter"
+            className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8 leading-tight font-inter"
           >
             Messy Data to ML-ready in API Calls.
           </h1>
 
           <p className="text-base md:text-lg text-gray-800 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-inter">
-            An API-first pipeline for speed: turn messy inputs into ML-ready outputs, train models instantly, and scale without friction.
+            An API-first pipeline for speed: turn messy inputs into ML-ready outputs. <br /> Train models instantly, and scale without friction.
           </p>
 
           <div className="flex justify-center gap-4">
