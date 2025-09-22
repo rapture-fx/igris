@@ -22,14 +22,12 @@ export {
 } from './websocket';
 
 // Authentication
-import { AuthManager } from './auth/auth-manager';
-export { createTokenStorage, BrowserTokenStorage, MemoryTokenStorage } from './auth/token-storage';
-
 export {
   AuthManager,
+  createTokenStorage,
   BrowserTokenStorage,
   MemoryTokenStorage
-};
+} from './auth';
 
 // Utilities
 export {

@@ -16,7 +16,8 @@
       "Bash(npx next build:*)",
       "Read(//tmp/**)",
       "Bash(npm run dev:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []
