@@ -659,6 +659,380 @@ class CloudStorageConnector:
             logger.error(f"Failed to list files: {str(e)}")
             raise
     
+    async def read_file_parallel(
+        self,
+        connection_name: str,
+        container_or_bucket: str,
+        file_path: str,
+        chunk_size: Optional[int] = None
+    ) -> pd.DataFrame:
+        """Read large file from cloud storage using parallel chunks"""
+        if connection_name not in self.connections:
+            raise ValueError(f"Connection '{connection_name}' not found")
+
+        # Check cache first
+        if self.cache:
+            cached_data = self.cache.get(
+                connection_name, container_or_bucket, file_path,
+                self.config.cache_ttl_seconds
+            )
+            if cached_data is not None:
+                return cached_data
+
+        conn_info = self.connections[connection_name]
+
+        try:
+            # Get file info first
+            file_info = await self._get_file_info(connection_name, container_or_bucket, file_path)
+            file_size = file_info.get('size', 0)
+
+            # Determine if we should use parallel reading
+            if file_size > self.config.multipart_threshold:
+                logger.info(f"Using parallel reading for large file: {file_size / (1024*1024):.1f}MB")
+                df = await self._read_file_parallel_chunks(
+                    connection_name, container_or_bucket, file_path, file_size, chunk_size
+                )
+            else:
+                # Use standard reading for smaller files
+                df = await self._read_file_standard(connection_name, container_or_bucket, file_path)
+
+            # Cache the result
+            if self.cache and df is not None:
+                self.cache.put(connection_name, container_or_bucket, file_path, df, file_info.get('etag'))
+
+            return df
+
+        except Exception as e:
+            logger.error(f"Failed to read file: {str(e)}")
+            raise
+
+    async def _get_file_info(self, connection_name: str, container_or_bucket: str, file_path: str) -> Dict[str, Any]:
+        """Get file metadata"""
+        conn_info = self.connections[connection_name]
+
+        if conn_info['type'] == 'aws_s3':
+            client = conn_info['client']
+            response = client.head_object(Bucket=container_or_bucket, Key=file_path)
+            return {
+                'size': response['ContentLength'],
+                'etag': response['ETag'],
+                'last_modified': response['LastModified']
+            }
+        elif conn_info['type'] == 'gcs':
+            client = conn_info['client']
+            bucket = client.bucket(container_or_bucket)
+            blob = bucket.blob(file_path)
+            blob.reload()
+            return {
+                'size': blob.size,
+                'etag': blob.etag,
+                'last_modified': blob.time_created
+            }
+        elif conn_info['type'] == 'azure_blob':
+            client = conn_info['client']
+            async with client:
+                blob_client = client.get_blob_client(container=container_or_bucket, blob=file_path)
+                properties = await blob_client.get_blob_properties()
+                return {
+                    'size': properties.size,
+                    'etag': properties.etag,
+                    'last_modified': properties.last_modified
+                }
+
+        return {}
+
+    async def _read_file_parallel_chunks(
+        self,
+        connection_name: str,
+        container_or_bucket: str,
+        file_path: str,
+        file_size: int,
+        chunk_size: Optional[int] = None
+    ) -> pd.DataFrame:
+        """Read file in parallel chunks for better performance"""
+
+        chunk_size = chunk_size or self.config.multipart_chunksize
+        num_chunks = (file_size + chunk_size - 1) // chunk_size
+
+        logger.info(f"Reading file in {num_chunks} parallel chunks")
+
+        # Read chunks in parallel
+        futures = []
+        for i in range(num_chunks):
+            start_byte = i * chunk_size
+            end_byte = min(start_byte + chunk_size - 1, file_size - 1)
+
+            future = self.executor.submit(
+                self._read_chunk_sync,
+                connection_name, container_or_bucket, file_path,
+                start_byte, end_byte
+            )
+            futures.append(future)
+
+        # Collect chunks
+        chunks = []
+        for future in as_completed(futures):
+            try:
+                chunk_data = future.result(timeout=self.config.timeout_seconds)
+                if chunk_data:
+                    chunks.append(chunk_data)
+            except Exception as e:
+                logger.error(f"Failed to read chunk: {e}")
+
+        if not chunks:
+            return pd.DataFrame()
+
+        # Combine chunks into single DataFrame
+        try:
+            # For CSV-like data, we need to handle headers properly
+            file_extension = Path(file_path).suffix.lower()
+
+            if file_extension == '.csv':
+                # First chunk contains header, others don't
+                combined_data = chunks[0]
+                for chunk in chunks[1:]:
+                    combined_data += chunk
+
+                return pd.read_csv(io.StringIO(combined_data.decode('utf-8')))
+            else:
+                # For other formats, combine binary data
+                combined_data = b''.join(chunks)
+                return self._parse_file_data(combined_data, file_extension)
+
+        except Exception as e:
+            logger.error(f"Failed to combine chunks: {e}")
+            raise
+
+    def _read_chunk_sync(
+        self,
+        connection_name: str,
+        container_or_bucket: str,
+        file_path: str,
+        start_byte: int,
+        end_byte: int
+    ) -> bytes:
+        """Read a specific chunk of file (synchronous for thread pool)"""
+        conn_info = self.connections[connection_name]
+
+        try:
+            if conn_info['type'] == 'aws_s3':
+                client = conn_info['client']
+                response = client.get_object(
+                    Bucket=container_or_bucket,
+                    Key=file_path,
+                    Range=f'bytes={start_byte}-{end_byte}'
+                )
+                return response['Body'].read()
+
+            elif conn_info['type'] == 'gcs':
+                client = conn_info['client']
+                bucket = client.bucket(container_or_bucket)
+                blob = bucket.blob(file_path)
+                return blob.download_as_bytes(start=start_byte, end=end_byte + 1)
+
+            elif conn_info['type'] == 'azure_blob':
+                # Azure Blob doesn't support range reads in sync mode easily
+                # Fall back to full download for this chunk
+                raise NotImplementedError("Azure Blob parallel reading not implemented")
+
+        except Exception as e:
+            logger.error(f"Failed to read chunk {start_byte}-{end_byte}: {e}")
+            raise
+
+        return b''
+
+    async def _read_file_standard(self, connection_name: str, container_or_bucket: str, file_path: str) -> pd.DataFrame:
+        """Standard file reading method"""
+        return await self.read_file(connection_name, container_or_bucket, file_path)
+
+    def _parse_file_data(self, data: bytes, file_extension: str) -> pd.DataFrame:
+        """Parse file data based on extension"""
+        if file_extension == '.csv':
+            return pd.read_csv(io.BytesIO(data))
+        elif file_extension in ['.xlsx', '.xls']:
+            return pd.read_excel(io.BytesIO(data))
+        elif file_extension == '.json':
+            json_data = json.loads(data.decode('utf-8'))
+            return pd.DataFrame(json_data) if isinstance(json_data, list) else pd.DataFrame([json_data])
+        elif file_extension == '.parquet':
+            return pd.read_parquet(io.BytesIO(data))
+        else:
+            # Try CSV as default
+            return pd.read_csv(io.BytesIO(data))
+
+    async def upload_large_file(
+        self,
+        connection_name: str,
+        container_or_bucket: str,
+        file_path: str,
+        local_file_path: str,
+        use_multipart: bool = True
+    ) -> Dict[str, Any]:
+        """Upload large file using multipart upload if supported"""
+        if connection_name not in self.connections:
+            raise ValueError(f"Connection '{connection_name}' not found")
+
+        local_path = Path(local_file_path)
+        if not local_path.exists():
+            raise FileNotFoundError(f"Local file not found: {local_file_path}")
+
+        file_size = local_path.stat().st_size
+        use_multipart = use_multipart and file_size > self.config.multipart_threshold
+
+        logger.info(f"Uploading file {local_file_path} ({file_size / (1024*1024):.1f}MB) "
+                   f"using {'multipart' if use_multipart else 'standard'} method")
+
+        conn_info = self.connections[connection_name]
+
+        try:
+            if use_multipart and conn_info['type'] == 'aws_s3':
+                return await self._upload_multipart_s3(
+                    conn_info['client'], container_or_bucket, file_path, local_file_path, file_size
+                )
+            else:
+                return await self._upload_standard(
+                    connection_name, container_or_bucket, file_path, local_file_path
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to upload file: {e}")
+            raise
+
+    async def _upload_multipart_s3(
+        self,
+        s3_client,
+        bucket: str,
+        key: str,
+        local_file_path: str,
+        file_size: int
+    ) -> Dict[str, Any]:
+        """Upload file to S3 using multipart upload"""
+
+        # Initiate multipart upload
+        response = s3_client.create_multipart_upload(Bucket=bucket, Key=key)
+        upload_id = response['UploadId']
+
+        try:
+            chunk_size = self.config.multipart_chunksize
+            num_parts = (file_size + chunk_size - 1) // chunk_size
+
+            logger.info(f"Starting multipart upload with {num_parts} parts")
+
+            # Upload parts in parallel
+            futures = []
+            parts_info = []
+
+            with open(local_file_path, 'rb') as file:
+                for part_number in range(1, num_parts + 1):
+                    start_byte = (part_number - 1) * chunk_size
+                    file.seek(start_byte)
+                    chunk_data = file.read(chunk_size)
+
+                    if not chunk_data:
+                        break
+
+                    future = self.executor.submit(
+                        self._upload_part_s3,
+                        s3_client, bucket, key, upload_id, part_number, chunk_data
+                    )
+                    futures.append((part_number, future))
+
+            # Collect part results
+            for part_number, future in futures:
+                try:
+                    part_info = future.result(timeout=self.config.timeout_seconds)
+                    parts_info.append({
+                        'ETag': part_info['ETag'],
+                        'PartNumber': part_number
+                    })
+                except Exception as e:
+                    logger.error(f"Failed to upload part {part_number}: {e}")
+                    # Abort multipart upload
+                    s3_client.abort_multipart_upload(
+                        Bucket=bucket, Key=key, UploadId=upload_id
+                    )
+                    raise
+
+            # Sort parts by part number
+            parts_info.sort(key=lambda x: x['PartNumber'])
+
+            # Complete multipart upload
+            response = s3_client.complete_multipart_upload(
+                Bucket=bucket,
+                Key=key,
+                UploadId=upload_id,
+                MultipartUpload={'Parts': parts_info}
+            )
+
+            return {
+                'status': 'success',
+                'location': response['Location'],
+                'etag': response['ETag'],
+                'upload_method': 'multipart',
+                'parts_uploaded': len(parts_info)
+            }
+
+        except Exception as e:
+            # Abort multipart upload on failure
+            try:
+                s3_client.abort_multipart_upload(
+                    Bucket=bucket, Key=key, UploadId=upload_id
+                )
+            except:
+                pass
+            raise
+
+    def _upload_part_s3(self, s3_client, bucket: str, key: str, upload_id: str,
+                       part_number: int, data: bytes) -> Dict[str, Any]:
+        """Upload a single part for S3 multipart upload"""
+        response = s3_client.upload_part(
+            Bucket=bucket,
+            Key=key,
+            PartNumber=part_number,
+            UploadId=upload_id,
+            Body=data
+        )
+        return response
+
+    async def _upload_standard(
+        self,
+        connection_name: str,
+        container_or_bucket: str,
+        file_path: str,
+        local_file_path: str
+    ) -> Dict[str, Any]:
+        """Standard upload method"""
+        conn_info = self.connections[connection_name]
+
+        try:
+            if conn_info['type'] == 'aws_s3':
+                client = conn_info['client']
+                client.upload_file(local_file_path, container_or_bucket, file_path)
+
+            elif conn_info['type'] == 'gcs':
+                client = conn_info['client']
+                bucket = client.bucket(container_or_bucket)
+                blob = bucket.blob(file_path)
+                blob.upload_from_filename(local_file_path)
+
+            elif conn_info['type'] == 'azure_blob':
+                client = conn_info['client']
+                async with client:
+                    blob_client = client.get_blob_client(
+                        container=container_or_bucket, blob=file_path
+                    )
+                    with open(local_file_path, 'rb') as data:
+                        await blob_client.upload_blob(data, overwrite=True)
+
+            return {
+                'status': 'success',
+                'upload_method': 'standard'
+            }
+
+        except Exception as e:
+            logger.error(f"Standard upload failed: {e}")
+            raise
+
     async def read_file(
         self,
         connection_name: str,
