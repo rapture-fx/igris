@@ -16,15 +16,12 @@ export default function PricingPage() {
                 Data workflows that scale with you
               </h1>
               <p className="text-center text-gray-600 mb-8 text-lg">The essentials for secure, scalable data pipelines are built into every plan</p>
-              
             </div>
-
-            <Pricing />
-
-            
           </div>
-        </section>
 
+          <Pricing />
+
+        </section>
       </main>
       <Footer />
     </div>

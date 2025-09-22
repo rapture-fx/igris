@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headphones, Cpu, Settings, Activity, Lock } from 'lucide-react'
 import Link from 'next/link'
@@ -9,10 +9,10 @@ export default function Pricing() {
   const [selectedQuota, setSelectedQuota] = useState('100')
   const [billingPeriod, setBillingPeriod] = useState('monthly')
   const [selectedApiCount, setSelectedApiCount] = useState('100k')
-  const [openFaqItems, setOpenFaqItems] = useState<string[]>([])
-  const [openFeatureCategories, setOpenFeatureCategories] = useState<number[]>([])
+  const [openFaqItems, setOpenFaqItems] = useState([])
+  const [openFeatureCategories, setOpenFeatureCategories] = useState([])
 
-  const toggleFaqItem = (itemId: string) => {
+  const toggleFaqItem = (itemId) => {
     setOpenFaqItems(prev =>
       prev.includes(itemId)
         ? prev.filter(id => id !== itemId)
@@ -20,7 +20,7 @@ export default function Pricing() {
     )
   }
 
-  const toggleFeatureCategory = (categoryIndex: number) => {
+  const toggleFeatureCategory = (categoryIndex) => {
     setOpenFeatureCategories(prev =>
       prev.includes(categoryIndex)
         ? prev.filter(index => index !== categoryIndex)
@@ -34,7 +34,7 @@ export default function Pricing() {
     { value: '1m', label: '1M API calls', priceMultiplier: { develop: 2, growth: 1.5, scale: 1.3 } },
     { value: '5m', label: '5M API calls', priceMultiplier: { develop: 3, growth: 2, scale: 1.5 } },
     { value: 'unlimited', label: 'Unlimited', priceMultiplier: { develop: 4, growth: 2.5, scale: 1.8 } }
-  ];
+  ]
 
   const faqData = [
     {
@@ -112,7 +112,7 @@ export default function Pricing() {
         }
       ]
     }
-  ];
+  ]
 
   const plans = [
     {
@@ -160,9 +160,9 @@ export default function Pricing() {
         { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" }
       ]
     }
-  ];
+  ]
 
-  const getPrice = (plan: any) => {
+  const getPrice = (plan) => {
     const selectedOption = apiCountOptions.find(option => option.value === selectedApiCount);
     const multiplier = selectedOption?.priceMultiplier[plan.name.toLowerCase()] || 1;
     const adjustedPrice = plan.basePrice * multiplier;
@@ -178,7 +178,7 @@ export default function Pricing() {
   };
 
   // Animated Number Component
-  const AnimatedNumber = ({ value }: { value: number }) => {
+  const AnimatedNumber = ({ value }) => {
     const [displayValue, setDisplayValue] = useState(value);
     const [isAnimating, setIsAnimating] = useState(false);
     const animationRef = useRef(null);
@@ -312,9 +312,9 @@ export default function Pricing() {
         { name: "99.9% Platform Uptime SLA", develop: false, growth: false, scale: true }
       ]
     }
-  ];
+  ]
 
-  const renderFeatureValue = (value: any, planName: string) => {
+  const renderFeatureValue = (value, planName) => {
     if (typeof value === 'boolean') {
       return value ? (
         <div className="flex items-center justify-center">
@@ -622,7 +622,6 @@ export default function Pricing() {
                   </div>
                 </div>
             </div>
-          </div>
         </div>
 
         {/* Contact CTA */}
