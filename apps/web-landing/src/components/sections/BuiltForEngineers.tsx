@@ -22,8 +22,10 @@ export default function BuiltForEngineers() {
   return (
     <section className="pt-56 pb-20 sm:pt-60 sm:pb-24 lg:pt-64 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div>
-          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>
+        <div className="text-center">
+          <div className="inline-block border border-gray-300 rounded-full px-4 py-2">
+            <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>
+          </div>
           <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
             <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
           </p>
