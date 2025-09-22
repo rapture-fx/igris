@@ -212,10 +212,15 @@ export default function Pricing() {
   ];
 
   const getPrice = (plan: any) => {
+    const pricingPlan = pricingPlans.find(p => p.name === plan.name);
+    if (!pricingPlan) return plan.basePrice;
+
+    const usageCost = calculateUsageCost(pricingPlan, apiCalls);
+
     if (billingPeriod === 'yearly') {
-      return Math.round((plan.basePrice * 10) / 12);
+      return Math.round((usageCost * 10) / 12);
     }
-    return plan.basePrice;
+    return usageCost;
   };
 
   const getPeriod = () => {
