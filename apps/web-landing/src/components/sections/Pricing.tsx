@@ -4,13 +4,69 @@ import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headpho
 import Link from 'next/link'
 import React, { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
+import PricingSlider from './PricingSlider'
 
 export default function Pricing() {
   const [selectedQuota, setSelectedQuota] = useState('100')
   const [billingPeriod, setBillingPeriod] = useState('monthly')
-  const [selectedApiCount, setSelectedApiCount] = useState('100k')
+  const [apiCalls, setApiCalls] = useState(100000) // Default to 100k
   const [openFaqItems, setOpenFaqItems] = useState<string[]>([])
   const [openFeatureCategories, setOpenFeatureCategories] = useState<number[]>([])
+
+  // Pricing calculation logic
+  const pricingPlans = [
+    {
+      name: 'Develop',
+      basePrice: 99,
+      includedCalls: 100000, // 100k
+      additionalCostPer10k: 1.5
+    },
+    {
+      name: 'Growth',
+      basePrice: 299,
+      includedCalls: 1000000, // 1M
+      additionalCostPer10k: 1.0
+    },
+    {
+      name: 'Scale',
+      basePrice: 599,
+      includedCalls: 5000000, // 5M
+      additionalCostPer10k: 0.75
+    }
+  ];
+
+  const calculateUsageCost = (plan: typeof pricingPlans[0], calls: number) => {
+    if (calls <= plan.includedCalls) {
+      return plan.basePrice;
+    }
+
+    const additionalCalls = calls - plan.includedCalls;
+    const additional10kBlocks = Math.ceil(additionalCalls / 10000);
+    const additionalCost = additional10kBlocks * plan.additionalCostPer10k;
+
+    return plan.basePrice + additionalCost;
+  };
+
+  const getRecommendedPlan = () => {
+    const costs = pricingPlans.map(plan => ({
+      ...plan,
+      totalCost: calculateUsageCost(plan, apiCalls)
+    }));
+
+    return costs.reduce((min, current) =>
+      current.totalCost < min.totalCost ? current : min
+    );
+  };
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(0) + 'k';
+    }
+    return num.toString();
+  };
 
   const toggleFaqItem = (itemId: string) => {
     setOpenFaqItems(prev =>
@@ -28,13 +84,6 @@ export default function Pricing() {
     )
   }
 
-  const apiCountOptions = [
-    { value: '100k', label: '100K API calls', priceMultiplier: { develop: 1, growth: 1, scale: 1 } },
-    { value: '500k', label: '500K API calls', priceMultiplier: { develop: 1.5, growth: 1.3, scale: 1.2 } },
-    { value: '1m', label: '1M API calls', priceMultiplier: { develop: 2, growth: 1.5, scale: 1.3 } },
-    { value: '5m', label: '5M API calls', priceMultiplier: { develop: 3, growth: 2, scale: 1.5 } },
-    { value: 'unlimited', label: 'Unlimited', priceMultiplier: { develop: 4, growth: 2.5, scale: 1.8 } }
-  ];
 
   const faqData = [
     {
@@ -163,14 +212,10 @@ export default function Pricing() {
   ];
 
   const getPrice = (plan: any) => {
-    const selectedOption = apiCountOptions.find(option => option.value === selectedApiCount);
-    const multiplier = selectedOption?.priceMultiplier[plan.name.toLowerCase()] || 1;
-    const adjustedPrice = plan.basePrice * multiplier;
-
     if (billingPeriod === 'yearly') {
-      return Math.round((adjustedPrice * 10) / 12);
+      return Math.round((plan.basePrice * 10) / 12);
     }
-    return Math.round(adjustedPrice);
+    return plan.basePrice;
   };
 
   const getPeriod = () => {
@@ -272,7 +317,7 @@ export default function Pricing() {
       icon: Settings,
       items: [
         { name: "REST API Endpoints (40+)", develop: true, growth: true, scale: true },
-        { name: "API Calls per Month", develop: "10K", growth: "100K", scale: "Unlimited" },
+        { name: "API Calls per Month", develop: "100K", growth: "1M", scale: "5M+" },
         { name: "Real-time WebSocket Updates", develop: true, growth: true, scale: true },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
         { name: "Custom API Integrations", develop: false, growth: true, scale: true },
@@ -322,23 +367,6 @@ export default function Pricing() {
         </div>
       ) : (
         <div className="flex items-center justify-center"></div>
-      );
-    } else if (typeof value === 'object' && value.type === 'dropdown') {
-      return (
-        <div className="relative inline-block text-left">
-          <select
-            className="block appearance-none w-full bg-white border border-gray-300 text-gray-900 py-2 px-3 pr-8 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            value={selectedApiCount}
-            onChange={(e) => setSelectedApiCount(e.target.value)}
-          >
-            {apiCountOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-            <ChevronDown className="h-4 w-4" />
-          </div>
-        </div>
       );
     } else {
       return <span className="text-gray-600">{value}</span>;
@@ -396,6 +424,9 @@ export default function Pricing() {
             </span>
           </div>
         </div>
+
+        {/* Pricing Slider */}
+        <PricingSlider />
 
         {/* Pricing Table Header */}
         <div className="mt-12">
