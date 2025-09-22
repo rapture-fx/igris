@@ -27,6 +27,10 @@ from typing import Dict, Any, Optional, List, Iterator
 from celery import current_task
 import json
 import os
+import mmap
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+import threading
+from dataclasses import dataclass
 
 from app.core.celery_app import celery_app
 from app.services.ai_engine import DataQualityAnalyzer, DataCleaner, AutoLabeler
@@ -34,10 +38,22 @@ from app.services.ai_data_intelligence_processor import AIDataIntelligenceProces
 
 logger = logging.getLogger(__name__)
 
+@dataclass
+class ProcessingConfig:
+    """Configuration for large file processing"""
+    chunk_size: int = 10000
+    max_memory_percent: float = 85.0
+    use_memory_mapping: bool = True
+    parallel_workers: int = 4
+    progress_update_interval: int = 1000  # rows
+    enable_compression: bool = True
+
 # Memory management constants
 MAX_MEMORY_USAGE_PERCENT = 85
 CHUNK_SIZE = 10000  # Process in chunks of 10k rows
-MAX_FILE_SIZE_GB = 10  # Maximum file size to process
+# Removed MAX_FILE_SIZE_GB - now supports unlimited file sizes through streaming
+LARGE_FILE_THRESHOLD_GB = 0.1  # Switch to streaming for files > 100MB
+HUGE_FILE_THRESHOLD_GB = 1.0   # Use memory-mapped files for files > 1GB
 
 class MemoryMonitor:
     """Monitor and manage memory usage during processing"""
@@ -58,24 +74,120 @@ class MemoryMonitor:
         gc.collect()
         logger.info(f"Garbage collection completed. Memory usage: {MemoryMonitor.get_memory_usage()}%")
 
+class MemoryMappedFileProcessor:
+    """Memory-mapped file processor for extremely large files"""
+
+    def __init__(self, config: ProcessingConfig = None):
+        self.config = config or ProcessingConfig()
+        self.executor = ThreadPoolExecutor(max_workers=self.config.parallel_workers)
+
+    def read_csv_chunks_mmap(self, file_path: str) -> Iterator[pd.DataFrame]:
+        """Read CSV file using memory mapping for huge files"""
+        file_path = Path(file_path)
+
+        try:
+            with open(file_path, 'rb') as file:
+                with mmap.mmap(file.fileno(), 0, access=mmap.ACCESS_READ) as mmapped_file:
+                    # Find header line
+                    header_line = mmapped_file.readline().decode('utf-8').strip()
+                    headers = header_line.split(',')
+
+                    current_pos = mmapped_file.tell()
+                    chunk_data = []
+
+                    while current_pos < len(mmapped_file):
+                        chunk_lines = []
+                        rows_read = 0
+
+                        # Read chunk_size rows
+                        while rows_read < self.config.chunk_size and current_pos < len(mmapped_file):
+                            line = mmapped_file.readline()
+                            if not line:
+                                break
+
+                            line_str = line.decode('utf-8').strip()
+                            if line_str:
+                                chunk_lines.append(line_str.split(','))
+                                rows_read += 1
+
+                            current_pos = mmapped_file.tell()
+
+                        if chunk_lines:
+                            # Create DataFrame from chunk
+                            df_chunk = pd.DataFrame(chunk_lines, columns=headers)
+
+                            # Memory check before yielding
+                            if not MemoryMonitor.check_memory_limit():
+                                MemoryMonitor.force_garbage_collection()
+
+                            yield df_chunk
+
+        except Exception as e:
+            logger.error(f"Memory-mapped file reading failed: {e}")
+            raise
+
+    def process_parallel_chunks(self, file_path: str, processor_func, *args) -> List[Any]:
+        """Process file chunks in parallel using thread pool"""
+        chunks = list(self.read_csv_chunks_mmap(file_path))
+
+        if not chunks:
+            return []
+
+        # Process chunks in parallel
+        futures = []
+        for chunk in chunks:
+            future = self.executor.submit(processor_func, chunk, *args)
+            futures.append(future)
+
+        # Collect results
+        results = []
+        for future in futures:
+            try:
+                result = future.result(timeout=300)  # 5 minute timeout per chunk
+                results.append(result)
+            except Exception as e:
+                logger.error(f"Parallel chunk processing failed: {e}")
+                results.append(None)
+
+        return results
+
+    def __del__(self):
+        """Cleanup executor"""
+        if hasattr(self, 'executor'):
+            self.executor.shutdown(wait=True)
+
 class StreamingDataProcessor:
     """Process large datasets in streaming chunks"""
-    
-    def __init__(self, chunk_size: int = CHUNK_SIZE):
-        self.chunk_size = chunk_size
+
+    def __init__(self, config: ProcessingConfig = None):
+        self.config = config or ProcessingConfig()
+        self.chunk_size = self.config.chunk_size
         self.memory_monitor = MemoryMonitor()
+        self.mmap_processor = MemoryMappedFileProcessor(self.config)
+        self.progress_counter = 0
     
     def read_file_chunks(self, file_path: str, file_type: str = None) -> Iterator[pd.DataFrame]:
         """Read file in chunks to manage memory usage"""
         file_path = Path(file_path)
-        
+
         if not file_path.exists():
             raise FileNotFoundError(f"File not found: {file_path}")
-        
-        # Check file size
+
+        # Check file size to determine processing strategy
         file_size_gb = file_path.stat().st_size / (1024**3)
-        if file_size_gb > MAX_FILE_SIZE_GB:
-            raise ValueError(f"File too large: {file_size_gb:.2f}GB (max: {MAX_FILE_SIZE_GB}GB)")
+        logger.info(f"Processing file of size: {file_size_gb:.2f}GB")
+
+        # Use memory-mapped processing for huge files
+        if file_size_gb > HUGE_FILE_THRESHOLD_GB:
+            logger.info(f"Using memory-mapped processing for huge file: {file_size_gb:.2f}GB")
+            file_extension = file_path.suffix.lower()
+
+            if file_extension == '.csv':
+                # Use memory-mapped processing for huge CSV files
+                yield from self.mmap_processor.read_csv_chunks_mmap(str(file_path))
+                return
+            else:
+                logger.warning(f"Memory-mapped processing not supported for {file_extension}, falling back to standard streaming")
         
         file_extension = file_path.suffix.lower()
         
@@ -100,10 +212,17 @@ class StreamingDataProcessor:
                 # Check memory before processing each chunk
                 if not self.memory_monitor.check_memory_limit():
                     self.memory_monitor.force_garbage_collection()
-                    
+
                     if not self.memory_monitor.check_memory_limit():
                         raise MemoryError(f"Memory usage too high: {self.memory_monitor.get_memory_usage()}%")
-                
+
+                # Update progress counter
+                self.progress_counter += len(chunk)
+
+                # Log progress at intervals
+                if self.progress_counter % self.config.progress_update_interval == 0:
+                    logger.info(f"Processed {self.progress_counter} rows, memory usage: {self.memory_monitor.get_memory_usage()}%")
+
                 yield chunk
                 
         except Exception as e:
@@ -132,14 +251,24 @@ def comprehensive_ai_analysis_task(self, job_id: str, file_path: str, options: D
             meta={'progress': 10, 'status': 'Initializing AI analysis...'}
         )
         
-        # Initialize processors
+        # Initialize processors with enhanced configuration
         detective = AIDataIntelligenceProcessor()
-        processor = StreamingDataProcessor()
+
+        # Configure processing based on options
+        processing_config = ProcessingConfig(
+            chunk_size=options.get('chunk_size', CHUNK_SIZE),
+            max_memory_percent=options.get('max_memory_percent', MAX_MEMORY_USAGE_PERCENT),
+            use_memory_mapping=options.get('use_memory_mapping', True),
+            parallel_workers=options.get('parallel_workers', 4),
+            progress_update_interval=options.get('progress_update_interval', 1000)
+        )
+
+        processor = StreamingDataProcessor(processing_config)
         
         # Check if file needs streaming processing
         file_path_obj = Path(file_path)
         file_size_gb = file_path_obj.stat().st_size / (1024**3)
-        use_streaming = file_size_gb > 0.5  # Use streaming for files > 500MB
+        use_streaming = file_size_gb > LARGE_FILE_THRESHOLD_GB  # Use streaming for files > 100MB
         
         if use_streaming:
             logger.info(f"[Job {job_id}] Using streaming processing for large file ({file_size_gb:.2f}GB)")

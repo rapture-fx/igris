@@ -8,7 +8,7 @@ import pandas as pd
 import json
 import logging
 from typing import Dict, List, Any, Optional, Union, Callable
-from datetime import datetime
+from datetime import datetime, timedelta
 import aiohttp
 import asyncpg
 import aiomysql
@@ -23,8 +23,143 @@ from urllib.parse import urlparse
 import ssl
 from pathlib import Path
 import io
+import threading
+import hashlib
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import multiprocessing
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
+
+@dataclass
+class CloudStorageConfig:
+    """Configuration for enhanced cloud storage operations"""
+    multipart_threshold: int = 100 * 1024 * 1024  # 100MB
+    multipart_chunksize: int = 50 * 1024 * 1024   # 50MB per part
+    max_parallel_uploads: int = 10
+    max_parallel_downloads: int = 10
+    enable_caching: bool = True
+    cache_ttl_seconds: int = 3600  # 1 hour
+    enable_compression: bool = True
+    retry_attempts: int = 3
+    timeout_seconds: int = 300
+
+@dataclass
+class CacheEntry:
+    """Cache entry for storing file data"""
+    data: Any
+    timestamp: float
+    size_bytes: int
+    etag: Optional[str] = None
+
+    def is_expired(self, ttl_seconds: int) -> bool:
+        return time.time() - self.timestamp > ttl_seconds
+
+class CloudStorageCache:
+    """In-memory cache for cloud storage data with TTL"""
+
+    def __init__(self, max_size_mb: int = 1000):
+        self.cache: Dict[str, CacheEntry] = {}
+        self.max_size_bytes = max_size_mb * 1024 * 1024
+        self.current_size_bytes = 0
+        self.lock = threading.RLock()
+
+    def _generate_key(self, connection_name: str, container: str, file_path: str) -> str:
+        """Generate cache key"""
+        key_string = f"{connection_name}:{container}:{file_path}"
+        return hashlib.md5(key_string.encode()).hexdigest()
+
+    def get(self, connection_name: str, container: str, file_path: str,
+            ttl_seconds: int) -> Optional[Any]:
+        """Get cached data if valid"""
+        key = self._generate_key(connection_name, container, file_path)
+
+        with self.lock:
+            if key in self.cache:
+                entry = self.cache[key]
+                if not entry.is_expired(ttl_seconds):
+                    logger.debug(f"Cache hit for {file_path}")
+                    return entry.data
+                else:
+                    # Remove expired entry
+                    self._remove_entry(key)
+
+        logger.debug(f"Cache miss for {file_path}")
+        return None
+
+    def put(self, connection_name: str, container: str, file_path: str,
+            data: Any, etag: Optional[str] = None):
+        """Store data in cache"""
+        key = self._generate_key(connection_name, container, file_path)
+
+        # Estimate data size
+        try:
+            if isinstance(data, pd.DataFrame):
+                size_bytes = data.memory_usage(deep=True).sum()
+            elif isinstance(data, bytes):
+                size_bytes = len(data)
+            elif isinstance(data, str):
+                size_bytes = len(data.encode('utf-8'))
+            else:
+                size_bytes = 0  # Skip caching for unknown types
+                return
+        except:
+            size_bytes = 0
+            return
+
+        with self.lock:
+            # Check if we need to make space
+            while (self.current_size_bytes + size_bytes > self.max_size_bytes
+                   and len(self.cache) > 0):
+                self._evict_oldest()
+
+            # Store entry
+            entry = CacheEntry(
+                data=data,
+                timestamp=time.time(),
+                size_bytes=size_bytes,
+                etag=etag
+            )
+
+            # Remove old entry if exists
+            if key in self.cache:
+                self._remove_entry(key)
+
+            self.cache[key] = entry
+            self.current_size_bytes += size_bytes
+
+            logger.debug(f"Cached {file_path}, cache size: {len(self.cache)} entries, "
+                        f"{self.current_size_bytes / (1024*1024):.1f}MB")
+
+    def _remove_entry(self, key: str):
+        """Remove entry from cache"""
+        if key in self.cache:
+            entry = self.cache[key]
+            self.current_size_bytes -= entry.size_bytes
+            del self.cache[key]
+
+    def _evict_oldest(self):
+        """Evict oldest cache entry"""
+        if not self.cache:
+            return
+
+        oldest_key = min(self.cache.keys(),
+                        key=lambda k: self.cache[k].timestamp)
+        self._remove_entry(oldest_key)
+
+    def invalidate(self, connection_name: str, container: str, file_path: str):
+        """Invalidate specific cache entry"""
+        key = self._generate_key(connection_name, container, file_path)
+        with self.lock:
+            if key in self.cache:
+                self._remove_entry(key)
+
+    def clear(self):
+        """Clear all cache entries"""
+        with self.lock:
+            self.cache.clear()
+            self.current_size_bytes = 0
 
 class DatabaseConnector:
     """
