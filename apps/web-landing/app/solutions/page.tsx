@@ -31,7 +31,7 @@ export default function SolutionsPage() {
               <span style={{ color: '#1f53d0' }}>Clarity and scale, built to fit your industry.</span>
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
-              Across industries, Schlep-engine delivers clean, reliable data pipelines built to match your workflows and scale with your needs.
+              Across industries, Schlep-engine delivers clean, reliable data pipelines. <br /> Built to match your workflows and scale with your needs.
             </p>
           </div>
         </div>

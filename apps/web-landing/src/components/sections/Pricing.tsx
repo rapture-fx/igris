@@ -126,7 +126,7 @@ export default function Pricing() {
         {
           id: "data-scaling",
           question: "How does data processing scaling work?",
-          answer: "Processing limits are based on dataset size: Develop (500MB), Growth (1GB), Scale (2GB datasets + 500GB monthly). Our platform auto-scales to handle your data volume efficiently."
+          answer: "Processing limits are based on dataset size: Develop (100MB), Growth (500MB), Scale (1GB datasets + 10GB monthly). Our platform auto-scales to handle your data volume efficiently."
         },
         {
           id: "data-security",
@@ -146,7 +146,7 @@ export default function Pricing() {
         {
           id: "enterprise-solutions",
           question: "Do you offer enterprise solutions?",
-          answer: "Yes! Our Scale plan includes enterprise features like 500GB monthly processing, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
+          answer: "Yes! Our Scale plan includes enterprise features like 10GB monthly processing, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
         },
         {
           id: "custom-quote",
@@ -172,7 +172,7 @@ export default function Pricing() {
       tagline: "Perfect for individuals and small teams prototyping ML workflows.",
       highlights: [
         { icon: Activity, text: "5M API calls included" },
-        { icon: Database, text: "Process up to 500MB datasets" },
+        { icon: Database, text: "Process up to 100MB datasets" },
         { icon: Zap, text: "5 data source connections" },
         { icon: Users, text: "3 team members" },
         { icon: Shield, text: "Basic security & encryption" },
@@ -189,7 +189,7 @@ export default function Pricing() {
       popular: true,
       highlights: [
         { icon: Activity, text: "25M API calls included" },
-        { icon: Database, text: "Process up to 1GB datasets" },
+        { icon: Database, text: "Process up to 500MB datasets" },
         { icon: Zap, text: "Real-time pipeline processing" },
         { icon: Users, text: "15 team members + collaboration" },
         { icon: Shield, text: "Advanced security & compliance" },
@@ -206,7 +206,7 @@ export default function Pricing() {
       popular: false,
       highlights: [
         { icon: Activity, text: "100M API calls included" },
-        { icon: Database, text: "2GB datasets + 500GB monthly processing" },
+        { icon: Database, text: "1GB datasets + 10GB monthly processing" },
         { icon: Zap, text: "Enterprise performance & SLA" },
         { icon: Users, text: "100 team members + account manager" },
         { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" },
@@ -313,7 +313,7 @@ export default function Pricing() {
         { name: "Multi-Source Data Orchestration", develop: "5 Sources", growth: "15+ Sources", scale: "All Sources + Custom" },
         { name: "Real-time Pipeline Processing", develop: false, growth: true, scale: true },
         { name: "Automated Error Recovery & Rollback", develop: false, growth: true, scale: true },
-        { name: "Large Dataset Processing", develop: "500MB", growth: "1GB", scale: "2GB + 500GB monthly" },
+        { name: "Large Dataset Processing", develop: "100MB", growth: "500MB", scale: "1GB + 10GB monthly" },
         { name: "Pipeline State Management", develop: true, growth: true, scale: true }
       ]
     },
