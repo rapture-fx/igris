@@ -481,10 +481,17 @@ class DatabaseConnector:
 class CloudStorageConnector:
     """
     Universal cloud storage connector supporting AWS S3, Google Cloud Storage, and Azure Blob
+    Enhanced with multi-part uploads, parallel processing, and caching
     """
-    
-    def __init__(self):
+
+    def __init__(self, config: CloudStorageConfig = None):
         self.connections = {}
+        self.config = config or CloudStorageConfig()
+        self.cache = CloudStorageCache() if self.config.enable_caching else None
+        self.executor = ThreadPoolExecutor(max_workers=max(
+            self.config.max_parallel_uploads,
+            self.config.max_parallel_downloads
+        ))
         
     async def connect_aws_s3(
         self,
