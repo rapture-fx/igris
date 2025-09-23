@@ -75,9 +75,15 @@ class Settings(BaseSettings):
     PROMETHEUS_ENABLED: bool = Field(default=True, env="PROMETHEUS_ENABLED")
     METRICS_RETENTION_DAYS: int = Field(default=30, env="METRICS_RETENTION_DAYS")
     
-    # Celery
+    # Celery - Enhanced for AI workloads
     CELERY_BROKER_URL: str = Field(default="redis://localhost:6379/0", env="CELERY_BROKER_URL")
     CELERY_RESULT_BACKEND: str = Field(default="redis://localhost:6379/0", env="CELERY_RESULT_BACKEND")
+    CELERY_WORKER_CONCURRENCY: int = Field(default=4, env="CELERY_WORKER_CONCURRENCY")
+    CELERY_WORKER_PREFETCH_MULTIPLIER: int = Field(default=1, env="CELERY_WORKER_PREFETCH_MULTIPLIER")
+
+    # Distributed Processing - Simplified
+    ENABLE_DISTRIBUTED_PROCESSING: bool = Field(default=True, env="ENABLE_DISTRIBUTED_PROCESSING")
+    MAX_CONCURRENT_JOBS: int = Field(default=10, env="MAX_CONCURRENT_JOBS")
     
     # External Services
     ML_SERVICE_URL: Optional[str] = Field(default=None, env="ML_SERVICE_URL")
@@ -132,9 +138,9 @@ class Settings(BaseSettings):
     SERVICE_MESH_ENABLED: bool = Field(default=False, env="SERVICE_MESH_ENABLED")
     OBSERVABILITY_METRICS_RETENTION_DAYS: int = Field(default=30, env="OBSERVABILITY_METRICS_RETENTION_DAYS")
     
-    # File Upload
-    MAX_FILE_SIZE: int = Field(default=100 * 1024 * 1024, env="MAX_FILE_SIZE")  # 100MB
-    ALLOWED_FILE_TYPES: list = Field(default=["csv", "json", "xlsx", "parquet"], env="ALLOWED_FILE_TYPES")
+    # File Upload - AI-friendly limits
+    MAX_FILE_SIZE: int = Field(default=2 * 1024 * 1024 * 1024, env="MAX_FILE_SIZE")  # 2GB for AI datasets
+    ALLOWED_FILE_TYPES: list = Field(default=["csv", "json", "xlsx", "parquet", "txt", "jsonl", "tsv"], env="ALLOWED_FILE_TYPES")
     
     # Security Settings
     PASSWORD_MIN_LENGTH: int = Field(default=8, env="PASSWORD_MIN_LENGTH")

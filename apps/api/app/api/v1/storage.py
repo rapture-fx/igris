@@ -73,12 +73,14 @@ async def upload_file(
                 detail="Filename is required"
             )
         
-        # Check file size (limit to 100MB for now)
+        # Check file size using config limit
         content = await file.read()
-        if len(content) > 100 * 1024 * 1024:  # 100MB
+        from app.core.config import settings
+        if len(content) > settings.MAX_FILE_SIZE:
+            max_size_gb = settings.MAX_FILE_SIZE / (1024 * 1024 * 1024)
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail="File size exceeds 100MB limit"
+                detail=f"File size exceeds {max_size_gb:.1f}GB limit"
             )
         
         # Parse tags

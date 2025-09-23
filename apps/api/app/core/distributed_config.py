@@ -276,7 +276,10 @@ class DistributedConfigManager:
         if os.getenv("DISTRIBUTED_CLUSTER_TYPE"):
             config.cluster_type = ClusterType(os.getenv("DISTRIBUTED_CLUSTER_TYPE"))
 
-        if os.getenv("DISTRIBUTED_ENABLED"):
+        # Check both new and legacy environment variables
+        if os.getenv("ENABLE_DISTRIBUTED_PROCESSING"):
+            config.enable_distributed_processing = os.getenv("ENABLE_DISTRIBUTED_PROCESSING").lower() == "true"
+        elif os.getenv("DISTRIBUTED_ENABLED"):
             config.enable_distributed_processing = os.getenv("DISTRIBUTED_ENABLED").lower() == "true"
 
         # Resource settings

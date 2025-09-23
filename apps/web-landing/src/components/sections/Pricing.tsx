@@ -126,7 +126,7 @@ export default function Pricing() {
         {
           id: "data-scaling",
           question: "How does data processing scaling work?",
-          answer: "Processing limits are based on dataset size: Develop (100MB), Growth (500MB), Scale (1GB datasets + 10GB monthly). Our platform auto-scales to handle your data volume efficiently."
+          answer: "All plans offer unlimited file processing through streaming technology. Develop uses standard + streaming processing, Growth adds memory-mapped optimization, and Scale provides distributed processing with fault tolerance. Our platform auto-scales to handle datasets of any size efficiently."
         },
         {
           id: "data-security",
@@ -146,7 +146,7 @@ export default function Pricing() {
         {
           id: "enterprise-solutions",
           question: "Do you offer enterprise solutions?",
-          answer: "Yes! Our Scale plan includes enterprise features like 10GB monthly processing, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
+          answer: "Yes! Our Scale plan includes enterprise features like unlimited distributed processing, full cluster management, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
         },
         {
           id: "custom-quote",
@@ -169,10 +169,10 @@ export default function Pricing() {
       basePrice: 99,
       cta: "Start Develop for free",
       ctaLink: "/auth/register",
-      tagline: "Perfect for individuals and small teams prototyping ML workflows.",
+      tagline: "Perfect for individuals and small teams prototyping ML workflows with unlimited data processing.",
       highlights: [
         { icon: Activity, text: "5M API calls included" },
-        { icon: Database, text: "Process up to 100MB datasets" },
+        { icon: Database, text: "Unlimited file processing" },
         { icon: Zap, text: "5 data source connections" },
         { icon: Users, text: "3 team members" },
         { icon: Shield, text: "Basic security & encryption" },
@@ -185,11 +185,11 @@ export default function Pricing() {
       basePrice: 299,
       cta: "Start Growth for free",
       ctaLink: "/auth/register",
-      tagline: "For growing teams who need faster pipelines and collaboration.",
+      tagline: "For growing AI teams needing multi-modal data processing and streaming pipelines.",
       popular: true,
       highlights: [
         { icon: Activity, text: "25M API calls included" },
-        { icon: Database, text: "Process up to 500MB datasets" },
+        { icon: Database, text: "Streaming for large datasets" },
         { icon: Zap, text: "Real-time pipeline processing" },
         { icon: Users, text: "15 team members + collaboration" },
         { icon: Shield, text: "Advanced security & compliance" },
@@ -202,11 +202,11 @@ export default function Pricing() {
       basePrice: 599,
       cta: "Start to Scale for free",
       ctaLink: "/auth/register",
-      tagline: "Enterprise-grade performance, compliance, and scale without the infra burden.",
+      tagline: "Enterprise AI infrastructure with foundation model support and distributed processing.",
       popular: false,
       highlights: [
         { icon: Activity, text: "100M API calls included" },
-        { icon: Database, text: "1GB datasets + 10GB monthly processing" },
+        { icon: Database, text: "Unlimited distributed processing" },
         { icon: Zap, text: "Enterprise performance & SLA" },
         { icon: Users, text: "100 team members + account manager" },
         { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" },
@@ -306,6 +306,16 @@ export default function Pricing() {
 
   const features = [
     {
+      category: "Distributed Processing & Scale",
+      icon: Cpu,
+      items: [
+        { name: "File Size Limits", develop: "Unlimited (streaming)", growth: "Unlimited (optimized)", scale: "Unlimited (distributed)" },
+        { name: "Distributed Processing", develop: false, growth: "Auto-scaling", scale: "Full cluster management" },
+        { name: "Processing Method", develop: "Standard + Streaming", growth: "Streaming + Memory-mapped", scale: "Distributed + Fault tolerance" },
+        { name: "AI Training Data Support", develop: "Basic", growth: "Multi-modal", scale: "Foundation models + MLOps" }
+      ]
+    },
+    {
       category: "API-first Pipeline Platform",
       icon: Database,
       items: [
@@ -313,13 +323,13 @@ export default function Pricing() {
         { name: "Multi-Source Data Orchestration", develop: "5 Sources", growth: "15+ Sources", scale: "All Sources + Custom" },
         { name: "Real-time Pipeline Processing", develop: false, growth: true, scale: true },
         { name: "Automated Error Recovery & Rollback", develop: false, growth: true, scale: true },
-        { name: "Large Dataset Processing", develop: "100MB", growth: "500MB", scale: "1GB + 10GB monthly" },
+        { name: "Large Dataset Processing", develop: "Unlimited file processing", growth: "Streaming for large datasets", scale: "Distributed processing for TB-scale" },
         { name: "Pipeline State Management", develop: true, growth: true, scale: true }
       ]
     },
     {
       category: "ML Data Preparation",
-      icon: Cpu,
+      icon: Zap,
       items: [
         { name: "ML Framework Export Support", develop: "TensorFlow Only", growth: "TensorFlow + PyTorch", scale: "All Frameworks + Custom" },
         { name: "Data Registry & Version Control", develop: false, growth: true, scale: true },
