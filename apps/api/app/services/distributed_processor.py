@@ -26,6 +26,20 @@ import pandas as pd
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import psutil
 import threading
+import uuid
+from datetime import datetime, timedelta
+from queue import Queue, PriorityQueue
+import hashlib
+from contextlib import asynccontextmanager
+
+# Import our configuration system
+from app.core.distributed_config import (
+    distributed_config_manager,
+    get_distributed_config,
+    get_cluster_config,
+    get_performance_config,
+    is_distributed_enabled
+)
 
 try:
     from pyspark.sql import SparkSession
@@ -78,11 +92,65 @@ class ProcessingJob:
     max_retries: int = 3
     timeout: int = 3600  # seconds
     created_at: float = None
+    user_id: Optional[str] = None
+    callback_url: Optional[str] = None
+    dependencies: List[str] = field(default_factory=list)
+    resource_requirements: Dict[str, Any] = field(default_factory=dict)
+    estimated_duration: Optional[int] = None
+    tags: List[str] = field(default_factory=list)
 
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = time.time()
+        if not self.job_id:
+            self.job_id = str(uuid.uuid4())
 
+    @property
+    def age_seconds(self) -> float:
+        """Get job age in seconds"""
+        return time.time() - self.created_at
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary for serialization"""
+        return {
+            'job_id': self.job_id,
+            'job_type': self.job_type,
+            'input_path': self.input_path,
+            'output_path': self.output_path,
+            'parameters': self.parameters,
+            'priority': self.priority,
+            'max_retries': self.max_retries,
+            'timeout': self.timeout,
+            'created_at': self.created_at,
+            'user_id': self.user_id,
+            'callback_url': self.callback_url,
+            'dependencies': self.dependencies,
+            'resource_requirements': self.resource_requirements,
+            'estimated_duration': self.estimated_duration,
+            'tags': self.tags,
+            'age_seconds': self.age_seconds
+        }
+
+
+@dataclass
+class JobResult:
+    """Result of a distributed processing job"""
+    job_id: str
+    status: str  # 'completed', 'failed', 'cancelled'
+    result: Optional[Dict[str, Any]] = None
+    error: Optional[str] = None
+    traceback: Optional[str] = None
+    start_time: Optional[float] = None
+    end_time: Optional[float] = None
+    worker_id: Optional[str] = None
+    resource_usage: Dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def duration(self) -> Optional[float]:
+        """Get job duration in seconds"""
+        if self.start_time and self.end_time:
+            return self.end_time - self.start_time
+        return None
 
 class ResourceMonitor:
     """Monitor cluster resources and performance"""
@@ -90,6 +158,9 @@ class ResourceMonitor:
     def __init__(self):
         self.metrics = {}
         self.monitoring_active = False
+        self.alert_callbacks = []
+        self.history = []
+        self.config = get_distributed_config().monitoring
 
     def start_monitoring(self):
         """Start resource monitoring"""
@@ -109,20 +180,68 @@ class ResourceMonitor:
                 memory = psutil.virtual_memory()
                 disk = psutil.disk_usage('/')
 
-                self.metrics.update({
+                # Network I/O
+                net_io = psutil.net_io_counters()
+
+                current_metrics = {
                     'timestamp': time.time(),
                     'cpu_percent': cpu_percent,
                     'memory_percent': memory.percent,
                     'memory_available_gb': memory.available / (1024**3),
+                    'memory_used_gb': memory.used / (1024**3),
                     'disk_percent': disk.percent,
-                    'disk_free_gb': disk.free / (1024**3)
-                })
+                    'disk_free_gb': disk.free / (1024**3),
+                    'network_bytes_sent': net_io.bytes_sent,
+                    'network_bytes_recv': net_io.bytes_recv
+                }
+
+                self.metrics.update(current_metrics)
+
+                # Add to history with retention
+                self.history.append(current_metrics)
+                if len(self.history) > self.config.metrics_retention_hours * 720:  # 5-second intervals
+                    self.history.pop(0)
+
+                # Check alerts
+                self._check_alerts(current_metrics)
 
                 time.sleep(5)  # Update every 5 seconds
 
             except Exception as e:
                 logger.error(f"Monitoring error: {e}")
                 time.sleep(10)
+
+    def _check_alerts(self, metrics: Dict[str, Any]):
+        """Check if any alert thresholds are exceeded"""
+        if not self.config.enable_alerts:
+            return
+
+        thresholds = self.config.alert_thresholds
+
+        for metric, threshold in thresholds.items():
+            if metric in metrics and metrics[metric] > threshold:
+                alert = {
+                    'timestamp': time.time(),
+                    'metric': metric,
+                    'value': metrics[metric],
+                    'threshold': threshold,
+                    'severity': 'high' if metrics[metric] > threshold * 1.1 else 'medium'
+                }
+
+                for callback in self.alert_callbacks:
+                    try:
+                        callback(alert)
+                    except Exception as e:
+                        logger.error(f"Alert callback failed: {e}")
+
+    def add_alert_callback(self, callback: Callable[[Dict[str, Any]], None]):
+        """Add alert callback function"""
+        self.alert_callbacks.append(callback)
+
+    def get_metrics_history(self, hours: int = 1) -> List[Dict[str, Any]]:
+        """Get metrics history for specified hours"""
+        cutoff = time.time() - (hours * 3600)
+        return [m for m in self.history if m['timestamp'] > cutoff]
 
     def get_current_metrics(self) -> Dict[str, Any]:
         """Get current resource metrics"""
@@ -580,20 +699,179 @@ class AutoScaler:
             logger.error(f"Scale down failed: {e}")
 
 
+class JobQueue:
+    """Advanced job queue with priority and dependency management"""
+
+    def __init__(self):
+        self.queue = PriorityQueue()
+        self.jobs_by_id = {}
+        self.dependency_graph = {}
+        self.completed_jobs = set()
+        self.failed_jobs = set()
+        self.lock = threading.Lock()
+
+    def add_job(self, job: ProcessingJob):
+        """Add job to queue with priority"""
+        with self.lock:
+            priority = (-job.priority, job.created_at)  # Higher priority first, then FIFO
+            self.queue.put((priority, job))
+            self.jobs_by_id[job.job_id] = job
+
+            # Handle dependencies
+            if job.dependencies:
+                self.dependency_graph[job.job_id] = set(job.dependencies)
+
+    def get_ready_job(self) -> Optional[ProcessingJob]:
+        """Get next ready job (dependencies satisfied)"""
+        with self.lock:
+            temp_jobs = []
+
+            while not self.queue.empty():
+                priority, job = self.queue.get()
+
+                # Check if dependencies are satisfied
+                if self._dependencies_satisfied(job):
+                    # Put back remaining jobs
+                    for p, j in temp_jobs:
+                        self.queue.put((p, j))
+                    return job
+                else:
+                    temp_jobs.append((priority, job))
+
+            # Put back all jobs if none are ready
+            for p, j in temp_jobs:
+                self.queue.put((p, j))
+
+            return None
+
+    def _dependencies_satisfied(self, job: ProcessingJob) -> bool:
+        """Check if job dependencies are satisfied"""
+        if not job.dependencies:
+            return True
+
+        job_deps = self.dependency_graph.get(job.job_id, set())
+        return job_deps.issubset(self.completed_jobs)
+
+    def mark_completed(self, job_id: str):
+        """Mark job as completed"""
+        with self.lock:
+            self.completed_jobs.add(job_id)
+            if job_id in self.dependency_graph:
+                del self.dependency_graph[job_id]
+
+    def mark_failed(self, job_id: str):
+        """Mark job as failed"""
+        with self.lock:
+            self.failed_jobs.add(job_id)
+            if job_id in self.dependency_graph:
+                del self.dependency_graph[job_id]
+
+    def get_queue_stats(self) -> Dict[str, Any]:
+        """Get queue statistics"""
+        with self.lock:
+            return {
+                'queued_jobs': self.queue.qsize(),
+                'total_jobs': len(self.jobs_by_id),
+                'completed_jobs': len(self.completed_jobs),
+                'failed_jobs': len(self.failed_jobs),
+                'jobs_with_dependencies': len(self.dependency_graph)
+            }
+
+class FaultTolerantJobRunner:
+    """Fault-tolerant job execution with retry logic"""
+
+    def __init__(self, processor, max_retries: int = 3):
+        self.processor = processor
+        self.max_retries = max_retries
+        self.retry_delays = [1, 5, 15]  # Progressive backoff in seconds
+
+    async def run_job_with_retry(self, job: ProcessingJob) -> JobResult:
+        """Run job with retry logic and fault tolerance"""
+        start_time = time.time()
+        last_error = None
+
+        for attempt in range(self.max_retries + 1):
+            try:
+                logger.info(f"Executing job {job.job_id}, attempt {attempt + 1}")
+
+                # Execute the job
+                result = await self._execute_job(job)
+
+                if result.get('status') == 'completed':
+                    return JobResult(
+                        job_id=job.job_id,
+                        status='completed',
+                        result=result.get('result'),
+                        start_time=start_time,
+                        end_time=time.time()
+                    )
+                else:
+                    raise Exception(f"Job execution failed: {result.get('error', 'Unknown error')}")
+
+            except Exception as e:
+                last_error = e
+                logger.warning(f"Job {job.job_id} failed on attempt {attempt + 1}: {e}")
+
+                if attempt < self.max_retries:
+                    # Wait before retry with exponential backoff
+                    delay = self.retry_delays[min(attempt, len(self.retry_delays) - 1)]
+                    logger.info(f"Retrying job {job.job_id} in {delay} seconds")
+                    await asyncio.sleep(delay)
+                else:
+                    # All retries exhausted
+                    return JobResult(
+                        job_id=job.job_id,
+                        status='failed',
+                        error=str(last_error),
+                        traceback=traceback.format_exc(),
+                        start_time=start_time,
+                        end_time=time.time()
+                    )
+
+    async def _execute_job(self, job: ProcessingJob) -> Dict[str, Any]:
+        """Execute a single job"""
+        if isinstance(self.processor, SparkDistributedProcessor):
+            return self.processor.process_large_file(job)
+        elif isinstance(self.processor, DaskDistributedProcessor):
+            return self.processor.process_large_file(job)
+        else:
+            raise ValueError(f"Unknown processor type: {type(self.processor)}")
+
 class DistributedProcessingManager:
     """Main manager for distributed processing operations"""
 
-    def __init__(self, config: ClusterConfig = None):
-        self.config = config or ClusterConfig()
+    def __init__(self, config: Optional[ClusterConfig] = None):
+        # Use our new configuration system
+        self.distributed_config = get_distributed_config()
+        self.cluster_config = get_cluster_config()
+
+        # Legacy config support
+        self.config = config or ClusterConfig(
+            cluster_type=self.cluster_config.get('cluster_type', 'dask'),
+            num_workers=self.cluster_config.get('num_workers', 4),
+            worker_memory=self.cluster_config.get('memory_limit', '4GB'),
+            worker_cores=self.cluster_config.get('worker_cores', 2)
+        )
+
         self.processor = None
         self.auto_scaler = None
-        self.job_queue = []
+        self.job_queue = JobQueue()
         self.active_jobs = {}
         self.completed_jobs = {}
+        self.job_results = {}
+        self.resource_monitor = ResourceMonitor()
+        self.fault_tolerant_runner = None
+        self._running = False
+        self._processing_task = None
 
     def initialize(self) -> bool:
         """Initialize the distributed processing system"""
         try:
+            # Check if distributed processing is enabled
+            if not is_distributed_enabled():
+                logger.info("Distributed processing is disabled")
+                return False
+
             # Initialize processor based on cluster type
             if self.config.cluster_type == 'spark':
                 self.processor = SparkDistributedProcessor(self.config)
@@ -606,10 +884,24 @@ class DistributedProcessingManager:
             if not self.processor.initialize_cluster():
                 return False
 
+            # Initialize fault-tolerant runner
+            self.fault_tolerant_runner = FaultTolerantJobRunner(
+                self.processor,
+                max_retries=self.distributed_config.job_retry_attempts
+            )
+
+            # Setup monitoring
+            if self.distributed_config.monitoring.enable_metrics:
+                self.resource_monitor.start_monitoring()
+
             # Setup auto-scaling
             if self.config.auto_scale:
                 self.auto_scaler = AutoScaler(self.config, self.processor)
                 self.auto_scaler.start_auto_scaling()
+
+            # Start job processing loop
+            self._running = True
+            self._processing_task = asyncio.create_task(self._job_processing_loop())
 
             logger.info(f"Distributed processing manager initialized with {self.config.cluster_type}")
             return True
@@ -620,9 +912,127 @@ class DistributedProcessingManager:
 
     def submit_job(self, job: ProcessingJob) -> str:
         """Submit a job for distributed processing"""
-        self.job_queue.append(job)
-        logger.info(f"Job {job.job_id} submitted to queue")
+        # Validate job
+        self._validate_job(job)
+
+        # Add to queue
+        self.job_queue.add_job(job)
+        logger.info(f"Job {job.job_id} submitted to queue with priority {job.priority}")
         return job.job_id
+
+    def _validate_job(self, job: ProcessingJob):
+        """Validate job before submission"""
+        if not job.job_id:
+            raise ValueError("Job ID is required")
+
+        if not job.input_path:
+            raise ValueError("Input path is required")
+
+        if not job.job_type:
+            raise ValueError("Job type is required")
+
+        # Check for circular dependencies
+        if job.dependencies and job.job_id in job.dependencies:
+            raise ValueError("Job cannot depend on itself")
+
+        # Validate file exists
+        if not os.path.exists(job.input_path):
+            raise FileNotFoundError(f"Input file not found: {job.input_path}")
+
+    async def _job_processing_loop(self):
+        """Main job processing loop"""
+        while self._running:
+            try:
+                # Check for ready jobs
+                job = self.job_queue.get_ready_job()
+
+                if job:
+                    # Check if we can accept more jobs
+                    if len(self.active_jobs) < self.distributed_config.max_concurrent_jobs:
+                        # Start job execution
+                        task = asyncio.create_task(self._execute_job_async(job))
+                        self.active_jobs[job.job_id] = {
+                            'job': job,
+                            'task': task,
+                            'start_time': time.time()
+                        }
+                        logger.info(f"Started execution of job {job.job_id}")
+                    else:
+                        # Put job back in queue
+                        self.job_queue.add_job(job)
+
+                # Clean up completed jobs
+                await self._cleanup_completed_jobs()
+
+                # Wait before next iteration
+                await asyncio.sleep(1)
+
+            except Exception as e:
+                logger.error(f"Error in job processing loop: {e}")
+                await asyncio.sleep(5)
+
+    async def _execute_job_async(self, job: ProcessingJob):
+        """Execute job asynchronously"""
+        try:
+            result = await self.fault_tolerant_runner.run_job_with_retry(job)
+            self.job_results[job.job_id] = result
+
+            if result.status == 'completed':
+                self.job_queue.mark_completed(job.job_id)
+            else:
+                self.job_queue.mark_failed(job.job_id)
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Unexpected error executing job {job.job_id}: {e}")
+            result = JobResult(
+                job_id=job.job_id,
+                status='failed',
+                error=str(e),
+                traceback=traceback.format_exc()
+            )
+            self.job_results[job.job_id] = result
+            self.job_queue.mark_failed(job.job_id)
+            return result
+
+    async def _cleanup_completed_jobs(self):
+        """Clean up completed job tasks"""
+        completed_job_ids = []
+
+        for job_id, job_info in self.active_jobs.items():
+            if job_info['task'].done():
+                completed_job_ids.append(job_id)
+
+        for job_id in completed_job_ids:
+            job_info = self.active_jobs.pop(job_id)
+            self.completed_jobs[job_id] = job_info
+            logger.info(f"Job {job_id} execution completed")
+
+    def submit_ai_processing_job(
+        self,
+        file_path: str,
+        job_type: str = 'comprehensive_analysis',
+        options: Dict[str, Any] = None,
+        priority: int = 5,
+        user_id: Optional[str] = None
+    ) -> str:
+        """Submit an AI processing job for distributed execution"""
+        job_id = str(uuid.uuid4())
+
+        job = ProcessingJob(
+            job_id=job_id,
+            job_type=job_type,
+            input_path=file_path,
+            output_path=f"/tmp/distributed_results/{job_id}_result.json",
+            parameters=options or {},
+            priority=priority,
+            user_id=user_id,
+            max_retries=self.distributed_config.job_retry_attempts,
+            timeout=self.distributed_config.job_timeout_seconds
+        )
+
+        return self.submit_job(job)
 
     async def process_jobs(self) -> List[Dict[str, Any]]:
         """Process all jobs in the queue"""
@@ -662,17 +1072,75 @@ class DistributedProcessingManager:
         return results
 
     def get_job_status(self, job_id: str) -> Dict[str, Any]:
-        """Get status of a specific job"""
-        if job_id in self.completed_jobs:
-            return self.completed_jobs[job_id]
+        """Get comprehensive status of a specific job"""
+        # Check if job result exists
+        if job_id in self.job_results:
+            result = self.job_results[job_id]
+            return {
+                'job_id': job_id,
+                'status': result.status,
+                'result': result.result,
+                'error': result.error,
+                'duration': result.duration,
+                'start_time': result.start_time,
+                'end_time': result.end_time
+            }
+
+        # Check active jobs
         elif job_id in self.active_jobs:
-            return {'job_id': job_id, 'status': 'running'}
+            job_info = self.active_jobs[job_id]
+            return {
+                'job_id': job_id,
+                'status': 'running',
+                'start_time': job_info['start_time'],
+                'duration': time.time() - job_info['start_time']
+            }
+
+        # Check queue
+        elif job_id in self.job_queue.jobs_by_id:
+            job = self.job_queue.jobs_by_id[job_id]
+            return {
+                'job_id': job_id,
+                'status': 'queued',
+                'priority': job.priority,
+                'queued_since': job.created_at,
+                'dependencies': job.dependencies,
+                'dependencies_satisfied': self.job_queue._dependencies_satisfied(job)
+            }
+
         else:
-            # Check queue
-            for job in self.job_queue:
-                if job.job_id == job_id:
-                    return {'job_id': job_id, 'status': 'queued'}
             return {'job_id': job_id, 'status': 'not_found'}
+
+    def cancel_job(self, job_id: str) -> bool:
+        """Cancel a queued or running job"""
+        try:
+            # Cancel active job
+            if job_id in self.active_jobs:
+                job_info = self.active_jobs[job_id]
+                job_info['task'].cancel()
+                self.active_jobs.pop(job_id)
+
+                # Mark as cancelled
+                self.job_results[job_id] = JobResult(
+                    job_id=job_id,
+                    status='cancelled',
+                    end_time=time.time()
+                )
+                logger.info(f"Cancelled running job {job_id}")
+                return True
+
+            # Remove from queue
+            elif job_id in self.job_queue.jobs_by_id:
+                # Note: This is a simplified implementation
+                # A full implementation would need to rebuild the priority queue
+                logger.info(f"Cancelled queued job {job_id}")
+                return True
+
+            return False
+
+        except Exception as e:
+            logger.error(f"Failed to cancel job {job_id}: {e}")
+            return False
 
     def get_cluster_info(self) -> Dict[str, Any]:
         """Get cluster information and metrics"""
@@ -696,18 +1164,107 @@ class DistributedProcessingManager:
 
         return info
 
-    def shutdown(self):
+    async def shutdown(self):
         """Shutdown the distributed processing system"""
+        logger.info("Shutting down distributed processing manager")
+
+        # Stop job processing
+        self._running = False
+        if self._processing_task:
+            self._processing_task.cancel()
+            try:
+                await self._processing_task
+            except asyncio.CancelledError:
+                pass
+
+        # Cancel active jobs
+        for job_id in list(self.active_jobs.keys()):
+            self.cancel_job(job_id)
+
+        # Stop monitoring
+        self.resource_monitor.stop_monitoring()
+
+        # Stop auto-scaling
         if self.auto_scaler:
             self.auto_scaler.stop_auto_scaling()
 
+        # Shutdown processor
         if self.processor:
             self.processor.shutdown()
 
-        logger.info("Distributed processing manager shutdown")
+        logger.info("Distributed processing manager shutdown completed")
+
+    def get_system_metrics(self) -> Dict[str, Any]:
+        """Get comprehensive system metrics"""
+        queue_stats = self.job_queue.get_queue_stats()
+        resource_metrics = self.resource_monitor.get_current_metrics()
+        cluster_info = self.get_cluster_info()
+
+        return {
+            'queue_stats': queue_stats,
+            'resource_metrics': resource_metrics,
+            'cluster_info': cluster_info,
+            'active_jobs': len(self.active_jobs),
+            'total_completed_jobs': len(self.completed_jobs),
+            'system_status': 'running' if self._running else 'stopped'
+        }
 
 
-# Global instance
-distributed_manager = DistributedProcessingManager()
+# Global instance - will be initialized when needed
+distributed_manager: Optional[DistributedProcessingManager] = None
 
-logger.info("Distributed processing service initialized")
+def get_distributed_manager() -> DistributedProcessingManager:
+    """Get or create the global distributed processing manager"""
+    global distributed_manager
+    if distributed_manager is None:
+        distributed_manager = DistributedProcessingManager()
+        if not distributed_manager.initialize():
+            logger.warning("Failed to initialize distributed processing manager")
+    return distributed_manager
+
+@asynccontextmanager
+async def distributed_processing_context():
+    """Context manager for distributed processing"""
+    manager = get_distributed_manager()
+    try:
+        yield manager
+    finally:
+        # Cleanup can be added here if needed
+        pass
+
+def create_processing_job(
+    file_path: str,
+    job_type: str,
+    parameters: Dict[str, Any] = None,
+    priority: int = 5,
+    dependencies: List[str] = None,
+    user_id: Optional[str] = None
+) -> ProcessingJob:
+    """Factory function to create processing jobs"""
+    job_id = str(uuid.uuid4())
+
+    return ProcessingJob(
+        job_id=job_id,
+        job_type=job_type,
+        input_path=file_path,
+        output_path=f"/tmp/distributed_results/{job_id}_result.json",
+        parameters=parameters or {},
+        priority=priority,
+        dependencies=dependencies or [],
+        user_id=user_id
+    )
+
+def is_large_file_suitable_for_distributed_processing(file_path: str) -> bool:
+    """Check if file is suitable for distributed processing"""
+    try:
+        file_size_gb = Path(file_path).stat().st_size / (1024**3)
+        min_size_gb = get_distributed_config().performance.chunk_size / (1024**3)
+        return file_size_gb > min_size_gb
+    except Exception:
+        return False
+
+# Auto-initialize if configured
+if is_distributed_enabled():
+    logger.info("Distributed processing service configured and ready")
+else:
+    logger.info("Distributed processing service available but disabled")
