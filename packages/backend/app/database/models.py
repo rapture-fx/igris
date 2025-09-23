@@ -708,4 +708,228 @@ class DatasetCollaboration(Base):
     # Relationships
     dataset = relationship("Dataset", back_populates="collaborations")
     collaborator = relationship("User", foreign_keys=[collaborator_id], back_populates="dataset_collaborations")
-    invited_by = relationship("User", foreign_keys=[invited_by_id], back_populates="dataset_invitations") 
+    invited_by = relationship("User", foreign_keys=[invited_by_id], back_populates="dataset_invitations")
+
+# Enhanced Models for Distributed Processing and Training Data Management
+
+class SplitStrategy(str, enum.Enum):
+    """Dataset splitting strategies"""
+    RANDOM = "random"
+    STRATIFIED = "stratified"
+    TEMPORAL = "temporal"
+    CUSTOM = "custom"
+
+class ProcessingFormat(str, enum.Enum):
+    """Supported file formats for processing"""
+    CSV = "csv"
+    JSONL = "jsonl"
+    PARQUET = "parquet"
+    TSV = "tsv"
+
+class DatasetSplit(Base):
+    """Dataset splits for training/validation/test"""
+    __tablename__ = "dataset_splits"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_version_id = Column(UUID(as_uuid=True), ForeignKey("dataset_versions.id"), nullable=False)
+    split_strategy = Column(Enum(SplitStrategy), nullable=False)
+
+    # Split configuration
+    train_ratio = Column(Float, default=0.7)
+    val_ratio = Column(Float, default=0.15)
+    test_ratio = Column(Float, default=0.15)
+    target_column = Column(String)  # For stratified splitting
+    time_column = Column(String)    # For temporal splitting
+    random_seed = Column(Integer, default=42)
+
+    # Split file paths
+    train_path = Column(String, nullable=False)
+    val_path = Column(String, nullable=False)
+    test_path = Column(String, nullable=False)
+
+    # Split statistics
+    train_rows = Column(Integer)
+    val_rows = Column(Integer)
+    test_rows = Column(Integer)
+
+    # Quality scores for each split
+    train_quality_score = Column(Float)
+    val_quality_score = Column(Float)
+    test_quality_score = Column(Float)
+
+    # Provenance and metadata
+    provenance_info = Column(JSON, default=dict)
+    split_metadata = Column(JSON, default=dict)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    # Relationships
+    dataset_version = relationship("DatasetVersion", backref="splits")
+    created_by = relationship("User")
+
+class FoundationModelJob(Base):
+    """Foundation model preparation jobs"""
+    __tablename__ = "foundation_model_jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    input_path = Column(String, nullable=False)
+    output_path = Column(String)
+
+    # Tokenization configuration
+    model_name_or_path = Column(String, default="gpt2")
+    max_sequence_length = Column(Integer, default=2048)
+    tokenization_strategy = Column(String, default="autoregressive")
+
+    # Processing configuration
+    text_column = Column(String, default="text")
+    enable_deduplication = Column(Boolean, default=True)
+    enable_sequence_packing = Column(Boolean, default=True)
+
+    # Results
+    total_sequences = Column(Integer)
+    total_tokens = Column(Integer)
+    vocab_size = Column(Integer)
+    avg_sequence_length = Column(Float)
+    dedup_removed_count = Column(Integer, default=0)
+
+    # Job execution
+    status = Column(Enum(JobStatus), default=JobStatus.PENDING)
+    progress_percentage = Column(Float, default=0.0)
+    error_message = Column(Text)
+    processing_time_seconds = Column(Float)
+
+    # Quality metrics
+    quality_metrics = Column(JSON, default=dict)
+    tokenizer_info = Column(JSON, default=dict)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    started_at = Column(DateTime(timezone=True))
+    completed_at = Column(DateTime(timezone=True))
+    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    # Relationships
+    created_by = relationship("User")
+
+class DistributedProcessingJob(Base):
+    """Distributed processing jobs for large datasets"""
+    __tablename__ = "distributed_processing_jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    input_path = Column(String, nullable=False)
+    output_path = Column(String)
+    file_format = Column(Enum(ProcessingFormat), nullable=False)
+
+    # Processing configuration
+    chunk_size = Column(Integer, default=50000)
+    max_workers = Column(Integer, default=4)
+    enable_quality_checks = Column(Boolean, default=True)
+
+    # Results
+    total_rows = Column(Integer)
+    total_size_mb = Column(Float)
+    quality_score = Column(Float)
+
+    # Job execution
+    status = Column(Enum(JobStatus), default=JobStatus.PENDING)
+    progress_percentage = Column(Float, default=0.0)
+    current_operation = Column(String)
+    error_message = Column(Text)
+    processing_time_seconds = Column(Float)
+
+    # System metrics during processing
+    peak_memory_usage_mb = Column(Float)
+    avg_cpu_usage_percent = Column(Float)
+
+    # Metadata
+    job_metadata = Column(JSON, default=dict)
+    performance_metrics = Column(JSON, default=dict)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    started_at = Column(DateTime(timezone=True))
+    completed_at = Column(DateTime(timezone=True))
+    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    # Relationships
+    created_by = relationship("User")
+
+class QualityMonitoringJob(Base):
+    """Quality monitoring jobs for training data assessment"""
+    __tablename__ = "quality_monitoring_jobs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"))
+    dataset_path = Column(String, nullable=False)
+
+    # Configuration
+    target_column = Column(String)  # For class imbalance analysis
+    reference_dataset_path = Column(String)  # For drift analysis
+    enable_pdf_report = Column(Boolean, default=False)
+
+    # Quality metrics
+    overall_quality_score = Column(Float)
+    quality_grade = Column(String)
+    missing_values_ratio = Column(Float)
+    class_imbalance_ratio = Column(Float)
+    drift_detected = Column(Boolean, default=False)
+
+    # Analysis results
+    missing_values_analysis = Column(JSON, default=dict)
+    class_imbalance_analysis = Column(JSON, default=dict)
+    drift_analysis = Column(JSON, default=dict)
+    column_profiles = Column(JSON, default=dict)
+    outlier_analysis = Column(JSON, default=dict)
+    duplicate_analysis = Column(JSON, default=dict)
+
+    # Recommendations
+    quality_recommendations = Column(JSON, default=list)
+
+    # Job execution
+    status = Column(Enum(JobStatus), default=JobStatus.PENDING)
+    progress_percentage = Column(Float, default=0.0)
+    current_operation = Column(String)
+    error_message = Column(Text)
+    processing_time_seconds = Column(Float)
+
+    # Report paths
+    json_report_path = Column(String)
+    pdf_report_path = Column(String)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    started_at = Column(DateTime(timezone=True))
+    completed_at = Column(DateTime(timezone=True))
+    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    # Relationships
+    dataset = relationship("Dataset")
+    created_by = relationship("User")
+
+class DatasetLineage(Base):
+    """Track dataset lineage and transformations"""
+    __tablename__ = "dataset_lineage"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"), nullable=False)
+    parent_dataset_id = Column(UUID(as_uuid=True), ForeignKey("datasets.id"))
+
+    # Transformation information
+    transformation_type = Column(String, nullable=False)  # split, merge, filter, etc.
+    transformation_config = Column(JSON, default=dict)
+    transformation_description = Column(Text)
+
+    # Processing job that created this lineage
+    processing_job_id = Column(UUID(as_uuid=True))
+    processing_job_type = Column(String)
+
+    # Timestamps
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    created_by_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+
+    # Relationships
+    dataset = relationship("Dataset", foreign_keys=[dataset_id])
+    parent_dataset = relationship("Dataset", foreign_keys=[parent_dataset_id])
+    created_by = relationship("User") 
