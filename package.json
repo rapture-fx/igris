@@ -42,8 +42,7 @@
     "deps:outdated": "pnpm outdated --recursive",
     "security:scan": "pnpm audit && node scripts/security-scan.js",
     "security:scan:python": "python3 scripts/check-python-dependencies.py",
-    "security:scan:all": "pnpm security:scan && pnpm security:scan:python",
-    "postinstall": "node scripts/post-install.js"
+    "security:scan:all": "pnpm security:scan && pnpm security:scan:python"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
