@@ -819,5 +819,64 @@ class TrainingDataManager:
 
         return mapping.get(suffix, DatasetFormat.CSV)
 
+    async def create_training_splits(
+        self,
+        dataset_id: str,
+        split_strategy: str,
+        validation_requirements: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Generate training splits with stratified, random, or temporal strategies.
+        Track dataset versions and provenance in Postgres.
+
+        This method implements the exact skeleton interface while leveraging
+        the comprehensive functionality of create_dataset_split.
+        """
+        try:
+            # Convert string strategy to enum
+            strategy_map = {
+                "random": SplitStrategy.RANDOM,
+                "stratified": SplitStrategy.STRATIFIED,
+                "temporal": SplitStrategy.TEMPORAL
+            }
+
+            if split_strategy not in strategy_map:
+                return {"status": "error", "message": f"Unsupported split strategy: {split_strategy}"}
+
+            # Parse validation requirements to create split config
+            split_config = SplitConfig(
+                strategy=strategy_map[split_strategy],
+                train_ratio=validation_requirements.get("train_ratio", 0.7),
+                val_ratio=validation_requirements.get("val_ratio", 0.15),
+                test_ratio=validation_requirements.get("test_ratio", 0.15),
+                stratify_column=validation_requirements.get("stratify_column"),
+                temporal_column=validation_requirements.get("temporal_column"),
+                random_seed=validation_requirements.get("random_seed", 42)
+            )
+
+            # Use the comprehensive method
+            dataset_version_id = uuid.UUID(dataset_id) if isinstance(dataset_id, str) else dataset_id
+            dataset_split = await self.create_dataset_split(dataset_version_id, split_config)
+
+            return {
+                "status": "completed",
+                "split_id": dataset_split.split_id,
+                "train_path": dataset_split.train_path,
+                "val_path": dataset_split.val_path,
+                "test_path": dataset_split.test_path,
+                "statistics": {
+                    "train_rows": dataset_split.train_rows,
+                    "val_rows": dataset_split.val_rows,
+                    "test_rows": dataset_split.test_rows,
+                    "train_quality": dataset_split.train_quality,
+                    "val_quality": dataset_split.val_quality,
+                    "test_quality": dataset_split.test_quality
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to create training splits: {e}")
+            return {"status": "error", "message": str(e)}
+
 # Global instance
 training_data_manager = TrainingDataManager()

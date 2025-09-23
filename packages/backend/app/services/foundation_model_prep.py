@@ -677,5 +677,93 @@ class FoundationModelPrep:
             logger.error(f"Failed to get prep job status: {e}")
             return {"error": str(e)}
 
-# Global instance
+# Skeleton compatibility class
+class FoundationModelDataPrep:
+    """
+    Wrapper class to provide the exact skeleton interface.
+
+    This class maintains compatibility with the skeleton requirements
+    while leveraging the comprehensive FoundationModelPrep implementation.
+    """
+
+    def __init__(self):
+        self.foundation_prep = FoundationModelPrep()
+
+    async def prepare_pretraining_data(
+        self,
+        raw_datasets: List[str],
+        tokenizer_config: Dict[str, Any],
+        sequence_config: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Prepare text corpora for foundation model training.
+        Includes tokenization, sequence packing, and deduplication.
+
+        This method implements the exact skeleton interface.
+        """
+        try:
+            # Convert skeleton parameters to internal config formats
+            tokenization_config = TokenizationConfig(
+                model_name_or_path=tokenizer_config.get("model_name_or_path", "gpt2"),
+                max_length=sequence_config.get("max_length", 512),
+                padding=tokenizer_config.get("padding", "max_length"),
+                truncation=tokenizer_config.get("truncation", True),
+                pack_sequences=sequence_config.get("pack_sequences", True),
+                packing_strategy=SequencePackingStrategy(sequence_config.get("packing_strategy", "concat"))
+            )
+
+            dedup_config = None
+            if sequence_config.get("enable_deduplication", True):
+                dedup_config = DeduplicationConfig(
+                    method="hash",
+                    threshold=sequence_config.get("dedup_threshold", 0.8)
+                )
+
+            # Process each dataset
+            results = []
+            for i, dataset_path in enumerate(raw_datasets):
+                output_path = f"prepared_dataset_{i}.jsonl"
+
+                job_id = await self.foundation_prep.prepare_dataset_for_pretraining(
+                    input_path=dataset_path,
+                    output_path=output_path,
+                    tokenization_config=tokenization_config,
+                    dedup_config=dedup_config
+                )
+
+                # Wait for completion and get result
+                while True:
+                    status = await self.foundation_prep.get_prep_job_status(job_id)
+                    if status.get("status") == "completed":
+                        results.append({
+                            "dataset_path": dataset_path,
+                            "output_path": output_path,
+                            "job_id": job_id,
+                            "result": status.get("result", {})
+                        })
+                        break
+                    elif status.get("status") == "failed":
+                        results.append({
+                            "dataset_path": dataset_path,
+                            "status": "failed",
+                            "error": status.get("error")
+                        })
+                        break
+
+                    # Wait before checking again
+                    await asyncio.sleep(1)
+
+            return {
+                "status": "completed" if all(r.get("status") != "failed" for r in results) else "partial",
+                "results": results,
+                "total_datasets": len(raw_datasets),
+                "successful_datasets": len([r for r in results if r.get("status") != "failed"])
+            }
+
+        except Exception as e:
+            logger.error(f"Failed to prepare pretraining data: {e}")
+            return {"status": "failed", "error": str(e)}
+
+# Global instances
 foundation_model_prep = FoundationModelPrep()
+foundation_model_data_prep = FoundationModelDataPrep()
