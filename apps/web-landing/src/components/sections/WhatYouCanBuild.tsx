@@ -98,9 +98,11 @@ export default function WhatYouCanBuild() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-20">
-          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">
-            Built for every scale
-          </h2>
+          <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+            <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">
+              Built for every scale
+            </h2>
+          </div>
           <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
             Turn data into <span style={{ color: '#114dcd' }}>advantage</span>
           </p>

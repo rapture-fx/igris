@@ -91,7 +91,9 @@ export default function WorksOutOfTheBox() {
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-black text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="lg:text-center">
-          <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+          <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+            <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+          </div>
           <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
             Train ML Models from Raw Data in 3 Calls.
           </p>

@@ -87,7 +87,7 @@ export default function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="inline-flex items-center px-4 py-2 rounded-full bg-soft-gray text-soft-blue text-sm font-medium mb-6 transition-colors duration-300"
+            className="inline-flex items-center px-4 py-2 rounded-lg bg-soft-gray text-soft-blue text-sm font-medium mb-6 transition-colors duration-300"
           >
             <Cpu className="w-4 h-4 mr-2" />
             Powerful Features

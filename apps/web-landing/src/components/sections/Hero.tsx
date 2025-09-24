@@ -80,21 +80,21 @@ export default function Hero() {
             Messy Data to ML-ready in API Calls.
           </h1>
 
-          <p className="text-base md:text-lg text-gray-800 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-inter">
-            An API-first pipeline for speed: turn messy inputs into ML-ready outputs. <br /> Train models instantly, and scale without friction.
+          <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed font-inter">
+            An API-first pipeline for speed: messy inputs in, ML-ready outputs out. <br /> Focus on modeling, not data prep.
           </p>
 
           <div className="flex justify-center gap-4">
             <Link
               href="/dashboard"
               style={{ backgroundColor: '#1f53d0' }}
-              className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+              className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
             >
               Get Started <ChevronRight className="w-4 h-4 ml-2" />
             </Link>
             <Link
               href="http://localhost:3004"
-              className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg bg-white dark:text-gray-300 dark:hover:bg-gray-800 font-sf-mono border border-gray-200 dark:border-gray-700"
+              className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg bg-white dark:text-gray-300 dark:hover:bg-gray-800 font-sf-mono border border-gray-200 dark:border-gray-700"
             >
               API Console
             </Link>
