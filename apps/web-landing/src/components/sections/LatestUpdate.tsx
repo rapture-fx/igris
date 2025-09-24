@@ -2,7 +2,7 @@
 export default function LatestUpdate() {
   return (
     <section className="py-20 bg-white dark:bg-black">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white text-left mb-12">
           Latest Updates
         </h2>

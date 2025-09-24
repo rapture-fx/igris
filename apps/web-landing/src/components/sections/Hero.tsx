@@ -71,7 +71,7 @@ export default function Hero() {
       className="relative min-h-screen overflow-visible dark:bg-gray-900 pt-16 pb-16"
       style={{ backgroundColor: '#f7f7f3' }}
     >
-      <div className="relative z-20 mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+      <div className="relative z-20 mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="text-center pt-40 font-ibm-plex-mono">
           <h1
             style={{ color: '#1f53d0' }}
@@ -100,7 +100,7 @@ export default function Hero() {
             </Link>
           </div>
 
-          <div className="mt-24 max-w-[1200px] mx-auto relative">
+          <div className="mt-24 max-w-[1300px] mx-auto relative">
 
             <div
               className="bg-white text-left relative z-10"

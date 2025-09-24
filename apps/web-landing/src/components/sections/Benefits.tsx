@@ -41,7 +41,7 @@ export default function Benefits() {
 
   return (
     <section className="py-16 md:py-24 bg-white text-gray-900 dark:bg-black dark:text-white">
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold text-[#565656] mb-4 text-left">
             Core Data Processing Features

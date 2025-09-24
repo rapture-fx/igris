@@ -3,7 +3,7 @@ import Image from 'next/image'
 export default function CallToAction() {
   return (
     <div className="py-20 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left p-4 relative" style={{
           borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
           borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',

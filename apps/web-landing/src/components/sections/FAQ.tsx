@@ -10,7 +10,7 @@ export default function FAQ() {
       <div className="absolute inset-0 bg-gradient-to-b from-gray-50 dark:from-black via-transparent to-transparent pointer-events-none"></div>
       <div className="absolute inset-0 bg-gradient-to-t from-gray-50 dark:from-black via-transparent to-transparent pointer-events-none"></div>
       
-      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="mt-16 text-center">
           <div>
             

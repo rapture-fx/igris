@@ -54,7 +54,7 @@ export default function Footer() {
 
   return (
     <footer className="dark:bg-gray-900 text-gray-900 dark:text-white font-inter" style={{ backgroundColor: '#f7f7f3' }}>
-      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
             {/* Brand Column */}
