@@ -530,15 +530,8 @@ export default function Pricing() {
           </div>
         </div>
 
-        {/* Feature Comparison Title */}
-        <div className="mt-16 mb-8 text-left">
-          <h2 className="text-2xl md:text-3xl font-bold" style={{ color: '#1f53d0' }}>
-            Compare the features
-          </h2>
-        </div>
-
         {/* Pricing Table */}
-        <div className="mt-12">
+        <div className="mt-16">
           <div className="relative p-0" style={{
             borderTop: '1px solid rgba(74, 123, 214, 0.15)',
             borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
@@ -554,6 +547,13 @@ export default function Pricing() {
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
               <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
               <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
+            </div>
+
+            {/* Feature Comparison Title */}
+            <div className="px-6 py-4 text-left border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
+              <h2 className="text-2xl md:text-3xl font-semibold" style={{ color: '#1f53d0' }}>
+                Compare the features
+              </h2>
             </div>
 
             <div className="min-w-full overflow-auto">
@@ -619,11 +619,6 @@ export default function Pricing() {
               <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
               <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
             </div>
-            {/* Bottom right bleeding cross */}
-            <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
-            </div>
             <div>
                 <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
                   {/* Left side - FAQ Title */}
@@ -679,7 +674,7 @@ export default function Pricing() {
         </div>
 
         {/* Contact CTA */}
-        <div className="mt-12">
+        <div className="mt-6">
           <div className="text-left p-0 relative" style={{
               backgroundColor: '#f7f7f3',
               borderTop: '1px solid rgba(74, 123, 214, 0.15)',
@@ -687,11 +682,6 @@ export default function Pricing() {
               borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
               borderRight: '1px solid rgba(74, 123, 214, 0.15)'
             }}>
-              {/* Top left bleeding cross */}
-              <div className="absolute -top-4 -left-4 w-8 h-8">
-                <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
-                <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
-              </div>
               {/* Bottom right bleeding cross */}
               <div className="absolute -bottom-4 -right-4 w-8 h-8">
                 <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
