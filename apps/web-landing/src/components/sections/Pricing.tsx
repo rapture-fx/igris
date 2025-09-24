@@ -399,7 +399,7 @@ export default function Pricing() {
 
   return (
     <section>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Billing Period Selection */}
         <div className="flex justify-center mb-8">
