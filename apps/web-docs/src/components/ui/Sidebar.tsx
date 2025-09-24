@@ -23,6 +23,13 @@ interface ApiNavItem extends NavItem {
 
 const mainSections = [
   {
+    name: 'Search',
+    href: '#',
+    icon: MagnifyingGlassIcon,
+    isMainSection: true,
+    isSearch: true
+  },
+  {
     name: 'Documentation',
     href: '/introduction',
     icon: BookOpenIcon,
@@ -581,29 +588,14 @@ export function Sidebar() {
           {/* Combined Logo, Search, and Navigation - now scrollable */}
           <div className="flex-1 flex flex-col pb-4 overflow-y-auto scrollbar-thin">
             <div className="pt-4">
-              <div className="mb-4 pl-10">
-                <Link href="/" className="block">
+              <div className="mb-4 pl-11">
+                <Link href="http://localhost:3000" className="block">
                   <img
                     src="/Docs Schlep-engne.svg?t=1725657600000"
                     alt="Schlep Engine"
-                    className="h-14 w-auto cursor-pointer"
+                    className="h-11 w-auto cursor-pointer"
                   />
                 </Link>
-              </div>
-              {/* Search Trigger */}
-              <div className="mb-6 px-10">
-                <button
-                  onClick={() => {
-                    // Trigger global search
-                    const event = new CustomEvent('openGlobalSearch');
-                    document.dispatchEvent(event);
-                  }}
-                  className="w-3/4 flex items-center gap-3 px-3 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-all duration-300 shadow-sm text-left"
-                >
-                  <MagnifyingGlassIcon className="h-4 w-4 text-gray-600" />
-                  <span className="text-sm text-gray-500">Search...</span>
-                  <span className="ml-auto text-gray-600 text-xs font-semibold">⌘K</span>
-                </button>
               </div>
             </div>
 
@@ -616,8 +608,14 @@ export function Sidebar() {
                     <button
                       key={section.name}
                       onClick={() => {
-                      setActiveSection(section.name);
-                      router.push(section.href);
+                      if ('isSearch' in section && section.isSearch) {
+                        // Trigger global search
+                        const event = new CustomEvent('openGlobalSearch');
+                        document.dispatchEvent(event);
+                      } else {
+                        setActiveSection(section.name);
+                        router.push(section.href);
+                      }
                     }}
                       className={clsx(
                         'w-full flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all duration-150 group border text-left',
