@@ -1,0 +1,74 @@
+{
+  "strategy_1_selective_replacement": {
+    "name": "Selective Function Replacement",
+    "description": "Replace specific CPU-intensive functions with Rust equivalents",
+    "use_case": "When you have 1-3 clear performance bottlenecks",
+    "implementation": {
+      "approach": "PyO3 + maturin",
+      "effort": "MEDIUM",
+      "timeline": "2-4 weeks",
+      "risk": "LOW"
+    },
+    "example_targets": [
+      "pandas.fillna() operations",
+      "groupby aggregations",
+      "large CSV reading",
+      "string processing loops"
+    ],
+    "expected_gains": "3-10x speedup for targeted functions"
+  },
+  "strategy_2_microservice": {
+    "name": "Rust Microservice",
+    "description": "Create a separate Rust service for heavy computations",
+    "use_case": "When entire data pipeline is slow",
+    "implementation": {
+      "approach": "Standalone Rust service + HTTP/gRPC API",
+      "effort": "HIGH",
+      "timeline": "6-12 weeks",
+      "risk": "MEDIUM"
+    },
+    "example_architecture": {
+      "python_api": "FastAPI endpoints",
+      "rust_service": "Axum/Actix web server",
+      "communication": "HTTP JSON or gRPC",
+      "data_flow": "Python \u2192 HTTP \u2192 Rust \u2192 Response \u2192 Python"
+    },
+    "expected_gains": "5-50x speedup for complete workflows"
+  },
+  "strategy_3_polars_first": {
+    "name": "Polars Migration First",
+    "description": "Migrate from pandas to Polars, then add Rust for remaining bottlenecks",
+    "use_case": "When Polars provides 80%+ of needed performance gains",
+    "implementation": {
+      "approach": "pandas \u2192 Polars + selective Rust additions",
+      "effort": "MEDIUM",
+      "timeline": "3-6 weeks",
+      "risk": "LOW"
+    },
+    "migration_plan": [
+      "1. Replace pandas.read_csv() with polars.read_csv()",
+      "2. Convert groupby operations to Polars lazy evaluation",
+      "3. Use Polars for aggregations and transformations",
+      "4. Keep Rust for specialized algorithms only"
+    ],
+    "expected_gains": "2-5x immediate speedup, additional 2-10x with Rust"
+  },
+  "strategy_4_hybrid_approach": {
+    "name": "Hybrid Python-Rust Architecture",
+    "description": "Strategic mix of Python orchestration with Rust compute kernels",
+    "use_case": "For complex workflows with multiple bottlenecks",
+    "implementation": {
+      "approach": "Python for logic + Rust for compute + Polars for data",
+      "effort": "HIGH",
+      "timeline": "8-16 weeks",
+      "risk": "MEDIUM-HIGH"
+    },
+    "architecture_layers": {
+      "orchestration": "Python (FastAPI, business logic)",
+      "data_processing": "Polars (DataFrames, lazy evaluation)",
+      "compute_kernels": "Rust (algorithms, tight loops)",
+      "storage": "PostgreSQL/Redis (unchanged)"
+    },
+    "expected_gains": "10-100x speedup for end-to-end workflows"
+  }
+}

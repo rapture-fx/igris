@@ -1,0 +1,58 @@
+         9627 function calls (9460 primitive calls) in 1.214 seconds
+
+   Ordered by: cumulative time, call count
+   List reduced from 568 to 50 due to restriction <50>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000    0.934    0.934 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/readers.py:868(read_csv)
+        1    0.004    0.004    0.933    0.933 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/readers.py:583(_read)
+        1    0.000    0.000    0.927    0.927 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/readers.py:1907(read)
+        1    0.772    0.772    0.829    0.829 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/c_parser_wrapper.py:222(read)
+        2    0.000    0.000    0.129    0.064 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/tools/datetimes.py:673(to_datetime)
+        2    0.000    0.000    0.125    0.063 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/tools/datetimes.py:314(_convert_listlike_datetimes)
+        2    0.117    0.059    0.118    0.059 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/tools/datetimes.py:456(_array_strptime_with_fallback)
+        1    0.000    0.000    0.098    0.098 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/frame.py:694(__init__)
+        1    0.000    0.000    0.097    0.097 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/construction.py:423(dict_to_mgr)
+        1    0.004    0.004    0.096    0.096 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/construction.py:96(arrays_to_mgr)
+        1    0.000    0.000    0.091    0.091 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:2121(create_block_manager_from_column_arrays)
+        3    0.000    0.000    0.070    0.023 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:1782(_consolidate_inplace)
+        1    0.000    0.000    0.070    0.070 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:2259(_consolidate)
+        2    0.031    0.016    0.070    0.035 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:2276(_merge_blocks)
+        7    0.000    0.000    0.061    0.009 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/series.py:6551(median)
+        7    0.000    0.000    0.061    0.009 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/generic.py:12424(median)
+        7    0.000    0.000    0.061    0.009 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/generic.py:12362(_stat_function)
+        8    0.000    0.000    0.061    0.008 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/series.py:6418(_reduce)
+        7    0.003    0.000    0.061    0.009 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/nanops.py:111(f)
+        7    0.000    0.000    0.058    0.008 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/nanops.py:736(nanmedian)
+       28    0.049    0.002    0.049    0.002 {method 'copy' of 'numpy.ndarray' objects}
+       10    0.001    0.000    0.047    0.005 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:317(apply)
+        7    0.003    0.000    0.043    0.006 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/nanops.py:765(get_median)
+        7    0.000    0.000    0.039    0.006 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/lib/_nanfunctions_impl.py:1127(nanmedian)
+     14/7    0.000    0.000    0.039    0.006 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/lib/_function_base_impl.py:3834(_ureduce)
+        7    0.000    0.000    0.039    0.006 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/lib/_nanfunctions_impl.py:1076(_nanmedian)
+        7    0.000    0.000    0.039    0.006 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/lib/_nanfunctions_impl.py:1059(_nanmedian1d)
+        2    0.038    0.019    0.038    0.019 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/_core/shape_base.py:220(vstack)
+        7    0.000    0.000    0.038    0.005 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/lib/_function_base_impl.py:3916(median)
+        7    0.000    0.000    0.038    0.005 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/lib/_function_base_impl.py:4005(_median)
+        7    0.000    0.000    0.037    0.005 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/numpy/_core/fromnumeric.py:758(partition)
+        7    0.034    0.005    0.034    0.005 {method 'partition' of 'numpy.ndarray' objects}
+        3    0.000    0.000    0.033    0.011 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:557(copy)
+        5    0.000    0.000    0.032    0.006 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/blocks.py:790(copy)
+      123    0.007    0.000    0.030    0.000 <frozen codecs>:322(decode)
+        2    0.000    0.000    0.028    0.014 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/accessor.py:95(_getter)
+        2    0.000    0.000    0.028    0.014 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/indexes/accessors.py:88(_delegate_property_get)
+  359/335    0.000    0.000    0.027    0.000 {built-in method builtins.getattr}
+        4    0.000    0.000    0.027    0.007 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/indexes/extension.py:67(fget)
+        1    0.007    0.007    0.027    0.027 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/c_parser_wrapper.py:355(_concatenate_chunks)
+        2    0.026    0.013    0.027    0.013 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/arrays/datetimes.py:125(f)
+      123    0.023    0.000    0.023    0.000 {built-in method _codecs.utf_8_decode}
+        1    0.000    0.000    0.021    0.021 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:2190(_form_blocks)
+        4    0.017    0.004    0.021    0.005 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/managers.py:2246(_stack_arrays)
+       10    0.020    0.002    0.020    0.002 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/dtypes/concat.py:52(concat_compat)
+        2    0.000    0.000    0.019    0.010 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/generic.py:6662(copy)
+        7    0.000    0.000    0.016    0.002 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/generic.py:7142(fillna)
+        7    0.000    0.000    0.015    0.002 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/base.py:180(fillna)
+        7    0.001    0.000    0.014    0.002 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/nanops.py:253(_get_values)
+        7    0.000    0.000    0.014    0.002 /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/core/internals/blocks.py:1643(fillna)
+
+

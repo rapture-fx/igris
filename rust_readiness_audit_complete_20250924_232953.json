@@ -1,0 +1,114 @@
+{
+  "audit_metadata": {
+    "timestamp": "2025-09-24T23:29:53.090530",
+    "total_components": 3,
+    "successful_components": 3,
+    "total_duration_minutes": 2.7019954999287923,
+    "total_audit_duration": 165.1760401725769
+  },
+  "component_status": {
+    "performance_profiling": {
+      "status": "success",
+      "duration": 137.76321983337402,
+      "has_results": true
+    },
+    "line_profiling": {
+      "status": "success",
+      "duration": 22.32180690765381,
+      "has_results": true
+    },
+    "rust_integration_guide": {
+      "status": "success",
+      "duration": 2.034703254699707,
+      "has_results": true
+    }
+  },
+  "performance_insights": {
+    "cpu_bottlenecks": {
+      "total_rust_candidates": 67,
+      "high_priority_candidates": 17,
+      "top_candidates": [
+        {
+          "function": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/readers.py:868(read_csv)",
+          "reason": "High CPU usage, frequent calls, or expensive per-call",
+          "percent_total": 72.84535422911573,
+          "calls": 1,
+          "per_call": 0.008973791,
+          "priority": "HIGH"
+        },
+        {
+          "function": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/readers.py:583(_read)",
+          "reason": "High CPU usage, frequent calls, or expensive per-call",
+          "percent_total": 61.86891586523791,
+          "calls": 1,
+          "per_call": 5.4536e-05,
+          "priority": "HIGH"
+        },
+        {
+          "function": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/readers.py:1575(__init__)",
+          "reason": "High CPU usage, frequent calls, or expensive per-call",
+          "percent_total": 42.22071730368976,
+          "calls": 1,
+          "per_call": 3.1611e-05,
+          "priority": "HIGH"
+        },
+        {
+          "function": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/readers.py:1848(_make_engine)",
+          "reason": "High CPU usage, frequent calls, or expensive per-call",
+          "percent_total": 42.083244391313194,
+          "calls": 1,
+          "per_call": 4.0184e-05,
+          "priority": "HIGH"
+        },
+        {
+          "function": "/Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/pandas/io/parsers/c_parser_wrapper.py:60(__init__)",
+          "reason": "High CPU usage, frequent calls, or expensive per-call",
+          "percent_total": 41.640443585962664,
+          "calls": 1,
+          "per_call": 0.034110510000000004,
+          "priority": "HIGH"
+        }
+      ]
+    },
+    "polars_performance": {
+      "average_speedup": 5.453575431357384,
+      "max_speedup": 6.61299927126349,
+      "datasets_tested": 4,
+      "recommendation": "HIGH_PRIORITY"
+    },
+    "memory_efficiency": {
+      "average_memory_growth_mb": 92.431640625,
+      "max_memory_growth_mb": 306.55078125,
+      "memory_per_row_mb": 0.00020989453125,
+      "assessment": "NEEDS_IMPROVEMENT"
+    }
+  },
+  "rust_readiness_assessment": {
+    "readiness_score": 100,
+    "strategy": "AGGRESSIVE_RUST_MIGRATION",
+    "priority_actions": [
+      {
+        "action": "Migrate from pandas to Polars",
+        "priority": "HIGH",
+        "estimated_impact": "5.5x speedup",
+        "complexity": "MEDIUM"
+      },
+      {
+        "action": "Implement Rust modules for CPU bottlenecks",
+        "priority": "HIGH",
+        "estimated_impact": "2-5x speedup for specific functions",
+        "complexity": "HIGH"
+      }
+    ]
+  },
+  "recommendations": {
+    "primary_recommendation": "HYBRID_APPROACH",
+    "rationale": "High Polars benefits + significant CPU bottlenecks \u2192 Polars first, then selective Rust",
+    "immediate_actions": [
+      "Review detailed profiling reports",
+      "Test Polars on representative datasets",
+      "Implement top-priority optimization",
+      "Set up performance monitoring"
+    ]
+  }
+}

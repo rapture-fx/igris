@@ -1,0 +1,62 @@
+{
+  "metadata": {
+    "timestamp": "2025-09-24T23:29:48.693764",
+    "datasets": {
+      "1000_rows": {
+        "path": "/var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/tmpdjts2663.csv",
+        "size": 85227
+      },
+      "10000_rows": {
+        "path": "/var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/tmpmdz4_27d.csv",
+        "size": 882939
+      },
+      "50000_rows": {
+        "path": "/var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/tmpqx26tnmg.csv",
+        "size": 4547366
+      }
+    },
+    "profiling_method": "kernprof line_profiler"
+  },
+  "profiling_results": {
+    "1000_rows": {
+      "status": "success",
+      "output_file": "line_profiling_results/line_profile_1000_rows.txt",
+      "parsed_results": {
+        "functions": [],
+        "hottest_lines": [],
+        "total_time": 0
+      },
+      "raw_output": "Starting line profiling for: /var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/tmpdjts2663.csv\nProfiling csv_reading...\n  \u2705 csv_reading: 0.037s\nProfiling data_cleaning...\n  \u2705 data_cleaning: 0.076s\nProfiling aggregations...\n  \u2705 aggregations: 0.093s\nProfiling transformations...\n  \u2705 transformations: 0.122s\nProfiling joins_merges...\n  \u2705 joins_merges: 0.058s\nProfiling string_operations...\n  \u2705 string_operations: 0.092s\nProfiling completed!\nWrote profile results to 'profile_target.py.lprof'\nTimer unit: 1e-06 s\n\nTotal time: 0.036275 s\nFile: line_profiling_results/profile_target.py\nFunction: profile_csv_reading at line 12\n\nLine #      Hits         Time  Per Hit   % Time  Line Contents\n==============================================================\n    12                                           @profile\n    13                                           def profile_csv_reading(file_path: str):\n    14                                               \"\"\"Profile CSV reading performance\"\"\"\n    15                                               # Different reading methods\n    16         1      36258.0  36258.0    100.0      df1 = pd.read_csv(file_path)\n    17         1         17.0     17.0      0.0      return len(df1)\n\nTotal time: 0.07579 s\nFile: line_profiling_results/profile_target.py\nFunction: profile_data_cleaning at line 19\n\nLine #      Hits         Time  Per Hit   % Time  Line Contents\n==============================================================\n    19                                           @profile\n    20                                           def profile_data_cleaning(file_path: str):\n    21                                               \"\"\"Profile data cleaning operations line by line\"\"\"\n    22         1      13670.0  13670.0     18.0      df = pd.read_csv(file_path)\n    23                                           \n    24                                               # Get numeric columns\n    25         1       4437.0   4437.0      5.9      numeric_cols = df.select_dty"
+    },
+    "10000_rows": {
+      "status": "success",
+      "output_file": "line_profiling_results/line_profile_10000_rows.txt",
+      "parsed_results": {
+        "functions": [],
+        "hottest_lines": [],
+        "total_time": 0
+      },
+      "raw_output": "Starting line profiling for: /var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/tmpmdz4_27d.csv\nProfiling csv_reading...\n  \u2705 csv_reading: 0.075s\nProfiling data_cleaning...\n  \u2705 data_cleaning: 0.119s\nProfiling aggregations...\n  \u2705 aggregations: 0.161s\nProfiling transformations...\n  \u2705 transformations: 0.091s\nProfiling joins_merges...\n  \u2705 joins_merges: 0.083s\nProfiling string_operations...\n  \u2705 string_operations: 0.281s\nProfiling completed!\nWrote profile results to 'profile_target.py.lprof'\nTimer unit: 1e-06 s\n\nTotal time: 0.074186 s\nFile: line_profiling_results/profile_target.py\nFunction: profile_csv_reading at line 12\n\nLine #      Hits         Time  Per Hit   % Time  Line Contents\n==============================================================\n    12                                           @profile\n    13                                           def profile_csv_reading(file_path: str):\n    14                                               \"\"\"Profile CSV reading performance\"\"\"\n    15                                               # Different reading methods\n    16         1      74159.0  74159.0    100.0      df1 = pd.read_csv(file_path)\n    17         1         27.0     27.0      0.0      return len(df1)\n\nTotal time: 0.118016 s\nFile: line_profiling_results/profile_target.py\nFunction: profile_data_cleaning at line 19\n\nLine #      Hits         Time  Per Hit   % Time  Line Contents\n==============================================================\n    19                                           @profile\n    20                                           def profile_data_cleaning(file_path: str):\n    21                                               \"\"\"Profile data cleaning operations line by line\"\"\"\n    22         1      46831.0  46831.0     39.7      df = pd.read_csv(file_path)\n    23                                           \n    24                                               # Get numeric columns\n    25         1       1166.0   1166.0      1.0      numeric_cols = df.select_dt"
+    },
+    "50000_rows": {
+      "status": "success",
+      "output_file": "line_profiling_results/line_profile_50000_rows.txt",
+      "parsed_results": {
+        "functions": [],
+        "hottest_lines": [],
+        "total_time": 0
+      },
+      "raw_output": "Starting line profiling for: /var/folders/fh/k0b3m2091rq5s0l4yq2lp4c80000gn/T/tmpqx26tnmg.csv\nProfiling csv_reading...\n  \u2705 csv_reading: 0.313s\nProfiling data_cleaning...\n  \u2705 data_cleaning: 0.788s\nProfiling aggregations...\n  \u2705 aggregations: 0.500s\nProfiling transformations...\n  \u2705 transformations: 0.320s\nProfiling joins_merges...\n  \u2705 joins_merges: 0.244s\nProfiling string_operations...\n  \u2705 string_operations: 1.177s\nProfiling completed!\nWrote profile results to 'profile_target.py.lprof'\nTimer unit: 1e-06 s\n\nTotal time: 0.297907 s\nFile: line_profiling_results/profile_target.py\nFunction: profile_csv_reading at line 12\n\nLine #      Hits         Time  Per Hit   % Time  Line Contents\n==============================================================\n    12                                           @profile\n    13                                           def profile_csv_reading(file_path: str):\n    14                                               \"\"\"Profile CSV reading performance\"\"\"\n    15                                               # Different reading methods\n    16         1     297882.0 297882.0    100.0      df1 = pd.read_csv(file_path)\n    17         1         25.0     25.0      0.0      return len(df1)\n\nTotal time: 0.783035 s\nFile: line_profiling_results/profile_target.py\nFunction: profile_data_cleaning at line 19\n\nLine #      Hits         Time  Per Hit   % Time  Line Contents\n==============================================================\n    19                                           @profile\n    20                                           def profile_data_cleaning(file_path: str):\n    21                                               \"\"\"Profile data cleaning operations line by line\"\"\"\n    22         1     340262.0 340262.0     43.5      df = pd.read_csv(file_path)\n    23                                           \n    24                                               # Get numeric columns\n    25         1       2418.0   2418.0      0.3      numeric_cols = df.select_dt"
+    }
+  },
+  "analysis_report": {
+    "summary": {
+      "datasets_profiled": 3,
+      "successful_profiles": 3,
+      "total_functions_analyzed": 0,
+      "total_hot_lines": 0
+    },
+    "rust_candidate_lines": [],
+    "optimization_opportunities": []
+  }
+}
