@@ -1,0 +1,14 @@
+/Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/deps/pyo3_build_config-29a086b8d2c8deca.d: /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/lib.rs /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/errors.rs /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/impl_.rs /Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config-file.txt /Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config.txt
+
+/Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/deps/libpyo3_build_config-29a086b8d2c8deca.rlib: /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/lib.rs /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/errors.rs /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/impl_.rs /Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config-file.txt /Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config.txt
+
+/Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/deps/libpyo3_build_config-29a086b8d2c8deca.rmeta: /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/lib.rs /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/errors.rs /Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/impl_.rs /Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config-file.txt /Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config.txt
+
+/Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/lib.rs:
+/Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/errors.rs:
+/Users/wira/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/pyo3-build-config-0.20.3/src/impl_.rs:
+/Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config-file.txt:
+/Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out/pyo3-build-config.txt:
+
+# env-dep:CARGO_PKG_VERSION=0.20.3
+# env-dep:OUT_DIR=/Users/wira/Desktop/schlep-engine/apps/api/rust_compute_kernels/target/debug/build/pyo3-build-config-dd8c444fda99503e/out

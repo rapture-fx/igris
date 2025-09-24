@@ -10,8 +10,8 @@ name = "schlep_compute_kernels"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.20", features = ["extension-module", "abi3"] }
-numpy = "0.20"
+pyo3 = { version = "0.22", features = ["extension-module", "abi3"] }
+numpy = "0.22"
 rayon = "1.8"           # Parallel processing
 csv = "1.3"             # Fast CSV parsing
 serde = { version = "1.0", features = ["derive"] }
@@ -35,7 +35,7 @@ simd = ["simd-json"]   # SIMD optimizations
 allocator-mimalloc = ["mimalloc"]
 
 [build-dependencies]
-pyo3-build-config = "0.20"
+pyo3-build-config = "0.22"
 
 # Performance optimizations
 [profile.release]

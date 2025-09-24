@@ -8,7 +8,6 @@ use rayon::prelude::*;
 use regex::Regex;
 use std::collections::HashMap;
 use std::sync::Arc;
-use ahash::AHashMap;
 
 /// Fast string operations implementation
 ///

@@ -11,10 +11,8 @@
 //! Architecture: PyO3 bindings for seamless Python integration
 
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList};
+use pyo3::types::PyModule;
 use std::collections::HashMap;
-use rayon::prelude::*;
-use std::sync::Arc;
 
 // Sub-modules for different kernel types
 mod csv_kernels;
@@ -42,6 +40,7 @@ pub use memory_kernels::*;
 /// # Returns
 /// Tuple of (headers: Vec<String>, data: Vec<Vec<String>>)
 #[pyfunction]
+#[pyo3(signature = (file_path, chunk_size=None, delimiter=None, has_header=None))]
 pub fn fast_csv_read(
     file_path: String,
     chunk_size: Option<usize>,
@@ -61,6 +60,7 @@ pub fn fast_csv_read(
 /// * `max_memory_mb` - Maximum memory usage in MB (default: 500)
 /// * `num_threads` - Number of threads to use (default: CPU count)
 #[pyfunction]
+#[pyo3(signature = (file_path, max_memory_mb=None, num_threads=None))]
 pub fn fast_csv_read_parallel(
     file_path: String,
     max_memory_mb: Option<usize>,
@@ -123,6 +123,7 @@ pub fn fast_multi_agg(
 /// # Returns
 /// Vector of results (strings or booleans as strings)
 #[pyfunction]
+#[pyo3(signature = (strings, operation, pattern=None))]
 pub fn fast_string_ops(
     strings: Vec<String>,
     operation: String,
@@ -229,7 +230,7 @@ pub fn kernel_info() -> PyResult<HashMap<String, String>> {
 /// Exposes all high-performance kernels to Python with proper error handling
 /// and documentation
 #[pymodule]
-fn schlep_compute_kernels(_py: Python, m: &PyModule) -> PyResult<()> {
+fn schlep_compute_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // CSV processing functions
     m.add_function(wrap_pyfunction!(fast_csv_read, m)?)?;
     m.add_function(wrap_pyfunction!(fast_csv_read_parallel, m)?)?;

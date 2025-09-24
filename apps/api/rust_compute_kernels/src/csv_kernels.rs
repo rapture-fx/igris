@@ -9,8 +9,6 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use rayon::prelude::*;
 use memmap2::MmapOptions;
-use std::sync::Arc;
-use ahash::AHashMap;
 
 /// Fast CSV reading implementation
 ///
@@ -193,11 +191,12 @@ pub fn fast_csv_read_parallel_impl(
     let max_memory = max_memory_mb.unwrap_or(500) * 1024 * 1024; // Convert to bytes
     let num_threads = num_threads.unwrap_or(rayon::current_num_threads());
 
-    // Set thread pool size
-    rayon::ThreadPoolBuilder::new()
+    // Use current thread pool or set if not initialized
+    if let Err(_) = rayon::ThreadPoolBuilder::new()
         .num_threads(num_threads)
-        .build_global()
-        .map_err(|e| PyErr::new::<pyo3::exceptions::PyRuntimeError, _>(e.to_string()))?;
+        .build_global() {
+        // Global pool already exists, continue with current configuration
+    }
 
     let path = Path::new(&file_path);
     let file_size = path.metadata()

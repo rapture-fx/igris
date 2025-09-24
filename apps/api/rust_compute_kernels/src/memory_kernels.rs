@@ -5,12 +5,12 @@
 
 use pyo3::prelude::*;
 use rayon::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use ahash::{AHashMap, AHashSet};
 use std::sync::Arc;
 
 /// Data type enumeration for efficient type inference
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum DataType {
     Integer,
     Float,
@@ -78,7 +78,7 @@ pub fn fast_data_clean_impl(
     let num_columns = data[0].len();
 
     // Process data in parallel chunks
-    let cleaned_data = if data.len() > 10_000 {
+    let cleaned_data: Vec<Vec<String>> = if data.len() > 10_000 {
         data.par_iter()
             .map(|row| clean_row(row, &null_set))
             .collect()
@@ -173,7 +173,7 @@ pub fn detect_duplicates(
     let columns = columns.unwrap_or_else(|| (0..data[0].len()).collect());
     let mut seen_rows: AHashSet<Vec<String>> = AHashSet::new();
 
-    let results = if data.len() > 50_000 {
+    let results: Vec<bool> = if data.len() > 50_000 {
         // For large datasets, use parallel processing with local sets
         use std::sync::Mutex;
         let global_seen = Arc::new(Mutex::new(AHashSet::new()));
