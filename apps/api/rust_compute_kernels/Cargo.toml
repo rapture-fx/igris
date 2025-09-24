@@ -1,0 +1,45 @@
+[package]
+name = "schlep-compute-kernels"
+version = "0.1.0"
+edition = "2021"
+authors = ["Schlep-engine Team"]
+description = "High-performance compute kernels for Schlep-engine data processing"
+
+[lib]
+name = "schlep_compute_kernels"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.20", features = ["extension-module", "abi3"] }
+numpy = "0.20"
+rayon = "1.8"           # Parallel processing
+csv = "1.3"             # Fast CSV parsing
+serde = { version = "1.0", features = ["derive"] }
+ahash = "0.8"           # Fast HashMap implementation
+memmap2 = "0.9"         # Memory-mapped file I/O
+byteorder = "1.5"       # Byte order utilities
+regex = "1.10"          # Regular expressions
+chrono = { version = "0.4", features = ["serde"] }
+
+# Optional performance features
+mimalloc = { version = "0.1", optional = true }
+simd-json = { version = "0.13", optional = true }
+
+[features]
+default = ["fast-csv", "parallel-agg", "string-ops"]
+fast-csv = []           # Fast CSV processing
+parallel-agg = []       # Parallel aggregations
+string-ops = []         # String processing optimizations
+memory-mapped = []      # Memory-mapped I/O
+simd = ["simd-json"]   # SIMD optimizations
+allocator-mimalloc = ["mimalloc"]
+
+[build-dependencies]
+pyo3-build-config = "0.20"
+
+# Performance optimizations
+[profile.release]
+lto = true              # Link-time optimization
+codegen-units = 1       # Single codegen unit for better optimization
+panic = "abort"         # Smaller binaries
+opt-level = 3          # Maximum optimization
