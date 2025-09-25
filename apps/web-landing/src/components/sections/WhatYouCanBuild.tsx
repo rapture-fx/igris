@@ -123,27 +123,17 @@ export default function WhatYouCanBuild() {
           </div>
 
           {/* Carousel with Navigation */}
-          <div className="max-w-6xl mx-auto relative">
+          <div className="max-w-6xl mx-auto relative flex items-center gap-8">
             {/* Left Arrow */}
             <button
               onClick={prevCard}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group hover:border-blue-300"
-              style={{ marginLeft: '-2rem' }}
+              className="w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group hover:border-blue-300 flex-shrink-0"
             >
               <ChevronLeft className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
             </button>
 
-            {/* Right Arrow */}
-            <button
-              onClick={nextCard}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group hover:border-blue-300"
-              style={{ marginRight: '-2rem' }}
-            >
-              <ChevronRight className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
-            </button>
-
             {/* Carousel Container */}
-            <div className="overflow-hidden rounded-xl">
+            <div className="flex-1 overflow-hidden rounded-xl">
               <div
                 ref={containerRef}
                 className="flex transition-transform duration-500 ease-in-out"
@@ -155,8 +145,8 @@ export default function WhatYouCanBuild() {
                     className="w-full flex-shrink-0"
                   >
                     <div
-                      className={`bg-gradient-to-br ${useCase.accent} rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-6 ${(index === 1 || index === 3) ? 'flex-row-reverse' : ''}`}
-                      style={{ minHeight: '300px' }}
+                      className={`bg-gradient-to-br ${useCase.accent} rounded-xl p-6 border border-gray-200 dark:border-gray-700 ${index === 0 ? '' : 'shadow-lg hover:shadow-xl'} transition-all duration-300 flex items-center gap-6 ${(index === 1 || index === 3) ? 'flex-row-reverse' : ''}`}
+                      style={{ minHeight: '400px' }}
                     >
                       {/* Left Column - Icon */}
                       <div className="flex-1 flex items-center justify-center">
@@ -215,20 +205,28 @@ export default function WhatYouCanBuild() {
               </div>
             </div>
 
-            {/* Navigation Dots */}
-            <div className="flex justify-center space-x-2 mt-8">
-              {useCases.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentCard(index)}
-                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                    currentCard === index
-                      ? 'bg-blue-600 scale-110'
-                      : 'bg-gray-300 hover:bg-gray-400'
-                  }`}
-                />
-              ))}
-            </div>
+            {/* Right Arrow */}
+            <button
+              onClick={nextCard}
+              className="w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group hover:border-blue-300 flex-shrink-0"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
+            </button>
+          </div>
+
+          {/* Navigation Dots */}
+          <div className="flex justify-center space-x-2 mt-8">
+            {useCases.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentCard(index)}
+                className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                  currentCard === index
+                    ? 'bg-blue-600 scale-110'
+                    : 'bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
           </div>
         </div>
       </div>
