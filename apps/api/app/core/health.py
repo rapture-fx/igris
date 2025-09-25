@@ -524,10 +524,9 @@ class HealthChecker:
         try:
             # Import RL services
             try:
-                from app.services.rl.rl_service import RLService
-                from app.services.rl.rl_training_service import RLTrainingService
-                rl_service = RLService()
-                rl_training = RLTrainingService()
+                # RL services removed - using placeholder
+                from app.services.adaptive_optimizer import PlaceholderOptimizer
+                optimizer = PlaceholderOptimizer()
             except ImportError:
                 # RL service not available
                 response_time = time.time() - start_time

@@ -33,9 +33,9 @@ from app.auth.enhanced_security import SecurityLevel
 from app.database.connection import engine, Base
 # Import only core working modules for now
 from app.api.v1 import (
-    auth, users, ml_pipeline, storage, 
+    auth, users, ml_pipeline, storage,
     health, metrics, admin, document_extraction, validation,
-    data_quality, rl_optimization  # Re-enabled - syntax issues resolved
+    data_quality, adaptive_optimizer  # Replaced RL with adaptive optimizer
 )
 
 # Import safe API services to enable
@@ -484,7 +484,7 @@ app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(data_processing.router, prefix="/api/v1/data", tags=["Data Processing"])
 app.include_router(advanced_ai.router, prefix="/api/v1/ai", tags=["Advanced AI"])
 app.include_router(advanced_ml.router, prefix="/api/v1/advanced-ml", tags=["Advanced ML"])
-app.include_router(rl_optimization.router, prefix="/api/v1", tags=["RL Optimization"])
+app.include_router(adaptive_optimizer.router, prefix="/api/v1", tags=["Adaptive Optimization"])
 app.include_router(dpa_compliance_router, prefix="/api/v1", tags=["DPA Compliance"])
 
 # Include new API-as-a-Service routers

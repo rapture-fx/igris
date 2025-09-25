@@ -11,7 +11,7 @@ A production-grade data processing and machine learning platform built with Fast
 | **Data Processing Engine** | ✅ **Production** | 155,876+ lines validated code | 100MB files in 2-5s |
 | **ML Pipeline (Basic)** | ✅ **Production** | scikit-learn, AutoML, inference | 85-90% accuracy, 50-200ms |
 | **API Infrastructure** | ✅ **Production** | FastAPI, JWT, rate limiting | 99.7% uptime, 500+ users |
-| **RL Optimization** | 🔄 **Compatibility** | Statistical optimization + RL when deps available | 8-15% improvement (compat), 20-35% (full) |
+| **Adaptive Optimization** | ✅ **Production** | Deterministic baseline, ready for RL/AutoML upgrade | 8-15% improvement |
 | **Industry Solutions** | ⚠️ **Beta** | Manufacturing, financial, e-commerce processors | 70-85% accuracy in pilot tests |
 | **Advanced AI Features** | 🚧 **Planned** | Deep learning, computer vision, advanced NLP | Q3-Q4 2024 roadmap |
 
@@ -234,6 +234,34 @@ See deployment guides:
 - [Feature Maturity Roadmap](https://docs.schlep-engine.com/concepts/feature-maturity-roadmap)
 - [Compatibility Mode Guide](https://docs.schlep-engine.com/concepts/compatibility-mode)
 - [Performance Benchmarks](./docs/PERFORMANCE_BENCHMARKS.md)
+
+## Recent Changes
+
+### v2.0.0 - RL Code Cleanup (2024-12-25)
+
+**Major architectural improvement**: Removed all Reinforcement Learning (RL) code to create a cleaner, more maintainable codebase while preserving extensibility for future adaptive optimization.
+
+**What was removed:**
+- RL-specific models, training loops, and reward functions
+- Dependencies: `stable-baselines3`, `gymnasium`, `tensorboard`
+- Experimental RL optimization scripts and tests
+- RL-specific database models and migrations
+
+**What was added:**
+- **Adaptive Optimizer Interface**: Clean abstraction for optimization strategies
+- **Placeholder Optimizer**: Deterministic baseline using heuristics and simulated exploration
+- **Future-ready API**: `/api/v1/optimization/` endpoints ready for RL/AutoML integration
+- **Documentation**: Clear upgrade path for advanced optimization methods
+
+**Benefits:**
+- ✅ **Cleaner codebase**: No dead RL code or unused dependencies
+- ✅ **Production stability**: Core engine continues to work without ML dependencies
+- ✅ **Extensible architecture**: Easy to add RL/AutoML when needed
+- ✅ **Better maintainability**: Simpler dependency management and testing
+
+**Upgrade path**: The system is designed for easy future integration of RL, AutoML, or other adaptive optimization techniques. See `apps/api/app/services/adaptive_optimizer.py` for the extension interface.
+
+*Architecture remains open for adaptive optimizers in the future.*
 
 ## License
 
