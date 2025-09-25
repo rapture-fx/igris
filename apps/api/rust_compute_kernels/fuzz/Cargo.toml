@@ -1,0 +1,50 @@
+[package]
+name = "schlep-compute-kernels-fuzz"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+arbitrary = { version = "1.0", features = ["derive"] }
+
+[dependencies.schlep_compute_kernels]
+path = ".."
+features = ["fuzzing"]
+
+# Prevent this from interfering with workspaces
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "string_ops"
+path = "fuzz_targets/string_ops.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "regex_validation"
+path = "fuzz_targets/regex_validation.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "path_validation"
+path = "fuzz_targets/path_validation.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "arithmetic_ops"
+path = "fuzz_targets/arithmetic_ops.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "unicode_validation"
+path = "fuzz_targets/unicode_validation.rs"
+test = false
+doc = false

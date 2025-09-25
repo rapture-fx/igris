@@ -242,7 +242,12 @@ jobs:
         cd apps/api/rust_compute_kernels
         maturin develop --release
 
-    - name: Run security fuzz tests
+    - name: Run security regression tests
+      run: |
+        cd apps/api/rust_compute_kernels
+        python tests/test_security_regression.py
+
+    - name: Run legacy security fuzz tests
       run: |
         cd apps/api/rust_compute_kernels
         python tests/test_security_fuzz.py
