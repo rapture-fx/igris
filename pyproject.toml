@@ -43,10 +43,9 @@ addopts = [
 ]
 markers = [
     "unit: Unit tests",
-    "integration: Integration tests", 
+    "integration: Integration tests",
     "e2e: End-to-end tests",
-    "slow: Slow running tests",
-    "rl: RL optimization tests"
+    "slow: Slow running tests"
 ]
 env_files = [
     ".env.test"

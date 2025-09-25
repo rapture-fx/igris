@@ -16,9 +16,7 @@ try:
     from app.main import app
     from app.database.connection import get_async_session, get_test_database_url
     from app.core.config import get_settings
-    from app.services.rl_optimization_service import RLOptimizationService
-    from app.services.rl.models.rl_optimization_models import RLOptimizationCRUD
-    from app.models.rl_models import RLOptimizationSession, SessionStatus
+    # RL services removed - replaced with placeholder optimizers
     API_IMPORTS_AVAILABLE = True
 except ImportError as e:
     print(f"Warning: API imports not available: {e}")

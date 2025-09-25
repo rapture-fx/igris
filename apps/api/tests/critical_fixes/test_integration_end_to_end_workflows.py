@@ -32,7 +32,7 @@ import httpx
 import sys
 sys.path.append('/Users/wira/Desktop/schlep-engine/apps/api')
 
-from app.services.rl_optimization_service import RLOptimizationService
+# RL optimization service removed - replaced with placeholder optimizer
 
 
 class TestDataQualityToRLOptimizationWorkflow:

@@ -530,7 +530,7 @@ class DatabaseStateVerifier:
 
     async def verify_rl_session_exists(self, session_id: str) -> bool:
         """Verify RL optimization session exists in database."""
-        from app.services.rl.models.rl_optimization_models import RLOptimizationSession
+        # RLOptimizationSession removed - replaced with placeholder
 
         result = await self.session.execute(
             text("SELECT COUNT(*) FROM rl_optimization_sessions WHERE id = :session_id"),

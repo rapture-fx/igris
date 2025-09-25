@@ -38,7 +38,7 @@ from app.auth.unified_auth_system import create_access_token, get_current_user
 from app.core.config import settings
 from app.middleware.rate_limiting_middleware import RateLimitingMiddleware, RateLimitConfig, RateLimitType
 from app.auth.enhanced_security import SecurityLevel
-from app.services.rl_optimization_service import RLOptimizationService
+# RL optimization service removed - replaced with placeholder optimizer
 from app.services.data_quality_service import data_quality_service
 
 # Test database configuration
