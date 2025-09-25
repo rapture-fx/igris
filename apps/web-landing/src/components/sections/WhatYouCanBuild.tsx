@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef } from 'react'
-import { Brain, Factory, CreditCard, ShoppingBag, ArrowUpRight } from 'lucide-react'
+import { Brain, Factory, CreditCard, ShoppingBag, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 const useCases = [
@@ -78,139 +78,157 @@ const useCases = [
 export default function WhatYouCanBuild() {
   const [currentCard, setCurrentCard] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-  const lastScrollTime = useRef(0)
 
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
+  const nextCard = () => {
+    setCurrentCard((prev) => (prev + 1) % useCases.length)
+  }
 
-    // Throttle scrolling to make it less sensitive
-    const now = Date.now()
-    if (now - lastScrollTime.current < 300) return
-    lastScrollTime.current = now
-
-    const direction = e.deltaY > 0 ? 1 : -1
-    const newCard = Math.max(0, Math.min(useCases.length - 1, currentCard + direction))
-    setCurrentCard(newCard)
+  const prevCard = () => {
+    setCurrentCard((prev) => (prev - 1 + useCases.length) % useCases.length)
   }
 
   return (
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-20">
-          <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-            <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">
-              Built for every scale
-            </h2>
+        <div className="relative p-8" style={{
+          borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+        }}>
+          {/* Top left bleeding cross */}
+          <div className="absolute -top-4 -left-4 w-8 h-8">
+            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
           </div>
-          <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
-            Turn data into <span style={{ color: '#114dcd' }}>advantage</span>
-          </p>
-          <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
-            Across industries, Schlep-engine powers the work behind the scenes.
-          </p>
-        </div>
-
-        {/* Card Stack with Navigation */}
-        <div className="max-w-4xl mx-auto relative flex items-center gap-8">
-          {/* Navigation Dots */}
-          <div className="flex flex-col space-y-4">
-            {useCases.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => setCurrentCard(index)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                  currentCard === index
-                    ? 'bg-blue-600 scale-125'
-                    : 'bg-gray-300 hover:bg-gray-400'
-                }`}
-              />
-            ))}
+          {/* Bottom right bleeding cross */}
+          <div className="absolute -bottom-4 -right-4 w-8 h-8">
+            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
           </div>
 
-          {/* Stacked Cards */}
-          <div
-            ref={containerRef}
-            className="flex-1 relative cursor-pointer"
-            style={{ height: '280px' }}
-            onWheel={handleWheel}
-          >
-            {useCases.map((useCase, index) => {
-              const isActive = index === currentCard;
-              const stackOrder = index - currentCard;
-              const isVisible = Math.abs(stackOrder) <= 2;
+          {/* Section Header */}
+          <div className="text-center mb-20">
+            <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">
+                Built for every scale
+              </h2>
+            </div>
+            <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
+              Turn data into <span style={{ color: '#114dcd' }}>advantage</span>
+            </p>
+            <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
+              Across industries, Schlep-engine powers the work behind the scenes.
+            </p>
+          </div>
 
-              return (
-                <div
-                  key={useCase.title}
-                  className={`absolute w-full transition-all duration-500 ease-in-out ${
-                    isVisible ? 'opacity-100' : 'opacity-0'
-                  }`}
-                  style={{
-                    zIndex: isActive ? 10 : Math.max(0, 5 - Math.abs(stackOrder)),
-                    transform: `translateY(${stackOrder * 8}px) translateX(${Math.abs(stackOrder) * 4}px)`,
-                    filter: isActive ? 'none' : `brightness(${1 - Math.abs(stackOrder) * 0.1})`,
-                  }}
-                >
+          {/* Carousel with Navigation */}
+          <div className="max-w-6xl mx-auto relative">
+            {/* Left Arrow */}
+            <button
+              onClick={prevCard}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group hover:border-blue-300"
+              style={{ marginLeft: '-2rem' }}
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
+            </button>
+
+            {/* Right Arrow */}
+            <button
+              onClick={nextCard}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-12 h-12 bg-white border border-gray-200 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center group hover:border-blue-300"
+              style={{ marginRight: '-2rem' }}
+            >
+              <ChevronRight className="h-6 w-6 text-gray-600 group-hover:text-blue-600 transition-colors" />
+            </button>
+
+            {/* Carousel Container */}
+            <div className="overflow-hidden rounded-xl">
+              <div
+                ref={containerRef}
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentCard * 100}%)` }}
+              >
+                {useCases.map((useCase, index) => (
                   <div
-                    className={`bg-gradient-to-br ${useCase.accent} rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-6 ${(index === 1 || index === 3) ? 'flex-row-reverse' : ''}`}
-                    style={{ minHeight: '200px' }}
+                    key={useCase.title}
+                    className="w-full flex-shrink-0"
                   >
-                    {/* Left Column - Icon */}
-                    <div className="flex-1 flex items-center justify-center">
-                      {useCase.isCustomIcon ? (
-                        <div className="h-60 w-60 flex items-center justify-center">
-                          <img
-                            src={useCase.customIconSrc}
-                            alt={useCase.title}
-                            className="h-60 w-60 object-contain"
-                          />
+                    <div
+                      className={`bg-gradient-to-br ${useCase.accent} rounded-xl p-6 border border-gray-200 dark:border-gray-700 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-6 ${(index === 1 || index === 3) ? 'flex-row-reverse' : ''}`}
+                      style={{ minHeight: '300px' }}
+                    >
+                      {/* Left Column - Icon */}
+                      <div className="flex-1 flex items-center justify-center">
+                        {useCase.isCustomIcon ? (
+                          <div className="h-60 w-60 flex items-center justify-center">
+                            <img
+                              src={useCase.customIconSrc}
+                              alt={useCase.title}
+                              className="h-60 w-60 object-contain"
+                            />
+                          </div>
+                        ) : (
+                          <div className={`inline-flex items-center justify-center w-24 h-24 ${useCase.iconBg} rounded-xl`}>
+                            <useCase.icon className={`h-12 w-12 ${useCase.iconColor}`} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Right Column - Content */}
+                      <div className="flex-1 flex items-center justify-center">
+                        <div className="bg-white border border-gray-200 rounded-xl p-10 shadow-md w-full h-full flex flex-col justify-between">
+                          <div>
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 font-inter">
+                              {useCase.title}
+                            </h3>
+
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 font-inter leading-relaxed">
+                              {useCase.description}
+                            </p>
+
+                            {/* Bullet Points */}
+                            <ul className="space-y-2 mb-6">
+                              {useCase.examples.map((example, exampleIndex) => (
+                                <li key={exampleIndex} className="flex items-start text-sm text-gray-600 dark:text-gray-300 font-inter">
+                                  <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                                  <span className="leading-relaxed">{example}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* CTA Button */}
+                          <Link
+                            href={useCase.link}
+                            className="inline-flex items-center justify-center px-6 py-3 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md font-inter group self-start"
+                            style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
+                          >
+                            {useCase.cta}
+                            <ArrowUpRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                          </Link>
                         </div>
-                      ) : (
-                        <div className={`inline-flex items-center justify-center w-24 h-24 ${useCase.iconBg} rounded-xl`}>
-                          <useCase.icon className={`h-12 w-12 ${useCase.iconColor}`} />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Right Column - Content */}
-                    <div className="flex-1 flex items-center justify-center">
-                      <div className="bg-white border border-gray-200 rounded-xl p-10 shadow-md w-full h-full flex flex-col justify-between">
-                        <div>
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 font-inter">
-                            {useCase.title}
-                          </h3>
-
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 font-inter leading-relaxed">
-                            {useCase.description}
-                          </p>
-
-                          {/* Bullet Points */}
-                          <ul className="space-y-2 mb-6">
-                            {useCase.examples.map((example, exampleIndex) => (
-                              <li key={exampleIndex} className="flex items-start text-sm text-gray-600 dark:text-gray-300 font-inter">
-                                <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                                <span className="leading-relaxed">{example}</span>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        {/* CTA Button */}
-                        <Link
-                          href={useCase.link}
-                          className="inline-flex items-center justify-center px-6 py-3 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-sm hover:shadow-md font-inter group self-start"
-                          style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
-                        >
-                          {useCase.cta}
-                          <ArrowUpRight className="ml-2 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                        </Link>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation Dots */}
+            <div className="flex justify-center space-x-2 mt-8">
+              {useCases.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentCard(index)}
+                  className={`w-3 h-3 rounded-full transition-all duration-300 ${
+                    currentCard === index
+                      ? 'bg-blue-600 scale-110'
+                      : 'bg-gray-300 hover:bg-gray-400'
+                  }`}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

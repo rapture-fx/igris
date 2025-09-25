@@ -90,21 +90,38 @@ export default function WorksOutOfTheBox() {
   return (
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-black text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="lg:text-center">
-          <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-            <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+        <div className="relative p-8" style={{
+          borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+        }}>
+          {/* Top left bleeding cross */}
+          <div className="absolute -top-4 -left-4 w-8 h-8">
+            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
           </div>
-          <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
-            Train ML Models from Raw Data in 3 Calls.
-          </p>
-          <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-            Upload, train, deploy. Three API calls handle the entire ML pipeline from messy data to production models.
-          </p>
-        </div>
+          {/* Bottom right bleeding cross */}
+          <div className="absolute -bottom-4 -right-4 w-8 h-8">
+            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+          </div>
 
-        <VerticalWorkflow />
+          <div className="lg:text-center mb-12">
+            <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+            </div>
+            <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
+              Train ML Models from Raw Data in 3 Calls.
+            </p>
+            <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
+              Upload, train, deploy. Three API calls handle the entire ML pipeline from messy data to production models.
+            </p>
+          </div>
 
-        <div className="mt-16 max-w-4xl mx-auto">
+          <VerticalWorkflow />
+
+          <div className="mt-16 max-w-4xl mx-auto">
           <h3 className="text-xl font-normal text-gray-900 dark:text-white text-center mb-8 font-inter">
             Schlep-engine in your stack
           </h3>
@@ -159,6 +176,7 @@ export default function WorksOutOfTheBox() {
               Explore Docs
               <ArrowUpRight className="ml-2 h-4 w-4" />
             </Link>
+            </div>
           </div>
         </div>
       </div>

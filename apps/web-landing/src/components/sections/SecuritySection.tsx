@@ -29,19 +29,36 @@ export default function SecuritySection() {
   return (
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-            <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">End-to-End Safeguards</h2>
+        <div className="relative p-8" style={{
+          borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
+          borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+        }}>
+          {/* Top left bleeding cross */}
+          <div className="absolute -top-4 -left-4 w-8 h-8">
+            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
+            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
           </div>
-          <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
-            <span style={{ color: '#114dcd' }}>Built-In Protection</span>
-          </p>
-          <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-            From API authentication to data encryption, every layer is secured without compromise.
-          </p>
-        </div>
+          {/* Bottom right bleeding cross */}
+          <div className="absolute -bottom-4 -right-4 w-8 h-8">
+            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
+            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+          </div>
 
-        <div className="mx-auto mt-16 max-w-xl sm:mt-20 lg:mt-24">
+          <div className="text-center mb-12">
+            <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">End-to-End Safeguards</h2>
+            </div>
+            <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
+              <span style={{ color: '#114dcd' }}>Built-In Protection</span>
+            </p>
+            <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
+              From API authentication to data encryption, every layer is secured without compromise.
+            </p>
+          </div>
+
+          <div className="mx-auto mt-16 max-w-xl sm:mt-20 lg:mt-24">
           <div className="space-y-4">
             {securityFeatures.map((feature) => (
               <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -66,6 +83,7 @@ export default function SecuritySection() {
               Learn More
               <ArrowUpRight className="ml-2 h-4 w-4" />
             </Link>
+            </div>
           </div>
         </div>
       </div>
