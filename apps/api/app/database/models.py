@@ -143,8 +143,8 @@ class Organization(Base):
     domain = Column(String)
     subscription_plan = Column(String, default="free")  # free, pro, enterprise
     subscription_status = Column(String, default="active")
-    lemonsqueezy_subscription_id = Column(String)  # LemonSqueezy subscription ID
-    lemonsqueezy_customer_id = Column(String)  # LemonSqueezy customer ID
+    billing_subscription_id = Column(String)  # Generic billing subscription ID
+    billing_customer_id = Column(String)  # Generic billing customer ID
     settings = Column(JSON, default={})
     
     # Timestamps
@@ -193,7 +193,7 @@ class ApiKey(Base):
     expires_at = Column(DateTime(timezone=True))
     rate_limit = Column(Integer)  # Requests per minute
     usage_count = Column(Integer, default=0)
-    lemonsqueezy_subscription_id = Column(String)  # Associated LemonSqueezy subscription
+    billing_subscription_id = Column(String)  # Associated billing subscription
     
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())

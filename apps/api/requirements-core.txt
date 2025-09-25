@@ -6,7 +6,7 @@ aiohttp==3.9.1
 aiomysql==0.2.0
 alembic==1.12.1
 asyncpg==0.29.0
-boto3==1.34.0
+# boto3 removed - unused AWS SDK
 celery==5.3.4
 cryptography==41.0.0
 fastapi==0.104.1
@@ -23,7 +23,7 @@ python-multipart==0.0.6
 redis==4.6.0
 scipy==1.11.4
 sqlalchemy==2.0.23
-lemonsqueezy==1.0.0
+# lemonsqueezy removed - unused billing integration
 websockets==12.0
 PyYAML>=6.0
 # For advanced profiling; optional but recommended

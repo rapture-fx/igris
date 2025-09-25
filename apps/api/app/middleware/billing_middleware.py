@@ -1,9 +1,9 @@
 """
-Billing and Subscription Middleware for LemonSqueezy Integration
-================================================================
+Billing and Subscription Middleware - Generic Implementation
+==========================================================
 
-This middleware provides subscription-aware rate limiting and usage tracking
-integrated with LemonSqueezy billing system.
+This middleware provides subscription-aware rate limiting and usage tracking.
+LemonSqueezy integration has been removed - placeholder for future billing provider.
 
 Features:
 - Subscription tier-based rate limiting
@@ -28,7 +28,8 @@ from fastapi import Request, Response, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
-from app.api.v1.billing import LemonSqueezyClient, get_lemonsqueezy_client, SubscriptionStatus, calculate_usage_cost
+# Generic billing imports - LemonSqueezy removed
+# from app.api.v1.billing import BillingClient, get_billing_client, SubscriptionStatus, calculate_usage_cost
 from app.middleware.rate_limiting_middleware import RateLimitConfig, RateLimitType, rate_limiter
 
 logger = logging.getLogger(__name__)
@@ -146,22 +147,22 @@ class UsageTracker:
             # Periodically flush to LemonSqueezy (every 100 requests or 5 minutes)
             if len(self._usage_cache[cache_key]["events"]) >= 100 or \
                current_time - self._usage_cache[cache_key]["timestamp"] >= self._cache_ttl:
-                await self._flush_usage_to_lemonsqueezy(customer_id, event_type, cache_key)
+                await self._flush_usage_to_billing_provider(customer_id, event_type, cache_key)
                 
         except Exception as e:
             logger.error(f"Error recording usage: {e}")
     
-    async def _flush_usage_to_lemonsqueezy(self, customer_id: str, event_type: BillingEventType, cache_key: str):
+    async def _flush_usage_to_billing_provider(self, customer_id: str, event_type: BillingEventType, cache_key: str):
         """Flush cached usage to LemonSqueezy"""
         try:
-            if not getattr(settings, 'LEMONSQUEEZY_API_KEY', None):
+            if not getattr(settings, 'BILLING_API_KEY', None):
                 return
                 
             cache_entry = self._usage_cache.get(cache_key)
             if not cache_entry:
                 return
             
-            client = get_lemonsqueezy_client()
+            client = None  # get_billing_client() - placeholder
             
             # In a real implementation, you would get the subscription ID from the customer
             # For now, we'll log the usage locally
@@ -301,8 +302,8 @@ class BillingMiddleware(BaseHTTPMiddleware):
             
             # Fetch subscription information from LemonSqueezy
             try:
-                if getattr(settings, 'LEMONSQUEEZY_API_KEY', None):
-                    client = get_lemonsqueezy_client()
+                if getattr(settings, 'BILLING_API_KEY', None):
+                    client = None  # get_billing_client() - placeholder
                     subscriptions_response = await client.get_customer_subscriptions(customer_id)
                     subscriptions = subscriptions_response.get("data", [])
                     

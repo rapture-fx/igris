@@ -21,13 +21,9 @@ import aiofiles
 
 from app.security.file_upload_validator import get_file_upload_validator, ValidationResult
 
-# Cloud storage imports (will be conditional)
-try:
-    import boto3
-    from botocore.exceptions import NoCredentialsError, ClientError
-    AWS_AVAILABLE = True
-except ImportError:
-    AWS_AVAILABLE = False
+# Cloud storage placeholder - future extension point for cloud providers
+# AWS SDK removed to simplify dependencies
+AWS_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -40,20 +36,12 @@ class FileUploadService:
         self.max_file_size = storage_config.get('max_file_size', 100 * 1024 * 1024)  # 100MB default
         self.allowed_extensions = {'.csv', '.json', '.xlsx', '.xls', '.parquet', '.tsv', '.txt'}
         
-        # Initialize storage client based on type
-        if storage_type == "s3" and AWS_AVAILABLE:
-            self.s3_client = boto3.client(
-                's3',
-                aws_access_key_id=storage_config.get('aws_access_key_id'),
-                aws_secret_access_key=storage_config.get('aws_secret_access_key'),
-                region_name=storage_config.get('region', 'us-east-1')
-            )
-            self.bucket_name = storage_config.get('bucket_name')
-        else:
-            self.s3_client = None
-            # Use local storage directory
-            self.local_storage_dir = Path(storage_config.get('local_dir', './uploads'))
-            self.local_storage_dir.mkdir(exist_ok=True)
+        # Initialize storage client - AWS removed, using local storage only
+        # Future extension point for cloud storage providers
+        self.s3_client = None
+        # Use local storage directory
+        self.local_storage_dir = Path(storage_config.get('local_dir', './uploads'))
+        self.local_storage_dir.mkdir(exist_ok=True)
     
     async def upload_file(self, file: UploadFile, user_id: str) -> Dict[str, Any]:
         """Upload file with validation and metadata extraction"""

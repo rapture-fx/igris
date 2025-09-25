@@ -14,10 +14,10 @@ from app.database.models import ApiKey as APIKey
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# LemonSqueezy API configuration
-LEMONSQUEEZY_API_BASE = "https://api.lemonsqueezy.com/v1"
-LEMONSQUEEZY_API_KEY = settings.LEMONSQUEEZY_API_KEY
-RATE_LIMIT_PER_MINUTE = 300  # LemonSqueezy rate limit
+# Generic billing configuration - placeholder for future billing integration
+BILLING_API_BASE = "https://api.billing-provider.com/v1"
+BILLING_API_KEY = getattr(settings, 'BILLING_API_KEY', None)
+RATE_LIMIT_PER_MINUTE = 300  # Standard API rate limit
 
 async def track_api_usage(
     api_key: str,
@@ -66,13 +66,13 @@ async def update_billing(
             return
         
         # Check if API key has associated LemonSqueezy subscription
-        if not api_key_record.lemonsqueezy_subscription_id:
+        if not getattr(api_key_record, 'billing_subscription_id', None):
             # Try to get subscription from user's organization
             if api_key_record.user and api_key_record.user.organization:
-                org_subscription_id = api_key_record.user.organization.lemonsqueezy_subscription_id
+                org_subscription_id = getattr(api_key_record.user.organization, 'billing_subscription_id', None)
                 if org_subscription_id:
                     # Report usage using organization's subscription
-                    await _report_usage_to_lemonsqueezy(
+                    await _report_usage_to_billing_provider(
                         org_subscription_id,
                         operation,
                         units
@@ -83,8 +83,8 @@ async def update_billing(
             return
         
         # Report usage to LemonSqueezy using API key's subscription
-        await _report_usage_to_lemonsqueezy(
-            api_key_record.lemonsqueezy_subscription_id,
+        await _report_usage_to_billing_provider(
+            getattr(api_key_record, 'billing_subscription_id', None),
             operation,
             units
         )
@@ -94,7 +94,7 @@ async def update_billing(
         logger.error(f"Error updating billing for API key {api_key}: {str(e)}")
 
 
-async def _report_usage_to_lemonsqueezy(
+async def _report_usage_to_billing_provider(
     subscription_id: str,
     operation: str,
     units: int
@@ -102,12 +102,12 @@ async def _report_usage_to_lemonsqueezy(
     """
     Report usage to LemonSqueezy API with rate limiting protection.
     """
-    if not LEMONSQUEEZY_API_KEY:
+    if not BILLING_API_KEY:
         logger.warning("LemonSqueezy API key not configured")
         return
     
     headers = {
-        "Authorization": f"Bearer {LEMONSQUEEZY_API_KEY}",
+        "Authorization": f"Bearer {BILLING_API_KEY}",
         "Accept": "application/vnd.api+json",
         "Content-Type": "application/vnd.api+json"
     }
@@ -134,7 +134,7 @@ async def _report_usage_to_lemonsqueezy(
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
-                f"{LEMONSQUEEZY_API_BASE}/usage-records",
+                f"{BILLING_API_BASE}/usage-records",
                 headers=headers,
                 json=usage_data
             )
@@ -155,7 +155,7 @@ async def _report_usage_to_lemonsqueezy(
         logger.error(f"Failed to report usage to LemonSqueezy: {str(e)}")
 
 
-async def get_lemonsqueezy_subscription_usage(
+async def get_billing_subscription_usage(
     subscription_id: str,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None
@@ -163,12 +163,12 @@ async def get_lemonsqueezy_subscription_usage(
     """
     Get usage summary from LemonSqueezy for a subscription.
     """
-    if not LEMONSQUEEZY_API_KEY:
+    if not BILLING_API_KEY:
         logger.warning("LemonSqueezy API key not configured")
         return {}
     
     headers = {
-        "Authorization": f"Bearer {LEMONSQUEEZY_API_KEY}",
+        "Authorization": f"Bearer {BILLING_API_KEY}",
         "Accept": "application/vnd.api+json"
     }
     
@@ -182,7 +182,7 @@ async def get_lemonsqueezy_subscription_usage(
                 params['filter[created_at][lte]'] = end_date.isoformat()
             
             response = await client.get(
-                f"{LEMONSQUEEZY_API_BASE}/subscriptions/{subscription_id}/usage-records",
+                f"{BILLING_API_BASE}/subscriptions/{subscription_id}/usage-records",
                 headers=headers,
                 params=params
             )

@@ -68,7 +68,7 @@ export default function Hero() {
 
   return (
     <div
-      className="relative min-h-screen overflow-visible dark:bg-gray-900 pt-16 pb-4"
+      className="relative overflow-visible dark:bg-gray-900 pt-16 pb-12"
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="relative z-20 mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
@@ -95,7 +95,7 @@ export default function Hero() {
             </Link>
            </div>
 
-          <div className="mt-24 max-w-[1300px] mx-auto relative">
+          <div className="mt-40 max-w-[1300px] mx-auto relative">
 
             <div
               className="bg-white text-left relative z-10"
@@ -161,8 +161,8 @@ export default function Hero() {
             </div>
 
             {/* Company Logo Placeholders */}
-            <div className="mt-24 text-center">
-              <p className="text-sm mb-12 font-inter" style={{ color: 'black' }}>Plug into your stack instantly.</p>
+            <div className="mt-16 text-center">
+              <p className="text-sm mb-8 font-inter" style={{ color: 'black' }}>Plug into your stack instantly.</p>
               <div className="flex justify-center items-center gap-12 flex-wrap">
                 <div
                   className="w-40 h-40 rounded"

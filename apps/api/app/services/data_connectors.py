@@ -13,9 +13,10 @@ import aiohttp
 import asyncpg
 import aiomysql
 import motor.motor_asyncio
-import boto3
-from google.cloud import storage as gcs
-from azure.storage.blob.aio import BlobServiceClient
+# Cloud storage SDKs removed - placeholders for future cloud integration
+# import boto3
+# from google.cloud import storage as gcs
+# from azure.storage.blob.aio import BlobServiceClient
 import redis.asyncio as redis
 from kafka import KafkaConsumer, KafkaProducer
 import websockets
@@ -493,39 +494,16 @@ class CloudStorageConnector:
             self.config.max_parallel_downloads
         ))
         
-    async def connect_aws_s3(
+    async def connect_cloud_storage(
         self,
         connection_name: str,
-        access_key: str,
-        secret_key: str,
-        region: str = 'us-east-1'
+        provider: str,
+        credentials: Dict[str, Any]
     ) -> bool:
-        """Connect to AWS S3"""
-        try:
-            client = boto3.client(
-                's3',
-                aws_access_key_id=access_key,
-                aws_secret_access_key=secret_key,
-                region_name=region
-            )
-            
-            # Test connection
-            client.list_buckets()
-            
-            self.connections[connection_name] = {
-                'type': 'aws_s3',
-                'client': client,
-                'config': {
-                    'region': region
-                }
-            }
-            
-            logger.info(f"AWS S3 connection '{connection_name}' established successfully")
-            return True
-            
-        except Exception as e:
-            logger.error(f"AWS S3 connection failed: {str(e)}")
-            return False
+        """Generic cloud storage connector - placeholder for future implementation"""
+        # AWS S3 functionality removed - placeholder for future cloud storage integration
+        logger.warning(f"Cloud storage connector for {provider} not implemented yet")
+        return False
     
     async def connect_gcs(
         self,
@@ -533,12 +511,9 @@ class CloudStorageConnector:
         credentials_path: str,
         project_id: str
     ) -> bool:
-        """Connect to Google Cloud Storage"""
-        try:
-            client = gcs.Client.from_service_account_json(
-                credentials_path,
-                project=project_id
-            )
+        """Connect to Google Cloud Storage - DISABLED (GCS SDK removed)"""
+        logger.warning("GCS connector disabled - Google Cloud SDK removed")
+        return False
             
             # Test connection
             list(client.list_buckets(max_results=1))

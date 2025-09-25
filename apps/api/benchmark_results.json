@@ -1,0 +1,20 @@
+{
+  "rust_kernels": {
+    "status": "success",
+    "rust_kernels_available": false,
+    "fallback_used": true,
+    "data_size": 1000000,
+    "matrix_size": [
+      1000,
+      1000
+    ],
+    "processing_time_seconds": 0.04088997840881348,
+    "operations_per_second": 97.82348036500393,
+    "results_summary": {
+      "sum": -1296.4955847273095,
+      "mean": -0.0012964955847273095,
+      "std": 1.000756588111403,
+      "matrix_trace": 999260.2105845192
+    }
+  }
+}

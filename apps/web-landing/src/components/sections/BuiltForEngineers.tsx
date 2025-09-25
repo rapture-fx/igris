@@ -20,7 +20,7 @@ const features = [
 
 export default function BuiltForEngineers() {
   return (
-    <section className="pt-20 pb-20 sm:pt-60 sm:pb-24 lg:pt-64 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+    <section className="pt-20 pb-20 sm:pt-24 sm:pb-24 lg:pt-32 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
