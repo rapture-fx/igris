@@ -39,7 +39,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.asymmetric import rsa, padding as asym_padding
 from cryptography.hazmat.backends import default_backend
 from cryptography.fernet import Fernet, MultiFernet
-import boto3
+# import boto3  # Cloud SDK removed
 from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
 import redis

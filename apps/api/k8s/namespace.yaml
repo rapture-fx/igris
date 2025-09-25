@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: schlep-engine
+  labels:
+    name: schlep-engine
+    app.kubernetes.io/name: schlep-engine
+    app.kubernetes.io/version: "2.0.0"
+    app.kubernetes.io/managed-by: kubectl

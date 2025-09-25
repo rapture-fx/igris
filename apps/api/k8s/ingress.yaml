@@ -1,0 +1,127 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: schlep-engine-ingress
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: schlep-engine
+    app.kubernetes.io/component: ingress
+  annotations:
+    # Cloud-agnostic ingress annotations
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+
+    # Rate limiting
+    nginx.ingress.kubernetes.io/rate-limit-connections: "10"
+    nginx.ingress.kubernetes.io/rate-limit-requests-per-second: "5"
+
+    # Upload size limit
+    nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
+
+    # Timeouts for large file uploads
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+
+    # Enable CORS if needed
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization"
+
+    # Health check annotations
+    nginx.ingress.kubernetes.io/healthcheck-path: "/health"
+    nginx.ingress.kubernetes.io/healthcheck-interval: "30s"
+
+    # Certificate management (cert-manager)
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    acme.cert-manager.io/http01-edit-in-place: "true"
+
+spec:
+  # Uncomment if using custom ingress class
+  # ingressClassName: nginx
+
+  tls:
+  - hosts:
+    - api.schlep-engine.local  # Change to your actual domain
+    secretName: schlep-engine-tls
+
+  rules:
+  - host: api.schlep-engine.local  # Change to your actual domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-service
+            port:
+              number: 80
+      - path: /metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-service
+            port:
+              number: 9090
+
+---
+# Alternative Ingress for development/staging without TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: schlep-engine-ingress-dev
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: schlep-engine
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/environment: development
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-body-size: "1024m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+spec:
+  rules:
+  - host: dev.schlep-engine.local  # Development domain
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-service
+            port:
+              number: 80
+
+---
+# Ingress for internal metrics access
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: schlep-engine-metrics-ingress
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: schlep-engine
+    app.kubernetes.io/component: metrics
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    # Restrict to internal IPs only
+    nginx.ingress.kubernetes.io/whitelist-source-range: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+spec:
+  rules:
+  - host: metrics.schlep-engine.local
+    http:
+      paths:
+      - path: /metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: schlep-engine-service
+            port:
+              number: 9090

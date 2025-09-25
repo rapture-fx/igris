@@ -1,0 +1,263 @@
+# Vertical Pod Autoscaler (VPA) Components
+# Automatically adjusts CPU and memory requests/limits
+
+# VPA Recommender - Analyzes resource usage and provides recommendations
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpa-recommender
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: vpa-recommender
+    app.kubernetes.io/component: autoscaling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vpa-recommender
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vpa-recommender
+        app.kubernetes.io/component: autoscaling
+    spec:
+      serviceAccountName: vpa-recommender
+      containers:
+      - name: recommender
+        image: k8s.gcr.io/autoscaling/vpa-recommender:0.13.0
+        imagePullPolicy: Always
+        args:
+        - --v=4
+        - --stderrthreshold=info
+        - --pod-recommendation-min-cpu-millicores=25
+        - --pod-recommendation-min-memory-mb=250
+        - --target-cpu-percentile=0.9
+        - --recommendation-margin-fraction=0.15
+        - --checkpoints-gc-interval=10m0s
+        resources:
+          requests:
+            cpu: 50m
+            memory: 500Mi
+          limits:
+            cpu: 200m
+            memory: 1000Mi
+        ports:
+        - name: prometheus
+          containerPort: 8942
+          protocol: TCP
+
+---
+# VPA Updater - Updates resource requests based on recommendations
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpa-updater
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: vpa-updater
+    app.kubernetes.io/component: autoscaling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vpa-updater
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vpa-updater
+        app.kubernetes.io/component: autoscaling
+    spec:
+      serviceAccountName: vpa-updater
+      containers:
+      - name: updater
+        image: k8s.gcr.io/autoscaling/vpa-updater:0.13.0
+        imagePullPolicy: Always
+        args:
+        - --v=4
+        - --stderrthreshold=info
+        - --min-replicas=3
+        - --eviction-rate-limit=2
+        - --eviction-rate-burst=5
+        resources:
+          requests:
+            cpu: 50m
+            memory: 500Mi
+          limits:
+            cpu: 200m
+            memory: 1000Mi
+        ports:
+        - name: prometheus
+          containerPort: 8943
+          protocol: TCP
+
+---
+# VPA Admission Controller - Intercepts pod creation/updates
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vpa-admission-controller
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: vpa-admission-controller
+    app.kubernetes.io/component: autoscaling
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: vpa-admission-controller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: vpa-admission-controller
+        app.kubernetes.io/component: autoscaling
+    spec:
+      serviceAccountName: vpa-admission-controller
+      containers:
+      - name: admission-controller
+        image: k8s.gcr.io/autoscaling/vpa-admission-controller:0.13.0
+        imagePullPolicy: Always
+        args:
+        - --v=4
+        - --stderrthreshold=info
+        - --client-ca-file=/etc/certs/ca.crt
+        - --tls-cert-file=/etc/certs/tls.crt
+        - --tls-private-key-file=/etc/certs/tls.key
+        - --webhook-timeout-seconds=30
+        volumeMounts:
+        - name: tls-certs
+          mountPath: /etc/certs
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 200Mi
+          limits:
+            cpu: 200m
+            memory: 500Mi
+        ports:
+        - containerPort: 8000
+          name: webhook
+        - containerPort: 8944
+          name: prometheus
+      volumes:
+      - name: tls-certs
+        secret:
+          secretName: vpa-tls-certs
+
+---
+# Service Accounts and RBAC for VPA components
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vpa-recommender
+  namespace: schlep-engine
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vpa-updater
+  namespace: schlep-engine
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: vpa-admission-controller
+  namespace: schlep-engine
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vpa-recommender
+rules:
+- apiGroups: [""]
+  resources: ["pods", "nodes", "limitranges"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["autoscaling.k8s.io"]
+  resources: ["verticalpodautoscalers"]
+  verbs: ["get", "list", "watch", "update"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vpa-updater
+rules:
+- apiGroups: [""]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["pods/eviction"]
+  verbs: ["create"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "statefulsets", "daemonsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["autoscaling.k8s.io"]
+  resources: ["verticalpodautoscalers"]
+  verbs: ["get", "list", "watch", "update"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: vpa-admission-controller
+rules:
+- apiGroups: [""]
+  resources: ["pods", "configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["autoscaling.k8s.io"]
+  resources: ["verticalpodautoscalers"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["admissionregistration.k8s.io"]
+  resources: ["mutatingadmissionconfigurations"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vpa-recommender
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vpa-recommender
+subjects:
+- kind: ServiceAccount
+  name: vpa-recommender
+  namespace: schlep-engine
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vpa-updater
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vpa-updater
+subjects:
+- kind: ServiceAccount
+  name: vpa-updater
+  namespace: schlep-engine
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vpa-admission-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: vpa-admission-controller
+subjects:
+- kind: ServiceAccount
+  name: vpa-admission-controller
+  namespace: schlep-engine

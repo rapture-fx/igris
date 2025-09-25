@@ -1,31 +1,31 @@
 {
   "test_metadata": {
-    "timestamp": "2025-09-25T12:52:32.332766",
+    "timestamp": "2025-09-25T17:50:03.028488",
     "version": "2.0.0",
     "test_type": "minimal_production",
-    "total_test_time_seconds": 26.595181941986084
+    "total_test_time_seconds": 31.130409955978394
   },
   "csv_ingestion_test": {
     "status": "success",
-    "file_size_mb": 157.2328634262085,
+    "file_size_mb": 157.2345781326294,
     "num_rows": 1048576,
-    "processing_time_seconds": 2.5496628284454346,
-    "rows_per_second": 411260.6530955827,
-    "mb_per_second": 61.66810045313937,
-    "initial_memory_mb": 221.796875,
-    "peak_memory_mb": 462.9296875,
-    "memory_increase_mb": 241.1328125,
+    "processing_time_seconds": 2.575489044189453,
+    "rows_per_second": 407136.657158642,
+    "mb_per_second": 61.05037739817433,
+    "initial_memory_mb": 206.328125,
+    "peak_memory_mb": 448.1015625,
+    "memory_increase_mb": 241.7734375,
     "processed_rows": 1048576
   },
   "api_endpoint_tests": [
     {
       "endpoint": "/health",
       "method": "GET",
-      "response_time_ms": 0.02002716064453125,
+      "response_time_ms": 0.018835067749023438,
       "status_code": 200,
       "response": {
         "status": "healthy",
-        "timestamp": "2025-09-25T12:52:18.044461",
+        "timestamp": "2025-09-25T17:49:46.254162",
         "version": "2.0.0",
         "dependencies": "minimal"
       }
@@ -33,7 +33,7 @@
     {
       "endpoint": "/upload_csv",
       "method": "POST",
-      "response_time_ms": 0.00095367431640625,
+      "response_time_ms": 0.0,
       "status_code": 201,
       "response": {
         "message": "CSV uploaded successfully",
@@ -59,7 +59,7 @@
     {
       "test": "numpy_operations",
       "status": "success",
-      "execution_time_ms": 11.60573959350586,
+      "execution_time_ms": 11.971235275268555,
       "data_shape": [
         10000,
         100
@@ -69,15 +69,15 @@
     {
       "test": "pandas_operations",
       "status": "success",
-      "execution_time_ms": 15.635967254638672,
+      "execution_time_ms": 8.377313613891602,
       "original_rows": 10000,
       "grouped_categories": 3,
-      "filtered_rows": 4977
+      "filtered_rows": 5015
     },
     {
       "test": "sklearn_ml_pipeline",
       "status": "success",
-      "execution_time_ms": 14253.973007202148,
+      "execution_time_ms": 16740.376234054565,
       "training_samples": 800,
       "test_samples": 200,
       "model_accuracy": 0.505,
@@ -87,7 +87,7 @@
   "system_info": {
     "python_version": "3.11+",
     "dependencies": "25 minimal packages",
-    "memory_available_mb": 2706.65625,
+    "memory_available_mb": 2289.63671875,
     "cpu_count": 4
   }
 }

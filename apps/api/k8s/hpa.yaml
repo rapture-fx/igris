@@ -1,0 +1,104 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: schlep-engine-hpa
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: schlep-engine
+    app.kubernetes.io/component: autoscaling
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: schlep-engine-api
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+  # CPU-based scaling
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  # Memory-based scaling
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  # Custom metrics scaling (if metrics-server supports it)
+  - type: Pods
+    pods:
+      metric:
+        name: http_requests_per_second
+      target:
+        type: AverageValue
+        averageValue: "100"
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300  # 5 minutes
+      policies:
+      - type: Percent
+        value: 10  # Scale down max 10% of replicas at once
+        periodSeconds: 60
+      - type: Pods
+        value: 2  # Scale down max 2 pods at once
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60  # 1 minute
+      policies:
+      - type: Percent
+        value: 50  # Scale up max 50% of replicas at once
+        periodSeconds: 60
+      - type: Pods
+        value: 5  # Scale up max 5 pods at once
+        periodSeconds: 60
+
+---
+# Vertical Pod Autoscaler (VPA) - Uncomment if VPA is installed
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: schlep-engine-vpa
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: schlep-engine
+    app.kubernetes.io/component: autoscaling
+spec:
+  targetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: schlep-engine-api
+  updatePolicy:
+    updateMode: "Auto"  # Options: Off, Initial, Recreation, Auto
+  resourcePolicy:
+    containerPolicies:
+    - containerName: api
+      minAllowed:
+        cpu: "100m"
+        memory: "512Mi"
+      maxAllowed:
+        cpu: "4000m"
+        memory: "8Gi"
+      controlledResources: ["cpu", "memory"]
+      controlledValues: RequestsAndLimits
+
+---
+# Pod Disruption Budget for High Availability
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: schlep-engine-pdb
+  namespace: schlep-engine
+  labels:
+    app.kubernetes.io/name: schlep-engine
+    app.kubernetes.io/component: availability
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: schlep-engine
+      app.kubernetes.io/component: api
+  minAvailable: 2  # Always keep at least 2 pods running
+  # Alternative: maxUnavailable: 1  # Allow max 1 pod to be unavailable

@@ -30,7 +30,7 @@ import ssl
 from email.mime.text import MimeText
 from email.mime.multipart import MimeMultipart
 import aiohttp
-import boto3
+# import boto3  # Cloud SDK removed
 from botocore.exceptions import ClientError
 
 from app.core.config import settings

@@ -29,7 +29,7 @@ import logging
 import ssl
 import aiohttp
 import hvac  # HashiCorp Vault client
-import boto3
+# import boto3  # Cloud SDK removed
 from botocore.exceptions import ClientError
 from azure.keyvault.secrets import SecretClient
 from azure.identity import DefaultAzureCredential
