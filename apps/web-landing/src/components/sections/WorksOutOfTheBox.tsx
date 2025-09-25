@@ -89,7 +89,7 @@ export default function WorksOutOfTheBox() {
 
   return (
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-black text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1450px] px-4 sm:px-6 lg:px-8">
         <div className="relative p-8" style={{
           borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
           borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
@@ -107,17 +107,19 @@ export default function WorksOutOfTheBox() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
           </div>
 
-          <div className="lg:text-center mb-12">
-            <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+          {/* Content Container with Original Width */}
+          <div className="max-w-[1300px] mx-auto">
+            <div className="lg:text-center mb-12">
+              <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
+              </div>
+              <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
+                Train ML Models from Raw Data in 3 Calls.
+              </p>
+              <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
+                Upload, train, deploy. Three API calls handle the entire ML pipeline from messy data to production models.
+              </p>
             </div>
-            <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
-              Train ML Models from Raw Data in 3 Calls.
-            </p>
-            <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-              Upload, train, deploy. Three API calls handle the entire ML pipeline from messy data to production models.
-            </p>
-          </div>
 
           <VerticalWorkflow />
 

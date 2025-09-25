@@ -89,7 +89,7 @@ export default function WhatYouCanBuild() {
 
   return (
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1450px] px-4 sm:px-6 lg:px-8">
         <div className="relative p-8" style={{
           borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
           borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
@@ -107,20 +107,22 @@ export default function WhatYouCanBuild() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
           </div>
 
-          {/* Section Header */}
-          <div className="text-center mb-20">
-            <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">
-                Built for every scale
-              </h2>
+          {/* Content Container with Original Width */}
+          <div className="max-w-[1300px] mx-auto">
+            {/* Section Header */}
+            <div className="text-center mb-20">
+              <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">
+                  Built for every scale
+                </h2>
+              </div>
+              <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
+                Turn data into <span style={{ color: '#114dcd' }}>advantage</span>
+              </p>
+              <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
+                Across industries, Schlep-engine powers the work behind the scenes.
+              </p>
             </div>
-            <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl font-inter">
-              Turn data into <span style={{ color: '#114dcd' }}>advantage</span>
-            </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
-              Across industries, Schlep-engine powers the work behind the scenes.
-            </p>
-          </div>
 
           {/* Carousel with Navigation */}
           <div className="max-w-6xl mx-auto relative flex items-center gap-8">
@@ -227,6 +229,7 @@ export default function WhatYouCanBuild() {
                 }`}
               />
             ))}
+          </div>
           </div>
         </div>
       </div>

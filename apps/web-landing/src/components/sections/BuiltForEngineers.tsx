@@ -21,8 +21,8 @@ const features = [
 export default function BuiltForEngineers() {
   return (
     <section className="pt-20 pb-20 sm:pt-24 sm:pb-24 lg:pt-32 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="mx-auto mt-16 max-w-[1300px] sm:mt-20 lg:mt-24">
+      <div className="mx-auto max-w-[1450px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto mt-16 max-w-[1450px] sm:mt-20 lg:mt-24">
           <div className="relative p-8" style={{
             borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
             borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
@@ -40,17 +40,19 @@ export default function BuiltForEngineers() {
               <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
             </div>
 
-            <div className="text-center mb-12">
-              <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>
+            {/* Content Container with Original Width */}
+            <div className="max-w-[1300px] mx-auto">
+              <div className="text-center mb-12">
+                <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+                  <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>
+                </div>
+                <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
+                  <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
+                </p>
+                <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
+                  Most ML projects stall on infrastructure.<br /> Schlep-engine removes that bottleneck with simple APIs <br /> that take you from messy data to working models—fast.
+                </p>
               </div>
-              <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
-                <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
-              </p>
-              <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-                Most ML projects stall on infrastructure.<br /> Schlep-engine removes that bottleneck with simple APIs <br /> that take you from messy data to working models—fast.
-              </p>
-            </div>
 
             <div className="border border-gray-200 dark:border-gray-700">
               <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
@@ -84,20 +86,20 @@ export default function BuiltForEngineers() {
                   </p>
                 </div>
               </div>
-            </div>
-          </div>
+              </div>
 
-          {/* Button moved below cards */}
-          <div className="mt-10 text-center">
+              {/* Button moved below cards */}
+              <div className="mt-10 text-center">
             <Link
               href="/#pricing"
               className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
               style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
             >
               Explore Schlep-engine
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
+                <ArrowUpRight className="ml-2 h-4 w-4" />
+              </Link>
+              </div>
+            </div>
         </div>
       </div>
     </section>

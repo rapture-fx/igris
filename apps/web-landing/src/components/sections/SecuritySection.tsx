@@ -28,7 +28,7 @@ const securityFeatures = [
 export default function SecuritySection() {
   return (
     <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-      <div className="mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1450px] px-4 sm:px-6 lg:px-8">
         <div className="relative p-8" style={{
           borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
           borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
