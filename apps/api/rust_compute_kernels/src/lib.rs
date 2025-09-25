@@ -20,11 +20,17 @@ mod aggregation_kernels;
 mod string_kernels;
 mod memory_kernels;
 
+// Security modules
+mod security_fixes;
+mod secure_string_kernels;
+
 // Re-export public APIs
 pub use csv_kernels::*;
 pub use aggregation_kernels::*;
 pub use string_kernels::*;
 pub use memory_kernels::*;
+pub use security_fixes::*;
+pub use secure_string_kernels::*;
 
 /// Fast CSV reading kernel - addresses 72.8% CPU bottleneck
 ///
@@ -110,14 +116,18 @@ pub fn fast_multi_agg(
     aggregation_kernels::fast_multi_agg_impl(groups, values, agg_funcs)
 }
 
-/// High-performance string operations kernel
+/// Secure high-performance string operations kernel
 ///
 /// Expected performance: 10-25x faster than pandas string operations
-/// SIMD optimizations for common string operations
+/// Includes security fixes for 9 vulnerabilities found in fuzz testing:
+/// - Unicode validation and sanitization
+/// - Input size limits and resource budgeting
+/// - Timeout protection for regex operations
+/// - Secure regex pattern validation
 ///
 /// # Arguments
 /// * `strings` - Vector of input strings
-/// * `operation` - Operation type: "length", "upper", "lower", "contains", "regex"
+/// * `operation` - Operation type: "length", "upper", "lower", "contains", "regex", "strip"
 /// * `pattern` - Optional pattern for contains/regex operations
 ///
 /// # Returns
@@ -129,17 +139,21 @@ pub fn fast_string_ops(
     operation: String,
     pattern: Option<String>,
 ) -> PyResult<Vec<String>> {
-    string_kernels::fast_string_ops_impl(strings, operation, pattern)
+    // Use secure implementation with vulnerability fixes
+    secure_string_kernels::secure_string_ops_impl(strings, operation, pattern)
 }
 
-/// Batch string processing for multiple operations
+/// Secure batch string processing for multiple operations
 ///
 /// Expected performance: 15-30x faster than sequential pandas operations
-/// Processes multiple string operations in a single pass
+/// Processes multiple string operations in a single pass with security hardening:
+/// - Limits batch size to prevent resource exhaustion
+/// - Uses secure implementations for all operations
+/// - Includes comprehensive input validation
 ///
 /// # Arguments
 /// * `strings` - Vector of input strings
-/// * `operations` - List of operations to perform
+/// * `operations` - List of operations to perform (max 10)
 ///
 /// # Returns
 /// HashMap mapping operation -> results
@@ -148,7 +162,8 @@ pub fn fast_string_batch(
     strings: Vec<String>,
     operations: Vec<String>,
 ) -> PyResult<HashMap<String, Vec<String>>> {
-    string_kernels::fast_string_batch_impl(strings, operations)
+    // Use secure implementation with vulnerability fixes
+    secure_string_kernels::secure_string_batch_impl(strings, operations)
 }
 
 /// Memory-efficient data cleaning operations
