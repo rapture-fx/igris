@@ -1,0 +1,192 @@
+# AlertManager Configuration for Schlep Engine
+# Handles alert routing, grouping, and notifications
+
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@schlep-engine.com'
+  smtp_require_tls: false
+
+# Templates for notification content
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route configuration
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 5s
+      repeat_interval: 5m
+
+    # Warning alerts - grouped notifications
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+      group_wait: 30s
+      repeat_interval: 1h
+
+    # API-specific alerts
+    - match:
+        component: api
+      receiver: 'api-alerts'
+      group_wait: 15s
+      repeat_interval: 30m
+
+    # Data processing alerts
+    - match:
+        component: data_processing
+      receiver: 'data-processing-alerts'
+      group_wait: 20s
+      repeat_interval: 2h
+
+    # System resource alerts
+    - match:
+        component: system
+      receiver: 'system-alerts'
+      group_wait: 30s
+      repeat_interval: 1h
+
+receivers:
+  # ===== DEFAULT RECEIVER =====
+  - name: 'default'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#schlep-alerts'
+        title: 'Schlep Engine Alert'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Severity:* {{ .Labels.severity }}
+          *Component:* {{ .Labels.component }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # ===== CRITICAL ALERTS =====
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'ops-team@schlep-engine.com'
+        subject: 'CRITICAL: Schlep Engine Alert - {{ .GroupLabels.alertname }}'
+        body: |
+          CRITICAL ALERT DETECTED
+
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Severity: {{ .Labels.severity }}
+          Component: {{ .Labels.component }}
+          Description: {{ .Annotations.description }}
+          Started: {{ .StartsAt }}
+          {{ end }}
+
+          Please investigate immediately.
+
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#schlep-critical'
+        color: 'danger'
+        title: '🚨 CRITICAL ALERT: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Component:* {{ .Labels.component }}
+          *Description:* {{ .Annotations.description }}
+          *Started:* {{ .StartsAt }}
+          {{ end }}
+
+  # ===== WARNING ALERTS =====
+  - name: 'warning-alerts'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#schlep-alerts'
+        color: 'warning'
+        title: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Component:* {{ .Labels.component }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # ===== API ALERTS =====
+  - name: 'api-alerts'
+    email_configs:
+      - to: 'api-team@schlep-engine.com'
+        subject: 'API Alert: {{ .GroupLabels.alertname }}'
+        body: |
+          API PERFORMANCE ALERT
+
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Endpoint: {{ .Labels.endpoint }}
+          Description: {{ .Annotations.description }}
+          {{ end }}
+
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#schlep-api'
+        color: '#439FE0'
+        title: '🔗 API Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Endpoint:* {{ .Labels.endpoint }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # ===== DATA PROCESSING ALERTS =====
+  - name: 'data-processing-alerts'
+    email_configs:
+      - to: 'data-team@schlep-engine.com'
+        subject: 'Data Processing Alert: {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#schlep-data'
+        color: '#36C5F0'
+        title: '📊 Data Processing: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Component:* {{ .Labels.component }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  # ===== SYSTEM ALERTS =====
+  - name: 'system-alerts'
+    email_configs:
+      - to: 'devops@schlep-engine.com'
+        subject: 'System Alert: {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+        channel: '#schlep-system'
+        color: '#ECB22E'
+        title: '🖥️ System Alert: {{ .GroupLabels.alertname }}'
+        text: |
+          {{ range .Alerts }}
+          *Alert:* {{ .Annotations.summary }}
+          *Component:* {{ .Labels.component }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+# Inhibition rules - prevent certain alerts when others are firing
+inhibit_rules:
+  # Inhibit warning alerts when critical alerts are firing for the same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'component']
+
+  # Inhibit API alerts when the entire API is down
+  - source_match:
+      alertname: 'APIEndpointDown'
+    target_match:
+      component: 'api'
+    equal: ['instance']

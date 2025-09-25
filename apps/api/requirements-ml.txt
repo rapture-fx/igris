@@ -1,101 +1,103 @@
-# Schlep-engine ML Service Dependencies
-# Heavy ML dependencies for separate service
+# Schlep Engine Optional ML Frameworks
+# Advanced machine learning capabilities for enhanced data processing
+# Enable via environment variables: ENABLE_TORCH=true, ENABLE_TF=true
 
-# Core ML Framework - TensorFlow Stack
+# ===== DEEP LEARNING FRAMEWORKS =====
+
+# PyTorch - Deep learning and neural networks
+# Enable with: ENABLE_TORCH=true
+torch==2.1.0
+torchvision==0.16.0
+torchaudio==2.1.0
+
+# TensorFlow - Enterprise ML pipelines
+# Enable with: ENABLE_TF=true
 tensorflow==2.15.0
-tensorflow-probability==0.23.0
-keras==2.15.0
+tensorflow-serving-api==2.15.0
 
-# PyTorch Stack (Required for RL components)
-torch>=2.1.0,<2.2.0
-torchvision>=0.16.0,<0.17.0
-torchaudio>=2.1.0,<2.2.0
+# ===== ML ECOSYSTEM LIBRARIES =====
 
-# Scientific Computing
-numpy==1.24.4  # Compatible with TensorFlow 2.15
-scipy==1.11.4
-pandas==2.0.3
-scikit-learn==1.3.2
-
-# Deep Learning Utilities
-transformers==4.36.0
-datasets==2.14.7
+# Hugging Face - Pre-trained models and transformers
+transformers==4.35.0
 tokenizers==0.15.0
+datasets==2.14.0
 
-# Computer Vision
-opencv-python==4.8.1.78
-Pillow==10.1.0
-scikit-image==0.22.0
+# Advanced ML utilities
+accelerate==0.24.0  # Distributed training
+evaluate==0.4.1    # Model evaluation metrics
 
-# Natural Language Processing
-spacy==3.7.2
+# ===== COMPUTER VISION =====
+opencv-python-headless==4.8.1.78
+pillow==11.0.0  # Already in base requirements
+albumentations==1.3.1  # Data augmentation
+
+# ===== NATURAL LANGUAGE PROCESSING =====
 nltk==3.8.1
-gensim==4.3.2
+spacy==3.7.2
+textblob==0.17.1
 
-# Model Serving and MLOps
-mlflow==2.8.1
-wandb==0.16.0
+# ===== GPU ACCELERATION (Optional) =====
+# Uncomment for GPU support
+# torch==2.1.0+cu118 -f https://download.pytorch.org/whl/torch_stable.html
+# tensorflow-gpu==2.15.0
 
-# Visualization
+# ===== MODEL SERVING & DEPLOYMENT =====
+# TorchServe for PyTorch model serving
+# torchserve==0.8.2
+# torch-model-archiver==0.8.2
+
+# ===== SCIENTIFIC COMPUTING EXTENSIONS =====
+scipy==1.11.4
 matplotlib==3.8.2
 seaborn==0.13.0
 plotly==5.17.0
 
-# Performance and GPU Support
-numba==0.58.1
+# ===== EXPERIMENT TRACKING =====
+mlflow==2.8.1
+wandb==0.16.0  # Weights & Biases
+tensorboard==2.15.1
 
-# Network and HTTP
-requests==2.32.3
-urllib3==2.2.2
-certifi>=2025.4.26
+# ===== MODEL OPTIMIZATION =====
+onnx==1.15.0
+onnxruntime==1.16.3
+openvino==2023.3.0  # Intel optimization
 
-# Jupyter and Interactive Development
-jupyter==1.0.0
-ipykernel==6.26.0
-notebook==7.0.6
-
-# Configuration and Environment
-python-dotenv==1.0.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
-
-# Reinforcement Learning Stack
-stable-baselines3==2.1.0
-gymnasium==0.29.1
-gym==0.26.2  # Backward compatibility
-sb3-contrib==2.1.0
-
-# Document Processing
-pdfplumber==0.10.0
-PyPDF2==3.0.1
-python-docx==0.8.11
-openpyxl==3.1.2
-
-# Image Processing and OCR
-pytesseract==0.3.10
-
-# Background Task Processing
-celery==5.3.4
-redis==5.0.1
-
-# Additional ML Utilities
-imbalanced-learn==0.11.0
-xgboost==2.0.3
-lightgbm==4.1.0
-catboost==1.2.2
-
-# Hyperparameter Optimization
+# ===== HYPERPARAMETER TUNING =====
 optuna==3.4.0
 hyperopt==0.2.7
+ray[tune]==2.8.0
 
-# Model Interpretability
+# ===== FEATURE ENGINEERING =====
+featuretools==1.26.0
+tsfresh==0.20.1  # Time series features
+
+# ===== MODEL INTERPRETABILITY =====
 shap==0.43.0
 lime==0.2.0.1
+captum==0.6.0  # PyTorch interpretability
 
-# Feature Engineering
-category-encoders==2.6.3
-feature-engine==1.6.2
+# ===== DISTRIBUTED COMPUTING =====
+dask[dataframe]==2023.12.0
+ray[data]==2.8.0
 
-# Time Series Analysis
-statsmodels==0.14.0
+# ===== REINFORCEMENT LEARNING (Future) =====
+# Commented out as per cleanup requirements
+# stable-baselines3==2.3.2
+# gymnasium==0.29.1
+# tensorboard==2.17.0
 
+# ===== TOTAL ADDITIONAL PACKAGES: ~40 =====
+# This brings total dependencies to ~65 packages when ML features are enabled
+# Base system remains at 25 packages for minimal deployment
+
+# Usage Instructions:
+# 1. Install base system: pip install -r requirements.lock
+# 2. Enable PyTorch: pip install torch==2.1.0 torchvision==0.16.0
+# 3. Enable TensorFlow: pip install tensorflow==2.15.0
+# 4. Enable full ML stack: pip install -r requirements-ml.txt
+
+# Environment Variable Controls:
+# - ENABLE_TORCH=true: Enable PyTorch features
+# - ENABLE_TF=true: Enable TensorFlow features
+# - ENABLE_GPU=true: Use GPU-accelerated versions
+# - ML_BACKEND=auto: Auto-detect available frameworks

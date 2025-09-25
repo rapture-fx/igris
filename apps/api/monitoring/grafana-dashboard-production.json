@@ -1,0 +1,318 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Schlep Engine - Production Monitoring",
+    "tags": ["schlep-engine", "production", "monitoring"],
+    "timezone": "browser",
+    "refresh": "5s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "schlep_api_requests_total",
+            "legendFormat": "Total API Requests"
+          },
+          {
+            "expr": "schlep_csv_rows_processed_total",
+            "legendFormat": "Rows Processed"
+          },
+          {
+            "expr": "schlep_system_cpu_usage_percent",
+            "legendFormat": "CPU Usage %"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 70},
+                {"color": "red", "value": 90}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "API Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(schlep_api_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Requests/sec",
+            "show": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4},
+        "alert": {
+          "conditions": [
+            {
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "evaluator": {"params": [100], "type": "gt"}
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "5m",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "High API Request Rate",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 3,
+        "title": "API Response Times",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(schlep_api_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(schlep_api_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Response Time (seconds)",
+            "show": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4},
+        "alert": {
+          "conditions": [
+            {
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "evaluator": {"params": [2.0], "type": "gt"}
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "2m",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "High API Response Time",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 4,
+        "title": "CSV Ingestion Performance",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "schlep_csv_ingestion_throughput_rows_per_second",
+            "legendFormat": "Rows/Second"
+          },
+          {
+            "expr": "rate(schlep_csv_rows_processed_total[5m])",
+            "legendFormat": "Processing Rate by {{processing_engine}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Throughput (rows/sec)",
+            "show": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 12}
+      },
+      {
+        "id": 5,
+        "title": "Memory Usage",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "schlep_system_memory_usage_bytes{type=\"used\"} / 1024 / 1024 / 1024",
+            "legendFormat": "Used Memory (GB)"
+          },
+          {
+            "expr": "schlep_system_memory_usage_bytes{type=\"available\"} / 1024 / 1024 / 1024",
+            "legendFormat": "Available Memory (GB)"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Memory (GB)",
+            "show": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 12},
+        "alert": {
+          "conditions": [
+            {
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "last"},
+              "evaluator": {"params": [80], "type": "gt"}
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "High Memory Usage",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 6,
+        "title": "Error Rates",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(schlep_api_errors_total[5m])",
+            "legendFormat": "{{endpoint}} - {{error_type}}"
+          },
+          {
+            "expr": "rate(schlep_api_requests_total{status_code=~\"5..\"}[5m])",
+            "legendFormat": "5xx Responses"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Errors/sec",
+            "show": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20},
+        "alert": {
+          "conditions": [
+            {
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "evaluator": {"params": [1], "type": "gt"}
+            }
+          ],
+          "executionErrorState": "alerting",
+          "for": "1m",
+          "frequency": "10s",
+          "handler": 1,
+          "name": "High Error Rate",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 7,
+        "title": "Data Processing Engine Performance",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "schlep_polars_pandas_speedup_ratio",
+            "legendFormat": "Polars vs Pandas Speedup"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(schlep_data_processing_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile processing time"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Speedup Ratio / Processing Time",
+            "show": true
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+      },
+      {
+        "id": 8,
+        "title": "Database & Redis Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "schlep_database_connections_active",
+            "legendFormat": "DB Connections"
+          },
+          {
+            "expr": "schlep_redis_memory_usage_bytes / 1024 / 1024",
+            "legendFormat": "Redis Memory (MB)"
+          },
+          {
+            "expr": "schlep_health_check_status",
+            "legendFormat": "{{component}} Health"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 28}
+      },
+      {
+        "id": 9,
+        "title": "File Processing Statistics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "sum by (file_size_category, status) (schlep_csv_ingestion_total)",
+            "legendFormat": "{{file_size_category}} - {{status}}",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 32}
+      },
+      {
+        "id": 10,
+        "title": "Active Operations",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "schlep_api_active_requests",
+            "legendFormat": "Active API Requests"
+          }
+        ],
+        "yAxes": [
+          {
+            "label": "Active Operations",
+            "show": true
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 32}
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(schlep_api_requests_total, instance)",
+          "refresh": 1
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "prometheus",
+          "expr": "changes(schlep_app_info[1h])",
+          "titleFormat": "Deployment",
+          "textFormat": "Application deployment detected"
+        }
+      ]
+    }
+  }
+}

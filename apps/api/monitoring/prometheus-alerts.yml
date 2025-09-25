@@ -1,0 +1,205 @@
+# Schlep Engine Production Alert Rules
+# Prometheus alerting rules for monitoring critical metrics
+
+groups:
+  - name: schlep_engine_alerts
+    rules:
+      # ===== SYSTEM RESOURCE ALERTS =====
+      - alert: HighMemoryUsage
+        expr: schlep_system_memory_usage_bytes{type="percent"} > 80
+        for: 2m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}% which is above the 80% threshold"
+
+      - alert: CriticalMemoryUsage
+        expr: schlep_system_memory_usage_bytes{type="percent"} > 90
+        for: 1m
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Critical memory usage detected"
+          description: "Memory usage is {{ $value }}% which is above the 90% critical threshold"
+
+      - alert: HighCPUUsage
+        expr: schlep_system_cpu_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is {{ $value }}% for more than 5 minutes"
+
+      # ===== API PERFORMANCE ALERTS =====
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(schlep_api_request_duration_seconds_bucket[5m])) > 2.0
+        for: 2m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile API response time is {{ $value }}s, above 2s threshold"
+
+      - alert: HighAPIErrorRate
+        expr: rate(schlep_api_errors_total[5m]) > 1
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "High API error rate"
+          description: "API error rate is {{ $value }} errors/second"
+
+      - alert: APIEndpointDown
+        expr: up{job="schlep-api"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API endpoint is down"
+          description: "Schlep Engine API is not responding"
+
+      # ===== CSV INGESTION ALERTS =====
+      - alert: SlowCSVIngestion
+        expr: schlep_csv_ingestion_throughput_rows_per_second < 10000
+        for: 5m
+        labels:
+          severity: warning
+          component: data_processing
+        annotations:
+          summary: "CSV ingestion throughput is low"
+          description: "CSV ingestion rate is {{ $value }} rows/second, below expected threshold"
+
+      - alert: CSVIngestionFailures
+        expr: increase(schlep_csv_ingestion_total{status="error"}[5m]) > 3
+        for: 1m
+        labels:
+          severity: warning
+          component: data_processing
+        annotations:
+          summary: "Multiple CSV ingestion failures"
+          description: "{{ $value }} CSV ingestion failures in the last 5 minutes"
+
+      # ===== DATA PROCESSING ALERTS =====
+      - alert: DataProcessingFailures
+        expr: increase(schlep_data_processing_operations_total{status="error"}[10m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          component: data_processing
+        annotations:
+          summary: "High data processing failure rate"
+          description: "{{ $value }} data processing failures in the last 10 minutes"
+
+      - alert: PolarsPerformanceDegradation
+        expr: schlep_polars_pandas_speedup_ratio < 2.0
+        for: 10m
+        labels:
+          severity: info
+          component: data_processing
+        annotations:
+          summary: "Polars performance speedup is low"
+          description: "Polars speedup ratio is {{ $value }}x, expected >2x over Pandas"
+
+      # ===== DATABASE & REDIS ALERTS =====
+      - alert: DatabaseConnectionsHigh
+        expr: schlep_database_connections_active > 50
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High number of database connections"
+          description: "{{ $value }} active database connections, may indicate connection leaks"
+
+      - alert: RedisMemoryHigh
+        expr: schlep_redis_memory_usage_bytes / 1024 / 1024 / 1024 > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value }}GB"
+
+      - alert: HealthCheckFailure
+        expr: schlep_health_check_status == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: health
+        annotations:
+          summary: "Component health check failed"
+          description: "Health check for {{ $labels.component }} is failing"
+
+      # ===== BUSINESS LOGIC ALERTS =====
+      - alert: NoDataProcessingActivity
+        expr: increase(schlep_csv_rows_processed_total[30m]) == 0
+        for: 30m
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "No data processing activity"
+          description: "No CSV rows have been processed in the last 30 minutes"
+
+      - alert: LowThroughputSustained
+        expr: avg_over_time(schlep_csv_ingestion_throughput_rows_per_second[15m]) < 1000
+        for: 15m
+        labels:
+          severity: warning
+          component: performance
+        annotations:
+          summary: "Sustained low throughput"
+          description: "Average ingestion throughput over 15 minutes is {{ $value }} rows/sec"
+
+      # ===== LOAD TESTING ALERTS =====
+      - alert: HighConcurrentRequests
+        expr: schlep_api_active_requests > 100
+        for: 2m
+        labels:
+          severity: warning
+          component: load
+        annotations:
+          summary: "High number of concurrent API requests"
+          description: "{{ $value }} concurrent API requests active"
+
+      - alert: RequestRateSpike
+        expr: rate(schlep_api_requests_total[1m]) > 50
+        for: 1m
+        labels:
+          severity: info
+          component: load
+        annotations:
+          summary: "API request rate spike detected"
+          description: "API receiving {{ $value }} requests/second"
+
+  # ===== DISK SPACE MONITORING =====
+  - name: disk_space_alerts
+    rules:
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+          component: storage
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space on {{ $labels.device }} is {{ $value }}% full"
+
+      - alert: DiskSpaceCritical
+        expr: (node_filesystem_avail_bytes / node_filesystem_size_bytes) * 100 < 5
+        for: 1m
+        labels:
+          severity: critical
+          component: storage
+        annotations:
+          summary: "Critical disk space"
+          description: "Disk space on {{ $labels.device }} is {{ $value }}% full"
