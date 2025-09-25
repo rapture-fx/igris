@@ -68,11 +68,11 @@ export default function Hero() {
 
   return (
     <div
-      className="relative min-h-screen overflow-visible dark:bg-gray-900 pt-16 pb-16"
+      className="relative min-h-screen overflow-visible dark:bg-gray-900 pt-16 pb-4"
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="relative z-20 mx-auto max-w-[1300px] px-4 sm:px-6 lg:px-8">
-        <div className="text-left pt-40 font-ibm-plex-mono">
+        <div className="text-left pt-28 font-ibm-plex-mono">
           <h1
             style={{ color: '#1f53d0' }}
             className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
@@ -86,12 +86,13 @@ export default function Hero() {
 
            <div className="flex justify-start gap-4">
              <Link
-               href="http://localhost:3004"
-               className="inline-flex items-center justify-center text-gray-700 px-5 py-2.5 rounded-lg hover:bg-gray-50 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg bg-white dark:text-gray-300 dark:hover:bg-gray-800 font-inter border border-gray-200 dark:border-gray-700"
-             >
-               Get Started
-               <ChevronRight className="ml-2 h-4 w-4" />
-             </Link>
+              href="http://localhost:3004"
+              style={{ backgroundColor: '#1f53d0' }}
+              className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+            >
+              Get Started
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Link>
            </div>
 
           <div className="mt-24 max-w-[1300px] mx-auto relative">
@@ -160,41 +161,40 @@ export default function Hero() {
             </div>
 
             {/* Company Logo Placeholders */}
-            <div className="mt-16 text-center">
-              <p className="text-sm text-gray-500 mb-6 font-inter">Trusted by data engineers, scientists, and AI researchers at</p>
-              <div className="flex justify-center items-center gap-8 flex-wrap">
+            <div className="mt-24 text-center">
+              <p className="text-sm mb-12 font-inter" style={{ color: 'black' }}>Plug into your stack instantly.</p>
+              <div className="flex justify-center items-center gap-12 flex-wrap">
                 <div
-                  className="w-16 h-16 rounded"
+                  className="w-40 h-40 rounded"
                   style={{ backgroundColor: '#edece9' }}
                   title="AI/ML Company"
                 ></div>
                 <div
-                  className="w-16 h-16 rounded"
+                  className="w-40 h-40 rounded"
                   style={{ backgroundColor: '#edece9' }}
                   title="Manufacturing"
                 ></div>
                 <div
-                  className="w-16 h-16 rounded"
+                  className="w-40 h-40 rounded"
                   style={{ backgroundColor: '#edece9' }}
                   title="Financial Services"
                 ></div>
                 <div
-                  className="w-16 h-16 rounded"
+                  className="w-40 h-40 rounded"
                   style={{ backgroundColor: '#edece9' }}
                   title="E-commerce"
                 ></div>
                 <div
-                  className="w-16 h-16 rounded"
+                  className="w-40 h-40 rounded"
                   style={{ backgroundColor: '#edece9' }}
                   title="Tech Startup"
                 ></div>
                 <div
-                  className="w-16 h-16 rounded"
+                  className="w-40 h-40 rounded"
                   style={{ backgroundColor: '#edece9' }}
                   title="Research Institution"
                 ></div>
-              </div>
-            </div>
+              </div>            </div>
           </div>
         </div>
       </div>
