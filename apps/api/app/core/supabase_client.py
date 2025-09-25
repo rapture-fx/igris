@@ -1,63 +1,46 @@
 """
-Supabase Client Configuration
-Provides centralized Supabase client setup for hybrid architecture
+Database Client Configuration (Cloud-Agnostic)
+Provides centralized database client setup for hybrid architecture
+Replaces Supabase with direct PostgreSQL + Redis for cloud independence
 """
 
 import os
 import logging
-from typing import Optional
-from supabase import create_client, Client
+from typing import Optional, Dict, Any
+# from supabase import create_client, Client  # Removed for cloud-agnostic operation
 from app.core.unified_config import settings
+from app.database.session import get_session
+from app.core.redis_client import get_redis_client
 
 logger = logging.getLogger(__name__)
 
-# Global Supabase client
-supabase_client: Optional[Client] = None
+# Database client placeholder (now uses direct PostgreSQL)
+database_client: Optional[Any] = None
 
-def get_supabase_client() -> Client:
+def get_database_client() -> Optional[Any]:
     """
-    Get or create Supabase client instance
+    Get database client instance (cloud-agnostic PostgreSQL)
+    Replaces Supabase with direct PostgreSQL connection
     """
-    global supabase_client
-    
-    if supabase_client is None:
+    global database_client
+
+    if database_client is None:
         try:
-            # Validate required environment variables
-            if not hasattr(settings, 'SUPABASE_URL') or not settings.SUPABASE_URL:
-                raise ValueError("SUPABASE_URL is required")
-            
-            if not hasattr(settings, 'SUPABASE_SERVICE_KEY') or not settings.SUPABASE_SERVICE_KEY:
-                raise ValueError("SUPABASE_SERVICE_KEY is required")
-            
-            # Create Supabase client
-            supabase_client = create_client(
-                supabase_url=settings.SUPABASE_URL,
-                supabase_key=settings.SUPABASE_SERVICE_KEY,
-                options={
-                    'schema': 'public',
-                    'headers': {
-                        'apikey': settings.SUPABASE_SERVICE_KEY,
-                        'authorization': f'Bearer {settings.SUPABASE_SERVICE_KEY}'
-                    },
-                    'auto_refresh_token': True,
-                    'persist_session': True,
-                    'detect_session_in_url': True,
-                    'realtime': {
-                        'enabled': True,
-                        'timeout': 30000,
-                        'heartbeat_interval': 30000
-                    }
-                }
-            )
-            
-            logger.info("Supabase client initialized successfully")
-            
+            # Use direct PostgreSQL session
+            database_client = get_session()
+            logger.info("PostgreSQL database client initialized successfully")
+
         except Exception as e:
-            logger.error(f"Failed to initialize Supabase client: {e}")
-            # Return None to allow graceful degradation
-            supabase_client = None
-            
-    return supabase_client
+            logger.error(f"Failed to initialize database client: {e}")
+            database_client = None
+
+    return database_client
+
+# Backward compatibility alias
+def get_supabase_client() -> Optional[Any]:
+    """Backward compatibility - now returns PostgreSQL client"""
+    logger.warning("get_supabase_client is deprecated, using direct PostgreSQL")
+    return get_database_client()
 
 def get_supabase_auth():
     """

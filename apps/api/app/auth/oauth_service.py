@@ -32,17 +32,17 @@ logger = logging.getLogger(__name__)
 class OAuthProviderConfig:
     """Configuration for OAuth providers"""
     
-    GOOGLE = {
-        "client_id": settings.GOOGLE_CLIENT_ID,
-        "client_secret": settings.GOOGLE_CLIENT_SECRET,
-        "server_metadata_url": "https://accounts.google.com/.well-known/openid_configuration",
-        "client_kwargs": {
-            "scope": "openid email profile"
-        },
-        "userinfo_endpoint": "https://www.googleapis.com/oauth2/v2/userinfo",
-        "authorize_url": "https://accounts.google.com/o/oauth2/auth",
-        "token_url": "https://oauth2.googleapis.com/token"
-    }
+    # GOOGLE = {
+    #     "client_id": settings.GOOGLE_CLIENT_ID,
+    #     "client_secret": settings.GOOGLE_CLIENT_SECRET,
+    #     "server_metadata_url": "https://accounts.google.com/.well-known/openid_configuration",
+    #     "client_kwargs": {
+    #         "scope": "openid email profile"
+    #     },
+    #     "userinfo_endpoint": "https://www.googleapis.com/oauth2/v2/userinfo",
+    #     "authorize_url": "https://accounts.google.com/o/oauth2/auth",
+    #     "token_url": "https://oauth2.googleapis.com/token"
+    # }  # Removed for cloud-agnostic operation
     
     GITHUB = {
         "client_id": settings.GITHUB_CLIENT_ID,
