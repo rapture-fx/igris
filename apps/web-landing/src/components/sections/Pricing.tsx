@@ -121,12 +121,12 @@ export default function Pricing() {
         {
           id: "ml-frameworks",
           question: "Which ML frameworks are supported?",
-          answer: "Develop plan supports TensorFlow, Growth adds PyTorch, and Scale includes all major frameworks plus custom framework support."
+          answer: "Develop supports TensorFlow with 6x faster processing, Growth adds PyTorch with 15x speed improvements, and Scale includes all frameworks with 25x faster multi-threaded processing."
         },
         {
           id: "data-scaling",
           question: "How does data processing scaling work?",
-          answer: "All plans offer unlimited file processing through streaming technology. Develop uses standard + streaming processing, Growth adds memory-mapped optimization, and Scale provides distributed processing with fault tolerance. Our platform auto-scales to handle datasets of any size efficiently."
+          answer: "All plans use Rust-powered streaming for superior performance. Develop handles 1-10GB datasets with 6x faster CSV reading, Growth processes 10-100GB files with memory-mapped optimization (15x faster), and Scale manages 100GB-1TB datasets with multi-threaded parallel processing (25x faster)."
         },
         {
           id: "data-security",
@@ -136,7 +136,7 @@ export default function Pricing() {
       ]
     },
     {
-      category: "Support & Enterprise",
+      category: "Support & Scale Solutions",
       items: [
         {
           id: "support-levels",
@@ -144,9 +144,9 @@ export default function Pricing() {
           answer: "Develop includes business hours support, Growth and Scale get 24/7 support. Scale plans also include a dedicated account manager and priority support."
         },
         {
-          id: "enterprise-solutions",
-          question: "Do you offer enterprise solutions?",
-          answer: "Yes! Our Scale plan includes enterprise features like unlimited distributed processing, full cluster management, custom integrations, SLA guarantees, and dedicated support. Contact us for custom enterprise pricing."
+          id: "scale-solutions",
+          question: "Do you offer advanced scale solutions?",
+          answer: "Yes! Our Scale plan includes high-performance features like multi-threaded processing (25x faster), 100GB-1TB dataset handling, custom integrations, performance SLA targets, and dedicated support. Contact us for custom Scale pricing."
         },
         {
           id: "custom-quote",
@@ -169,11 +169,11 @@ export default function Pricing() {
       basePrice: 99,
       cta: "Start Develop for free",
       ctaLink: "/auth/register",
-      tagline: "Perfect for individuals and small teams prototyping ML workflows with unlimited data processing.",
+      tagline: "Perfect for individuals and small teams with Rust-powered 6x faster processing for 1-10GB datasets.",
       highlights: [
         { icon: Activity, text: "5M API calls included" },
-        { icon: Database, text: "Unlimited file processing" },
-        { icon: Zap, text: "5 data source connections" },
+        { icon: Database, text: "1-10GB datasets (6x faster)" },
+        { icon: Zap, text: "Rust-powered CSV reading" },
         { icon: Users, text: "3 team members" },
         { icon: Shield, text: "Basic security & encryption" },
         { icon: Headphones, text: "Business hours support" }
@@ -185,12 +185,12 @@ export default function Pricing() {
       basePrice: 299,
       cta: "Start Growth for free",
       ctaLink: "/auth/register",
-      tagline: "For growing AI teams needing multi-modal data processing and streaming pipelines.",
+      tagline: "For growing AI teams needing 15x faster processing with memory-mapped optimization for 10-100GB datasets.",
       popular: true,
       highlights: [
         { icon: Activity, text: "25M API calls included" },
-        { icon: Database, text: "Streaming for large datasets" },
-        { icon: Zap, text: "Real-time pipeline processing" },
+        { icon: Database, text: "10-100GB datasets (15x faster)" },
+        { icon: Zap, text: "Memory-mapped optimization" },
         { icon: Users, text: "15 team members + collaboration" },
         { icon: Shield, text: "Advanced security & compliance" },
         { icon: Headphones, text: "24/7 priority support" }
@@ -202,13 +202,13 @@ export default function Pricing() {
       basePrice: 599,
       cta: "Start to Scale for free",
       ctaLink: "/auth/register",
-      tagline: "Enterprise AI infrastructure with foundation model support and distributed processing.",
+      tagline: "High-performance AI infrastructure with 25x faster multi-threaded processing for 100GB-1TB datasets.",
       popular: false,
       highlights: [
         { icon: Activity, text: "100M API calls included" },
-        { icon: Database, text: "Unlimited distributed processing" },
-        { icon: Zap, text: "Enterprise performance & SLA" },
-        { icon: Users, text: "100 team members + account manager" },
+        { icon: Database, text: "100GB-1TB datasets (25x faster)" },
+        { icon: Zap, text: "Multi-threaded parallel processing" },
+        { icon: Users, text: "50 team members + account manager" },
         { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" },
         { icon: Headphones, text: "Dedicated account manager" }
       ]
@@ -306,24 +306,25 @@ export default function Pricing() {
 
   const features = [
     {
-      category: "Distributed Processing & Scale",
+      category: "High-Performance Processing & Scale",
       icon: Cpu,
       items: [
-        { name: "File Size Limits", develop: "Unlimited (streaming)", growth: "Unlimited (optimized)", scale: "Unlimited (distributed)" },
-        { name: "Distributed Processing", develop: false, growth: "Auto-scaling", scale: "Full cluster management" },
-        { name: "Processing Method", develop: "Standard + Streaming", growth: "Streaming + Memory-mapped", scale: "Distributed + Fault tolerance" },
-        { name: "AI Training Data Support", develop: "Basic", growth: "Multi-modal", scale: "Foundation models + MLOps" }
+        { name: "Dataset Size Limits", develop: "1-10GB (6x faster)", growth: "10-100GB (15x faster)", scale: "100GB-1TB (25x faster)" },
+        { name: "Processing Architecture", develop: "Rust-powered streaming", growth: "Memory-mapped + parallel", scale: "Multi-threaded distributed" },
+        { name: "Performance vs Pandas", develop: "6-12x faster CSV reading", growth: "15-30x faster operations", scale: "25-50x faster processing" },
+        { name: "Memory Efficiency", develop: "40-60% less memory", growth: "50-70% less memory", scale: "70-80% less memory" },
+        { name: "AI Training Data Support", develop: "Basic (TensorFlow)", growth: "Multi-modal (PyTorch)", scale: "Foundation models + MLOps" }
       ]
     },
     {
       category: "API-first Pipeline Platform",
       icon: Database,
       items: [
-        { name: "7-Stage Data Preparation Pipeline", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "7-Stage Data Preparation Pipeline", develop: "Basic", growth: "Advanced", scale: "Full Scale" },
         { name: "Multi-Source Data Orchestration", develop: "5 Sources", growth: "15+ Sources", scale: "All Sources + Custom" },
         { name: "Real-time Pipeline Processing", develop: false, growth: true, scale: true },
         { name: "Automated Error Recovery & Rollback", develop: false, growth: true, scale: true },
-        { name: "Large Dataset Processing", develop: "Unlimited file processing", growth: "Streaming for large datasets", scale: "Distributed processing for TB-scale" },
+        { name: "Large Dataset Processing", develop: "Streaming (1-10GB files)", growth: "Memory-mapped (10-100GB)", scale: "Parallel processing (100GB-1TB)" },
         { name: "Pipeline State Management", develop: true, growth: true, scale: true }
       ]
     },
@@ -341,7 +342,7 @@ export default function Pricing() {
       icon: Settings,
       items: [
         { name: "REST API Endpoints (40+)", develop: true, growth: true, scale: true },
-        { name: "API Calls per Month", develop: "5M", growth: "25M", scale: "100M+" },
+        { name: "API Calls per Month", develop: "5M", growth: "25M", scale: "50M+" },
         { name: "Real-time WebSocket Updates", develop: true, growth: true, scale: true },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
         { name: "Custom API Integrations", develop: false, growth: true, scale: true },
@@ -354,7 +355,7 @@ export default function Pricing() {
       items: [
         { name: "Multi-Factor Authentication", develop: true, growth: true, scale: true },
         { name: "Single Sign-On (SSO)", develop: false, growth: true, scale: true },
-        { name: "Data Encryption", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "Data Encryption", develop: "Basic", growth: "Advanced", scale: "Advanced Plus" },
         { name: "SOC2 & GDPR Compliance", develop: false, growth: true, scale: true },
         { name: "Audit Logs", develop: false, growth: "30 Days", scale: "7 Years" },
         { name: "Advanced Security Controls", develop: false, growth: true, scale: true }
@@ -364,21 +365,21 @@ export default function Pricing() {
       category: "Platform Monitoring & Analytics",
       icon: Activity,
       items: [
-        { name: "Pipeline Performance Monitoring", develop: "Basic", growth: "Advanced", scale: "Enterprise" },
+        { name: "Pipeline Performance Monitoring", develop: "Basic", growth: "Advanced", scale: "Full Scale" },
         { name: "Intelligent Pipeline Alerts", develop: false, growth: true, scale: true },
         { name: "Usage Analytics & Reporting", develop: "Basic", growth: "Advanced", scale: "Custom Dashboards" },
-        { name: "99.9% Platform SLA", develop: false, growth: false, scale: true }
+        { name: "High Availability Setup", develop: false, growth: false, scale: "VPS redundancy" }
       ]
     },
     {
       category: "Platform Service & Support",
       icon: Headphones,
       items: [
-        { name: "Team Members", develop: "3", growth: "15", scale: "100" },
+        { name: "Team Members", develop: "3", growth: "15", scale: "50" },
         { name: "Platform Support", develop: "Business Hours", growth: "24/7", scale: "24/7" },
         { name: "Priority Pipeline Support", develop: false, growth: true, scale: true },
         { name: "Dedicated Account Manager", develop: false, growth: false, scale: true },
-        { name: "99.9% Platform Uptime SLA", develop: false, growth: false, scale: true }
+        { name: "Performance SLA", develop: false, growth: false, scale: "95% uptime target" }
       ]
     }
   ];
