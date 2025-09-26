@@ -1,0 +1,571 @@
+version: '3.8'
+
+# Schlep Engine Phase One - Enhanced Vultr Production Deployment
+# Integrates existing services with Phase One database infrastructure
+# Optimized for Vultr VPS with monitoring and migration readiness
+
+services:
+  # =========================================================================
+  # DATABASE LAYER - Phase One Infrastructure
+  # =========================================================================
+
+  # PostgreSQL 16 - YugabyteDB Migration Ready
+  postgres:
+    image: postgres:16-alpine
+    container_name: schlep-postgres-phase-one
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-schlep_engine}
+      POSTGRES_USER: ${POSTGRES_USER:-schlep_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+      # Performance tuning for 1000+ users on VPS
+      POSTGRES_SHARED_BUFFERS: ${POSTGRES_SHARED_BUFFERS:-512MB}
+      POSTGRES_EFFECTIVE_CACHE_SIZE: ${POSTGRES_EFFECTIVE_CACHE_SIZE:-1GB}
+      POSTGRES_MAX_CONNECTIONS: ${POSTGRES_MAX_CONNECTIONS:-150}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database-schemas:/docker-entrypoint-initdb.d:ro
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+      - ./postgres/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+      - ./backups:/backups
+    ports:
+      - "127.0.0.1:5432:5432"
+    command: >
+      postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c hba_file=/etc/postgresql/pg_hba.conf
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-schlep_user} -d ${POSTGRES_DB:-schlep_engine}"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - schlep-db-network
+      - schlep-app-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+
+  # Redis 7 - DragonflyDB Compatible Configuration
+  redis:
+    image: redis:7-alpine
+    container_name: schlep-redis-phase-one
+    restart: unless-stopped
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/etc/redis/redis.conf:ro
+    ports:
+      - "127.0.0.1:6379:6379"
+    command: >
+      redis-server /etc/redis/redis.conf
+      --requirepass ${REDIS_PASSWORD}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - schlep-db-network
+      - schlep-app-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+  # Redis Initialization
+  redis-init:
+    image: redis:7-alpine
+    container_name: schlep-redis-init
+    networks:
+      - schlep-db-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+    volumes:
+      - ./redis/init-scripts.sh:/init-scripts.sh:ro
+    command: >
+      sh -c "
+        apk add --no-cache bash &&
+        chmod +x /init-scripts.sh &&
+        /init-scripts.sh
+      "
+    restart: "no"
+
+  # MinIO - S3 Compatible Object Storage
+  minio:
+    image: minio/minio:latest
+    container_name: schlep-minio-phase-one
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-schlep_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-schlep_minio_dev_password_2024}
+      MINIO_DOMAIN: ${MINIO_DOMAIN:-minio.schlep-engine.com}
+      MINIO_REGION: ${MINIO_REGION:-us-east-1}
+      MINIO_COMPRESS: "on"
+    volumes:
+      - minio_data:/data
+      - minio_config:/root/.minio
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    networks:
+      - schlep-db-network
+      - schlep-app-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+
+  # MinIO Setup
+  minio-setup:
+    image: minio/mc:latest
+    container_name: schlep-minio-setup
+    networks:
+      - schlep-db-network
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_HOST: minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-schlep_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-schlep_minio_dev_password_2024}
+    volumes:
+      - ./minio/setup-buckets.sh:/setup-buckets.sh:ro
+    command: >
+      sh -c "
+        chmod +x /setup-buckets.sh &&
+        /setup-buckets.sh
+      "
+    restart: "no"
+
+  # =========================================================================
+  # MONITORING STACK - Phase One
+  # =========================================================================
+
+  # PostgreSQL Exporter
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: schlep-postgres-exporter
+    restart: unless-stopped
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-schlep_user}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-schlep_engine}?sslmode=disable"
+      PG_EXPORTER_EXTEND_QUERY_PATH: "/etc/postgres_exporter/queries.yaml"
+    volumes:
+      - ./monitoring/postgres_exporter_queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+    ports:
+      - "127.0.0.1:9187:9187"
+    networks:
+      - schlep-db-network
+      - schlep-monitoring-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+  # Redis Exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: schlep-redis-exporter
+    restart: unless-stopped
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_EXPORTER_INCL_SYSTEM_METRICS: "true"
+    ports:
+      - "127.0.0.1:9121:9121"
+    networks:
+      - schlep-db-network
+      - schlep-monitoring-network
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: schlep-prometheus
+    restart: unless-stopped
+    user: "65534:65534"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/rules:/etc/prometheus/rules:ro
+    ports:
+      - "127.0.0.1:9090:9090"
+    networks:
+      - schlep-monitoring-network
+      - schlep-app-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--storage.tsdb.retention.size=5GB'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: schlep-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-schlep_grafana_2024}
+      GF_INSTALL_PLUGINS: "grafana-clock-panel"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "127.0.0.1:3100:3000"
+    networks:
+      - schlep-monitoring-network
+      - schlep-app-network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # =========================================================================
+  # APPLICATION LAYER - Enhanced with Database Integration
+  # =========================================================================
+
+  # API Backend with Database Integration
+  api:
+    build:
+      context: ../../
+      dockerfile: infrastructure/vultr/Dockerfile.api
+    container_name: schlep-api-phase-one
+    restart: unless-stopped
+    environment:
+      # Core Configuration
+      ENVIRONMENT: ${ENVIRONMENT:-production}
+      DEBUG: ${DEBUG:-false}
+      SECRET_KEY: ${SECRET_KEY}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+
+      # Database - Phase One Configuration
+      DATABASE_URL: ${DATABASE_URL}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: ${POSTGRES_DB:-schlep_engine}
+      POSTGRES_USER: ${POSTGRES_USER:-schlep_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+      # Redis - Enhanced Configuration
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+
+      # MinIO/S3 Configuration
+      S3_ENDPOINT_URL: http://minio:9000
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-schlep_admin}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-schlep_minio_dev_password_2024}
+      S3_REGION: ${MINIO_REGION:-us-east-1}
+      S3_BUCKET_PREFIX: schlep-
+
+      # Application Configuration
+      API_URL: ${API_URL:-https://api.schlep-engine.com}
+      FRONTEND_URL: ${FRONTEND_URL:-https://schlep-engine.com}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS}
+
+      # Performance Configuration
+      MAX_CONNECTIONS: ${MAX_CONNECTIONS:-100}
+      CONNECTION_POOL_SIZE: ${CONNECTION_POOL_SIZE:-20}
+      CACHE_TTL: ${CACHE_TTL:-3600}
+
+      # Feature Flags
+      ENABLE_MONITORING: ${ENABLE_MONITORING:-true}
+      ENABLE_PERFORMANCE_TRACKING: ${ENABLE_PERFORMANCE_TRACKING:-true}
+
+      HOST: 0.0.0.0
+      PORT: 3001
+
+    volumes:
+      - api_storage:/app/storage
+      - api_logs:/app/logs
+      - ./uploads:/app/uploads
+
+    ports:
+      - "127.0.0.1:3001:3001"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      redis-init:
+        condition: service_completed_successfully
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    networks:
+      - schlep-app-network
+      - schlep-db-network
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.75'
+
+  # Web Admin Dashboard
+  web-admin:
+    build:
+      context: ../../
+      dockerfile: infrastructure/vultr/Dockerfile.web-admin
+    container_name: schlep-web-admin
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.schlep-engine.com}
+      NEXT_PUBLIC_GRAFANA_URL: ${GRAFANA_URL:-https://monitoring.schlep-engine.com}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT:-production}
+    ports:
+      - "127.0.0.1:3002:3002"
+    networks:
+      - schlep-app-network
+    depends_on:
+      - api
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Web Landing Page
+  web-landing:
+    build:
+      context: ../../
+      dockerfile: infrastructure/vultr/Dockerfile.web-landing
+    container_name: schlep-web-landing
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.schlep-engine.com}
+      NEXT_PUBLIC_ENVIRONMENT: ${ENVIRONMENT:-production}
+    ports:
+      - "127.0.0.1:3000:3000"
+    networks:
+      - schlep-app-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Web Docs
+  web-docs:
+    build:
+      context: ../../
+      dockerfile: infrastructure/vultr/Dockerfile.web-docs
+    container_name: schlep-web-docs
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${API_URL:-https://api.schlep-engine.com}
+    ports:
+      - "127.0.0.1:3003:3000"
+    networks:
+      - schlep-app-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+
+  # Enhanced Nginx with Monitoring Support
+  nginx:
+    image: nginx:alpine
+    container_name: schlep-nginx-phase-one
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites-enabled:/etc/nginx/sites-enabled:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+      - ./nginx/cache:/var/cache/nginx
+    depends_on:
+      - api
+      - web-admin
+      - web-landing
+      - web-docs
+      - grafana
+    networks:
+      - schlep-app-network
+      - schlep-monitoring-network
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.25'
+
+  # Database Backup Service
+  backup-service:
+    image: postgres:16-alpine
+    container_name: schlep-backup-service
+    restart: "no"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-schlep_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-schlep_engine}
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-schlep_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-schlep_minio_dev_password_2024}
+    volumes:
+      - ./backups:/backup
+      - ./scripts/backup.sh:/backup.sh:ro
+    networks:
+      - schlep-db-network
+    depends_on:
+      - postgres
+      - minio
+    command: >
+      sh -c "
+        apk add --no-cache curl &&
+        chmod +x /backup.sh &&
+        /backup.sh
+      "
+
+volumes:
+  # Database volumes
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  minio_data:
+    driver: local
+  minio_config:
+    driver: local
+
+  # Monitoring volumes
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+  # Application volumes
+  api_storage:
+    driver: local
+  api_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  # Database network (isolated)
+  schlep-db-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+  # Application network
+  schlep-app-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+  # Monitoring network
+  schlep-monitoring-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
