@@ -81,7 +81,6 @@ export default function WorksOutOfTheBox() {
     }
   }
 
-
   const getLineNumbers = () => {
     const lines = getCode().split('\n').length;
     return Array.from({ length: lines }, (_, i) => i + 1).join('\n');
@@ -121,63 +120,63 @@ export default function WorksOutOfTheBox() {
               </p>
             </div>
 
-          <VerticalWorkflow />
+            <VerticalWorkflow />
 
-          <div className="mt-16 max-w-4xl mx-auto">
-          <h3 className="text-xl font-normal text-gray-900 dark:text-white text-center mb-8 font-inter">
-            Schlep-engine in your stack
-          </h3>
-          <div className="flex justify-center items-center space-x-16 mb-8">
-            <button onClick={() => setActiveTab('python')}>
-              <img src="/py.svg" alt="Python" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'python' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-            </button>
-            <button onClick={() => setActiveTab('javascript')}>
-              <img src="/node.svg" alt="JavaScript" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-            </button>
-            <button onClick={() => setActiveTab('go')}>
-              <img src="/go.svg" alt="Go" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-            </button>
-            <button onClick={() => setActiveTab('cli')}>
-              <img src="/cli.svg" alt="CLI" className={`h-14 w-14 transition-opacity cursor-pointer ${activeTab === 'cli' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-            </button>
-          </div>
-          <div
-            className="bg-white text-left shadow-lg relative z-10"
-            style={{
-              border: '1px solid #114dcd',
-              boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-            }}
-          >
-
-            <div className="p-4 flex">
+            <div className="mt-16 max-w-4xl mx-auto">
+              <h3 className="text-xl font-normal text-gray-900 dark:text-white text-center mb-8 font-inter">
+                Schlep-engine in your stack
+              </h3>
+              <div className="flex justify-center items-center space-x-16 mb-8">
+                <button onClick={() => setActiveTab('python')}>
+                  <img src="/py.svg" alt="Python" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'python' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                </button>
+                <button onClick={() => setActiveTab('javascript')}>
+                  <img src="/node.svg" alt="JavaScript" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                </button>
+                <button onClick={() => setActiveTab('go')}>
+                  <img src="/go.svg" alt="Go" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                </button>
+                <button onClick={() => setActiveTab('cli')}>
+                  <img src="/cli.svg" alt="CLI" className={`h-14 w-14 transition-opacity cursor-pointer ${activeTab === 'cli' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                </button>
+              </div>
               <div
-                className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
-                style={{ color: '#9ca3af' }}
+                className="bg-white text-left shadow-lg relative z-10"
+                style={{
+                  border: '1px solid #114dcd',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
+                }}
               >
-                <div
-                  className="text-xs font-mono leading-relaxed whitespace-pre"
-                >
-                  {getLineNumbers()}
+                <div className="p-4 flex">
+                  <div
+                    className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
+                    style={{ color: '#9ca3af' }}
+                  >
+                    <div
+                      className="text-xs font-mono leading-relaxed whitespace-pre"
+                    >
+                      {getLineNumbers()}
+                    </div>
+                  </div>
+                  <pre
+                    className="text-xs overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
+                  >
+                    {getCode()}
+                  </pre>
                 </div>
               </div>
-              <pre
-                className="text-xs overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
-              >
-                {getCode()}
-              </pre>
-            </div>
-          </div>
 
-          {/* Explore Docs Button */}
-          <div className="mt-8 text-center">
-            <Link
-              href="https://docs.schlep-engine.com"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-              style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
-            >
-              Explore Docs
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Link>
+              {/* Explore Docs Button */}
+              <div className="mt-8 text-center">
+                <Link
+                  href="https://docs.schlep-engine.com"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                  style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
+                >
+                  Explore Docs
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
             </div>
           </div>
         </div>

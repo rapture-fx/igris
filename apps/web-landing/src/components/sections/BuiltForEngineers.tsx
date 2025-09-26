@@ -1,4 +1,3 @@
-
 import React from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import Link from 'next/link'
@@ -54,52 +53,53 @@ export default function BuiltForEngineers() {
                 </p>
               </div>
 
-            <div className="border border-gray-200 dark:border-gray-700">
-              <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
-                {/* Left side - 2 rows */}
-                <div className="border-r border-gray-200 dark:border-gray-700">
-                  <div className="p-16 text-left border-b border-gray-200 dark:border-gray-700" style={{ minHeight: '225px' }}>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-                      {features[0].name}
-                    </h3>
-                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                      {features[0].description}
-                    </p>
+              <div className="border border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
+                  {/* Left side - 2 rows */}
+                  <div className="border-r border-gray-200 dark:border-gray-700">
+                    <div className="p-16 text-left border-b border-gray-200 dark:border-gray-700" style={{ minHeight: '225px' }}>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                        {features[0].name}
+                      </h3>
+                      <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {features[0].description}
+                      </p>
+                    </div>
+                    <div className="p-16 text-left" style={{ minHeight: '225px' }}>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                        {features[1].name}
+                      </h3>
+                      <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                        {features[1].description}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-16 text-left" style={{ minHeight: '225px' }}>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-                      {features[1].name}
-                    </h3>
-                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                      {features[1].description}
-                    </p>
-                  </div>
-                </div>
 
-                {/* Right side - single tall column */}
-                <div className="p-16 text-left" style={{ minHeight: '450px' }}>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
-                    {features[2].name}
-                  </h3>
-                  <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                    {features[2].description}
-                  </p>
+                  {/* Right side - single tall column */}
+                  <div className="p-16 text-left" style={{ minHeight: '450px' }}>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                      {features[2].name}
+                    </h3>
+                    <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                      {features[2].description}
+                    </p>
+                  </div>
                 </div>
-              </div>
               </div>
 
               {/* Button moved below cards */}
               <div className="mt-10 text-center">
-            <Link
-              href="/#pricing"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-              style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
-            >
-              Explore Schlep-engine
-                <ArrowUpRight className="ml-2 h-4 w-4" />
-              </Link>
+                <Link
+                  href="/#pricing"
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                  style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
+                >
+                  Explore Schlep-engine
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Link>
               </div>
             </div>
+          </div>
         </div>
       </div>
     </section>

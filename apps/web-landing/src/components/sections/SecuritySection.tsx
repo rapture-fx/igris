@@ -46,17 +46,19 @@ export default function SecuritySection() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
           </div>
 
-          <div className="text-center mb-12">
-            <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">End-to-End Safeguards</h2>
+          {/* Content Container with Original Width */}
+          <div className="max-w-[1300px] mx-auto">
+            <div className="text-center mb-12">
+              <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">End-to-End Safeguards</h2>
+              </div>
+              <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
+                <span style={{ color: '#114dcd' }}>Built-In Protection</span>
+              </p>
+              <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
+                From API authentication to data encryption, every layer is secured without compromise.
+              </p>
             </div>
-            <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
-              <span style={{ color: '#114dcd' }}>Built-In Protection</span>
-            </p>
-            <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-              From API authentication to data encryption, every layer is secured without compromise.
-            </p>
-          </div>
 
           <div className="mx-auto mt-16 max-w-xl sm:mt-20 lg:mt-24">
           <div className="space-y-4">
@@ -84,6 +86,7 @@ export default function SecuritySection() {
               <ArrowUpRight className="ml-2 h-4 w-4" />
             </Link>
             </div>
+          </div>
           </div>
         </div>
       </div>
