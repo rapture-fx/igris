@@ -121,12 +121,12 @@ export default function Pricing() {
         {
           id: "ml-frameworks",
           question: "Which ML frameworks are supported?",
-          answer: "Develop supports TensorFlow with 6x faster training, Growth adds PyTorch with 15x speed improvements, and Scale includes all frameworks with 25x faster processing for enterprise workloads."
+          answer: "All plans support scikit-learn and NumPy processing. TensorFlow and PyTorch are available when installed. Scale plan includes enterprise-grade processing optimizations."
         },
         {
           id: "data-scaling",
           question: "How does data processing scaling work?",
-          answer: "All plans deliver superior performance through optimized streaming. Develop processes 1-10GB datasets with 6x faster speeds, Growth handles 10-100GB files with advanced optimization (15x faster), and Scale manages 100GB-1TB datasets with parallel processing (25x faster)."
+          answer: "All plans deliver optimized performance through efficient streaming. Develop processes up to 1GB daily, Growth handles up to 10GB daily with memory optimization, and Scale manages up to 100GB daily with parallel processing. Individual files can be up to 2GB across all plans."
         },
         {
           id: "data-security",
@@ -146,7 +146,7 @@ export default function Pricing() {
         {
           id: "scale-solutions",
           question: "Do you offer advanced scale solutions?",
-          answer: "Yes! Our Scale plan includes enterprise features like parallel processing (25x faster), 100GB-1TB dataset capacity, custom integrations, performance SLA guarantees, and dedicated support. Contact us for custom Scale pricing."
+          answer: "Yes! Our Scale plan includes enterprise features like parallel processing, 100GB daily processing capacity, custom integrations, and dedicated support. Contact us for custom Scale pricing."
         },
         {
           id: "custom-quote",
@@ -167,15 +167,15 @@ export default function Pricing() {
       name: "Develop",
       title: "Develop",
       basePrice: 99,
-      cta: "Start Develop for free",
+      cta: "Start Develop trial",
       ctaLink: "/auth/register",
-      tagline: "Process datasets instantly with 6x faster performance. Perfect for individual developers and small teams handling up to 10GB files.",
+      tagline: "Process up to 1GB daily with optimized performance. Perfect for individual developers and small teams getting started.",
       highlights: [
         { icon: Activity, text: "5M API calls included" },
-        { icon: Database, text: "Process 1-10GB datasets instantly" },
-        { icon: Zap, text: "Lightning-fast CSV processing" },
+        { icon: Database, text: "1GB daily processing limit" },
+        { icon: Zap, text: "Optimized CSV processing" },
         { icon: Users, text: "3 team members" },
-        { icon: Shield, text: "Basic security & encryption" },
+        { icon: Shield, text: "Standard encryption" },
         { icon: Headphones, text: "Business hours support" }
       ]
     },
@@ -183,16 +183,16 @@ export default function Pricing() {
       name: "Growth",
       title: "Growth",
       basePrice: 299,
-      cta: "Start Growth for free",
+      cta: "Start Growth trial",
       ctaLink: "/auth/register",
-      tagline: "Scale your data pipelines with 15x faster processing. Built for growing AI teams managing 10-100GB datasets.",
+      tagline: "Scale your data pipelines with enhanced performance. Built for growing AI teams processing up to 10GB daily.",
       popular: true,
       highlights: [
         { icon: Activity, text: "25M API calls included" },
-        { icon: Database, text: "Stream 10-100GB datasets in real-time" },
-        { icon: Zap, text: "Advanced memory optimization" },
+        { icon: Database, text: "10GB daily processing limit" },
+        { icon: Zap, text: "Memory-efficient processing" },
         { icon: Users, text: "15 team members + collaboration" },
-        { icon: Shield, text: "Advanced security & compliance" },
+        { icon: Shield, text: "Enhanced security features" },
         { icon: Headphones, text: "24/7 priority support" }
       ]
     },
@@ -200,16 +200,16 @@ export default function Pricing() {
       name: "Scale",
       title: "Scale",
       basePrice: 599,
-      cta: "Start to Scale for free",
+      cta: "Start Scale trial",
       ctaLink: "/auth/register",
-      tagline: "Enterprise-grade performance with 25x faster processing. Handle massive 100GB-1TB datasets with real-time pipelines.",
+      tagline: "Enterprise-grade performance with maximum optimization. Process up to 100GB daily with advanced parallel processing.",
       popular: false,
       highlights: [
         { icon: Activity, text: "100M API calls included" },
-        { icon: Database, text: "Scale to 100GB-1TB datasets seamlessly" },
-        { icon: Zap, text: "Parallel processing architecture" },
+        { icon: Database, text: "100GB daily processing limit" },
+        { icon: Zap, text: "Rust-accelerated processing" },
         { icon: Users, text: "50 team members + account manager" },
-        { icon: Shield, text: "SOC2/GDPR + 7-year audit logs" },
+        { icon: Shield, text: "Enterprise security framework" },
         { icon: Headphones, text: "Dedicated account manager" }
       ]
     }
@@ -306,12 +306,12 @@ export default function Pricing() {
 
   const features = [
     {
-      category: "Performance & Scalability",
+      category: "Performance & Processing",
       icon: Cpu,
       items: [
-        { name: "Dataset Size Limits", develop: "1-10GB (6x faster)", growth: "10-100GB (15x faster)", scale: "100GB-1TB (25x faster)" },
-        { name: "Processing Architecture", develop: "High-speed streaming", growth: "Memory-optimized + parallel", scale: "Enterprise distributed" },
-        { name: "Performance vs Standard Tools", develop: "6-12x faster data processing", growth: "15-30x faster operations", scale: "25-50x faster processing" },
+        { name: "Daily Processing Quota", develop: "1GB/day", growth: "10GB/day", scale: "100GB/day" },
+        { name: "Processing Architecture", develop: "Streaming pipeline", growth: "Memory-optimized processing", scale: "Parallel distributed processing" },
+        { name: "Processing Optimization", develop: "Standard optimization", growth: "Memory-efficient processing", scale: "Rust-accelerated kernels" },
         { name: "Memory Efficiency", develop: "40-60% less memory", growth: "50-70% less memory", scale: "70-80% less memory" },
         { name: "AI Training Data Support", develop: "TensorFlow integration", growth: "Multi-framework support", scale: "Enterprise MLOps" }
       ]
@@ -324,7 +324,7 @@ export default function Pricing() {
         { name: "Data Source Connections", develop: "5 data sources", growth: "15+ data sources", scale: "Unlimited + custom connectors" },
         { name: "Real-time Data Processing", develop: false, growth: true, scale: true },
         { name: "Automated Error Recovery", develop: false, growth: true, scale: true },
-        { name: "Large Dataset Processing", develop: "Stream 1-10GB files instantly", growth: "Process 10-100GB seamlessly", scale: "Handle 100GB-1TB enterprise datasets" },
+        { name: "File Upload Limit", develop: "2GB per file", growth: "2GB per file", scale: "2GB per file" },
         { name: "Pipeline State Management", develop: true, growth: true, scale: true }
       ]
     },
@@ -342,7 +342,7 @@ export default function Pricing() {
       icon: Settings,
       items: [
         { name: "REST API Endpoints (40+)", develop: true, growth: true, scale: true },
-        { name: "API Calls per Month", develop: "5M", growth: "25M", scale: "100M+" },
+        { name: "API Calls Included", develop: "5M calls", growth: "25M calls", scale: "100M calls" },
         { name: "Real-time Data Streaming", develop: true, growth: true, scale: true },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
         { name: "Custom API Integrations", develop: false, growth: true, scale: true },

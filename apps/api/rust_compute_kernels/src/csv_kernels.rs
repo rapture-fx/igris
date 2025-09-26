@@ -9,6 +9,7 @@ use std::io::{BufRead, BufReader};
 use std::path::Path;
 use rayon::prelude::*;
 use memmap2::MmapOptions;
+use csv::{Reader, ReaderBuilder};
 
 /// Fast CSV reading implementation
 ///
@@ -66,38 +67,41 @@ fn fast_csv_read_mmap(
     parse_csv_content(content, delimiter, has_header)
 }
 
-/// Standard CSV reading with buffered I/O
+/// Standard CSV reading with optimized csv crate
 fn fast_csv_read_standard(
     file_path: String,
     delimiter: char,
     has_header: bool,
-    chunk_size: usize,
+    _chunk_size: usize,
 ) -> PyResult<(Vec<String>, Vec<Vec<String>>)> {
     let file = File::open(&file_path)
         .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
 
-    let reader = BufReader::with_capacity(64 * 1024, file); // 64KB buffer
-    let mut headers = Vec::new();
-    let mut data = Vec::new();
-    let mut is_first_line = has_header;
+    let mut csv_reader = ReaderBuilder::new()
+        .delimiter(delimiter as u8)
+        .has_headers(has_header)
+        .buffer_capacity(8 * 1024 * 1024) // 8MB buffer for better performance
+        .from_reader(file);
 
-    for (line_num, line_result) in reader.lines().enumerate() {
-        let line = line_result
+    let headers = if has_header {
+        csv_reader.headers()
+            .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?
+            .iter()
+            .map(|s| s.to_string())
+            .collect()
+    } else {
+        Vec::new()
+    };
+
+    let mut data = Vec::new();
+
+    // Use csv crate's optimized record iterator
+    for result in csv_reader.records() {
+        let record = result
             .map_err(|e| PyErr::new::<pyo3::exceptions::PyIOError, _>(e.to_string()))?;
 
-        let fields = parse_csv_line(&line, delimiter);
-
-        if is_first_line && has_header {
-            headers = fields;
-            is_first_line = false;
-        } else {
-            data.push(fields);
-        }
-
-        // Process in chunks to manage memory
-        if data.len() >= chunk_size && line_num % chunk_size == 0 {
-            // Could trigger incremental processing here if needed
-        }
+        let row: Vec<String> = record.iter().map(|s| s.to_string()).collect();
+        data.push(row);
     }
 
     Ok((headers, data))

@@ -68,7 +68,7 @@ export default function Hero() {
 
   return (
     <div
-      className="relative overflow-visible dark:bg-gray-900 pt-16 pb-12"
+      className="relative overflow-visible dark:bg-gray-900 pt-16 pb-2"
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="relative z-20 mx-auto max-w-[1450px] px-4 sm:px-6 lg:px-8">
@@ -159,7 +159,7 @@ export default function Hero() {
                 </button>
               </div>
 
-              <div className="p-4 flex min-h-96 max-w-full">
+              <div className="p-4 pb-20 flex min-h-96 max-w-full">
                 <div
                   className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
                   style={{ color: '#9ca3af' }}
@@ -179,9 +179,11 @@ export default function Hero() {
                 />
               </div>
               </div>
+            </div>
+            </div>
 
-              {/* Company Logo Placeholders */}
-              <div className="mt-16 text-center">
+            {/* Company Logo Placeholders - Outside the frame */}
+            <div className="mt-16 text-center">
               <p className="text-sm mb-8 font-inter" style={{ color: 'black' }}>Plug into your stack instantly.</p>
               <div className="flex justify-center items-center gap-12 flex-wrap">
                 <div
@@ -214,10 +216,8 @@ export default function Hero() {
                   style={{ backgroundColor: '#edece9' }}
                   title="Research Institution"
                 ></div>
-                </div>
-                <div className="pb-8"></div>
               </div>
-            </div>
+              <div className="pb-8"></div>
             </div>
           </div>
         </div>

@@ -36,10 +36,9 @@ logger = logging.getLogger(__name__)
 
 class SubscriptionTier(str, Enum):
     """Subscription tiers with different limits"""
-    FREE = "free"
-    STARTER = "starter" 
-    PRO = "pro"
-    ENTERPRISE = "enterprise"
+    DEVELOP = "develop"
+    GROWTH = "growth"
+    SCALE = "scale"
 
 class BillingEventType(str, Enum):
     """Types of billing events to track"""
@@ -48,43 +47,40 @@ class BillingEventType(str, Enum):
     ML_OPERATION = "ml_operation"
     STORAGE_USAGE = "storage_usage"
 
-# Subscription tier configurations
+# Subscription tier configurations - Updated to match actual pricing plans
 SUBSCRIPTION_LIMITS = {
-    SubscriptionTier.FREE: {
-        "requests_per_minute": 10,
-        "requests_per_hour": 100,
-        "requests_per_day": 1000,
-        "data_processing_mb_per_day": 100,
-        "ml_operations_per_day": 5,
-        "storage_gb": 1,
-        "concurrent_jobs": 1
-    },
-    SubscriptionTier.STARTER: {
-        "requests_per_minute": 60,
-        "requests_per_hour": 1000,
+    SubscriptionTier.DEVELOP: {
+        "requests_per_minute": 170,  # ~10K/day ÷ 60
+        "requests_per_hour": 417,    # ~10K/day ÷ 24
         "requests_per_day": 10000,
-        "data_processing_mb_per_day": 1000,
+        "data_processing_mb_per_day": 1000,  # 1GB
         "ml_operations_per_day": 50,
         "storage_gb": 10,
-        "concurrent_jobs": 3
+        "concurrent_jobs": 3,
+        "api_calls_included": 5000000,  # 5M from pricing page
+        "price_monthly": 99
     },
-    SubscriptionTier.PRO: {
-        "requests_per_minute": 300,
-        "requests_per_hour": 10000,
+    SubscriptionTier.GROWTH: {
+        "requests_per_minute": 1667,  # ~100K/day ÷ 60
+        "requests_per_hour": 4167,   # ~100K/day ÷ 24
         "requests_per_day": 100000,
-        "data_processing_mb_per_day": 10000,
+        "data_processing_mb_per_day": 10000,  # 10GB
         "ml_operations_per_day": 500,
         "storage_gb": 100,
-        "concurrent_jobs": 10
+        "concurrent_jobs": 10,
+        "api_calls_included": 25000000,  # 25M from pricing page
+        "price_monthly": 299
     },
-    SubscriptionTier.ENTERPRISE: {
-        "requests_per_minute": 1000,
-        "requests_per_hour": 50000,
+    SubscriptionTier.SCALE: {
+        "requests_per_minute": 16667,  # ~1M/day ÷ 60
+        "requests_per_hour": 41667,   # ~1M/day ÷ 24
         "requests_per_day": 1000000,
-        "data_processing_mb_per_day": 100000,
+        "data_processing_mb_per_day": 100000,  # 100GB
         "ml_operations_per_day": 5000,
-        "storage_gb": 1000,
-        "concurrent_jobs": 50
+        "storage_gb": 1000,  # 1TB
+        "concurrent_jobs": 50,
+        "api_calls_included": 100000000,  # 100M from pricing page
+        "price_monthly": 599
     }
 }
 
@@ -95,9 +91,9 @@ class BillingContext:
         self.customer_id: Optional[str] = None
         self.subscription_id: Optional[str] = None
         self.subscription_status: Optional[SubscriptionStatus] = None
-        self.subscription_tier: SubscriptionTier = SubscriptionTier.FREE
+        self.subscription_tier: SubscriptionTier = SubscriptionTier.DEVELOP
         self.trial_ends_at: Optional[datetime] = None
-        self.subscription_limits: Dict[str, Any] = SUBSCRIPTION_LIMITS[SubscriptionTier.FREE]
+        self.subscription_limits: Dict[str, Any] = SUBSCRIPTION_LIMITS[SubscriptionTier.DEVELOP]
         self.usage_today: Dict[str, int] = {}
         self.is_payment_overdue: bool = False
         self.billing_alerts: list = []
@@ -287,7 +283,7 @@ class BillingMiddleware(BaseHTTPMiddleware):
                 customer_id = "cust_from_jwt"
             
             if not customer_id:
-                return context  # Return default free tier context
+                return context  # Return default develop tier context
             
             context.customer_id = customer_id
             
@@ -319,14 +315,12 @@ class BillingMiddleware(BaseHTTPMiddleware):
                         
                         # Determine tier based on variant or plan
                         variant_name = subscription_data.get("attributes", {}).get("variant_name", "").lower()
-                        if "enterprise" in variant_name:
-                            context.subscription_tier = SubscriptionTier.ENTERPRISE
-                        elif "pro" in variant_name:
-                            context.subscription_tier = SubscriptionTier.PRO
-                        elif "starter" in variant_name:
-                            context.subscription_tier = SubscriptionTier.STARTER
+                        if "scale" in variant_name:
+                            context.subscription_tier = SubscriptionTier.SCALE
+                        elif "growth" in variant_name:
+                            context.subscription_tier = SubscriptionTier.GROWTH
                         else:
-                            context.subscription_tier = SubscriptionTier.FREE
+                            context.subscription_tier = SubscriptionTier.DEVELOP
                         
                         # Set trial information
                         trial_ends_at = subscription_data.get("attributes", {}).get("trial_ends_at")
@@ -340,7 +334,7 @@ class BillingMiddleware(BaseHTTPMiddleware):
             
             except Exception as e:
                 logger.warning(f"Could not fetch subscription info for {customer_id}: {e}")
-                # Continue with free tier defaults
+                # Continue with develop tier defaults (lowest paid tier)
             
             # Set subscription limits
             context.subscription_limits = SUBSCRIPTION_LIMITS[context.subscription_tier]
