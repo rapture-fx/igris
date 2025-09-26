@@ -23,20 +23,20 @@ export default function BuiltForEngineers() {
       <div className="mx-auto max-w-[1450px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto mt-16 max-w-[1450px] sm:mt-20 lg:mt-24">
           <div className="relative p-8" style={{
-            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid black' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid black' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid black' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid black' }}></div>
             </div>
 
             {/* Content Container with Original Width */}
