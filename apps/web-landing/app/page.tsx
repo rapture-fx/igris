@@ -24,7 +24,7 @@ export default function HomePage() {
       
 
       <Header />
-      <main>
+      <main style={{ backgroundColor: '#f7f7f3' }}>
         <Hero />
         <BuiltForEngineers />
         <WorksOutOfTheBox />

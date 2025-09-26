@@ -68,7 +68,7 @@ export default function Hero() {
 
   return (
     <div
-      className="relative overflow-visible dark:bg-gray-900 pt-16 pb-2"
+      className="relative overflow-visible dark:bg-gray-900 pt-16"
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="relative z-20 mx-auto max-w-[1450px] px-4 sm:px-6 lg:px-8">
@@ -182,8 +182,14 @@ export default function Hero() {
             </div>
             </div>
 
-            {/* Company Logo Placeholders - Outside the frame */}
-            <div className="mt-16 text-center">
+            {/* Company Logo Placeholders - Inside the frame */}
+            <div className="mt-16 text-center relative p-8" style={{
+              borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+            }}>
+
               <p className="text-sm mb-8 font-inter" style={{ color: 'black' }}>Plug into your stack instantly.</p>
               <div className="flex justify-center items-center gap-12 flex-wrap">
                 <div
