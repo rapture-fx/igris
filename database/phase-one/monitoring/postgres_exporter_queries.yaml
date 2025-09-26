@@ -1,0 +1,372 @@
+# Custom PostgreSQL Exporter Queries for Schlep Engine
+# Optimized for YugabyteDB migration monitoring and performance tracking
+
+pg_stat_statements:
+  query: |
+    SELECT
+      schemaname,
+      tablename,
+      attname,
+      n_distinct,
+      correlation,
+      most_common_vals,
+      most_common_freqs,
+      histogram_bounds
+    FROM pg_stats
+  master: true
+  cache_seconds: 60
+  metrics:
+    - schemaname:
+        usage: "LABEL"
+        description: "Schema name"
+    - tablename:
+        usage: "LABEL"
+        description: "Table name"
+    - attname:
+        usage: "LABEL"
+        description: "Attribute name"
+    - n_distinct:
+        usage: "GAUGE"
+        description: "Number of distinct values"
+    - correlation:
+        usage: "GAUGE"
+        description: "Statistical correlation"
+
+# Schlep Engine specific table metrics
+schlep_tables:
+  query: |
+    SELECT
+      schemaname,
+      tablename,
+      n_tup_ins as inserts,
+      n_tup_upd as updates,
+      n_tup_del as deletes,
+      n_live_tup as live_tuples,
+      n_dead_tup as dead_tuples,
+      n_tup_hot_upd as hot_updates,
+      last_vacuum,
+      last_autovacuum,
+      last_analyze,
+      last_autoanalyze,
+      vacuum_count,
+      autovacuum_count,
+      analyze_count,
+      autoanalyze_count
+    FROM pg_stat_user_tables
+    WHERE schemaname = 'public'
+  master: true
+  cache_seconds: 30
+  metrics:
+    - schemaname:
+        usage: "LABEL"
+        description: "Schema name"
+    - tablename:
+        usage: "LABEL"
+        description: "Table name"
+    - inserts:
+        usage: "COUNTER"
+        description: "Number of rows inserted"
+    - updates:
+        usage: "COUNTER"
+        description: "Number of rows updated"
+    - deletes:
+        usage: "COUNTER"
+        description: "Number of rows deleted"
+    - live_tuples:
+        usage: "GAUGE"
+        description: "Number of live tuples"
+    - dead_tuples:
+        usage: "GAUGE"
+        description: "Number of dead tuples"
+    - hot_updates:
+        usage: "COUNTER"
+        description: "Number of HOT updates"
+    - last_vacuum:
+        usage: "GAUGE"
+        description: "Last vacuum timestamp"
+    - last_autovacuum:
+        usage: "GAUGE"
+        description: "Last autovacuum timestamp"
+    - vacuum_count:
+        usage: "COUNTER"
+        description: "Number of manual vacuums"
+    - autovacuum_count:
+        usage: "COUNTER"
+        description: "Number of autovacuums"
+
+# Index usage statistics
+schlep_indexes:
+  query: |
+    SELECT
+      schemaname,
+      tablename,
+      indexrelname,
+      idx_scan as scans,
+      idx_tup_read as tuples_read,
+      idx_tup_fetch as tuples_fetched
+    FROM pg_stat_user_indexes
+    WHERE schemaname = 'public'
+  master: true
+  cache_seconds: 60
+  metrics:
+    - schemaname:
+        usage: "LABEL"
+        description: "Schema name"
+    - tablename:
+        usage: "LABEL"
+        description: "Table name"
+    - indexrelname:
+        usage: "LABEL"
+        description: "Index name"
+    - scans:
+        usage: "COUNTER"
+        description: "Number of index scans"
+    - tuples_read:
+        usage: "COUNTER"
+        description: "Number of tuples read"
+    - tuples_fetched:
+        usage: "COUNTER"
+        description: "Number of tuples fetched"
+
+# Active queries and connections
+schlep_activity:
+  query: |
+    SELECT
+      datname,
+      state,
+      COUNT(*) as count,
+      COALESCE(EXTRACT(EPOCH FROM MAX(now() - query_start)), 0) as max_duration,
+      COALESCE(EXTRACT(EPOCH FROM AVG(now() - query_start)), 0) as avg_duration
+    FROM pg_stat_activity
+    WHERE datname = 'schlep_engine'
+    GROUP BY datname, state
+  master: true
+  cache_seconds: 10
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - state:
+        usage: "LABEL"
+        description: "Connection state"
+    - count:
+        usage: "GAUGE"
+        description: "Number of connections in this state"
+    - max_duration:
+        usage: "GAUGE"
+        description: "Maximum query duration in seconds"
+    - avg_duration:
+        usage: "GAUGE"
+        description: "Average query duration in seconds"
+
+# Lock monitoring
+schlep_locks:
+  query: |
+    SELECT
+      mode,
+      locktype,
+      COUNT(*) as count
+    FROM pg_locks
+    WHERE database = (SELECT oid FROM pg_database WHERE datname = 'schlep_engine')
+    GROUP BY mode, locktype
+  master: true
+  cache_seconds: 30
+  metrics:
+    - mode:
+        usage: "LABEL"
+        description: "Lock mode"
+    - locktype:
+        usage: "LABEL"
+        description: "Lock type"
+    - count:
+        usage: "GAUGE"
+        description: "Number of locks"
+
+# Database size and bloat monitoring
+schlep_database_size:
+  query: |
+    SELECT
+      datname,
+      pg_database_size(datname) as size_bytes,
+      numbackends as active_connections
+    FROM pg_stat_database
+    WHERE datname = 'schlep_engine'
+  master: true
+  cache_seconds: 300  # 5 minutes
+  metrics:
+    - datname:
+        usage: "LABEL"
+        description: "Database name"
+    - size_bytes:
+        usage: "GAUGE"
+        description: "Database size in bytes"
+    - active_connections:
+        usage: "GAUGE"
+        description: "Number of active connections"
+
+# Table sizes for growth monitoring
+schlep_table_sizes:
+  query: |
+    SELECT
+      schemaname,
+      tablename,
+      pg_total_relation_size(schemaname||'.'||tablename) as total_bytes,
+      pg_relation_size(schemaname||'.'||tablename) as table_bytes,
+      pg_indexes_size(schemaname||'.'||tablename) as index_bytes
+    FROM pg_tables
+    WHERE schemaname = 'public'
+  master: true
+  cache_seconds: 300
+  metrics:
+    - schemaname:
+        usage: "LABEL"
+        description: "Schema name"
+    - tablename:
+        usage: "LABEL"
+        description: "Table name"
+    - total_bytes:
+        usage: "GAUGE"
+        description: "Total relation size in bytes"
+    - table_bytes:
+        usage: "GAUGE"
+        description: "Table size in bytes"
+    - index_bytes:
+        usage: "GAUGE"
+        description: "Indexes size in bytes"
+
+# Replication monitoring (for future HA setup)
+schlep_replication:
+  query: |
+    SELECT
+      client_addr,
+      client_hostname,
+      client_port,
+      state,
+      sent_lsn,
+      write_lsn,
+      flush_lsn,
+      replay_lsn,
+      EXTRACT(EPOCH FROM (now() - backend_start)) as connection_age,
+      EXTRACT(EPOCH FROM (now() - state_change)) as state_age
+    FROM pg_stat_replication
+  master: true
+  cache_seconds: 15
+  metrics:
+    - client_addr:
+        usage: "LABEL"
+        description: "Client IP address"
+    - client_hostname:
+        usage: "LABEL"
+        description: "Client hostname"
+    - state:
+        usage: "LABEL"
+        description: "Replication state"
+    - connection_age:
+        usage: "GAUGE"
+        description: "Connection age in seconds"
+    - state_age:
+        usage: "GAUGE"
+        description: "Time in current state in seconds"
+
+# WAL statistics for write performance
+schlep_wal_stats:
+  query: |
+    SELECT
+      wal_records,
+      wal_fpi,
+      wal_bytes,
+      wal_buffers_full,
+      wal_write,
+      wal_sync,
+      wal_write_time,
+      wal_sync_time,
+      stats_reset
+    FROM pg_stat_wal
+  master: true
+  cache_seconds: 60
+  metrics:
+    - wal_records:
+        usage: "COUNTER"
+        description: "WAL records generated"
+    - wal_fpi:
+        usage: "COUNTER"
+        description: "WAL full page images"
+    - wal_bytes:
+        usage: "COUNTER"
+        description: "WAL bytes generated"
+    - wal_buffers_full:
+        usage: "COUNTER"
+        description: "WAL buffer full events"
+    - wal_write:
+        usage: "COUNTER"
+        description: "WAL write operations"
+    - wal_sync:
+        usage: "COUNTER"
+        description: "WAL sync operations"
+    - wal_write_time:
+        usage: "COUNTER"
+        description: "WAL write time in milliseconds"
+    - wal_sync_time:
+        usage: "COUNTER"
+        description: "WAL sync time in milliseconds"
+
+# Custom application metrics
+schlep_task_stats:
+  query: |
+    SELECT
+      status,
+      priority,
+      COUNT(*) as count,
+      AVG(EXTRACT(EPOCH FROM (completed_at - started_at))) as avg_duration_seconds
+    FROM task_executions
+    WHERE created_at > now() - interval '1 hour'
+    GROUP BY status, priority
+  master: true
+  cache_seconds: 30
+  metrics:
+    - status:
+        usage: "LABEL"
+        description: "Task execution status"
+    - priority:
+        usage: "LABEL"
+        description: "Task priority"
+    - count:
+        usage: "GAUGE"
+        description: "Number of tasks"
+    - avg_duration_seconds:
+        usage: "GAUGE"
+        description: "Average task duration in seconds"
+
+# Organization metrics for multi-tenancy monitoring
+schlep_org_stats:
+  query: |
+    SELECT
+      o.name as org_name,
+      o.plan_type,
+      COUNT(DISTINCT u.id) as user_count,
+      COUNT(DISTINCT td.id) as task_definition_count,
+      COUNT(DISTINCT te.id) as task_execution_count_24h
+    FROM organizations o
+    LEFT JOIN users u ON o.id = u.organization_id AND u.deleted_at IS NULL
+    LEFT JOIN task_definitions td ON o.id = td.organization_id
+    LEFT JOIN task_executions te ON o.id = te.organization_id AND te.created_at > now() - interval '24 hours'
+    WHERE o.deleted_at IS NULL
+    GROUP BY o.id, o.name, o.plan_type
+  master: true
+  cache_seconds: 300
+  metrics:
+    - org_name:
+        usage: "LABEL"
+        description: "Organization name"
+    - plan_type:
+        usage: "LABEL"
+        description: "Subscription plan type"
+    - user_count:
+        usage: "GAUGE"
+        description: "Number of users in organization"
+    - task_definition_count:
+        usage: "GAUGE"
+        description: "Number of task definitions"
+    - task_execution_count_24h:
+        usage: "GAUGE"
+        description: "Number of task executions in last 24 hours"

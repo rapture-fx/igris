@@ -1,0 +1,73 @@
+# Grafana Datasource Configuration for Schlep Engine Phase One
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    basicAuth: false
+    jsonData:
+      httpMethod: POST
+      prometheusType: Prometheus
+      prometheusVersion: 2.40.0
+      timeInterval: 15s
+      queryTimeout: 60s
+      customQueryParameters: ""
+      manageAlerts: true
+      alertmanagerUid: ""
+    version: 1
+
+  # MinIO datasource for object storage metrics
+  - name: MinIO
+    type: prometheus
+    access: proxy
+    url: http://minio:9000
+    editable: true
+    basicAuth: false
+    jsonData:
+      httpMethod: GET
+      prometheusType: Prometheus
+      timeInterval: 30s
+      queryTimeout: 30s
+    version: 1
+
+  # Future: YugabyteDB datasource (for Phase Two)
+  - name: YugabyteDB
+    type: postgres
+    access: proxy
+    url: localhost:5433
+    database: schlep_engine
+    user: ${YUGABYTEDB_USER}
+    editable: true
+    basicAuth: false
+    jsonData:
+      sslmode: disable
+      maxOpenConns: 100
+      maxIdleConns: 10
+      maxIdleConnsAuto: true
+      connMaxLifetime: 14400
+      postgresVersion: 1300
+      timescaledb: false
+    secureJsonData:
+      password: ${YUGABYTEDB_PASSWORD}
+    version: 1
+
+  # Future: Application logs datasource
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    basicAuth: false
+    jsonData:
+      maxLines: 1000
+      derivedFields:
+        - datasourceUid: prometheus
+          matcherRegex: "traceID=(\\w+)"
+          name: TraceID
+          url: "$${__value.raw}"
+    version: 1

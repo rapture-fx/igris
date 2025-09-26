@@ -1,0 +1,215 @@
+# Redis Cache Alert Rules for Schlep Engine
+# Monitoring Redis performance and health for DragonflyDB migration readiness
+
+groups:
+  - name: redis_alerts
+    rules:
+      # Critical: Redis is down
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis instance is down"
+          description: "Redis cache on {{ $labels.instance }} has been down for more than 1 minute"
+          runbook: "https://docs.schlep-engine.com/runbooks/redis-down"
+
+      # Critical: High memory usage
+      - alert: RedisHighMemoryUsage
+        expr: schlep:redis_memory_usage_ratio > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis memory usage is too high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook: "https://docs.schlep-engine.com/runbooks/redis-memory"
+
+      # Warning: Moderate memory usage
+      - alert: RedisModerateMemoryUsage
+        expr: schlep:redis_memory_usage_ratio > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis memory usage is high"
+          description: "Redis memory usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Warning: High eviction rate
+      - alert: RedisHighEvictionRate
+        expr: rate(redis_evicted_keys_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis eviction rate is high"
+          description: "Redis is evicting {{ $value }} keys per second on {{ $labels.instance }}"
+
+      # Critical: Too many connections
+      - alert: RedisTooManyConnections
+        expr: redis_connected_clients > 1000
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis has too many connections"
+          description: "Redis has {{ $value }} connections on {{ $labels.instance }}"
+
+      # Warning: High connection usage
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 500
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis connection count is high"
+          description: "Redis has {{ $value }} connections on {{ $labels.instance }}"
+
+      # Critical: High command processing latency
+      - alert: RedisHighLatency
+        expr: redis_latency_percentiles_usec{quantile="0.99"} > 10000
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis command latency is high"
+          description: "Redis 99th percentile latency is {{ $value }}μs on {{ $labels.instance }}"
+
+      # Warning: Moderate latency
+      - alert: RedisModerateLatency
+        expr: redis_latency_percentiles_usec{quantile="0.95"} > 5000
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis command latency is elevated"
+          description: "Redis 95th percentile latency is {{ $value }}μs on {{ $labels.instance }}"
+
+      # Info: Low cache hit ratio (might indicate inefficient usage)
+      - alert: RedisLowHitRatio
+        expr: |
+          (
+            rate(redis_keyspace_hits_total[5m]) /
+            (rate(redis_keyspace_hits_total[5m]) + rate(redis_keyspace_misses_total[5m]))
+          ) < 0.8
+        for: 10m
+        labels:
+          severity: info
+          service: redis
+        annotations:
+          summary: "Redis cache hit ratio is low"
+          description: "Redis hit ratio is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Warning: Blocked clients (commands waiting)
+      - alert: RedisBlockedClients
+        expr: redis_blocked_clients > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis has blocked clients"
+          description: "{{ $value }} Redis clients are blocked on {{ $labels.instance }}"
+
+      # Critical: Master-slave sync issues (if replication is configured)
+      - alert: RedisMasterSlaveSyncLag
+        expr: redis_master_repl_offset - redis_slave_repl_offset > 1000000
+        for: 2m
+        labels:
+          severity: critical
+          service: redis
+        annotations:
+          summary: "Redis master-slave sync lag"
+          description: "Redis replication lag is {{ $value }} bytes on {{ $labels.instance }}"
+
+  - name: redis_performance
+    rules:
+      # Warning: High CPU usage for single-threaded workload
+      - alert: RedisHighCPUUsage
+        expr: rate(redis_cpu_sys_seconds_total[5m]) + rate(redis_cpu_user_seconds_total[5m]) > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis CPU usage is high"
+          description: "Redis CPU usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Info: Keyspace analysis
+      - alert: RedisKeyspaceGrowth
+        expr: increase(redis_db_keys[1h]) > 10000
+        for: 0m
+        labels:
+          severity: info
+          service: redis
+        annotations:
+          summary: "Redis keyspace growing rapidly"
+          description: "Redis keys increased by {{ $value }} in the last hour on {{ $labels.instance }}"
+
+      # Warning: Expired key accumulation
+      - alert: RedisHighExpiredKeys
+        expr: rate(redis_expired_keys_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "High Redis key expiration rate"
+          description: "Redis is expiring {{ $value }} keys per second on {{ $labels.instance }}"
+
+      # Info: Persistence issues
+      - alert: RedisRDBSaveFailed
+        expr: increase(redis_rdb_last_save_timestamp_seconds[1h]) == 0
+        for: 6h
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis RDB save not updating"
+          description: "Redis RDB save timestamp hasn't updated in 6 hours on {{ $labels.instance }}"
+
+      # Warning: AOF file size growth
+      - alert: RedisAOFSizeGrowth
+        expr: redis_aof_current_size_bytes > 1000000000  # 1GB
+        for: 0m
+        labels:
+          severity: info
+          service: redis
+        annotations:
+          summary: "Redis AOF file is large"
+          description: "Redis AOF file is {{ $value | humanizeBytes }} on {{ $labels.instance }}"
+
+  - name: redis_dragonfly_migration_readiness
+    rules:
+      # Check if Redis is using DragonflyDB-compatible features
+      - alert: RedisUnsupportedCommands
+        expr: increase(redis_commands_total{cmd=~"EVAL|EVALSHA|SCRIPT.*"}[1h]) > 100
+        for: 0m
+        labels:
+          severity: info
+          service: redis
+          migration: dragonfly
+        annotations:
+          summary: "Redis using Lua scripts"
+          description: "Redis executed {{ $value }} Lua script commands in the last hour - review for DragonflyDB compatibility"
+
+      # Monitor data structure usage for migration planning
+      - alert: RedisComplexDataStructures
+        expr: redis_db_avg_ttl_seconds > 86400  # TTL > 1 day
+        for: 0m
+        labels:
+          severity: info
+          service: redis
+          migration: dragonfly
+        annotations:
+          summary: "Redis keys with long TTL"
+          description: "Redis has keys with average TTL of {{ $value }} seconds - plan migration timing accordingly"

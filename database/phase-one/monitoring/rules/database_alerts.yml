@@ -1,0 +1,142 @@
+# Database Alert Rules for Schlep Engine
+# Critical alerts for PostgreSQL health and performance
+
+groups:
+  - name: postgresql_alerts
+    rules:
+      # Critical: Database is down
+      - alert: PostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL instance is down"
+          description: "PostgreSQL database on {{ $labels.instance }} has been down for more than 1 minute"
+          runbook: "https://docs.schlep-engine.com/runbooks/postgresql-down"
+
+      # Critical: Too many connections
+      - alert: PostgreSQLTooManyConnections
+        expr: schlep:postgres_connection_usage_ratio > 0.9
+        for: 2m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL connection usage is too high"
+          description: "PostgreSQL connection usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook: "https://docs.schlep-engine.com/runbooks/postgresql-connections"
+
+      # Warning: High connection usage
+      - alert: PostgreSQLHighConnectionUsage
+        expr: schlep:postgres_connection_usage_ratio > 0.8
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL connection usage is high"
+          description: "PostgreSQL connection usage is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+
+      # Critical: Low cache hit ratio
+      - alert: PostgreSQLLowCacheHitRatio
+        expr: schlep:postgres_cache_hit_ratio < 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL cache hit ratio is low"
+          description: "PostgreSQL cache hit ratio is {{ $value | humanizePercentage }} on {{ $labels.instance }}"
+          runbook: "https://docs.schlep-engine.com/runbooks/postgresql-cache-tuning"
+
+      # Warning: Long running queries
+      - alert: PostgreSQLLongRunningQueries
+        expr: pg_stat_activity_max_tx_duration{state="active"} > 300
+        for: 1m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL has long running queries"
+          description: "PostgreSQL has queries running for more than 5 minutes on {{ $labels.instance }}"
+
+      # Critical: Deadlocks detected
+      - alert: PostgreSQLDeadlocks
+        expr: increase(pg_stat_database_deadlocks[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL deadlocks detected"
+          description: "PostgreSQL deadlocks detected: {{ $value }} in the last 5 minutes on {{ $labels.instance }}"
+
+      # Critical: High disk usage
+      - alert: PostgreSQLHighDiskUsage
+        expr: pg_stat_database_blks_read > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL high disk read activity"
+          description: "PostgreSQL is reading {{ $value }} blocks from disk per second on {{ $labels.instance }}"
+
+      # Warning: Slow queries
+      - alert: PostgreSQLSlowQueries
+        expr: pg_stat_statements_mean_time_ms > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "PostgreSQL average query time is {{ $value }}ms on {{ $labels.instance }}"
+
+      # Critical: Replication lag (if replication is set up)
+      - alert: PostgreSQLReplicationLag
+        expr: pg_replication_lag_seconds > 30
+        for: 2m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL replication lag is high"
+          description: "PostgreSQL replication lag is {{ $value }} seconds on {{ $labels.instance }}"
+
+  - name: postgresql_maintenance
+    rules:
+      # Info: Vacuum needed
+      - alert: PostgreSQLVacuumNeeded
+        expr: pg_stat_user_tables_n_dead_tup / pg_stat_user_tables_n_live_tup > 0.1
+        for: 10m
+        labels:
+          severity: info
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL tables need vacuum"
+          description: "Table {{ $labels.relname }} has {{ $value | humanizePercentage }} dead tuples on {{ $labels.instance }}"
+
+      # Warning: Index bloat
+      - alert: PostgreSQLIndexBloat
+        expr: pg_stat_user_indexes_idx_scan == 0
+        for: 1h
+        labels:
+          severity: info
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL unused indexes detected"
+          description: "Index {{ $labels.indexrelname }} on table {{ $labels.relname }} has not been used on {{ $labels.instance }}"
+
+      # Warning: Connection leaks
+      - alert: PostgreSQLConnectionLeaks
+        expr: pg_stat_activity_count{state="idle in transaction"} > 10
+        for: 10m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL idle in transaction connections"
+          description: "{{ $value }} connections are idle in transaction on {{ $labels.instance }}"

@@ -1,0 +1,177 @@
+# Prometheus Configuration for Schlep Engine Phase One
+# Optimized for database and cache monitoring with cost-effective retention
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'schlep-engine-phase-one'
+    environment: 'development'
+
+# Rules for alerting
+rule_files:
+  - "rules/database_alerts.yml"
+  - "rules/cache_alerts.yml"
+  - "rules/system_alerts.yml"
+  - "rules/performance_alerts.yml"
+
+# Alert manager configuration (for production deployment)
+# alerting:
+#   alertmanagers:
+#     - static_configs:
+#         - targets:
+#           - alertmanager:9093
+
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+    metrics_path: /metrics
+
+  # PostgreSQL Database Metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres_exporter:9187']
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'postgres-primary'
+      - target_label: service
+        replacement: 'postgresql'
+
+  # Redis Cache Metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis_exporter:9121']
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'redis-primary'
+      - target_label: service
+        replacement: 'redis'
+
+  # MinIO Object Storage Metrics
+  - job_name: 'minio'
+    metrics_path: /minio/v2/metrics/cluster
+    scheme: http
+    static_configs:
+      - targets: ['minio:9000']
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    relabel_configs:
+      - target_label: service
+        replacement: 'minio'
+
+  # System Metrics (if node_exporter is deployed)
+  - job_name: 'node'
+    static_configs:
+      - targets: [] # Add node_exporter:9100 if needed
+    scrape_interval: 30s
+    relabel_configs:
+      - target_label: service
+        replacement: 'system'
+
+  # Application Metrics (for future FastAPI integration)
+  - job_name: 'schlep-api'
+    static_configs:
+      - targets: [] # Add when API is deployed
+    scrape_interval: 15s
+    metrics_path: /metrics
+    relabel_configs:
+      - target_label: service
+        replacement: 'schlep-api'
+
+  # Container Metrics (cAdvisor for container monitoring)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: [] # Add cadvisor:8080 if needed
+    scrape_interval: 30s
+    metrics_path: /metrics
+    relabel_configs:
+      - target_label: service
+        replacement: 'containers'
+
+# Storage configuration for cost optimization
+storage:
+  tsdb:
+    # 30-day retention with 10GB size limit
+    retention: "30d"
+    retention.size: "10GB"
+    # Compression for cost efficiency
+    wal-compression: true
+
+# Remote write configuration (for external monitoring services)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint"
+#     basic_auth:
+#       username: "user"
+#       password: "password"
+
+# Recording rules for performance optimization
+# These pre-calculate commonly used queries to reduce load
+recording_rules:
+  - name: schlep_database_aggregations
+    interval: 30s
+    rules:
+      # PostgreSQL connection usage rate
+      - record: schlep:postgres_connection_usage_ratio
+        expr: |
+          sum(pg_stat_activity_count) by (instance) /
+          sum(pg_settings_max_connections) by (instance)
+
+      # PostgreSQL cache hit ratio
+      - record: schlep:postgres_cache_hit_ratio
+        expr: |
+          sum(rate(pg_stat_database_blks_hit[5m])) by (instance) /
+          (sum(rate(pg_stat_database_blks_hit[5m])) by (instance) +
+           sum(rate(pg_stat_database_blks_read[5m])) by (instance))
+
+      # Redis memory usage ratio
+      - record: schlep:redis_memory_usage_ratio
+        expr: |
+          redis_memory_used_bytes / redis_config_maxmemory
+
+      # Redis command rate
+      - record: schlep:redis_commands_per_second
+        expr: |
+          rate(redis_commands_processed_total[5m])
+
+      # MinIO request rate
+      - record: schlep:minio_requests_per_second
+        expr: |
+          sum(rate(minio_http_requests_total[5m])) by (instance)
+
+      # Task execution metrics (when available)
+      - record: schlep:task_completion_rate
+        expr: |
+          rate(schlep_tasks_completed_total[5m])
+
+      - record: schlep:task_failure_rate
+        expr: |
+          rate(schlep_tasks_failed_total[5m])
+
+      - record: schlep:task_queue_depth
+        expr: |
+          sum(schlep_task_queue_depth) by (priority)
+
+# Query optimization settings
+query:
+  # Limit query duration for cost control
+  timeout: 2m
+  max_concurrency: 20
+  max_samples: 50000000
+
+# Web configuration
+web:
+  # Enable admin API for remote management
+  enable-admin-api: false
+  # CORS settings for Grafana integration
+  cors-origin: ".*"
