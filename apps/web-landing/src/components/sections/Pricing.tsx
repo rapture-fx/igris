@@ -574,7 +574,7 @@ export default function Pricing() {
 
             {/* Feature Comparison Title */}
             <div className="px-6 py-4 text-left border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
-              <h2 className="text-2xl md:text-3xl font-semibold" style={{ color: '#1f53d0' }}>
+              <h2 className="text-2xl md:text-3xl font-normal" style={{ color: '#1f53d0' }}>
                 Compare the features
               </h2>
             </div>
@@ -647,7 +647,7 @@ export default function Pricing() {
                   {/* Left side - FAQ Title */}
                   <div className="border-r border-gray-200">
                     <div className="px-6 py-8 text-left">
-                      <h3 className="text-2xl md:text-3xl font-semibold mb-6" style={{ color: '#1f53d0' }}>
+                      <h3 className="text-2xl md:text-3xl font-normal mb-6" style={{ color: '#1f53d0' }}>
                         Frequently Asked<br />Questions
                       </h3>
                     </div>
@@ -712,7 +712,7 @@ export default function Pricing() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center px-6 py-8">
                 <div className="text-left">
-                  <h3 className="text-2xl md:text-3xl font-medium mb-4 leading-tight" style={{ color: '#1f53d0' }}>
+                  <h3 className="text-2xl md:text-3xl font-normal mb-4 leading-tight" style={{ color: '#1f53d0' }}>
                     Understand your return
                   </h3>
                   <p className="text-base mb-8 opacity-90 text-gray-700">

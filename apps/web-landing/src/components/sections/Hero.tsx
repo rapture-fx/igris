@@ -68,7 +68,7 @@ export default function Hero() {
 
   return (
     <div
-      className="relative overflow-visible dark:bg-gray-900 pt-16"
+      className="relative overflow-visible dark:bg-gray-900 pt-36"
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="relative z-20 mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
@@ -82,7 +82,7 @@ export default function Hero() {
 
               <h1
                 style={{ color: '#1f53d0' }}
-                className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter pt-8"
+                className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
               >
                 Messy Data to ML-ready in API Calls.
               </h1>
