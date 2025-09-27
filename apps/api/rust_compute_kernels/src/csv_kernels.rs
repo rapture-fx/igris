@@ -151,6 +151,7 @@ fn byte_level_csv_parse(
     numeric_columns: Option<Vec<usize>>,
 ) -> PyResult<(Vec<String>, PyObject, Vec<Vec<String>>)> {
     let numeric_cols = numeric_columns.unwrap_or_else(|| vec![1]); // Default to column 1
+    let target_numeric_col = numeric_cols[0]; // Only process first specified column for correctness
 
     // Pre-allocate based on rough file size estimation
     let estimated_rows = data.len() / 50; // Rough estimate: 50 bytes per row
@@ -184,8 +185,8 @@ fn byte_level_csv_parse(
                     // Header row
                     headers.push(field_str.to_string());
                 } else {
-                    // Data row
-                    if numeric_cols.contains(&field_index) {
+                    // Data row - only collect the target numeric column
+                    if field_index == target_numeric_col {
                         let value = unsafe_parse_f64(field_str);
                         numeric_data.push(value);
                     }
@@ -204,7 +205,7 @@ fn byte_level_csv_parse(
                     if row_count == 0 {
                         headers.push(field_str.to_string());
                     } else {
-                        if numeric_cols.contains(&field_index) {
+                        if field_index == target_numeric_col {
                             let value = unsafe_parse_f64(field_str);
                             numeric_data.push(value);
                         }
@@ -232,7 +233,7 @@ fn byte_level_csv_parse(
             std::str::from_utf8_unchecked(&current_field)
         }.trim();
 
-        if numeric_cols.contains(&field_index) {
+        if field_index == target_numeric_col {
             let value = unsafe_parse_f64(field_str);
             numeric_data.push(value);
         }
