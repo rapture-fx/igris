@@ -8,21 +8,21 @@ export default function Footer() {
     {
       title: "APIs",
       links: [
-        { name: "ML Pipeline", href: "https://docs.schlep-engine.com/api/ml-pipeline" },
-        { name: "Data Processing", href: "https://docs.schlep-engine.com/api/data-processing" },
-        { name: "Document Extraction", href: "https://docs.schlep-engine.com/api/document-extraction" },
-        { name: "Data Quality", href: "https://docs.schlep-engine.com/api/data-quality" },
-        { name: "File Storage", href: "https://docs.schlep-engine.com/api/storage" },
-        { name: "RL Optimization", href: "https://docs.schlep-engine.com/api/rl-optimization" },
-        { name: "Manufacturing Analytics", href: "https://docs.schlep-engine.com/api/manufacturing" }
+        { name: "ML Pipeline", href: "http://localhost:3005/api/ml-pipeline" },
+        { name: "Data Processing", href: "http://localhost:3005/api/data-processing" },
+        { name: "Document Extraction", href: "http://localhost:3005/api/document-extraction" },
+        { name: "Data Quality", href: "http://localhost:3005/api/data-quality" },
+        { name: "File Storage", href: "http://localhost:3005/api/storage" },
+        { name: "RL Optimization", href: "http://localhost:3005/api/rl-optimization" },
+        { name: "Manufacturing Analytics", href: "http://localhost:3005/api/manufacturing" }
       ]
     },
     {
       title: "Resources",
       links: [
-        { name: "Documentation", href: "https://docs.schlep-engine.com" },
-        { name: "Getting Started", href: "https://docs.schlep-engine.com/getting-started" },
-        { name: "API Reference", href: "https://docs.schlep-engine.com/api-reference" },
+        { name: "Documentation", href: "http://localhost:3005" },
+        { name: "Getting Started", href: "http://localhost:3005/getting-started" },
+        { name: "API Reference", href: "http://localhost:3005/api-reference" },
         { name: "GitHub", href: "https://github.com/schlep-engine" },
         { name: "Admin Dashboard", href: "https://admin.schlep-engine.com" },
         { name: "Support", href: "/support" }
@@ -31,11 +31,11 @@ export default function Footer() {
     {
       title: "Security",
       links: [
-        { name: "Security Overview", href: "https://docs.schlep-engine.com/security" },
-        { name: "Authentication", href: "https://docs.schlep-engine.com/security/auth" },
-        { name: "Data Protection", href: "https://docs.schlep-engine.com/security/data-protection" },
-        { name: "API Security", href: "https://docs.schlep-engine.com/security/api" },
-        { name: "Audit Logs", href: "https://docs.schlep-engine.com/security/audit-logs" },
+        { name: "Security Overview", href: "http://localhost:3005/security" },
+        { name: "Authentication", href: "http://localhost:3005/security/auth" },
+        { name: "Data Protection", href: "http://localhost:3005/security/data-protection" },
+        { name: "API Security", href: "http://localhost:3005/security/api" },
+        { name: "Audit Logs", href: "http://localhost:3005/security/audit-logs" },
         { name: "Report Vulnerability", href: "/security/report" }
       ]
     },
@@ -45,7 +45,7 @@ export default function Footer() {
         { name: "Privacy Policy", href: "/privacy" },
         { name: "Terms of Service", href: "/terms" },
         { name: "Contact", href: "/contact" },
-        { name: "Documentation", href: "https://docs.schlep-engine.com" },
+        { name: "Documentation", href: "http://localhost:3005" },
         { name: "API Console", href: "https://console.schlep-engine.com" },
         { name: "Status", href: "/status" }
       ]

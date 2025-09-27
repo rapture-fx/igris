@@ -174,11 +174,10 @@ export default function Pricing() {
       basePrice: 99,
       cta: "Start Develop trial",
       ctaLink: "/auth/register",
-      tagline: "Process up to 50GB daily with optimized performance. Use your own storage - no data transfer costs.",
+      tagline: "Process up to 50GB daily with optimized performance. Perfect for individual developers and small teams.",
       highlights: [
         { icon: Activity, text: "5M API calls included" },
         { icon: Database, text: "50GB daily processing limit" },
-        { icon: Settings, text: "Bring Your Own Storage" },
         { icon: Zap, text: "Optimized CSV processing" },
         { icon: Users, text: "3 team members" },
         { icon: Shield, text: "Standard encryption" },
@@ -191,12 +190,12 @@ export default function Pricing() {
       basePrice: 299,
       cta: "Start Growth trial",
       ctaLink: "/auth/register",
-      tagline: "Scale your data pipelines with enhanced performance. Process data directly in your own cloud storage.",
+      tagline: "Enhanced performance for growing teams. Process large datasets with improved efficiency.",
       popular: true,
       highlights: [
         { icon: Activity, text: "25M API calls included" },
         { icon: Database, text: "200GB daily processing limit" },
-        { icon: Settings, text: "Bring Your Own Storage" },
+        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
         { icon: Zap, text: "Memory-efficient processing" },
         { icon: Users, text: "15 team members + collaboration" },
         { icon: Shield, text: "Enhanced security features" },
@@ -209,12 +208,12 @@ export default function Pricing() {
       basePrice: 599,
       cta: "Start Scale trial",
       ctaLink: "/auth/register",
-      tagline: "Maximum performance optimization. Enterprise-grade processing in your own infrastructure.",
+      tagline: "Maximum performance optimization. Advanced processing for high-volume data workloads.",
       popular: false,
       highlights: [
         { icon: Activity, text: "100M API calls included" },
         { icon: Database, text: "500GB daily processing limit" },
-        { icon: Settings, text: "Bring Your Own Storage" },
+        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
         { icon: Zap, text: "High-performance processing" },
         { icon: Users, text: "50 team members + account manager" },
         { icon: Shield, text: "Advanced security features" },
@@ -508,7 +507,20 @@ export default function Pricing() {
                         {plan.highlights.map((highlight, highlightIndex) => (
                           <div key={highlightIndex} className="flex items-center space-x-3">
                             <highlight.icon className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                            <span className="text-sm text-gray-600">{highlight.text}</span>
+                            <span className="text-sm text-gray-600">
+                              {highlight.text}
+                              {highlight.linkText && (
+                                <>
+                                  {' '}
+                                  <Link href={highlight.linkUrl} className="text-blue-600 underline hover:text-blue-700 inline-flex items-center">
+                                    {highlight.linkText}
+                                    <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                    </svg>
+                                  </Link>
+                                </>
+                              )}
+                            </span>
                           </div>
                         ))}
                       </div>

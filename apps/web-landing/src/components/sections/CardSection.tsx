@@ -19,7 +19,7 @@ const CardSection = () => {
       title: 'For Developers',
       description: 'Integrate our API in minutes. Robust, scalable, and well-documented.',
       cta: 'Read the Docs',
-      ctaLink: '/docs'
+      ctaLink: 'http://localhost:3005'
     },
     {
       title: 'For Product Managers',
