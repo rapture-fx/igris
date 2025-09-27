@@ -116,7 +116,7 @@ export default function Pricing() {
         {
           id: "data-sources",
           question: "What data sources do you support?",
-          answer: "We support 13+ data sources including databases (PostgreSQL, MySQL, MongoDB, Snowflake, Elasticsearch), cloud storage (AWS S3, Google Cloud Storage, Azure Blob, MinIO), REST APIs, real-time streams (Kafka, Redis, WebSockets), CSV, JSON, and more. Bring-your-own-storage (BYOS) supported across all plans - connect your existing storage without data transfer."
+          answer: "We connect to all major databases (PostgreSQL, MySQL, MongoDB, Snowflake, Elasticsearch), cloud storage (AWS S3, Google Cloud, Azure), and streaming platforms (Kafka, Redis, WebSockets). Bring your own storage - we process your data where it lives, no data transfer needed."
         },
         {
           id: "ml-frameworks",
@@ -126,12 +126,17 @@ export default function Pricing() {
         {
           id: "data-scaling",
           question: "How does data processing scaling work?",
-          answer: "All plans deliver optimized performance through efficient streaming. Develop processes up to 50GB daily (10GB per file), Growth handles up to 200GB daily (25GB per file), and Scale manages up to 500GB daily (50GB per file). Use your own storage for maximum flexibility."
+          answer: "All plans deliver optimized performance through efficient streaming. Develop processes up to 50GB daily (10GB per file), Growth handles up to 200GB daily (25GB per file), and Scale manages up to 500GB daily (50GB per file). With BYOS, process unlimited data directly in your own storage - daily limits apply only to API processing."
         },
         {
           id: "data-security",
           question: "Is my data secure?",
           answer: "Yes! All plans include encryption in transit and at rest. Growth and Scale plans add advanced security features, request monitoring, and enhanced protection controls."
+        },
+        {
+          id: "byos-benefits",
+          question: "What are the benefits of Bring-Your-Own-Storage (BYOS)?",
+          answer: "Process data directly in your AWS S3, Google Cloud, or Azure storage. No data transfer costs, no compliance headaches. Your data stays in your infrastructure while we do the processing."
         }
       ]
     },
@@ -310,6 +315,7 @@ export default function Pricing() {
       icon: Cpu,
       items: [
         { name: "Daily Processing Quota", develop: "50GB/day", growth: "200GB/day", scale: "500GB/day" },
+        { name: "Use Your Own Storage", develop: true, growth: true, scale: true },
         { name: "Processing Architecture", develop: "Streaming pipeline", growth: "Memory-optimized processing", scale: "Parallel distributed processing" },
         { name: "Processing Optimization", develop: "Standard optimization", growth: "Memory-efficient processing", scale: "High-performance kernels" },
         { name: "Memory Efficiency", develop: "40-60% less memory", growth: "50-70% less memory", scale: "70-80% less memory" },
@@ -321,8 +327,8 @@ export default function Pricing() {
       icon: Database,
       items: [
         { name: "Data Preparation Pipeline", develop: "Essential stages", growth: "Advanced workflows", scale: "Automated pipelines" },
-        { name: "Data Source Connections", develop: "5 data sources + BYOS", growth: "15+ data sources + BYOS", scale: "Unlimited + BYOS" },
-        { name: "Bring-Your-Own-Storage (BYOS)", develop: true, growth: true, scale: true },
+        { name: "Data Sources", develop: "All major databases", growth: "All major databases", scale: "All major databases" },
+        { name: "Use Your Own Storage", develop: true, growth: true, scale: true },
         { name: "Real-time Data Processing", develop: false, growth: true, scale: true },
         { name: "File Upload Limit", develop: "10GB per file", growth: "25GB per file", scale: "50GB per file" },
         { name: "Automated Error Recovery", develop: false, growth: true, scale: true }
@@ -343,7 +349,8 @@ export default function Pricing() {
       items: [
         { name: "REST API Endpoints", develop: true, growth: true, scale: true },
         { name: "API Calls Included", develop: "5M calls", growth: "25M calls", scale: "100M calls" },
-        { name: "Real-time Data Streaming", develop: true, growth: true, scale: true },
+        { name: "Database Connectors", develop: "PostgreSQL, MySQL, MongoDB", growth: "+ Snowflake, Elasticsearch", scale: "+ Enterprise databases" },
+        { name: "Real-time Streaming", develop: "WebSockets", growth: "Kafka, Redis", scale: "All streaming" },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
         { name: "Custom API Integrations", develop: false, growth: true, scale: true },
         { name: "OpenAPI Documentation", develop: true, growth: true, scale: true }
