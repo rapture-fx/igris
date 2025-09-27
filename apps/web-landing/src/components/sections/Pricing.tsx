@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headphones, Cpu, Settings, Activity, Lock } from 'lucide-react'
+import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headphones, Cpu, Settings, Activity, Lock, Globe, BarChart3, Brain, Gauge, Wrench, Layers } from 'lucide-react'
 import Link from 'next/link'
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import Image from 'next/image'
@@ -121,7 +121,17 @@ export default function Pricing() {
         {
           id: "ml-frameworks",
           question: "Which ML frameworks are supported?",
-          answer: "All plans support scikit-learn and NumPy processing. TensorFlow and PyTorch are available when installed. Scale plan includes advanced parallel processing optimizations."
+          answer: "Develop tier includes scikit-learn access. Growth tier adds TensorFlow and PyTorch support. Scale tier provides access to all ML frameworks plus large model support up to 5GB."
+        },
+        {
+          id: "streaming-connections",
+          question: "What are streaming connections?",
+          answer: "Streaming connections allow real-time data processing. Develop tier gets 2 WebSocket connections, Growth tier gets 10 connections (WebSocket, Kafka, Redis), and Scale tier gets 100+ connections including advanced protocols like MQTT, SSE, and gRPC."
+        },
+        {
+          id: "training-quotas",
+          question: "How do ML training quotas work?",
+          answer: "Training quotas limit the number of ML jobs you can run daily and inference requests per hour. Develop: 5 jobs/day + 100 inferences/hour, Growth: 50 jobs/day + 1,000 inferences/hour, Scale: 500 jobs/day + 10,000 inferences/hour."
         },
         {
           id: "data-scaling",
@@ -137,6 +147,16 @@ export default function Pricing() {
           id: "byos-benefits",
           question: "What are the benefits of Bring-Your-Own-Storage (BYOS)?",
           answer: "Process data directly in your AWS S3, Google Cloud, or Azure storage. No data transfer costs, no compliance headaches. Your data stays in your infrastructure while we do the processing."
+        },
+        {
+          id: "sla-guarantees",
+          question: "What are the SLA guarantees?",
+          answer: "Each tier includes uptime guarantees: Develop tier offers 99.0% uptime, Growth tier provides 99.5% uptime, and Scale tier delivers 99.9% uptime with priority infrastructure and monitoring."
+        },
+        {
+          id: "self-service-portal",
+          question: "What's included in the self-service portal?",
+          answer: "Growth tier includes usage tracking and basic management features. Scale tier provides a dedicated portal with full API key management, team role administration, billing controls, and support ticket management."
         }
       ]
     },
@@ -174,13 +194,16 @@ export default function Pricing() {
       basePrice: 99,
       cta: "Start Develop trial",
       ctaLink: "/auth/register",
-      tagline: "Process up to 50GB daily with optimized performance. Perfect for individual developers and small teams.",
+      tagline: "Process up to 50GB daily with optimized performance.\nPerfect for individual developers and small teams.",
       highlights: [
         { icon: Activity, text: "5M API calls included" },
         { icon: Database, text: "50GB daily processing limit" },
         { icon: Zap, text: "Optimized CSV processing" },
+        { icon: Globe, text: "2 WebSocket connections" },
+        { icon: Brain, text: "sklearn ML framework" },
+        { icon: Gauge, text: "5 training jobs/day, 100 inferences/hour" },
         { icon: Users, text: "3 team members" },
-        { icon: Shield, text: "Standard encryption" },
+        { icon: Shield, text: "99.0% SLA + basic security" },
         { icon: Headphones, text: "Business hours support" }
       ]
     },
@@ -190,15 +213,20 @@ export default function Pricing() {
       basePrice: 299,
       cta: "Start Growth trial",
       ctaLink: "/auth/register",
-      tagline: "Enhanced performance for growing teams. Process large datasets with improved efficiency.",
+      tagline: "Enhanced performance for growing teams.\nProcess large datasets with improved efficiency.",
       popular: true,
       highlights: [
         { icon: Activity, text: "25M API calls included" },
         { icon: Database, text: "200GB daily processing limit" },
-        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
         { icon: Zap, text: "Memory-efficient processing" },
-        { icon: Users, text: "15 team members + collaboration" },
-        { icon: Shield, text: "Enhanced security features" },
+        { icon: Globe, text: "10 streaming connections (WebSocket, Kafka, Redis)" },
+        { icon: Brain, text: "TensorFlow + PyTorch access" },
+        { icon: Gauge, text: "50 training jobs/day, 1,000 inferences/hour" },
+        { icon: BarChart3, text: "Real-time metrics dashboard" },
+        { icon: Shield, text: "Integration health monitoring" },
+        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
+        { icon: Users, text: "15 team members + self-service" },
+        { icon: Shield, text: "99.5% SLA + enhanced security" },
         { icon: Headphones, text: "24/7 support" }
       ]
     },
@@ -208,15 +236,20 @@ export default function Pricing() {
       basePrice: 599,
       cta: "Start Scale trial",
       ctaLink: "/auth/register",
-      tagline: "Maximum performance optimization. Advanced processing for high-volume data workloads.",
+      tagline: "Maximum performance optimization.\nAdvanced processing for high-volume data workloads.",
       popular: false,
       highlights: [
         { icon: Activity, text: "100M API calls included" },
         { icon: Database, text: "500GB daily processing limit" },
-        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
         { icon: Zap, text: "High-performance processing" },
-        { icon: Users, text: "50 team members + account manager" },
-        { icon: Shield, text: "Advanced security features" },
+        { icon: Globe, text: "100+ streaming connections (incl. MQTT, SSE, gRPC)" },
+        { icon: Brain, text: "All ML frameworks + large models (up to 5GB)" },
+        { icon: Gauge, text: "500 training jobs/day, 10,000 inferences/hour" },
+        { icon: Layers, text: "Advanced integration patterns (GraphQL, MQTT, SSE)" },
+        { icon: Wrench, text: "Dedicated self-service portal" },
+        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
+        { icon: Users, text: "50 team members + full portal" },
+        { icon: Shield, text: "99.9% SLA + advanced security" },
         { icon: Headphones, text: "Priority support" }
       ]
     }
@@ -340,6 +373,9 @@ export default function Pricing() {
       category: "ML Data Preparation",
       icon: Zap,
       items: [
+        { name: "ML Framework Access", develop: "scikit-learn only", growth: "+ TensorFlow + PyTorch", scale: "All frameworks + large models (5GB)" },
+        { name: "ML Training Quotas", develop: "5 jobs/day, 100 inferences/hour", growth: "50 jobs/day, 1,000 inferences/hour", scale: "500 jobs/day, 10,000 inferences/hour" },
+        { name: "ML Resource Quotas", develop: "2GB memory", growth: "8GB memory", scale: "32GB memory" },
         { name: "ML Framework Export Support", develop: "TensorFlow Only", growth: "TensorFlow + PyTorch", scale: "All Frameworks + Custom" },
         { name: "Data Registry & Version Control", develop: false, growth: true, scale: true },
         { name: "Feature Engineering Pipeline", develop: "Basic", growth: "Advanced", scale: "Custom Pipelines" }
@@ -352,7 +388,10 @@ export default function Pricing() {
         { name: "REST API Endpoints", develop: true, growth: true, scale: true },
         { name: "API Calls Included", develop: "5M calls", growth: "25M calls", scale: "100M calls" },
         { name: "Database Connectors", develop: "PostgreSQL, MySQL, MongoDB", growth: "+ Snowflake, Elasticsearch", scale: "+ Enterprise databases" },
+        { name: "Streaming Connections", develop: "2 WebSocket connections", growth: "10 connections (WebSocket, Kafka, Redis)", scale: "100+ connections (incl. MQTT, SSE, gRPC)" },
+        { name: "Advanced Integration Patterns", develop: false, growth: "Basic patterns", scale: "GraphQL, MQTT, SSE, gRPC" },
         { name: "Real-time Streaming", develop: "WebSockets", growth: "Kafka, Redis", scale: "All streaming" },
+        { name: "Stream-to-Webhook Bridge", develop: false, growth: "10/min rate limit", scale: "100/min rate limit" },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
         { name: "Custom API Integrations", develop: false, growth: true, scale: true },
         { name: "OpenAPI Documentation", develop: true, growth: true, scale: true }
@@ -374,10 +413,23 @@ export default function Pricing() {
       category: "Monitoring & Analytics",
       icon: Activity,
       items: [
+        { name: "SLA Guarantees", develop: "99.0% uptime", growth: "99.5% uptime", scale: "99.9% uptime" },
+        { name: "Real-time Metrics Dashboard", develop: "Basic metrics", growth: "Live dashboard with quota visualization", scale: "Advanced analytics + custom dashboards" },
+        { name: "Integration Health Monitoring", develop: false, growth: "Health monitoring for connectors", scale: "Full monitoring suite + alerting" },
         { name: "Performance Monitoring", develop: "Essential metrics", growth: "Advanced dashboards", scale: "Comprehensive analytics" },
         { name: "Smart Alerting System", develop: false, growth: true, scale: true },
         { name: "Usage Analytics & Reporting", develop: "Essential reports", growth: "Advanced insights", scale: "Custom dashboards" },
         { name: "High Availability", develop: false, growth: false, scale: "Priority infrastructure" }
+      ]
+    },
+    {
+      category: "Customer Self-Service",
+      icon: Settings,
+      items: [
+        { name: "API Key Management", develop: "Basic keys", growth: "Advanced key management", scale: "Full key management" },
+        { name: "Team Management", develop: "Basic roles", growth: "Advanced roles + invites", scale: "Full RBAC + SSO" },
+        { name: "Self-Service Portal", develop: false, growth: "Usage tracking + basic management", scale: "Dedicated portal (API keys, billing, roles)" },
+        { name: "Load Testing & Benchmarks", develop: false, growth: false, scale: "Performance validation" }
       ]
     },
     {
@@ -413,49 +465,47 @@ export default function Pricing() {
 
         {/* Billing Period Selection */}
         <div className="flex justify-center mb-8">
-          <div className="flex items-center space-x-4">
-            <span
-              className={`text-sm font-medium cursor-pointer ${billingPeriod === 'monthly' ? 'text-blue-600' : 'text-gray-600'}`}
+          <div className="relative inline-flex bg-gray-100 rounded-lg p-1">
+            <input
+              type="checkbox"
+              id="billing-toggle"
+              className="sr-only"
+              checked={billingPeriod === 'yearly'}
+              onChange={(e) => setBillingPeriod(e.target.checked ? 'yearly' : 'monthly')}
+            />
+
+            {/* Background slider */}
+            <div
+              className="absolute top-1 bottom-1 bg-white rounded-md shadow-sm transition-all duration-300 ease-in-out"
+              style={{
+                left: billingPeriod === 'monthly' ? '4px' : '50%',
+                width: 'calc(50% - 4px)',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}
+            />
+
+            {/* Monthly button */}
+            <button
+              className={`relative z-10 px-6 py-2 text-sm font-medium rounded-md transition-colors duration-300 ${
+                billingPeriod === 'monthly' ? 'text-blue-600' : 'text-gray-600'
+              }`}
               style={billingPeriod === 'monthly' ? { color: '#1f53d0' } : {}}
               onClick={() => setBillingPeriod('monthly')}
             >
               Monthly
-            </span>
+            </button>
 
-            {/* Toggle Switch */}
-            <div className="relative">
-              <input
-                type="checkbox"
-                id="billing-toggle"
-                className="sr-only"
-                checked={billingPeriod === 'yearly'}
-                onChange={(e) => setBillingPeriod(e.target.checked ? 'yearly' : 'monthly')}
-              />
-              <label
-                htmlFor="billing-toggle"
-                className="block w-12 h-6 rounded-full cursor-pointer relative transition-all duration-300 ease-in-out"
-                style={{
-                  backgroundColor: billingPeriod === 'yearly' ? '#1f53d0' : '#e5e7eb',
-                  boxShadow: 'inset 0 1px 3px rgba(0, 0, 0, 0.1)'
-                }}
-              >
-                <div
-                  className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 ease-in-out"
-                  style={{
-                    left: billingPeriod === 'yearly' ? '26px' : '2px',
-                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)'
-                  }}
-                />
-              </label>
-            </div>
-
-            <span
-              className={`text-sm font-medium cursor-pointer ${billingPeriod === 'yearly' ? 'text-blue-600' : 'text-gray-600'}`}
+            {/* Yearly button */}
+            <button
+              className={`relative z-10 px-6 py-2 text-sm font-medium rounded-md transition-colors duration-300 ${
+                billingPeriod === 'yearly' ? 'text-blue-600' : 'text-gray-600'
+              }`}
               style={billingPeriod === 'yearly' ? { color: '#1f53d0' } : {}}
               onClick={() => setBillingPeriod('yearly')}
             >
               Yearly
-            </span>
+            </button>
           </div>
         </div>
 
@@ -482,7 +532,7 @@ export default function Pricing() {
             <div className="min-w-full">
               <div className="grid grid-cols-1 md:grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="px-6 pt-8 pb-8 text-left flex flex-col h-full min-h-[500px] relative transition-all duration-300 md:border-r border-gray-200 last:border-r-0">
+                  <div key={index} className="px-6 pt-8 pb-8 text-left flex flex-col h-full min-h-[650px] relative transition-all duration-300 md:border-r border-gray-200 last:border-r-0">
                     {plan.popular && (
                       <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-medium" style={{ border: '0.5px solid rgba(31, 83, 208, 0.3)', color: '#1f53d0' }}>
                         Where Most Start
@@ -500,7 +550,7 @@ export default function Pricing() {
                       {billingPeriod === 'monthly' && (
                         <div className="mb-4"></div>
                       )}
-                      <p className="text-sm text-gray-700 mb-6">{plan.tagline}</p>
+                      <p className="text-sm text-gray-700 mb-6 whitespace-pre-line">{plan.tagline}</p>
 
                       {/* Key Highlights */}
                       <div className="space-y-3 mb-6">
@@ -529,18 +579,14 @@ export default function Pricing() {
                       <Link
                         href={plan.ctaLink}
                         className={`inline-block py-2.5 px-5 rounded-lg transition-colors duration-200 text-center font-medium shadow-md hover:shadow-lg ${
-                          plan.name === 'Develop'
-                            ? 'text-blue-600 bg-white border border-blue-600 hover:bg-blue-50'
-                            : plan.name === 'Scale'
-                            ? 'hover:bg-blue-100'
-                            : 'text-white hover:bg-blue-700'
+                          plan.name === 'Growth'
+                            ? 'text-white hover:bg-blue-700'
+                            : 'hover:bg-blue-100'
                         }`}
                         style={
-                          plan.name === 'Develop'
-                            ? { borderColor: '#1f53d0', color: '#1f53d0' }
-                            : plan.name === 'Scale'
-                            ? { backgroundColor: '#e9eef9', color: '#1f53d0' }
-                            : { backgroundColor: '#1f53d0' }
+                          plan.name === 'Growth'
+                            ? { backgroundColor: '#1f53d0' }
+                            : { backgroundColor: '#e9eef9', color: '#1f53d0' }
                         }
                       >
                         {plan.cta}
@@ -554,7 +600,7 @@ export default function Pricing() {
         </div>
 
         {/* Pricing Table */}
-        <div className="mt-16">
+        <div className="mt-8">
           <div className="relative p-0" style={{
             borderTop: '1px solid rgba(74, 123, 214, 0.15)',
             borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
@@ -602,7 +648,7 @@ export default function Pricing() {
                       style={{ backgroundColor: '#f7f7f3' }}
                       onClick={() => toggleFeatureCategory(catIndex)}
                     >
-                      <div className="p-4 text-left text-sm font-semibold tracking-wider col-span-4 flex items-center justify-between text-gray-900">
+                      <div className="p-4 text-left text-sm font-medium tracking-wider col-span-4 flex items-center justify-between text-gray-900">
                         <div className="flex items-center space-x-3">
                           <category.icon className="w-5 h-5 text-gray-900" />
                           <span>{category.category}</span>
@@ -630,7 +676,7 @@ export default function Pricing() {
         </div>
 
         {/* FAQ Section */}
-        <div className="mt-20">
+        <div className="mt-8">
           <div className="relative p-0" style={{
             borderTop: '1px solid rgba(74, 123, 214, 0.15)',
             borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
