@@ -131,7 +131,7 @@ export default function Hero() {
                   style={{
                     backgroundColor: '#f2f1ed',
                     border: '1px solid #e5e7eb',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 -10px 15px -3px rgba(0, 0, 0, 0.1)'
                   }}
                 >
                   {/* IDE-style header with window controls */}
@@ -178,26 +178,85 @@ export default function Hero() {
                           </svg>
                           <span className="font-medium text-gray-500">schlep-engine</span>
                         </div>
+
+                        {/* src folder */}
                         <div className="ml-6 space-y-1">
-                          <div className="flex items-center space-x-2 text-sm text-gray-500 hover:text-gray-700 cursor-pointer">
-                            <img src="/py.svg" alt="Python" className="w-4 h-4" />
-                            <span className={activeTab === 'python' ? 'text-gray-700 font-medium' : 'text-gray-500'}>main.py</span>
-                          </div>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500 hover:text-gray-700 cursor-pointer">
-                            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"></path>
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
                             </svg>
-                            <span className={activeTab === 'curl' ? 'text-gray-700 font-medium' : 'text-gray-500'}>request.sh</span>
+                            <span className="font-medium text-gray-500">src/</span>
                           </div>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500 hover:text-gray-700 cursor-pointer">
-                            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
+
+                          {/* Source files */}
+                          <div className="ml-6 space-y-1">
+                            <div
+                              className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
+                              onClick={() => setActiveTab('python')}
+                            >
+                              <img src="/py.svg" alt="Python" className="w-4 h-4" />
+                              <span className={activeTab === 'python' ? 'text-gray-900 font-medium' : 'text-gray-500'}>main.py</span>
+                            </div>
+                            <div
+                              className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
+                              onClick={() => setActiveTab('frameworks')}
+                            >
+                              <img src="/py.svg" alt="Python" className="w-4 h-4" />
+                              <span className={activeTab === 'frameworks' ? 'text-gray-900 font-medium' : 'text-gray-500'}>ml_frameworks.py</span>
+                            </div>
+                            <div
+                              className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
+                              onClick={() => setActiveTab('streaming')}
+                            >
+                              <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
+                              </svg>
+                              <span className={activeTab === 'streaming' ? 'text-gray-900 font-medium' : 'text-gray-500'}>stream_client.js</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* scripts folder */}
+                        <div className="ml-6 space-y-1">
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
                             </svg>
-                            <span className={activeTab === 'streaming' ? 'text-gray-700 font-medium' : 'text-gray-500'}>stream_client.js</span>
+                            <span className="font-medium text-gray-500">scripts/</span>
                           </div>
-                          <div className="flex items-center space-x-2 text-sm text-gray-500 hover:text-gray-700 cursor-pointer">
-                            <img src="/py.svg" alt="Python" className="w-4 h-4" />
-                            <span className={activeTab === 'frameworks' ? 'text-gray-700 font-medium' : 'text-gray-500'}>ml_frameworks.py</span>
+
+                          <div className="ml-6 space-y-1">
+                            <div
+                              className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
+                              onClick={() => setActiveTab('curl')}
+                            >
+                              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"></path>
+                              </svg>
+                              <span className={activeTab === 'curl' ? 'text-gray-900 font-medium' : 'text-gray-500'}>request.sh</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Config files */}
+                        <div className="ml-6 space-y-1">
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"></path>
+                            </svg>
+                            <span className="text-gray-500">requirements.txt</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"></path>
+                            </svg>
+                            <span className="text-gray-500">package.json</span>
+                          </div>
+                          <div className="flex items-center space-x-2 text-sm text-gray-500">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"></path>
+                            </svg>
+                            <span className="text-gray-500">README.md</span>
                           </div>
                         </div>
                       </div>
@@ -211,15 +270,15 @@ export default function Hero() {
                         <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-300" style={{ zIndex: 1 }}></div>
 
                         <button
-                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative ${
+                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
                             activeTab === 'python'
                               ? 'text-gray-900'
                               : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                           style={{
                             backgroundColor: activeTab === 'python' ? '#f7f7f3' : 'transparent',
-                            border: activeTab === 'python' ? '1px solid #e5e7eb' : 'none',
-                            borderBottom: 'none',
+                            border: activeTab === 'python' ? '1px solid #e5e7eb' : '1px solid #e5e7eb',
+                            borderBottom: activeTab === 'python' ? 'none' : '1px solid #e5e7eb',
                             borderRadius: '4px 4px 0 0',
                             minWidth: '100px',
                             zIndex: 2
@@ -232,15 +291,15 @@ export default function Hero() {
                           </svg>
                         </button>
                         <button
-                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative ${
+                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
                             activeTab === 'frameworks'
                               ? 'text-gray-900'
                               : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                           style={{
                             backgroundColor: activeTab === 'frameworks' ? '#f7f7f3' : 'transparent',
-                            border: activeTab === 'frameworks' ? '1px solid #e5e7eb' : 'none',
-                            borderBottom: 'none',
+                            border: activeTab === 'frameworks' ? '1px solid #e5e7eb' : '1px solid #e5e7eb',
+                            borderBottom: activeTab === 'frameworks' ? 'none' : '1px solid #e5e7eb',
                             borderRadius: '4px 4px 0 0',
                             minWidth: '100px',
                             zIndex: 2
@@ -253,15 +312,15 @@ export default function Hero() {
                           </svg>
                         </button>
                         <button
-                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative ${
+                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
                             activeTab === 'curl'
                               ? 'text-gray-900'
                               : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                           style={{
                             backgroundColor: activeTab === 'curl' ? '#f7f7f3' : 'transparent',
-                            border: activeTab === 'curl' ? '1px solid #e5e7eb' : 'none',
-                            borderBottom: 'none',
+                            border: activeTab === 'curl' ? '1px solid #e5e7eb' : '1px solid #e5e7eb',
+                            borderBottom: activeTab === 'curl' ? 'none' : '1px solid #e5e7eb',
                             borderRadius: '4px 4px 0 0',
                             minWidth: '100px',
                             zIndex: 2
@@ -274,15 +333,15 @@ export default function Hero() {
                           </svg>
                         </button>
                         <button
-                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative ${
+                          className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
                             activeTab === 'streaming'
                               ? 'text-gray-900'
                               : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                           style={{
                             backgroundColor: activeTab === 'streaming' ? '#f7f7f3' : 'transparent',
-                            border: activeTab === 'streaming' ? '1px solid #e5e7eb' : 'none',
-                            borderBottom: 'none',
+                            border: activeTab === 'streaming' ? '1px solid #e5e7eb' : '1px solid #e5e7eb',
+                            borderBottom: activeTab === 'streaming' ? 'none' : '1px solid #e5e7eb',
                             borderRadius: '4px 4px 0 0',
                             minWidth: '100px',
                             zIndex: 2
@@ -333,6 +392,40 @@ export default function Hero() {
 
                     {/* Right sidebar */}
                     <div className="w-[28rem] border-l border-gray-300 p-3" style={{ backgroundColor: '#f2f1ed' }}>
+                      <h3 className="text-sm font-medium text-gray-600 mb-4 text-left">
+                        Built for engineers shipping ML at speed.
+                      </h3>
+                      <p className="text-sm text-gray-600 text-left leading-relaxed mb-6">
+                        Most ML projects stall on infrastructure. Schlep-engine removes that bottleneck with simple APIs that take you from messy data to working models—fast.
+                      </p>
+
+                      {/* Cards */}
+                      <div className="space-y-3">
+                        <div className="border border-gray-200 rounded-lg p-4" style={{ backgroundColor: '#f7f7f3' }}>
+                          <h4 className="text-sm font-medium text-gray-600 mb-2">API-First Architecture</h4>
+                          <p className="text-xs text-gray-600">REST APIs for data and ML workflows. Upload CSVs, train models, and get predictions with simple HTTP calls.</p>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-4" style={{ backgroundColor: '#f7f7f3' }}>
+                          <h4 className="text-sm font-medium text-gray-600 mb-2">Developer Experience</h4>
+                          <p className="text-xs text-gray-600">APIs that hide the heavy lifting. Focus on your data and logic, not infrastructure setup or maintenance.</p>
+                        </div>
+
+                        <div className="border border-gray-200 rounded-lg p-4" style={{ backgroundColor: '#f7f7f3' }}>
+                          <h4 className="text-sm font-medium text-gray-600 mb-2">Data to Model Pipeline</h4>
+                          <p className="text-xs text-gray-600">From messy CSVs to trained models. Automate processing and training through API calls—no complex pipeline setup required.</p>
+                        </div>
+                      </div>
+
+                      {/* Explore link */}
+                      <div className="mt-6">
+                        <div className="flex items-center text-sm cursor-pointer" style={{ color: '#1f53d0' }}>
+                          <span>Explore Schlep-engine</span>
+                          <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
