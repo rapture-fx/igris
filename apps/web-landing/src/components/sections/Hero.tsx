@@ -40,7 +40,7 @@ const curlCode = `<code><span style="color: #6b7280;"># Upload CSV and trigger t
 <span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> GET <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/models/latest'</span> <span style="color: #dc2626;">\\</span>
   <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer API_KEY'</span>
 
-<span style="color: #6b7280;"># → {"model_id": "abc123", "accuracy": 0.89}</span>
+<span style="color: #114dcd;"># → {"model_id": "abc123", "accuracy": 0.89}</span>
 </code>`
 
 const streamingCode = `<code><span style="color: #6b7280;">// Real-time data streaming</span>
@@ -56,7 +56,7 @@ const streamingCode = `<code><span style="color: #6b7280;">// Real-time data str
   }))
 })
 
-<span style="color: #6b7280;">// → Real-time ML predictions</span>
+<span style="color: #114dcd;">// → Real-time ML predictions</span>
 </code>`
 
 const frameworksCode = `<code><span style="color: #6b7280;"># Export to ML frameworks</span>
@@ -71,7 +71,7 @@ const frameworksCode = `<code><span style="color: #6b7280;"># Export to ML frame
 <span style="color: #6b7280;"># Export to PyTorch</span>
 <span style="color: #4b5563;">torch_dataset</span> = <span style="color: #4b5563;">dataset</span>.<span style="color: #4b5563;">to_pytorch</span>()
 
-<span style="color: #6b7280;"># → Ready for your ML pipeline</span>
+<span style="color: #114dcd;"># → Ready for your ML pipeline</span>
 </code>`
 
 export default function Hero() {
@@ -265,9 +265,16 @@ export default function Hero() {
                     {/* Code area with tabs */}
                     <div className="flex-1" style={{ backgroundColor: '#f2f1ed' }}>
                       {/* Tabs above code */}
-                      <div className="relative flex items-end" style={{ backgroundColor: '#f2f1ed' }}>
+                      <div className="relative flex items-end" style={{ backgroundColor: '#f2f1ed', paddingLeft: '44px' }}>
+                        {/* Line numbers area background */}
+                        <div className="absolute top-0 bottom-0" style={{ left: 0, width: '44px', backgroundColor: '#f7f7f3' }}></div>
+                        {/* Vertical border extension */}
+                        <div
+                          className="absolute top-0 bottom-0 w-px bg-gray-300"
+                          style={{ left: '44px', zIndex: 1 }}
+                        ></div>
                         {/* Horizontal divider line */}
-                        <div className="absolute bottom-0 left-0 right-0 h-px bg-gray-300" style={{ zIndex: 1 }}></div>
+                        <div className="absolute bottom-0 h-px bg-gray-300" style={{ left: '44px', right: 0, zIndex: 1 }}></div>
 
                         <button
                           className={`flex items-center justify-between px-3 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${

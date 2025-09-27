@@ -108,74 +108,23 @@ export default function WorksOutOfTheBox() {
 
           {/* Content Container with Original Width */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="lg:text-center mb-12">
-              <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 text-center font-inter">APIs That Speak Your Language</h2>
-              </div>
-              <p className="mt-2 text-2xl tracking-tight md:text-3xl text-center font-inter" style={{ color: '#114dcd' }}>
-                Train ML Models from Raw Data in 3 Calls.
-              </p>
-              <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-                Upload, train, deploy. Three API calls handle the entire ML pipeline from messy data to production models.
-              </p>
-            </div>
-
-            <VerticalWorkflow />
-
-            <div className="mt-16 max-w-4xl mx-auto">
-              <h3 className="text-xl font-normal text-gray-900 dark:text-white text-center mb-8 font-inter">
-                Schlep-engine in your stack
-              </h3>
-              <div className="flex justify-center items-center space-x-16 mb-8">
-                <button onClick={() => setActiveTab('python')}>
-                  <img src="/py.svg" alt="Python" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'python' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                </button>
-                <button onClick={() => setActiveTab('javascript')}>
-                  <img src="/node.svg" alt="JavaScript" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                </button>
-                <button onClick={() => setActiveTab('go')}>
-                  <img src="/go.svg" alt="Go" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                </button>
-                <button onClick={() => setActiveTab('cli')}>
-                  <img src="/cli.svg" alt="CLI" className={`h-14 w-14 transition-opacity cursor-pointer ${activeTab === 'cli' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                </button>
-              </div>
-              <div
-                className="bg-white text-left shadow-lg relative z-10"
-                style={{
-                  border: '1px solid #114dcd',
-                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)'
-                }}
-              >
-                <div className="p-4 flex">
-                  <div
-                    className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
-                    style={{ color: '#9ca3af' }}
-                  >
-                    <div
-                      className="text-xs font-mono leading-relaxed whitespace-pre"
-                    >
-                      {getLineNumbers()}
-                    </div>
-                  </div>
-                  <pre
-                    className="text-xs overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow"
-                  >
-                    {getCode()}
-                  </pre>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+              {/* Left Column - Title and Description */}
+              <div className="text-left lg:col-span-2">
+                <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5 mb-4">
+                  <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">APIs That Speak Your Language</h2>
                 </div>
+                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-6" style={{ color: '#114dcd' }}>
+                  Train ML Models from Raw Data in 3 Calls.
+                </h3>
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
+                  Upload, train, deploy.<br />Three API calls handle the entire ML pipeline<br />from messy data to production models.
+                </p>
               </div>
 
-              {/* Explore Docs Button */}
-              <div className="mt-8 text-center">
-                <Link
-                  href="http://localhost:3005"
-                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                  style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
-                >
-                  Explore Docs
-                  <ArrowUpRight className="ml-2 h-4 w-4" />
-                </Link>
+              {/* Right Column - Demonstration */}
+              <div className="rounded-lg p-12 lg:col-span-3" style={{ backgroundColor: '#f2f1ed' }}>
+                <VerticalWorkflow />
               </div>
             </div>
           </div>

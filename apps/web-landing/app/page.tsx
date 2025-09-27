@@ -16,6 +16,7 @@ import LatestUpdate from '../src/components/sections/LatestUpdate'
 import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import StackIntegrations from '../src/components/sections/StackIntegrations'
+import SchlepEngineInStack from '../src/components/sections/SchlepEngineInStack'
 
 
 export default function HomePage() {
@@ -28,8 +29,8 @@ export default function HomePage() {
       <main style={{ backgroundColor: '#f7f7f3' }}>
         <Hero />
         <StackIntegrations />
-        <BuiltForEngineers />
         <WorksOutOfTheBox />
+        <SchlepEngineInStack />
         <WhatYouCanBuild />
         <SecuritySection />
         <CallToAction />

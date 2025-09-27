@@ -51,10 +51,6 @@ features: ["age", "income", "purchase"]`,
 
   return (
     <div className="mt-16 mb-16">
-      <h3 className="text-xl font-normal text-gray-900 dark:text-white text-center mb-12 font-inter">
-        How Schlep-engine Works
-      </h3>
-
       <div className="max-w-[1400px] mx-auto relative">
         {/* Full vertical git branch line with fade effect */}
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300 dark:bg-gray-600 transform -translate-x-0.5"></div>
@@ -72,17 +68,17 @@ features: ["age", "income", "purchase"]`,
             <div className="flex flex-col lg:flex-row items-start gap-8 pb-12">
               {/* Left Side - Step Info */}
               <div className="lg:w-1/2 pr-8">
-                <div className="bg-white dark:bg-gray-800 border p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 space-y-4" style={{ borderColor: '#114dcd80' }}>
+                <div className="border rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300 space-y-4" style={{ borderColor: '#e5e7eb', backgroundColor: '#f7f7f3' }}>
                   <div>
                     <div className="text-sm font-medium text-blue-600 dark:text-blue-400">
                       Step {step.id}
                     </div>
-                    <h4 className="text-xl font-normal text-gray-900 dark:text-white">
+                    <h4 className="text-lg font-normal text-gray-900 dark:text-white">
                       {step.title}
                     </h4>
                   </div>
 
-                  <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                     {step.description}
                   </p>
                 </div>
@@ -90,7 +86,7 @@ features: ["age", "income", "purchase"]`,
 
               {/* Right Side - Visual */}
               <div className="lg:w-1/2 pl-8">
-              <div className="bg-white dark:bg-gray-800 border p-6 shadow-lg hover:shadow-xl transition-shadow duration-300" style={{ borderColor: '#114dcd80' }}>
+              <div className="border rounded-lg p-6 shadow-lg hover:shadow-xl transition-shadow duration-300" style={{ borderColor: '#e5e7eb', backgroundColor: '#f7f7f3' }}>
                 {step.visual.type === "code" && (
                   <div>
                     <pre className="text-sm font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
