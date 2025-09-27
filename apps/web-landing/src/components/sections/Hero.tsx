@@ -144,7 +144,7 @@ export default function Hero() {
                 </button>
               </div>
 
-              <div className="p-4 pb-20 flex min-h-96 max-w-full">
+              <div className="p-4 pb-32 flex min-h-96 max-w-full">
                 <div
                   className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
                   style={{ color: '#9ca3af' }}
@@ -167,49 +167,6 @@ export default function Hero() {
             </div>
             </div>
 
-            {/* Company Logo Placeholders - Inside the frame */}
-            <div className="mt-16 text-center relative p-8" style={{
-              borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-              borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-              borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
-            }}>
-
-              <p className="text-sm mb-8 font-inter" style={{ color: 'black' }}>Plug into your stack instantly.</p>
-              <div className="flex justify-center items-center gap-12 flex-wrap">
-                <div
-                  className="w-40 h-40 rounded"
-                  style={{ backgroundColor: '#edece9' }}
-                  title="AI/ML Company"
-                ></div>
-                <div
-                  className="w-40 h-40 rounded"
-                  style={{ backgroundColor: '#edece9' }}
-                  title="Manufacturing"
-                ></div>
-                <div
-                  className="w-40 h-40 rounded"
-                  style={{ backgroundColor: '#edece9' }}
-                  title="Financial Services"
-                ></div>
-                <div
-                  className="w-40 h-40 rounded"
-                  style={{ backgroundColor: '#edece9' }}
-                  title="E-commerce"
-                ></div>
-                <div
-                  className="w-40 h-40 rounded"
-                  style={{ backgroundColor: '#edece9' }}
-                  title="Tech Startup"
-                ></div>
-                <div
-                  className="w-40 h-40 rounded"
-                  style={{ backgroundColor: '#edece9' }}
-                  title="Research Institution"
-                ></div>
-              </div>
-              <div className="pb-8"></div>
-            </div>
           </div>
         </div>
       </div>

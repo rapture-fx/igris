@@ -15,6 +15,7 @@ import HowItWorks from '../src/components/sections/HowItWorks'
 import LatestUpdate from '../src/components/sections/LatestUpdate'
 import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
+import StackIntegrations from '../src/components/sections/StackIntegrations'
 
 
 export default function HomePage() {
@@ -26,6 +27,7 @@ export default function HomePage() {
       <Header />
       <main style={{ backgroundColor: '#f7f7f3' }}>
         <Hero />
+        <StackIntegrations />
         <BuiltForEngineers />
         <WorksOutOfTheBox />
         <WhatYouCanBuild />
