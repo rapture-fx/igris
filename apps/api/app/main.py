@@ -344,6 +344,23 @@ try:
 except Exception as e:
     logger.warning(f"Failed to enable billing middleware: {e}")
 
+# Enable ML framework enforcement middleware
+try:
+    from app.middleware.ml_framework_enforcement import MLFrameworkEnforcementMiddleware
+    ml_enforcement_enabled = os.getenv("ML_FRAMEWORK_ENFORCEMENT_ENABLED", "true").lower() == "true"
+
+    if ml_enforcement_enabled:
+        app.add_middleware(
+            MLFrameworkEnforcementMiddleware,
+            enabled=True,
+            strict_mode=True
+        )
+        logger.info("ML Framework Enforcement middleware enabled - framework access will be enforced by subscription tier")
+    else:
+        logger.info("ML Framework Enforcement middleware disabled via environment variable")
+except Exception as e:
+    logger.warning(f"Failed to enable ML framework enforcement middleware: {e}")
+
 # TODO: Re-enable when encryption dependencies are resolved
 # try:
 #     app.add_middleware(EncryptionMiddleware)
@@ -492,6 +509,14 @@ app.include_router(admin.router, prefix="/api/v1/admin", tags=["Admin"])
 app.include_router(data_processing.router, prefix="/api/v1/data", tags=["Data Processing"])
 app.include_router(advanced_ai.router, prefix="/api/v1/ai", tags=["Advanced AI"])
 app.include_router(advanced_ml.router, prefix="/api/v1/advanced-ml", tags=["Advanced ML"])
+
+# Include subscription-aware ML endpoints
+try:
+    from app.api.v1.subscription_aware_ml_endpoints import router as subscription_ml_router
+    app.include_router(subscription_ml_router, prefix="/api/v1/ml-frameworks", tags=["ML Frameworks (Subscription-Aware)"])
+    logger.info("Subscription-aware ML endpoints enabled")
+except Exception as e:
+    logger.warning(f"Failed to enable subscription-aware ML endpoints: {e}")
 app.include_router(adaptive_optimizer.router, prefix="/api/v1", tags=["Adaptive Optimization"])
 app.include_router(dpa_compliance_router, prefix="/api/v1", tags=["DPA Compliance"])
 

@@ -35,7 +35,7 @@ cleaned_file.download("cleaned_data.csv")`
 
   return (
     <section className="py-20 md:py-32 bg-white dark:bg-black">
-      <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-4">
             How It Works

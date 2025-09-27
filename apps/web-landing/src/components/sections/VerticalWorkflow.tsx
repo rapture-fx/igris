@@ -55,7 +55,7 @@ features: ["age", "income", "purchase"]`,
         How Schlep-engine Works
       </h3>
 
-      <div className="max-w-[1300px] mx-auto relative">
+      <div className="max-w-[1400px] mx-auto relative">
         {/* Full vertical git branch line with fade effect */}
         <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300 dark:bg-gray-600 transform -translate-x-0.5"></div>
         <div className="absolute left-1/2 bottom-0 w-px h-16 transform -translate-x-0.5" style={{ background: 'linear-gradient(to bottom, rgba(209, 213, 219, 1), rgba(209, 213, 219, 0))' }}></div>
