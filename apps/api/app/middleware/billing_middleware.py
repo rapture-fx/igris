@@ -53,9 +53,9 @@ SUBSCRIPTION_LIMITS = {
         "requests_per_minute": 170,  # ~10K/day ÷ 60
         "requests_per_hour": 417,    # ~10K/day ÷ 24
         "requests_per_day": 10000,
-        "data_processing_mb_per_day": 1000,  # 1GB
+        "data_processing_mb_per_day": 50000,  # 50GB
         "ml_operations_per_day": 50,
-        "storage_gb": 10,
+        "storage_gb": 0,  # BYOS - no storage limits
         "concurrent_jobs": 3,
         "api_calls_included": 5000000,  # 5M from pricing page
         "price_monthly": 99
@@ -64,9 +64,9 @@ SUBSCRIPTION_LIMITS = {
         "requests_per_minute": 1667,  # ~100K/day ÷ 60
         "requests_per_hour": 4167,   # ~100K/day ÷ 24
         "requests_per_day": 100000,
-        "data_processing_mb_per_day": 10000,  # 10GB
+        "data_processing_mb_per_day": 200000,  # 200GB
         "ml_operations_per_day": 500,
-        "storage_gb": 100,
+        "storage_gb": 0,  # BYOS - no storage limits
         "concurrent_jobs": 10,
         "api_calls_included": 25000000,  # 25M from pricing page
         "price_monthly": 299
@@ -75,9 +75,9 @@ SUBSCRIPTION_LIMITS = {
         "requests_per_minute": 16667,  # ~1M/day ÷ 60
         "requests_per_hour": 41667,   # ~1M/day ÷ 24
         "requests_per_day": 1000000,
-        "data_processing_mb_per_day": 100000,  # 100GB
+        "data_processing_mb_per_day": 500000,  # 500GB
         "ml_operations_per_day": 5000,
-        "storage_gb": 1000,  # 1TB
+        "storage_gb": 0,  # BYOS - no storage limits
         "concurrent_jobs": 50,
         "api_calls_included": 100000000,  # 100M from pricing page
         "price_monthly": 599

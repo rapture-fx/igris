@@ -336,6 +336,14 @@ try:
 except Exception as e:
     logger.warning(f"Failed to enable audit middleware: {e}")
 
+# Enable billing middleware for subscription plan enforcement
+try:
+    from app.middleware.billing_middleware import BillingMiddleware
+    app.add_middleware(BillingMiddleware, enabled=True, track_usage=True, enforce_limits=True)
+    logger.info("Billing middleware enabled - plan limits will be enforced")
+except Exception as e:
+    logger.warning(f"Failed to enable billing middleware: {e}")
+
 # TODO: Re-enable when encryption dependencies are resolved
 # try:
 #     app.add_middleware(EncryptionMiddleware)

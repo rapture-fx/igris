@@ -116,22 +116,22 @@ export default function Pricing() {
         {
           id: "data-sources",
           question: "What data sources do you support?",
-          answer: "We support 40+ data sources including databases (PostgreSQL, MySQL, MongoDB), cloud storage (AWS S3, GCP, Azure), APIs, CSV, JSON, and more. Custom connectors available on Scale plan."
+          answer: "We support 13+ data sources including databases (PostgreSQL, MySQL, MongoDB, Snowflake, Elasticsearch), cloud storage (AWS S3, Google Cloud Storage, Azure Blob, MinIO), REST APIs, real-time streams (Kafka, Redis, WebSockets), CSV, JSON, and more. Bring-your-own-storage (BYOS) supported across all plans - connect your existing storage without data transfer."
         },
         {
           id: "ml-frameworks",
           question: "Which ML frameworks are supported?",
-          answer: "All plans support scikit-learn and NumPy processing. TensorFlow and PyTorch are available when installed. Scale plan includes enterprise-grade processing optimizations."
+          answer: "All plans support scikit-learn and NumPy processing. TensorFlow and PyTorch are available when installed. Scale plan includes advanced parallel processing optimizations."
         },
         {
           id: "data-scaling",
           question: "How does data processing scaling work?",
-          answer: "All plans deliver optimized performance through efficient streaming. Develop processes up to 1GB daily, Growth handles up to 10GB daily with memory optimization, and Scale manages up to 100GB daily with parallel processing. Individual files can be up to 2GB across all plans."
+          answer: "All plans deliver optimized performance through efficient streaming. Develop processes up to 50GB daily (10GB per file), Growth handles up to 200GB daily (25GB per file), and Scale manages up to 500GB daily (50GB per file). Use your own storage for maximum flexibility."
         },
         {
           id: "data-security",
           question: "Is my data secure?",
-          answer: "Yes! All plans include encryption in transit and at rest. Growth and Scale plans add SOC2/GDPR compliance, audit logs, and advanced security controls."
+          answer: "Yes! All plans include encryption in transit and at rest. Growth and Scale plans add advanced security features, request monitoring, and enhanced protection controls."
         }
       ]
     },
@@ -141,12 +141,12 @@ export default function Pricing() {
         {
           id: "support-levels",
           question: "What support do I get?",
-          answer: "Develop includes business hours support, Growth and Scale get 24/7 support. Scale plans also include a dedicated account manager and priority support."
+          answer: "Develop includes business hours support (9am-5pm). Growth and Scale plans get 24/7 support access, with Scale receiving <4 hour response times."
         },
         {
           id: "scale-solutions",
           question: "Do you offer advanced scale solutions?",
-          answer: "Yes! Our Scale plan includes enterprise features like parallel processing, 100GB daily processing capacity, custom integrations, and dedicated support. Contact us for custom Scale pricing."
+          answer: "Yes! Our Scale plan includes advanced features like parallel processing, 500GB daily processing capacity, priority integrations, and priority support. Contact us for custom Scale pricing."
         },
         {
           id: "custom-quote",
@@ -169,10 +169,10 @@ export default function Pricing() {
       basePrice: 99,
       cta: "Start Develop trial",
       ctaLink: "/auth/register",
-      tagline: "Process up to 1GB daily with optimized performance. Perfect for individual developers and small teams getting started.",
+      tagline: "Process up to 50GB daily with optimized performance. Perfect for individual developers and small teams getting started.",
       highlights: [
         { icon: Activity, text: "5M API calls included" },
-        { icon: Database, text: "1GB daily processing limit" },
+        { icon: Database, text: "50GB daily processing limit" },
         { icon: Zap, text: "Optimized CSV processing" },
         { icon: Users, text: "3 team members" },
         { icon: Shield, text: "Standard encryption" },
@@ -185,15 +185,15 @@ export default function Pricing() {
       basePrice: 299,
       cta: "Start Growth trial",
       ctaLink: "/auth/register",
-      tagline: "Scale your data pipelines with enhanced performance. Built for growing AI teams processing up to 10GB daily.",
+      tagline: "Scale your data pipelines with enhanced performance. Built for growing AI teams processing up to 200GB daily.",
       popular: true,
       highlights: [
         { icon: Activity, text: "25M API calls included" },
-        { icon: Database, text: "10GB daily processing limit" },
+        { icon: Database, text: "200GB daily processing limit" },
         { icon: Zap, text: "Memory-efficient processing" },
         { icon: Users, text: "15 team members + collaboration" },
         { icon: Shield, text: "Enhanced security features" },
-        { icon: Headphones, text: "24/7 priority support" }
+        { icon: Headphones, text: "24/7 support" }
       ]
     },
     {
@@ -202,15 +202,15 @@ export default function Pricing() {
       basePrice: 599,
       cta: "Start Scale trial",
       ctaLink: "/auth/register",
-      tagline: "Enterprise-grade performance with maximum optimization. Process up to 100GB daily with advanced parallel processing.",
+      tagline: "Maximum performance optimization. Process up to 500GB daily with advanced parallel processing.",
       popular: false,
       highlights: [
         { icon: Activity, text: "100M API calls included" },
-        { icon: Database, text: "100GB daily processing limit" },
-        { icon: Zap, text: "Rust-accelerated processing" },
+        { icon: Database, text: "500GB daily processing limit" },
+        { icon: Zap, text: "High-performance processing" },
         { icon: Users, text: "50 team members + account manager" },
-        { icon: Shield, text: "Enterprise security framework" },
-        { icon: Headphones, text: "Dedicated account manager" }
+        { icon: Shield, text: "Advanced security features" },
+        { icon: Headphones, text: "Priority support" }
       ]
     }
   ];
@@ -309,23 +309,23 @@ export default function Pricing() {
       category: "Performance & Processing",
       icon: Cpu,
       items: [
-        { name: "Daily Processing Quota", develop: "1GB/day", growth: "10GB/day", scale: "100GB/day" },
+        { name: "Daily Processing Quota", develop: "50GB/day", growth: "200GB/day", scale: "500GB/day" },
         { name: "Processing Architecture", develop: "Streaming pipeline", growth: "Memory-optimized processing", scale: "Parallel distributed processing" },
-        { name: "Processing Optimization", develop: "Standard optimization", growth: "Memory-efficient processing", scale: "Rust-accelerated kernels" },
+        { name: "Processing Optimization", develop: "Standard optimization", growth: "Memory-efficient processing", scale: "High-performance kernels" },
         { name: "Memory Efficiency", develop: "40-60% less memory", growth: "50-70% less memory", scale: "70-80% less memory" },
-        { name: "AI Training Data Support", develop: "TensorFlow integration", growth: "Multi-framework support", scale: "Enterprise MLOps" }
+        { name: "AI Training Data Support", develop: "TensorFlow integration", growth: "Multi-framework support", scale: "Advanced ML Operations" }
       ]
     },
     {
       category: "Data Pipeline Platform",
       icon: Database,
       items: [
-        { name: "Data Preparation Pipeline", develop: "Essential stages", growth: "Advanced workflows", scale: "Enterprise automation" },
-        { name: "Data Source Connections", develop: "5 data sources", growth: "15+ data sources", scale: "Unlimited + custom connectors" },
+        { name: "Data Preparation Pipeline", develop: "Essential stages", growth: "Advanced workflows", scale: "Automated pipelines" },
+        { name: "Data Source Connections", develop: "5 data sources + BYOS", growth: "15+ data sources + BYOS", scale: "Unlimited + BYOS" },
+        { name: "Bring-Your-Own-Storage (BYOS)", develop: true, growth: true, scale: true },
         { name: "Real-time Data Processing", develop: false, growth: true, scale: true },
-        { name: "Automated Error Recovery", develop: false, growth: true, scale: true },
-        { name: "File Upload Limit", develop: "2GB per file", growth: "2GB per file", scale: "2GB per file" },
-        { name: "Pipeline State Management", develop: true, growth: true, scale: true }
+        { name: "File Upload Limit", develop: "10GB per file", growth: "25GB per file", scale: "50GB per file" },
+        { name: "Automated Error Recovery", develop: false, growth: true, scale: true }
       ]
     },
     {
@@ -341,7 +341,7 @@ export default function Pricing() {
       category: "API & Integration",
       icon: Settings,
       items: [
-        { name: "REST API Endpoints (40+)", develop: true, growth: true, scale: true },
+        { name: "REST API Endpoints", develop: true, growth: true, scale: true },
         { name: "API Calls Included", develop: "5M calls", growth: "25M calls", scale: "100M calls" },
         { name: "Real-time Data Streaming", develop: true, growth: true, scale: true },
         { name: "Webhook Integration", develop: false, growth: true, scale: true },
@@ -356,8 +356,8 @@ export default function Pricing() {
         { name: "Multi-Factor Authentication", develop: true, growth: true, scale: true },
         { name: "Single Sign-On (SSO)", develop: false, growth: true, scale: true },
         { name: "Data Encryption", develop: "Basic", growth: "Advanced", scale: "Advanced Plus" },
-        { name: "SOC2 & GDPR Compliance", develop: false, growth: true, scale: true },
-        { name: "Audit Logs", develop: false, growth: "30 Days", scale: "7 Years" },
+        { name: "Advanced Security Controls", develop: false, growth: true, scale: true },
+        { name: "Request Monitoring", develop: false, growth: "Basic tracking", scale: "Advanced analytics" },
         { name: "Advanced Security Controls", develop: false, growth: true, scale: true }
       ]
     },
@@ -365,10 +365,10 @@ export default function Pricing() {
       category: "Monitoring & Analytics",
       icon: Activity,
       items: [
-        { name: "Performance Monitoring", develop: "Essential metrics", growth: "Advanced dashboards", scale: "Enterprise analytics" },
+        { name: "Performance Monitoring", develop: "Essential metrics", growth: "Advanced dashboards", scale: "Comprehensive analytics" },
         { name: "Smart Alerting System", develop: false, growth: true, scale: true },
         { name: "Usage Analytics & Reporting", develop: "Essential reports", growth: "Advanced insights", scale: "Custom dashboards" },
-        { name: "High Availability", develop: false, growth: false, scale: "99.9% uptime SLA" }
+        { name: "High Availability", develop: false, growth: false, scale: "Priority infrastructure" }
       ]
     },
     {
@@ -376,10 +376,10 @@ export default function Pricing() {
       icon: Headphones,
       items: [
         { name: "Team Members", develop: "3", growth: "15", scale: "50" },
-        { name: "Technical Support", develop: "Business hours", growth: "24/7 priority", scale: "24/7 dedicated" },
-        { name: "Priority Technical Support", develop: false, growth: true, scale: true },
-        { name: "Dedicated Account Manager", develop: false, growth: false, scale: true },
-        { name: "Performance SLA", develop: false, growth: false, scale: "99.9% uptime guarantee" }
+        { name: "Technical Support", develop: "Business hours", growth: "24/7 support", scale: "24/7 support" },
+        { name: "Extended Support Hours", develop: false, growth: true, scale: true },
+        { name: "Priority Response Time", develop: false, growth: false, scale: true },
+        { name: "Response Time", develop: false, growth: false, scale: "<4 hour response" }
       ]
     }
   ];

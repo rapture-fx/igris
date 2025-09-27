@@ -13,11 +13,14 @@ import aiohttp
 import asyncpg
 import aiomysql
 import motor.motor_asyncio
-# Cloud storage SDKs removed - placeholders for future cloud integration
-# # import boto3  # Cloud SDK removed
-# from google.cloud import storage as gcs
-# from azure.storage.blob.aio import BlobServiceClient
+# Cloud storage SDKs for BYOS support
+import boto3  # AWS S3 and S3-compatible storage
+from google.cloud import storage as gcs
+from azure.storage.blob.aio import BlobServiceClient
 import redis.asyncio as redis
+# Enterprise database connectors
+import snowflake.connector
+from elasticsearch import AsyncElasticsearch
 from kafka import KafkaConsumer, KafkaProducer
 import websockets
 from urllib.parse import urlparse
@@ -288,7 +291,86 @@ class DatabaseConnector:
         except Exception as e:
             logger.error(f"MongoDB connection failed: {str(e)}")
             return False
-    
+
+    def connect_snowflake(
+        self,
+        connection_name: str,
+        account: str,
+        user: str,
+        password: str,
+        warehouse: str,
+        database: str,
+        schema: str = 'PUBLIC'
+    ) -> bool:
+        """Connect to Snowflake data warehouse"""
+        try:
+            conn = snowflake.connector.connect(
+                account=account,
+                user=user,
+                password=password,
+                warehouse=warehouse,
+                database=database,
+                schema=schema
+            )
+
+            # Test connection
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            cursor.close()
+
+            self.connections[connection_name] = {
+                'type': 'snowflake',
+                'connection': conn,
+                'config': {
+                    'account': account,
+                    'user': user,
+                    'warehouse': warehouse,
+                    'database': database,
+                    'schema': schema
+                }
+            }
+
+            logger.info(f"Snowflake connection '{connection_name}' established successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"Snowflake connection failed: {str(e)}")
+            return False
+
+    async def connect_elasticsearch(
+        self,
+        connection_name: str,
+        hosts: List[str],
+        username: Optional[str] = None,
+        password: Optional[str] = None
+    ) -> bool:
+        """Connect to Elasticsearch cluster"""
+        try:
+            client_config = {'hosts': hosts}
+
+            if username and password:
+                client_config['http_auth'] = (username, password)
+
+            client = AsyncElasticsearch(**client_config)
+
+            # Test connection
+            await client.ping()
+
+            self.connections[connection_name] = {
+                'type': 'elasticsearch',
+                'client': client,
+                'config': {
+                    'hosts': hosts
+                }
+            }
+
+            logger.info(f"Elasticsearch connection '{connection_name}' established successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"Elasticsearch connection failed: {str(e)}")
+            return False
+
     async def execute_query(
         self,
         connection_name: str,
@@ -494,16 +576,47 @@ class CloudStorageConnector:
             self.config.max_parallel_downloads
         ))
         
-    async def connect_cloud_storage(
+    async def connect_aws_s3(
         self,
         connection_name: str,
-        provider: str,
-        credentials: Dict[str, Any]
+        access_key_id: str,
+        secret_access_key: str,
+        region_name: str = 'us-east-1',
+        endpoint_url: Optional[str] = None  # For MinIO/S3-compatible storage
     ) -> bool:
-        """Generic cloud storage connector - placeholder for future implementation"""
-        # AWS S3 functionality removed - placeholder for future cloud storage integration
-        logger.warning(f"Cloud storage connector for {provider} not implemented yet")
-        return False
+        """Connect to AWS S3 or S3-compatible storage (MinIO, etc)"""
+        try:
+            # Create S3 client
+            client_config = {
+                'aws_access_key_id': access_key_id,
+                'aws_secret_access_key': secret_access_key,
+                'region_name': region_name
+            }
+
+            if endpoint_url:  # For MinIO or other S3-compatible storage
+                client_config['endpoint_url'] = endpoint_url
+
+            client = boto3.client('s3', **client_config)
+
+            # Test connection by listing buckets
+            client.list_buckets()
+
+            self.connections[connection_name] = {
+                'type': 'aws_s3',
+                'client': client,
+                'config': {
+                    'region_name': region_name,
+                    'endpoint_url': endpoint_url
+                }
+            }
+
+            storage_type = "MinIO/S3-compatible" if endpoint_url else "AWS S3"
+            logger.info(f"{storage_type} connection '{connection_name}' established successfully")
+            return True
+
+        except Exception as e:
+            logger.error(f"S3 connection failed: {str(e)}")
+            return False
     
     async def connect_gcs(
         self,
@@ -511,13 +624,17 @@ class CloudStorageConnector:
         credentials_path: str,
         project_id: str
     ) -> bool:
-        """Connect to Google Cloud Storage - DISABLED (GCS SDK removed)"""
-        logger.warning("GCS connector disabled - Google Cloud SDK removed")
-        return False
-            
+        """Connect to Google Cloud Storage"""
+        try:
+            # Create GCS client with service account credentials
+            client = gcs.Client.from_service_account_json(
+                credentials_path,
+                project=project_id
+            )
+
             # Test connection
             list(client.list_buckets(max_results=1))
-            
+
             self.connections[connection_name] = {
                 'type': 'gcs',
                 'client': client,
@@ -525,10 +642,10 @@ class CloudStorageConnector:
                     'project_id': project_id
                 }
             }
-            
+
             logger.info(f"GCS connection '{connection_name}' established successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"GCS connection failed: {str(e)}")
             return False
