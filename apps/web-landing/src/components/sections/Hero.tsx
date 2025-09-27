@@ -103,29 +103,27 @@ export default function Hero() {
               </div>
 
               <div
-                className="bg-white text-left relative z-10"
+                className="bg-white text-left relative z-10 rounded-lg overflow-hidden"
                 style={{
-                  border: '1px solid #114dcd',
+                  border: '1px solid #e5e7eb',
                   boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
                 }}
               >
-              <div className="flex items-center justify-between p-4">
-                <div className="flex gap-1">
-                  <button
-                    className={`px-3 py-1 text-xs font-medium rounded ${activeTab === 'python' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setActiveTab('python')}
-                  >
-                    Python
-                  </button>
-                  <button
-                    className={`px-3 py-1 text-xs font-medium rounded ${activeTab === 'curl' ? 'text-blue-600 bg-blue-50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}
-                    onClick={() => setActiveTab('curl')}
-                  >
-                    cURL
-                  </button>
+              {/* IDE-style header with window controls */}
+              <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
+                <div className="flex items-center space-x-2">
+                  {/* Window controls */}
+                  <div className="flex space-x-2">
+                    <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                    <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                  </div>
+                </div>
+                <div className="absolute left-1/2 transform -translate-x-1/2">
+                  <span className="text-sm text-gray-700 font-mono font-medium">Schlep-engine</span>
                 </div>
                 <button
-                  className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded"
                   onClick={handleCopyClick}
                 >
                   <svg
@@ -144,25 +142,86 @@ export default function Hero() {
                 </button>
               </div>
 
-              <div className="p-4 pb-32 flex min-h-96 max-w-full">
+              {/* IDE-style tabs */}
+              <div className="flex border-b border-gray-200 bg-white">
+                <button
+                  className={`px-4 py-2 text-sm font-medium border-r border-gray-200 transition-colors ${
+                    activeTab === 'python'
+                      ? 'bg-white text-gray-900 border-b-2 border-blue-500'
+                      : 'bg-gray-50 text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                  onClick={() => setActiveTab('python')}
+                >
+                  <span className="flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span>main.py</span>
+                  </span>
+                </button>
+                <button
+                  className={`px-4 py-2 text-sm font-medium border-r border-gray-200 transition-colors ${
+                    activeTab === 'curl'
+                      ? 'bg-white text-gray-900 border-b-2 border-blue-500'
+                      : 'bg-gray-50 text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                  onClick={() => setActiveTab('curl')}
+                >
+                  <span className="flex items-center space-x-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <span>terminal</span>
+                  </span>
+                </button>
+              </div>
+
+              <div className="flex min-h-96 max-w-full">
+                {/* Directory/File Explorer */}
+                <div className="w-64 bg-gray-100 border-r border-gray-200 p-3">
+                  <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Explorer</div>
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2 text-sm text-gray-700">
+                      <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 6a2 2 0 012-2h5l2 2h5a2 2 0 012 2v6a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"></path>
+                      </svg>
+                      <span className="font-medium">schlep-engine</span>
+                    </div>
+                    <div className="ml-6 space-y-1">
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <svg className="w-4 h-4 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v8a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2H4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1z" clipRule="evenodd"></path>
+                        </svg>
+                        <span className={activeTab === 'python' ? 'text-blue-600 font-medium' : ''}>main.py</span>
+                      </div>
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"></path>
+                        </svg>
+                        <span className={activeTab === 'curl' ? 'text-green-600 font-medium' : ''}>api_test.sh</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Code area */}
+                <div className="flex-1 bg-gray-900">
+                  <div className="p-4 pb-32 flex min-h-96">
                 <div
-                  className="flex-shrink-0 pr-4 text-right border-r border-gray-200 mr-4"
-                  style={{ color: '#9ca3af' }}
+                  className="flex-shrink-0 pr-4 text-right border-r border-gray-700 mr-4"
+                  style={{ color: '#6b7280' }}
                 >
                   <div
-                    className="text-sm font-mono leading-relaxed whitespace-pre"
+                    className="text-sm font-mono leading-relaxed whitespace-pre select-none"
                     id="line-numbers"
                   >
                     {activeTab === 'python' ? '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30' : '1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30'}
                   </div>
                 </div>
                 <pre
-                  className="text-sm overflow-x-auto font-mono leading-relaxed text-gray-800 whitespace-pre flex-grow min-w-0"
+                  className="text-sm overflow-x-auto font-mono leading-relaxed text-gray-100 whitespace-pre flex-grow min-w-0"
                   dangerouslySetInnerHTML={{
                     __html: activeTab === 'python' ? pythonCode : curlCode
                   }}
                 />
-              </div>
+                  </div>
+                </div>
               </div>
             </div>
             </div>
