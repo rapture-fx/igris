@@ -455,7 +455,7 @@ export default function Pricing() {
         <div className="flex items-center justify-center"></div>
       );
     } else {
-      return <span className="text-gray-600">{value}</span>;
+      return <span className="text-sm text-gray-600">{value}</span>;
     }
   };
 

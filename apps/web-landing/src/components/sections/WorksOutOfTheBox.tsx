@@ -114,12 +114,9 @@ export default function WorksOutOfTheBox() {
                 <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5 mb-4">
                   <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">APIs That Speak Your Language</h2>
                 </div>
-                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-6" style={{ color: '#114dcd' }}>
-                  Train ML Models from Raw Data in 3 Calls.
+                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-6" style={{ color: '#114dcd' }}>
+                  Upload. Train. Deploy.<br />Three API calls from messy data to production models.
                 </h3>
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
-                  Upload, train, deploy.<br />Three API calls handle the entire ML pipeline<br />from messy data to production models.
-                </p>
               </div>
 
               {/* Right Column - Demonstration */}
