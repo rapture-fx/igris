@@ -52,6 +52,7 @@ const mainSections = [
         children: [
           { name: 'Data Processing Pipeline', href: '/concepts/pipeline' },
           { name: 'ML Workflow', href: '/concepts/ml-workflow' },
+          { name: 'Performance Benchmarks', href: '/concepts/performance' },
           { name: 'Reinforcement Learning', href: '/concepts/reinforcement-learning' },
           { name: 'ML Model Optimization', href: '/concepts/ml-optimization' },
           { name: 'Compatibility Mode', href: '/concepts/compatibility-mode' },

@@ -87,47 +87,59 @@ export default function SolutionsPage() {
           <div className="pt-12 mt-16">
             <h3 className="text-xl font-semibold text-gray-900 mb-8 text-left font-inter">How companies can accelerate AI Pipeline</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
-                <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Skip Data Prep</h4>
-                <p className="text-sm text-gray-600 mb-6 font-inter text-left">Upload raw data, get clean features instantly. No more weeks of pandas scripting and data cleaning.</p>
-                <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
-                  <div className="text-gray-600"># Upload and process data</div>
-                  <div className="text-gray-900 mt-2">result = client.data.process_file("sales_data.csv",</div>
-                  <div className="ml-4 text-blue-600">transformations=[</div>
-                  <div className="ml-8 text-green-600">{"{"}"type": "filter", "remove_nulls": True{"}"},</div>
-                  <div className="ml-8 text-green-600">{"{"}"type": "clean", "auto_detect": True{"}"}</div>
-                  <div className="ml-4 text-blue-600">]</div>
-                  <div className="text-gray-900">)</div>
-                  <div className="text-gray-600 mt-3"># ML-ready in minutes</div>
-                  <div className="text-green-600 mt-2">✓ Data processed: result.job_id</div>
+              <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Skip Data Prep</h4>
+                  <p className="text-sm text-gray-600 mb-6 font-inter text-left">Upload raw data, get clean features instantly. No more weeks of pandas scripting and data cleaning.</p>
+                </div>
+                <div className="mt-auto">
+                  <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
+                    <div className="text-gray-600"># Upload and process data</div>
+                    <div className="text-gray-900 mt-2">result = client.data.process_file("sales_data.csv",</div>
+                    <div className="ml-4 text-blue-600">transformations=[</div>
+                    <div className="ml-8 text-green-600">{"{"}"type": "filter", "remove_nulls": True{"}"},</div>
+                    <div className="ml-8 text-green-600">{"{"}"type": "clean", "auto_detect": True{"}"}</div>
+                    <div className="ml-4 text-blue-600">]</div>
+                    <div className="text-gray-900">)</div>
+                    <div className="text-gray-600 mt-3"># ML-ready in minutes</div>
+                    <div className="text-green-600 mt-2">✓ Data processed: result.job_id</div>
+                  </div>
                 </div>
               </div>
-              <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
-                <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Train in One Call</h4>
-                <p className="text-sm text-gray-600 mb-6 font-inter text-left">Single API call from CSV to trained model. Automated preprocessing and hyperparameter optimization.</p>
-                <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
-                  <div className="text-gray-600"># Create ML pipeline</div>
-                  <div className="text-gray-900 mt-2">config = MLPipelineConfig(</div>
-                  <div className="ml-4 text-blue-600">task_type=MLTaskType.REGRESSION,</div>
-                  <div className="ml-4 text-blue-600">target_column="revenue",</div>
-                  <div className="ml-4 text-blue-600">auto_hyperparameter_tuning=True</div>
-                  <div className="text-gray-900">)</div>
-                  <div className="text-gray-600 mt-3"># Train with one call</div>
-                  <div className="text-gray-900 mt-2">job = client.ml.train_pipeline(config)</div>
-                  <div className="text-green-600 mt-3">✓ Model ready: 94% accuracy</div>
+              <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Train in One Call</h4>
+                  <p className="text-sm text-gray-600 mb-6 font-inter text-left">Single API call from CSV to trained model. Automated preprocessing and hyperparameter optimization.</p>
+                </div>
+                <div className="mt-auto">
+                  <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
+                    <div className="text-gray-600"># Create ML pipeline</div>
+                    <div className="text-gray-900 mt-2">config = MLPipelineConfig(</div>
+                    <div className="ml-4 text-blue-600">task_type=MLTaskType.REGRESSION,</div>
+                    <div className="ml-4 text-blue-600">target_column="revenue",</div>
+                    <div className="ml-4 text-blue-600">auto_hyperparameter_tuning=True</div>
+                    <div className="text-gray-900">)</div>
+                    <div className="text-gray-600 mt-3"># Train with one call</div>
+                    <div className="text-gray-900 mt-2">job = client.ml.train_pipeline(config)</div>
+                    <div className="text-green-600 mt-3">✓ Model ready: 94% accuracy</div>
+                  </div>
                 </div>
               </div>
-              <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
-                <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Deploy with Confidence</h4>
-                <p className="text-sm text-gray-600 mb-6 font-inter text-left">Model serving with built-in monitoring, versioning, and rollback capabilities.</p>
-                <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
-                  <div className="text-gray-600"># Deploy model</div>
-                  <div className="text-gray-900 mt-2">deployment = client.deploy(job.model_id)</div>
-                  <div className="text-gray-900 mt-2">print(deployment.endpoint_url)</div>
-                  <div className="text-gray-600 mt-3"># Built-in monitoring</div>
-                  <div className="text-gray-900 mt-2">status = client.status(job.job_id)</div>
-                  <div className="text-green-600 mt-3">📊 Performance tracking</div>
-                  <div className="text-green-600">🔄 Version control ready</div>
+              <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                <div>
+                  <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Deploy with Confidence</h4>
+                  <p className="text-sm text-gray-600 mb-6 font-inter text-left">Model serving with built-in monitoring, versioning, and rollback capabilities.</p>
+                </div>
+                <div className="mt-auto">
+                  <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
+                    <div className="text-gray-600"># Deploy model</div>
+                    <div className="text-gray-900 mt-2">deployment = client.deploy(job.model_id)</div>
+                    <div className="text-gray-900 mt-2">print(deployment.endpoint_url)</div>
+                    <div className="text-gray-600 mt-3"># Built-in monitoring</div>
+                    <div className="text-gray-900 mt-2">status = client.status(job.job_id)</div>
+                    <div className="text-green-600 mt-3">Performance tracking</div>
+                    <div className="text-green-600">Model versioning enabled</div>
+                  </div>
                 </div>
               </div>
             </div>

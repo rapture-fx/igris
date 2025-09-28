@@ -89,32 +89,41 @@ result = client.ml.train_pipeline(
               <div className="flex items-start">
                 <div className="text-orange-500 mr-3 mt-1 flex-shrink-0">⚡</div>
                 <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">6x Faster Data Processing</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Validated Performance Improvements</h3>
                   <p className="text-gray-700 mb-3">
                     Rust-powered CSV processing and memory-optimized pipelines deliver significant
-                    performance improvements for large dataset operations.
+                    performance improvements for large dataset operations, validated through comprehensive benchmarking.
                   </p>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3">
                     <div className="text-center p-3 bg-green-50 rounded">
                       <p className="text-lg font-bold text-green-600">6x</p>
-                      <p className="text-xs text-gray-600">Faster Processing</p>
+                      <p className="text-xs text-gray-600">Faster Processing*</p>
                     </div>
                     <div className="text-center p-3 bg-blue-50 rounded">
                       <p className="text-lg font-bold text-blue-600">40%</p>
-                      <p className="text-xs text-gray-600">Less Memory</p>
+                      <p className="text-xs text-gray-600">Less Memory*</p>
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded">
                       <p className="text-lg font-bold text-purple-600">50ms</p>
-                      <p className="text-xs text-gray-600">Stream Latency</p>
+                      <p className="text-xs text-gray-600">Stream Latency*</p>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded">
                       <p className="text-lg font-bold text-orange-600">99.9%</p>
-                      <p className="text-xs text-gray-600">Uptime SLA</p>
+                      <p className="text-xs text-gray-600">Uptime SLA*</p>
                     </div>
                   </div>
-                  <Link href="/concepts/architecture" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center">
-                    Learn about architecture <ArrowRightIcon className="h-4 w-4 ml-1" />
-                  </Link>
+                  <p className="text-xs text-gray-500 mb-3">
+                    *Results based on controlled benchmarks. Actual performance varies by data size and complexity.
+                  </p>
+                  <div className="flex gap-2">
+                    <Link href="/concepts/performance" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center">
+                      View benchmarks <ArrowRightIcon className="h-4 w-4 ml-1" />
+                    </Link>
+                    <span className="text-gray-400">|</span>
+                    <Link href="/concepts/architecture" className="text-blue-600 hover:text-blue-700 font-medium inline-flex items-center">
+                      Learn architecture <ArrowRightIcon className="h-4 w-4 ml-1" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
