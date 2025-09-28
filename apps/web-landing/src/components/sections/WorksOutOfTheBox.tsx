@@ -117,6 +117,18 @@ export default function WorksOutOfTheBox() {
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-6" style={{ color: '#114dcd' }}>
                   Upload. Train. Deploy.<br />Three API calls from messy data to production models.
                 </h3>
+
+                {/* See Industry Solutions Link */}
+                <div className="mb-6">
+                  <Link
+                    href="/industries"
+                    className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"
+                    style={{ color: '#1f53d0' }}
+                  >
+                    See the industry solutions
+                    <ArrowUpRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </div>
               </div>
 
               {/* Right Column - Demonstration */}

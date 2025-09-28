@@ -52,8 +52,8 @@ export default function SecuritySection() {
               <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
                 <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">End-to-End Safeguards</h2>
               </div>
-              <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
-                <span style={{ color: '#114dcd' }}>Built-In Protection</span>
+              <p className="mt-2 text-xl tracking-tight md:text-2xl text-center font-inter" style={{ color: '#114dcd' }}>
+                Built-In Protection
               </p>
               <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
                 From API authentication to data encryption, every layer is secured without compromise.

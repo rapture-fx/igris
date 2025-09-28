@@ -4,65 +4,75 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 
-const pythonCode = `from schlep_engine import SchlepEngineClient
+const pythonCode = `<code><span style="color: #114dcd;">from</span> schlep_engine <span style="color: #114dcd;">import</span> SchlepEngineClient
 
-client = SchlepEngineClient(api_key="YOUR_API_KEY")
+client = SchlepEngineClient(api_key=<span style="color: #4b5563;">"YOUR_API_KEY"</span>)
 
-result = client.data.process_data("sales_data.csv")
+result = client.data.process_data(<span style="color: #4b5563;">"sales_data.csv"</span>)
 
-print(result)`;
+<span style="color: #114dcd;">print</span>(result)</code>`;
 
-const jsCode = `import { SchlepEngineClient } from '@schlep-engine/javascript-sdk';
+const jsCode = `<code><span style="color: #114dcd;">import</span> { SchlepEngineClient } <span style="color: #114dcd;">from</span> <span style="color: #4b5563;">'@schlep-engine/javascript-sdk'</span>;
 
-const client = new SchlepEngineClient({
-  apiKey: 'YOUR_API_KEY'
+<span style="color: #114dcd;">const</span> client = <span style="color: #114dcd;">new</span> SchlepEngineClient({
+  apiKey: <span style="color: #4b5563;">'YOUR_API_KEY'</span>
 });
 
-const result = await client.data.processFile(file);
+<span style="color: #114dcd;">const</span> result = <span style="color: #114dcd;">await</span> client.data.processFile(<span style="color: #4b5563;">'sales_data.csv'</span>);
 
-console.log(result);`;
+console.<span style="color: #114dcd;">log</span>(result);</code>`;
 
-const rustCode = `use schlep_engine::SchlepEngineClient;
+const rustCode = `<code><span style="color: #114dcd;">use</span> schlep_engine::SchlepEngineClient;
 
-let client = SchlepEngineClient::new("YOUR_API_KEY");
+<span style="color: #6b7280;">// Create client with API key</span>
+<span style="color: #114dcd;">let</span> client = SchlepEngineClient::<span style="color: #114dcd;">new</span>(<span style="color: #4b5563;">"YOUR_API_KEY"</span>);
 
-let result = client.data().process_file("sales_data.csv").await?;
+<span style="color: #6b7280;">// Process the file</span>
+<span style="color: #114dcd;">let</span> result = client.data().process_file(<span style="color: #4b5563;">"sales_data.csv"</span>).<span style="color: #114dcd;">await</span>?;
 
-println!("{:?}", result);`;
+<span style="color: #114dcd;">println!</span>(<span style="color: #4b5563;">"{:?}"</span>, result);</code>`;
 
-const javaCode = `import com.schlepengine.SchlepEngineClient;
+const javaCode = `<code><span style="color: #114dcd;">import</span> com.schlepengine.SchlepEngineClient;
+<span style="color: #114dcd;">import</span> com.schlepengine.ProcessResult;
 
-SchlepEngineClient client = new SchlepEngineClient("YOUR_API_KEY");
+<span style="color: #114dcd;">public class</span> Main {
+    <span style="color: #114dcd;">public static void</span> main(String[] args) {
+        SchlepEngineClient client = <span style="color: #114dcd;">new</span> SchlepEngineClient(<span style="color: #4b5563;">"YOUR_API_KEY"</span>);
+        ProcessResult result = client.data().processFile(<span style="color: #4b5563;">"sales_data.csv"</span>);
+        System.out.<span style="color: #114dcd;">println</span>(result);
+    }
+}</code>`;
 
-ProcessResult result = client.data().processFile("sales_data.csv");
+const goCode = `<code><span style="color: #114dcd;">package</span> main
 
-System.out.println(result);`;
+<span style="color: #114dcd;">import</span> (
+    <span style="color: #4b5563;">"fmt"</span>
+    <span style="color: #4b5563;">"github.com/schlep-engine/go-sdk"</span>
+)
 
-const goCode = `import "github.com/schlep-engine/go-sdk"
+<span style="color: #114dcd;">func</span> main() {
+    client := schlep.NewClient(<span style="color: #4b5563;">"YOUR_API_KEY"</span>)
+    result, err := client.Data.ProcessFile(<span style="color: #4b5563;">"sales_data.csv"</span>)
+    fmt.<span style="color: #114dcd;">Println</span>(result)
+}</code>`;
 
-client := schlep.NewClient("YOUR_API_KEY")
+const rubyCode = `<code><span style="color: #114dcd;">require</span> <span style="color: #4b5563;">'schlep_engine'</span>
 
-result, err := client.Data.ProcessFile("sales_data.csv")
+client = SchlepEngine::Client.<span style="color: #114dcd;">new</span>(api_key: <span style="color: #4b5563;">'YOUR_API_KEY'</span>)
 
-fmt.Println(result)`;
+result = client.data.process_file(<span style="color: #4b5563;">'sales_data.csv'</span>)
 
-const rubyCode = `require 'schlep_engine'
+<span style="color: #114dcd;">puts</span> result</code>`;
 
-client = SchlepEngine::Client.new(api_key: 'YOUR_API_KEY')
+const dotnetCode = `<code><span style="color: #114dcd;">using</span> SchlepEngine;
 
-result = client.data.process_file('sales_data.csv')
+<span style="color: #114dcd;">var</span> client = <span style="color: #114dcd;">new</span> SchlepEngineClient(<span style="color: #4b5563;">"YOUR_API_KEY"</span>);
 
-puts result`;
+<span style="color: #114dcd;">var</span> result = <span style="color: #114dcd;">await</span> client.Data.ProcessFileAsync(<span style="color: #4b5563;">"sales_data.csv"</span>);
 
-const dotnetCode = `using SchlepEngine;
+Console.<span style="color: #114dcd;">WriteLine</span>(result);</code>`;
 
-var client = new SchlepEngineClient("YOUR_API_KEY");
-
-var result = await client.Data.ProcessFileAsync("sales_data.csv");
-
-Console.WriteLine(result);`;
-
-const cliCode = `schlep data process sales_data.csv --api-key YOUR_API_KEY`;
+const cliCode = `<code><span style="color: #114dcd;">schlep</span> data process <span style="color: #4b5563;">sales_data.csv</span> <span style="color: #dc2626;">--api-key</span> <span style="color: #4b5563;">YOUR_API_KEY</span></code>`;
 
 export default function SchlepEngineInStack() {
   const [activeTab, setActiveTab] = useState('python');
@@ -354,9 +364,10 @@ export default function SchlepEngineInStack() {
                               <pre
                                 className="text-xs font-mono leading-relaxed whitespace-pre"
                                 style={{ color: '#374151' }}
-                              >
-                                {getCode()}
-                              </pre>
+                                dangerouslySetInnerHTML={{
+                                  __html: getCode()
+                                }}
+                              />
                             </div>
                           </div>
                         </div>
@@ -387,29 +398,29 @@ export default function SchlepEngineInStack() {
                     <button onClick={() => setActiveTab('javascript')}>
                       <img src="/NODE.svg" alt="Node.js" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
-                    <button onClick={() => setActiveTab('java')}>
-                      <img src="/Java.svg" alt="Java" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'java' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                    </button>
-                    <button onClick={() => setActiveTab('go')}>
-                      <img src="/GO.svg" alt="Go" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                    </button>
                     <button onClick={() => setActiveTab('ruby')}>
                       <img src="/Ruby.svg" alt="Ruby" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'ruby' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                    </button>
+                    <button onClick={() => setActiveTab('java')}>
+                      <img src="/Java.svg" alt="Java" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'java' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                    </button>
+                    <button onClick={() => setActiveTab('go')}>
+                      <img src="/GO.svg" alt="Go" className={`h-24 w-24 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
                     <button onClick={() => setActiveTab('dotnet')}>
                       <img src="/dotNET.svg" alt=".NET" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'dotnet' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
                     <button onClick={() => setActiveTab('cli')}>
-                      <img src="/CLI.svg" alt="CLI" className={`h-14 w-14 transition-opacity cursor-pointer ${activeTab === 'cli' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                      <img src="/CLI.svg" alt="CLI" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'cli' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
                   </div>
 
-                  {/* Explore Docs Button */}
+                  {/* Explore Docs Link */}
                   <div className="text-left">
                     <Link
                       href="http://localhost:3005"
-                      className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                      style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
+                      className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"
+                      style={{ color: '#1f53d0' }}
                     >
                       Explore Docs
                       <ArrowUpRight className="ml-2 h-4 w-4" />

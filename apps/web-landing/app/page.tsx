@@ -1,6 +1,5 @@
 import WorksOutOfTheBox from '../src/components/sections/WorksOutOfTheBox';
 import BuiltForEngineers from '../src/components/sections/BuiltForEngineers';
-import WhatYouCanBuild from '../src/components/sections/WhatYouCanBuild';
 import Header from '../src/components/sections/Header'
 import AudienceTabs from '../src/components/sections/AudienceTabs'
 import Hero from '../src/components/sections/Hero';
@@ -31,7 +30,6 @@ export default function HomePage() {
         <StackIntegrations />
         <WorksOutOfTheBox />
         <SchlepEngineInStack />
-        <WhatYouCanBuild />
         <SecuritySection />
         <CallToAction />
       </main>
