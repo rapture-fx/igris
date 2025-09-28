@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import React from 'react'
-import Link from 'next/link'
-import Image from 'next/image'
-import { ArrowUpRight, Bot, Factory, DollarSign, ShoppingCart, ChevronRight } from 'lucide-react'
+import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import { ArrowUpRight, Bot, Factory, DollarSign, ShoppingCart, ChevronRight } from 'lucide-react';
 
 export default function SolutionsPage() {
   return (
@@ -44,55 +44,90 @@ export default function SolutionsPage() {
       {/* AI Companies Section */}
       <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="w-full">
-            <div className="text-left mb-16">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+            {/* Left Column - Title and Description */}
+            <div className="text-left lg:col-span-2">
               <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">AI & Machine Learning</h2>
               <p className="mt-2 text-xl tracking-tight md:text-2xl font-inter" style={{ color: '#114dcd' }}>
-                Build and ship AI models, faster.
+                Stop wasting time on data prep.<br />Deploy models quickly with optimized performance.
               </p>
-              <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl font-inter">
-                Stop wasting time on data prep. Deploy models quickly with optimized performance.
+              <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 font-inter">
+                From messy CSV to production model in minutes.<br />Built for teams who ship AI, not wrestle with infrastructure.
               </p>
             </div>
 
-            <div className="mb-16">
-              <div className="space-y-8">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 font-inter">Automated Data Processing</h3>
-                  <p className="text-gray-600 leading-relaxed font-inter">Upload any format (CSV, JSON, Parquet, Excel) and get ML-ready data with 6x faster processing. Rust-powered CSV reading and memory-optimized pipelines eliminate weeks of data prep work.</p>
-                </div>
+            {/* Right Column - Features */}
+            <div className="lg:col-span-3">
+              <div className="rounded-lg p-12 h-[60rem] flex items-center justify-center" style={{ backgroundColor: '#f2f1ed' }}>
+                <div className="space-y-8">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">Automated Data Processing</h3>
+                    <p className="text-gray-600 leading-relaxed font-inter">Upload any format (CSV, JSON, Parquet, Excel) and get ML-ready data<br />with 6x faster processing. Rust-powered CSV reading and<br />memory-optimized pipelines eliminate weeks of data prep work.</p>
+                  </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 font-inter">Data Quality & Validation</h3>
-                  <p className="text-gray-600 leading-relaxed font-inter">Advanced outlier detection (IQR, Z-score), statistical validation, and data profiling. Catch data quality issues before they impact model performance with 40% less memory usage.</p>
-                </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">Data Quality & Validation</h3>
+                    <p className="text-gray-600 leading-relaxed font-inter">Advanced outlier detection (IQR, Z-score), statistical validation,<br />and data profiling. Catch data quality issues before they impact<br />model performance with 40% less memory usage.</p>
+                  </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 font-inter">One-Call Training Pipelines</h3>
-                  <p className="text-gray-600 leading-relaxed font-inter">From upload to trained model in a single API call. Automatic processing mode selection, result caching, and built-in performance monitoring with multi-framework support.</p>
-                </div>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">One-Call Training Pipelines</h3>
+                    <p className="text-gray-600 leading-relaxed font-inter">From upload to trained model in a single API call.<br />Automatic processing mode selection, result caching,<br />and built-in performance monitoring with multi-framework support.</p>
+                  </div>
 
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2 font-inter">Production MLOps</h3>
-                  <p className="text-gray-600 leading-relaxed font-inter">Complete MLOps infrastructure with model registry, experiment tracking, data lineage, and model serving. Deploy with confidence using performance benchmarks and A/B testing.</p>
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">Production MLOps</h3>
+                    <p className="text-gray-600 leading-relaxed font-inter">Complete MLOps infrastructure with model registry,<br />experiment tracking, data lineage, and model serving.<br />Deploy with confidence using performance benchmarks and A/B testing.</p>
+                  </div>
                 </div>
               </div>
             </div>
+          </div>
 
-            <div className="border-t border-gray-200 pt-12">
-              <h3 className="text-xl font-semibold text-gray-900 mb-8 text-left font-inter">How AI Companies Ship Faster</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-                <div className="text-left">
-                  <h4 className="font-medium text-gray-900 mb-2 font-inter">Skip Data Prep</h4>
-                  <p className="text-sm text-gray-600 font-inter">Upload raw data, get clean features instantly. No more weeks of pandas scripting and data cleaning.</p>
+          <div className="pt-12 mt-16">
+            <h3 className="text-xl font-semibold text-gray-900 mb-8 text-left font-inter">How companies can accelerate AI Pipeline</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
+                <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Skip Data Prep</h4>
+                <p className="text-sm text-gray-600 mb-6 font-inter text-left">Upload raw data, get clean features instantly. No more weeks of pandas scripting and data cleaning.</p>
+                <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
+                  <div className="text-gray-600"># Upload and process data</div>
+                  <div className="text-gray-900 mt-2">result = client.data.process_file("sales_data.csv",</div>
+                  <div className="ml-4 text-blue-600">transformations=[</div>
+                  <div className="ml-8 text-green-600">{"{"}"type": "filter", "remove_nulls": True{"}"},</div>
+                  <div className="ml-8 text-green-600">{"{"}"type": "clean", "auto_detect": True{"}"}</div>
+                  <div className="ml-4 text-blue-600">]</div>
+                  <div className="text-gray-900">)</div>
+                  <div className="text-gray-600 mt-3"># ML-ready in minutes</div>
+                  <div className="text-green-600 mt-2">✓ Data processed: result.job_id</div>
                 </div>
-                <div className="text-left">
-                  <h4 className="font-medium text-gray-900 mb-2 font-inter">Train in One Call</h4>
-                  <p className="text-sm text-gray-600 font-inter">Single API call from CSV to trained model. Automated preprocessing and hyperparameter optimization.</p>
+              </div>
+              <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
+                <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Train in One Call</h4>
+                <p className="text-sm text-gray-600 mb-6 font-inter text-left">Single API call from CSV to trained model. Automated preprocessing and hyperparameter optimization.</p>
+                <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
+                  <div className="text-gray-600"># Create ML pipeline</div>
+                  <div className="text-gray-900 mt-2">config = MLPipelineConfig(</div>
+                  <div className="ml-4 text-blue-600">task_type=MLTaskType.REGRESSION,</div>
+                  <div className="ml-4 text-blue-600">target_column="revenue",</div>
+                  <div className="ml-4 text-blue-600">auto_hyperparameter_tuning=True</div>
+                  <div className="text-gray-900">)</div>
+                  <div className="text-gray-600 mt-3"># Train with one call</div>
+                  <div className="text-gray-900 mt-2">job = client.ml.train_pipeline(config)</div>
+                  <div className="text-green-600 mt-3">✓ Model ready: 94% accuracy</div>
                 </div>
-                <div className="text-left">
-                  <h4 className="font-medium text-gray-900 mb-2 font-inter">Deploy with Confidence</h4>
-                  <p className="text-sm text-gray-600 font-inter">Model serving with built-in monitoring, versioning, and rollback capabilities.</p>
+              </div>
+              <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
+                <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Deploy with Confidence</h4>
+                <p className="text-sm text-gray-600 mb-6 font-inter text-left">Model serving with built-in monitoring, versioning, and rollback capabilities.</p>
+                <div className="rounded-lg p-4 text-sm font-mono" style={{ backgroundColor: '#f7f7f3' }}>
+                  <div className="text-gray-600"># Deploy model</div>
+                  <div className="text-gray-900 mt-2">deployment = client.deploy(job.model_id)</div>
+                  <div className="text-gray-900 mt-2">print(deployment.endpoint_url)</div>
+                  <div className="text-gray-600 mt-3"># Built-in monitoring</div>
+                  <div className="text-gray-900 mt-2">status = client.status(job.job_id)</div>
+                  <div className="text-green-600 mt-3">📊 Performance tracking</div>
+                  <div className="text-green-600">🔄 Version control ready</div>
                 </div>
               </div>
             </div>
@@ -266,7 +301,7 @@ export default function SolutionsPage() {
         </div>
       </section>
 
-{/* Bottom CTA Section */}
+      {/* Bottom CTA Section */}
       <section className="py-20 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="text-left relative min-h-[250px] flex items-center">
@@ -289,5 +324,5 @@ export default function SolutionsPage() {
         </div>
       </section>
     </div>
-  )
+  );
 }

@@ -8,7 +8,8 @@ import {
   CommandLineIcon,
   SparklesIcon,
   ChevronRightIcon,
-  MagnifyingGlassIcon
+  MagnifyingGlassIcon,
+  CodeBracketIcon
 } from '@heroicons/react/24/outline'
 import { clsx } from 'clsx'
 
@@ -99,14 +100,6 @@ const mainSections = [
           { name: 'E-commerce Overview', href: '/industries/ecommerce' },
           { name: 'Dynamic Pricing with RL', href: '/use-cases/dynamic-pricing' },
           { name: 'Customer Analytics', href: '/use-cases/customer-analytics' },
-        ] as NavItem[]
-      },
-      {
-        name: 'SDK Documentation',
-        href: '/sdk',
-        children: [
-          { name: 'Python SDK', href: '/sdk/python' },
-          { name: 'TypeScript SDK', href: '/sdk/typescript' },
         ] as NavItem[]
       },
       {
@@ -498,6 +491,47 @@ const mainSections = [
     ]
   },
   {
+    name: 'SDKs & Libraries',
+    href: '/sdks',
+    icon: CodeBracketIcon,
+    isMainSection: true,
+    groups: [
+      {
+        name: 'Official SDKs',
+        href: '/sdks',
+        children: [
+          { name: 'Python SDK', href: '/sdks/python' },
+          { name: 'Node.js/TypeScript SDK', href: '/sdks/javascript' },
+          { name: 'Go SDK', href: '/sdks/go' },
+          { name: 'CLI Tool', href: '/sdks/cli' },
+          { name: 'Java SDK', href: '/sdks/java' },
+          { name: 'Rust SDK', href: '/sdks/rust' },
+          { name: 'C# / .NET SDK', href: '/sdks/csharp' },
+          { name: 'Ruby SDK', href: '/sdks/ruby' },
+        ] as NavItem[]
+      },
+      {
+        name: 'Code Generation',
+        href: '/sdks/openapi',
+        children: [
+          { name: 'OpenAPI Generator', href: '/sdks/openapi' },
+          { name: 'Custom Templates', href: '/sdks/templates' },
+          { name: 'CI/CD Integration', href: '/sdks/cicd' },
+        ] as NavItem[]
+      },
+      {
+        name: 'Integration Guides',
+        href: '/sdks/integrations',
+        children: [
+          { name: 'Jupyter Notebooks', href: '/integrations/jupyter' },
+          { name: 'AWS SageMaker', href: '/integrations/aws-sagemaker' },
+          { name: 'Production Pipelines', href: '/sdks/production' },
+          { name: 'Testing & Validation', href: '/sdks/testing' },
+        ] as NavItem[]
+      },
+    ],
+  },
+  {
     name: 'Changelog',
     href: '/changelog',
     icon: SparklesIcon,
@@ -530,6 +564,7 @@ export function Sidebar() {
   const getActiveMainSection = React.useCallback(() => {
     if (pathname.startsWith('/api-reference')) return 'API Reference'
     if (pathname.startsWith('/changelog')) return 'Changelog'
+    if (pathname.startsWith('/sdks')) return 'SDKs & Libraries'
     return 'Documentation' // Default for all other documentation pages
   }, [pathname])
 
