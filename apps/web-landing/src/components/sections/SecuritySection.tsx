@@ -10,12 +10,12 @@ const securityFeatures = [
   },
   {
     name: 'Infrastructure Protection',
-    description: 'Advanced rate limiting with DDoS protection and zero-trust input validation to prevent attacks at every endpoint.',
+    description: 'Advanced rate limiting with DDoS protection and comprehensive input validation to prevent attacks at every endpoint.',
     icon: Lock,
   },
   {
     name: 'Data Security & Compliance',
-    description: 'End-to-end AES-256 encryption with automated GDPR/HIPAA compliance, audit trails, and secure data retention policies.',
+    description: 'End-to-end AES-256 encryption with GDPR/HIPAA compliance features, comprehensive audit trails, and configurable data retention policies.',
     icon: Database,
   },
   {
@@ -73,7 +73,7 @@ export default function SecuritySection() {
               <div className="rounded-lg p-12 lg:col-span-3 min-h-[700px] flex items-center" style={{ backgroundColor: '#f2f1ed' }}>
                 <div className="space-y-4 max-w-lg mx-auto w-full">
                   {securityFeatures.map((feature) => (
-                    <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3' }}>
+                    <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
                       <div className="flex h-12 w-12 items-center justify-center flex-shrink-0">
                         <feature.icon className="h-6 w-6 text-black" aria-hidden="true" />
                       </div>

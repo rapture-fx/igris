@@ -358,7 +358,7 @@ export default function SchlepEngineInStack() {
                         </div>
 
                         {/* Code content */}
-                        <div className="p-8 relative" style={{ backgroundColor: '#f7f7f3', minHeight: '400px', overflow: 'hidden' }}>
+                        <div className="p-8 relative" style={{ backgroundColor: '#f7f7f3', minHeight: '500px', overflow: 'hidden' }}>
                           <div className="flex">
                             <div className="flex-1 overflow-auto">
                               <pre
@@ -386,15 +386,15 @@ export default function SchlepEngineInStack() {
                   </h3>
 
                   {/* Language Selection */}
-                  <div className="flex justify-start items-center flex-wrap gap-8 mb-8">
+                  <div className="flex justify-start items-center flex-wrap gap-4 mb-8">
                     <button onClick={() => setActiveTab('python')}>
-                      <img src="/PYthon.svg" alt="Python" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'python' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                      <img src="/PYthon.svg" alt="Python" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'python' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
                     <button onClick={() => setActiveTab('rust')}>
-                      <img src="/RUST.svg" alt="Rust" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'rust' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                      <img src="/RUST.svg" alt="Rust" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'rust' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
                     <button onClick={() => setActiveTab('javascript')}>
-                      <img src="/NODE.svg" alt="Node.js" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                      <img src="/NODE.svg" alt="Node.js" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
                     <button onClick={() => setActiveTab('ruby')}>
                       <img src="/Ruby.svg" alt="Ruby" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'ruby' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />

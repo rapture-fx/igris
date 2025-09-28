@@ -25,7 +25,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '../src/lib/auth/context'
 import LoginModal from '../src/components/auth/LoginModal'
 import WebhookTester from '../src/components/console/WebhookTester'
-import IndustryDropdown from '../src/components/console/IndustryDropdown'
 import EssentialsDropdown from '../src/components/console/EssentialsDropdown'
 
 interface IndustryCardProps {
@@ -114,17 +113,17 @@ const AuthButton: React.FC = () => {
 
 const ConsoleHeader: React.FC = () => {
   return (
-    <header className="dark:bg-gray-900 sticky top-0 z-50 w-1/2" style={{backgroundColor: '#f7f7f3'}}>
-      <div className="px-6 py-4">
+    <header className="dark:bg-gray-900 sticky top-0 z-50 w-full" style={{backgroundColor: '#f7f7f3'}}>
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center">
             <Link href="http://localhost:3000">
               <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[40px] h-[40px]" />
             </Link>
-            <AuthButton />
           </div>
           <nav className="flex items-center justify-end flex-grow space-x-6">
+            <AuthButton />
           </nav>
         </div>
       </div>
@@ -138,12 +137,6 @@ export default function ConsolePage() {
   const [showWebhookTester, setShowWebhookTester] = useState(false)
   const router = useRouter()
   
-  const industries = [
-    { title: "AI Companies", link: "/ai", icon: <Cpu className="w-4 h-4" /> },
-    { title: "Manufacturing", link: "/manufacturing", icon: <Factory className="w-4 h-4" /> },
-    { title: "E-commerce", link: "/ecommerce", icon: <ShoppingCart className="w-4 h-4" /> },
-    { title: "FinTech", link: "/financial", icon: <Building2 className="w-4 h-4" /> }
-  ]
 
   const essentials = [
     { title: "API Console", link: "/console", icon: <Terminal className="w-4 h-4" /> },
@@ -157,46 +150,30 @@ export default function ConsolePage() {
     <div className="min-h-screen flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
       <ConsoleHeader />
       
-      <div className="flex-grow flex flex-row min-h-0 relative">
-        <div className="grid grid-cols-2 flex-grow min-h-0">
-          <div className="p-6">
-            {/* Industry Dropdown */}
-            <div className="mb-16 mt-32">
-              <div className="flex justify-center">
-                <IndustryDropdown
-                  industries={industries}
-                  onSelect={(link) => router.push(link)}
-                />
-              </div>
+      <div className="flex-grow flex justify-center items-start relative">
+        <div className="p-6">
+          {/* Essentials Dropdown */}
+          <div className="mb-16 mt-32">
+            <div className="flex justify-center">
+              <EssentialsDropdown
+                essentials={essentials}
+                onSelect={(item) => {
+                  if (item.link) {
+                    router.push(item.link)
+                  } else if (item.onClick) {
+                    item.onClick()
+                  }
+                }}
+              />
             </div>
-
-            {/* Essentials Dropdown */}
-            <div className="mb-16">
-              <div className="flex justify-center">
-                <EssentialsDropdown
-                  essentials={essentials}
-                  onSelect={(item) => {
-                    if (item.link) {
-                      router.push(item.link)
-                    } else if (item.onClick) {
-                      item.onClick()
-                    }
-                  }}
-                />
-              </div>
-            </div>
-
-            
-
-            {/* Webhook Tester Modal */}
-            <WebhookTester
-              isOpen={showWebhookTester}
-              onClose={() => setShowWebhookTester(false)}
-            />
           </div>
+
+          {/* Webhook Tester Modal */}
+          <WebhookTester
+            isOpen={showWebhookTester}
+            onClose={() => setShowWebhookTester(false)}
+          />
         </div>
-        
-        
       </div>
       
     </div>

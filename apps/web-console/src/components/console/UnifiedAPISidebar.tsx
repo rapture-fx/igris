@@ -75,14 +75,14 @@ interface UnifiedAPISidebarProps {
   onToggleCollapse?: () => void
 }
 
-export function UnifiedAPISidebar({ 
+export function UnifiedAPISidebar({
   selectedIndustry,
   searchQuery,
   onSearchChange,
-  onEndpointSelect, 
-  selectedEndpoint, 
-  collapsed = false, 
-  onToggleCollapse 
+  onEndpointSelect,
+  selectedEndpoint,
+  collapsed = false,
+  onToggleCollapse
 }: UnifiedAPISidebarProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['core-apis']) // Expand core APIs by default
@@ -918,15 +918,15 @@ export function UnifiedAPISidebar({
         ...category,
         endpoints: category.endpoints.filter(endpoint => {
           // Filter by search query
-          const matchesSearch = !searchQuery || 
+          const matchesSearch = !searchQuery ||
             endpoint.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             endpoint.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
             endpoint.path.toLowerCase().includes(searchQuery.toLowerCase()) ||
             endpoint.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-          
+
           // Filter by industry if not 'all'
           const matchesIndustry = selectedIndustry === 'all' || endpoint.industry === selectedIndustry
-          
+
           return matchesSearch && matchesIndustry
         })
       }))

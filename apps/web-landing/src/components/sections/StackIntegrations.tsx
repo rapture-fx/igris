@@ -28,66 +28,60 @@ export default function StackIntegrations() {
               <div className="flex justify-center items-center gap-4 flex-wrap">
                 {/* Storage Providers */}
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">AWS S3</span>
                 </div>
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">Google Cloud</span>
                 </div>
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">Azure Blob</span>
                 </div>
                 {/* Databases */}
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">PostgreSQL</span>
                 </div>
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">MySQL</span>
                 </div>
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">MongoDB</span>
                 </div>
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">Snowflake</span>
                 </div>
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">Elasticsearch</span>
                 </div>
                 {/* Additional integrations */}
                 <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
+                  className="w-44 h-28 rounded flex items-center justify-center border border-gray-200"
                   style={{ backgroundColor: '#f2f1ed' }}
                 >
                   <span className="text-sm font-bold text-gray-700 text-center">Redis</span>
-                </div>
-                <div
-                  className="w-36 h-20 rounded flex items-center justify-center border border-gray-200"
-                  style={{ backgroundColor: '#f2f1ed' }}
-                >
-                  <span className="text-sm font-bold text-gray-700 text-center">Kafka</span>
                 </div>
               </div>
             </div>

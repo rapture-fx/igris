@@ -95,7 +95,7 @@ export default function Footer() {
 
           {/* Copyright */}
           <div className="pt-6 mt-12">
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-left font-inter">
+            <p className="text-sm text-gray-500 dark:text-gray-400 text-right font-inter">
               © 2024 Schlep-engine.
             </p>
           </div>

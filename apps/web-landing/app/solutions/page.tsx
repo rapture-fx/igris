@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowUpRight, Bot, Factory, DollarSign, ShoppingCart, ChevronRight } from 'lucide-react'
@@ -9,40 +10,67 @@ export default function SolutionsPage() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="pt-40 pb-20 sm:pt-40 sm:pb-24 lg:pt-40 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
-          <div className="text-center py-24 px-8 relative" style={{
-            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
             </div>
 
-            <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white md:text-4xl font-inter">
-              <span style={{ color: '#1f53d0' }}>Clarity and scale, built to fit your industry.</span>
-            </p>
-            <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
-              Across industries, Schlep-engine delivers clean, reliable data pipelines. <br /> Built to match your workflows and scale with your needs.
-            </p>
+            {/* Content Container with Original Width */}
+            <div className="max-w-[1300px] mx-auto">
+              <div className="text-center py-16">
+                <h1
+                  style={{ color: '#1f53d0' }}
+                  className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
+                >
+                  Clarity and scale, built to fit your industry.
+                </h1>
+                <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl mx-auto font-inter">
+                  Across industries, Schlep-engine delivers clean, reliable data pipelines. <br /> Built to match your workflows and scale with your needs.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* AI Companies Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
+      <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            </div>
+
+            {/* Content Container with Original Width */}
+            <div className="max-w-[1300px] mx-auto">
           <div className="text-left mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">AI & Machine Learning</h2>
-            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+            <p className="mt-2 text-xl tracking-tight md:text-2xl font-inter" style={{ color: '#114dcd' }}>
               Build and ship AI models, faster.
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl font-inter">
@@ -103,15 +131,39 @@ export default function SolutionsPage() {
             </div>
 
           </div>
+            </div>
+          </div>
+        </div>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Manufacturing Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
+      <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            </div>
+
+            {/* Content Container with Original Width */}
+            <div className="max-w-[1300px] mx-auto">
           <div className="text-left mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Smart Manufacturing</h2>
-            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+            <p className="mt-2 text-xl tracking-tight md:text-2xl font-inter" style={{ color: '#114dcd' }}>
               Predictive maintenance and smart operations
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl font-inter">
@@ -166,14 +218,36 @@ export default function SolutionsPage() {
 
 
         </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Financial Services Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
+      <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            </div>
+
+            {/* Content Container with Original Width */}
+            <div className="max-w-[1300px] mx-auto">
           <div className="text-left mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">Financial Technology</h2>
-            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+            <p className="mt-2 text-xl tracking-tight md:text-2xl font-inter" style={{ color: '#114dcd' }}>
               Advanced fraud detection and risk management
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl font-inter">
@@ -231,14 +305,36 @@ export default function SolutionsPage() {
 
           </div>
         </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* E-commerce Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="mx-auto max-w-6xl px-6 lg:px-8">
+      <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="relative p-8" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            </div>
+
+            {/* Content Container with Original Width */}
+            <div className="max-w-[1300px] mx-auto">
           <div className="text-left mb-16">
             <h2 className="text-base leading-7 text-gray-500 dark:text-gray-400 font-inter">E-commerce & Retail</h2>
-            <p className="mt-2 text-2xl font-medium tracking-tight md:text-3xl font-inter" style={{ color: '#114dcd' }}>
+            <p className="mt-2 text-xl tracking-tight md:text-2xl font-inter" style={{ color: '#114dcd' }}>
               Smart recommendations and customer analytics
             </p>
             <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl font-inter">
@@ -293,52 +389,48 @@ export default function SolutionsPage() {
 
 
         </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Bottom CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="text-left p-8 relative" style={{
-            borderTop: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '0.5px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '0.5px solid rgba(74, 123, 214, 0.15)'
+      <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-left p-8 relative min-h-[250px] flex items-center" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-              {/* Left Column - Content */}
+            {/* Content Container with Original Width */}
+            <div className="max-w-[1300px] mx-auto w-full">
               <div>
-                <h2 className="text-2xl md:text-3xl font-medium mb-4 leading-tight font-inter" style={{ color: '#1f53d0' }}>Secure at every layer. Built to scale.</h2>
-                <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300">
-                  Build a powerful ML pipelines and simplify your data handling.
-                </p>
-                <Link
-                  href="/pricing"
-                  className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                  style={{ backgroundColor: '#1f53d0' }}
-                >
-                  Get Started <ChevronRight className="w-4 h-4 ml-2" />
-                </Link>
-              </div>
+                {/* Content */}
+                <div className="text-left">
+                  <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#114dcd' }}>Secure at every layer. Built to scale.</h2>
+                  <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300">
+                    Build a powerful ML pipelines and simplify your data handling.
+                  </p>
+                  <Link
+                    href="/pricing"
+                    className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                    style={{ backgroundColor: '#1f53d0' }}
+                  >
+                    Launch Your Pipeline
+                  </Link>
+                </div>
 
-              {/* Right Column - SVG */}
-              <div className="flex justify-center lg:justify-end">
-                <Image
-                  src="/CTA.svg"
-                  alt="CTA Illustration"
-                  width={300}
-                  height={300}
-                  className="w-full max-w-sm"
-                />
               </div>
             </div>
           </div>

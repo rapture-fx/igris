@@ -567,7 +567,7 @@ export default function UnifiedConsolePage() {
 
   return (
     <div className="min-h-screen dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
-      <UnifiedConsoleHeader 
+      <UnifiedConsoleHeader
         selectedIndustry={selectedIndustry}
         onIndustryChange={handleIndustryChange}
         onOpenEnvironments={() => setShowEnvironmentManager(true)}
@@ -580,7 +580,7 @@ export default function UnifiedConsolePage() {
       {/* Main Layout */}
       <div className="flex h-[calc(100vh-73px)] overflow-hidden">
         {/* Unified Sidebar */}
-        <UnifiedAPISidebar 
+        <UnifiedAPISidebar
           selectedIndustry={selectedIndustry}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -594,7 +594,7 @@ export default function UnifiedConsolePage() {
         <div className="flex-1 flex overflow-hidden">
           {/* Request Builder */}
           <div className="flex-1 min-w-0">
-            <UnifiedRequestBuilder 
+            <UnifiedRequestBuilder
               endpoint={selectedEndpoint}
               selectedIndustry={selectedIndustry}
               onSendRequest={handleSendRequest}

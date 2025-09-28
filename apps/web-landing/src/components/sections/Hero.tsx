@@ -375,7 +375,7 @@ export default function Hero() {
                             style={{ color: '#6b7280' }}
                           >
                             <div
-                              className="text-sm font-mono leading-relaxed whitespace-pre select-none"
+                              className="text-sm leading-relaxed whitespace-pre select-none"
                               id="line-numbers"
                             >
                               {(() => {
@@ -386,7 +386,7 @@ export default function Hero() {
                           </div>
                           <div className="flex-1 overflow-auto pl-6">
                             <pre
-                              className="text-sm font-mono leading-relaxed whitespace-pre"
+                              className="text-sm leading-relaxed whitespace-pre"
                               style={{ color: '#374151' }}
                               dangerouslySetInnerHTML={{
                                 __html: getActiveCode()

@@ -47,10 +47,10 @@ interface HeaderItem {
   enabled: boolean
 }
 
-export function UnifiedRequestBuilder({ 
-  endpoint, 
+export function UnifiedRequestBuilder({
+  endpoint,
   selectedIndustry,
-  onSendRequest, 
+  onSendRequest,
   loading,
   onShowCodeGenerator
 }: UnifiedRequestBuilderProps) {
