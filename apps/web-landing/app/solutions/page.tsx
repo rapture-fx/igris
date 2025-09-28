@@ -13,6 +13,9 @@ export default function SolutionsPage() {
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="w-full">
             <div className="text-left pt-8">
+              <h2 className="text-base font-normal text-gray-500 dark:text-gray-400 mb-4 font-inter">
+                Solution
+              </h2>
               <h1
                 style={{ color: '#1f53d0' }}
                 className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
@@ -61,22 +64,22 @@ export default function SolutionsPage() {
               <div className="rounded-lg p-12 h-[60rem] flex items-center justify-center" style={{ backgroundColor: '#f2f1ed' }}>
                 <div className="space-y-8">
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">Automated Data Processing</h3>
+                    <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter">Automated Data Processing</h3>
                     <p className="text-gray-600 leading-relaxed font-inter">Upload any format (CSV, JSON, Parquet, Excel) and get ML-ready data<br />with 6x faster processing. Rust-powered CSV reading and<br />memory-optimized pipelines eliminate weeks of data prep work.</p>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">Data Quality & Validation</h3>
+                    <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter">Data Quality & Validation</h3>
                     <p className="text-gray-600 leading-relaxed font-inter">Advanced outlier detection (IQR, Z-score), statistical validation,<br />and data profiling. Catch data quality issues before they impact<br />model performance with 40% less memory usage.</p>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">One-Call Training Pipelines</h3>
+                    <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter">One-Call Training Pipelines</h3>
                     <p className="text-gray-600 leading-relaxed font-inter">From upload to trained model in a single API call.<br />Automatic processing mode selection, result caching,<br />and built-in performance monitoring with multi-framework support.</p>
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2 font-inter">Production MLOps</h3>
+                    <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter">Production MLOps</h3>
                     <p className="text-gray-600 leading-relaxed font-inter">Complete MLOps infrastructure with model registry,<br />experiment tracking, data lineage, and model serving.<br />Deploy with confidence using performance benchmarks and A/B testing.</p>
                   </div>
                 </div>
@@ -85,7 +88,7 @@ export default function SolutionsPage() {
           </div>
 
           <div className="pt-12 mt-16">
-            <h3 className="text-xl font-semibold text-gray-900 mb-8 text-left font-inter">How companies can accelerate AI Pipeline</h3>
+            <h3 className="text-xl font-normal text-gray-900 mb-8 text-left font-inter">How companies can accelerate AI Pipeline</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
                 <div>
