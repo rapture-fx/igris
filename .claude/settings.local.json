@@ -17,7 +17,8 @@
       "Read(//tmp/**)",
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(cargo init:*)"
     ],
     "deny": [],
     "ask": []
