@@ -194,21 +194,21 @@ export default function Hero() {
                               className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
                               onClick={() => setActiveTab('python')}
                             >
-                              <img src="/py.svg" alt="Python" className="w-4 h-4" />
+                              <img src="/PYthon.svg" alt="Python" className="w-4 h-4" />
                               <span className={activeTab === 'python' ? 'text-gray-900 font-medium' : 'text-gray-500'}>main.py</span>
                             </div>
                             <div
                               className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
                               onClick={() => setActiveTab('frameworks')}
                             >
-                              <img src="/py.svg" alt="Python" className="w-4 h-4" />
+                              <img src="/PYthon.svg" alt="Python" className="w-4 h-4" />
                               <span className={activeTab === 'frameworks' ? 'text-gray-900 font-medium' : 'text-gray-500'}>ml_frameworks.py</span>
                             </div>
                             <div
                               className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
                               onClick={() => setActiveTab('streaming')}
                             >
-                              <svg className="w-4 h-4 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clipRule="evenodd"></path>
                               </svg>
                               <span className={activeTab === 'streaming' ? 'text-gray-900 font-medium' : 'text-gray-500'}>stream_client.js</span>
@@ -230,7 +230,7 @@ export default function Hero() {
                               className="flex items-center space-x-2 text-sm hover:text-gray-700 cursor-pointer"
                               onClick={() => setActiveTab('curl')}
                             >
-                              <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                              <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd"></path>
                               </svg>
                               <span className={activeTab === 'curl' ? 'text-gray-900 font-medium' : 'text-gray-500'}>request.sh</span>
@@ -241,13 +241,13 @@ export default function Hero() {
                         {/* Config files */}
                         <div className="ml-6 space-y-1">
                           <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"></path>
                             </svg>
                             <span className="text-gray-500">requirements.txt</span>
                           </div>
                           <div className="flex items-center space-x-2 text-sm text-gray-500">
-                            <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                            <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"></path>
                             </svg>
                             <span className="text-gray-500">package.json</span>
