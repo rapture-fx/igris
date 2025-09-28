@@ -1,17 +1,16 @@
 //! Integration tests for the Schlep-engine Rust SDK.
 
-use mockito::{mock, Matcher};
+use mockito::{Matcher, Server};
 use serde_json::json;
-use schlep_engine::{SchlepClient, Error, Result};
-
-/// Helper function to create a test client with mockito server URL.
-fn create_test_client() -> Result<SchlepClient> {
-    SchlepClient::with_base_url("test-api-key", &mockito::server_url())
-}
+use schlep_engine::{SchlepClient, Error};
 
 #[tokio::test]
 async fn test_upload_success() {
-    let _mock = mock("POST", "/upload")
+    let mut server = Server::new_async().await;
+    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+
+    let _mock = server
+        .mock("POST", "/upload")
         .match_header("authorization", "Bearer test-api-key")
         .match_header("content-type", "application/json")
         .match_body(Matcher::Json(json!({
@@ -24,9 +23,9 @@ async fn test_upload_success() {
             "status": "processing",
             "message": "Upload successful"
         }).to_string())
-        .create();
+        .create_async()
+        .await;
 
-    let client = create_test_client().unwrap();
     let result = client.upload("test data").await.unwrap();
 
     assert_eq!(result.job_id, "upload_123");
@@ -36,7 +35,11 @@ async fn test_upload_success() {
 
 #[tokio::test]
 async fn test_train_pipeline() {
-    let _mock = mock("POST", "/train")
+    let mut server = Server::new_async().await;
+    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+
+    let _mock = server
+        .mock("POST", "/train")
         .match_header("authorization", "Bearer test-api-key")
         .match_header("content-type", "application/json")
         .match_body(Matcher::Json(json!({
@@ -51,9 +54,9 @@ async fn test_train_pipeline() {
             "status": "training",
             "message": "Training started"
         }).to_string())
-        .create();
+        .create_async()
+        .await;
 
-    let client = create_test_client().unwrap();
     let config = json!({
         "model_type": "classification",
         "dataset_id": "upload_123"
@@ -67,7 +70,11 @@ async fn test_train_pipeline() {
 
 #[tokio::test]
 async fn test_deploy_returns_endpoint() {
-    let _mock = mock("POST", "/deploy")
+    let mut server = Server::new_async().await;
+    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+
+    let _mock = server
+        .mock("POST", "/deploy")
         .match_header("authorization", "Bearer test-api-key")
         .match_header("content-type", "application/json")
         .match_body(Matcher::Json(json!({
@@ -81,9 +88,9 @@ async fn test_deploy_returns_endpoint() {
             "status": "deployed",
             "message": "Model deployed successfully"
         }).to_string())
-        .create();
+        .create_async()
+        .await;
 
-    let client = create_test_client().unwrap();
     let result = client.deploy("model_789").await.unwrap();
 
     assert_eq!(result.deployment_id, "deploy_101");
@@ -93,7 +100,11 @@ async fn test_deploy_returns_endpoint() {
 
 #[tokio::test]
 async fn test_status_check() {
-    let _mock = mock("GET", "/status/job_123")
+    let mut server = Server::new_async().await;
+    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+
+    let _mock = server
+        .mock("GET", "/status/job_123")
         .match_header("authorization", "Bearer test-api-key")
         .with_status(200)
         .with_header("content-type", "application/json")
@@ -107,9 +118,9 @@ async fn test_status_check() {
             "created_at": "2024-01-01T00:00:00Z",
             "updated_at": "2024-01-01T01:00:00Z"
         }).to_string())
-        .create();
+        .create_async()
+        .await;
 
-    let client = create_test_client().unwrap();
     let result = client.status("job_123").await.unwrap();
 
     assert_eq!(result.job_id, "job_123");
@@ -120,16 +131,20 @@ async fn test_status_check() {
 
 #[tokio::test]
 async fn test_invalid_api_key() {
-    let _mock = mock("POST", "/upload")
+    let mut server = Server::new_async().await;
+    let client = SchlepClient::with_base_url("invalid-key", &server.url()).unwrap();
+
+    let _mock = server
+        .mock("POST", "/upload")
         .match_header("authorization", "Bearer invalid-key")
         .with_status(401)
         .with_header("content-type", "application/json")
         .with_body(json!({
             "message": "Invalid API key"
         }).to_string())
-        .create();
+        .create_async()
+        .await;
 
-    let client = SchlepClient::with_base_url("invalid-key", &mockito::server_url()).unwrap();
     let result = client.upload("test data").await;
 
     assert!(result.is_err());
@@ -145,7 +160,7 @@ async fn test_invalid_api_key() {
 #[tokio::test]
 async fn test_client_creation_from_env() {
     std::env::set_var("SCHLEP_API_KEY", "env-api-key");
-    let client = SchlepClient::from_env().unwrap();
+    let _client = SchlepClient::from_env().unwrap();
     // We can verify the client was created successfully by checking we can create it
     // (the api_key field is private, so we can't directly access it)
 }
@@ -162,15 +177,19 @@ async fn test_client_creation_empty_api_key() {
 
 #[tokio::test]
 async fn test_api_error_handling() {
-    let _mock = mock("POST", "/train")
+    let mut server = Server::new_async().await;
+    let client = SchlepClient::with_base_url("test-api-key", &server.url()).unwrap();
+
+    let _mock = server
+        .mock("POST", "/train")
         .with_status(400)
         .with_header("content-type", "application/json")
         .with_body(json!({
             "message": "Invalid training configuration"
         }).to_string())
-        .create();
+        .create_async()
+        .await;
 
-    let client = create_test_client().unwrap();
     let config = json!({
         "invalid": "config"
     });

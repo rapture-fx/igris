@@ -23,8 +23,10 @@
 //!     let train_result = client.train(train_config).await?;
 //!
 //!     // Deploy model
-//!     let deploy_result = client.deploy(&train_result.model_id).await?;
-//!     println!("Model deployed at: {}", deploy_result.endpoint_url);
+//!     if let Some(model_id) = &train_result.model_id {
+//!         let deploy_result = client.deploy(model_id).await?;
+//!         println!("Model deployed at: {}", deploy_result.endpoint_url);
+//!     }
 //!
 //!     Ok(())
 //! }

@@ -22,7 +22,7 @@ tokio-tungstenite = "0.20"
 
 [dev-dependencies]
 tokio-test = "0.4"
-mockito = "1.2"
+mockito = "1.4"
 
 [[example]]
 name = "basic_usage"
