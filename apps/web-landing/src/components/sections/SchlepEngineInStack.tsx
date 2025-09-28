@@ -380,9 +380,7 @@ export default function SchlepEngineInStack() {
               {/* Right Column - Title, Description, Language Selection, and Button */}
               <div className="text-left flex items-center min-h-[700px]">
                 <div className="w-full">
-                  <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5 mb-4">
-                    <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter">SDKs & Integrations</h2>
-                  </div>
+                  <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">SDKs & Integrations</h2>
                   <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-8" style={{ color: '#114dcd' }}>
                     Schlep-engine in your stack
                   </h3>
@@ -422,7 +420,7 @@ export default function SchlepEngineInStack() {
                       className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"
                       style={{ color: '#1f53d0' }}
                     >
-                      Explore Docs
+                      Read more in docs
                       <ArrowUpRight className="ml-2 h-4 w-4" />
                     </Link>
                   </div>

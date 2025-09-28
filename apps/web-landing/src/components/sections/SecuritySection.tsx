@@ -48,45 +48,46 @@ export default function SecuritySection() {
 
           {/* Content Container with Original Width */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="text-center mb-12">
-              <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">End-to-End Safeguards</h2>
-              </div>
-              <p className="mt-2 text-xl tracking-tight md:text-2xl text-center font-inter" style={{ color: '#114dcd' }}>
-                Built-In Protection
-              </p>
-              <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-                From API authentication to data encryption, every layer is secured without compromise.
-              </p>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
+              {/* Left Column - Title and Description */}
+              <div className="text-left lg:col-span-2">
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">End-to-End Safeguards</h2>
+                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-6" style={{ color: '#114dcd' }}>
+                  From API authentication to data encryption, every layer is secured without compromise.
+                </h3>
 
-          <div className="mx-auto mt-16 max-w-xl sm:mt-20 lg:mt-24">
-          <div className="space-y-4">
-            {securityFeatures.map((feature) => (
-              <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-                <div className="flex h-12 w-12 items-center justify-center rounded-md bg-blue-50 dark:bg-gray-700 flex-shrink-0">
-                  <feature.icon className="h-6 w-6 text-blue-600 dark:text-blue-400" aria-hidden="true" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
-                    {feature.name}
-                  </h3>
-                  <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">{feature.description}</p>
+                {/* Learn More Link */}
+                <div className="mb-6">
+                  <Link
+                    href="/security/overview"
+                    className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"
+                    style={{ color: '#1f53d0' }}
+                  >
+                    Learn More
+                    <ArrowUpRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </div>
               </div>
-            ))}
-          </div>
-          <div className="mt-16 text-center">
-            <Link
-              href="/security/overview"
-              className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-              style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
-            >
-              Learn More
-              <ArrowUpRight className="ml-2 h-4 w-4" />
-            </Link>
+
+              {/* Right Column - Security Features */}
+              <div className="rounded-lg p-12 lg:col-span-3 min-h-[700px] flex items-center" style={{ backgroundColor: '#f2f1ed' }}>
+                <div className="space-y-4 max-w-lg mx-auto w-full">
+                  {securityFeatures.map((feature) => (
+                    <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3' }}>
+                      <div className="flex h-12 w-12 items-center justify-center flex-shrink-0">
+                        <feature.icon className="h-6 w-6 text-black" aria-hidden="true" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
+                          {feature.name}
+                        </h3>
+                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">{feature.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
-          </div>
           </div>
         </div>
       </div>
