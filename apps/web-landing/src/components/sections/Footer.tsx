@@ -57,20 +57,6 @@ export default function Footer() {
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="py-16">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8">
-            {/* Brand Column */}
-            <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
-              <div className="flex flex-col">
-                <div className="flex items-center mb-4">
-                  <Image
-                    src="/Docs Schlep-engne.svg"
-                    alt="Schlep-engine"
-                    width={30}
-                    height={30}
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Footer Sections */}
             {footerSections.map((section, index) => (
               <div key={index} className="lg:col-span-1">
@@ -91,6 +77,20 @@ export default function Footer() {
                 </ul>
               </div>
             ))}
+
+            {/* Brand Column */}
+            <div className="sm:col-span-1 md:col-span-1 lg:col-span-2">
+              <div className="flex flex-col">
+                <div className="flex items-center justify-end mb-4">
+                  <Image
+                    src="/Docs Schlep-engne.svg"
+                    alt="Schlep-engine"
+                    width={30}
+                    height={30}
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Copyright */}
