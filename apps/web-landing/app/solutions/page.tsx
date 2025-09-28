@@ -14,7 +14,7 @@ export default function SolutionsPage() {
           <div className="w-full">
             <div className="text-left pt-8">
               <h2 className="text-base font-normal text-gray-500 dark:text-gray-400 mb-4 font-inter">
-                Solution
+                Industry Solution
               </h2>
               <h1
                 style={{ color: '#1f53d0' }}
