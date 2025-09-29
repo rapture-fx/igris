@@ -17,7 +17,7 @@ const EssentialsDropdown: React.FC<EssentialsDropdownProps> = ({ essentials, onS
     <div className="w-full max-w-4xl mx-auto">
 
       {/* Vertical Layout */}
-      <div className="flex flex-col gap-4 max-w-md mx-auto">
+      <div className="flex flex-col gap-1 max-w-md mx-auto">
         {essentials.map((item) => (
           <div key={item.title} className="w-full">
             {item.link ? (
@@ -26,14 +26,14 @@ const EssentialsDropdown: React.FC<EssentialsDropdownProps> = ({ essentials, onS
                 className="flex items-center justify-center p-4 group"
                 onClick={() => handleSelect(item)}
               >
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
+                <span className="text-base font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
               </a>
             ) : (
               <button
                 className="flex items-center justify-center p-4 group w-full"
                 onClick={() => handleSelect(item)}
               >
-                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
+                <span className="text-base font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
               </button>
             )}
           </div>

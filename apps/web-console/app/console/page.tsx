@@ -124,97 +124,58 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
       className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
       style={{ backgroundColor: '#f7f7f3' }}
     >
-      <div className="px-6 py-4">
+      <div className="px-6 py-1">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-3">
-              <img src="/Docs Schlep-engne.svg" alt="Schlep Engine Logo" className="w-8 h-8" />
-              <div className="flex items-center space-x-2">
-                <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
-                <h1 className="text-lg font-semibold text-gray-900 dark:text-white">Schlep-engine Enterprise</h1>
-                <div className="flex items-center space-x-1">
-                  <Sparkles className="w-4 h-4 text-purple-500" />
-                  <span className="px-2 py-0.5 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400 rounded">
-                    Data Platform
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
-            <Link
-              href="/"
-              className="flex items-center text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4 mr-1" />
-              Back to Home
-            </Link>
+          <div className="flex items-center">
+            <img src="/Docs Schlep-engne.svg" alt="Schlep Engine Logo" className="w-8 h-8" />
           </div>
 
-          {/* Industry Filter Tabs */}
-          <div className="flex items-center space-x-1 bg-white dark:bg-gray-800 rounded-lg p-1 border border-gray-200 dark:border-gray-600">
-            <button
-              onClick={() => onIndustryChange('all')}
-              className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                selectedIndustry === 'all'
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-              }`}
-            >
-              All APIs
-            </button>
-            {Object.entries(industryConfig).map(([key, config]) => (
-              <button
-                key={key}
-                onClick={() => onIndustryChange(key as Industry)}
-                className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center space-x-2 ${
-                  selectedIndustry === key
-                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                {config.icon}
-                <span>{config.title}</span>
-              </button>
-            ))}
-          </div>
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
-              <CheckCircle className="w-4 h-4" />
+            <div className="flex items-center space-x-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs">
+              <CheckCircle className="w-3 h-3" />
               <span>All Systems Operational</span>
             </div>
             <div className="flex items-center space-x-2">
               <button
+                onClick={() => window.location.href = '/'}
+                className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                title="Back to Home"
+              >
+                <ArrowLeft className="w-3 h-3" />
+                <span className="text-xs font-medium">Home</span>
+              </button>
+              <button
                 onClick={onOpenAuth}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                 title="Authentication Manager"
               >
-                <Lock className="w-4 h-4" />
-                <span className="text-sm font-medium">Auth</span>
+                <Lock className="w-3 h-3" />
+                <span className="text-xs font-medium">Auth</span>
               </button>
               <button
                 onClick={onOpenHistory}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                 title="Request History"
               >
-                <Clock className="w-4 h-4" />
-                <span className="text-sm font-medium">History</span>
+                <Clock className="w-3 h-3" />
+                <span className="text-xs font-medium">History</span>
               </button>
               <button
                 onClick={onOpenEnvironments}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                 title="Environment Manager"
               >
-                <Globe className="w-4 h-4" />
-                <span className="text-sm font-medium">{currentEnvironment}</span>
+                <Globe className="w-3 h-3" />
+                <span className="text-xs font-medium">{currentEnvironment}</span>
               </button>
               <button
                 onClick={onOpenSettings}
-                className="flex items-center space-x-2 px-3 py-2 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                 title="Console Settings"
               >
-                <Settings className="w-4 h-4" />
-                <span className="text-sm font-medium">Settings</span>
+                <Settings className="w-3 h-3" />
+                <span className="text-xs font-medium">Settings</span>
               </button>
             </div>
           </div>
@@ -230,7 +191,7 @@ export default function UnifiedConsolePage() {
   const [response, setResponse] = useState<ResponseData | undefined>()
   const [error, setError] = useState<any>()
   const [loading, setLoading] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true)
   
   // Modal states
   const [showEnvironmentManager, setShowEnvironmentManager] = useState(false)

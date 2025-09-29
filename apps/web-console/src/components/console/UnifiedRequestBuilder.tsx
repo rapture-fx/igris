@@ -262,7 +262,7 @@ export function UnifiedRequestBuilder({
 
   if (!endpoint) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-white dark:bg-gray-900">
+      <div className="h-full flex items-center justify-center dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
         <div className="text-center">
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
             <Code2 className="w-8 h-8 text-gray-400" />
@@ -270,22 +270,16 @@ export function UnifiedRequestBuilder({
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
             Select an API Endpoint
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 dark:text-gray-400">
             Choose an API from the sidebar to start building your request
           </p>
-          <div className="space-y-2 text-sm text-gray-500 dark:text-gray-400">
-            <p>✨ Unified console with cross-industry API access</p>
-            <p>🔧 Interactive request builder with examples</p>
-            <p>📊 Real-time response viewer with metrics</p>
-            <p>🚀 Code generation for multiple languages</p>
-          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900">
+    <div className="flex-1 flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
       {/* Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
