@@ -130,7 +130,16 @@ export default function WorksOutOfTheBox() {
               </div>
 
               {/* Right Column - Demonstration */}
-              <div className="rounded-lg p-12 lg:col-span-3" style={{ backgroundColor: '#f2f1ed' }}>
+              <div className="rounded-lg p-12 lg:col-span-3" style={{
+                backgroundColor: '#f2f1ed',
+                backgroundImage: `repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(0,0,0,0.025) 2px,
+                  rgba(0,0,0,0.025) 4px
+                )`
+              }}>
                 <VerticalWorkflow />
               </div>
             </div>

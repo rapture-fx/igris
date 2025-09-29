@@ -137,7 +137,16 @@ export default function SchlepEngineInStack() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
               {/* Left Column - Code Box (Placeholder Area) */}
               <div>
-                <div className="rounded-lg p-12 min-h-[700px] flex items-center" style={{ backgroundColor: '#f2f1ed' }}>
+                <div className="rounded-lg p-12 min-h-[700px] flex items-center" style={{
+                  backgroundColor: '#f2f1ed',
+                  backgroundImage: `repeating-linear-gradient(
+                    45deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0,0,0,0.02) 2px,
+                    rgba(0,0,0,0.02) 4px
+                  )`
+                }}>
                   <div className="w-full">
                     <div
                       className="text-left relative z-10 rounded-xl overflow-hidden"

@@ -147,7 +147,16 @@ export default function ConsolePage() {
   ]
 
   return (
-    <div className="min-h-screen flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
+    <div className="min-h-screen flex flex-col dark:bg-gray-900" style={{
+      backgroundColor: '#f7f7f3',
+      backgroundImage: `repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,0.02) 2px,
+        rgba(0,0,0,0.02) 4px
+      )`
+    }}>
       <ConsoleHeader />
       
       <div className="flex-grow flex justify-center items-start relative">

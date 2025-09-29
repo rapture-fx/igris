@@ -70,7 +70,16 @@ export default function SecuritySection() {
               </div>
 
               {/* Right Column - Security Features */}
-              <div className="rounded-lg p-12 lg:col-span-3 min-h-[700px] flex items-center" style={{ backgroundColor: '#f2f1ed' }}>
+              <div className="rounded-lg p-12 lg:col-span-3 min-h-[700px] flex items-center" style={{
+                backgroundColor: '#f2f1ed',
+                backgroundImage: `repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(0,0,0,0.02) 2px,
+                  rgba(0,0,0,0.02) 4px
+                )`
+              }}>
                 <div className="space-y-4 max-w-lg mx-auto w-full">
                   {securityFeatures.map((feature) => (
                     <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
