@@ -20,19 +20,19 @@ const EssentialsDropdown: React.FC<EssentialsDropdownProps> = ({ essentials, onS
         <h2 className="text-lg font-medium text-gray-700 font-mono">Quick Jump</h2>
       </div>
 
-      {/* Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      {/* Vertical Layout */}
+      <div className="flex flex-col gap-4 max-w-md mx-auto">
         {essentials.map((item) => (
           <div key={item.title} className="w-full">
             {item.link ? (
               <a
                 href={item.link}
-                className="flex flex-col items-center justify-center p-6 text-center bg-white rounded-lg border hover:shadow-md transition-all duration-200 hover:border-blue-300 group"
+                className="flex items-center justify-start p-4 bg-white rounded-lg border hover:shadow-md transition-all duration-200 hover:border-blue-300 group"
                 style={{ borderColor: '#e5e7eb' }}
                 onClick={() => handleSelect(item)}
               >
                 {item.icon && (
-                  <div className="w-6 h-6 mb-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" style={{ color: '#1f53d0' }}>
+                  <div className="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" style={{ color: '#1f53d0' }}>
                     {item.icon}
                   </div>
                 )}
@@ -40,12 +40,12 @@ const EssentialsDropdown: React.FC<EssentialsDropdownProps> = ({ essentials, onS
               </a>
             ) : (
               <button
-                className="flex flex-col items-center justify-center p-6 text-center bg-white rounded-lg border hover:shadow-md transition-all duration-200 hover:border-blue-300 group w-full"
+                className="flex items-center justify-start p-4 bg-white rounded-lg border hover:shadow-md transition-all duration-200 hover:border-blue-300 group w-full"
                 style={{ borderColor: '#e5e7eb' }}
                 onClick={() => handleSelect(item)}
               >
                 {item.icon && (
-                  <div className="w-6 h-6 mb-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" style={{ color: '#1f53d0' }}>
+                  <div className="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" style={{ color: '#1f53d0' }}>
                     {item.icon}
                   </div>
                 )}

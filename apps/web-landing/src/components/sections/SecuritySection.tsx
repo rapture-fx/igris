@@ -52,9 +52,13 @@ export default function SecuritySection() {
               {/* Left Column - Title and Description */}
               <div className="text-left lg:col-span-2">
                 <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">End-to-End Safeguards</h2>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-6" style={{ color: '#114dcd' }}>
+                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
                   From API authentication to data encryption, every layer is secured without compromise.
                 </h3>
+
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-6">
+                  Your data never leaves your infrastructure, and every interaction is encrypted end-to-end. You keep full ownership while we provide the safeguards to keep it secure.
+                </p>
 
                 {/* Learn More Link */}
                 <div className="mb-6">

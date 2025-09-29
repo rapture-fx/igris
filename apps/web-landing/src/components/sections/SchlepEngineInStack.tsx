@@ -390,9 +390,13 @@ export default function SchlepEngineInStack() {
               <div className="text-left flex items-center min-h-[700px]">
                 <div className="w-full">
                   <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">SDKs & Integrations</h2>
-                  <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-8" style={{ color: '#114dcd' }}>
+                  <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
                     Schlep-engine in your stack
                   </h3>
+
+                  <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
+                    We don't ask you to change the way you build. From Python scripts to enterprise .NET systems, Schlep-engine slides into your stack so you can focus on solving problems, not fighting integrations.
+                  </p>
 
                   {/* Language Selection */}
                   <div className="flex justify-start items-center flex-wrap gap-4 mb-8">

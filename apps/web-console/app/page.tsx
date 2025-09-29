@@ -111,25 +111,6 @@ const AuthButton: React.FC = () => {
   )
 }
 
-const ConsoleHeader: React.FC = () => {
-  return (
-    <header className="dark:bg-gray-900 sticky top-0 z-50 w-full" style={{backgroundColor: '#f7f7f3'}}>
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8 py-4">
-        <div className="flex items-center justify-between">
-          
-          <div className="flex items-center">
-            <Link href="http://localhost:3000">
-              <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[40px] h-[40px]" />
-            </Link>
-          </div>
-          <nav className="flex items-center justify-end flex-grow space-x-6">
-            <AuthButton />
-          </nav>
-        </div>
-      </div>
-    </header>
-  )
-}
 
 
 
@@ -139,8 +120,12 @@ export default function ConsolePage() {
   
 
   const essentials = [
+    { title: "Dashboard", onClick: () => {
+        const authButton = document.querySelector('button[class*="text-gray-500"]');
+        if (authButton) authButton.click();
+      }, icon: <BarChart3 className="w-4 h-4" /> },
     { title: "API Console", link: "/console", icon: <Terminal className="w-4 h-4" /> },
-    { title: "Docs", link: "http://localhost:3005", icon: <Globe className="w-4 h-4" /> },
+    { title: "SDKs", link: "http://localhost:3005", icon: <Globe className="w-4 h-4" /> },
     { title: "Security Console", link: "/security", icon: <Shield className="w-4 h-4" /> },
     { title: "Test Collections", link: "/testing", icon: <TestTube className="w-4 h-4" /> },
     { title: "Webhook Tester", onClick: () => setShowWebhookTester(true), icon: <Webhook className="w-4 h-4" /> }
@@ -157,34 +142,42 @@ export default function ConsolePage() {
         rgba(0,0,0,0.02) 4px
       )`
     }}>
-      <ConsoleHeader />
-      
-      <div className="flex-grow flex justify-center items-start relative">
+      {/* Main Content Area */}
+      <div className="flex-grow flex justify-center items-center relative">
+        {/* Essentials Stack */}
         <div className="p-6">
-          {/* Essentials Dropdown */}
-          <div className="mb-16 mt-32">
-            <div className="flex justify-center">
-              <EssentialsDropdown
-                essentials={essentials}
-                onSelect={(item) => {
-                  if (item.link) {
-                    router.push(item.link)
-                  } else if (item.onClick) {
-                    item.onClick()
-                  }
-                }}
-              />
-            </div>
+          <div className="flex justify-center">
+            <EssentialsDropdown
+              essentials={essentials}
+              onSelect={(item) => {
+                if (item.link) {
+                  router.push(item.link)
+                } else if (item.onClick) {
+                  item.onClick()
+                }
+              }}
+            />
           </div>
-
-          {/* Webhook Tester Modal */}
-          <WebhookTester
-            isOpen={showWebhookTester}
-            onClose={() => setShowWebhookTester(false)}
-          />
         </div>
+
+        {/* Hidden AuthButton for Dashboard functionality */}
+        <div className="hidden">
+          <AuthButton />
+        </div>
+
+        {/* Webhook Tester Modal */}
+        <WebhookTester
+          isOpen={showWebhookTester}
+          onClose={() => setShowWebhookTester(false)}
+        />
       </div>
-      
+
+      {/* Logo */}
+      <div className="flex justify-center pb-32">
+        <Link href="http://localhost:3000">
+          <img src="/Docs Schlep-engne.svg" alt="Schlep-engine Logo" className="w-[24px] h-[24px]" />
+        </Link>
+      </div>
     </div>
   )
 }

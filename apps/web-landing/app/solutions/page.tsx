@@ -23,20 +23,32 @@ export default function SolutionsPage() {
                 Clarity and scale,<br />built to fit your industry.
               </h1>
               <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300 max-w-4xl font-inter">
-                Deploy anywhere. Your data, your control.
+                Where you build shouldn't limit how you scale. Schlep-engine adapts to your stack — keeping your data secure, portable, and fully under your control.
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
-                <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
-                  <h3 className="font-medium text-gray-900 mb-4 font-inter text-left">Cloud Agnostic</h3>
-                  <p className="text-lg leading-8 text-gray-600 dark:text-gray-300 font-inter text-left">Deploy on AWS, Azure, GCP, or on-premises. Your choice, your timeline.</p>
+                <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                  <div>
+                    <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">Cloud Agnostic</h3>
+                  </div>
+                  <div className="mt-auto">
+                    <p className="text-gray-600 leading-relaxed font-inter text-left">Deploy your workloads across AWS, Azure, GCP, or<br />on-premises with the same seamless experience.<br />No rewrites, no hidden limitations — just the flexibility<br />to run where it makes the most sense for your business.</p>
+                  </div>
                 </div>
-                <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
-                  <h3 className="font-medium text-gray-900 mb-4 font-inter text-left">Data Sovereignty</h3>
-                  <p className="text-lg leading-8 text-gray-600 dark:text-gray-300 font-inter text-left">Your data never leaves your infrastructure. Complete ownership and control.</p>
+                <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                  <div>
+                    <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">Data Sovereignty</h3>
+                  </div>
+                  <div className="mt-auto">
+                    <p className="text-gray-600 leading-relaxed font-inter text-left">Keep your data exactly where it belongs — within<br />your own infrastructure. You maintain complete<br />ownership and control while ensuring regulatory<br />alignment without added complexity.</p>
+                  </div>
                 </div>
-                <div className="rounded-lg p-8 h-[40rem]" style={{ backgroundColor: '#f2f1ed' }}>
-                  <h3 className="font-medium text-gray-900 mb-4 font-inter text-left">Zero Vendor Lock-in</h3>
-                  <p className="text-lg leading-8 text-gray-600 dark:text-gray-300 font-inter text-left">Portable across environments. Switch providers or go on-premises anytime.</p>
+                <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                  <div>
+                    <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">Zero Vendor Lock-in</h3>
+                  </div>
+                  <div className="mt-auto">
+                    <p className="text-gray-600 leading-relaxed font-inter text-left">Your strategy should drive your infrastructure, not<br />the other way around. With true portability, you can<br />switch cloud providers, expand across regions, or<br />move fully on-premises without costly migrations.</p>
+                  </div>
                 </div>
               </div>
             </div>
