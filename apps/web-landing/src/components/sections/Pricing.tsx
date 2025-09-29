@@ -775,13 +775,7 @@ export default function Pricing() {
                   </div>
                 </div>
                 <div className="flex justify-center md:justify-end">
-                  <Image
-                    src="/Financial.svg"
-                    alt="Financial analysis illustration"
-                    width={300}
-                    height={300}
-                    className="max-w-full h-auto"
-                  />
+                  {/* SVG removed */}
                 </div>
               </div>
             </div>
