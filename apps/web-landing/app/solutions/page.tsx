@@ -92,8 +92,8 @@ export default function SolutionsPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Skip Data Prep</h4>
-                  <p className="text-sm text-gray-600 mb-6 font-inter text-left">Upload raw data, get clean features instantly. No more weeks of pandas scripting and data cleaning.</p>
+                  <h4 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">Skip Data Prep</h4>
+                  <p className="text-gray-600 leading-relaxed mb-6 font-inter text-left">Upload raw data, get clean features instantly. No more weeks of pandas scripting and data cleaning.</p>
                 </div>
                 <div className="mt-auto">
                   <div className="rounded-lg p-4 text-sm font-mono shadow-md" style={{ backgroundColor: '#f7f7f3' }}>
@@ -105,15 +105,15 @@ export default function SolutionsPage() {
                     <div className="ml-4 text-blue-600">]</div>
                     <div className="text-gray-900">)</div>
                     <div className="text-gray-600 mt-3"># Auto-validation and profiling</div>
-                    <div className="text-gray-900 mt-2">print(f"Quality score: {result.quality_score}")</div>
-                    <div className="text-green-600 mt-2">✓ Data processed: result.job_id</div>
+                    <div className="text-gray-900 mt-2">print(f"Quality score: 92.5%")</div>
+                    <div className="text-green-600 mt-2">✓ Data processed: job_abc123</div>
                   </div>
                 </div>
               </div>
               <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Train in One Call</h4>
-                  <p className="text-sm text-gray-600 mb-6 font-inter text-left">Single API call from CSV to trained model. Automated preprocessing and hyperparameter optimization.</p>
+                  <h4 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">Train in One Call</h4>
+                  <p className="text-gray-600 leading-relaxed mb-6 font-inter text-left">Single API call from CSV to trained model. Automated preprocessing and hyperparameter optimization.</p>
                 </div>
                 <div className="mt-auto">
                   <div className="rounded-lg p-4 text-sm font-mono shadow-md" style={{ backgroundColor: '#f7f7f3' }}>
@@ -125,14 +125,15 @@ export default function SolutionsPage() {
                     <div className="text-gray-900">)</div>
                     <div className="text-gray-600 mt-3"># Train with one call</div>
                     <div className="text-gray-900 mt-2">job = client.ml.train_pipeline(config)</div>
-                    <div className="text-green-600 mt-3">✓ Model ready: 94% accuracy</div>
+                    <div className="text-gray-900 mt-2">print(f"Training completed in 45s")</div>
+                    <div className="text-green-600 mt-2">✓ Model ready: 94% accuracy</div>
                   </div>
                 </div>
               </div>
               <div className="rounded-lg p-8 h-[40rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-4 font-inter text-left">Deploy with Confidence</h4>
-                  <p className="text-sm text-gray-600 mb-6 font-inter text-left">Model serving with built-in monitoring, versioning, and rollback capabilities.</p>
+                  <h4 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">Deploy with Confidence</h4>
+                  <p className="text-gray-600 leading-relaxed mb-6 font-inter text-left">Model serving with built-in monitoring, versioning, and rollback capabilities.</p>
                 </div>
                 <div className="mt-auto">
                   <div className="rounded-lg p-4 text-sm font-mono shadow-md" style={{ backgroundColor: '#f7f7f3' }}>
