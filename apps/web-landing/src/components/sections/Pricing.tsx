@@ -463,83 +463,33 @@ export default function Pricing() {
     <section>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Billing Period Selection */}
-        <div className="flex justify-center mb-8">
-          <div className="relative inline-flex bg-gray-100 rounded-lg p-1">
-            <input
-              type="checkbox"
-              id="billing-toggle"
-              className="sr-only"
-              checked={billingPeriod === 'yearly'}
-              onChange={(e) => setBillingPeriod(e.target.checked ? 'yearly' : 'monthly')}
-            />
-
-            {/* Background slider */}
-            <div
-              className="absolute top-1 bottom-1 bg-white rounded-md shadow-sm transition-all duration-300 ease-in-out"
-              style={{
-                left: billingPeriod === 'monthly' ? '4px' : '50%',
-                width: 'calc(50% - 4px)',
-                backgroundColor: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-              }}
-            />
-
-            {/* Monthly button */}
-            <button
-              className={`relative z-10 px-6 py-2 text-sm font-medium rounded-md transition-colors duration-300 ${
-                billingPeriod === 'monthly' ? 'text-blue-600' : 'text-gray-600'
-              }`}
-              style={billingPeriod === 'monthly' ? { color: '#1f53d0' } : {}}
-              onClick={() => setBillingPeriod('monthly')}
-            >
-              Monthly
-            </button>
-
-            {/* Yearly button */}
-            <button
-              className={`relative z-10 px-6 py-2 text-sm font-medium rounded-md transition-colors duration-300 ${
-                billingPeriod === 'yearly' ? 'text-blue-600' : 'text-gray-600'
-              }`}
-              style={billingPeriod === 'yearly' ? { color: '#1f53d0' } : {}}
-              onClick={() => setBillingPeriod('yearly')}
-            >
-              Yearly
-            </button>
-          </div>
-        </div>
 
 
         {/* Pricing Table Header */}
         <div className="mt-12">
           <div className="relative p-0" style={{
-            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
             </div>
 
             <div className="min-w-full">
-              <div className="grid grid-cols-1 md:grid-cols-3" style={{ backgroundColor: '#f7f7f3' }}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-8" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="px-6 pt-8 pb-8 text-left flex flex-col h-full min-h-[650px] relative transition-all duration-300 md:border-r border-gray-200 last:border-r-0">
-                    {plan.popular && (
-                      <div className="absolute top-3 right-3 bg-white px-3 py-1 text-xs font-medium" style={{ border: '0.5px solid rgba(31, 83, 208, 0.3)', color: '#1f53d0' }}>
-                        Where Most Start
-                      </div>
-                    )}
-                    <div className="mb-6">
-                      <h3 className="text-2xl font-medium mb-2" style={{ color: '#1f53d0' }}>{plan.title}</h3>
+                  <div key={index} className="rounded-lg p-8 h-[50rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                    <div>
+                      <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">{plan.title}</h3>
                       <p className="text-4xl font-medium text-gray-900 mb-2">
                         $<AnimatedNumber key={`${plan.name}-${billingPeriod}-${apiCalls}`} value={getPrice(plan)} />
                         <span className="text-lg text-gray-600">{getPeriod()}</span>
@@ -550,13 +500,15 @@ export default function Pricing() {
                       {billingPeriod === 'monthly' && (
                         <div className="mb-4"></div>
                       )}
-                      <p className="text-sm text-gray-700 mb-6 whitespace-pre-line">{plan.tagline}</p>
+                      <p className="text-gray-600 leading-relaxed font-inter text-left mb-6 whitespace-pre-line">{plan.tagline}</p>
 
                       {/* Key Highlights */}
                       <div className="space-y-3 mb-6">
                         {plan.highlights.map((highlight, highlightIndex) => (
                           <div key={highlightIndex} className="flex items-center space-x-3">
-                            <highlight.icon className="w-5 h-5 text-blue-600 flex-shrink-0" />
+                            <div className="w-5 h-5 flex-shrink-0 flex items-center justify-center rounded border border-gray-300" style={{ backgroundColor: '#f2f1ed' }}>
+                              <Check className="w-3 h-3 text-gray-600" />
+                            </div>
                             <span className="text-sm text-gray-600">
                               {highlight.text}
                               {highlight.linkText && (
@@ -578,16 +530,8 @@ export default function Pricing() {
                     <div className="mt-auto">
                       <Link
                         href={plan.ctaLink}
-                        className={`inline-block py-2.5 px-5 rounded-lg transition-colors duration-200 text-center font-medium shadow-md hover:shadow-lg ${
-                          plan.name === 'Growth'
-                            ? 'text-white hover:bg-blue-700'
-                            : 'hover:bg-blue-100'
-                        }`}
-                        style={
-                          plan.name === 'Growth'
-                            ? { backgroundColor: '#1f53d0' }
-                            : { backgroundColor: '#e9eef9', color: '#1f53d0' }
-                        }
+                        className="inline-block py-2.5 px-5 rounded-lg transition-colors duration-200 text-center font-medium shadow-md hover:shadow-lg text-gray-700 hover:bg-blue-100 hover:text-blue-600"
+                        style={{ backgroundColor: '#f2f1ed' }}
                       >
                         {plan.cta}
                       </Link>
@@ -602,75 +546,81 @@ export default function Pricing() {
         {/* Pricing Table */}
         <div className="mt-8">
           <div className="relative p-0" style={{
-            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
             </div>
 
-            {/* Feature Comparison Title */}
-            <div className="px-6 py-4 text-left border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
-              <h2 className="text-2xl md:text-3xl font-normal" style={{ color: '#1f53d0' }}>
-                Compare the features
-              </h2>
-            </div>
-
-            <div className="min-w-full overflow-auto">
-              {/* Table Header */}
-              <div className="grid grid-cols-4 sticky top-0 z-20 shadow-sm border-b border-gray-200" style={{ backgroundColor: '#f7f7f3' }}>
-                <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Features</h3>
-                </div>
-                {plans.map((plan, index) => (
-                  <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">{plan.title}</h3>
-                  </div>
-                ))}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12" style={{ backgroundColor: '#f7f7f3' }}>
+              {/* Left side - Title */}
+              <div className="lg:col-span-2 px-6 py-8 text-left">
+                <h2 className="text-2xl md:text-3xl font-normal" style={{ color: '#1f53d0' }}>
+                  Compare the features
+                </h2>
               </div>
 
-              {/* Table Body */}
-              {features.map((category, catIndex) => {
-                const isCategoryOpen = openFeatureCategories.includes(catIndex)
-                return (
-                  <React.Fragment key={catIndex}>
-                    <div
-                      className="grid grid-cols-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
-                      style={{ backgroundColor: '#f7f7f3' }}
-                      onClick={() => toggleFeatureCategory(catIndex)}
-                    >
-                      <div className="p-4 text-left text-sm font-medium tracking-wider col-span-4 flex items-center justify-between text-gray-900">
-                        <div className="flex items-center space-x-3">
-                          <category.icon className="w-5 h-5 text-gray-900" />
-                          <span>{category.category}</span>
+              {/* Right side - Feature Table */}
+              <div className="lg:col-span-3 p-8">
+                <div className="rounded-lg p-12 min-h-[60rem] flex items-start justify-center" style={{ backgroundColor: '#f2f1ed' }}>
+                  <div className="w-full min-w-full overflow-auto">
+                    {/* Table Header */}
+                    <div className="grid grid-cols-4 sticky top-0 z-20 shadow-sm border-b border-gray-200" style={{ backgroundColor: '#f2f1ed' }}>
+                      <div className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider">
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Features</h3>
+                      </div>
+                      {plans.map((plan, index) => (
+                        <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">{plan.title}</h3>
                         </div>
-                        {isCategoryOpen ? (
-                          <ChevronUp className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        ) : (
-                          <ChevronDown className="w-4 h-4 text-blue-600 flex-shrink-0" />
-                        )}
-                      </div>
+                      ))}
                     </div>
-                    {isCategoryOpen && category.items.map((item, itemIndex) => (
-                      <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
-                        <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
-                        <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
-                        <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
-                        <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
-                      </div>
-                    ))}
-                  </React.Fragment>
-                )
-              })}
+
+                    {/* Table Body */}
+                    {features.map((category, catIndex) => {
+                      const isCategoryOpen = openFeatureCategories.includes(catIndex)
+                      return (
+                        <React.Fragment key={catIndex}>
+                          <div
+                            className="grid grid-cols-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+                            style={{ backgroundColor: '#f2f1ed' }}
+                            onClick={() => toggleFeatureCategory(catIndex)}
+                          >
+                            <div className="p-4 text-left text-sm font-medium tracking-wider col-span-4 flex items-center justify-between text-gray-900">
+                              <div className="flex items-center">
+                                <span>{category.category}</span>
+                              </div>
+                              {isCategoryOpen ? (
+                                <ChevronUp className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4 text-blue-600 flex-shrink-0" />
+                              )}
+                            </div>
+                          </div>
+                          {isCategoryOpen && category.items.map((item, itemIndex) => (
+                            <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
+                              <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
+                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
+                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
+                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
+                            </div>
+                          ))}
+                        </React.Fragment>
+                      )
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -678,29 +628,20 @@ export default function Pricing() {
         {/* FAQ Section */}
         <div className="mt-8">
           <div className="relative p-0" style={{
-            borderTop: '1px solid rgba(74, 123, 214, 0.15)',
-            borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
-            borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
-            borderRight: '1px solid rgba(74, 123, 214, 0.15)'
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '1px solid #4a7bd6' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '1px solid #4a7bd6' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
             </div>
             <div>
                 <div className="grid grid-cols-2" style={{ backgroundColor: '#f7f7f3' }}>
-                  {/* Left side - FAQ Title */}
-                  <div className="border-r border-gray-200">
-                    <div className="px-6 py-8 text-left">
-                      <h3 className="text-2xl md:text-3xl font-normal mb-6" style={{ color: '#1f53d0' }}>
-                        Frequently Asked<br />Questions
-                      </h3>
-                    </div>
-                  </div>
-
-                  {/* Right side - FAQ Accordion */}
-                  <div className="px-6 py-8 text-left">
+                  {/* Left side - FAQ Accordion */}
+                  <div className="border-r border-gray-200 px-6 py-8 text-left">
                     <div className="space-y-6">
                       {faqData.map((category, catIndex) => (
                         <div key={catIndex}>
@@ -737,6 +678,13 @@ export default function Pricing() {
                       ))}
                     </div>
                   </div>
+
+                  {/* Right side - FAQ Title */}
+                  <div className="px-6 py-8 text-left">
+                    <h3 className="text-2xl md:text-3xl font-normal mb-6" style={{ color: '#1f53d0' }}>
+                      Frequently Asked<br />Questions
+                    </h3>
+                  </div>
                 </div>
             </div>
           </div>
@@ -746,15 +694,15 @@ export default function Pricing() {
         <div className="mt-6">
           <div className="text-left p-0 relative" style={{
               backgroundColor: '#f7f7f3',
-              borderTop: '1px solid rgba(74, 123, 214, 0.15)',
-              borderBottom: '1px solid rgba(74, 123, 214, 0.15)',
-              borderLeft: '1px solid rgba(74, 123, 214, 0.15)',
-              borderRight: '1px solid rgba(74, 123, 214, 0.15)'
+              borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
             }}>
               {/* Bottom right bleeding cross */}
               <div className="absolute -bottom-4 -right-4 w-8 h-8">
-                <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '1px solid #4a7bd6' }}></div>
-                <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '1px solid #4a7bd6' }}></div>
+                <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+                <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center px-6 py-8">
                 <div className="text-left">

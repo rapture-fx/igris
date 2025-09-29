@@ -46,7 +46,7 @@ export default function Footer() {
         { name: "Terms of Service", href: "/terms" },
         { name: "Contact", href: "/contact" },
         { name: "Documentation", href: "http://localhost:3005" },
-        { name: "API Console", href: "https://console.schlep-engine.com" },
+        { name: "Schlep-engine", href: "https://console.schlep-engine.com" },
         { name: "Status", href: "/status" }
       ]
     }

@@ -17,7 +17,7 @@ const EssentialsDropdown: React.FC<EssentialsDropdownProps> = ({ essentials, onS
     <div className="w-full max-w-4xl mx-auto">
       {/* Title */}
       <div className="text-center mb-8">
-        <h2 className="text-lg font-medium text-gray-700 font-mono">Quick Jump</h2>
+        <h2 className="text-xl font-medium text-blue-600">Schlep-engine</h2>
       </div>
 
       {/* Vertical Layout */}
@@ -27,29 +27,17 @@ const EssentialsDropdown: React.FC<EssentialsDropdownProps> = ({ essentials, onS
             {item.link ? (
               <a
                 href={item.link}
-                className="flex items-center justify-start p-4 bg-white rounded-lg border hover:shadow-md transition-all duration-200 hover:border-blue-300 group"
-                style={{ borderColor: '#e5e7eb' }}
+                className="flex items-center justify-start p-4 group"
                 onClick={() => handleSelect(item)}
               >
-                {item.icon && (
-                  <div className="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" style={{ color: '#1f53d0' }}>
-                    {item.icon}
-                  </div>
-                )}
-                <span className="text-sm font-mono text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
+                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
               </a>
             ) : (
               <button
-                className="flex items-center justify-start p-4 bg-white rounded-lg border hover:shadow-md transition-all duration-200 hover:border-blue-300 group w-full"
-                style={{ borderColor: '#e5e7eb' }}
+                className="flex items-center justify-start p-4 group w-full"
                 onClick={() => handleSelect(item)}
               >
-                {item.icon && (
-                  <div className="w-5 h-5 mr-3 flex-shrink-0 group-hover:scale-110 transition-transform duration-200" style={{ color: '#1f53d0' }}>
-                    {item.icon}
-                  </div>
-                )}
-                <span className="text-sm font-mono text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
+                <span className="text-sm font-medium text-gray-700 group-hover:text-blue-600 transition-colors duration-200">{item.title}</span>
               </button>
             )}
           </div>
