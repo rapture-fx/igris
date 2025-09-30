@@ -117,7 +117,7 @@ export default function Hero() {
 
                 <div className="flex justify-start gap-4 mb-12">
                   <Link
-                    href="http://localhost:3004"
+                    href="/auth/register"
                     style={{ backgroundColor: '#1f53d0' }}
                     className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
                   >

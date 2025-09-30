@@ -429,7 +429,7 @@ export default function SchlepEngineInStack() {
                   {/* Explore Docs Link */}
                   <div className="text-left">
                     <Link
-                      href="http://localhost:3005"
+                      href="https://docs.schlep-engine.com"
                       className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"
                       style={{ color: '#1f53d0' }}
                     >

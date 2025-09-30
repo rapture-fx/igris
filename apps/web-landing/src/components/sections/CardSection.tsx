@@ -19,7 +19,7 @@ const CardSection = () => {
       title: 'For Developers',
       description: 'Integrate our API in minutes. Robust, scalable, and well-documented.',
       cta: 'Read the Docs',
-      ctaLink: 'http://localhost:3005'
+      ctaLink: 'https://docs.schlep-engine.com'
     },
     {
       title: 'For Product Managers',

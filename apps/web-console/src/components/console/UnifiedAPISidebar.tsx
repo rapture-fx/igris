@@ -958,7 +958,7 @@ export function UnifiedAPISidebar({
 
   if (collapsed) {
     return (
-      <div className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4" style={{backgroundColor: '#f5f4f2'}}>
+      <div className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4" style={{backgroundColor: '#f2f1ed'}}>
         <button
           onClick={onToggleCollapse}
           className="p-2 text-gray-600 dark:text-gray-400 transition-colors"
@@ -979,7 +979,7 @@ export function UnifiedAPISidebar({
   }
 
   return (
-    <div className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full" style={{backgroundColor: '#f5f4f2'}}>
+    <div className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full" style={{backgroundColor: '#f2f1ed'}}>
       {/* Header */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">

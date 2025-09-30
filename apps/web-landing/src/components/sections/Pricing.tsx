@@ -224,7 +224,7 @@ export default function Pricing() {
         { icon: Gauge, text: "50 training jobs/day, 1,000 inferences/hour" },
         { icon: BarChart3, text: "Real-time metrics dashboard" },
         { icon: Shield, text: "Integration health monitoring" },
-        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
+        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "https://docs.schlep-engine.com/concepts/byos" },
         { icon: Users, text: "15 team members + self-service" },
         { icon: Shield, text: "99.5% SLA + enhanced security" },
         { icon: Headphones, text: "24/7 support" }
@@ -247,7 +247,7 @@ export default function Pricing() {
         { icon: Gauge, text: "500 training jobs/day, 10,000 inferences/hour" },
         { icon: Layers, text: "Advanced integration patterns (GraphQL, MQTT, SSE)" },
         { icon: Wrench, text: "Dedicated self-service portal" },
-        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "http://localhost:3005" },
+        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "https://docs.schlep-engine.com/concepts/byos" },
         { icon: Users, text: "50 team members + full portal" },
         { icon: Shield, text: "99.9% SLA + advanced security" },
         { icon: Headphones, text: "Priority support" }

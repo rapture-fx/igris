@@ -122,7 +122,7 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
   return (
     <div
       className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
-      style={{ backgroundColor: '#f7f7f3' }}
+      style={{ backgroundColor: '#f2f1ed' }}
     >
       <div className="px-6 py-1">
         <div className="flex items-center justify-between">
@@ -523,7 +523,7 @@ export default function UnifiedConsolePage() {
   }, [])
 
   return (
-    <div className="min-h-screen dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
+    <div className="min-h-screen dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
       <UnifiedConsoleHeader
         selectedIndustry={selectedIndustry}
         onIndustryChange={handleIndustryChange}

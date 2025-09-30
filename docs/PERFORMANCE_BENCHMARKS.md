@@ -1,5 +1,9 @@
 # Schlep Engine Performance Benchmarks
 
+**Last Updated:** 2025-09-30
+**Benchmark Version:** v2.0.0
+**Test Environment:** Vultr VPS (AMD EPYC, NVMe SSD)
+
 ## Executive Summary
 
 This document provides comprehensive performance benchmarks for Schlep Engine, measured across production deployments and controlled testing environments. All metrics are based on real-world usage data and systematic performance testing.

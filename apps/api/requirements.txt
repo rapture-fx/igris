@@ -1,3 +1,7 @@
+# Schlep-Engine API Dependencies
+# See /DEPENDENCY_MATRIX.md for deployment scenarios and dependency management guide
+# Commented dependencies are intentionally removed - see matrix for replacements
+
 # Core FastAPI dependencies
 fastapi==0.104.1
 uvicorn[standard]==0.24.0

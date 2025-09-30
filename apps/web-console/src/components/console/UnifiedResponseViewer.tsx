@@ -290,7 +290,7 @@ export function UnifiedResponseViewer({
 
   if (loading) {
     return (
-      <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900 flex items-center justify-center" style={{backgroundColor: '#f7f7f3'}}>
+      <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900 flex items-center justify-center" style={{backgroundColor: '#f2f1ed'}}>
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-600 border-t-transparent mx-auto mb-4" />
           <p className="text-gray-600 dark:text-gray-400">Sending request...</p>
@@ -301,7 +301,7 @@ export function UnifiedResponseViewer({
 
   if (error) {
     return (
-      <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
+      <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
         <div className="h-full flex flex-col">
           {/* Error Header */}
           <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -329,7 +329,7 @@ export function UnifiedResponseViewer({
 
   if (!response) {
     return (
-      <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900 flex items-center justify-center" style={{backgroundColor: '#f7f7f3'}}>
+      <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900 flex items-center justify-center" style={{backgroundColor: '#f2f1ed'}}>
         <div className="text-center">
 
           <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">

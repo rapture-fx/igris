@@ -262,7 +262,7 @@ export function UnifiedRequestBuilder({
 
   if (!endpoint) {
     return (
-      <div className="h-full flex items-center justify-center dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
+      <div className="h-full flex items-center justify-center dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
         <div className="text-center">
 
           <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
@@ -274,7 +274,7 @@ export function UnifiedRequestBuilder({
   }
 
   return (
-    <div className="flex-1 flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f7f7f3'}}>
+    <div className="flex-1 flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
       {/* Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">

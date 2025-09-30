@@ -8,13 +8,13 @@ export default function Footer() {
     {
       title: "APIs",
       links: [
-        { name: "ML Pipeline", href: "http://localhost:3005/api/ml-pipeline" },
-        { name: "Data Processing", href: "http://localhost:3005/api/data-processing" },
-        { name: "Document Extraction", href: "http://localhost:3005/api/document-extraction" },
-        { name: "Data Quality", href: "http://localhost:3005/api/data-quality" },
-        { name: "File Storage", href: "http://localhost:3005/api/storage" },
-        { name: "RL Optimization", href: "http://localhost:3005/api/rl-optimization" },
-        { name: "Manufacturing Analytics", href: "http://localhost:3005/api/manufacturing" }
+        { name: "ML Pipeline", href: "https://docs.schlep-engine.com/api/ml-pipeline" },
+        { name: "Data Processing", href: "https://docs.schlep-engine.com/api/data-processing" },
+        { name: "Document Extraction", href: "https://docs.schlep-engine.com/api/document-extraction" },
+        { name: "Data Quality", href: "https://docs.schlep-engine.com/api/data-quality" },
+        { name: "File Storage", href: "https://docs.schlep-engine.com/api/storage" },
+        { name: "RL Optimization", href: "https://docs.schlep-engine.com/api/rl-optimization" },
+        { name: "Manufacturing Analytics", href: "https://docs.schlep-engine.com/api/manufacturing" }
       ]
     },
     {
