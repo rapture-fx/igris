@@ -113,10 +113,6 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
             </Link>
           </div>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
-              <CheckCircle className="w-4 h-4" />
-              <span>All Systems Operational</span>
-            </div>
             {isHydrated && preferences.enabled_verticals.length > 3 && (
               <div className="flex items-center space-x-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 rounded-full text-sm">
                 <BarChart3 className="w-4 h-4" />

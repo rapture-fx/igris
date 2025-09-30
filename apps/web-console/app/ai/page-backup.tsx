@@ -95,16 +95,7 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
             'Back to Console'
           )
         ),
-        React.createElement(
-          'div',
-          { className: 'flex items-center space-x-4' },
-          React.createElement(
-            'div',
-            { className: 'flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm' },
-            React.createElement(CheckCircle, { className: 'w-4 h-4' }),
-            React.createElement('span', null, 'All Systems Operational')
-          ),
-          React.createElement(
+          <div className="flex items-center space-x-4">          React.createElement(
             'div',
             { className: 'flex items-center space-x-2' },
             React.createElement(

@@ -132,10 +132,6 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
 
 
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-xs">
-              <CheckCircle className="w-3 h-3" />
-              <span>All Systems Operational</span>
-            </div>
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => window.location.href = '/'}
