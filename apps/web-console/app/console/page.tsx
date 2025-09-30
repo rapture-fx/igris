@@ -35,6 +35,7 @@ import { SimpleConsoleSettings } from '../../src/components/console/SimpleConsol
 import { EnvironmentManager } from '../../src/components/console/EnvironmentManager'
 import { RequestHistory } from '../../src/components/console/RequestHistory'
 import { AuthenticationManager } from '../../src/components/console/AuthenticationManager'
+import { APIEndpointsModal } from '../../src/components/console/APIEndpointsModal'
 import { apiClient } from '../../src/lib/api/client'
 
 export type Industry = 'ai' | 'manufacturing' | 'ecommerce' | 'fintech'
@@ -103,8 +104,6 @@ interface ConsoleHeaderProps {
   onIndustryChange: (industry: Industry | 'all') => void
   onOpenEnvironments: () => void
   onOpenAuth: () => void
-  onOpenHistory: () => void
-  onOpenSettings: () => void
   currentEnvironment: string
 }
 
@@ -114,8 +113,6 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
     onIndustryChange,
     onOpenEnvironments,
     onOpenAuth,
-    onOpenHistory,
-    onOpenSettings,
     currentEnvironment
   } = props
 
@@ -129,7 +126,6 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
           <div className="flex items-center">
             <img src="/Docs Schlep-engne.svg" alt="Schlep Engine Logo" className="w-8 h-8" />
           </div>
-
 
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -150,28 +146,12 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
                 <span className="text-xs font-medium">Auth</span>
               </button>
               <button
-                onClick={onOpenHistory}
-                className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Request History"
-              >
-                <Clock className="w-3 h-3" />
-                <span className="text-xs font-medium">History</span>
-              </button>
-              <button
                 onClick={onOpenEnvironments}
                 className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
                 title="Environment Manager"
               >
                 <Globe className="w-3 h-3" />
                 <span className="text-xs font-medium">{currentEnvironment}</span>
-              </button>
-              <button
-                onClick={onOpenSettings}
-                className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
-                title="Console Settings"
-              >
-                <Settings className="w-3 h-3" />
-                <span className="text-xs font-medium">Settings</span>
               </button>
             </div>
           </div>
@@ -195,6 +175,7 @@ export default function UnifiedConsolePage() {
   const [showRequestHistory, setShowRequestHistory] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [showCodeGenerator, setShowCodeGenerator] = useState(false)
+  const [showEndpointsModal, setShowEndpointsModal] = useState(false)
   
   // Console state
   const [currentEnvironment, setCurrentEnvironment] = useState('Development')
@@ -529,11 +510,9 @@ export default function UnifiedConsolePage() {
         onIndustryChange={handleIndustryChange}
         onOpenEnvironments={() => setShowEnvironmentManager(true)}
         onOpenAuth={() => setShowAuthManager(true)}
-        onOpenHistory={() => setShowRequestHistory(true)}
-        onOpenSettings={() => setShowSettings(true)}
         currentEnvironment={currentEnvironment}
       />
-      
+
       {/* Main Layout */}
       <div className="flex h-[calc(100vh-73px)] overflow-hidden">
         {/* Unified Sidebar */}
@@ -545,6 +524,9 @@ export default function UnifiedConsolePage() {
           selectedEndpoint={selectedEndpoint}
           collapsed={sidebarCollapsed}
           onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          onOpenEndpointsModal={() => setShowEndpointsModal(true)}
+          onOpenSettings={() => setShowSettings(true)}
+          onOpenHistory={() => setShowRequestHistory(true)}
         />
 
         {/* Main Content Area */}
@@ -620,7 +602,7 @@ export default function UnifiedConsolePage() {
 
       {/* Request History Modal */}
       {showRequestHistory && (
-        <RequestHistory 
+        <RequestHistory
           isOpen={showRequestHistory}
           onClose={() => setShowRequestHistory(false)}
           onReplayRequest={(request) => {
@@ -637,6 +619,20 @@ export default function UnifiedConsolePage() {
             setShowRequestHistory(false)
           }}
           requests={requestHistory}
+        />
+      )}
+
+      {/* API Endpoints Modal */}
+      {showEndpointsModal && (
+        <APIEndpointsModal
+          isOpen={showEndpointsModal}
+          onClose={() => setShowEndpointsModal(false)}
+          categories={[]} // We'll need to pass the actual categories
+          selectedIndustry={selectedIndustry}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          onEndpointSelect={setSelectedEndpoint}
+          selectedEndpoint={selectedEndpoint}
         />
       )}
     </div>

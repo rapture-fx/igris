@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useMemo } from 'react'
-import { 
-  ChevronRight, 
+import {
+  ChevronRight,
   ChevronDown,
   Search,
   Filter,
@@ -36,7 +36,10 @@ import {
   CreditCard,
   UserCheck,
   FileCheck,
-  Microscope
+  Microscope,
+  List,
+  Settings,
+  History
 } from 'lucide-react'
 
 export type Industry = 'ai' | 'manufacturing' | 'ecommerce' | 'fintech'
@@ -73,6 +76,9 @@ interface UnifiedAPISidebarProps {
   selectedEndpoint?: APIEndpoint
   collapsed?: boolean
   onToggleCollapse?: () => void
+  onOpenEndpointsModal?: () => void
+  onOpenSettings?: () => void
+  onOpenHistory?: () => void
 }
 
 export function UnifiedAPISidebar({
@@ -82,7 +88,10 @@ export function UnifiedAPISidebar({
   onEndpointSelect,
   selectedEndpoint,
   collapsed = false,
-  onToggleCollapse
+  onToggleCollapse,
+  onOpenEndpointsModal,
+  onOpenSettings,
+  onOpenHistory
 }: UnifiedAPISidebarProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['core-apis']) // Expand core APIs by default
@@ -963,168 +972,174 @@ export function UnifiedAPISidebar({
   if (collapsed && !isHovered) {
     return (
       <div
-        className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4 transition-all duration-200"
+        className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 transition-all duration-200"
         style={{backgroundColor: '#f2f1ed'}}
         onMouseEnter={() => setIsHovered(true)}
       >
         <button
           onClick={onToggleCollapse}
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
           title="Expand sidebar"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
-        {filteredCategories.slice(0, 6).map((category) => (
-          <div
-            key={category.id}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
-            title={category.name}
+
+        <div className="w-full px-2 mb-2">
+          <div className="h-px bg-gray-300 dark:bg-gray-600" />
+        </div>
+
+        {/* API Endpoints Modal Button */}
+        {onOpenEndpointsModal && (
+          <button
+            onClick={onOpenEndpointsModal}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
+            title="API Endpoints"
           >
-            {category.icon}
-          </div>
-        ))}
+            <List className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* History Button */}
+        {onOpenHistory && (
+          <button
+            onClick={onOpenHistory}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
+            title="Request History"
+          >
+            <Clock className="w-5 h-5" />
+          </button>
+        )}
+
+        {/* Settings Button */}
+        {onOpenSettings && (
+          <button
+            onClick={onOpenSettings}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5" />
+          </button>
+        )}
+
+        <div className="flex-1" />
+
+        {/* Category Icons at bottom */}
+        <div className="space-y-2">
+          {filteredCategories.slice(0, 4).map((category) => (
+            <div
+              key={category.id}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+              title={category.name}
+            >
+              {category.icon}
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
 
   return (
     <div
-      className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transition-all duration-200"
+      className="w-64 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transition-all duration-200"
       style={{backgroundColor: '#f2f1ed'}}
       onMouseLeave={() => collapsed && setIsHovered(false)}
     >
       {/* Header */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">APIs</h2>
-            <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">
-              {totalEndpoints} endpoints
-            </span>
-          </div>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Menu</h2>
           <button
             onClick={onToggleCollapse}
-            className="p-1 text-gray-600 dark:text-gray-400 transition-colors"
+            className="p-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            title="Collapse sidebar"
           >
             <ChevronDown className="w-4 h-4 rotate-90 text-gray-400" />
           </button>
         </div>
-        
-        {/* Search Bar */}
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search APIs..."
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-        </div>
-
-        {/* Industry Filter Info */}
-        {selectedIndustry !== 'all' && (
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-            <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
-                Filtered by: {selectedIndustry.charAt(0).toUpperCase() + selectedIndustry.slice(1)}
-              </span>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
-        {filteredCategories.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-gray-400 mb-2">
-              <Search className="w-8 h-8 mx-auto" />
-            </div>
-            <p className="text-gray-600 dark:text-gray-400">
-              No APIs found matching your criteria
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {filteredCategories.map((category) => (
-              <div key={category.id} className="relative">
-                {/* Category Header */}
-                <button
-                  onClick={() => toggleCategory(category.id)}
-                  className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-lg hover:bg-white/50 dark:hover:bg-gray-700/50"
-                >
-                  {expandedCategories.has(category.id) ? (
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                  )}
-                  <div className="flex items-center space-x-2">
-                    {category.icon}
-                    <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white text-sm">
-                        {category.name}
-                      </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {category.endpoints.length} endpoints
-                      </p>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Category Endpoints */}
-                {expandedCategories.has(category.id) && (
-                  <div className="ml-4 mt-2 space-y-1">
-                    {category.endpoints.map((endpoint) => (
-                      <button
-                        key={endpoint.id}
-                        onClick={() => onEndpointSelect(endpoint)}
-                        className={`w-full text-left p-3 transition-colors rounded-lg border ${
-                          selectedEndpoint?.id === endpoint.id
-                            ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700'
-                            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${getMethodColor(endpoint.method)}`}>
-                              {endpoint.method}
-                            </span>
-                            {selectedIndustry === 'all' && (
-                              <span className={`px-1.5 py-0.5 text-xs font-medium rounded ${getIndustryColor(endpoint.industry)}`}>
-                                {endpoint.industry.toUpperCase()}
-                              </span>
-                            )}
-                            {endpoint.beta && (
-                              <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">
-                                BETA
-                              </span>
-                            )}
-                            {endpoint.deprecated && (
-                              <span className="px-1.5 py-0.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded">
-                                DEPRECATED
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <h4 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">
-                          {endpoint.name}
-                        </h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                          {endpoint.description}
-                        </p>
-                        <code className="text-xs px-2 py-1 rounded bg-gray-100 dark:bg-gray-700 text-blue-600 dark:text-blue-400">
-                          {endpoint.path}
-                        </code>
-                      </button>
-                    ))}
-                  </div>
-                )}
+        <div className="space-y-1">
+          {/* API Endpoints Button */}
+          {onOpenEndpointsModal && (
+            <button
+              onClick={onOpenEndpointsModal}
+              className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+            >
+              <List className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                  API Endpoints
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Browse all endpoints
+                </p>
               </div>
-            ))}
+            </button>
+          )}
+
+          {/* History Button */}
+          {onOpenHistory && (
+            <button
+              onClick={onOpenHistory}
+              className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+            >
+              <Clock className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                  Request History
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  View past requests
+                </p>
+              </div>
+            </button>
+          )}
+
+          {/* Settings Button */}
+          {onOpenSettings && (
+            <button
+              onClick={onOpenSettings}
+              className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+            >
+              <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                  Settings
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Configure console
+                </p>
+              </div>
+            </button>
+          )}
+
+          <div className="my-4 px-4">
+            <div className="h-px bg-gray-300 dark:bg-gray-600" />
           </div>
-        )}
+
+          {/* Categories */}
+          {filteredCategories.map((category) => (
+            <div
+              key={category.id}
+              className="px-4 py-3 flex items-center gap-3 rounded-lg"
+            >
+              <div className="text-gray-600 dark:text-gray-400">
+                {category.icon}
+              </div>
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                  {category.name}
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {category.endpoints.length} endpoints
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
