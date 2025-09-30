@@ -46,7 +46,7 @@ import {
  * ```
  */
 export class DocumentExtractionAPI extends BaseAPI {
-  protected basePath = '/extract';
+  protected override basePath = '/extract';
 
   /**
    * Extract text from a document

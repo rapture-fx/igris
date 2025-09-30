@@ -84,6 +84,47 @@ export interface APIKeyInfo {
 }
 
 /**
+ * API key with full key value (returned only on creation)
+ */
+export interface APIKey extends APIKeyInfo {
+  key: string;
+}
+
+/**
+ * User profile information
+ */
+export interface UserProfile {
+  first_name?: string;
+  last_name?: string;
+  username?: string;
+  email?: string;
+  phone?: string;
+  company?: string;
+  job_title?: string;
+  bio?: string;
+  location?: string;
+  website?: string;
+  profile_picture_url?: string;
+  timezone?: string;
+}
+
+/**
+ * User preferences
+ */
+export interface UserPreferences {
+  theme?: 'light' | 'dark' | 'auto';
+  language?: string;
+  timezone?: string;
+  date_format?: string;
+  time_format?: '12h' | '24h';
+  notifications_enabled?: boolean;
+  email_notifications?: boolean;
+  push_notifications?: boolean;
+  sms_notifications?: boolean;
+  [key: string]: unknown;
+}
+
+/**
  * Refresh token request
  */
 export interface RefreshTokenRequest {

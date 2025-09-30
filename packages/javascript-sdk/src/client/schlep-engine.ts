@@ -18,6 +18,11 @@ import { DataProcessingAPI } from '../api/data-processing';
 import { MLPipelineAPI } from '../api/ml-pipeline';
 import { StorageAPI } from '../api/storage';
 import { MonitoringAPI } from '../api/monitoring';
+import { AnalyticsAPI } from '../api/analytics';
+import { DocumentExtractionAPI } from '../api/document';
+import { DataQualityAPI } from '../api/quality';
+import { UsersAPI } from '../api/users';
+import { AdminAPI } from '../api/admin';
 
 /**
  * SDK version info
@@ -49,6 +54,11 @@ export class SchlepEngineClient extends EventEmitter {
   public readonly ml: MLPipelineAPI;
   public readonly storage: StorageAPI;
   public readonly monitoring: MonitoringAPI;
+  public readonly analytics: AnalyticsAPI;
+  public readonly document: DocumentExtractionAPI;
+  public readonly quality: DataQualityAPI;
+  public readonly users: UsersAPI;
+  public readonly admin: AdminAPI;
 
   // Configuration
   private readonly config: Required<SDKConfig>;
@@ -133,6 +143,11 @@ export class SchlepEngineClient extends EventEmitter {
     this.ml = new MLPipelineAPI(this);
     this.storage = new StorageAPI(this);
     this.monitoring = new MonitoringAPI(this);
+    this.analytics = new AnalyticsAPI(this);
+    this.document = new DocumentExtractionAPI(this);
+    this.quality = new DataQualityAPI(this);
+    this.users = new UsersAPI(this);
+    this.admin = new AdminAPI(this);
 
     // Set up HTTP client interceptors
     this.setupInterceptors();

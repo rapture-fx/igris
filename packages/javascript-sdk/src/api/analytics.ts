@@ -17,8 +17,7 @@ import {
   FunnelResult,
   CohortConfig,
   CohortResult,
-  DashboardWidget,
-  ReportSchedule
+  DashboardWidget
 } from '../types/analytics';
 
 /**
@@ -55,7 +54,7 @@ import {
  * ```
  */
 export class AnalyticsAPI extends BaseAPI {
-  protected basePath = '/analytics';
+  protected override basePath = '/analytics';
 
   /**
    * Execute an analytics query

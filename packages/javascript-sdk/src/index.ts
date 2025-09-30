@@ -42,7 +42,12 @@ export {
   DataProcessingAPI,
   MLPipelineAPI,
   StorageAPI,
-  MonitoringAPI
+  MonitoringAPI,
+  AnalyticsAPI,
+  DocumentExtractionAPI,
+  DataQualityAPI,
+  UsersAPI,
+  AdminAPI
 } from './api';
 
 // WebSocket and streaming

@@ -14,13 +14,10 @@ export * from './data';
 // Machine learning types
 export * from './ml';
 
-// Analytics types (to be implemented)
-// export * from './analytics';
+// Analytics types
+export * from './analytics';
 
-// Storage types (to be implemented)
-// export * from './storage';
-
-// Monitoring types (to be implemented)
-// export * from './monitoring';
+// Document extraction types
+export * from './document';
 
 export default {};

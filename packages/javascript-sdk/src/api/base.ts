@@ -188,7 +188,7 @@ export abstract class BaseAPI {
   /**
    * Wait for job completion with polling
    */
-  protected override async waitForJob<T = unknown>(
+  protected async waitForJob<T = unknown>(
     jobId: string,
     checkPath = `/jobs/${jobId}`,
     pollInterval = 2000,
