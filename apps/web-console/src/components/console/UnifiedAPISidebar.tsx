@@ -88,6 +88,7 @@ export function UnifiedAPISidebar({
     new Set(['core-apis']) // Expand core APIs by default
   )
   const [showFavorites, setShowFavorites] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
 
   // SCHLEP-ENGINE: API-FIRST ML DATA PREPARATION PLATFORM
   // Vision: "Messy data to ML-ready in API calls"
@@ -956,19 +957,27 @@ export function UnifiedAPISidebar({
 
   const totalEndpoints = filteredCategories.reduce((sum, cat) => sum + cat.endpoints.length, 0)
 
-  if (collapsed) {
+  // Determine if sidebar should show expanded content
+  const isExpanded = !collapsed || isHovered
+
+  if (collapsed && !isHovered) {
     return (
-      <div className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4" style={{backgroundColor: '#f2f1ed'}}>
+      <div
+        className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4 transition-all duration-200"
+        style={{backgroundColor: '#f2f1ed'}}
+        onMouseEnter={() => setIsHovered(true)}
+      >
         <button
           onClick={onToggleCollapse}
-          className="p-2 text-gray-600 dark:text-gray-400 transition-colors"
+          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+          title="Expand sidebar"
         >
           <ChevronRight className="w-5 h-5" />
         </button>
-        {filteredCategories.slice(0, 4).map((category) => (
+        {filteredCategories.slice(0, 6).map((category) => (
           <div
             key={category.id}
-            className="p-2 text-gray-600 dark:text-gray-400 transition-colors cursor-pointer"
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
             title={category.name}
           >
             {category.icon}
@@ -979,7 +988,11 @@ export function UnifiedAPISidebar({
   }
 
   return (
-    <div className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full" style={{backgroundColor: '#f2f1ed'}}>
+    <div
+      className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transition-all duration-200"
+      style={{backgroundColor: '#f2f1ed'}}
+      onMouseLeave={() => collapsed && setIsHovered(false)}
+    >
       {/* Header */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">

@@ -32,6 +32,11 @@ type Client struct {
 	Storage   *StorageClient
 	Monitor   *MonitoringClient
 	Auth      *AuthClient
+	Analytics *AnalyticsClient
+	Document  *DocumentClient
+	Quality   *QualityClient
+	Users     *UsersClient
+	Admin     *AdminClient
 	Streaming *websocket.StreamingClient
 	
 	// Health checks
@@ -106,6 +111,11 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	client.Storage = NewStorageClient(client)
 	client.Monitor = NewMonitoringClient(client)
 	client.Auth = NewAuthClient(client)
+	client.Analytics = NewAnalyticsClient(client)
+	client.Document = NewDocumentClient(client)
+	client.Quality = NewQualityClient(client)
+	client.Users = NewUsersClient(client)
+	client.Admin = NewAdminClient(client)
 	client.Streaming = websocket.NewStreamingClient(cfg, cfg.APIKey)
 
 	// Add default health checks

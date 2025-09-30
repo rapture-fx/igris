@@ -341,7 +341,7 @@ export function UnifiedResponseViewer({
   }
 
   return (
-    <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900 flex flex-col" style={{backgroundColor: '#f7f7f3'}}>
+    <div className="w-1/2 border-l border-gray-200 dark:border-gray-700 dark:bg-gray-900 flex flex-col" style={{backgroundColor: '#f2f1ed'}}>
       {/* Response Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">
