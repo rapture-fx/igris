@@ -309,11 +309,192 @@ The SDK uses SLF4J for logging. To see debug logs, configure your logging framew
 </configuration>
 ```
 
+## API Client Documentation
+
+### Data Processing API
+
+Process, transform, and manage data:
+
+```java
+DataProcessingClient dataClient = client.data();
+
+// Process a file
+File csvFile = new File("data.csv");
+DataProcessingResult result = dataClient.processFile(csvFile, DataFormat.CSV, DataFormat.JSON);
+
+// Check job status
+JobInfo status = dataClient.getJobStatus(result.getJobId());
+
+// List jobs
+List<JobInfo> jobs = dataClient.listJobs(1, 20);
+
+// Create and run pipelines
+Map<String, Object> pipelineConfig = new HashMap<>();
+dataClient.createPipeline(pipelineConfig);
+```
+
+### ML Pipeline API
+
+Create, train, and deploy ML models:
+
+```java
+MLPipelineClient mlClient = client.ml();
+
+// Create pipeline
+Map<String, Object> config = new HashMap<>();
+config.put("name", "My Pipeline");
+config.put("task_type", MLTaskType.CLASSIFICATION.getValue());
+Map<String, Object> pipeline = mlClient.createPipeline(config);
+
+// Train model
+String pipelineId = (String) pipeline.get("pipeline_id");
+TrainingJob job = mlClient.trainPipeline(pipelineId, null, null);
+
+// Make predictions
+Map<String, Object> prediction = mlClient.predict(modelId, inputData);
+
+// List models
+List<ModelInfo> models = mlClient.listModels(1, 10);
+```
+
+### Analytics API
+
+Run analytics queries:
+
+```java
+AnalyticsClient analyticsClient = client.analytics();
+
+// Get available datasets
+List<Map<String, Object>> datasets = analyticsClient.getDatasets();
+
+// Run query
+Map<String, Object> query = new HashMap<>();
+query.put("dataset", "sales_data");
+query.put("metrics", Arrays.asList("sum", "average"));
+Map<String, Object> results = analyticsClient.query(query);
+```
+
+### Document Extraction API
+
+Extract text, tables, and metadata from documents:
+
+```java
+DocumentClient docClient = client.document();
+
+// Extract text from PDF
+File pdfFile = new File("document.pdf");
+Map<String, Object> text = docClient.extractText(pdfFile, true, false);
+
+// Extract tables
+Map<String, Object> tables = docClient.extractTables(pdfFile);
+```
+
+### Data Quality API
+
+Assess and monitor data quality:
+
+```java
+QualityClient qualityClient = client.quality();
+
+// Assess data quality
+List<String> checks = Arrays.asList("completeness", "validity", "uniqueness");
+Map<String, Object> report = qualityClient.assessQuality("s3://bucket/data.csv", checks);
+
+// Get quality report
+Map<String, Object> detailedReport = qualityClient.getReport(reportId);
+```
+
+### Storage API
+
+File storage and management:
+
+```java
+StorageClient storageClient = client.storage();
+
+// Upload file
+File file = new File("data.csv");
+FileUpload upload = storageClient.uploadFile(file, "datasets");
+
+// List files
+List<FileUpload> files = storageClient.listFiles("datasets", 1, 20);
+
+// Delete file
+storageClient.deleteFile(fileId);
+```
+
+### Monitoring API
+
+System monitoring and health checks:
+
+```java
+MonitoringClient monitoringClient = client.monitoring();
+
+// Get system health
+Map<String, Object> health = monitoringClient.getSystemHealth();
+
+// Get metrics
+List<String> metrics = Arrays.asList("cpu_usage", "memory_usage");
+Map<String, Object> metricsData = monitoringClient.getMetrics(metrics, null);
+```
+
+### Users API
+
+User management and profiles:
+
+```java
+UsersClient usersClient = client.users();
+
+// Get user profile
+Map<String, Object> profile = usersClient.getProfile();
+
+// Update profile
+Map<String, Object> updates = new HashMap<>();
+updates.put("name", "New Name");
+Map<String, Object> updated = usersClient.updateProfile(updates);
+```
+
+### Admin API
+
+Administrative functions (requires admin privileges):
+
+```java
+AdminClient adminClient = client.admin();
+
+// Get system statistics
+Map<String, Object> stats = adminClient.getSystemStats();
+
+// List all users
+List<Map<String, Object>> users = adminClient.listUsers(1, 50);
+```
+
+## Async Operations
+
+The SDK supports asynchronous operations using CompletableFuture:
+
+```java
+// Async data processing
+CompletableFuture<DataProcessingResult> futureResult =
+    dataClient.processDataAsync(request);
+
+futureResult.thenAccept(result -> {
+    System.out.println("Processing completed: " + result.getJobId());
+});
+
+// Async ML training
+CompletableFuture<TrainingJob> futureJob =
+    mlClient.trainPipelineAsync(pipelineId, null, null);
+
+futureJob.thenAccept(job -> {
+    System.out.println("Training started: " + job.getJobId());
+});
+```
+
 ## Examples
 
 Check out the [examples](src/main/java/io/schlepengine/examples/) directory:
 
 - [BasicUsageExample](src/main/java/io/schlepengine/examples/BasicUsageExample.java) - Complete workflow from upload to deployment
+- [ComprehensiveExample](src/main/java/io/schlepengine/examples/ComprehensiveExample.java) - Demonstrates all API modules
 
 ## Java Version Compatibility
 
