@@ -56,7 +56,7 @@ export function APIEndpointsModal({
   selectedEndpoint
 }: APIEndpointsModalProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
-    new Set(categories.map(c => c.id)) // Expand all by default in modal
+    new Set() // Collapse all by default
   )
 
   const toggleCategory = (categoryId: string) => {
@@ -120,7 +120,17 @@ export function APIEndpointsModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <>
+      <style>{`
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="w-full max-w-4xl h-[80vh] bg-white dark:bg-gray-800 rounded-lg shadow-2xl flex flex-col">
         {/* Header */}
         <div className="p-6 border-b border-gray-200 dark:border-gray-700">
@@ -165,7 +175,7 @@ export function APIEndpointsModal({
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6 hide-scrollbar">
           {filteredCategories.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 mb-3">
@@ -261,6 +271,7 @@ export function APIEndpointsModal({
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

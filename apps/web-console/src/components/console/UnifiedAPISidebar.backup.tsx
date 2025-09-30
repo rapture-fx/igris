@@ -41,7 +41,6 @@ import {
   Settings,
   History
 } from 'lucide-react'
-import { apiCategories as importedApiCategories } from '../../data/apiCategories'
 
 export type Industry = 'ai' | 'manufacturing' | 'ecommerce' | 'fintech'
 
@@ -100,8 +99,9 @@ export function UnifiedAPISidebar({
   const [showFavorites, setShowFavorites] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 
-  // Use imported API categories
-  const apiCategories = importedApiCategories || [
+  // SCHLEP-ENGINE: API-FIRST ML DATA PREPARATION PLATFORM
+  // Vision: "Messy data to ML-ready in API calls"
+  const apiCategories: APICategory[] = [
     {
       id: 'ml-preparation',
       name: 'ML Data Preparation',
@@ -1021,40 +1021,27 @@ export function UnifiedAPISidebar({
           </button>
         )}
 
-        <div className="w-full px-2 my-2">
-          <div className="h-px bg-gray-300 dark:bg-gray-600" />
+        <div className="flex-1" />
+
+        {/* Category Icons at bottom */}
+        <div className="space-y-2">
+          {filteredCategories.slice(0, 4).map((category) => (
+            <div
+              key={category.id}
+              className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
+              title={category.name}
+            >
+              {category.icon}
+            </div>
+          ))}
         </div>
-
-        {/* Webhook Tester Button */}
-        <button
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
-          title="Webhook Tester"
-        >
-          <Zap className="w-5 h-5" />
-        </button>
-
-        {/* Security Console Button */}
-        <button
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
-          title="Security Console"
-        >
-          <Shield className="w-5 h-5" />
-        </button>
-
-        {/* Test Collection Button */}
-        <button
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
-          title="Test Collection"
-        >
-          <FileText className="w-5 h-5" />
-        </button>
       </div>
     )
   }
 
   return (
     <div
-      className="w-56 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transition-all duration-200 absolute left-0 top-0 bottom-0 z-40 bg-opacity-100"
+      className="w-64 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full transition-all duration-200 absolute left-0 top-0 bottom-0 z-40 bg-opacity-100"
       style={{backgroundColor: '#f2f1ed'}}
       onMouseLeave={() => collapsed && setIsHovered(false)}
     >
@@ -1078,13 +1065,16 @@ export function UnifiedAPISidebar({
           {onOpenEndpointsModal && (
             <button
               onClick={onOpenEndpointsModal}
-              className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+              className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
             >
               <List className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
               <div className="flex-1">
                 <h3 className="font-medium text-gray-900 dark:text-white text-sm">
                   API Endpoints
                 </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Browse all endpoints
+                </p>
               </div>
             </button>
           )}
@@ -1093,13 +1083,16 @@ export function UnifiedAPISidebar({
           {onOpenHistory && (
             <button
               onClick={onOpenHistory}
-              className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+              className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
             >
               <Clock className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
               <div className="flex-1">
                 <h3 className="font-medium text-gray-900 dark:text-white text-sm">
                   Request History
                 </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  View past requests
+                </p>
               </div>
             </button>
           )}
@@ -1108,56 +1101,19 @@ export function UnifiedAPISidebar({
           {onOpenSettings && (
             <button
               onClick={onOpenSettings}
-              className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+              className="w-full px-4 py-3 text-left flex items-center gap-3 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
             >
               <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
               <div className="flex-1">
                 <h3 className="font-medium text-gray-900 dark:text-white text-sm">
                   Settings
                 </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Configure console
+                </p>
               </div>
             </button>
           )}
-
-          <div className="my-3 px-3">
-            <div className="h-px bg-gray-300 dark:bg-gray-600" />
-          </div>
-
-          {/* Webhook Tester Button */}
-          <button
-            className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
-          >
-            <Zap className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white text-sm">
-                Webhook Tester
-              </h3>
-            </div>
-          </button>
-
-          {/* Security Console Button */}
-          <button
-            className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
-          >
-            <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white text-sm">
-                Security Console
-              </h3>
-            </div>
-          </button>
-
-          {/* Test Collection Button */}
-          <button
-            className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
-          >
-            <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white text-sm">
-                Test Collection
-              </h3>
-            </div>
-          </button>
         </div>
       </div>
     </div>

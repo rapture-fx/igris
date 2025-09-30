@@ -36,6 +36,7 @@ import { EnvironmentManager } from '../../src/components/console/EnvironmentMana
 import { RequestHistory } from '../../src/components/console/RequestHistory'
 import { AuthenticationManager } from '../../src/components/console/AuthenticationManager'
 import { APIEndpointsModal } from '../../src/components/console/APIEndpointsModal'
+import { apiCategories } from '../../src/data/apiCategories'
 import { apiClient } from '../../src/lib/api/client'
 
 export type Industry = 'ai' | 'manufacturing' | 'ecommerce' | 'fintech'
@@ -514,7 +515,7 @@ export default function UnifiedConsolePage() {
       />
 
       {/* Main Layout */}
-      <div className="flex h-[calc(100vh-73px)] overflow-hidden">
+      <div className="relative h-[calc(100vh-73px)] overflow-hidden">
         {/* Unified Sidebar */}
         <UnifiedAPISidebar
           selectedIndustry={selectedIndustry}
@@ -530,7 +531,7 @@ export default function UnifiedConsolePage() {
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex overflow-hidden h-full" style={{marginLeft: '64px'}}>
           {/* Request Builder */}
           <div className="flex-1 min-w-0">
             <UnifiedRequestBuilder
@@ -627,7 +628,7 @@ export default function UnifiedConsolePage() {
         <APIEndpointsModal
           isOpen={showEndpointsModal}
           onClose={() => setShowEndpointsModal(false)}
-          categories={[]} // We'll need to pass the actual categories
+          categories={apiCategories}
           selectedIndustry={selectedIndustry}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}

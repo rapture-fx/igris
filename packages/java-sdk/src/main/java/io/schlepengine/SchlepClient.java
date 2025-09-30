@@ -2,6 +2,7 @@ package io.schlepengine;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.schlepengine.api.*;
 import io.schlepengine.exceptions.ApiException;
 import io.schlepengine.exceptions.ConfigurationException;
 import io.schlepengine.types.*;
@@ -59,6 +60,17 @@ public class SchlepClient {
     private final ObjectMapper objectMapper;
     private final String baseUrl;
     private final String apiKey;
+
+    // API clients
+    private DataProcessingClient dataProcessingClient;
+    private MLPipelineClient mlPipelineClient;
+    private AnalyticsClient analyticsClient;
+    private DocumentClient documentClient;
+    private QualityClient qualityClient;
+    private StorageClient storageClient;
+    private MonitoringClient monitoringClient;
+    private UsersClient usersClient;
+    private AdminClient adminClient;
 
     /**
      * Create a new Schlep-engine client with the provided API key.
