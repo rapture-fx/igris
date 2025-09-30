@@ -536,7 +536,7 @@ export default function UnifiedConsolePage() {
         />
 
         {/* Main Content Area */}
-        <div className="flex overflow-hidden h-full" style={{marginLeft: '64px'}}>
+        <div className="flex overflow-hidden h-full" style={{marginLeft: '56px'}}>
           {/* Request Builder */}
           <div className="flex-1 min-w-0">
             <UnifiedRequestBuilder
