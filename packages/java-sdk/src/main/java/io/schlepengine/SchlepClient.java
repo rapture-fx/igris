@@ -320,6 +320,114 @@ public class SchlepClient {
     }
 
     /**
+     * Get the data processing API client.
+     *
+     * @return DataProcessingClient instance
+     */
+    public DataProcessingClient data() {
+        if (dataProcessingClient == null) {
+            dataProcessingClient = new DataProcessingClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return dataProcessingClient;
+    }
+
+    /**
+     * Get the ML pipeline API client.
+     *
+     * @return MLPipelineClient instance
+     */
+    public MLPipelineClient ml() {
+        if (mlPipelineClient == null) {
+            mlPipelineClient = new MLPipelineClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return mlPipelineClient;
+    }
+
+    /**
+     * Get the analytics API client.
+     *
+     * @return AnalyticsClient instance
+     */
+    public AnalyticsClient analytics() {
+        if (analyticsClient == null) {
+            analyticsClient = new AnalyticsClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return analyticsClient;
+    }
+
+    /**
+     * Get the document extraction API client.
+     *
+     * @return DocumentClient instance
+     */
+    public DocumentClient document() {
+        if (documentClient == null) {
+            documentClient = new DocumentClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return documentClient;
+    }
+
+    /**
+     * Get the data quality API client.
+     *
+     * @return QualityClient instance
+     */
+    public QualityClient quality() {
+        if (qualityClient == null) {
+            qualityClient = new QualityClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return qualityClient;
+    }
+
+    /**
+     * Get the storage API client.
+     *
+     * @return StorageClient instance
+     */
+    public StorageClient storage() {
+        if (storageClient == null) {
+            storageClient = new StorageClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return storageClient;
+    }
+
+    /**
+     * Get the monitoring API client.
+     *
+     * @return MonitoringClient instance
+     */
+    public MonitoringClient monitoring() {
+        if (monitoringClient == null) {
+            monitoringClient = new MonitoringClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return monitoringClient;
+    }
+
+    /**
+     * Get the users API client.
+     *
+     * @return UsersClient instance
+     */
+    public UsersClient users() {
+        if (usersClient == null) {
+            usersClient = new UsersClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return usersClient;
+    }
+
+    /**
+     * Get the admin API client.
+     *
+     * @return AdminClient instance
+     */
+    public AdminClient admin() {
+        if (adminClient == null) {
+            adminClient = new AdminClient(httpClient, objectMapper, baseUrl, apiKey);
+        }
+        return adminClient;
+    }
+
+    /**
      * Close the client and release resources.
      */
     public void close() {
