@@ -36,6 +36,7 @@ import { EnvironmentManager } from '../../src/components/console/EnvironmentMana
 import { RequestHistory } from '../../src/components/console/RequestHistory'
 import { AuthenticationManager } from '../../src/components/console/AuthenticationManager'
 import { APIEndpointsModal } from '../../src/components/console/APIEndpointsModal'
+import WebhookTester from '../../src/components/console/WebhookTester'
 import { apiCategories } from '../../src/data/apiCategories'
 import { apiClient } from '../../src/lib/api/client'
 
@@ -177,6 +178,7 @@ export default function UnifiedConsolePage() {
   const [showSettings, setShowSettings] = useState(false)
   const [showCodeGenerator, setShowCodeGenerator] = useState(false)
   const [showEndpointsModal, setShowEndpointsModal] = useState(false)
+  const [showWebhookTester, setShowWebhookTester] = useState(false)
   
   // Console state
   const [currentEnvironment, setCurrentEnvironment] = useState('Development')
@@ -528,6 +530,9 @@ export default function UnifiedConsolePage() {
           onOpenEndpointsModal={() => setShowEndpointsModal(true)}
           onOpenSettings={() => setShowSettings(true)}
           onOpenHistory={() => setShowRequestHistory(true)}
+          onOpenWebhookTester={() => setShowWebhookTester(true)}
+          onOpenSecurityConsole={() => window.open('/security', '_blank')}
+          onOpenTestCollection={() => window.open('/collections', '_blank')}
         />
 
         {/* Main Content Area */}
@@ -636,6 +641,12 @@ export default function UnifiedConsolePage() {
           selectedEndpoint={selectedEndpoint}
         />
       )}
+
+      {/* Webhook Tester Modal */}
+      <WebhookTester
+        isOpen={showWebhookTester}
+        onClose={() => setShowWebhookTester(false)}
+      />
     </div>
   )
 }

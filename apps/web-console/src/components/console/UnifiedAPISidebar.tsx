@@ -80,6 +80,9 @@ interface UnifiedAPISidebarProps {
   onOpenEndpointsModal?: () => void
   onOpenSettings?: () => void
   onOpenHistory?: () => void
+  onOpenWebhookTester?: () => void
+  onOpenSecurityConsole?: () => void
+  onOpenTestCollection?: () => void
 }
 
 export function UnifiedAPISidebar({
@@ -92,7 +95,10 @@ export function UnifiedAPISidebar({
   onToggleCollapse,
   onOpenEndpointsModal,
   onOpenSettings,
-  onOpenHistory
+  onOpenHistory,
+  onOpenWebhookTester,
+  onOpenSecurityConsole,
+  onOpenTestCollection
 }: UnifiedAPISidebarProps) {
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(
     new Set(['core-apis']) // Expand core APIs by default
@@ -1026,28 +1032,37 @@ export function UnifiedAPISidebar({
         </div>
 
         {/* Webhook Tester Button */}
-        <button
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
-          title="Webhook Tester"
-        >
-          <Zap className="w-5 h-5" />
-        </button>
+        {onOpenWebhookTester && (
+          <button
+            onClick={onOpenWebhookTester}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
+            title="Webhook Tester"
+          >
+            <Zap className="w-5 h-5" />
+          </button>
+        )}
 
         {/* Security Console Button */}
-        <button
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
-          title="Security Console"
-        >
-          <Shield className="w-5 h-5" />
-        </button>
+        {onOpenSecurityConsole && (
+          <button
+            onClick={onOpenSecurityConsole}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
+            title="Security Console"
+          >
+            <Shield className="w-5 h-5" />
+          </button>
+        )}
 
         {/* Test Collection Button */}
-        <button
-          className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
-          title="Test Collection"
-        >
-          <FileText className="w-5 h-5" />
-        </button>
+        {onOpenTestCollection && (
+          <button
+            onClick={onOpenTestCollection}
+            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors mb-2"
+            title="Test Collection"
+          >
+            <FileText className="w-5 h-5" />
+          </button>
+        )}
       </div>
     )
   }
@@ -1124,40 +1139,49 @@ export function UnifiedAPISidebar({
           </div>
 
           {/* Webhook Tester Button */}
-          <button
-            className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
-          >
-            <Zap className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white text-sm">
-                Webhook Tester
-              </h3>
-            </div>
-          </button>
+          {onOpenWebhookTester && (
+            <button
+              onClick={onOpenWebhookTester}
+              className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+            >
+              <Zap className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                  Webhook Tester
+                </h3>
+              </div>
+            </button>
+          )}
 
           {/* Security Console Button */}
-          <button
-            className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
-          >
-            <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white text-sm">
-                Security Console
-              </h3>
-            </div>
-          </button>
+          {onOpenSecurityConsole && (
+            <button
+              onClick={onOpenSecurityConsole}
+              className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+            >
+              <Shield className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                  Security Console
+                </h3>
+              </div>
+            </button>
+          )}
 
           {/* Test Collection Button */}
-          <button
-            className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
-          >
-            <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
-            <div className="flex-1">
-              <h3 className="font-medium text-gray-900 dark:text-white text-sm">
-                Test Collection
-              </h3>
-            </div>
-          </button>
+          {onOpenTestCollection && (
+            <button
+              onClick={onOpenTestCollection}
+              className="w-full px-3 py-2.5 text-left flex items-center gap-2.5 transition-colors rounded-lg hover:bg-white/70 dark:hover:bg-gray-700/50 group"
+            >
+              <FileText className="w-5 h-5 text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white" />
+              <div className="flex-1">
+                <h3 className="font-medium text-gray-900 dark:text-white text-sm">
+                  Test Collection
+                </h3>
+              </div>
+            </button>
+          )}
         </div>
       </div>
     </div>

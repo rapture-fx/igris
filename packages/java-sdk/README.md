@@ -11,10 +11,25 @@ Official Java SDK for the Schlep-engine API platform.
 - 🚀 **High Performance**: Built on OkHttp for efficient HTTP operations
 - 🔒 **Type-safe**: Full type safety with Jackson for JSON serialization
 - 🛡️ **Error Handling**: Comprehensive exception types with detailed messages
-- 📡 **Streaming**: WebSocket support for real-time events
+- 📡 **Async Support**: CompletableFuture for asynchronous operations
 - 🔑 **Authentication**: Bearer token authentication with environment variable support
 - 📚 **Well Documented**: Extensive Javadoc and examples
 - ☕ **Java 11+**: Compatible with Java 11 and higher
+- 🎯 **Complete API Coverage**: All 9 API modules fully implemented
+
+## API Modules
+
+The SDK provides comprehensive clients for all Schlep-engine API modules:
+
+- **Data Processing** (`client.data()`) - Process, transform, and manage data
+- **ML Pipeline** (`client.ml()`) - Create, train, and deploy ML models
+- **Analytics** (`client.analytics()`) - Run analytics queries and generate insights
+- **Document Extraction** (`client.document()`) - Extract text, tables, and metadata from documents
+- **Data Quality** (`client.quality()`) - Assess and monitor data quality
+- **Storage** (`client.storage()`) - File storage and management
+- **Monitoring** (`client.monitoring()`) - System monitoring and health checks
+- **Users** (`client.users()`) - User management and profiles
+- **Admin** (`client.admin()`) - Administrative functions (requires admin privileges)
 
 ## Installation
 
@@ -39,6 +54,8 @@ implementation 'io.schlepengine:schlep-engine:1.0.0'
 ```
 
 ## Quick Start
+
+### Basic Usage
 
 ```java
 import io.schlepengine.SchlepClient;
@@ -71,6 +88,61 @@ public class Example {
         } finally {
             client.close();
         }
+    }
+}
+```
+
+### Using API Modules
+
+```java
+import io.schlepengine.SchlepClient;
+import io.schlepengine.api.*;
+import io.schlepengine.types.*;
+import java.io.File;
+import java.util.*;
+
+public class ModulesExample {
+    public static void main(String[] args) throws Exception {
+        SchlepClient client = new SchlepClient("your-api-key");
+
+        // Data Processing
+        DataProcessingClient dataClient = client.data();
+        File csvFile = new File("data.csv");
+        DataProcessingResult result = dataClient.processFile(
+            csvFile,
+            DataFormat.CSV,
+            DataFormat.JSON
+        );
+
+        // ML Pipeline
+        MLPipelineClient mlClient = client.ml();
+        Map<String, Object> pipelineConfig = new HashMap<>();
+        pipelineConfig.put("name", "My Pipeline");
+        pipelineConfig.put("task_type", "classification");
+        Map<String, Object> pipeline = mlClient.createPipeline(pipelineConfig);
+
+        // Analytics
+        AnalyticsClient analyticsClient = client.analytics();
+        List<Map<String, Object>> datasets = analyticsClient.getDatasets();
+
+        // Document Extraction
+        DocumentClient docClient = client.document();
+        File pdfFile = new File("document.pdf");
+        Map<String, Object> text = docClient.extractText(pdfFile);
+
+        // Storage
+        StorageClient storageClient = client.storage();
+        FileUpload upload = storageClient.uploadFile(new File("data.csv"));
+
+        // Monitoring
+        MonitoringClient monitoringClient = client.monitoring();
+        Map<String, Object> health = monitoringClient.getSystemHealth();
+
+        // Users
+        UsersClient usersClient = client.users();
+        Map<String, Object> profile = usersClient.getProfile();
+
+        client.close();
     }
 }
 ```
