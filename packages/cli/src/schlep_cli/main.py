@@ -14,7 +14,11 @@ from rich.panel import Panel
 from .core.config import Config
 from .core.client import APIClient
 from .core.utils import handle_exceptions, check_api_connection
-from .commands import auth, process, pipeline, config as config_cmd, monitoring, devops, cicd, batch, validate
+from .commands import (
+    auth, process, pipeline, config as config_cmd, monitoring,
+    devops, cicd, batch, validate,
+    analytics, document, quality, storage, ml, users, admin
+)
 
 # Initialize console for rich output
 console = Console()
@@ -139,6 +143,13 @@ cli.add_command(devops.devops)
 cli.add_command(cicd.cicd)
 cli.add_command(batch.batch)
 cli.add_command(validate.validate)
+cli.add_command(analytics.analytics)
+cli.add_command(document.document)
+cli.add_command(quality.quality)
+cli.add_command(storage.storage)
+cli.add_command(ml.ml)
+cli.add_command(users.users)
+cli.add_command(admin.admin)
 
 # Add top-level commands for convenience
 @cli.command()
