@@ -4,6 +4,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SchlepEngine.Exceptions;
 using SchlepEngine.Types;
+using SchlepEngine.API;
 
 namespace SchlepEngine;
 
@@ -55,6 +56,17 @@ public class SchlepClient : IDisposable
     private readonly string _baseUrl;
     private readonly string _apiKey;
     private bool _disposed;
+
+    // API clients
+    private DataProcessingClient? _dataClient;
+    private MLPipelineClient? _mlClient;
+    private AnalyticsClient? _analyticsClient;
+    private DocumentClient? _documentClient;
+    private QualityClient? _qualityClient;
+    private StorageClient? _storageClient;
+    private MonitoringClient? _monitoringClient;
+    private UsersClient? _usersClient;
+    private AdminClient? _adminClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SchlepClient"/> class with the provided API key.
@@ -237,6 +249,78 @@ public class SchlepClient : IDisposable
     public string BaseUrl => _baseUrl;
 
     /// <summary>
+    /// Gets the Data Processing API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to data processing, transformation, and validation operations.
+    /// </remarks>
+    public DataProcessingClient Data => _dataClient ??= new DataProcessingClient(this);
+
+    /// <summary>
+    /// Gets the ML Pipeline API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to machine learning pipeline operations, model training, and predictions.
+    /// </remarks>
+    public MLPipelineClient ML => _mlClient ??= new MLPipelineClient(this);
+
+    /// <summary>
+    /// Gets the Analytics API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to analytics queries, reports, and dataset operations.
+    /// </remarks>
+    public AnalyticsClient Analytics => _analyticsClient ??= new AnalyticsClient(this);
+
+    /// <summary>
+    /// Gets the Document Extraction API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to document extraction, OCR, and text processing operations.
+    /// </remarks>
+    public DocumentClient Document => _documentClient ??= new DocumentClient(this);
+
+    /// <summary>
+    /// Gets the Data Quality API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to data quality assessment, rules, and validation operations.
+    /// </remarks>
+    public QualityClient Quality => _qualityClient ??= new QualityClient(this);
+
+    /// <summary>
+    /// Gets the Storage API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to file storage, upload, download, and management operations.
+    /// </remarks>
+    public StorageClient Storage => _storageClient ??= new StorageClient(this);
+
+    /// <summary>
+    /// Gets the Monitoring API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to system health checks, metrics, and alert operations.
+    /// </remarks>
+    public MonitoringClient Monitoring => _monitoringClient ??= new MonitoringClient(this);
+
+    /// <summary>
+    /// Gets the Users API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to user profile and API key management operations.
+    /// </remarks>
+    public UsersClient Users => _usersClient ??= new UsersClient(this);
+
+    /// <summary>
+    /// Gets the Admin API client.
+    /// </summary>
+    /// <remarks>
+    /// Provides access to administrative operations (requires admin privileges).
+    /// </remarks>
+    public AdminClient Admin => _adminClient ??= new AdminClient(this);
+
+    /// <summary>
     /// Performs a POST request with JSON payload.
     /// </summary>
     private async Task<TResponse> PostAsync<TRequest, TResponse>(string url, TRequest request, CancellationToken cancellationToken)
@@ -282,6 +366,126 @@ public class SchlepClient : IDisposable
             {
                 throw new ApiException((int)response.StatusCode, responseBody);
             }
+        }
+    }
+
+    /// <summary>
+    /// Performs a GET request and returns the deserialized response.
+    /// </summary>
+    /// <typeparam name="T">Response type.</typeparam>
+    /// <param name="path">API path.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Deserialized response.</returns>
+    internal async Task<T> GetAsync<T>(string path, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}{path}";
+        using var response = await _httpClient.GetAsync(url, cancellationToken);
+        return await HandleResponseAsync<T>(response);
+    }
+
+    /// <summary>
+    /// Performs a POST request with JSON body and returns the deserialized response.
+    /// </summary>
+    /// <typeparam name="T">Response type.</typeparam>
+    /// <param name="path">API path.</param>
+    /// <param name="body">Request body object.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Deserialized response.</returns>
+    internal async Task<T> PostAsync<T>(string path, object body, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}{path}";
+        var json = JsonSerializer.Serialize(body, _jsonOptions);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var response = await _httpClient.PostAsync(url, content, cancellationToken);
+        return await HandleResponseAsync<T>(response);
+    }
+
+    /// <summary>
+    /// Performs a PUT request with JSON body and returns the deserialized response.
+    /// </summary>
+    /// <typeparam name="T">Response type.</typeparam>
+    /// <param name="path">API path.</param>
+    /// <param name="body">Request body object.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Deserialized response.</returns>
+    internal async Task<T> PutAsync<T>(string path, object body, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}{path}";
+        var json = JsonSerializer.Serialize(body, _jsonOptions);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var response = await _httpClient.PutAsync(url, content, cancellationToken);
+        return await HandleResponseAsync<T>(response);
+    }
+
+    /// <summary>
+    /// Performs a PATCH request with JSON body and returns the deserialized response.
+    /// </summary>
+    /// <typeparam name="T">Response type.</typeparam>
+    /// <param name="path">API path.</param>
+    /// <param name="body">Request body object.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Deserialized response.</returns>
+    internal async Task<T> PatchAsync<T>(string path, object body, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}{path}";
+        var json = JsonSerializer.Serialize(body, _jsonOptions);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+        using var request = new HttpRequestMessage(new HttpMethod("PATCH"), url)
+        {
+            Content = content
+        };
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        return await HandleResponseAsync<T>(response);
+    }
+
+    /// <summary>
+    /// Performs a DELETE request and returns the deserialized response.
+    /// </summary>
+    /// <typeparam name="T">Response type.</typeparam>
+    /// <param name="path">API path.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Deserialized response.</returns>
+    internal async Task<T> DeleteAsync<T>(string path, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}{path}";
+        using var response = await _httpClient.DeleteAsync(url, cancellationToken);
+        return await HandleResponseAsync<T>(response);
+    }
+
+    /// <summary>
+    /// Performs a POST request with multipart form data and returns the deserialized response.
+    /// </summary>
+    /// <typeparam name="T">Response type.</typeparam>
+    /// <param name="path">API path.</param>
+    /// <param name="form">Multipart form data content.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Deserialized response.</returns>
+    internal async Task<T> PostMultipartAsync<T>(string path, MultipartFormDataContent form, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}{path}";
+        using var response = await _httpClient.PostAsync(url, form, cancellationToken);
+        return await HandleResponseAsync<T>(response);
+    }
+
+    /// <summary>
+    /// Downloads binary data from the specified path.
+    /// </summary>
+    /// <param name="path">API path.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Downloaded data as byte array.</returns>
+    internal async Task<byte[]> DownloadAsync(string path, CancellationToken cancellationToken = default)
+    {
+        var url = $"{_baseUrl}{path}";
+        using var response = await _httpClient.GetAsync(url, cancellationToken);
+
+        if (response.IsSuccessStatusCode)
+        {
+            return await response.Content.ReadAsByteArrayAsync(cancellationToken);
+        }
+        else
+        {
+            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new ApiException((int)response.StatusCode, responseBody);
         }
     }
 
