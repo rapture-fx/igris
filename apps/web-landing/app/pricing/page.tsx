@@ -6,7 +6,7 @@ import { Check, Calculator } from 'lucide-react'
 export default function PricingPage() {
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#f7f7f3' }}>
+    <div className="min-h-screen" style={{ backgroundColor: '#f6f6f4' }}>
       <Header />
       <main className="pt-36">
         <section className="pb-16 md:pb-24">

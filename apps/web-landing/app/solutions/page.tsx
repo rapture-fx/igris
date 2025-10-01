@@ -9,7 +9,7 @@ export default function SolutionsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="pt-36 pb-20 sm:pt-36 sm:pb-24 lg:pt-36 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+      <section className="pt-36 pb-20 sm:pt-36 sm:pb-24 lg:pt-36 lg:pb-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="w-full">
             <div className="text-left pt-8">
@@ -57,7 +57,7 @@ export default function SolutionsPage() {
       </section>
 
       {/* AI Companies Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
             {/* Left Column - Title and Description */}
@@ -165,7 +165,7 @@ export default function SolutionsPage() {
       </section>
 
       {/* Manufacturing Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
             {/* Left Column - Title and Description */}
@@ -271,7 +271,7 @@ export default function SolutionsPage() {
       </section>
 
       {/* Financial Services Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
             {/* Left Column - Title and Description */}
@@ -377,7 +377,7 @@ export default function SolutionsPage() {
       </section>
 
       {/* E-commerce Section */}
-      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+      <section className="py-20 sm:py-24 lg:py-32 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
             {/* Left Column - Title and Description */}

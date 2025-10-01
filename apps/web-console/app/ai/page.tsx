@@ -83,7 +83,7 @@ function EnhancedAIConsoleHeader(props: HeaderProps) {
   return (
     <div
       className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
-      style={{ backgroundColor: '#f7f7f3' }}
+      style={{ backgroundColor: '#f6f6f4' }}
     >
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
@@ -611,7 +611,7 @@ function AIConsoleContent() {
   }, [selectedEndpoint, loading, sidebarCollapsed, isFullscreen])
 
   return (
-    <div className={`min-h-screen dark:bg-gray-900 ${darkMode ? 'dark' : ''}`} style={{backgroundColor: '#f7f7f3'}}>
+    <div className={`min-h-screen dark:bg-gray-900 ${darkMode ? 'dark' : ''}`} style={{backgroundColor: '#f6f6f4'}}>
       <EnhancedAIConsoleHeader 
         onOpenEnvironments={() => setShowEnvironmentManager(true)}
         onOpenCollections={() => setShowCollections(true)}

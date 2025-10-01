@@ -133,7 +133,7 @@ export default function ConsolePage() {
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-gray-900" style={{
-      backgroundColor: '#f7f7f3',
+      backgroundColor: '#f6f6f4',
       backgroundImage: `repeating-linear-gradient(
         45deg,
         transparent,

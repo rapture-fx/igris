@@ -166,7 +166,7 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 font-mono">
-      <div className="shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden" style={{backgroundColor: '#f7f7f3'}}>
+      <div className="shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden" style={{backgroundColor: '#f6f6f4'}}>
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div>
@@ -301,11 +301,11 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                         background: transparent;
                       }
                       div::-webkit-scrollbar-thumb {
-                        background-color: #f7f7f3;
+                        background-color: #f6f6f4;
                         border-radius: 3px;
                       }
                       div::-webkit-scrollbar-thumb:hover {
-                        background-color: #f7f7f3;
+                        background-color: #f6f6f4;
                       }
                     `}</style>
                     <pre className="text-sm text-gray-900">
@@ -344,11 +344,11 @@ export default function WebhookTester({ isOpen, onClose }: WebhookTesterProps) {
                           background: transparent;
                         }
                         div::-webkit-scrollbar-thumb {
-                          background-color: #f7f7f3;
+                          background-color: #f6f6f4;
                           border-radius: 3px;
                         }
                         div::-webkit-scrollbar-thumb:hover {
-                          background-color: #f7f7f3;
+                          background-color: #f6f6f4;
                         }
                       `}</style>
                       <pre className="text-sm text-gray-900">

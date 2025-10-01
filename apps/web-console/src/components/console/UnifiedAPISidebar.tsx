@@ -53,8 +53,7 @@ export function UnifiedAPISidebar({
   onOpenSecurityConsole,
   onOpenTestCollection
 }: UnifiedAPISidebarProps) {
-  const [isHovered, setIsHovered] = useState(false)
-  const isExpanded = !collapsed || isHovered
+  const isExpanded = !collapsed
 
   const buttonClass = isExpanded
     ? 'w-full pl-3 pr-2 py-2 flex items-center text-gray-600 hover:text-gray-900 transition-all duration-300 bg-transparent border-0'
@@ -76,16 +75,20 @@ export function UnifiedAPISidebar({
           -ms-overflow-style: none;
           scrollbar-width: none;
         }
+        button[title] {
+          --tooltip-delay: 0ms;
+        }
+        button[title]:hover::after {
+          transition-delay: 0ms !important;
+        }
       `}</style>
       <div
         className={`${isExpanded ? 'w-44' : 'w-14'} border-r border-gray-200 transition-all duration-300 ease-in-out absolute left-0 top-0 bottom-0 z-40 flex flex-col`}
-        style={{backgroundColor: '#f2f1ed'}}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => collapsed && setIsHovered(false)}
+        style={{backgroundColor: '#f2f1ee'}}
       >
       {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto scrollbar-hide" style={{backgroundColor: '#f2f1ed'}}>
-        <div className={isExpanded ? 'py-3 space-y-0.5 pb-0' : 'py-3 space-y-1 pb-0'} style={{backgroundColor: '#f2f1ed'}}>
+      <div className="flex-1 overflow-y-auto scrollbar-hide" style={{backgroundColor: '#f2f1ee'}}>
+        <div className={isExpanded ? 'py-3 space-y-0.5 pb-0' : 'py-3 space-y-1 pb-0'} style={{backgroundColor: '#f2f1ee'}}>
 
           {/* API Endpoints */}
           {onOpenEndpointsModal && (
@@ -138,7 +141,7 @@ export function UnifiedAPISidebar({
       </div>
 
       {/* Hamburger Menu at Bottom */}
-      <div className="py-3" style={{backgroundColor: '#f2f1ed'}}>
+      <div className="py-3" style={{backgroundColor: '#f2f1ee'}}>
         <button
           onClick={onToggleCollapse}
           className={isExpanded ? 'w-full pl-3 pr-2 py-2 flex items-center text-gray-600 hover:text-gray-900 transition-colors bg-transparent border-0' : 'w-full pl-4 pr-2 py-2 flex items-center text-gray-600 hover:text-gray-900 transition-colors bg-transparent border-0'}

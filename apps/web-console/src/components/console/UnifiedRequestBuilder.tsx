@@ -39,6 +39,7 @@ interface UnifiedRequestBuilderProps {
   onSendRequest: (config: any) => Promise<any>
   loading: boolean
   onShowCodeGenerator: () => void
+  onOpenEndpointsModal?: () => void
 }
 
 interface HeaderItem {
@@ -52,7 +53,8 @@ export function UnifiedRequestBuilder({
   selectedIndustry,
   onSendRequest,
   loading,
-  onShowCodeGenerator
+  onShowCodeGenerator,
+  onOpenEndpointsModal
 }: UnifiedRequestBuilderProps) {
   const [url, setUrl] = useState('')
   const [method, setMethod] = useState<'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH'>('GET')
@@ -64,6 +66,21 @@ export function UnifiedRequestBuilder({
   const [showHeaders, setShowHeaders] = useState(false)
   const [bodyFormat, setBodyFormat] = useState<'json' | 'raw' | 'form'>('json')
   const [timeout, setTimeout] = useState(30000)
+
+  // Keyboard shortcut handler
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        if (onOpenEndpointsModal) {
+          onOpenEndpointsModal()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [onOpenEndpointsModal])
 
   // Auto-populate when endpoint changes
   useEffect(() => {
@@ -262,19 +279,54 @@ export function UnifiedRequestBuilder({
 
   if (!endpoint) {
     return (
-      <div className="h-full flex items-center justify-center dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
-        <div className="text-center">
-
-          <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
-            Select an endpoint to build your request.
+      <div className="h-full flex items-center justify-center dark:bg-gray-900" style={{
+        backgroundColor: '#f6f6f4',
+        backgroundImage: `repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 2px,
+          rgba(0,0,0,0.02) 2px,
+          rgba(0,0,0,0.02) 4px
+        )`,
+        paddingBottom: '80px'
+      }}>
+        <div className="max-w-md px-8">
+          <h2 className="text-sm font-normal text-gray-900 dark:text-gray-100 mb-3 text-left font-mono">
+            API Console
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 leading-relaxed text-left font-mono">
+            Start exploring by sending your first request. Use the sidebar to select an endpoint, build your query, and view the response instantly.
           </p>
+          <p className="text-xs text-gray-500 dark:text-gray-500 mb-6 text-left font-mono">
+            Your API requests will appear here once you've run them.
+          </p>
+          <div className="flex justify-start">
+            <button
+              onClick={onOpenEndpointsModal}
+              className="px-2.5 py-1.5 text-sm font-normal rounded-lg transition-all flex items-center space-x-1.5"
+              style={{
+                backgroundColor: '#e9eef9',
+                color: '#114dcd',
+                boxShadow: '0 2px 8px rgba(17, 77, 205, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(17, 77, 205, 0.2), 0 2px 4px rgba(0, 0, 0, 0.12)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(17, 77, 205, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <span className="text-xl font-normal" style={{ color: '#114dcd' }}>⌘</span>
+              <span className="text-xl font-normal" style={{ color: '#114dcd' }}>K</span>
+            </button>
+          </div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex-1 flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
+    <div className="flex-1 flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f6f6f4'}}>
       {/* Header */}
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between mb-4">

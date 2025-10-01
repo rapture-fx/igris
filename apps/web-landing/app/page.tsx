@@ -25,7 +25,7 @@ export default function HomePage() {
       
 
       <Header />
-      <main style={{ backgroundColor: '#f7f7f3' }}>
+      <main style={{ backgroundColor: '#f6f6f4' }}>
         <Hero />
         <StackIntegrations />
         <WorksOutOfTheBox />

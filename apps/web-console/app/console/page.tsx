@@ -121,7 +121,7 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
   return (
     <div
       className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
-      style={{ backgroundColor: '#f2f1ed' }}
+      style={{ backgroundColor: '#f2f1ee' }}
     >
       <div className="py-1 pr-6" style={{paddingLeft: '10px'}}>
         <div className="flex items-center justify-between">
@@ -507,7 +507,7 @@ export default function UnifiedConsolePage() {
   }, [])
 
   return (
-    <div className="h-screen flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
+    <div className="h-screen flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f6f6f4'}}>
       <UnifiedConsoleHeader
         selectedIndustry={selectedIndustry}
         onIndustryChange={handleIndustryChange}
@@ -545,6 +545,7 @@ export default function UnifiedConsolePage() {
               onSendRequest={handleSendRequest}
               loading={loading}
               onShowCodeGenerator={() => setShowCodeGenerator(true)}
+              onOpenEndpointsModal={() => setShowEndpointsModal(true)}
             />
           </div>
 
