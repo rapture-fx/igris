@@ -7,11 +7,12 @@ use serde_json::Value;
 use tokio_tungstenite::connect_async;
 use url::Url;
 
-use crate::error::{Error, Result};
-use crate::types::{
-    UploadResponse, TrainResponse, DeployResponse,
-    StatusResponse, StreamConfig
+use crate::api::{
+    AdminClient, AnalyticsClient, DataClient, DocumentClient, MLClient, MonitoringClient,
+    QualityClient, StorageClient, UsersClient,
 };
+use crate::error::{Error, Result};
+use crate::types::{DeployResponse, StatusResponse, StreamConfig, TrainResponse, UploadResponse};
 use crate::DEFAULT_BASE_URL;
 
 /// Main client for interacting with the Schlep-engine API.
@@ -339,5 +340,319 @@ impl SchlepClient {
                 Err(Error::api_error(status.as_u16(), response_text))
             }
         }
+    }
+
+    // ========== Helper methods for API modules ==========
+
+    /// Make a GET request to the API.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    ///
+    /// # Type Parameters
+    ///
+    /// * `T` - Response type that implements Deserialize
+    pub(crate) async fn get<T>(&self, path: &str) -> Result<T>
+    where
+        T: for<'de> serde::Deserialize<'de>,
+    {
+        let url = format!("{}{}", self.base_url, path);
+        let response = self
+            .client
+            .get(&url)
+            .headers(self.default_headers()?)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    /// Make a POST request to the API.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - JSON body to send
+    pub(crate) async fn post<T>(&self, path: &str, body: Value) -> Result<T>
+    where
+        T: for<'de> serde::Deserialize<'de>,
+    {
+        let url = format!("{}{}", self.base_url, path);
+        let response = self
+            .client
+            .post(&url)
+            .headers(self.default_headers()?)
+            .json(&body)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    /// Make a PUT request to the API.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `body` - JSON body to send
+    pub(crate) async fn put<T>(&self, path: &str, body: Value) -> Result<T>
+    where
+        T: for<'de> serde::Deserialize<'de>,
+    {
+        let url = format!("{}{}", self.base_url, path);
+        let response = self
+            .client
+            .put(&url)
+            .headers(self.default_headers()?)
+            .json(&body)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    /// Make a DELETE request to the API.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    pub(crate) async fn delete<T>(&self, path: &str) -> Result<T>
+    where
+        T: for<'de> serde::Deserialize<'de>,
+    {
+        let url = format!("{}{}", self.base_url, path);
+        let response = self
+            .client
+            .delete(&url)
+            .headers(self.default_headers()?)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    /// Make a POST request with multipart form data.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    /// * `form` - Multipart form to send
+    pub(crate) async fn post_multipart<T>(&self, path: &str, form: reqwest::multipart::Form) -> Result<T>
+    where
+        T: for<'de> serde::Deserialize<'de>,
+    {
+        let url = format!("{}{}", self.base_url, path);
+
+        // Create headers without Content-Type (reqwest sets it automatically for multipart)
+        let mut headers = HeaderMap::new();
+        headers.insert(
+            AUTHORIZATION,
+            HeaderValue::from_str(&format!("Bearer {}", self.api_key))
+                .map_err(|e| Error::config_error(format!("Invalid API key format: {}", e)))?,
+        );
+
+        let response = self
+            .client
+            .post(&url)
+            .headers(headers)
+            .multipart(form)
+            .send()
+            .await?;
+
+        self.handle_response(response).await
+    }
+
+    /// Download binary data from the API.
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - API endpoint path
+    pub(crate) async fn download(&self, path: &str) -> Result<Vec<u8>> {
+        let url = format!("{}{}", self.base_url, path);
+        let response = self
+            .client
+            .get(&url)
+            .headers(self.default_headers()?)
+            .send()
+            .await?;
+
+        let status = response.status();
+        if status.is_success() {
+            Ok(response.bytes().await?.to_vec())
+        } else {
+            let response_text = response.text().await?;
+            if let Ok(error_json) = serde_json::from_str::<Value>(&response_text) {
+                let message = error_json["message"]
+                    .as_str()
+                    .unwrap_or("Unknown API error")
+                    .to_string();
+                Err(Error::api_error(status.as_u16(), message))
+            } else {
+                Err(Error::api_error(status.as_u16(), response_text))
+            }
+        }
+    }
+
+    // ========== API Client Accessors ==========
+
+    /// Access the Data Processing API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let file_data = std::fs::read("data.csv")?;
+    /// let result = client.data().process_file(&file_data, "csv").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn data(&self) -> DataClient<'_> {
+        DataClient::new(self)
+    }
+
+    /// Access the ML Pipeline API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use serde_json::json;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let config = json!({"name": "My Pipeline", "task_type": "classification"});
+    /// let pipeline = client.ml().create_pipeline(config).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn ml(&self) -> MLClient<'_> {
+        MLClient::new(self)
+    }
+
+    /// Access the Analytics API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # use serde_json::json;
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let query = json!({"sql": "SELECT * FROM users"});
+    /// let result = client.analytics().execute_query(query).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn analytics(&self) -> AnalyticsClient<'_> {
+        AnalyticsClient::new(self)
+    }
+
+    /// Access the Document Extraction API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let file_data = std::fs::read("document.pdf")?;
+    /// let result = client.document().extract_text(&file_data, "pdf").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn document(&self) -> DocumentClient<'_> {
+        DocumentClient::new(self)
+    }
+
+    /// Access the Data Quality API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let assessment = client.quality().assess_quality("job_123").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn quality(&self) -> QualityClient<'_> {
+        QualityClient::new(self)
+    }
+
+    /// Access the Storage API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let file_data = std::fs::read("data.csv")?;
+    /// let result = client.storage().upload_file(&file_data, "data.csv").await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn storage(&self) -> StorageClient<'_> {
+        StorageClient::new(self)
+    }
+
+    /// Access the Monitoring API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let health = client.monitoring().get_health().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn monitoring(&self) -> MonitoringClient<'_> {
+        MonitoringClient::new(self)
+    }
+
+    /// Access the Users API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let profile = client.users().get_profile().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn users(&self) -> UsersClient<'_> {
+        UsersClient::new(self)
+    }
+
+    /// Access the Admin API.
+    ///
+    /// # Example
+    ///
+    /// ```rust,no_run
+    /// # use schlep_engine::{SchlepClient, Result};
+    /// # #[tokio::main]
+    /// # async fn main() -> Result<()> {
+    /// let client = SchlepClient::new("your-api-key")?;
+    /// let stats = client.admin().get_system_stats().await?;
+    /// # Ok(())
+    /// # }
+    /// ```
+    pub fn admin(&self) -> AdminClient<'_> {
+        AdminClient::new(self)
     }
 }
