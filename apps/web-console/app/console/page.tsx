@@ -123,7 +123,7 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
       className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
       style={{ backgroundColor: '#f2f1ed' }}
     >
-      <div className="px-6 py-1">
+      <div className="py-1 pr-6" style={{paddingLeft: '10px'}}>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <img src="/Docs Schlep-engne.svg" alt="Schlep Engine Logo" className="w-8 h-8" />
@@ -507,7 +507,7 @@ export default function UnifiedConsolePage() {
   }, [])
 
   return (
-    <div className="min-h-screen dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
+    <div className="h-screen flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f2f1ed'}}>
       <UnifiedConsoleHeader
         selectedIndustry={selectedIndustry}
         onIndustryChange={handleIndustryChange}
@@ -517,7 +517,7 @@ export default function UnifiedConsolePage() {
       />
 
       {/* Main Layout */}
-      <div className="relative h-[calc(100vh-73px)] overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
         {/* Unified Sidebar */}
         <UnifiedAPISidebar
           selectedIndustry={selectedIndustry}
@@ -536,9 +536,9 @@ export default function UnifiedConsolePage() {
         />
 
         {/* Main Content Area */}
-        <div className="flex overflow-hidden h-full" style={{marginLeft: '56px'}}>
+        <div className="flex overflow-hidden h-full" style={{marginLeft: '176px'}}>
           {/* Request Builder */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0" style={{paddingLeft: '4px'}}>
             <UnifiedRequestBuilder
               endpoint={selectedEndpoint}
               selectedIndustry={selectedIndustry}
@@ -559,19 +559,6 @@ export default function UnifiedConsolePage() {
         </div>
       </div>
 
-      {/* Rate Limit Display */}
-      {response && (
-        <RateLimitDisplay 
-          remaining={response.rateLimitRemaining}
-          reset={response.rateLimitReset}
-        />
-      )}
-
-      {/* JWT Auth Manager */}
-      <JWTAuthManager 
-        token={jwtToken}
-        onTokenChange={setJwtToken}
-      />
 
       {/* Code Snippet Generator Modal */}
       {showCodeGenerator && currentRequestConfig && (

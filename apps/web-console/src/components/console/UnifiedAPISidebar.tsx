@@ -56,144 +56,98 @@ export function UnifiedAPISidebar({
   const [isHovered, setIsHovered] = useState(false)
   const isExpanded = !collapsed || isHovered
 
+  const buttonClass = isExpanded
+    ? 'w-full pl-3 pr-2 py-2 flex items-center text-gray-600 hover:text-gray-900 transition-all duration-300 bg-transparent border-0'
+    : 'w-full pl-4 pr-2 py-2 flex items-center text-gray-600 hover:text-gray-900 transition-all duration-300 bg-transparent border-0'
+
+  const iconWrapperClass = 'w-5 h-5 flex-shrink-0'
+
+  const textClass = isExpanded
+    ? 'text-xs ml-2 whitespace-nowrap transition-all duration-300 opacity-100 w-auto'
+    : 'text-xs ml-2 whitespace-nowrap transition-all duration-300 opacity-0 w-0 overflow-hidden'
+
   return (
-    <div
-      className={`${isExpanded ? 'w-48' : 'w-14'} border-r border-gray-200 transition-all duration-300 ease-in-out absolute left-0 top-0 bottom-0 z-40 flex flex-col`}
-      style={{backgroundColor: '#f2f1ed'}}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => collapsed && setIsHovered(false)}
-    >
+    <>
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
+      <div
+        className={`${isExpanded ? 'w-44' : 'w-14'} border-r border-gray-200 transition-all duration-300 ease-in-out absolute left-0 top-0 bottom-0 z-40 flex flex-col`}
+        style={{backgroundColor: '#f2f1ed'}}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => collapsed && setIsHovered(false)}
+      >
       {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto" style={{backgroundColor: '#f2f1ed'}}>
-        <div className={isExpanded ? 'px-2 py-3 space-y-0.5' : 'py-3 space-y-1'}>
+      <div className="flex-1 overflow-y-auto scrollbar-hide" style={{backgroundColor: '#f2f1ed'}}>
+        <div className={isExpanded ? 'py-3 space-y-0.5 pb-0' : 'py-3 space-y-1 pb-0'} style={{backgroundColor: '#f2f1ed'}}>
 
           {/* API Endpoints */}
           {onOpenEndpointsModal && (
-            <button
-              onClick={onOpenEndpointsModal}
-              className={
-                isExpanded
-                  ? 'w-full px-2 py-2 flex items-center gap-2 rounded text-gray-600 hover:text-gray-900 transition-colors'
-                  : 'w-10 h-10 mx-auto flex items-center justify-center rounded text-gray-600 hover:text-gray-900 transition-colors'
-              }
-              title="API Endpoints"
-              style={{backgroundColor: '#f2f1ed'}}
-            >
-              <List className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && (
-                <span className="text-xs">API Endpoints</span>
-              )}
+            <button onClick={onOpenEndpointsModal} className={buttonClass} title="API Endpoints">
+              <List className={iconWrapperClass} />
+              <span className={textClass}>API Endpoints</span>
             </button>
           )}
 
           {/* Request History */}
           {onOpenHistory && (
-            <button
-              onClick={onOpenHistory}
-              className={
-                isExpanded
-                  ? 'w-full px-2 py-2 flex items-center gap-2 rounded text-gray-600 hover:text-gray-900 transition-colors'
-                  : 'w-10 h-10 mx-auto flex items-center justify-center rounded text-gray-600 hover:text-gray-900 transition-colors'
-              }
-              title="Request History"
-              style={{backgroundColor: '#f2f1ed'}}
-            >
-              <Clock className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && (
-                <span className="text-xs">Request History</span>
-              )}
+            <button onClick={onOpenHistory} className={buttonClass} title="Request History">
+              <Clock className={iconWrapperClass} />
+              <span className={textClass}>Request History</span>
             </button>
           )}
 
           {/* Settings */}
           {onOpenSettings && (
-            <button
-              onClick={onOpenSettings}
-              className={
-                isExpanded
-                  ? 'w-full px-2 py-2 flex items-center gap-2 rounded text-gray-600 hover:text-gray-900 transition-colors'
-                  : 'w-10 h-10 mx-auto flex items-center justify-center rounded text-gray-600 hover:text-gray-900 transition-colors'
-              }
-              title="Settings"
-              style={{backgroundColor: '#f2f1ed'}}
-            >
-              <Settings className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && (
-                <span className="text-xs">Settings</span>
-              )}
+            <button onClick={onOpenSettings} className={buttonClass} title="Settings">
+              <Settings className={iconWrapperClass} />
+              <span className={textClass}>Settings</span>
             </button>
           )}
 
           {/* Webhook Tester */}
           {onOpenWebhookTester && (
-            <button
-              onClick={onOpenWebhookTester}
-              className={
-                isExpanded
-                  ? 'w-full px-2 py-2 flex items-center gap-2 rounded text-gray-600 hover:text-gray-900 transition-colors'
-                  : 'w-10 h-10 mx-auto flex items-center justify-center rounded text-gray-600 hover:text-gray-900 transition-colors'
-              }
-              title="Webhook Tester"
-              style={{backgroundColor: '#f2f1ed'}}
-            >
-              <Zap className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && (
-                <span className="text-xs">Webhook Tester</span>
-              )}
+            <button onClick={onOpenWebhookTester} className={buttonClass} title="Webhook Tester">
+              <Zap className={iconWrapperClass} />
+              <span className={textClass}>Webhook Tester</span>
             </button>
           )}
 
           {/* Security Console */}
           {onOpenSecurityConsole && (
-            <button
-              onClick={onOpenSecurityConsole}
-              className={
-                isExpanded
-                  ? 'w-full px-2 py-2 flex items-center gap-2 rounded text-gray-600 hover:text-gray-900 transition-colors'
-                  : 'w-10 h-10 mx-auto flex items-center justify-center rounded text-gray-600 hover:text-gray-900 transition-colors'
-              }
-              title="Security Console"
-              style={{backgroundColor: '#f2f1ed'}}
-            >
-              <Shield className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && (
-                <span className="text-xs">Security Console</span>
-              )}
+            <button onClick={onOpenSecurityConsole} className={buttonClass} title="Security Console">
+              <Shield className={iconWrapperClass} />
+              <span className={textClass}>Security Console</span>
             </button>
           )}
 
           {/* Test Collection */}
           {onOpenTestCollection && (
-            <button
-              onClick={onOpenTestCollection}
-              className={
-                isExpanded
-                  ? 'w-full px-2 py-2 flex items-center gap-2 rounded text-gray-600 hover:text-gray-900 transition-colors'
-                  : 'w-10 h-10 mx-auto flex items-center justify-center rounded text-gray-600 hover:text-gray-900 transition-colors'
-              }
-              title="Test Collection"
-              style={{backgroundColor: '#f2f1ed'}}
-            >
-              <FileText className="w-5 h-5 flex-shrink-0" />
-              {isExpanded && (
-                <span className="text-xs">Test Collection</span>
-              )}
+            <button onClick={onOpenTestCollection} className={buttonClass} title="Test Collection">
+              <FileText className={iconWrapperClass} />
+              <span className={textClass}>Test Collection</span>
             </button>
           )}
         </div>
       </div>
 
       {/* Hamburger Menu at Bottom */}
-      <div className="py-3 flex items-center justify-center" style={{backgroundColor: '#f2f1ed'}}>
+      <div className="py-3" style={{backgroundColor: '#f2f1ed'}}>
         <button
           onClick={onToggleCollapse}
-          className="p-2 text-gray-600 hover:text-gray-900 transition-colors"
+          className={isExpanded ? 'w-full pl-3 pr-2 py-2 flex items-center text-gray-600 hover:text-gray-900 transition-colors bg-transparent border-0' : 'w-full pl-4 pr-2 py-2 flex items-center text-gray-600 hover:text-gray-900 transition-colors bg-transparent border-0'}
           title={isExpanded ? 'Collapse' : 'Expand'}
-          style={{backgroundColor: '#f2f1ed'}}
         >
-          <Menu className="w-5 h-5" />
+          <Menu className="w-5 h-5 flex-shrink-0" />
         </button>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
