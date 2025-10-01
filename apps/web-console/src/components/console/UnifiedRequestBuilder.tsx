@@ -303,7 +303,7 @@ export function UnifiedRequestBuilder({
           <div className="flex justify-start">
             <button
               onClick={onOpenEndpointsModal}
-              className="px-2.5 py-1.5 text-sm font-normal rounded-lg transition-all flex items-center space-x-1.5"
+              className="px-2 py-1 text-sm font-normal rounded-md transition-all flex items-center space-x-1"
               style={{
                 backgroundColor: '#e9eef9',
                 color: '#114dcd',
@@ -316,8 +316,8 @@ export function UnifiedRequestBuilder({
                 e.currentTarget.style.boxShadow = '0 2px 8px rgba(17, 77, 205, 0.15), 0 1px 3px rgba(0, 0, 0, 0.1)'
               }}
             >
-              <span className="text-xl font-normal" style={{ color: '#114dcd' }}>⌘</span>
-              <span className="text-xl font-normal" style={{ color: '#114dcd' }}>K</span>
+              <span className="text-base font-normal" style={{ color: '#114dcd' }}>⌘</span>
+              <span className="text-base font-normal" style={{ color: '#114dcd' }}>K</span>
             </button>
           </div>
         </div>

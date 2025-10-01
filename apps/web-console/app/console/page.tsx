@@ -517,7 +517,15 @@ export default function UnifiedConsolePage() {
       />
 
       {/* Main Layout */}
-      <div className="relative flex-1 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden" style={{
+        backgroundImage: `repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 2px,
+          rgba(0,0,0,0.02) 2px,
+          rgba(0,0,0,0.02) 4px
+        )`
+      }}>
         {/* Unified Sidebar */}
         <UnifiedAPISidebar
           selectedIndustry={selectedIndustry}
