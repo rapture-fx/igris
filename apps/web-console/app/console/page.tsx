@@ -37,8 +37,13 @@ import { RequestHistory } from '../../src/components/console/RequestHistory'
 import { AuthenticationManager } from '../../src/components/console/AuthenticationManager'
 import { APIEndpointsModal } from '../../src/components/console/APIEndpointsModal'
 import WebhookTester from '../../src/components/console/WebhookTester'
+import { SecurityCompliance } from '../../src/components/console/SecurityCompliance'
+import { TestCollections } from '../../src/components/console/TestCollections'
+import { WebhookTesterInline } from '../../src/components/console/WebhookTesterInline'
 import { apiCategories } from '../../src/data/apiCategories'
 import { apiClient } from '../../src/lib/api/client'
+
+type ViewMode = 'api' | 'security' | 'test-collection' | 'webhook'
 
 export type Industry = 'ai' | 'manufacturing' | 'ecommerce' | 'fintech'
 
@@ -164,6 +169,7 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
 }
 
 export default function UnifiedConsolePage() {
+  const [viewMode, setViewMode] = useState<ViewMode>('api')
   const [selectedIndustry, setSelectedIndustry] = useState<Industry | 'all'>('all')
   const [selectedEndpoint, setSelectedEndpoint] = useState<APIEndpoint | undefined>()
   const [response, setResponse] = useState<ResponseData | undefined>()
@@ -538,33 +544,55 @@ export default function UnifiedConsolePage() {
           onOpenEndpointsModal={() => setShowEndpointsModal(true)}
           onOpenSettings={() => setShowSettings(true)}
           onOpenHistory={() => setShowRequestHistory(true)}
-          onOpenWebhookTester={() => setShowWebhookTester(true)}
-          onOpenSecurityConsole={() => window.open('/security', '_blank')}
-          onOpenTestCollection={() => window.location.href = '/testing'}
+          onOpenWebhookTester={() => setViewMode('webhook')}
+          onOpenSecurityConsole={() => setViewMode('security')}
+          onOpenTestCollection={() => setViewMode('test-collection')}
         />
 
         {/* Main Content Area */}
         <div className="flex overflow-hidden h-full" style={{marginLeft: '176px'}}>
-          {/* Request Builder */}
-          <div className="flex-1 min-w-0" style={{paddingLeft: '4px'}}>
-            <UnifiedRequestBuilder
-              endpoint={selectedEndpoint}
-              selectedIndustry={selectedIndustry}
-              onSendRequest={handleSendRequest}
-              loading={loading}
-              onShowCodeGenerator={() => setShowCodeGenerator(true)}
-              onOpenEndpointsModal={() => setShowEndpointsModal(true)}
-            />
-          </div>
+          {viewMode === 'api' && (
+            <>
+              {/* Request Builder */}
+              <div className="flex-1 min-w-0" style={{paddingLeft: '4px'}}>
+                <UnifiedRequestBuilder
+                  endpoint={selectedEndpoint}
+                  selectedIndustry={selectedIndustry}
+                  onSendRequest={handleSendRequest}
+                  loading={loading}
+                  onShowCodeGenerator={() => setShowCodeGenerator(true)}
+                  onOpenEndpointsModal={() => setShowEndpointsModal(true)}
+                />
+              </div>
 
-          {/* Response Viewer */}
-          <UnifiedResponseViewer 
-            response={response}
-            error={error}
-            loading={loading}
-            endpoint={selectedEndpoint}
-            onShowCodeGenerator={() => setShowCodeGenerator(true)}
-          />
+              {/* Response Viewer */}
+              <UnifiedResponseViewer
+                response={response}
+                error={error}
+                loading={loading}
+                endpoint={selectedEndpoint}
+                onShowCodeGenerator={() => setShowCodeGenerator(true)}
+              />
+            </>
+          )}
+
+          {viewMode === 'security' && (
+            <div className="flex-1">
+              <SecurityCompliance />
+            </div>
+          )}
+
+          {viewMode === 'test-collection' && (
+            <div className="flex-1">
+              <TestCollections />
+            </div>
+          )}
+
+          {viewMode === 'webhook' && (
+            <div className="flex-1">
+              <WebhookTesterInline />
+            </div>
+          )}
         </div>
       </div>
 
@@ -608,6 +636,7 @@ export default function UnifiedConsolePage() {
           isOpen={showRequestHistory}
           onClose={() => setShowRequestHistory(false)}
           onReplayRequest={(request) => {
+            setViewMode('api') // Switch to API view
             setSelectedEndpoint({
               id: `replay_${Date.now()}`,
               name: `${request.method} ${request.url}`,
@@ -633,7 +662,10 @@ export default function UnifiedConsolePage() {
           selectedIndustry={selectedIndustry}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
-          onEndpointSelect={setSelectedEndpoint}
+          onEndpointSelect={(endpoint) => {
+            setViewMode('api') // Switch to API view
+            setSelectedEndpoint(endpoint)
+          }}
           selectedEndpoint={selectedEndpoint}
         />
       )}

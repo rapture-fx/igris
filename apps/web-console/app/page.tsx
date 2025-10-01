@@ -124,8 +124,7 @@ export default function ConsolePage() {
         const authButton = document.querySelector('button[class*="text-gray-500"]');
         if (authButton) authButton.click();
       }, icon: <BarChart3 className="w-4 h-4" /> },
-    { title: "Console", link: "/console", icon: <Terminal className="w-4 h-4" /> },
-    { title: "Test Collections", link: "/testing", icon: <TestTube className="w-4 h-4" /> }
+    { title: "Console", link: "/console", icon: <Terminal className="w-4 h-4" /> }
   ]
 
   return (

@@ -441,113 +441,38 @@ export function TestCollections() {
   }) || []
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col font-mono" style={{backgroundColor: '#f6f6f4'}}>
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <TestTube className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Test Collections
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Automated API testing, collection management, and continuous monitoring
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            {selectedCollection && (
-              <>
-                <button
-                  onClick={() => runCollection(selectedCollection)}
-                  disabled={isRunning}
-                  className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isRunning ? (
-                    <>
-                      <Square className="w-4 h-4" />
-                      <span>Running...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Play className="w-4 h-4" />
-                      <span>Run Collection</span>
-                    </>
-                  )}
-                </button>
-                <button
-                  onClick={() => {}}
-                  className="flex items-center space-x-2 px-3 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Export</span>
-                </button>
-              </>
-            )}
-          </div>
+      <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div>
+          <h2 className="text-xl" style={{color: '#114dcd'}}>
+            Test Collections
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Automated API testing, collection management, and continuous monitoring
+          </p>
         </div>
-
-        {/* Collection Status */}
-        {selectedCollection && (
-          <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              { 
-                label: 'Total Tests', 
-                value: selectedCollection.stats.total,
-                color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400'
-              },
-              { 
-                label: 'Passed', 
-                value: selectedCollection.stats.passed,
-                color: 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400'
-              },
-              { 
-                label: 'Failed', 
-                value: selectedCollection.stats.failed,
-                color: 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400'
-              },
-              { 
-                label: 'Success Rate', 
-                value: `${Math.round((selectedCollection.stats.passed / selectedCollection.stats.total) * 100)}%`,
-                color: 'text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400'
-              }
-            ].map(({ label, value, color }) => (
-              <div key={label} className="text-center">
-                <div className={`px-3 py-2 rounded-lg ${color}`}>
-                  <div className="font-semibold">{value}</div>
-                  <div className="text-xs opacity-75">{label}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <nav className="flex space-x-8 px-6">
-          {[
-            { key: 'collections', label: 'Collections', icon: Layers },
-            { key: 'runner', label: 'Test Runner', icon: Play },
-            { key: 'results', label: 'Results', icon: BarChart3 },
-            { key: 'monitor', label: 'Monitoring', icon: Activity }
-          ].map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key as any)}
-              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === key
-                  ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
-            </button>
-          ))}
-        </nav>
+        <div className="flex items-center space-x-2">
+          {selectedCollection && (
+            <>
+              <button
+                onClick={() => runCollection(selectedCollection)}
+                disabled={isRunning}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+                title="Run Collection"
+              >
+                {isRunning ? <Square className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+              </button>
+              <button
+                onClick={() => {}}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Export"
+              >
+                <Download className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Main Content */}

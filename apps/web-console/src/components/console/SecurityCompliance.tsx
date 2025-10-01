@@ -387,90 +387,24 @@ Content-Type: application/json
   }
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
+    <div className="h-full flex flex-col font-mono" style={{backgroundColor: '#f6f6f4'}}>
       {/* Header */}
-      <div className="border-b border-gray-200 dark:border-gray-700 p-6 bg-white dark:bg-gray-800">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <Shield className="w-6 h-6 text-red-600 dark:text-red-400" />
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Security & Compliance
-              </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Security scanning, compliance checks, and vulnerability assessment
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={exportReport}
-              className="flex items-center space-x-2 px-3 py-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              <Download className="w-4 h-4" />
-              <span>Export Report</span>
-            </button>
-          </div>
+      <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div>
+          <h2 className="text-xl" style={{color: '#114dcd'}}>
+            Security & Compliance
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Security scanning, compliance checks, and vulnerability assessment
+          </p>
         </div>
-
-        {/* Quick Stats */}
-        <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { 
-              label: 'Critical Issues', 
-              value: securityScans.flatMap(s => s.findings).filter(f => f.severity === 'critical').length,
-              color: 'text-red-600 bg-red-100 dark:bg-red-900/30 dark:text-red-400'
-            },
-            { 
-              label: 'High Issues', 
-              value: securityScans.flatMap(s => s.findings).filter(f => f.severity === 'high').length,
-              color: 'text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400'
-            },
-            { 
-              label: 'Total Scans', 
-              value: securityScans.length,
-              color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400'
-            },
-            { 
-              label: 'Compliance Score', 
-              value: `${Math.round(complianceChecks.filter(c => c.status === 'pass').length / complianceChecks.length * 100)}%`,
-              color: 'text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400'
-            }
-          ].map(({ label, value, color }) => (
-            <div key={label} className="text-center">
-              <div className={`px-3 py-2 rounded-lg ${color}`}>
-                <div className="font-semibold">{value}</div>
-                <div className="text-xs opacity-75">{label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <nav className="flex space-x-8 px-6">
-          {[
-            { key: 'scans', label: 'Security Scans', icon: Scan },
-            { key: 'compliance', label: 'Compliance', icon: FileText },
-            { key: 'auth', label: 'Authentication', icon: Key },
-            { key: 'reports', label: 'Reports', icon: TrendingUp }
-          ].map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key as any)}
-              className={`flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                activeTab === key
-                  ? 'border-red-500 text-red-600 dark:text-red-400'
-                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{label}</span>
-            </button>
-          ))}
-        </nav>
+        <button
+          onClick={exportReport}
+          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          title="Export Report"
+        >
+          <Download className="w-5 h-5" />
+        </button>
       </div>
 
       {/* Main Content */}
@@ -478,9 +412,9 @@ Content-Type: application/json
         {activeTab === 'scans' && (
           <>
             {/* Scans List */}
-            <div className="w-1/2 border-r border-gray-200 dark:border-gray-700 flex flex-col">
+            <div className="w-1/2 p-6 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-y-auto">
               {/* New Scan */}
-              <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+              <div className="mb-6">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="relative flex-1">
                     <input

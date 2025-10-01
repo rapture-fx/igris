@@ -188,140 +188,137 @@ export function RequestHistory({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex">
-        {/* Main Panel */}
-        <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
-                  <Clock className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    Request History
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {filteredRequests.length} of {historyItems.length} requests
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={exportHistory}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  title="Export history"
-                >
-                  <Download className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={clearHistory}
-                  className="p-2 text-gray-400 hover:text-red-600 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                  title="Clear history"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={onClose}
-                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 font-mono">
+      <div className="shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden" style={{backgroundColor: '#f6f6f4'}}>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <div>
+            <h2 className="text-xl" style={{color: '#114dcd'}}>
+              Request History
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {filteredRequests.length} of {historyItems.length} requests
+            </p>
           </div>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={exportHistory}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              title="Export history"
+            >
+              <Download className="w-5 h-5" />
+            </button>
+            <button
+              onClick={clearHistory}
+              className="text-gray-400 hover:text-red-600 transition-colors"
+              title="Clear history"
+            >
+              <Trash2 className="w-5 h-5" />
+            </button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 h-[70vh]">
+        {/* Main Panel */}
+        <div className="flex flex-col border-r border-gray-200 dark:border-gray-700">
 
           {/* Filters */}
-          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-            <div className="flex items-center space-x-4">
-              <div className="flex-1 relative">
+          <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex flex-col space-y-3">
+              <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search requests..."
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 text-sm bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 />
               </div>
-              
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value as any)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              >
-                <option value="all">All Status</option>
-                <option value="success">Success</option>
-                <option value="error">Error</option>
-                <option value="pending">Pending</option>
-              </select>
-              
-              <select
-                value={filterMethod}
-                onChange={(e) => setFilterMethod(e.target.value as any)}
-                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-800 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-              >
-                <option value="all">All Methods</option>
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="PUT">PUT</option>
-                <option value="DELETE">DELETE</option>
-                <option value="PATCH">PATCH</option>
-              </select>
+
+              <div className="flex space-x-2">
+                <select
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value as any)}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Status</option>
+                  <option value="success">Success</option>
+                  <option value="error">Error</option>
+                  <option value="pending">Pending</option>
+                </select>
+
+                <select
+                  value={filterMethod}
+                  onChange={(e) => setFilterMethod(e.target.value as any)}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 text-sm bg-white dark:bg-gray-800 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                  <option value="all">All Methods</option>
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="DELETE">DELETE</option>
+                  <option value="PATCH">PATCH</option>
+                </select>
+              </div>
             </div>
           </div>
 
           {/* Request List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto p-4" style={{ maxHeight: 'calc(70vh - 200px)' }}>
             {filteredRequests.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-center py-12">
+              <div className="flex flex-col items-center justify-center h-full text-center">
                 <Clock className="w-12 h-12 text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
                   No Request History
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400">
-                  {searchQuery || filterStatus !== 'all' || filterMethod !== 'all' 
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {searchQuery || filterStatus !== 'all' || filterMethod !== 'all'
                     ? 'No requests match your current filters'
                     : 'Start making API requests to see your history here'
                   }
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              <div className="space-y-2">
                 {filteredRequests.map((request) => (
                   <div
                     key={request.id}
-                    className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors ${
-                      selectedRequest?.id === request.id ? 'bg-purple-50 dark:bg-purple-900/20' : ''
-                    }`}
                     onClick={() => setSelectedRequest(request)}
+                    className={`p-3 border cursor-pointer transition-colors ${
+                      selectedRequest?.id === request.id
+                        ? 'bg-white dark:bg-white'
+                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300'
+                    }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-1 rounded-lg ${getStatusColor(request)}`}>
-                          {getStatusIcon(request)}
-                        </div>
-                        <div>
-                          <div className="flex items-center space-x-2">
-                            <span className={`px-2 py-0.5 text-xs font-medium rounded ${METHOD_COLORS[request.method]}`}>
-                              {request.method}
-                            </span>
-                            <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-md">
-                              {request.url}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-4 text-xs text-gray-600 dark:text-gray-400 mt-1">
-                            <span>{new Date(request.timestamp).toLocaleTimeString()}</span>
-                            {request.status && <span>Status: {request.status}</span>}
-                            {request.duration && <span>Duration: {request.duration.toFixed(0)}ms</span>}
-                            {request.size && <span>Size: {request.size} bytes</span>}
-                          </div>
-                        </div>
-                      </div>
-                      
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center space-x-2">
+                        <span className={`px-2 py-0.5 text-xs font-medium rounded ${METHOD_COLORS[request.method]}`}>
+                          {request.method}
+                        </span>
+                        <code className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded" style={{ color: '#114dcd' }}>
+                          {request.status || 'pending'}
+                        </code>
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400">
+                        {new Date(request.timestamp).toLocaleTimeString()}
+                      </div>
+                    </div>
+                    <div className="text-sm text-gray-900 dark:text-white truncate mb-1">
+                      {request.url}
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center space-x-3">
+                        {request.duration && <span>{request.duration.toFixed(0)}ms</span>}
+                        {request.size && <span>{request.size} bytes</span>}
+                      </div>
+                      <div className="flex items-center space-x-1">
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
@@ -330,17 +327,17 @@ export function RequestHistory({
                           className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
                           title="Copy as cURL"
                         >
-                          <Copy className="w-4 h-4" />
+                          <Copy className="w-3 h-3" />
                         </button>
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
                             onReplayRequest(request)
                           }}
-                          className="p-1 text-gray-400 hover:text-purple-600 transition-colors"
+                          className="p-1 text-gray-400 hover:text-gray-600 transition-colors"
                           title="Replay request"
                         >
-                          <Play className="w-4 h-4" />
+                          <Play className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -353,110 +350,148 @@ export function RequestHistory({
 
         {/* Details Panel */}
         {selectedRequest && (
-          <div className="w-96 border-l border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex flex-col">
-            <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <div className="flex flex-col overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                 Request Details
               </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 {new Date(selectedRequest.timestamp).toLocaleString()}
               </p>
             </div>
             
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
               {/* Request Info */}
               <div>
-                <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Request</h4>
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <span className={`px-2 py-1 text-xs font-medium rounded ${METHOD_COLORS[selectedRequest.method]}`}>
-                      {selectedRequest.method}
-                    </span>
-                    <span className="font-mono text-xs text-gray-600 dark:text-gray-400">
-                      {selectedRequest.url}
-                    </span>
-                  </div>
-                  
-                  {/* Headers */}
-                  {Object.keys(selectedRequest.headers).length > 0 && (
-                    <div>
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Headers:</span>
-                      <pre className="text-xs text-gray-600 dark:text-gray-400 mt-1 overflow-x-auto">
-                        {JSON.stringify(selectedRequest.headers, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                  
-                  {/* Body */}
-                  {selectedRequest.body && (
-                    <div className="mt-2">
-                      <span className="text-xs font-medium text-gray-700 dark:text-gray-300">Body:</span>
-                      <pre className="text-xs text-gray-600 dark:text-gray-400 mt-1 overflow-x-auto">
-                        {selectedRequest.body}
-                      </pre>
-                    </div>
-                  )}
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm text-gray-700 dark:text-gray-300">Request</h4>
+                  <button
+                    onClick={() => copyRequestAsCurl(selectedRequest)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <Copy className="w-4 h-4" />
+                  </button>
+                </div>
+                <div className="bg-white p-4 overflow-x-auto border shadow-md" style={{
+                  borderColor: '#a0c0f0',
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: '#cbd5e1 transparent'
+                }}>
+                  <style jsx>{`
+                    div::-webkit-scrollbar {
+                      height: 6px;
+                    }
+                    div::-webkit-scrollbar-track {
+                      background: transparent;
+                    }
+                    div::-webkit-scrollbar-thumb {
+                      background-color: #f6f6f4;
+                      border-radius: 3px;
+                    }
+                    div::-webkit-scrollbar-thumb:hover {
+                      background-color: #f6f6f4;
+                    }
+                  `}</style>
+                  <pre className="text-sm text-gray-900">
+                    <code dangerouslySetInnerHTML={{
+                      __html: JSON.stringify({
+                        method: selectedRequest.method,
+                        url: selectedRequest.url,
+                        headers: selectedRequest.headers,
+                        ...(selectedRequest.body && { body: JSON.parse(selectedRequest.body) })
+                      }, null, 2)
+                        .replace(/"([^"]+)":/g, '<span style="color: #114dcd">"$1":</span>')
+                        .replace(/: "([^"]+)"/g, ': <span style="color: #22c55e">"$1"</span>')
+                        .replace(/: (\d+\.?\d*)/g, ': <span style="color: #f59e0b">$1</span>')
+                        .replace(/: (true|false|null)/g, ': <span style="color: #ef4444">$1</span>')
+                    }} />
+                  </pre>
                 </div>
               </div>
               
               {/* Response Info */}
               {selectedRequest.response && (
                 <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Response</h4>
-                  <div className="bg-white dark:bg-gray-800 rounded-lg p-3 text-sm">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <div className={`p-1 rounded ${getStatusColor(selectedRequest)}`}>
-                        {getStatusIcon(selectedRequest)}
-                      </div>
-                      <span className="font-mono text-xs">
-                        {selectedRequest.response.status} {selectedRequest.response.statusText}
-                      </span>
+                  <h3 className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    Response
+                  </h3>
+                  <div>
+                    <div className="text-sm p-4">
+                      Status: {selectedRequest.response.status} {selectedRequest.response.statusText}
                     </div>
-                    
-                    <pre className="text-xs text-gray-600 dark:text-gray-400 overflow-x-auto max-h-64">
-                      {JSON.stringify(selectedRequest.response.data, null, 2)}
-                    </pre>
+                    <div className="bg-white p-4 overflow-x-auto border shadow-md" style={{
+                      borderColor: '#a0c0f0',
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: '#cbd5e1 transparent'
+                    }}>
+                      <style jsx>{`
+                        div::-webkit-scrollbar {
+                          height: 6px;
+                        }
+                        div::-webkit-scrollbar-track {
+                          background: transparent;
+                        }
+                        div::-webkit-scrollbar-thumb {
+                          background-color: #f6f6f4;
+                          border-radius: 3px;
+                        }
+                        div::-webkit-scrollbar-thumb:hover {
+                          background-color: #f6f6f4;
+                        }
+                      `}</style>
+                      <pre className="text-sm text-gray-900">
+                        <code dangerouslySetInnerHTML={{
+                          __html: JSON.stringify(selectedRequest.response.data, null, 2)
+                            .replace(/"([^"]+)":/g, '<span style="color: #114dcd">"$1":</span>')
+                            .replace(/: "([^"]+)"/g, ': <span style="color: #22c55e">"$1"</span>')
+                            .replace(/: (\d+\.?\d*)/g, ': <span style="color: #f59e0b">$1</span>')
+                            .replace(/: (true|false|null)/g, ': <span style="color: #ef4444">$1</span>')
+                        }} />
+                      </pre>
+                    </div>
                   </div>
                 </div>
               )}
-              
+
               {/* Error Info */}
               {selectedRequest.error && (
-                <div>
-                  <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Error</h4>
-                  <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 text-sm">
-                    <div className="text-red-700 dark:text-red-300 font-medium">
+                <div className="flex items-center space-x-2 p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg">
+                  <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                  <div>
+                    <div className="text-sm text-red-700 dark:text-red-300 font-medium">
                       {selectedRequest.error.code}
                     </div>
-                    <div className="text-red-600 dark:text-red-400 mt-1">
+                    <div className="text-xs text-red-600 dark:text-red-400">
                       {selectedRequest.error.message}
                     </div>
                   </div>
                 </div>
               )}
-            </div>
-            
-            {/* Actions */}
-            <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex space-x-2">
-                <button
-                  onClick={() => onReplayRequest(selectedRequest)}
-                  className="flex-1 flex items-center justify-center space-x-2 px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
-                >
-                  <RefreshCw className="w-4 h-4" />
-                  <span>Replay</span>
-                </button>
-                <button
-                  onClick={() => copyRequestAsCurl(selectedRequest)}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                  title="Copy as cURL"
-                >
-                  <Copy className="w-4 h-4" />
-                </button>
-              </div>
+
+              {/* Replay Button */}
+              <button
+                onClick={() => onReplayRequest(selectedRequest)}
+                className="flex items-center justify-center px-4 py-1 text-sm transition-colors border"
+                style={{
+                  borderColor: '#114dcd',
+                  color: '#114dcd',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#114dcd';
+                  e.currentTarget.style.color = 'white';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.color = '#114dcd';
+                }}
+              >
+                <RefreshCw className="w-4 h-4 mr-2" />
+                Replay Request
+              </button>
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   )
