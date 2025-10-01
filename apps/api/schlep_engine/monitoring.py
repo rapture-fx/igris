@@ -87,7 +87,12 @@ class MemoryMonitor:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        return self.stop()
+    # Ensure monitoring is stopped and do not suppress exceptions.
+    # Returning a truthy value from __exit__ would signal to
+    # the context manager protocol that the exception (if any)
+    # has been handled; we want exceptions to propagate.
+    self.stop()
+    return False
 
 
 class PerformanceTracker:

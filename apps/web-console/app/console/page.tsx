@@ -540,7 +540,7 @@ export default function UnifiedConsolePage() {
           onOpenHistory={() => setShowRequestHistory(true)}
           onOpenWebhookTester={() => setShowWebhookTester(true)}
           onOpenSecurityConsole={() => window.open('/security', '_blank')}
-          onOpenTestCollection={() => window.open('/collections', '_blank')}
+          onOpenTestCollection={() => window.location.href = '/testing'}
         />
 
         {/* Main Content Area */}

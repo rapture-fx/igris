@@ -292,7 +292,7 @@ export function UnifiedRequestBuilder({
       }}>
         <div className="max-w-md px-8">
           <h2 className="text-sm font-normal text-gray-900 dark:text-gray-100 mb-3 text-left font-mono">
-            API Console
+            Welcome to your console
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-500 mb-2 leading-relaxed text-left font-mono">
             Start exploring by sending your first request. Use the sidebar to select an endpoint, build your query, and view the response instantly.
