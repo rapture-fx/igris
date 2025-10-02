@@ -280,6 +280,7 @@ export enum AnonymizationMethod {
  * Data export configuration
  */
 export interface ExportConfig {
+  [key: string]: any;
   format: DataFormat;
   destination: ExportDestination;
   compression?: CompressionType;

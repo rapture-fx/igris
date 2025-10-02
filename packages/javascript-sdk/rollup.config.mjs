@@ -82,7 +82,7 @@ export default [
     input: 'src/index.browser.ts',
     external: Object.keys(globals),
     output: {
-      file: pkg.browser,
+      file: 'dist/index.umd.js',
       format: 'umd',
       name: 'SchlepEngine',
       sourcemap: true,

@@ -123,7 +123,7 @@ export class AuthManager extends EventEmitter {
    */
   setApiKey(apiKey: string): void {
     this.apiKey = apiKey;
-    this.emitAuthEvent('login', { authMethod: 'api_key' });
+    this.emitAuthEvent('LOGIN', { authMethod: 'api_key' });
   }
 
   /**
@@ -166,7 +166,7 @@ export class AuthManager extends EventEmitter {
       const tokens = response.data;
       await this.handleSuccessfulAuth(tokens);
 
-      this.emitAuthEvent('login', { user: tokens.user });
+      this.emitAuthEvent('LOGIN', { user: tokens.user });
       return tokens;
 
     } catch (error) {
@@ -195,7 +195,7 @@ export class AuthManager extends EventEmitter {
       const tokens = response.data;
       await this.handleSuccessfulAuth(tokens);
 
-      this.emitAuthEvent('login', { user: tokens.user });
+      this.emitAuthEvent('LOGIN', { user: tokens.user });
       return tokens;
 
     } catch (error) {
@@ -236,12 +236,12 @@ export class AuthManager extends EventEmitter {
 
       await this.handleSuccessfulAuth(newTokens);
 
-      this.emitAuthEvent('token_refresh');
+      this.emitAuthEvent('TOKEN_REFRESH');
       return newTokens;
 
     } catch (error) {
       await this.clearAuthentication();
-      this.emitAuthEvent('token_expired');
+      this.emitAuthEvent('TOKEN_EXPIRED');
       return null;
     }
   }
@@ -262,7 +262,7 @@ export class AuthManager extends EventEmitter {
       }
     } finally {
       await this.clearAuthentication();
-      this.emitAuthEvent('logout');
+      this.emitAuthEvent('LOGOUT');
     }
   }
 
@@ -448,7 +448,7 @@ export class AuthManager extends EventEmitter {
       this.refreshTimer = setTimeout(() => {
         this.refreshToken().catch(error => {
           console.warn('Auto refresh failed:', error);
-          this.emitAuthEvent('token_expired');
+          this.emitAuthEvent('TOKEN_EXPIRED');
         });
       }, timeUntilRefresh);
     } else {

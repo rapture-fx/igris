@@ -28,7 +28,8 @@
       "Bash(source:*)",
       "Bash(pnpm install:*)",
       "Bash(xargs kill:*)",
-      "Bash(pnpm dev:*)"
+      "Bash(pnpm dev:*)",
+      "Bash(grep -E \"\\.py$\")"
     ],
     "deny": [],
     "ask": []

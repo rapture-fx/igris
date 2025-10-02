@@ -93,7 +93,7 @@ export type HTTPMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
  */
 export interface RequestConfig {
   headers?: Record<string, string>;
-  params?: Record<string, string | number | boolean>;
+  params?: Record<string, any>;
   timeout?: number;
   signal?: AbortSignal;
   onUploadProgress?: ProgressCallback;

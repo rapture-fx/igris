@@ -231,14 +231,13 @@ export interface PermissionCheck {
 /**
  * Authentication event types
  */
-export enum AuthEventType {
-  LOGIN = 'login',
-  LOGOUT = 'logout',
-  TOKEN_REFRESH = 'token_refresh',
-  TOKEN_EXPIRED = 'token_expired',
-  PERMISSION_DENIED = 'permission_denied',
-  SESSION_EXPIRED = 'session_expired'
-}
+export type AuthEventType =
+  | 'LOGIN'
+  | 'LOGOUT'
+  | 'TOKEN_REFRESH'
+  | 'TOKEN_EXPIRED'
+  | 'PERMISSION_DENIED'
+  | 'SESSION_EXPIRED';
 
 /**
  * Authentication event data
