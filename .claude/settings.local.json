@@ -18,7 +18,13 @@
       "Bash(npm run dev:*)",
       "Bash(curl:*)",
       "Bash(npm run build:*)",
-      "Bash(cargo init:*)"
+      "Bash(cargo init:*)",
+      "Bash(cat:*)",
+      "Bash(rm:*)",
+      "Bash(while read dir)",
+      "Bash(do rm -rf \"$dir\")",
+      "Bash(echo:*)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": []
