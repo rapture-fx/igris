@@ -4,7 +4,7 @@ UNIFIED PIPELINE API
 
 Comprehensive API for data processing pipelines that supports:
 - Multiple data sources (files, databases, APIs, cloud storage)
-- AI-powered analysis and cleaning
+- data infrastructure analysis and cleaning
 - ML framework exports
 - Real-time progress tracking
 - Both web UI and API requests
@@ -156,7 +156,7 @@ async def create_pipeline(
     
     Create a comprehensive data processing pipeline that can handle:
     - File uploads, database connections, API endpoints
-    - AI-powered analysis and pattern detection  
+    - data infrastructure analysis and pattern detection  
     - Automated data cleaning and transformation
     - ML framework exports (TensorFlow, PyTorch, etc.)
     - Real-time progress tracking

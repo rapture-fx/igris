@@ -40,7 +40,7 @@ mock_integrations = [
     {
         "id": "2",
         "name": "Smart Data Cleaner",
-        "description": "AI-powered data cleaning and normalization",
+        "description": "data infrastructure data cleaning and normalization",
         "category": "data_cleaning",
         "provider": "CleanTech Solutions",
         "rating": 4.6,

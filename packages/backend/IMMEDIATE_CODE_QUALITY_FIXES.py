@@ -251,7 +251,7 @@ class ProcessingConfig(BaseSettings):
     timeout_seconds: int = Field(default=300, description="Processing timeout")
     
     # AI analysis
-    ai_analysis_enabled: bool = Field(default=True, description="Enable AI-powered analysis")
+    ai_analysis_enabled: bool = Field(default=True, description="Enable data infrastructure analysis")
     pattern_confidence_threshold: float = Field(default=0.7, description="Pattern recognition confidence")
     
     class Config:

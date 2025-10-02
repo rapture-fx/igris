@@ -387,7 +387,7 @@ export default function DocumentationPage() {
       {
         method: 'POST',
         path: '/v1/analysis/intelligent-analysis',
-        description: 'Advanced AI-powered comprehensive analysis',
+        description: 'Advanced Infrastructure for AI companies comprehensive analysis',
         parameters: [
           { name: 'investigation_id', type: 'string', required: true, description: 'Investigation UUID' },
           { name: 'analysis_scope', type: 'array', required: false, description: 'Scope of analysis (data_quality, patterns, anomalies, insights)' },
@@ -1234,7 +1234,7 @@ Invalid fields: ['file_type', 'encoding']`
                       <span className="text-blue-600 font-semibold text-xs">3</span>
                     </div>
                     <div className="font-medium text-blue-900">Transform</div>
-                    <div className="text-blue-700 text-xs">AI-powered cleaning</div>
+                    <div className="text-blue-700 text-xs">Infrastructure for AI companies cleaning</div>
                   </div>
                   <div className="text-center">
                     <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -1299,7 +1299,7 @@ Invalid fields: ['file_type', 'encoding']`
             <div className="mb-6">
               <h1 className="text-2xl font-bold text-gray-900 mb-3">Data Transformations</h1>
               <p className="text-base text-gray-600 mb-6">
-                AI-powered transformations that clean and prepare your data automatically.
+                Infrastructure for AI companies transformations that clean and prepare your data automatically.
               </p>
             </div>
 
@@ -4158,7 +4158,7 @@ email: 12 anomalies (0.6%)`
             <div className="mb-6">
               <h1 className="text-xl font-bold text-gray-900 mb-2">Analysis API</h1>
               <p className="text-sm text-gray-600">
-                Run comprehensive AI-powered analysis on your datasets including quality scoring, insights, and recommendations.
+                Run comprehensive Infrastructure for AI companies analysis on your datasets including quality scoring, insights, and recommendations.
               </p>
             </div>
 

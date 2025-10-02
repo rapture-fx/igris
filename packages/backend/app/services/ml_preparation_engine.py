@@ -2,7 +2,7 @@
 ML Data Preparation Engine
 =========================
 
-Core AI-powered engine for automated data preparation and cleaning workflows.
+Core data infrastructure engine for automated data preparation and cleaning workflows.
 This service orchestrates the complete pipeline from raw data to ML-ready formats.
 
 Key Features:

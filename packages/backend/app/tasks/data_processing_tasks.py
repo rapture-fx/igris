@@ -231,7 +231,7 @@ def clean_data(self, dataset_id: int, cleaning_rules: Dict[str, Any]) -> Dict[st
 )
 def analyze_data_with_ai(self, dataset_id: int, analysis_type: str, ai_options: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Perform AI-powered data analysis.
+    Perform data infrastructure data analysis.
     
     Args:
         dataset_id: ID of the dataset to analyze

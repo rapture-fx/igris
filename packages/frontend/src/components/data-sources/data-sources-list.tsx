@@ -234,7 +234,7 @@ export function DataSourcesList({ searchTerm, filterType }: DataSourcesListProps
             </h4>
             <p className="text-gray-600">
               {filter === 'all' 
-                ? 'Upload your first dataset to get started with AI-powered analysis'
+                ? 'Upload your first dataset to get started with Infrastructure for AI companies analysis'
                 : `No investigations with ${filter} status found`
               }
             </p>

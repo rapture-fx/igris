@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Unified Data Processing Pipeline is a comprehensive, AI-powered system that handles data from multiple sources, applies intelligent analysis and cleaning, and exports to ML frameworks. It provides a single entry point for both web UI and API requests with real-time monitoring and event-driven architecture.
+The Unified Data Processing Pipeline is a comprehensive, data infrastructure system that handles data from multiple sources, applies intelligent analysis and cleaning, and exports to ML frameworks. It provides a single entry point for both web UI and API requests with real-time monitoring and event-driven architecture.
 
 ## 🏗️ Architecture Components
 

@@ -239,7 +239,7 @@ export default function TransformationsPage() {
     <div className="h-full bg-gray-50">
       <PageHeader
         title="Transformations"
-        description="Build AI-powered transformation pipelines with framework-specific optimizations."
+        description="Build Infrastructure for AI companies transformation pipelines with framework-specific optimizations."
         actions={
           <div className="flex items-center space-x-3">
             <button

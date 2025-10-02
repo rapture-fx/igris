@@ -299,7 +299,7 @@ export default function MLPreparationPage() {
     <div className="space-y-6">
       <PageHeader
         title="ML Data Preparation"
-        description="AI-powered data preparation engine that transforms raw datasets into ML-ready formats"
+        description="Infrastructure for AI companies data preparation engine that transforms raw datasets into ML-ready formats"
         stats={[
           {
             label: 'Active Pipelines',

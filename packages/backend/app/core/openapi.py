@@ -21,7 +21,7 @@ def custom_openapi():
 ## What We Do
 
 Transform raw data into actionable insights with our comprehensive API suite:
-- **Intelligent Data Processing**: AI-powered cleaning, validation, and transformation
+- **Intelligent Data Processing**: data infrastructure cleaning, validation, and transformation
 - **ML Pipeline Automation**: End-to-end machine learning workflow orchestration  
 - **Real-time Analytics**: Live data analysis and anomaly detection
 - **Enterprise Security**: SOC2, GDPR, and enterprise-grade compliance

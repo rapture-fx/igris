@@ -65,7 +65,7 @@
     "lint:fix": "eslint src --ext .ts,.js --fix",
     "type-check": "tsc --noEmit",
     "docs": "typedoc",
-    "prepare": "npm run build",
+    "prepare": "echo 'Skipping build'",
     "prepublishOnly": "npm run test && npm run build",
     "size": "size-limit"
   },

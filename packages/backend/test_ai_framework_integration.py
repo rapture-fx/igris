@@ -547,4 +547,4 @@ if __name__ == "__main__":
     print("   • Pattern-based labeling rules")
     print("   • Proper train/validation/test splits")
     print("   • Framework recommendations")
-    print("\n🎯 Schlep-engine provides comprehensive AI-powered data preparation capabilities!") 
+    print("\n🎯 Schlep-engine provides comprehensive data infrastructure data preparation capabilities!") 

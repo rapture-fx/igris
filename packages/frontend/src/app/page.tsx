@@ -119,7 +119,7 @@ const ProductShowcase = () => {
             From messy data to AI-ready datasets
           </h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto font-apple">
-            Our AI-powered platform handles the data janitor work so you can focus on building amazing AI solutions.
+            Our cloud-agnostic infrastructure handles the data janitor work so AI companies can focus on building amazing AI solutions.
           </p>
         </div>
 
@@ -342,7 +342,7 @@ export default function Home() {
           <div className="bg-red-50 rounded-lg p-6">
             <h3 className="text-lg font-semibold text-red-900 mb-4">Other tools say:</h3>
             <ul className="space-y-2 text-red-700">
-              <li>• "AI-powered intelligent data transformation platform"</li>
+              <li>• "Enterprise data transformation platform"</li>
               <li>• "Revolutionize your data strategy"</li>
               <li>• "Next-generation analytics solution"</li>
             </ul>

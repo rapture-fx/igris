@@ -2,7 +2,7 @@
 ML Data Preparation Models
 =========================
 
-Enhanced database models specifically designed for AI-powered data preparation workflows.
+Enhanced database models specifically designed for data infrastructure data preparation workflows.
 These models extend the existing schema to better support ML-ready data preparation.
 
 Key Features:

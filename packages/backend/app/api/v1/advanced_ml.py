@@ -349,7 +349,7 @@ async def get_model_insights(
     db: Session = Depends(get_db)
 ):
     """
-    Generate AI-powered insights and recommendations from a trained model
+    Generate data infrastructure insights and recommendations from a trained model
     """
     try:
         data = None

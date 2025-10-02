@@ -510,7 +510,7 @@ def generate_enterprise_dpa():
             "data_protection_officer": "dpo@globalenterprise.com"
         },
         "processing_details": {
-            "purpose": "Global customer analytics and AI-powered insights",
+            "purpose": "Global customer analytics and data infrastructure insights",
             "legal_basis": "Legitimate interest and consent",
             "data_categories": [
                 "Personal data",

@@ -2,7 +2,7 @@
 ML Data Preparation API
 =====================
 
-API endpoints for AI-powered data preparation workflows focused on ML readiness.
+API endpoints for data infrastructure data preparation workflows focused on ML readiness.
 This API orchestrates the complete pipeline from raw data to framework-ready outputs.
 
 Key Features:

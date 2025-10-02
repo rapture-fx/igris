@@ -167,7 +167,7 @@ export default function DashboardPage() {
       <div className="space-y-8">
         <PageHeader
           title="Welcome to Schlep-engine"
-          description="Your AI-powered data intelligence platform"
+          description="Your Infrastructure for AI companies data intelligence platform"
           showDivider={false}
         />
         

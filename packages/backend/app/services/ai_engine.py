@@ -229,7 +229,7 @@ class DataQualityAnalyzer:
         }
     
     def suggest_improvements(self, df: pd.DataFrame) -> List[Dict[str, Any]]:
-        """Generate AI-powered suggestions for data improvement"""
+        """Generate data infrastructure suggestions for data improvement"""
         suggestions = []
         
         # Analyze each column for improvement opportunities

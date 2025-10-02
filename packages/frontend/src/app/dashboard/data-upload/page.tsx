@@ -29,7 +29,7 @@ export default function DataUploadPage() {
             Enhanced Data Upload
           </h1>
           <p className="text-lg text-gray-600">
-            Upload files, connect to databases, or import from APIs with AI-powered data preparation
+            Upload files, connect to databases, or import from APIs with Infrastructure for AI companies data preparation
           </p>
         </div>
 
@@ -239,12 +239,12 @@ export default function DataUploadPage() {
             <CardContent>
               <div className="text-center py-8">
                 <p className="text-gray-600 mb-4">
-                  Upload your first dataset to get started with AI-powered data preparation
+                  Upload your first dataset to get started with Infrastructure for AI companies data preparation
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   <Badge variant="outline">✅ 1-click upload</Badge>
                   <Badge variant="outline">🔍 Automatic quality checks</Badge>
-                  <Badge variant="outline">🤖 AI-powered cleaning</Badge>
+                  <Badge variant="outline">🤖 Infrastructure for AI companies cleaning</Badge>
                   <Badge variant="outline">📊 ML-ready output</Badge>
                 </div>
               </div>

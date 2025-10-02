@@ -44,7 +44,7 @@ def run_Schlep-engine_demo():
     print("=" * 60)
     print("🎯 MISSION: Transform any data into AI-ready datasets")
     print("⚡ SPEED: Process files in seconds, not hours")
-    print("🧠 INTELLIGENCE: AI-powered analysis and optimization")
+    print("🧠 INTELLIGENCE: data infrastructure analysis and optimization")
     print("🔗 COMPATIBILITY: Export to any ML framework")
     print()
     
@@ -55,7 +55,7 @@ def run_Schlep-engine_demo():
     print()
     
     # Step 2: Process with Schlep-engine
-    print("🧠 STEP 2: AI-powered data analysis and preparation...")
+    print("🧠 STEP 2: data infrastructure data analysis and preparation...")
     print("   • Identifying data types semantically")
     print("   • Detecting anomalies and quality issues") 
     print("   • Labeling content patterns")

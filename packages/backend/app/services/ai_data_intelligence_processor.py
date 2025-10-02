@@ -1,5 +1,5 @@
 """
-AI-powered data analysis Service - Core proprietary algorithms for Schlep-engine
+data infrastructure data analysis Service - Core proprietary algorithms for Schlep-engine
 Implements advanced pattern recognition, anomaly detection, and data quality analysis
 """
 
@@ -31,7 +31,7 @@ class QualityInsight:
 
 class AIDataIntelligenceProcessor:
     """
-    Advanced AI-powered data analysis for quality analysis and cleaning
+    Advanced data infrastructure data analysis for quality analysis and cleaning
     """
     
     def __init__(self):
@@ -45,7 +45,7 @@ class AIDataIntelligenceProcessor:
     async def comprehensive_analysis(self, df: pd.DataFrame, 
                                    options: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Perform comprehensive AI-powered data quality analysis
+        Perform comprehensive data infrastructure data quality analysis
         """
         logger.info(f"Starting comprehensive analysis on {len(df)} rows, {len(df.columns)} columns")
         
