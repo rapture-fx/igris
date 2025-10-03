@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package ml;
+
+option go_package = "github.com/schlep-engine/go-gateway/proto";
+
+// ML Service for predictions
+service MLService {
+    // Make a prediction with the given features
+    rpc Predict(PredictRequest) returns (PredictResponse);
+
+    // Health check for the service
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message PredictRequest {
+    repeated double features = 1;
+    string model_id = 2;
+}
+
+message PredictResponse {
+    double prediction = 1;
+    double confidence = 2;
+    string model_id = 3;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+    string status = 1;
+    string version = 2;
+}

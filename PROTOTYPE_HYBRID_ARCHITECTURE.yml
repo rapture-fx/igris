@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # Python ML Service (gRPC)
+  python-ml:
+    build:
+      context: .
+      dockerfile: python_ml/Dockerfile
+    container_name: schlep-python-ml
+    ports:
+      - "50051:50051"
+    environment:
+      - LOG_LEVEL=INFO
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(channel).result(timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - schlep-net
+
+  # Go API Gateway (with Rust FFI)
+  go-gateway:
+    build:
+      context: .
+      dockerfile: go_gateway/Dockerfile
+    container_name: schlep-go-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - ML_SERVICE_URL=python-ml:50051
+    depends_on:
+      python-ml:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - schlep-net
+
+networks:
+  schlep-net:
+    driver: bridge

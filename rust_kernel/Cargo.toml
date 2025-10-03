@@ -1,0 +1,20 @@
+[package]
+name = "schlep-kernel"
+version = "0.1.0"
+edition = "2021"
+authors = ["Schlep-Engine Team"]
+description = "Minimal Rust kernel for Go FFI prototype"
+
+[lib]
+name = "schlep_kernel"
+crate-type = ["cdylib", "staticlib"]  # Both for compatibility
+
+[dependencies]
+libc = "0.2"
+
+[profile.release]
+lto = true              # Link-time optimization
+codegen-units = 1       # Single codegen unit for better optimization
+panic = "abort"         # Smaller binaries
+opt-level = 3           # Maximum optimization
+strip = true            # Strip symbols for smaller binary

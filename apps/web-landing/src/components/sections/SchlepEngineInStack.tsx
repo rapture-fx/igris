@@ -32,16 +32,7 @@ const rustCode = `<code><span style="color: #114dcd;">use</span> schlep_engine::
 
 <span style="color: #114dcd;">println!</span>(<span style="color: #4b5563;">"{:?}"</span>, result);</code>`;
 
-const javaCode = `<code><span style="color: #114dcd;">import</span> com.schlepengine.SchlepEngineClient;
-<span style="color: #114dcd;">import</span> com.schlepengine.ProcessResult;
-
-<span style="color: #114dcd;">public class</span> Main {
-    <span style="color: #114dcd;">public static void</span> main(String[] args) {
-        SchlepEngineClient client = <span style="color: #114dcd;">new</span> SchlepEngineClient(<span style="color: #4b5563;">"YOUR_API_KEY"</span>);
-        ProcessResult result = client.data().processFile(<span style="color: #4b5563;">"sales_data.csv"</span>);
-        System.out.<span style="color: #114dcd;">println</span>(result);
-    }
-}</code>`;
+const javaCode = ``;
 
 const goCode = `<code><span style="color: #114dcd;">package</span> main
 
@@ -56,21 +47,9 @@ const goCode = `<code><span style="color: #114dcd;">package</span> main
     fmt.<span style="color: #114dcd;">Println</span>(result)
 }</code>`;
 
-const rubyCode = `<code><span style="color: #114dcd;">require</span> <span style="color: #4b5563;">'schlep_engine'</span>
+const rubyCode = ``;
 
-client = SchlepEngine::Client.<span style="color: #114dcd;">new</span>(api_key: <span style="color: #4b5563;">'YOUR_API_KEY'</span>)
-
-result = client.data.process_file(<span style="color: #4b5563;">'sales_data.csv'</span>)
-
-<span style="color: #114dcd;">puts</span> result</code>`;
-
-const dotnetCode = `<code><span style="color: #114dcd;">using</span> SchlepEngine;
-
-<span style="color: #114dcd;">var</span> client = <span style="color: #114dcd;">new</span> SchlepEngineClient(<span style="color: #4b5563;">"YOUR_API_KEY"</span>);
-
-<span style="color: #114dcd;">var</span> result = <span style="color: #114dcd;">await</span> client.Data.ProcessFileAsync(<span style="color: #4b5563;">"sales_data.csv"</span>);
-
-Console.<span style="color: #114dcd;">WriteLine</span>(result);</code>`;
+const dotnetCode = ``;
 
 const cliCode = `<code><span style="color: #114dcd;">schlep</span> data process <span style="color: #4b5563;">sales_data.csv</span> <span style="color: #dc2626;">--api-key</span> <span style="color: #4b5563;">YOUR_API_KEY</span></code>`;
 
@@ -261,27 +240,6 @@ export default function SchlepEngineInStack() {
                           </button>
                           <button
                             className={`flex items-center justify-between px-2 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
-                              activeTab === 'java'
-                                ? 'text-gray-900'
-                                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
-                            style={{
-                              backgroundColor: activeTab === 'java' ? '#f7f7f3' : 'transparent',
-                              border: activeTab === 'java' ? '1px solid #e5e7eb' : '1px solid #e5e7eb',
-                              borderBottom: activeTab === 'java' ? 'none' : '1px solid #e5e7eb',
-                              borderRadius: '4px 4px 0 0',
-                              minWidth: '70px',
-                              zIndex: 2
-                            }}
-                            onClick={() => setActiveTab('java')}
-                          >
-                            <span>Java</span>
-                            <svg className="w-3 h-3 text-gray-400 hover:text-gray-600 ml-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                            </svg>
-                          </button>
-                          <button
-                            className={`flex items-center justify-between px-2 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
                               activeTab === 'go'
                                 ? 'text-gray-900'
                                 : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
@@ -297,48 +255,6 @@ export default function SchlepEngineInStack() {
                             onClick={() => setActiveTab('go')}
                           >
                             <span>Go</span>
-                            <svg className="w-3 h-3 text-gray-400 hover:text-gray-600 ml-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                            </svg>
-                          </button>
-                          <button
-                            className={`flex items-center justify-between px-2 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
-                              activeTab === 'ruby'
-                                ? 'text-gray-900'
-                                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
-                            style={{
-                              backgroundColor: activeTab === 'ruby' ? '#f7f7f3' : 'transparent',
-                              border: activeTab === 'ruby' ? '1px solid #e5e7eb' : '1px solid #e5e7eb',
-                              borderBottom: activeTab === 'ruby' ? 'none' : '1px solid #e5e7eb',
-                              borderRadius: '4px 4px 0 0',
-                              minWidth: '70px',
-                              zIndex: 2
-                            }}
-                            onClick={() => setActiveTab('ruby')}
-                          >
-                            <span>Ruby</span>
-                            <svg className="w-3 h-3 text-gray-400 hover:text-gray-600 ml-2" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                            </svg>
-                          </button>
-                          <button
-                            className={`flex items-center justify-between px-2 py-1.5 text-sm transition-all duration-200 relative focus:outline-none ${
-                              activeTab === 'dotnet'
-                                ? 'text-gray-900'
-                                : 'text-gray-600 hover:text-gray-700 hover:bg-gray-100'
-                            }`}
-                            style={{
-                              backgroundColor: activeTab === 'dotnet' ? '#f7f7f3' : 'transparent',
-                              border: activeTab === 'dotnet' ? '1px solid #e5e7eb' : '1px solid #e5e7eb',
-                              borderBottom: activeTab === 'dotnet' ? 'none' : '1px solid #e5e7eb',
-                              borderRadius: '4px 4px 0 0',
-                              minWidth: '70px',
-                              zIndex: 2
-                            }}
-                            onClick={() => setActiveTab('dotnet')}
-                          >
-                            <span>.NET</span>
                             <svg className="w-3 h-3 text-gray-400 hover:text-gray-600 ml-2" fill="currentColor" viewBox="0 0 20 20">
                               <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
                             </svg>
@@ -395,7 +311,7 @@ export default function SchlepEngineInStack() {
                   </h3>
 
                   <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
-                    We don't ask you to change the way you build. From Python scripts to enterprise .NET systems, Schlep-engine slides into your stack so you can focus on solving problems, not fighting integrations.
+                    You don’t need to change how you build. Schlep-engine just plugs in <br /> and works alongside your code.
                   </p>
 
                   {/* Language Selection */}
@@ -406,20 +322,11 @@ export default function SchlepEngineInStack() {
                     <button onClick={() => setActiveTab('rust')}>
                       <img src="/RUST.svg" alt="Rust" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'rust' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
+                    <button onClick={() => setActiveTab('go')}>
+                      <img src="/GO.svg" alt="Go" className={`h-28 w-28 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
+                    </button>
                     <button onClick={() => setActiveTab('javascript')}>
                       <img src="/NODE.svg" alt="Node.js" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'javascript' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                    </button>
-                    <button onClick={() => setActiveTab('ruby')}>
-                      <img src="/Ruby.svg" alt="Ruby" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'ruby' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                    </button>
-                    <button onClick={() => setActiveTab('java')}>
-                      <img src="/Java.svg" alt="Java" className={`h-20 w-20 transition-opacity cursor-pointer ${activeTab === 'java' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                    </button>
-                    <button onClick={() => setActiveTab('go')}>
-                      <img src="/GO.svg" alt="Go" className={`h-24 w-24 transition-opacity cursor-pointer ${activeTab === 'go' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
-                    </button>
-                    <button onClick={() => setActiveTab('dotnet')}>
-                      <img src="/dotNET.svg" alt=".NET" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'dotnet' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />
                     </button>
                     <button onClick={() => setActiveTab('cli')}>
                       <img src="/CLI.svg" alt="CLI" className={`h-16 w-16 transition-opacity cursor-pointer ${activeTab === 'cli' ? 'opacity-100' : 'opacity-70 hover:opacity-100'}`} />

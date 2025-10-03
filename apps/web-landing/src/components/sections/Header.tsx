@@ -54,6 +54,9 @@ export default function Header() {
             <Link href="http://localhost:3005/api-reference" className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 font-inter">
               Docs
             </Link>
+            <Link href="/blog" className={`text-sm transition-colors duration-200 font-inter ${pathname === '/blog' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+              Blog
+            </Link>
             <Link href="/pricing" className={`text-sm transition-colors duration-200 font-inter ${pathname === '/pricing' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
               Pricing
             </Link>

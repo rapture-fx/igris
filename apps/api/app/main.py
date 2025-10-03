@@ -566,6 +566,14 @@ try:
 except ImportError as e:
     logger.warning(f"Hybrid ML Pipeline endpoints not available: {e}")
 
+# Pipeline Templates API (NEW)
+try:
+    from app.api.v1.pipeline_templates import router as pipeline_templates_router
+    app.include_router(pipeline_templates_router, prefix="/api/v1/pipelines", tags=["Pipeline Templates"])
+    logger.info("Pipeline Templates API enabled - 6 ready-to-use ML pipelines")
+except ImportError as e:
+    logger.warning(f"Pipeline Templates API not available: {e}")
+
 # Root endpoint
 @app.get("/", tags=["Root"])
 async def root():

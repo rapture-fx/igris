@@ -29,7 +29,15 @@
       "Bash(pnpm install:*)",
       "Bash(xargs kill:*)",
       "Bash(pnpm dev:*)",
-      "Bash(grep -E \"\\.py$\")"
+      "Bash(grep -E \"\\.py$\")",
+      "Bash(for f in *.py endpoints/*.py)",
+      "Bash(do if [ -f \"$f\" ])",
+      "Bash(then echo \"=== $f ===\")",
+      "Bash(grep:*)",
+      "Bash(fi)",
+      "Bash(paste:*)",
+      "Bash(awk:*)",
+      "Bash(sort:*)"
     ],
     "deny": [],
     "ask": []
