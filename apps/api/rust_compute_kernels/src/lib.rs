@@ -24,6 +24,9 @@ mod memory_kernels;
 mod security_fixes;
 mod secure_string_kernels;
 
+// ML preprocessing modules (Polars/Arrow)
+mod polars_kernels;
+
 // Re-export public APIs
 pub use csv_kernels::*;
 pub use aggregation_kernels::*;
@@ -281,6 +284,9 @@ fn schlep_compute_kernels(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Data cleaning functions
     m.add_function(wrap_pyfunction!(fast_data_clean, m)?)?;
+
+    // Polars/Arrow ML preprocessing functions
+    polars_kernels::register_polars_kernels(m.py(), m.as_gil_ref())?;
 
     // Utility functions
     m.add_function(wrap_pyfunction!(benchmark_kernels, m)?)?;

@@ -553,6 +553,19 @@ app.include_router(streaming_router, prefix="/api/v1/streaming", tags=["Real-Tim
 # Advanced Model Serving endpoints
 app.include_router(model_serving_router, prefix="/api/v1/serving", tags=["Model Serving"])
 
+# Hybrid ML Pipeline Ingestion endpoints (NEW)
+try:
+    from app.ingestion.batch_rest import router as batch_ingestion_router
+    from app.ingestion.stream_gateway import router as stream_ingestion_router
+    from app.ingestion.unified_api import router as unified_ingestion_router
+
+    app.include_router(batch_ingestion_router, prefix="/api/v1/ingestion", tags=["Hybrid ML - Batch Ingestion"])
+    app.include_router(stream_ingestion_router, prefix="/api/v1/ingestion", tags=["Hybrid ML - Streaming"])
+    app.include_router(unified_ingestion_router, prefix="/api/v1/ingestion", tags=["Hybrid ML - Unified API"])
+    logger.info("Hybrid ML Pipeline ingestion endpoints enabled")
+except ImportError as e:
+    logger.warning(f"Hybrid ML Pipeline endpoints not available: {e}")
+
 # Root endpoint
 @app.get("/", tags=["Root"])
 async def root():

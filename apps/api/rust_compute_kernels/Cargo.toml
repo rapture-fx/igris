@@ -21,6 +21,11 @@ byteorder = "1.5"       # Byte order utilities
 regex = "1.10"          # Regular expressions
 chrono = { version = "0.4", features = ["serde"] }
 
+# Polars and Arrow for memory-optimized ML preprocessing
+polars = { version = "0.36", features = ["lazy", "parquet", "json", "csv", "dtype-full", "performant"] }
+arrow = { version = "50", features = ["ipc", "ffi"] }
+arrow-ipc = "50"
+
 # Optional performance features
 mimalloc = { version = "0.1", optional = true }
 simd-json = { version = "0.13", optional = true }
