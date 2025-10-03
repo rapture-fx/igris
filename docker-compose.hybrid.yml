@@ -1,0 +1,321 @@
+version: '3.8'
+
+# Schlep-Engine Hybrid Architecture - Full Production Stack
+# Go Gateway + Rust FFI + Python ML + Observability
+
+services:
+  # =====================================================
+  # Core Services
+  # =====================================================
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: schlep-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-schlep_engine}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_INITDB_ARGS: "-E UTF8"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - schlep-net
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: schlep-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - schlep-net
+
+  # NATS Streaming (for event sourcing, real-time)
+  nats:
+    image: nats:2.10-alpine
+    container_name: schlep-nats
+    ports:
+      - "4222:4222"  # Client connections
+      - "8222:8222"  # HTTP monitoring
+      - "6222:6222"  # Cluster routes
+    command: ["-js", "-m", "8222"]  # Enable JetStream + monitoring
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8222/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - schlep-net
+
+  # =====================================================
+  # Hybrid Architecture Services
+  # =====================================================
+
+  # Python ML Service (gRPC) - Isolated ML-only service
+  python-ml:
+    build:
+      context: .
+      dockerfile: apps/python-ml-service/Dockerfile
+    container_name: schlep-python-ml
+    ports:
+      - "50051:50051"
+    environment:
+      - ML_SERVICE_PORT=50051
+      - MAX_WORKERS=10
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(channel).result(timeout=2)"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - schlep-net
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # Go API Gateway (with Rust FFI)
+  go-gateway:
+    build:
+      context: .
+      dockerfile: apps/go-gateway/Dockerfile
+    container_name: schlep-go-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SERVER_PORT=8080
+      - ML_SERVICE_URL=python-ml:50051
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=${POSTGRES_DB:-schlep_engine}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=json
+      - ENABLE_METRICS=true
+      - ENABLE_TRACING=true
+      - ML_RETRY_MAX=3
+      - ML_RETRY_DELAY_MS=100
+      - ML_CONNECTION_TIMEOUT_SEC=5
+      - ML_REQUEST_TIMEOUT_SEC=10
+      - ML_CIRCUIT_BREAKER_ENABLED=true
+      - ML_CIRCUIT_BREAKER_FAILURE_THRESHOLD=5
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      python-ml:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - schlep-net
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+
+  # =====================================================
+  # Observability Stack
+  # =====================================================
+
+  # Prometheus (Metrics Collection)
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    container_name: schlep-prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--storage.tsdb.retention.time=30d'
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - schlep-net
+    depends_on:
+      - go-gateway
+
+  # Grafana (Metrics Visualization)
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: schlep-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./observability/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - schlep-net
+    depends_on:
+      - prometheus
+
+  # Jaeger (Distributed Tracing - Optional for Phase 1)
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    container_name: schlep-jaeger
+    ports:
+      - "5775:5775/udp"  # Zipkin thrift compact
+      - "6831:6831/udp"  # Jaeger thrift compact
+      - "6832:6832/udp"  # Jaeger thrift binary
+      - "5778:5778"      # Serve configs
+      - "16686:16686"    # Jaeger UI
+      - "14268:14268"    # Jaeger collector HTTP
+      - "14250:14250"    # Jaeger gRPC
+      - "9411:9411"      # Zipkin compatible
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - SPAN_STORAGE_TYPE=memory
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:14269/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - schlep-net
+
+  # =====================================================
+  # Legacy Python API (for gradual migration)
+  # =====================================================
+
+  python-api-legacy:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: schlep-python-api-legacy
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-schlep_engine}
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - ENABLE_STREAM_PRODUCERS=false
+      - ENABLE_MODEL_SERVING=true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    networks:
+      - schlep-net
+    volumes:
+      - ./apps/api:/app
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+
+  # =====================================================
+  # Load Balancer (Nginx)
+  # Routes traffic between Go gateway and legacy Python API
+  # =====================================================
+
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: schlep-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./observability/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - go-gateway
+      - python-api-legacy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - schlep-net
+
+# =====================================================
+# Networks
+# =====================================================
+
+networks:
+  schlep-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+# =====================================================
+# Volumes
+# =====================================================
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
