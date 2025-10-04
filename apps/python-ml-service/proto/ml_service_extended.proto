@@ -1,0 +1,408 @@
+syntax = "proto3";
+
+package ml_service;
+
+// Extended ML Service with Orchestration Capabilities
+// Includes: Training, Model Management, Advanced Inference
+
+service MLService {
+  // ========================================
+  // Core Inference (Existing)
+  // ========================================
+
+  // Single prediction
+  rpc Predict (PredictRequest) returns (PredictResponse);
+
+  // Batch prediction
+  rpc BatchPredict (BatchPredictRequest) returns (BatchPredictResponse);
+
+  // Service health check
+  rpc HealthCheck (HealthCheckRequest) returns (HealthCheckResponse);
+
+  // Get model metadata
+  rpc GetModelInfo (ModelInfoRequest) returns (ModelInfoResponse);
+
+  // ========================================
+  // Model Management (NEW - Phase 2)
+  // ========================================
+
+  // Load model into memory
+  rpc LoadModel (LoadModelRequest) returns (LoadModelResponse);
+
+  // Unload model from memory
+  rpc UnloadModel (UnloadModelRequest) returns (UnloadModelResponse);
+
+  // List all available models
+  rpc ListModels (ListModelsRequest) returns (ListModelsResponse);
+
+  // Delete model from storage
+  rpc DeleteModel (DeleteModelRequest) returns (DeleteModelResponse);
+
+  // ========================================
+  // Model Training (NEW - Phase 2)
+  // ========================================
+
+  // Train a new model
+  rpc TrainModel (TrainModelRequest) returns (TrainModelResponse);
+
+  // Retrain existing model with new data
+  rpc RetrainModel (RetrainModelRequest) returns (RetrainModelResponse);
+
+  // Get training status
+  rpc GetTrainingStatus (TrainingStatusRequest) returns (TrainingStatusResponse);
+
+  // Cancel ongoing training
+  rpc CancelTraining (CancelTrainingRequest) returns (CancelTrainingResponse);
+
+  // ========================================
+  // Advanced Inference (NEW - Phase 2)
+  // ========================================
+
+  // Streaming prediction (for real-time)
+  rpc StreamPredict (stream PredictRequest) returns (stream PredictResponse);
+
+  // Explain prediction (feature importance)
+  rpc ExplainPrediction (ExplainRequest) returns (ExplainResponse);
+
+  // A/B test prediction (compare models)
+  rpc ABTestPredict (ABTestRequest) returns (ABTestResponse);
+
+  // ========================================
+  // Model Evaluation (NEW - Phase 2)
+  // ========================================
+
+  // Evaluate model performance
+  rpc EvaluateModel (EvaluationRequest) returns (EvaluationResponse);
+
+  // Get model metrics
+  rpc GetModelMetrics (MetricsRequest) returns (MetricsResponse);
+
+  // Validate model against test data
+  rpc ValidateModel (ValidationRequest) returns (ValidationResponse);
+}
+
+// ========================================
+// Existing Messages
+// ========================================
+
+message PredictRequest {
+  string model_id = 1;
+  repeated double features = 2;
+  map<string, string> metadata = 3;
+}
+
+message PredictResponse {
+  double prediction = 1;
+  double confidence = 2;
+  string model_id = 3;
+  int64 latency_ms = 4;
+  map<string, double> probabilities = 5;
+  string error = 6;
+}
+
+message BatchPredictRequest {
+  string model_id = 1;
+  repeated FeatureSet feature_sets = 2;
+  map<string, string> metadata = 3;
+}
+
+message FeatureSet {
+  repeated double features = 1;
+}
+
+message BatchPredictResponse {
+  repeated PredictResponse predictions = 1;
+  int64 total_latency_ms = 2;
+  int32 success_count = 3;
+  int32 error_count = 4;
+}
+
+message HealthCheckRequest {
+  bool detailed = 1;
+}
+
+message HealthCheckResponse {
+  string status = 1;
+  int64 uptime_seconds = 2;
+  int32 loaded_models_count = 3;
+  repeated string loaded_models = 4;
+  map<string, string> system_metrics = 5;
+}
+
+message ModelInfoRequest {
+  string model_id = 1;
+}
+
+message ModelInfoResponse {
+  string model_id = 1;
+  string model_type = 2;
+  string version = 3;
+  repeated string input_features = 4;
+  repeated string output_classes = 5;
+  bool loaded = 6;
+  map<string, string> metadata = 7;
+}
+
+// ========================================
+// NEW Messages - Model Management
+// ========================================
+
+message LoadModelRequest {
+  string model_id = 1;
+  string model_path = 2;
+  map<string, string> config = 3;
+  bool force_reload = 4;
+}
+
+message LoadModelResponse {
+  bool success = 1;
+  string message = 2;
+  string model_id = 3;
+  int64 load_time_ms = 4;
+  int64 model_size_bytes = 5;
+}
+
+message UnloadModelRequest {
+  string model_id = 1;
+  bool force = 2;
+}
+
+message UnloadModelResponse {
+  bool success = 1;
+  string message = 2;
+  string model_id = 3;
+  int64 freed_memory_bytes = 4;
+}
+
+message ListModelsRequest {
+  bool include_unloaded = 1;
+  string filter = 2;
+}
+
+message ListModelsResponse {
+  repeated ModelSummary models = 1;
+  int32 total_count = 2;
+}
+
+message ModelSummary {
+  string model_id = 1;
+  string model_type = 2;
+  string version = 3;
+  bool loaded = 4;
+  int64 size_bytes = 5;
+  int64 last_used_timestamp = 6;
+  int64 prediction_count = 7;
+}
+
+message DeleteModelRequest {
+  string model_id = 1;
+  bool delete_artifacts = 2;
+}
+
+message DeleteModelResponse {
+  bool success = 1;
+  string message = 2;
+  int64 deleted_files_count = 3;
+}
+
+// ========================================
+// NEW Messages - Model Training
+// ========================================
+
+message TrainModelRequest {
+  string model_id = 1;
+  string model_type = 2;  // "sklearn", "pytorch", "tensorflow"
+  string algorithm = 3;   // "random_forest", "neural_network", etc.
+  repeated string feature_names = 4;
+  repeated string target_classes = 5;
+
+  // Training data (could also be file path)
+  repeated TrainingSample training_data = 6;
+
+  // Hyperparameters
+  map<string, string> hyperparameters = 7;
+
+  // Training config
+  TrainingConfig config = 8;
+}
+
+message TrainingSample {
+  repeated double features = 1;
+  oneof label {
+    double numeric_label = 2;
+    string categorical_label = 3;
+  }
+}
+
+message TrainingConfig {
+  int32 max_epochs = 1;
+  double learning_rate = 2;
+  int32 batch_size = 3;
+  double validation_split = 4;
+  bool early_stopping = 5;
+  string optimizer = 6;
+  string loss_function = 7;
+}
+
+message TrainModelResponse {
+  bool success = 1;
+  string message = 2;
+  string model_id = 3;
+  string training_job_id = 4;
+  int64 estimated_duration_sec = 5;
+}
+
+message RetrainModelRequest {
+  string model_id = 1;
+  repeated TrainingSample new_data = 2;
+  bool incremental = 3;  // true = fine-tune, false = retrain from scratch
+  map<string, string> hyperparameters = 4;
+}
+
+message RetrainModelResponse {
+  bool success = 1;
+  string message = 2;
+  string training_job_id = 3;
+  ModelComparison comparison = 4;
+}
+
+message ModelComparison {
+  double old_accuracy = 1;
+  double new_accuracy = 2;
+  double improvement_pct = 3;
+  map<string, double> metric_changes = 4;
+}
+
+message TrainingStatusRequest {
+  string training_job_id = 1;
+}
+
+message TrainingStatusResponse {
+  string job_id = 1;
+  string status = 2;  // "pending", "running", "completed", "failed"
+  double progress_pct = 3;
+  int64 elapsed_sec = 4;
+  int64 remaining_sec = 5;
+  TrainingMetrics current_metrics = 6;
+  string error_message = 7;
+}
+
+message TrainingMetrics {
+  int32 epoch = 1;
+  double loss = 2;
+  double accuracy = 3;
+  double val_loss = 4;
+  double val_accuracy = 5;
+  map<string, double> custom_metrics = 6;
+}
+
+message CancelTrainingRequest {
+  string training_job_id = 1;
+}
+
+message CancelTrainingResponse {
+  bool success = 1;
+  string message = 2;
+  string job_id = 3;
+}
+
+// ========================================
+// NEW Messages - Advanced Inference
+// ========================================
+
+message ExplainRequest {
+  string model_id = 1;
+  repeated double features = 2;
+  string method = 3;  // "shap", "lime", "feature_importance"
+}
+
+message ExplainResponse {
+  map<string, double> feature_importance = 1;
+  repeated string top_features = 2;
+  string visualization_url = 3;
+  string explanation_text = 4;
+}
+
+message ABTestRequest {
+  repeated string model_ids = 1;  // List of models to compare
+  repeated double features = 2;
+  string split_strategy = 3;  // "random", "canary", "champion_challenger"
+}
+
+message ABTestResponse {
+  repeated ABTestResult results = 1;
+  string selected_model_id = 2;
+  string selection_reason = 3;
+}
+
+message ABTestResult {
+  string model_id = 1;
+  double prediction = 2;
+  double confidence = 3;
+  int64 latency_ms = 4;
+}
+
+// ========================================
+// NEW Messages - Model Evaluation
+// ========================================
+
+message EvaluationRequest {
+  string model_id = 1;
+  repeated TrainingSample test_data = 2;
+  repeated string metrics = 3;  // ["accuracy", "precision", "recall", "f1"]
+}
+
+message EvaluationResponse {
+  string model_id = 1;
+  map<string, double> metrics = 2;
+  ConfusionMatrix confusion_matrix = 3;
+  repeated ClassMetrics class_metrics = 4;
+}
+
+message ConfusionMatrix {
+  repeated int32 matrix = 1;  // Flattened matrix
+  int32 num_classes = 2;
+  repeated string class_labels = 3;
+}
+
+message ClassMetrics {
+  string class_name = 1;
+  double precision = 2;
+  double recall = 3;
+  double f1_score = 4;
+  int32 support = 5;
+}
+
+message MetricsRequest {
+  string model_id = 1;
+  int64 time_range_start = 2;
+  int64 time_range_end = 3;
+}
+
+message MetricsResponse {
+  string model_id = 1;
+  int64 total_predictions = 2;
+  double avg_latency_ms = 3;
+  double avg_confidence = 4;
+  map<string, int64> prediction_distribution = 5;
+  repeated LatencyBucket latency_histogram = 6;
+}
+
+message LatencyBucket {
+  int32 bucket_ms = 1;
+  int64 count = 2;
+}
+
+message ValidationRequest {
+  string model_id = 1;
+  repeated TrainingSample validation_data = 2;
+  double acceptable_accuracy = 3;
+}
+
+message ValidationResponse {
+  bool passed = 1;
+  double achieved_accuracy = 2;
+  double required_accuracy = 3;
+  string message = 4;
+  repeated string failing_samples = 5;
+}
