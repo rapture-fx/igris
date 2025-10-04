@@ -48,15 +48,17 @@ scrape_configs:
           language: 'python'
           component: 'ml-service'
 
-  # Legacy Python API metrics
-  - job_name: 'python-api-legacy'
-    metrics_path: '/metrics'
-    static_configs:
-      - targets: ['python-api-legacy:8000']
-        labels:
-          service: 'python-api-legacy'
-          language: 'python'
-          component: 'api-monolith'
+  # Legacy Python API metrics - REMOVED (October 2025)
+  # FastAPI service fully migrated to Go Gateway
+  # See: docs/LEGACY/fastapi-archive.md for rollback
+  # - job_name: 'python-api-legacy'
+  #   metrics_path: '/metrics'
+  #   static_configs:
+  #     - targets: ['python-api-legacy:8000']
+  #       labels:
+  #         service: 'python-api-legacy'
+  #         language: 'python'
+  #         component: 'api-monolith'
 
   # PostgreSQL exporter (optional - requires postgres_exporter)
   # - job_name: 'postgres'

@@ -230,50 +230,15 @@ services:
       - schlep-net
 
   # =====================================================
-  # Legacy Python API (for gradual migration)
+  # Legacy Python API - REMOVED (October 2025)
   # =====================================================
-
-  python-api-legacy:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    container_name: schlep-python-api-legacy
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-schlep_engine}
-      - REDIS_URL=redis://redis:6379/0
-      - NATS_URL=nats://nats:4222
-      - LOG_LEVEL=${LOG_LEVEL:-INFO}
-      - ENVIRONMENT=${ENVIRONMENT:-development}
-      - ENABLE_STREAM_PRODUCERS=false
-      - ENABLE_MODEL_SERVING=true
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      nats:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
-    networks:
-      - schlep-net
-    volumes:
-      - ./apps/api:/app
-    deploy:
-      resources:
-        limits:
-          cpus: '2.0'
-          memory: 2G
+  # FastAPI service fully migrated to Go Gateway
+  # Rollback available: git checkout archive/fastapi-legacy
+  # See: docs/LEGACY/fastapi-archive.md
 
   # =====================================================
   # Load Balancer (Nginx)
-  # Routes traffic between Go gateway and legacy Python API
+  # Routes all traffic to Go Gateway (FastAPI removed)
   # =====================================================
 
   nginx:
@@ -286,7 +251,6 @@ services:
       - ./observability/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - go-gateway
-      - python-api-legacy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
       interval: 10s
