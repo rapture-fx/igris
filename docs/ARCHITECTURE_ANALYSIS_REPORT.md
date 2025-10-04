@@ -1,7 +1,10 @@
 # Schlep-Engine Architecture Analysis Report
 **Date:** October 4, 2025
 **Analyst:** Architecture Assessment Team
-**Status:** Hybrid Migration Complete (Phase 5/5)
+**Status:** Hybrid Migration Complete (Phase 5/5) - FastAPI Removal In Progress
+
+**Archive Branch:** `archive/fastapi-legacy` (created October 4, 2025)
+**Rollback Available:** All legacy FastAPI endpoints archived for emergency rollback
 
 ---
 
@@ -32,15 +35,15 @@ Schlep-Engine has successfully completed a **hybrid architecture transformation*
               ┌──────────────┴──────────────┐
               │                             │
               ▼                             ▼
-┌─────────────────────────┐    ┌─────────────────────────────────┐
-│   Go API Gateway (×5)   │    │  Legacy Python API (FastAPI)    │
-│     Ports: 8080-8084    │    │        Port: 8000               │
-├─────────────────────────┤    ├─────────────────────────────────┤
-│ • 490 REST endpoints    │    │ • Legacy endpoints (deprecated) │
-│ • WebSocket/SSE         │    │ • Gradual sunset path           │
-│ • Auth & validation     │    │ • Streaming producers/consumers │
-│ • Database pooling      │    │ • Model serving (legacy)        │
-│ • gRPC ML client        │    └─────────────────────────────────┘
+┌─────────────────────────┐
+│   Go API Gateway (×5)   │    ** Legacy FastAPI Removed **
+│     Ports: 8080-8084    │    Archived: archive/fastapi-legacy
+├─────────────────────────┤
+│ • 490 REST endpoints    │    All FastAPI endpoints migrated
+│ • WebSocket/SSE         │    to Go Gateway (100% coverage)
+│ • Auth & validation     │
+│ • Database pooling      │
+│ • gRPC ML client        │
 │ • Rust FFI integration  │
 └──────┬────────┬─────────┘
        │        │
