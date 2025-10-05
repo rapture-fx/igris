@@ -1,0 +1,118 @@
+{
+  "dashboard": {
+    "title": "Schlep-Engine: Cache Performance",
+    "tags": ["cache", "performance", "phase3"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Cache Hit Ratio (L1 + L2)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(cache_hits_total[5m]) / (rate(cache_hits_total[5m]) + rate(cache_misses_total[5m]))",
+            "legendFormat": "{{tier}} hit ratio",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "percentunit", "min": 0, "max": 1}
+        ],
+        "alert": {
+          "name": "Low Cache Hit Ratio",
+          "conditions": [
+            {
+              "type": "query",
+              "query": {"params": ["A", "5m", "now"]},
+              "reducer": {"type": "avg"},
+              "evaluator": {"type": "lt", "params": [0.7]}
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "1m",
+          "handler": 1,
+          "message": "Cache hit ratio dropped below 70%",
+          "noDataState": "no_data"
+        }
+      },
+      {
+        "id": 2,
+        "title": "Cache Operations Latency (P50, P95, P99)",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(cache_operation_latency_microseconds_bucket[5m]))",
+            "legendFormat": "{{tier}} P50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(cache_operation_latency_microseconds_bucket[5m]))",
+            "legendFormat": "{{tier}} P95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(cache_operation_latency_microseconds_bucket[5m]))",
+            "legendFormat": "{{tier}} P99",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "µs", "label": "Latency"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Cache Size (L1 vs L2)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "cache_entries_current{tier=\"l1\"}",
+            "legendFormat": "L1 (In-Memory)",
+            "refId": "A"
+          },
+          {
+            "expr": "cache_entries_current{tier=\"l2\"}",
+            "legendFormat": "L2 (Redis)",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Entries"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Cache Eviction Rate",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 8, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(cache_evictions_total[5m])",
+            "legendFormat": "{{tier}} - {{reason}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Evictions/sec"}
+        ]
+      }
+    ],
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "prometheus"
+        }
+      ]
+    }
+  }
+}

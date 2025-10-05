@@ -1,0 +1,35 @@
+{{- if .Values.persistence.modelStorage.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "schlep-engine.fullname" . }}-models
+  labels:
+    {{- include "schlep-engine.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.modelStorage.accessMode }}
+  {{- if .Values.persistence.modelStorage.storageClass }}
+  storageClassName: {{ .Values.persistence.modelStorage.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.modelStorage.size }}
+{{- end }}
+---
+{{- if .Values.persistence.dataStorage.enabled -}}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "schlep-engine.fullname" . }}-data
+  labels:
+    {{- include "schlep-engine.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.persistence.dataStorage.accessMode }}
+  {{- if .Values.persistence.dataStorage.storageClass }}
+  storageClassName: {{ .Values.persistence.dataStorage.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.dataStorage.size }}
+{{- end }}

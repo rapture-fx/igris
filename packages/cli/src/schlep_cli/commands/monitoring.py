@@ -26,7 +26,7 @@ console = Console()
 
 @click.group()
 def monitoring():
-    """Monitoring and system analytics commands."""
+    """Monitoring and system analytics commands (Phase 4 observability)."""
     pass
 
 @monitoring.command()
@@ -526,3 +526,186 @@ def cancel_job(ctx, job_id: str, force: bool):
 
 if __name__ == "__main__":
     monitoring()
+# Phase 4: Observability Commands
+@monitoring.command(name='prometheus-metrics')
+@click.option('--metric', help='Specific metric to query')
+@click.option('--format', type=click.Choice(['table', 'json', 'prometheus']), default='table')
+@click.pass_context
+def prometheus_metrics(ctx, metric, format):
+    """Query Prometheus metrics (Phase 4)."""
+    client = ctx.obj.get('client')
+    if not client:
+        console.print("[red]Not authenticated.[/red]")
+        return
+
+    try:
+        from rich.table import Table
+        response = client.get("/api/observability/metrics", params={"metric": metric})
+        metrics_data = response.json()
+
+        if format == 'json':
+            import json
+            console.print(json.dumps(metrics_data, indent=2))
+        elif format == 'prometheus':
+            console.print(metrics_data.get('prometheus_export', ''))
+        else:
+            table = Table(title="Prometheus Metrics")
+            table.add_column("Metric", style="cyan")
+            table.add_column("Value", style="green")
+            table.add_column("Type", style="yellow")
+            table.add_column("Description", style="dim")
+
+            for m in metrics_data.get('metrics', []):
+                table.add_row(
+                    m.get('name', 'N/A'),
+                    str(m.get('value', 'N/A')),
+                    m.get('type', 'N/A'),
+                    m.get('description', 'N/A')[:50]
+                )
+
+            console.print(table)
+    except Exception as e:
+        console.print(f"[red]Failed to fetch metrics: {e}[/red]")
+
+@monitoring.command(name='traces')
+@click.option('--trace-id', help='Specific trace ID to view')
+@click.option('--service', help='Filter by service name')
+@click.option('--limit', type=int, default=20, help='Number of traces to show')
+@click.option('--min-duration', type=int, help='Minimum duration in ms')
+@click.pass_context
+def traces(ctx, trace_id, service, limit, min_duration):
+    """View distributed traces (Jaeger integration, Phase 4)."""
+    client = ctx.obj.get('client')
+    if not client:
+        console.print("[red]Not authenticated.[/red]")
+        return
+
+    try:
+        from rich.table import Table
+        from rich.tree import Tree
+        
+        response = client.get("/api/observability/traces", params={
+            "trace_id": trace_id,
+            "service": service,
+            "limit": limit,
+            "min_duration": min_duration
+        })
+        traces_data = response.json()
+
+        if trace_id:
+            # Show detailed trace tree
+            trace = traces_data.get('trace', {})
+            tree = Tree(f"[bold]Trace: {trace_id}[/bold]")
+            
+            for span in trace.get('spans', []):
+                node = tree.add(f"[cyan]{span.get('operation_name')}[/cyan] ({span.get('duration_ms')}ms)")
+                node.add(f"Service: {span.get('service_name')}")
+                node.add(f"Start: {span.get('start_time')}")
+                
+            console.print(tree)
+        else:
+            # Show trace list
+            table = Table(title=f"Recent Traces ({len(traces_data.get('traces', []))})")
+            table.add_column("Trace ID", style="cyan")
+            table.add_column("Service", style="green")
+            table.add_column("Operation", style="yellow")
+            table.add_column("Duration", style="magenta")
+            table.add_column("Spans", style="dim")
+            table.add_column("Time", style="dim")
+
+            for trace in traces_data.get('traces', []):
+                table.add_row(
+                    trace.get('trace_id', 'N/A')[:16] + '...',
+                    trace.get('service_name', 'N/A'),
+                    trace.get('operation', 'N/A'),
+                    f"{trace.get('duration_ms', 0)}ms",
+                    str(trace.get('span_count', 0)),
+                    trace.get('start_time', 'N/A')
+                )
+
+            console.print(table)
+    except Exception as e:
+        console.print(f"[red]Failed to fetch traces: {e}[/red]")
+
+@monitoring.command(name='alerts')
+@click.option('--severity', type=click.Choice(['critical', 'warning', 'info']), help='Filter by severity')
+@click.option('--status', type=click.Choice(['active', 'resolved', 'acknowledged']), default='active')
+@click.option('--limit', type=int, default=20)
+@click.pass_context
+def alerts(ctx, severity, status, limit):
+    """View active alerts (Phase 4 alerting system)."""
+    client = ctx.obj.get('client')
+    if not client:
+        console.print("[red]Not authenticated.[/red]")
+        return
+
+    try:
+        from rich.table import Table
+        response = client.get("/api/observability/alerts", params={
+            "severity": severity,
+            "status": status,
+            "limit": limit
+        })
+        alerts_data = response.json()
+
+        table = Table(title=f"Alerts - {status.upper()} ({len(alerts_data.get('alerts', []))})")
+        table.add_column("Alert", style="cyan")
+        table.add_column("Severity", style="red")
+        table.add_column("Message", style="yellow")
+        table.add_column("Fired", style="dim")
+        table.add_column("Duration", style="magenta")
+
+        for alert in alerts_data.get('alerts', []):
+            severity_style = {
+                'critical': 'bold red',
+                'warning': 'bold yellow',
+                'info': 'bold blue'
+            }.get(alert.get('severity', 'info'), 'white')
+
+            table.add_row(
+                alert.get('name', 'N/A'),
+                f"[{severity_style}]{alert.get('severity', 'N/A').upper()}[/{severity_style}]",
+                alert.get('message', 'N/A')[:60],
+                alert.get('fired_at', 'N/A'),
+                alert.get('duration', 'N/A')
+            )
+
+        console.print(table)
+    except Exception as e:
+        console.print(f"[red]Failed to fetch alerts: {e}[/red]")
+
+@monitoring.command(name='dashboard')
+@click.option('--dashboard', type=click.Choice(['inference', 'cache', 'etl']), default='inference')
+@click.option('--watch', is_flag=True, help='Refresh dashboard every 5s')
+@click.pass_context
+def dashboard(ctx, dashboard, watch):
+    """Open Grafana dashboard or show metrics summary (Phase 4)."""
+    client = ctx.obj.get('client')
+    if not client:
+        console.print("[red]Not authenticated.[/red]")
+        return
+
+    try:
+        response = client.get(f"/api/observability/dashboards/{dashboard}")
+        dashboard_data = response.json()
+
+        from rich.panel import Panel
+        from rich.text import Text
+
+        info = Text()
+        info.append(f"Dashboard: ", style="bold")
+        info.append(f"{dashboard.upper()}\n\n", style="cyan")
+        info.append(f"Grafana URL: ", style="bold")
+        info.append(f"{dashboard_data.get('grafana_url', 'N/A')}\n\n", style="blue underline")
+        
+        info.append(f"Key Metrics:\n", style="bold green")
+        for metric_name, metric_value in dashboard_data.get('summary', {}).items():
+            info.append(f"  • {metric_name}: ", style="dim")
+            info.append(f"{metric_value}\n", style="yellow")
+
+        console.print(Panel(info, title=f"{dashboard.upper()} Dashboard", border_style="green"))
+
+        if watch:
+            console.print("[dim]Use --watch to refresh every 5s (not implemented in this example)[/dim]")
+    except Exception as e:
+        console.print(f"[red]Failed to fetch dashboard: {e}[/red]")

@@ -665,164 +665,152 @@ export function APISidebar({
     }
   }
 
-  if (collapsed) {
-    return (
-      <div className="w-16 border-r border-gray-200 dark:border-gray-700 flex flex-col items-center py-4 space-y-4" style={{backgroundColor: '#f5f4f2'}}>
-        <button
-          onClick={onToggleCollapse}
-          className="p-2 text-gray-600 dark:text-gray-400 transition-colors"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-        {apiCategories.slice(0, 4).map((category) => (
-          <div
-            key={category.id}
-            className="p-2 text-gray-600 dark:text-gray-400 transition-colors cursor-pointer"
-            title={category.name}
-          >
-            {category.icon}
-          </div>
-        ))}
-      </div>
-    )
-  }
-
   return (
-    <div className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full pl-4" style={{backgroundColor: '#f5f4f2'}}>
-      {/* Header */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          
-          <button
-            onClick={onToggleCollapse}
-            className="p-1 text-gray-600 dark:text-gray-400 transition-colors"
-          >
-            <ChevronDown className="w-4 h-4 rotate-90 text-gray-400" />
-          </button>
+    <div className="flex h-screen">
+      {/* Left Column - Category Icons */}
+      <div className="flex flex-col w-16 border-r border-gray-200" style={{ backgroundColor: '#f2f1ed' }}>
+        {/* Logo at top */}
+        <div className="pt-4 pb-6 px-2">
+          <a href="/" className="block">
+            <img
+              src="/Docs Schlep-engne.svg?t=1725657600000"
+              alt="Schlep Engine"
+              className="h-8 w-auto cursor-pointer mx-auto"
+            />
+          </a>
         </div>
-        
-        {/* Search Bar */}
-        <div className="relative mb-4 w-64">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search APIs..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
+
+        {/* Category Icons */}
+        <div className="flex-1 flex flex-col items-center space-y-2 overflow-y-auto scrollbar-thin">
+          {apiCategories.map((category) => (
+            <button
+              key={category.id}
+              onClick={() => toggleCategory(category.id)}
+              className={`p-3 rounded-lg transition-all duration-150 group relative ${
+                expandedCategories.has(category.id)
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-600 hover:bg-gray-200'
+              }`}
+              title={category.name}
+            >
+              {category.icon}
+              {/* Tooltip */}
+              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                {category.name}
+              </div>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      {/* Right Column - Navigation Content */}
+      <div className="flex flex-col w-80 h-screen bg-white border-r border-gray-300">
+        <div className="flex-1 flex flex-col overflow-y-auto scrollbar-thin">
+          {/* Search Bar */}
+          <div className="px-4 pt-6 pb-4 border-b border-gray-200">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search APIs..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+          </div>
 
-        {/* API Categories */}
-        <div className="px-2 py-4 space-y-2">
-          {filteredCategories.map((category) => (
-            <div key={category.id} className="relative">
-              {/* Category Header */}
-              <button
-                onClick={() => toggleCategory(category.id)}
-                className="w-full px-4 py-3 text-left flex items-center gap-1 transition-colors rounded-t-lg"
-              >
-                {expandedCategories.has(category.id) ? (
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                ) : (
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                )}
-                <h3 className="font-normal text-gray-500 dark:text-gray-500 text-sm">
+          {/* Content */}
+          <nav className="px-4 py-4 space-y-1">
+          {filteredCategories
+            .filter(category => expandedCategories.has(category.id))
+            .map((category) => (
+              <div key={category.id} className="mb-6">
+                {/* Category Title */}
+                <h3 className="text-sm font-semibold text-gray-900 mb-3 break-words">
                   {category.name}
                 </h3>
-              </button>
 
-              {/* Git Branch Line */}
-              {expandedCategories.has(category.id) && (
-                <div className="absolute left-8 top-12 bottom-0 w-px bg-gray-300 dark:bg-gray-600 z-10"></div>
-              )}
-
-              {/* Category Endpoints */}
-              {expandedCategories.has(category.id) && (
-                <div>
+                {/* Category Endpoints */}
+                <div className="space-y-2">
                   {category.endpoints.map((endpoint) => (
                     <button
                       key={endpoint.id}
                       onClick={() => onEndpointSelect(endpoint)}
-                      className="w-full text-left pl-16 pr-4 py-3 transition-colors relative"
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-all duration-150 hover:bg-gray-50 ${
+                        selectedEndpoint?.id === endpoint.id ? 'bg-blue-50 border-l-2 border-blue-600' : ''
+                      }`}
                     >
-                      {/* Branch connector */}
-                      <div className="absolute left-8 top-0 w-6 h-6 border-l border-b border-gray-300 dark:border-gray-600 rounded-bl-md"></div>
-                      
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-1 py-0.5 text-[8px] font-medium rounded ${getMethodColor(endpoint.method)}`}>
-                            {endpoint.method}
+                      <div className="flex items-center space-x-2 mb-1">
+                        <span className={`px-2 py-0.5 text-[10px] font-medium rounded ${getMethodColor(endpoint.method)}`}>
+                          {endpoint.method}
+                        </span>
+
+                        {endpoint.beta && (
+                          <span className="px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">
+                            BETA
                           </span>
-                          
-                          {endpoint.beta && (
-                            <span className="px-1.5 py-0.5 text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded">
-                              BETA
-                            </span>
-                          )}
-                          {endpoint.deprecated && (
-                            <span className="px-1.5 py-0.5 text-xs bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded">
-                              DEPRECATED
-                            </span>
-                          )}
-                        </div>
+                        )}
+                        {endpoint.deprecated && (
+                          <span className="px-1.5 py-0.5 text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded">
+                            DEPRECATED
+                          </span>
+                        )}
+                        {endpoint.favorite && (
+                          <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                        )}
                       </div>
-                      <h4 className="font-medium text-gray-500 dark:text-gray-500 mb-1 text-xs">
+                      <h4 className="font-medium text-gray-700 mb-1 text-sm">
                         {endpoint.name}
                       </h4>
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                      <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                         {endpoint.description}
                       </p>
-                      <code className="text-xs px-2 py-1 rounded" style={{ color: '#114dcd' }}>
+                      <code className="text-xs text-blue-600 break-all">
                         {endpoint.path}
                       </code>
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
-          ))}
+              </div>
+            ))}
+          </nav>
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex items-center justify-around">
+            <button
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100 relative"
+              title="Notifications"
+            >
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+
+            <button
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
+              title="Toggle theme"
+            >
+              <Moon className="w-5 h-5" />
+            </button>
+
+            <button
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
+              title="Help"
+            >
+              <HelpCircle className="w-5 h-5" />
+            </button>
+
+            <button
+              className="p-2 text-gray-600 hover:text-gray-900 transition-colors rounded-lg hover:bg-gray-100"
+              title="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
-
-      {/* Bottom Actions */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-between">
-          <button
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 relative"
-            title="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          
-          <button
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            title="Toggle theme"
-          >
-            <Moon className="w-5 h-5" />
-          </button>
-
-          <button
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            title="Help"
-          >
-            <HelpCircle className="w-5 h-5" />
-          </button>
-
-          <button
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5" />
-          </button>
-        </div>
-      </div>
-
     </div>
   )
 }

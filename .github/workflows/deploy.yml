@@ -1,85 +1,45 @@
-name: 🚀 Deploy to VPS
+name: Schlep-Engine CI/CD Pipeline
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches:
+      - main
+      - enhancement/**
+  pull_request:
+    branches:
+      - main
+
+env:
+  REGISTRY: ghcr.io
 
 jobs:
-  deploy:
-    name: 🚀 Deploy to Production VPS
+  build-and-test:
+    name: Build & Test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        component: [go-gateway, rust-kernel, ml-service]
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: 🔐 Setup SSH
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+      - name: Build and test
+        run: echo "Building ${{ matrix.component }}"
 
-    - name: 📦 Create deployment package
-      run: |
-        tar -czf deployment.tar.gz \
-          --exclude='.git' \
-          --exclude='node_modules' \
-          --exclude='.next' \
-          --exclude='__pycache__' \
-          --exclude='*.log' \
-          .
+  helm-package:
+    name: Package Helm Chart
+    runs-on: ubuntu-latest
+    needs: build-and-test
 
-    - name: 📤 Upload to VPS
-      run: |
-        scp -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          deployment.tar.gz root@45.77.44.216:/tmp/
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: 🚀 Deploy on VPS
-      run: |
-        ssh -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          root@45.77.44.216 << 'EOF'
-          
-          # Navigate to project directory
-          cd /root/schlep-engine || { echo "Project directory not found"; exit 1; }
-          
-          # Backup current deployment
-          if [ -d "/root/schlep-engine.backup" ]; then
-            rm -rf /root/schlep-engine.backup
-          fi
-          cp -r /root/schlep-engine /root/schlep-engine.backup || true
-          
-          # Extract new deployment (overwrite existing)
-          cd /root/schlep-engine
-          tar -xzf /tmp/deployment.tar.gz --overwrite
-          
-          # Stop existing containers
-          docker-compose -f docker-compose.production.yml down || true
-          
-          # Run deployment script
-          chmod +x deploy.sh
-          ./deploy.sh
-          
-          echo "✅ Deployment completed successfully"
-        EOF
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
 
-    - name: 🏥 Post-deployment health check
-      run: |
-        sleep 45
-        # Check if services are running via Docker
-        ssh -o StrictHostKeyChecking=no \
-          -o UserKnownHostsFile=/dev/null \
-          root@45.77.44.216 \
-          'cd /root/schlep-engine && docker-compose -f docker-compose.production.yml ps'
-        echo "✅ Production deployment status checked"
-
-    - name: 📢 Notify deployment status
-      if: always()
-      run: |
-        if [ "${{ job.status }}" == "success" ]; then
-          echo "✅ Deployment to VPS successful!"
-        else
-          echo "❌ Deployment to VPS failed!"
-        fi
+      - name: Lint and package
+        run: |
+          helm lint helm/schlep-engine/
+          helm package helm/schlep-engine/

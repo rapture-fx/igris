@@ -335,9 +335,27 @@ def serve():
     """Start the gRPC server"""
     port = os.getenv('ML_SERVICE_PORT', '50051')
     max_workers = int(os.getenv('MAX_WORKERS', '10'))
+    auth_mode = os.getenv('AUTH_MODE', 'jwt')  # jwt, api_key, or none
+
+    # Create interceptors
+    interceptors = []
+
+    # Add authentication interceptor if enabled
+    if auth_mode != 'none':
+        try:
+            from auth_interceptor import create_auth_interceptor
+            auth_interceptor = create_auth_interceptor(auth_mode)
+            if auth_interceptor:
+                interceptors.append(auth_interceptor)
+                logger.info(f"🔐 Authentication enabled (mode: {auth_mode})")
+            else:
+                logger.warning("⚠️ Authentication interceptor creation failed")
+        except ImportError:
+            logger.warning("⚠️ auth_interceptor module not found, authentication disabled")
 
     server = grpc.server(
         futures.ThreadPoolExecutor(max_workers=max_workers),
+        interceptors=interceptors,
         options=[
             ('grpc.max_send_message_length', 50 * 1024 * 1024),  # 50MB
             ('grpc.max_receive_message_length', 50 * 1024 * 1024),  # 50MB

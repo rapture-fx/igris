@@ -68,17 +68,19 @@ services:
   # =====================================================
 
   # Python ML Service (gRPC) - Isolated ML-only service
+  # Scaled to 10 replicas for 10K RPS target (P0 Patch 3)
   python-ml:
     build:
       context: .
       dockerfile: apps/python-ml-service/Dockerfile
-    container_name: schlep-python-ml
+    # Note: container_name removed for replica scaling
     ports:
-      - "50051:50051"
+      - "50051"  # Dynamic port mapping for replicas
     environment:
       - ML_SERVICE_PORT=50051
       - MAX_WORKERS=10
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - ML_INSTANCE_ID=${HOSTNAME}  # For debugging which replica handled request
     healthcheck:
       test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:50051'); grpc.channel_ready_future(channel).result(timeout=2)"]
       interval: 10s
@@ -88,6 +90,8 @@ services:
     networks:
       - schlep-net
     deploy:
+      mode: replicated
+      replicas: 10  # P0 Patch 3: Scale to 10 replicas for 10K RPS
       resources:
         limits:
           cpus: '2.0'

@@ -6,9 +6,9 @@ import { SearchComponent } from './SearchComponent'
 
 export function Header() {
   return (
-    <header className="relative w-full z-50 bg-schlep-sidebar-background transition-colors duration-300 rounded-tl-3xl">
-      <div className="w-full px-4 py-4">
-        <div className="flex items-center justify-between h-12">
+    <header className="relative w-full z-50 bg-schlep-sidebar-background transition-colors duration-300 border-b border-gray-200">
+      <div className="w-full px-4 py-0">
+        <div className="flex items-center justify-between h-8">
           <div></div>
           {/* Right side - Actions */}
           <div className="flex items-center gap-3 pr-8">

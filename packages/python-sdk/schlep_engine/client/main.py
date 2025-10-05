@@ -23,6 +23,9 @@ from ..api.auth import AuthAPI
 from ..api.monitoring import MonitoringAPI
 from ..api.users import UsersAPI
 from ..api.admin import AdminAPI
+from ..api.model_registry import ModelRegistryAPI
+from ..api.cache import CacheAPI
+from ..api.observability import ObservabilityAPI
 
 
 class SchlepEngineClient(LoggerMixin):
@@ -110,11 +113,16 @@ class SchlepEngineClient(LoggerMixin):
         self.extract = DocumentExtractionAPI(self)
         self.quality = DataQualityAPI(self)
         self.storage = StorageAPI(self)
-        
+
         # Management APIs
         self.monitoring = MonitoringAPI(self)
         self.users = UsersAPI(self)
         self.admin = AdminAPI(self)
+
+        # Phase 2-4 APIs (Enterprise Maturity)
+        self.model_registry = ModelRegistryAPI(self)  # Phase 2: Model lifecycle
+        self.cache = CacheAPI(self)  # Phase 3: Advanced caching
+        self.observability = ObservabilityAPI(self)  # Phase 4: Observability 2.0
     
     async def __aenter__(self):
         """Async context manager entry."""

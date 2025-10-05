@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide scrollbar */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  overflow-x: hidden !important;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Force no horizontal scroll on sidebar */
+.md\:flex-shrink-0,
+.md\:flex-shrink-0 * {
+  overflow-x: hidden !important;
+}
+
+/* Force hide all scrollbars in sidebar */
+.md\:flex-shrink-0 *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
 :root {
   --primary-blue: #468BE6;
   --primary-blue-light: rgba(70, 139, 230, 0.1);

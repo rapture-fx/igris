@@ -224,7 +224,7 @@ datasets/
 *.tsv
 
 # AI/ML model files (can be large)
-models/
+# Note: Exclude binary model files but NOT Go source code in apps/go-gateway/internal/models/
 *.pkl
 *.joblib
 *.h5
@@ -232,13 +232,21 @@ models/
 *.pth
 *.onnx
 *.tflite
+# Only ignore model binary directories, not Go source directories
+**/trained_models/
+**/saved_models/
+**/model_checkpoints/
 
 # Processing results and temporary files
 results/
 output/
 processed_data/
 temp_files/
-cache/
+# Note: cache/ directory is for Go source code, not temp files
+# Use specific patterns for cache data instead:
+*.cache
+.cache/
+**/cache_data/
 
 # API keys and sensitive configuration
 secrets/
@@ -20178,3 +20186,4 @@ lib/
 lib64/
 parts/.env.production
 *.env
+archive/legacy-fastapi-backend-20251005.tar.gz
