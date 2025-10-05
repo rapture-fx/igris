@@ -41,15 +41,46 @@ func main() {
 	// Setup routes
 	setupRoutes(app, mlClient)
 
-	// Start server
+	// Start server with TLS support
 	port := getEnv("SERVER_PORT", "8080")
-	log.Printf("🚀 Schlep-Engine Gateway starting on port %s", port)
-	log.Printf("📊 Health check: http://localhost:%s/health", port)
-	log.Printf("📈 Metrics: http://localhost:%s/metrics", port)
-	log.Printf("🔐 Auth: JWT required (public: /health, /metrics, /api/v1/auth/*)", port)
+	tlsEnabled := getEnv("TLS_ENABLED", "false") == "true"
 
-	if err := app.Listen(":" + port); err != nil {
-		log.Fatal(err)
+	log.Printf("🚀 Schlep-Engine Gateway starting on port %s", port)
+
+	if tlsEnabled {
+		tlsPort := getEnv("TLS_PORT", "8443")
+		certFile := getEnv("TLS_CERT_FILE", "/certs/tls.crt")
+		keyFile := getEnv("TLS_KEY_FILE", "/certs/tls.key")
+
+		log.Printf("🔒 TLS enabled on port %s", tlsPort)
+		log.Printf("📊 Health check: https://localhost:%s/health", tlsPort)
+		log.Printf("📈 Metrics: https://localhost:%s/metrics", tlsPort)
+		log.Printf("🔐 Auth: JWT required (public: /health, /metrics, /api/v1/auth/*)", tlsPort)
+
+		// Start HTTP redirect server on port 8080
+		go func() {
+			redirectApp := fiber.New()
+			redirectApp.Use(func(c *fiber.Ctx) error {
+				return c.Redirect(fmt.Sprintf("https://%s:%s%s",
+					c.Hostname(), tlsPort, c.Path()), fiber.StatusMovedPermanently)
+			})
+			log.Printf("🔄 HTTP->HTTPS redirect server on port %s", port)
+			redirectApp.Listen(":" + port)
+		}()
+
+		// Start HTTPS server
+		if err := app.ListenTLS(":"+tlsPort, certFile, keyFile); err != nil {
+			log.Fatalf("Failed to start HTTPS server: %v", err)
+		}
+	} else {
+		log.Printf("⚠️  WARNING: Running in HTTP mode (not production-ready)")
+		log.Printf("📊 Health check: http://localhost:%s/health", port)
+		log.Printf("📈 Metrics: http://localhost:%s/metrics", port)
+		log.Printf("🔐 Auth: JWT required (public: /health, /metrics, /api/v1/auth/*)", port)
+
+		if err := app.Listen(":" + port); err != nil {
+			log.Fatal(err)
+		}
 	}
 }
 
