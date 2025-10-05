@@ -1,0 +1,38 @@
+apiVersion: v2
+name: schlep-engine
+description: Enterprise ML Inference Platform with Multi-Tier Caching and Observability
+type: application
+version: 1.0.0
+appVersion: "2.0.0"
+
+keywords:
+  - ml
+  - inference
+  - caching
+  - rust
+  - golang
+
+maintainers:
+  - name: Schlep-Engine Team
+    email: team@schlep-engine.com
+
+dependencies:
+  - name: redis
+    version: "17.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
+  - name: postgresql
+    version: "12.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+
+  - name: prometheus
+    version: "15.x.x"
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: prometheus.enabled
+
+  - name: jaeger
+    version: "0.71.x"
+    repository: https://jaegertracing.github.io/helm-charts
+    condition: jaeger.enabled

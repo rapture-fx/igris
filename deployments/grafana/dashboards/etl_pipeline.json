@@ -1,0 +1,104 @@
+{
+  "dashboard": {
+    "title": "Schlep-Engine: ETL Pipeline & Data Processing",
+    "tags": ["etl", "data-processing", "phase1"],
+    "timezone": "browser",
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "ETL Job Queue Size",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "etl_job_queue_size",
+            "legendFormat": "{{queue_name}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Jobs in Queue"}
+        ]
+      },
+      {
+        "id": 2,
+        "title": "ETL Worker Utilization",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 0, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "etl_workers_busy",
+            "legendFormat": "{{worker_pool}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "short", "label": "Busy Workers"}
+        ]
+      },
+      {
+        "id": 3,
+        "title": "ETL Job Duration (P50, P95, P99)",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 8, "w": 24, "h": 8},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(etl_job_duration_milliseconds_bucket[5m]))",
+            "legendFormat": "{{job_type}} P50",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(etl_job_duration_milliseconds_bucket[5m]))",
+            "legendFormat": "{{job_type}} P95",
+            "refId": "B"
+          },
+          {
+            "expr": "histogram_quantile(0.99, rate(etl_job_duration_milliseconds_bucket[5m]))",
+            "legendFormat": "{{job_type}} P99",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {"format": "ms", "label": "Duration"}
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Data Parser Performance by Format",
+        "type": "graph",
+        "gridPos": {"x": 0, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(data_records_parsed_total[5m])",
+            "legendFormat": "{{format}} - {{status}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "rps", "label": "Records/sec"}
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Parse Error Rate by Format",
+        "type": "graph",
+        "gridPos": {"x": 12, "y": 16, "w": 12, "h": 8},
+        "targets": [
+          {
+            "expr": "rate(data_parse_errors_total[5m])",
+            "legendFormat": "{{format}} - {{error_type}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {"format": "ops", "label": "Errors/sec"}
+        ]
+      }
+    ]
+  }
+}

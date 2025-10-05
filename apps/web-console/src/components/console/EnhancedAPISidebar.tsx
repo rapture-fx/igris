@@ -515,10 +515,10 @@ export function EnhancedAPISidebar({
   }
 
   return (
-    <div className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full pl-4" style={{backgroundColor: '#f5f4f2'}}>
+    <div className="w-96 border-r border-gray-200 dark:border-gray-700 flex flex-col h-full pl-2" style={{backgroundColor: '#f5f4f2'}}>
       {/* Header */}
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-gray-900 dark:text-white">
               AI Console
@@ -536,9 +536,9 @@ export function EnhancedAPISidebar({
             <ChevronDown className="w-4 h-4 rotate-90 text-gray-400" />
           </button>
         </div>
-        
+
         {/* Search Bar */}
-        <div className="relative mb-4 w-64">
+        <div className="relative mb-2 w-64">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
             type="text"
@@ -551,7 +551,7 @@ export function EnhancedAPISidebar({
 
         {/* Interface Mode Indicator */}
         {isHydrated && preferences.enabled_verticals.length > 3 && (
-          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="mb-2 p-2 bg-blue-50 dark:bg-blue-900/10 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-center space-x-2">
               <Lightbulb className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               <span className="text-xs text-blue-700 dark:text-blue-300">
@@ -569,8 +569,8 @@ export function EnhancedAPISidebar({
       <div className="flex-1 overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {/* Favorites Section - only render after hydration */}
         {isHydrated && preferences.favorite_endpoints.length > 0 && (
-          <div className="px-2 py-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="px-4 text-xs font-medium text-gray-500 dark:text-gray-500 mb-3">
+          <div className="px-1 py-2 border-b border-gray-200 dark:border-gray-700">
+            <h3 className="px-2 text-xs font-medium text-gray-500 dark:text-gray-500 mb-2">
               ⭐ Favorites
             </h3>
             <div className="space-y-1">
@@ -581,7 +581,7 @@ export function EnhancedAPISidebar({
                   <button
                     key={`fav-${endpoint.id}`}
                     onClick={() => handleEndpointSelect(endpoint)}
-                    className="w-full text-left px-4 py-2 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    className="w-full text-left px-2 py-1.5 text-xs text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
                   >
                     <div className="flex items-center space-x-2">
                       <span className={`px-1 py-0.5 text-[8px] font-medium rounded ${getMethodColor(endpoint.method)}`}>
@@ -596,7 +596,7 @@ export function EnhancedAPISidebar({
         )}
 
         {/* API Categories */}
-        <div className="px-2 py-4 space-y-2">
+        <div className="px-1 py-2 space-y-1">
           {visibleCategories.map((category) => {
             const isExpanded = !preferences.collapsed_categories.includes(category.id)
             
@@ -605,7 +605,7 @@ export function EnhancedAPISidebar({
                 {/* Category Header */}
                 <button
                   onClick={() => toggleCategoryCollapse(category.id)}
-                  className="w-full px-4 py-3 text-left flex items-center gap-1 transition-colors rounded-t-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                  className="w-full px-2 py-2 text-left flex items-center gap-1 transition-colors rounded-t-lg hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   {isExpanded ? (
                     <ChevronDown className="w-4 h-4 text-gray-400" />
@@ -627,7 +627,7 @@ export function EnhancedAPISidebar({
 
                 {/* Git Branch Line */}
                 {isExpanded && (
-                  <div className="absolute left-8 top-12 bottom-0 w-px bg-gray-300 dark:bg-gray-600 z-10"></div>
+                  <div className="absolute left-6 top-10 bottom-0 w-px bg-gray-300 dark:bg-gray-600 z-10"></div>
                 )}
 
                 {/* Category Endpoints */}
@@ -636,17 +636,17 @@ export function EnhancedAPISidebar({
                     {category.endpoints.map((endpoint) => {
                       const isSelected = selectedEndpoint?.id === endpoint.id
                       const suggestions = getSuggestions(endpoint)
-                      
+
                       return (
                         <div key={endpoint.id}>
                           <button
                             onClick={() => handleEndpointSelect(endpoint)}
-                            className={`w-full text-left pl-16 pr-4 py-3 transition-colors relative ${
+                            className={`w-full text-left pl-12 pr-2 py-2 transition-colors relative ${
                               isSelected ? 'bg-blue-50 dark:bg-blue-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-800'
                             }`}
                           >
                             {/* Branch connector */}
-                            <div className="absolute left-8 top-0 w-6 h-6 border-l border-b border-gray-300 dark:border-gray-600 rounded-bl-md"></div>
+                            <div className="absolute left-6 top-0 w-4 h-4 border-l border-b border-gray-300 dark:border-gray-600 rounded-bl-md"></div>
                             
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center space-x-2">
@@ -688,7 +688,7 @@ export function EnhancedAPISidebar({
 
                           {/* Cross-vertical suggestions */}
                           {isSelected && suggestions.length > 0 && preferences.show_cross_vertical_suggestions && (
-                            <div className="ml-16 mr-4 mb-2 p-3 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
+                            <div className="ml-12 mr-2 mb-2 p-2 bg-amber-50 dark:bg-amber-900/10 rounded-lg border border-amber-200 dark:border-amber-800">
                               <div className="flex items-center space-x-2 mb-2">
                                 <TrendingUp className="w-3 h-3 text-amber-600 dark:text-amber-400" />
                                 <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
@@ -718,36 +718,36 @@ export function EnhancedAPISidebar({
       </div>
 
       {/* Bottom Actions */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="p-2 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <button
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 relative"
+            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 relative"
             title="Notifications"
           >
-            <Bell className="w-5 h-5" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          
-          <button
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
-            title="Toggle theme"
-          >
-            <Moon className="w-5 h-5" />
+            <Bell className="w-4 h-4" />
+            <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
           </button>
 
           <button
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            title="Toggle theme"
+          >
+            <Moon className="w-4 h-4" />
+          </button>
+
+          <button
+            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             title="Help"
           >
-            <HelpCircle className="w-5 h-5" />
+            <HelpCircle className="w-4 h-4" />
           </button>
 
           <button
             onClick={onOpenSettings}
-            className="p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
             title="Console Settings"
           >
-            <Settings className="w-5 h-5" />
+            <Settings className="w-4 h-4" />
           </button>
         </div>
       </div>

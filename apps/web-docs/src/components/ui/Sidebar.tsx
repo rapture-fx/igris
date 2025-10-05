@@ -619,59 +619,63 @@ export function Sidebar() {
 
   return (
     <div className="hidden md:flex md:flex-shrink-0">
-      <div className="flex flex-col w-[22.5rem] h-screen">
-        <div className="flex flex-col h-full bg-schlep-sidebar-background border-r border-gray-200 transition-all duration-300 ease-in-out">
-          {/* Combined Logo, Search, and Navigation - now scrollable */}
-          <div className="flex-1 flex flex-col pb-4 overflow-y-auto scrollbar-thin">
-            <div className="pt-4">
-              <div className="mb-4 pl-11">
-                <Link href="http://localhost:3000" className="block">
-                  <img
-                    src="/Docs Schlep-engne.svg?t=1725657600000"
-                    alt="Schlep Engine"
-                    className="h-11 w-auto cursor-pointer"
-                  />
-                </Link>
-              </div>
+      <div className="flex h-screen overflow-x-hidden">
+          {/* Left Column - Logo & Category Icons */}
+          <div className="flex flex-col w-16 border-r border-gray-200 overflow-x-hidden" style={{ backgroundColor: '#f2f1ed' }}>
+            {/* Logo at top */}
+            <div className="pt-4 pb-6 px-2">
+              <Link href="http://localhost:3000" className="block">
+                <img
+                  src="/Docs Schlep-engne.svg?t=1725657600000"
+                  alt="Schlep Engine"
+                  className="h-8 w-auto cursor-pointer mx-auto"
+                />
+              </Link>
             </div>
 
-            <nav className="px-10 space-y-0">
-
-              {/* Main section buttons */}
-              <div className="mb-6">
-                <div className="flex flex-col space-y-1">
-                  {mainSections.map((section) => (
-                    <button
-                      key={section.name}
-                      onClick={() => {
-                      if ('isSearch' in section && section.isSearch) {
-                        // Trigger global search
-                        const event = new CustomEvent('openGlobalSearch');
-                        document.dispatchEvent(event);
-                      } else {
-                        setActiveSection(section.name);
-                        router.push(section.href);
-                      }
-                    }}
-                      className={clsx(
-                        'w-full flex items-center space-x-2 px-3 py-1.5 rounded-lg transition-all duration-150 group border text-left',
-                        currentActiveSection === section.name
-                          ? 'text-schlep-active-blue border-transparent'
-                          : 'text-gray-600 border-transparent'
-                      )}
-                    >
-                      <section.icon className={clsx(
-                        'h-4 w-4 flex-shrink-0',
-                        currentActiveSection === section.name ? 'text-schlep-active-blue' : 'text-gray-600'
-                      )} />
-                      <span className="text-sm font-semibold">{section.name}</span>
-                    </button>
-                  ))}
+            {/* Category Icons */}
+            <div className="flex-1 flex flex-col items-center space-y-1 py-2 overflow-y-auto overflow-x-hidden" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+            {mainSections.map((section) => (
+              <button
+                key={section.name}
+                onClick={() => {
+                  if ('isSearch' in section && section.isSearch) {
+                    // Trigger global search
+                    const event = new CustomEvent('openGlobalSearch');
+                    document.dispatchEvent(event);
+                  } else {
+                    setActiveSection(section.name);
+                    router.push(section.href);
+                  }
+                }}
+                className={clsx(
+                  'p-2 rounded-md transition-all duration-150 group relative',
+                  currentActiveSection === section.name
+                    ? 'bg-schlep-active-blue text-white'
+                    : 'text-gray-600 hover:bg-gray-200'
+                )}
+                title={section.name}
+              >
+                <section.icon className="h-5 w-5 flex-shrink-0" />
+                {/* Tooltip */}
+                <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                  {section.name}
                 </div>
-              </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
-              {/* Horizontal divider */}
-              <div className="border-b border-gray-200 my-8"></div>
+        {/* Right Column - Navigation Content */}
+        <div className="flex flex-col w-64 h-screen bg-schlep-sidebar-background border-r border-gray-200 overflow-x-hidden">
+          <div className="flex-1 flex flex-col overflow-y-auto overflow-x-hidden hide-scrollbar">
+            <nav className="px-4 pt-6 pb-4 space-y-0">
+              {/* Section title */}
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold text-gray-900 break-words">
+                  {currentActiveSection}
+                </h3>
+              </div>
 
               {/* Show content for active section */}
               {mainSections
