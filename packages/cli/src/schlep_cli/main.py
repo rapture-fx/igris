@@ -19,6 +19,7 @@ from .commands import (
     devops, cicd, batch, validate,
     analytics, document, quality, storage, ml, users, admin
 )
+from .commands import cache
 
 # Initialize console for rich output
 console = Console()
@@ -150,6 +151,7 @@ cli.add_command(storage.storage)
 cli.add_command(ml.ml)
 cli.add_command(users.users)
 cli.add_command(admin.admin)
+cli.add_command(cache.cache)
 
 # Add top-level commands for convenience
 @cli.command()

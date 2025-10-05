@@ -13,23 +13,21 @@ export const metadata: Metadata = {
 
 function AppContent({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen">
-      <div className="w-full flex">
-        <div className="w-80 h-screen sticky top-0 z-40 flex-shrink-0">
-          <Sidebar />
+    <div className="min-h-screen flex">
+      <div className="h-screen sticky top-0 z-40 flex-shrink-0">
+        <Sidebar />
+      </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="sticky top-0 z-50">
+          <Header />
         </div>
-        <div className="flex-1">
-          <div className="sticky top-0 z-50">
-            <Header />
-          </div>
-          <main className="flex-1 overflow-y-auto transition-colors duration-300 bg-schlep-sidebar-background">
-            <div className="pt-8 pb-6 px-6 w-full">
-              <div className="flex flex-col items-start max-w-4xl mx-auto">
-                {children}
-              </div>
+        <main className="flex-1 overflow-y-auto transition-colors duration-300 bg-schlep-sidebar-background">
+          <div className="pt-6 pb-6 pr-6 w-full">
+            <div className="flex flex-col items-start max-w-4xl mx-auto">
+              {children}
             </div>
-          </main>
-        </div>
+          </div>
+        </main>
       </div>
       {/* SearchComponent temporarily disabled due to overlay issue */}
       {/* <div className="fixed inset-0 pointer-events-none z-[10000]">

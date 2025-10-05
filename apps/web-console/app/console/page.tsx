@@ -128,14 +128,9 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
       className="border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50"
       style={{ backgroundColor: '#f2f1ee' }}
     >
-      <div className="py-1 pr-6" style={{paddingLeft: '10px'}}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <img src="/Docs Schlep-engne.svg" alt="Schlep Engine Logo" className="w-8 h-8" />
-          </div>
-
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+      <div className="py-1 pr-6 pl-4">
+        <div className="flex items-center justify-end">
+          <div className="flex items-center space-x-2">
               <button
                 onClick={() => window.location.href = '/'}
                 className="flex items-center space-x-1 px-2 py-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
@@ -161,7 +156,6 @@ function UnifiedConsoleHeader(props: ConsoleHeaderProps) {
                 <span className="text-xs font-medium">{currentEnvironment}</span>
               </button>
             </div>
-          </div>
         </div>
       </div>
     </div>
@@ -513,27 +507,9 @@ export default function UnifiedConsolePage() {
   }, [])
 
   return (
-    <div className="h-screen flex flex-col dark:bg-gray-900" style={{backgroundColor: '#f6f6f4'}}>
-      <UnifiedConsoleHeader
-        selectedIndustry={selectedIndustry}
-        onIndustryChange={handleIndustryChange}
-        onOpenEnvironments={() => setShowEnvironmentManager(true)}
-        onOpenAuth={() => setShowAuthManager(true)}
-        currentEnvironment={currentEnvironment}
-      />
-
-      {/* Main Layout */}
-      <div className="relative flex-1 overflow-hidden" style={{
-        backgroundImage: `repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 2px,
-          rgba(0,0,0,0.02) 2px,
-          rgba(0,0,0,0.02) 4px
-        )`
-      }}>
-        {/* Unified Sidebar */}
-        <UnifiedAPISidebar
+    <div className="h-screen flex dark:bg-gray-900" style={{backgroundColor: '#f6f6f4'}}>
+      {/* Unified Sidebar */}
+      <UnifiedAPISidebar
           selectedIndustry={selectedIndustry}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
@@ -549,8 +525,27 @@ export default function UnifiedConsolePage() {
           onOpenTestCollection={() => setViewMode('test-collection')}
         />
 
+      {/* Main Content Column */}
+      <div className="flex-1 flex flex-col min-w-0" style={{marginLeft: sidebarCollapsed ? '64px' : '320px'}}>
+        {/* Header */}
+        <UnifiedConsoleHeader
+          selectedIndustry={selectedIndustry}
+          onIndustryChange={handleIndustryChange}
+          onOpenEnvironments={() => setShowEnvironmentManager(true)}
+          onOpenAuth={() => setShowAuthManager(true)}
+          currentEnvironment={currentEnvironment}
+        />
+
         {/* Main Content Area */}
-        <div className="flex overflow-hidden h-full" style={{marginLeft: '176px'}}>
+        <div className="flex-1 flex overflow-hidden" style={{
+          backgroundImage: `repeating-linear-gradient(
+            45deg,
+            transparent,
+            transparent 2px,
+            rgba(0,0,0,0.02) 2px,
+            rgba(0,0,0,0.02) 4px
+          )`
+        }}>
           {viewMode === 'api' && (
             <>
               {/* Request Builder */}
@@ -596,9 +591,8 @@ export default function UnifiedConsolePage() {
         </div>
       </div>
 
-
-      {/* Code Snippet Generator Modal */}
-      {showCodeGenerator && currentRequestConfig && (
+{/* Code Snippet Generator Modal */}
+{showCodeGenerator && currentRequestConfig && (
         <CodeSnippetGenerator 
           isOpen={showCodeGenerator}
           onClose={() => setShowCodeGenerator(false)}
