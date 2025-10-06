@@ -3,10 +3,10 @@ use std::os::raw::c_char;
 use serde_json::{Value, json};
 use chrono::Utc;
 
-// Export Phase 1 modules: Data Intelligence & Orchestration
-pub mod data_normalizer;  // Multi-format parser (JSON, CSV, Parquet, Avro)
-pub mod data_registry;    // Dataset metadata registry
-pub mod etl_runner;       // Async ETL job runner
+// =====================================================
+// Inference-Focused FFI Exports (Phase 10 Cleanup)
+// Removed deprecated modules: data_normalizer, data_registry, etl_runner
+// =====================================================
 
 // =====================================================
 // Basic Math Operations (From Prototype)

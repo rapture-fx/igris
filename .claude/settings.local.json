@@ -57,7 +57,10 @@
       "Bash(git push:*)",
       "Bash(git commit:*)",
       "Bash(git config:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git restore:*)",
+      "Bash(xargs cat:*)",
+      "Bash(cargo clean:*)"
     ],
     "deny": [],
     "ask": []

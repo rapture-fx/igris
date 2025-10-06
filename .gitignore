@@ -20187,3 +20187,30 @@ lib64/
 parts/.env.production
 *.env
 archive/legacy-fastapi-backend-20251005.tar.gz
+
+# Google Cloud SDK - External CLI Tools (DO NOT COMMIT)
+# Install via: curl https://sdk.cloud.google.com | bash
+google-cloud-sdk/
+google-cloud-cli/
+.google-cloud/
+gcloud/
+
+# Google Cloud SDK Archives
+google-cloud-cli-*.tar.gz
+google-cloud-sdk-*.tar.gz
+google-cloud-cli-*.zip
+google-cloud-sdk-*.zip
+
+# Google Cloud SDK Configuration Files
+completion.bash.inc
+completion.zsh.inc
+path.bash.inc
+path.fish.inc
+path.zsh.inc
+*.manifest
+*.snapshot.json
+
+# Root-level Python test files (if needed, move to /tests/)
+/conftest.py
+/run_tests.py
+/test_*.py
