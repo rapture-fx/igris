@@ -90,6 +90,43 @@ var (
 		},
 		[]string{"field", "error_type"},
 	)
+
+	// Adaptive pool metrics
+	inferenceQueueDepth = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "inference_queue_depth",
+			Help: "Current depth of the inference job queue",
+		},
+	)
+
+	activeWorkers = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "active_workers",
+			Help: "Current number of active inference workers",
+		},
+	)
+
+	averageInferenceLatency = promauto.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "avg_inference_latency_ms",
+			Help: "Moving average inference latency in milliseconds",
+		},
+	)
+
+	droppedJobsTotal = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "dropped_jobs_total",
+			Help: "Total number of dropped inference jobs (queue full)",
+		},
+	)
+
+	workerScalingEvents = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "worker_scaling_events_total",
+			Help: "Total number of worker scaling events",
+		},
+		[]string{"direction"}, // up or down
+	)
 )
 
 // PrometheusMiddleware records HTTP metrics
@@ -148,4 +185,29 @@ func RecordCircuitBreakerFailure(name string) {
 // RecordValidationError records input validation errors
 func RecordValidationError(field string, errorType string) {
 	validationErrorsTotal.WithLabelValues(field, errorType).Inc()
+}
+
+// RecordInferenceQueueDepth records current queue depth
+func RecordInferenceQueueDepth(depth int) {
+	inferenceQueueDepth.Set(float64(depth))
+}
+
+// RecordActiveWorkers records current number of active workers
+func RecordActiveWorkers(workers int) {
+	activeWorkers.Set(float64(workers))
+}
+
+// RecordAverageInferenceLatency records average inference latency
+func RecordAverageInferenceLatency(latencyMs int64) {
+	averageInferenceLatency.Set(float64(latencyMs))
+}
+
+// RecordDroppedJob records a dropped job
+func RecordDroppedJob() {
+	droppedJobsTotal.Inc()
+}
+
+// RecordWorkerScaling records a worker scaling event
+func RecordWorkerScaling(direction string, count int) {
+	workerScalingEvents.WithLabelValues(direction).Add(float64(count))
 }
