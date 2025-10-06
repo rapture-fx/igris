@@ -60,7 +60,8 @@
       "Bash(git log:*)",
       "Bash(git restore:*)",
       "Bash(xargs cat:*)",
-      "Bash(cargo clean:*)"
+      "Bash(cargo clean:*)",
+      "Bash(protoc:*)"
     ],
     "deny": [],
     "ask": []

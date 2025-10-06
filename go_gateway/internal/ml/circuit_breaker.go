@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/sony/gobreaker"
+	"github.com/schlep-engine/go-gateway/internal/observability"
 )
 
 // CircuitBreakerClient wraps ML client with circuit breaker protection
@@ -53,7 +54,25 @@ func NewCircuitBreakerClient(address string, config CircuitBreakerConfig) (*Circ
 			return failureRatio >= config.Threshold
 		},
 		OnStateChange: func(name string, from gobreaker.State, to gobreaker.State) {
-			log.Printf("[Circuit Breaker] %s: %s → %s", name, from, to)
+			timestamp := time.Now().Format(time.RFC3339)
+			log.Printf("[Circuit Breaker] %s: %s → %s (timestamp: %s)", name, from, to, timestamp)
+
+			// Record state in metrics
+			var stateValue int
+			switch to {
+			case gobreaker.StateClosed:
+				stateValue = 0
+			case gobreaker.StateHalfOpen:
+				stateValue = 1
+			case gobreaker.StateOpen:
+				stateValue = 2
+			}
+			observability.RecordCircuitBreakerState(name, stateValue)
+
+			// Record failure when transitioning to open
+			if to == gobreaker.StateOpen {
+				observability.RecordCircuitBreakerFailure(name)
+			}
 		},
 	})
 
@@ -73,7 +92,7 @@ func (c *CircuitBreakerClient) Predict(ctx context.Context, features []float64, 
 		// Check if circuit breaker is open
 		if err == gobreaker.ErrOpenState {
 			return nil, &CircuitBreakerOpenError{
-				Service: c.cb.Name,
+				Service: c.cb.Name(),
 				State:   c.cb.State().String(),
 			}
 		}
@@ -92,7 +111,7 @@ func (c *CircuitBreakerClient) HealthCheck(ctx context.Context) (bool, error) {
 	if err != nil {
 		if err == gobreaker.ErrOpenState {
 			return false, &CircuitBreakerOpenError{
-				Service: c.cb.Name,
+				Service: c.cb.Name(),
 				State:   c.cb.State().String(),
 			}
 		}

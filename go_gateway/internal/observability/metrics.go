@@ -64,6 +64,32 @@ var (
 		},
 		[]string{"method"},
 	)
+
+	// Circuit breaker metrics
+	circuitBreakerState = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "circuit_breaker_state",
+			Help: "Circuit breaker state (0=closed, 1=half-open, 2=open)",
+		},
+		[]string{"name"},
+	)
+
+	circuitBreakerFailuresTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "circuit_breaker_failures_total",
+			Help: "Total number of circuit breaker failures",
+		},
+		[]string{"name"},
+	)
+
+	// Input validation metrics
+	validationErrorsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "validation_errors_total",
+			Help: "Total number of input validation errors",
+		},
+		[]string{"field", "error_type"},
+	)
 )
 
 // PrometheusMiddleware records HTTP metrics
@@ -106,4 +132,20 @@ func RecordGRPCCall(method string, duration time.Duration, err error) {
 	}
 	grpcRequestsTotal.WithLabelValues(method, status).Inc()
 	grpcRequestDuration.WithLabelValues(method).Observe(float64(duration.Milliseconds()))
+}
+
+// RecordCircuitBreakerState records circuit breaker state
+// state: 0=closed, 1=half-open, 2=open
+func RecordCircuitBreakerState(name string, state int) {
+	circuitBreakerState.WithLabelValues(name).Set(float64(state))
+}
+
+// RecordCircuitBreakerFailure records circuit breaker failures
+func RecordCircuitBreakerFailure(name string) {
+	circuitBreakerFailuresTotal.WithLabelValues(name).Inc()
+}
+
+// RecordValidationError records input validation errors
+func RecordValidationError(field string, errorType string) {
+	validationErrorsTotal.WithLabelValues(field, errorType).Inc()
 }
