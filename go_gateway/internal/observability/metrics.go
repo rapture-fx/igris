@@ -426,12 +426,14 @@ func RecordGPUSelection(gpuID int, strategy string) {
 }
 
 // RecordGPUMetrics records GPU utilization and memory metrics
-func RecordGPUMetrics(gpuID int, utilizationPercent, memoryUsedMB, memoryTotalMB int64) {
+// Called as: RecordGPUMetrics(deviceID, memoryUsedMB, utilization)
+func RecordGPUMetrics(gpuID int, memoryUsedMB, utilizationPercent int64) {
 	// Placeholder - implement if GPU metrics are needed
 }
 
 // RecordGPUUnavailable records when a GPU becomes unavailable
-func RecordGPUUnavailable(gpuID int, reason string) {
+// Called as: RecordGPUUnavailable(deviceID)
+func RecordGPUUnavailable(gpuID int) {
 	// Placeholder - implement if GPU metrics are needed
 }
 
@@ -441,6 +443,7 @@ func RecordGPURecovery(gpuID int) {
 }
 
 // RecordLoadRebalance records load rebalancing events
-func RecordLoadRebalance(fromGPU, toGPU int, jobCount int) {
+// Called as: RecordLoadRebalance() with no arguments
+func RecordLoadRebalance() {
 	// Placeholder - implement if load balancing metrics are needed
 }
