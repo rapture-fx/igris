@@ -130,7 +130,7 @@ jobs:
         "
 
     - name: Upload regression test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-regression-results
@@ -288,7 +288,7 @@ jobs:
         "
 
     - name: Upload fuzzing artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: fuzzing-results
@@ -431,7 +431,7 @@ jobs:
         "
 
     - name: Upload comprehensive security report
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: comprehensive-security-report

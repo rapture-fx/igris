@@ -222,7 +222,7 @@ jobs:
           API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: Upload API performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: api-performance-results
           path: |
@@ -283,7 +283,7 @@ jobs:
           pnpm --filter @schlep-engine/web-docs run build:analyze
 
       - name: Upload frontend performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-performance-results
           path: |
@@ -385,7 +385,7 @@ jobs:
           FRONTEND_URL: ${{ env.FRONTEND_URL }}
 
       - name: Upload integration performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: integration-performance-results
           path: |
@@ -453,7 +453,7 @@ jobs:
           API_BASE_URL: ${{ env.API_BASE_URL }}
 
       - name: Upload backend performance results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-performance-results
           path: |
@@ -762,7 +762,7 @@ jobs:
         run: python performance_analyzer.py
 
       - name: Upload performance analysis
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: performance-analysis
           path: |

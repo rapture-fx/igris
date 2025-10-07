@@ -209,7 +209,7 @@ jobs:
 
       - name: Upload service logs
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: service-logs-setup
           path: |
@@ -259,7 +259,7 @@ jobs:
 
       - name: Upload E2E test reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: e2e-load-test-reports
           path: |
@@ -313,7 +313,7 @@ jobs:
 
       - name: Upload specialized endpoint reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: specialized-endpoint-reports
           path: |
@@ -362,7 +362,7 @@ jobs:
 
       - name: Upload frontend performance reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-performance-reports
           path: |
@@ -402,7 +402,7 @@ jobs:
 
       - name: Upload baseline validation reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: baseline-validation-reports
           path: |
@@ -451,7 +451,7 @@ jobs:
 
       - name: Upload Locust reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: locust-load-test-reports
           path: |
@@ -564,7 +564,7 @@ jobs:
           fi
 
       - name: Upload consolidated report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: consolidated-load-test-report
           path: |

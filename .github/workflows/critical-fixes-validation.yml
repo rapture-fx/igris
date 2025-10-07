@@ -130,7 +130,7 @@ jobs:
             --junitxml=test-results-db.xml
 
       - name: Upload database test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: database-test-results
@@ -180,7 +180,7 @@ jobs:
             --junitxml=test-results-dq.xml
 
       - name: Upload data quality test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: data-quality-test-results
@@ -230,7 +230,7 @@ jobs:
             --junitxml=test-results-security.xml
 
       - name: Upload security test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: security-test-results
@@ -306,7 +306,7 @@ jobs:
             --timeout=300
 
       - name: Upload integration test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: integration-test-results
@@ -357,7 +357,7 @@ jobs:
             --timeout=600
 
       - name: Upload performance test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: performance-test-results
@@ -403,7 +403,7 @@ jobs:
           python tests/critical_fixes/run_critical_fixes_tests.py --generate-report --ci-mode || true
 
       - name: Upload comprehensive report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: always()
         with:
           name: comprehensive-report

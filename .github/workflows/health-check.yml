@@ -292,7 +292,7 @@ jobs:
           EOF
 
       - name: Upload Uptime Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: uptime-report-$(date +%Y-%m-%d)
           path: uptime-report.md
