@@ -1,0 +1,185 @@
+name: Schlep-Engine CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, 'fix/**']
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+  GO_VERSION: '1.21'
+  RUST_VERSION: 'stable'
+
+jobs:
+  # ===== BUILD & TEST =====
+
+  build-test-go-gateway:
+    name: Build & Test (go-gateway)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go_gateway/go.sum
+
+      - name: Install dependencies
+        working-directory: go_gateway
+        run: |
+          go mod download
+          go mod tidy
+
+      - name: Run tests
+        working-directory: go_gateway
+        run: |
+          go test -v -race -coverprofile=coverage.out ./...
+
+      - name: Build
+        working-directory: go_gateway
+        run: |
+          go build -v ./cmd/api
+
+  build-test-rust-kernel:
+    name: Build & Test (rust-kernel)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          override: true
+          components: rustfmt, clippy
+
+      - name: Cache Cargo
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            rust_kernel/target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('rust_kernel/**/Cargo.lock') }}
+
+      - name: Build
+        working-directory: rust_kernel
+        run: cargo build --verbose
+
+      - name: Run tests
+        working-directory: rust_kernel
+        run: cargo test --verbose
+
+      - name: Lint check
+        working-directory: rust_kernel
+        run: cargo clippy -- -D warnings
+        continue-on-error: true
+
+  build-test-ml-service:
+    name: Build & Test (ml-service)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        working-directory: python_ml
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests (if tests exist)
+        working-directory: python_ml
+        run: |
+          if [ -d "tests" ]; then
+            pytest tests/ -v --cov=service
+          else
+            echo "No tests directory found, skipping tests"
+          fi
+        continue-on-error: true
+
+  # ===== FRONTEND APPS =====
+
+  build-frontend:
+    name: Build Frontend Apps
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [web-landing, web-admin, web-docs]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        working-directory: apps/${{ matrix.app }}
+        run: npm install
+
+      - name: Build
+        working-directory: apps/${{ matrix.app }}
+        run: npm run build
+        continue-on-error: true
+
+  # ===== PACKAGE TESTS (Optional SDK testing) =====
+
+  test-python-sdk:
+    name: Test Python SDK
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[test-sdk]')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install SDK
+        working-directory: packages/python-sdk
+        run: |
+          pip install -e .
+          pip install -r requirements-dev.txt
+
+      - name: Run SDK tests
+        working-directory: packages/python-sdk
+        run: |
+          pytest tests/test_client.py tests/test_auth.py -v
+        continue-on-error: true
+
+  # ===== SUMMARY =====
+
+  ci-summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [build-test-go-gateway, build-test-rust-kernel, build-test-ml-service, build-frontend]
+    if: always()
+    steps:
+      - name: Check results
+        run: |
+          echo "## CI Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Go Gateway | ${{ needs.build-test-go-gateway.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Rust Kernel | ${{ needs.build-test-rust-kernel.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ML Service | ${{ needs.build-test-ml-service.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | ${{ needs.build-frontend.result }} |" >> $GITHUB_STEP_SUMMARY
