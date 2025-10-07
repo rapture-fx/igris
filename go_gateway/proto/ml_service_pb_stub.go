@@ -7,6 +7,8 @@ import (
 	"context"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 // MLServiceClient is the client API for MLService service.
@@ -88,11 +90,11 @@ type MLServiceServer interface {
 type UnimplementedMLServiceServer struct{}
 
 func (UnimplementedMLServiceServer) Predict(context.Context, *PredictRequest) (*PredictResponse, error) {
-	return nil, grpc.ErrServerNotImplemented
+	return nil, status.Errorf(codes.Unimplemented, "method Predict not implemented")
 }
 
 func (UnimplementedMLServiceServer) HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error) {
-	return nil, grpc.ErrServerNotImplemented
+	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
 }
 
 // RegisterMLServiceServer registers the server implementation
