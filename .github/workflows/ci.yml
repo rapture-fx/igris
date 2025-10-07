@@ -309,13 +309,13 @@ jobs:
   # CLI Tests
   cli-tests:
     name: 🔧 CLI Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     if: github.event.inputs.test_suite == 'all' || github.event.inputs.test_suite == 'cli' || github.event_name != 'workflow_dispatch'
 
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11', '3.12']
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest]
         test-type: ['unit', 'integration', 'performance']
 
     services:
@@ -341,8 +341,6 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-
-    runs-on: ${{ matrix.os }}
 
     steps:
     - name: 📥 Checkout code
@@ -413,7 +411,7 @@ jobs:
         name: cli-benchmarks-${{ matrix.python-version }}
         path: packages/cli/benchmark.json
 
-    backend-tests:
+  backend-tests:
     name: Backend API Tests
     runs-on: ubuntu-latest
     services:
