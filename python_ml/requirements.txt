@@ -1,8 +1,10 @@
-# Minimal ML service dependencies
+# gRPC dependencies
 grpcio==1.60.0
 grpcio-tools==1.60.0
 protobuf==4.25.1
 
-# Optional: For actual ML (not needed for prototype)
-# numpy==1.26.3
-# scikit-learn==1.4.0
+# ML dependencies
+numpy==1.26.3
+scikit-learn==1.4.0
+torch==2.1.2
+onnxruntime==1.16.3

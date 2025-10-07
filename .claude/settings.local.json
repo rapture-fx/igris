@@ -56,7 +56,12 @@
       "Bash(git check-ignore:*)",
       "Bash(git push:*)",
       "Bash(git commit:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(git log:*)",
+      "Bash(git restore:*)",
+      "Bash(xargs cat:*)",
+      "Bash(cargo clean:*)",
+      "Bash(protoc:*)"
     ],
     "deny": [],
     "ask": []

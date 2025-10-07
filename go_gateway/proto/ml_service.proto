@@ -22,6 +22,7 @@ message PredictResponse {
     double prediction = 1;
     double confidence = 2;
     string model_id = 3;
+    double inference_time_ms = 4;  // Inference time in milliseconds
 }
 
 message HealthCheckRequest {}
