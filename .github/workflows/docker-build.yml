@@ -48,7 +48,7 @@ jobs:
     - name: 🏗️ Build and push Go Gateway image
       uses: docker/build-push-action@v5
       with:
-        context: ./go_gateway
+        context: .
         file: ./go_gateway/Dockerfile
         push: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -170,7 +170,7 @@ jobs:
         output: 'trivy-python-ml.sarif'
 
     - name: 📊 Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: 'trivy-go-gateway.sarif'

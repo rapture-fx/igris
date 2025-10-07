@@ -1,3 +1,6 @@
+//go:build onnx
+// +build onnx
+
 package ml
 
 // #cgo CFLAGS: -I/usr/local/include/onnxruntime
