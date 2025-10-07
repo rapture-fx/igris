@@ -20214,3 +20214,4 @@ path.zsh.inc
 /conftest.py
 /run_tests.py
 /test_*.py
+.mcp.json

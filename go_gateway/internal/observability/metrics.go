@@ -419,3 +419,31 @@ func RecordDriftScore(modelID string, score float64) {
 func RecordDriftAlert(modelID string, score float64) {
 	driftAlertTotal.WithLabelValues(modelID).Inc()
 }
+
+// RecordGPUSelection records GPU selection metrics
+func RecordGPUSelection(gpuID int, strategy string) {
+	// Placeholder - implement if GPU metrics are needed
+}
+
+// RecordGPUMetrics records GPU utilization and memory metrics
+// Called as: RecordGPUMetrics(deviceID, memoryUsedMB, utilization)
+func RecordGPUMetrics(gpuID int, memoryUsedMB, utilizationPercent int64) {
+	// Placeholder - implement if GPU metrics are needed
+}
+
+// RecordGPUUnavailable records when a GPU becomes unavailable
+// Called as: RecordGPUUnavailable(deviceID)
+func RecordGPUUnavailable(gpuID int) {
+	// Placeholder - implement if GPU metrics are needed
+}
+
+// RecordGPURecovery records when a GPU recovers from failure
+func RecordGPURecovery(gpuID int) {
+	// Placeholder - implement if GPU metrics are needed
+}
+
+// RecordLoadRebalance records load rebalancing events
+// Called as: RecordLoadRebalance() with no arguments
+func RecordLoadRebalance() {
+	// Placeholder - implement if load balancing metrics are needed
+}
