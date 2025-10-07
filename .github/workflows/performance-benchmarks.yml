@@ -163,7 +163,7 @@ jobs:
         "
 
     - name: Upload benchmark results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: benchmark-results-py${{ matrix.python-version }}
@@ -253,7 +253,7 @@ jobs:
         python tests/test_security_fuzz.py
 
     - name: Upload security results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-test-results
@@ -352,7 +352,7 @@ jobs:
         "
 
     - name: Upload dashboard data
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: performance-dashboard
         path: performance_dashboard.json

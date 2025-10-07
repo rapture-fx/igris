@@ -138,7 +138,7 @@ jobs:
 
     - name: 📈 Upload benchmark results
       if: matrix.test-type == 'performance'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: python-sdk-benchmarks-${{ matrix.python-version }}
         path: packages/python-sdk/benchmark.json
@@ -408,7 +408,7 @@ jobs:
 
     - name: 📈 Upload CLI benchmark results
       if: matrix.test-type == 'performance' && matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cli-benchmarks-${{ matrix.python-version }}
         path: packages/cli/benchmark.json
@@ -654,7 +654,7 @@ jobs:
         govulncheck -json ./... > govulncheck-results.json || true
 
     - name: 📊 Upload all security results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: comprehensive-security-scan-results

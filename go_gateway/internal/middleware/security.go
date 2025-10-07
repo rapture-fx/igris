@@ -23,22 +23,13 @@ func SetupSecurityMiddleware(app *fiber.App, config *SecurityConfig) {
 	}))
 
 	// Security headers (helmet)
-	app.Use(helmet.New(helmet.Config{
-		XSSProtection:             "1; mode=block",
-		ContentTypeNosniff:        "nosniff",
-		XFrameOptions:             "SAMEORIGIN",
-		HSTSMaxAge:                31536000,
-		HSTSIncludeSubdomains:     true,
-		ContentSecurityPolicy:     "default-src 'self'",
-		ReferrerPolicy:            "strict-origin-when-cross-origin",
-	}))
+	app.Use(helmet.New())
 
 	// CORS
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     getOrigins(config.AllowedOrigins),
 		AllowMethods:     getMethods(config.AllowedMethods),
 		AllowHeaders:     getHeaders(config.AllowedHeaders),
-		ExposeHeaders:    config.ExposeHeaders,
 		AllowCredentials: true,
 		MaxAge:           86400, // 24 hours
 	}))
