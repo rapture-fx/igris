@@ -61,7 +61,12 @@
       "Bash(git restore:*)",
       "Bash(xargs cat:*)",
       "Bash(cargo clean:*)",
-      "Bash(protoc:*)"
+      "Bash(protoc:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh run view:*)",
+      "Bash(helm lint:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(test:*)"
     ],
     "deny": [],
     "ask": []
