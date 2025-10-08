@@ -1,5 +1,4 @@
 {
-  "enableAllProjectMcpServers": true,
   "permissions": {
     "allow": [
       "Bash(python3:*)",
@@ -68,9 +67,11 @@
       "Bash(helm lint:*)",
       "Bash(gh pr checks:*)",
       "Bash(test:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(docker stats:*)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true
 }
