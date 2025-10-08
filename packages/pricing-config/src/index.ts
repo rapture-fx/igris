@@ -1,7 +1,4 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as yaml from 'js-yaml';
-
+// Pricing configuration data structure
 export interface PricingTier {
   name: string;
   base_price_monthly: number;
@@ -29,10 +26,79 @@ export interface PricingConfig {
   };
 }
 
-// Load pricing configuration from YAML file
-const pricingYamlPath = path.join(__dirname, '..', 'pricing.yaml');
-const pricingYamlContent = fs.readFileSync(pricingYamlPath, 'utf8');
-export const pricing: PricingConfig = yaml.load(pricingYamlContent) as PricingConfig;
+// Embedded pricing configuration (parsed from pricing.yaml at build time)
+// This makes the data available in both browser and server contexts without Node.js dependencies
+export const pricing: PricingConfig = {
+  "version": "2.0.0",
+  "effective_date": "2025-10-15",
+  "model": "inference_orchestration",
+  "tiers": {
+    "starter": {
+      "name": "Starter",
+      "base_price_monthly": 99,
+      "base_price_yearly": 1010,
+      "inference_included_cpu": 500000,
+      "inference_included_gpu": 0,
+      "models_included": 2,
+      "model_types_allowed": ["cpu"],
+      "overage_cpu_per_1k": 0.20,
+      "overage_gpu_per_1k": null,
+      "extra_model_cpu_monthly": 75,
+      "extra_model_gpu_monthly": null,
+      "sla_uptime": 99.0,
+      "features": [
+        "gRPC Inference API",
+        "REST API Endpoints",
+        "Basic Monitoring",
+        "Community Support"
+      ]
+    },
+    "professional": {
+      "name": "Professional",
+      "base_price_monthly": 299,
+      "base_price_yearly": 3051,
+      "inference_included_cpu": 5000000,
+      "inference_included_gpu": 500000,
+      "models_included": 5,
+      "model_types_allowed": ["cpu", "gpu"],
+      "overage_cpu_per_1k": 0.15,
+      "overage_gpu_per_1k": 1.50,
+      "extra_model_cpu_monthly": 75,
+      "extra_model_gpu_monthly": 250,
+      "sla_uptime": 99.5,
+      "features": [
+        "Everything in Starter",
+        "GPU Acceleration",
+        "Multi-Model Routing (Thompson Sampling)",
+        "Streaming Inference (WebSocket/SSE)",
+        "Advanced Monitoring Dashboard",
+        "Email Support (24/7)"
+      ]
+    },
+    "enterprise": {
+      "name": "Enterprise",
+      "base_price_monthly": 999,
+      "base_price_yearly": 10190,
+      "inference_included_cpu": 50000000,
+      "inference_included_gpu": 5000000,
+      "models_included": 25,
+      "model_types_allowed": ["cpu", "gpu"],
+      "overage_cpu_per_1k": 0.10,
+      "overage_gpu_per_1k": 1.00,
+      "extra_model_cpu_monthly": 50,
+      "extra_model_gpu_monthly": 200,
+      "sla_uptime": 99.9,
+      "features": [
+        "Everything in Professional",
+        "Drift Detection & Monitoring",
+        "Distributed Tracing (Jaeger Access)",
+        "Priority Support (<4hr response)",
+        "Dedicated Account Manager",
+        "Custom SLA Agreements"
+      ]
+    }
+  }
+};
 
 /**
  * Calculate monthly bill for a given tier and usage
