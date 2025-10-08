@@ -2,10 +2,10 @@
 
 import { Check, ChevronDown, ChevronUp, Zap, Users, Shield, Headphones, Cpu, Activity, Gauge, Brain } from 'lucide-react'
 import Link from 'next/link'
-import React, { useState, useMemo } from 'react'
+import React, { useState } from 'react'
 
 // Import canonical pricing from @schlep/pricing-config
-import { pricing, calculateMonthlyBill, type PricingTier } from '@schlep/pricing-config'
+import { pricing } from '@schlep/pricing-config'
 
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
