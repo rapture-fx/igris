@@ -12,6 +12,7 @@
     "@schlep-engine/javascript-sdk": "workspace:*",
     "@schlep-engine/types": "workspace:*",
     "@schlep-engine/ui": "workspace:*",
+    "@schlep/pricing-config": "workspace:*",
     "@supabase/supabase-js": "^2.39.0",
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.4",

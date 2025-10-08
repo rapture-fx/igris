@@ -193,6 +193,9 @@ importers:
       '@heroicons/react':
         specifier: ^2.0.18
         version: 2.2.0(react@18.2.0)
+      '@schlep/pricing-config':
+        specifier: workspace:*
+        version: link:../../packages/pricing-config
       '@tailwindcss/typography':
         specifier: ^0.5.10
         version: 0.5.18(tailwindcss@3.4.17)
@@ -263,6 +266,9 @@ importers:
       '@schlep-engine/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      '@schlep/pricing-config':
+        specifier: workspace:*
+        version: link:../../packages/pricing-config
       '@supabase/supabase-js':
         specifier: ^2.39.0
         version: 2.57.4
@@ -439,6 +445,9 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.7
         version: 1.2.8(@types/react-dom@18.3.7)(@types/react@18.3.24)(react-dom@18.2.0)(react@18.2.0)
+      '@schlep/pricing-config':
+        specifier: workspace:*
+        version: link:../pricing-config
       '@supabase/supabase-js':
         specifier: ^2.50.3
         version: 2.57.4
