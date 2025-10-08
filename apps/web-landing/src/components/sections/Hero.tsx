@@ -108,11 +108,11 @@ export default function Hero() {
                   style={{ color: '#1f53d0' }}
                   className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
                 >
-                  Messy Data to ML-ready in API Calls.
+                  High-Performance Inference Orchestration for Production ML.
                 </h1>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  API-first pipeline for speed: messy inputs in, ML-ready outputs out. <br /> Focus on modeling, not data prep.
+                  Deploy models with 10,000 RPS throughput, GPU acceleration, and multi-model routing. <br /> Built for production ML inference at scale.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-12">

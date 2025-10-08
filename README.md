@@ -1,8 +1,8 @@
 # Schlep Engine
 
-> **High-Performance Hybrid Architecture: Go + Rust + Python ML**
+> **High-Performance Inference Orchestration for Production ML**
 
-A production-grade data processing and analytics platform with hybrid polyglot architecture. Schlep Engine delivers 10,000 RPS throughput via Go Gateway, Rust compute acceleration (FFI), and isolated Python ML inference (gRPC) - achieving 4-7x performance gains over monolithic FastAPI.
+A production-grade ML inference orchestration platform with hybrid polyglot architecture. Schlep Engine delivers 10,000 RPS inference throughput via Go Gateway, Rust compute acceleration (FFI), and isolated Python ML service (gRPC) - achieving 4-7x performance gains over monolithic architectures. Deploy models with GPU acceleration, multi-model routing (Thompson Sampling), and distributed tracing.
 
 ## 🏷️ Hybrid Architecture Status
 
