@@ -4,6 +4,10 @@
   "description": "Canonical pricing configuration for Schlep Engine inference orchestration platform",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "pricing.yaml"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "jest",
