@@ -9,9 +9,7 @@ import { pricing, calculateMonthlyBill, type PricingTier } from '@schlep/pricing
 
 export default function Pricing() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
-  const [open
-
-FaqItems, setOpenFaqItems] = useState<string[]>([])
+  const [openFaqItems, setOpenFaqItems] = useState<string[]>([])
   const [openFeatureCategories, setOpenFeatureCategories] = useState<number[]>([])
 
   const toggleFaqItem = (itemId: string) => {
