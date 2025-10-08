@@ -68,7 +68,10 @@
       "Bash(gh pr checks:*)",
       "Bash(test:*)",
       "Bash(gh run list:*)",
-      "Bash(docker stats:*)"
+      "Bash(docker stats:*)",
+      "Bash(psql:*)",
+      "Bash(npm install)",
+      "Bash(pnpm --filter @schlep/pricing-config build)"
     ],
     "deny": [],
     "ask": []
