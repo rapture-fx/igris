@@ -7,12 +7,13 @@ global:
     cluster: 'schlep-engine-hybrid'
     environment: 'development'
 
-# Alertmanager configuration (optional)
-# alerting:
-#   alertmanagers:
-#     - static_configs:
-#         - targets:
-#           - alertmanager:9093
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+      timeout: 10s
 
 # Scrape configurations
 scrape_configs:
@@ -83,6 +84,7 @@ scrape_configs:
           service: 'nats'
           component: 'messaging'
 
-# Recording rules for aggregation
-# rule_files:
-#   - '/etc/prometheus/rules/*.yml'
+# Alert and recording rules
+rule_files:
+  - '/etc/prometheus/prometheus-rules.yml'
+  - '/etc/prometheus/cost-rules.yml'
