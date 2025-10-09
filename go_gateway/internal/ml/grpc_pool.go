@@ -4,452 +4,577 @@ import (
 	"context"
 	"fmt"
 	"sync"
-	"sync/atomic"
 	"time"
+	"sync/atomic"
+	"net"
+	"errors"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/health/grpc_health_v1"
+	"github.com/rs/zerolog/log"
 
 	pb "github.com/schlep-engine/go-gateway/proto"
 )
 
-// ============================================================================
-// gRPC Connection Pool for Python ML Service
-// ============================================================================
-//
-// Solves the single-connection bottleneck by maintaining a pool of gRPC
-// connections with:
-// - Round-robin load balancing
-// - Health checking and auto-reconnection
-// - Connection lifecycle management
-// - Metrics and observability
-//
-// Phase: 2 - Runtime Abstraction
-// ============================================================================
+// Connection pool configuration
+const (
+	// Default pool configuration
+	DefaultMinConnections     = 2
+	DefaultMaxConnections     = 10
+	DefaultConnectionTimeout  = 5 * time.Second
+	DefaultHealthCheckInterval = 30 * time.Second
+	DefaultMaxConnIdleTime    = 10 * time.Minute
+ DefaultRetryAttempts      = 3
+	DefaultRetryDelay         = 100 * time.Millisecond
+)
 
-// ConnectionPool manages a pool of gRPC connections
+// ConnectionPool manages a pool of gRPC connections to ML service
 type ConnectionPool struct {
-	// Configuration
-	address     string
-	poolSize    int
-	dialTimeout time.Duration
-
-	// Connection pool
-	connections []*pooledConnection
-	mu          sync.RWMutex
-
-	// Round-robin counter
-	counter atomic.Uint64
-
+	mu                sync.RWMutex
+	connections        []*PooledConnection
+	available         chan *PooledConnection
+	minConnections    int
+	maxConnections    int
+	connectionTimeout  time.Duration
+	healthCheckInterval time.Duration
+	maxConnIdleTime    time.Duration
+	mlServiceEndpoint   string
+	retryAttempts      int
+	retryDelay         time.Duration
+	
+	// Statistics
+	totalConnections   int64
+	activeConnections   int64
+	totalRequests       int64
+	successfulRequests  int64
+	failedRequests      int64
+	connectionsCreated   int64
+	connectionsDestroyed int64
+	
 	// Lifecycle
 	ctx    context.Context
 	cancel context.CancelFunc
-	wg     sync.WaitGroup
-
-	// Metrics
-	metrics *PoolMetrics
+	closed bool
 }
 
-// pooledConnection wraps a gRPC connection with metadata
-type pooledConnection struct {
-	conn      *grpc.ClientConn
-	client    pb.MLServiceClient
-	id        int
-	createdAt time.Time
-	lastUsed  time.Time
-	healthy   atomic.Bool
-	usageCount atomic.Uint64
-	mu        sync.RWMutex
+// PooledConnection represents a single gRPC connection in the pool
+type PooledConnection struct {
+	conn         *grpc.ClientConn
+	client       pb.MLServiceClient
+	lastUsed     time.Time
+	inUse        int32 // atomic
+	index        int
+	healthy      bool
+	errorCount   int
+	mu           sync.Mutex
 }
 
-// PoolMetrics tracks connection pool statistics
-type PoolMetrics struct {
-	TotalConnections   int32
-	HealthyConnections int32
-	TotalRequests      atomic.Uint64
-	FailedRequests     atomic.Uint64
-	TotalReconnects    atomic.Uint64
-	mu                 sync.RWMutex
-}
-
-// PoolConfig configures the connection pool
-type PoolConfig struct {
-	Address           string
-	PoolSize          int
-	DialTimeout       time.Duration
-	HealthCheckPeriod time.Duration
-	ReconnectDelay    time.Duration
-}
-
-// DefaultPoolConfig returns sensible defaults
-func DefaultPoolConfig(address string) PoolConfig {
-	return PoolConfig{
-		Address:           address,
-		PoolSize:          5, // 5 connections for load balancing
-		DialTimeout:       5 * time.Second,
-		HealthCheckPeriod: 30 * time.Second,
-		ReconnectDelay:    5 * time.Second,
-	}
+// ConnectionPoolConfig holds configuration for the connection pool
+type ConnectionPoolConfig struct {
+	MLServiceEndpoint   string
+	MinConnections     int
+	MaxConnections     int
+	ConnectionTimeout  time.Duration
+	HealthCheckInterval time.Duration
+	MaxConnIdleTime    time.Duration
+	RetryAttempts      int
+	RetryDelay         time.Duration
 }
 
 // NewConnectionPool creates a new gRPC connection pool
-func NewConnectionPool(config PoolConfig) (*ConnectionPool, error) {
-	if config.PoolSize <= 0 {
-		config.PoolSize = 5
+func NewConnectionPool(config *ConnectionPoolConfig) (*ConnectionPool, error) {
+	if config.MLServiceEndpoint == "" {
+		return nil, errors.New("ML service endpoint is required")
 	}
-	if config.DialTimeout == 0 {
-		config.DialTimeout = 5 * time.Second
+	
+	if config.MinConnections <= 0 {
+		config.MinConnections = DefaultMinConnections
 	}
-	if config.HealthCheckPeriod == 0 {
-		config.HealthCheckPeriod = 30 * time.Second
+	if config.MaxConnections <= 0 {
+		config.MaxConnections = DefaultMaxConnections
 	}
-	if config.ReconnectDelay == 0 {
-		config.ReconnectDelay = 5 * time.Second
+	if config.MinConnections > config.MaxConnections {
+		return nil, errors.New("min connections cannot be greater than max connections")
 	}
-
+	
 	ctx, cancel := context.WithCancel(context.Background())
-
+	
 	pool := &ConnectionPool{
-		address:     config.Address,
-		poolSize:    config.PoolSize,
-		dialTimeout: config.DialTimeout,
-		connections: make([]*pooledConnection, 0, config.PoolSize),
-		ctx:         ctx,
-		cancel:      cancel,
-		metrics: &PoolMetrics{
-			TotalConnections:   int32(config.PoolSize),
-			HealthyConnections: 0,
-		},
+		available:          make(chan *PooledConnection, config.MaxConnections),
+		minConnections:     config.MinConnections,
+		maxConnections:     config.MaxConnections,
+		connectionTimeout:  config.ConnectionTimeout,
+		healthCheckInterval: config.HealthCheckInterval,
+		maxConnIdleTime:    config.MaxConnIdleTime,
+		mlServiceEndpoint: config.MLServiceEndpoint,
+		retryAttempts:     config.RetryAttempts,
+		retryDelay:        config.RetryDelay,
+		ctx:               ctx,
+		cancel:            cancel,
 	}
-
-	// Initialize connections
-	if err := pool.initialize(); err != nil {
+	
+	// Initialize minimum connections
+	err := pool.initializeConnections()
+	if err != nil {
 		cancel()
-		return nil, fmt.Errorf("failed to initialize pool: %w", err)
+		return nil, fmt.Errorf("failed to initialize connections: %w", err)
 	}
-
-	// Start health check routine
-	pool.wg.Add(1)
-	go pool.healthCheckLoop(config.HealthCheckPeriod)
-
+	
+	// Start health checking
+	go pool.healthChecker()
+	
+	log.Info().
+		Str("endpoint", config.MLServiceEndpoint).
+		Int("min_connections", config.MinConnections).
+		Int("max_connections", config.MaxConnections).
+		Msg("gRPC connection pool created")
+	
 	return pool, nil
 }
 
-// initialize creates all connections in the pool
-func (p *ConnectionPool) initialize() error {
-	var firstError error
-	successCount := 0
-
-	for i := 0; i < p.poolSize; i++ {
+// initializeConnections creates the minimum required connections
+func (p *ConnectionPool) initializeConnections() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	
+	for i := 0; i < p.minConnections; i++ {
 		conn, err := p.createConnection(i)
 		if err != nil {
-			if firstError == nil {
-				firstError = err
-			}
-			// Continue creating other connections even if one fails
-			continue
+			return fmt.Errorf("failed to create connection %d: %w", i, err)
 		}
-
 		p.connections = append(p.connections, conn)
-		successCount++
-		atomic.AddInt32(&p.metrics.HealthyConnections, 1)
+		atomic.AddInt64(&p.totalConnections, 1)
 	}
-
-	// Require at least one successful connection
-	if successCount == 0 {
-		return fmt.Errorf("failed to create any connections: %w", firstError)
-	}
-
+	
 	return nil
 }
 
-// createConnection creates a single pooled connection
-func (p *ConnectionPool) createConnection(id int) (*pooledConnection, error) {
-	ctx, cancel := context.WithTimeout(p.ctx, p.dialTimeout)
+// createConnection creates a new gRPC connection
+func (p *ConnectionPool) createConnection(index int) (*PooledConnection, error) {
+	ctx, cancel := context.WithTimeout(p.ctx, p.connectionTimeout)
 	defer cancel()
-
-	conn, err := grpc.DialContext(ctx, p.address,
+	
+	// Create gRPC connection with optimized dial options
+	conn, err := grpc.DialContext(
+		ctx,
+		p.mlServiceEndpoint,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpc.WithBlock(),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:                30 * time.Second,
+			Timeout:             5 * time.Second,
+			PermitWithoutStream: true,
+		}),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxRetryRPCDefaultCalls(3),
+			grpc.MaxCallRecvMsgSize(4*1024*1024), // 4MB max receive size
+			grpc.MaxCallSendMsgSize(4*1024*1024), // 4MB max send size
+		),
 	)
 	if err != nil {
-		return nil, fmt.Errorf("failed to dial %s: %w", p.address, err)
+		return nil, fmt.Errorf("failed to dial ML service: %w", err)
 	}
-
-	pooledConn := &pooledConnection{
-		conn:      conn,
-		client:    pb.NewMLServiceClient(conn),
-		id:        id,
-		createdAt: time.Now(),
-		lastUsed:  time.Now(),
+	
+	// Create client
+	client := pb.NewMLServiceClient(conn)
+	
+	// Test connection health
+	client := pb.NewMLServiceClient(conn)
+	healthReq := &grpc_health_v1.HealthCheckRequest{
+		Service: "ml.service",
 	}
-	pooledConn.healthy.Store(true)
-
+	
+	healthResp, err := client.Check(ctx, healthReq)
+	if err != nil || healthResp.Status != grpc_health_v1.HealthCheckResponse_SERVING {
+		conn.Close()
+		return nil, fmt.Errorf("health check failed: %w", err)
+	}
+	
+	pooledConn := &PooledConnection{
+		conn:       conn,
+		client:     client,
+		lastUsed:   time.Now(),
+		healthy:    true,
+		index:      index,
+	}
+	
+	atomic.AddInt64(&p.connectionsCreated, 1)
+	log.Debug().Int("connection_index", index).Msg("New gRPC connection created")
+	
 	return pooledConn, nil
 }
 
-// GetClient returns a client using round-robin selection
-func (p *ConnectionPool) GetClient() (pb.MLServiceClient, error) {
-	p.mu.RLock()
-	defer p.mu.RUnlock()
-
-	if len(p.connections) == 0 {
-		return nil, fmt.Errorf("no connections available")
+// GetClient retrieves a client connection from the pool
+func (p *ConnectionPool) GetClient(ctx context.Context) (pb.MLServiceClient, error) {
+	if p.closed {
+		return nil, errors.New("connection pool is closed")
 	}
-
-	// Round-robin selection
-	index := p.counter.Add(1) % uint64(len(p.connections))
-	conn := p.connections[index]
-
-	// Check if connection is healthy
-	if !conn.healthy.Load() {
-		// Try to find a healthy connection
-		for i := range p.connections {
-			if p.connections[i].healthy.Load() {
-				conn = p.connections[i]
-				break
+	
+	atomic.AddInt64(&p.totalRequests, 1)
+	
+	// Try to get an available connection
+	select {
+	case conn := <-p.available:
+		if conn != nil && conn.isHealthy() {
+			atomic.StoreInt32(&conn.inUse, 1)
+			atomic.AddInt64(&p.activeConnections, 1)
+			atomic.AddInt64(&p.successfulRequests, 1)
+			return conn.client, nil
+		}
+		// Connection is not healthy, put it back and try to create a new one
+		if conn != nil {
+			p.returnConnection(conn, false)
+		}
+	default:
+		// No available connection, try to create a new one if under limit
+	}
+	
+	// Try to create a new connection if under max limit
+	if atomic.LoadInt64(&p.totalConnections) < int64(p.maxConnections) {
+		p.mu.Lock()
+		canCreate := len(p.connections) < p.maxConnections
+		if canCreate {
+			index := len(p.connections)
+			newConn, err := p.createConnection(index)
+			if err == nil {
+				p.connections = append(p.connections, newConn)
+				atomic.StoreInt32(&newConn.inUse, 1)
+				atomic.AddInt64(&p.activeConnections, 1)
+				atomic.AddInt64(&p.successfulRequests, 1)
+				log.Debug().Msg("Created new gRPC connection (pool expanded)")
+				p.mu.Unlock()
+				return newConn.client, nil
 			}
+			log.Error().Err(err).Msg("Failed to create new gRPC connection")
 		}
-
-		// If no healthy connections, return error
-		if !conn.healthy.Load() {
-			return nil, fmt.Errorf("no healthy connections available")
-		}
+		p.mu.Unlock()
 	}
-
-	// Update usage stats
-	conn.mu.Lock()
-	conn.lastUsed = time.Now()
-	conn.usageCount.Add(1)
-	conn.mu.Unlock()
-
-	p.metrics.TotalRequests.Add(1)
-
-	return conn.client, nil
+	
+	// Wait for available connection with timeout
+	timeout := time.NewTimer(3 * time.Second)
+	defer timeout.Stop()
+	
+	select {
+	case <-ctx.Done():
+		atomic.AddInt64(&p.failedRequests, 1)
+		return nil, ctx.Err()
+	case <-timeout.C:
+		atomic.AddInt64(&p.failedRequests, 1)
+		return nil, errors.New("timeout waiting for available connection")
+	case conn := <-p.available:
+		if conn != nil && conn.isHealthy() {
+			atomic.StoreInt32(&conn.inUse, 1)
+			atomic.AddInt64(&p.activeConnections, 1)
+			atomic.AddInt64(&p.successfulRequests, 1)
+			return conn.client, nil
+		}
+		// Unhealthy connection, try again recursively (with limited attempts)
+		if conn != nil {
+			p.returnConnection(conn, false)
+		}
+		return p.GetClient(ctx)
+	}
 }
 
-// healthCheckLoop periodically checks connection health
-func (p *ConnectionPool) healthCheckLoop(period time.Duration) {
-	defer p.wg.Done()
+// ReturnClient returns the client connection to the pool
+func (p *ConnectionPool) ReturnClient(client pb.MLServiceClient, err error) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	
+	// Find the connection associated with this client
+	for _, conn := range p.connections {
+		if conn.client == client {
+			conn.mu.Lock()
+			conn.lastUsed = time.Now()
+			atomic.StoreInt32(&conn.inUse, 0)
+			atomic.AddInt64(&p.activeConnections, -1)
+			
+			// Mark unhealthy if there was an error
+			if err != nil {
+				conn.errorCount++
+				if conn.errorCount >= 3 {
+					conn.healthy = false
+					log.Warn().Int("error_count", conn.errorCount).Msg("Connection marked unhealthy")
+				}
+			} else {
+				conn.errorCount = 0 // Reset error count on success
+			}
+			conn.mu.Unlock()
+			
+			p.returnConnection(conn, conn.healthy)
+			return
+		}
+	}
+	
+	// Connection not found, might already be destroyed
+	log.Warn().Msg("ReturnClient called with unknown client")
+}
 
-	ticker := time.NewTicker(period)
+// returnConnection returns a connection to the pool or destroys it
+func (p *ConnectionPool) returnConnection(conn *PooledConnection, healthy bool) {
+	if !healthy || p.shouldDestroyIdle(conn) {
+		p.destroyConnection(conn)
+		return
+	}
+	
+	select {
+	case p.available <- conn:
+		// Successfully returned to pool
+	default:
+		// Pool full, destroy the connection
+		p.destroyConnection(conn)
+	}
+}
+
+// shouldDestroyIdle checks if a connection should be destroyed due to idleness
+func (p *ConnectionPool) shouldDestroyIdle(conn *PooledConnection) bool {
+	if atomic.LoadInt64(&p.totalConnections) <= int64(p.minConnections) {
+		return false // Keep at least minimum connections
+	}
+	
+	conn.mu.Lock()
+	defer conn.mu.Unlock()
+	
+	return time.Since(conn.lastUsed) > p.maxConnIdleTime
+}
+
+// destroyConnection destroys a connection and removes it from the pool
+func (p *ConnectionPool) destroyConnection(conn *PooledConnection) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	
+	// Remove from connections slice
+	for i, c := range p.connections {
+		if c == conn {
+			p.connections = append(p.connections[:i], p.connections[i+1:]...)
+			break
+		}
+	}
+	
+	// Close the gRPC connection
+	if conn.conn != nil {
+		if err := conn.conn.Close(); err != nil {
+			log.Error().Err(err).Int("connection_index", conn.index).Msg("Failed to close gRPC connection")
+		}
+	}
+	
+	atomic.AddInt64(&p.connectionsDestroyed, 1)
+	atomic.AddInt64(&p.totalConnections, -1)
+	
+	log.Debug().Int("connection_index", conn.index).Msg("gRPC connection destroyed")
+}
+
+// healthChecker periodically checks the health of all connections
+func (p *ConnectionPool) healthChecker() {
+	ticker := time.NewTicker(p.healthCheckInterval)
 	defer ticker.Stop()
-
+	
 	for {
 		select {
 		case <-p.ctx.Done():
 			return
 		case <-ticker.C:
-			p.checkHealth()
+			p.checkAllConnections()
 		}
 	}
 }
 
-// checkHealth checks all connections and reconnects unhealthy ones
-func (p *ConnectionPool) checkHealth() {
+// checkAllConnections performs health checks on all connections
+func (p *ConnectionPool) checkAllConnections() {
+	p.mu.RLock()
+	connections := make([]*PooledConnection, len(p.connections))
+	copy(connections, p.connections)
+	p.mu.RUnlock()
+	
+	for _, conn := range connections {
+		p.checkConnectionHealth(conn)
+	}
+}
+
+// checkConnectionHealth checks the health of a single connection
+func (p *ConnectionPool) checkConnectionHealth(conn *PooledConnection) {
+	if atomic.LoadInt32(&conn.inUse) != 0 {
+		return // Skip in-use connections
+	}
+	
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	
+	healthReq := &grpc_health_v1.HealthCheckRequest{
+		Service: "ml.service",
+	}
+	
+	healthResp, err := conn.client.Check(ctx, healthReq)
+	
+	conn.mu.Lock()
+	healthy := err == nil && healthResp.Status == grpc_health_v1.HealthCheckResponse_SERVING
+	
+	if !healthy && conn.healthy {
+		log.Warn().Err(err).Int("connection_index", conn.index).Msg("Connection health check failed")
+	} else if healthy && !conn.healthy {
+		log.Info().Int("connection_index", conn.index).Msg("Connection recovered healthy status")
+	}
+	
+	conn.healthy = healthy
+	conn.healthy = healthy
+	conn.mu.Unlock()
+}
+
+// isHealthy checks if a connection is healthy
+func (p *PooledConnection) isHealthy() bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
-
-	healthyCount := int32(0)
-
-	for i, conn := range p.connections {
-		state := conn.conn.GetState()
-		isHealthy := state == connectivity.Ready || state == connectivity.Idle
-
-		if !isHealthy {
-			conn.healthy.Store(false)
-
-			// Attempt reconnection in background
-			go p.reconnect(i)
-		} else {
-			conn.healthy.Store(true)
-			healthyCount++
-		}
-	}
-
-	p.metrics.mu.Lock()
-	p.metrics.HealthyConnections = healthyCount
-	p.metrics.mu.Unlock()
+	return p.healthy
 }
 
-// reconnect attempts to reconnect a specific connection
-func (p *ConnectionPool) reconnect(index int) {
-	p.mu.Lock()
-	oldConn := p.connections[index]
-	p.mu.Unlock()
-
-	// Close old connection
-	if oldConn.conn != nil {
-		oldConn.conn.Close()
-	}
-
-	// Create new connection
-	newConn, err := p.createConnection(index)
-	if err != nil {
-		// Failed to reconnect, mark as unhealthy
-		oldConn.healthy.Store(false)
-		p.metrics.FailedRequests.Add(1)
-		return
-	}
-
-	// Replace connection in pool
-	p.mu.Lock()
-	p.connections[index] = newConn
-	p.mu.Unlock()
-
-	p.metrics.TotalReconnects.Add(1)
-	atomic.AddInt32(&p.metrics.HealthyConnections, 1)
-}
-
-// Close shuts down the connection pool
-func (p *ConnectionPool) Close() error {
-	// Cancel context to stop health checks
-	p.cancel()
-
-	// Wait for background goroutines
-	p.wg.Wait()
-
-	// Close all connections
-	p.mu.Lock()
-	defer p.mu.Unlock()
-
-	var lastError error
-	for _, conn := range p.connections {
-		if err := conn.conn.Close(); err != nil {
-			lastError = err
-		}
-	}
-
-	p.connections = nil
-	return lastError
-}
-
-// GetMetrics returns current pool metrics
-func (p *ConnectionPool) GetMetrics() PoolMetrics {
-	p.metrics.mu.RLock()
-	defer p.metrics.mu.RUnlock()
-
-	return PoolMetrics{
-		TotalConnections:   p.metrics.TotalConnections,
-		HealthyConnections: p.metrics.HealthyConnections,
-		TotalRequests:      atomic.Uint64{},
-		FailedRequests:     atomic.Uint64{},
-		TotalReconnects:    atomic.Uint64{},
-	}
-}
-
-// GetConnectionStats returns detailed connection statistics
-func (p *ConnectionPool) GetConnectionStats() []ConnectionStats {
+// Stats returns connection pool statistics
+func (p *ConnectionPool) Stats() PoolStats {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
+	
+	return PoolStats{
+		TotalConnections:      atomic.LoadInt64(&p.totalConnections),
+		ActiveConnections:     atomic.LoadInt64(&p.activeConnections),
+		IdleConnections:       int64(len(p.available)),
+		TotalRequests:         atomic.LoadInt64(&p.totalRequests),
+		SuccessfulRequests:    atomic.LoadInt64(&p.successfulRequests),
+		FailedRequests:        atomic.LoadInt64(&p.failedRequests),
+		ConnectionsCreated:    atomic.LoadInt64(&p.connectionsCreated),
+		ConnectionsDestroyed:  atomic.LoadInt64(&p.connectionsDestroyed),
+		MLEndpoint:            p.mlServiceEndpoint,
+		MinConnections:        p.minConnections,
+		MaxConnections:        p.maxConnections,
+	}
+}
 
-	stats := make([]ConnectionStats, len(p.connections))
-	for i, conn := range p.connections {
-		conn.mu.RLock()
-		stats[i] = ConnectionStats{
-			ID:         conn.id,
-			Healthy:    conn.healthy.Load(),
-			CreatedAt:  conn.createdAt,
-			LastUsed:   conn.lastUsed,
-			UsageCount: conn.usageCount.Load(),
-			State:      conn.conn.GetState().String(),
+// PoolStats contains connection pool statistics
+type PoolStats struct {
+	TotalConnections      int64  `json:"total_connections"`
+	ActiveConnections     int64  `json:"active_connections"`
+	IdleConnections       int64  `json:"idle_connections"`
+	TotalRequests         int64  `json:"total_requests"`
+	SuccessfulRequests    int64  `json:"successful_requests"`
+	FailedRequests        int64  `json:"failed_requests"`
+	ConnectionsCreated    int64  `json:"connections_created"`
+	ConnectionsDestroyed  int64  `json:"connections_destroyed"`
+	MLEndpoint            string `json:"ml_endpoint"`
+	MinConnections        int    `json:"min_connections"`
+	MaxConnections        int    `json:"max_connections"`
+}
+
+func (p *PoolStats) SuccessRate() float64 {
+	if p.TotalRequests == 0 {
+		return 0
+	}
+	return float64(p.SuccessfulRequests) / float64(p.TotalRequests) * 100
+}
+
+// Close closes all connections in the pool
+func (p *ConnectionPool) Close() error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	
+	if p.closed {
+		return nil
+	}
+	
+	p.cancel()
+	p.closed = true
+	
+	// Close all connections
+	for _, conn := range p.connections {
+		if conn.conn != nil {
+			conn.conn.Close()
 		}
-		conn.mu.RUnlock()
 	}
-
-	return stats
+	
+	close(p.available)
+	p.connections = nil
+	
+	log.Info().Msg("gRPC connection pool closed")
+	return nil
 }
 
-// ConnectionStats contains statistics for a single connection
-type ConnectionStats struct {
-	ID         int
-	Healthy    bool
-	CreatedAt  time.Time
-	LastUsed   time.Time
-	UsageCount uint64
-	State      string
+// UpdateConfig dynamically updates pool configuration
+func (p *ConnectionPool) UpdateConfig(config *ConnectionPoolConfig) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	
+	// Update configuration (but not connection limits which would require rebuilding)
+	p.mlServiceEndpoint = config.MLServiceEndpoint
+	p.connectionTimeout = config.ConnectionTimeout
+	p.healthCheckInterval = config.HealthCheckInterval
+	p.maxConnIdleTime = config.MaxConnIdleTime
+	p.retryAttempts = config.RetryAttempts
+	p.retryDelay = config.RetryDelay
+	
+	log.Info().Msg("gRPC pool configuration updated")
+	return nil
 }
 
-// ============================================================================
-// Pooled ML Client (Wrapper)
-// ============================================================================
-
-// PooledClient wraps the connection pool with a convenient client interface
-type PooledClient struct {
-	pool *ConnectionPool
-}
-
-// NewPooledClient creates a new pooled ML client
-func NewPooledClient(address string) (*PooledClient, error) {
-	config := DefaultPoolConfig(address)
-	pool, err := NewConnectionPool(config)
-	if err != nil {
-		return nil, err
+// WithRetry executes a function with automatic retry logic
+func (p *ConnectionPool) WithRetry(ctx context.Context, fn func(ctx context.Context, client pb.MLServiceClient) error) error {
+	var lastErr error
+	
+	for attempt := range p.retryAttempts {
+		if attempt > 0 {
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(p.retryDelay * time.Duration(attempt)):
+				// Exponential backoff would be better
+			}
+		}
+		
+		client, err := p.GetClient(ctx)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		
+		err = fn(ctx, client)
+		p.ReturnClient(client, err)
+		
+		if err == nil {
+			return nil
+		}
+		
+		lastErr = err
+		
+		// Don't retry on certain errors
+		if isNonRetryableError(err) {
+			return err
+		}
 	}
-
-	return &PooledClient{pool: pool}, nil
+	
+	return fmt.Errorf("operation failed after %d attempts: %w", p.retryAttempts, lastErr)
 }
 
-// Predict makes a prediction using a connection from the pool
-func (c *PooledClient) Predict(ctx context.Context, features []float64, modelID string) (*PredictResponse, error) {
-	client, err := c.pool.GetClient()
-	if err != nil {
-		c.pool.metrics.FailedRequests.Add(1)
-		return nil, fmt.Errorf("failed to get client: %w", err)
+// isNonRetryableError checks if an error should not be retried
+func isNonRetryableError(err error) bool {
+	if err == nil {
+		return false
 	}
-
-	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
-
-	req := &pb.PredictRequest{
-		Features: features,
-		ModelId:  modelID,
+	
+	errStr := err.Error()
+	nonRetryablePatterns := []string{
+		"context canceled",
+		"deadline exceeded",
+		"unavailable",
+		"permission denied",
 	}
-
-	resp, err := client.Predict(ctx, req)
-	if err != nil {
-		c.pool.metrics.FailedRequests.Add(1)
-		return nil, fmt.Errorf("prediction failed: %w", err)
+	
+	for _, pattern := range nonRetryablePatterns {
+		if contains(errStr, pattern) {
+			return true
+		}
 	}
-
-	return &PredictResponse{
-		Prediction: resp.Prediction,
-		Confidence: resp.Confidence,
-		ModelId:    resp.ModelId,
-	}, nil
+	
+	return false
 }
 
-// HealthCheck checks if the ML service is healthy
-func (c *PooledClient) HealthCheck(ctx context.Context) (bool, error) {
-	client, err := c.pool.GetClient()
-	if err != nil {
-		return false, err
-	}
-
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
-	req := &pb.HealthCheckRequest{}
-	resp, err := client.HealthCheck(ctx, req)
-	if err != nil {
-		return false, err
-	}
-
-	return resp.Status == "healthy", nil
-}
-
-// Close closes the pooled client
-func (c *PooledClient) Close() error {
-	return c.pool.Close()
-}
-
-// GetPoolMetrics returns pool metrics
-func (c *PooledClient) GetPoolMetrics() PoolMetrics {
-	return c.pool.GetMetrics()
-}
-
-// GetConnectionStats returns connection statistics
-func (c *PooledClient) GetConnectionStats() []ConnectionStats {
-	return c.pool.GetConnectionStats()
+// contains checks if a string contains a substring (case-insensitive)
+func contains(s, substr string) bool {
+	return strings.Contains(strings.ToLower(s), strings.ToLower(substr))
 }
