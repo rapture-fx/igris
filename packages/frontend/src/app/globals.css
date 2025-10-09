@@ -996,3 +996,24 @@
     scrollbar-width: none;
   }
 } 
+
+/* Mercury theme colors for pricing page */
+.mercury-accent {
+  @apply bg-blue-600 text-white;
+}
+
+.mercury-primary {
+  @apply text-blue-600;
+}
+
+.mercury-muted {
+  @apply bg-gray-50;
+}
+
+.apple-font {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.font-apple {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+} 

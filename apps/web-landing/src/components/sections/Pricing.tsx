@@ -1,71 +1,16 @@
 'use client';
 
-import { Check, X, ChevronDown, ChevronUp, Zap, Users, Database, Shield, Headphones, Cpu, Settings, Activity, Lock, Globe, BarChart3, Brain, Gauge, Wrench, Layers } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, Zap, Users, Shield, Headphones, Cpu, Activity, Gauge, Brain } from 'lucide-react'
 import Link from 'next/link'
-import React, { useState, useEffect, useRef, useMemo } from 'react'
-import Image from 'next/image'
+import React, { useState } from 'react'
+
+// Import canonical pricing from @schlep/pricing-config
+import { pricing } from '@schlep/pricing-config'
 
 export default function Pricing() {
-  const [selectedQuota, setSelectedQuota] = useState('100')
-  const [billingPeriod, setBillingPeriod] = useState('monthly')
-  const [apiCalls, setApiCalls] = useState(5000000) // Default to 5M
+  const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly')
   const [openFaqItems, setOpenFaqItems] = useState<string[]>([])
   const [openFeatureCategories, setOpenFeatureCategories] = useState<number[]>([])
-
-  // Pricing calculation logic
-  const pricingPlans = [
-    {
-      name: 'Develop',
-      basePrice: 99,
-      includedCalls: 5000000, // 5M
-      additionalCostPer1k: 0.08
-    },
-    {
-      name: 'Growth',
-      basePrice: 299,
-      includedCalls: 25000000, // 25M
-      additionalCostPer1k: 0.06
-    },
-    {
-      name: 'Scale',
-      basePrice: 599,
-      includedCalls: 100000000, // 100M
-      additionalCostPer1k: 0.04
-    }
-  ];
-
-  const calculateUsageCost = (plan: typeof pricingPlans[0], calls: number) => {
-    if (calls <= plan.includedCalls) {
-      return plan.basePrice;
-    }
-
-    const additionalCalls = calls - plan.includedCalls;
-    const additional1kBlocks = Math.ceil(additionalCalls / 1000);
-    const additionalCost = additional1kBlocks * plan.additionalCostPer1k;
-
-    return plan.basePrice + additionalCost;
-  };
-
-  const recommendedPlan = useMemo(() => {
-    const costs = pricingPlans.map(plan => ({
-      ...plan,
-      totalCost: calculateUsageCost(plan, apiCalls)
-    }));
-
-    return costs.reduce((min, current) =>
-      current.totalCost < min.totalCost ? current : min
-    );
-  }, [apiCalls]);
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) {
-      return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
-    }
-    if (num >= 1000) {
-      return (num / 1000).toFixed(0) + 'k';
-    }
-    return num.toString();
-  };
 
   const toggleFaqItem = (itemId: string) => {
     setOpenFaqItems(prev =>
@@ -83,6 +28,23 @@ export default function Pricing() {
     )
   }
 
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(0) + 'k';
+    }
+    return num.toString();
+  };
+
+  const getPrice = (tierKey: 'starter' | 'professional' | 'enterprise') => {
+    const tier = pricing.tiers[tierKey]
+    const price = billingPeriod === 'yearly'
+      ? Math.round(tier.base_price_yearly / 12)
+      : tier.base_price_monthly
+    return price
+  }
 
   const faqData = [
     {
@@ -91,12 +53,12 @@ export default function Pricing() {
         {
           id: "free-trial",
           question: "Is there a free trial?",
-          answer: "Yes! All plans come with a free trial period. You can explore our platform and test your data pipelines before making any commitment."
+          answer: "Yes! All plans come with a free trial period. You can test our inference orchestration platform before making any commitment."
         },
         {
           id: "api-limits",
-          question: "What happens if I exceed my API limits?",
-          answer: "You'll receive notifications as you approach your limits. You can upgrade your plan anytime or purchase additional API calls through our self-service portal."
+          question: "What happens if I exceed my inference limits?",
+          answer: "You'll receive notifications as you approach your limits. You can upgrade your plan anytime or purchase additional inference capacity through our self-service portal."
         },
         {
           id: "change-plans",
@@ -106,7 +68,7 @@ export default function Pricing() {
         {
           id: "annual-discount",
           question: "Do you offer annual discounts?",
-          answer: "Yes! Choose yearly billing to get 2 months free (equivalent to ~17% discount) on all plans."
+          answer: "Yes! Choose yearly billing to get 15% discount on all plans."
         }
       ]
     },
@@ -114,49 +76,29 @@ export default function Pricing() {
       category: "Technical & Features",
       items: [
         {
-          id: "data-sources",
-          question: "What data sources do you support?",
-          answer: "We connect to all major databases (PostgreSQL, MySQL, MongoDB, Snowflake, Elasticsearch), cloud storage (AWS S3, Google Cloud, Azure), and streaming platforms (Kafka, Redis, WebSockets). Bring your own storage - we process your data where it lives, no data transfer needed."
-        },
-        {
-          id: "ml-frameworks",
+          id: "supported-frameworks",
           question: "Which ML frameworks are supported?",
-          answer: "Develop tier includes scikit-learn access. Growth tier adds TensorFlow and PyTorch support. Scale tier provides access to all ML frameworks plus large model support up to 5GB."
+          answer: "We support all major ML frameworks including TensorFlow, PyTorch, scikit-learn, XGBoost, and more. Deploy models trained in any framework."
         },
         {
-          id: "streaming-connections",
-          question: "What are streaming connections?",
-          answer: "Streaming connections allow real-time data processing. Develop tier gets 2 WebSocket connections, Growth tier gets 10 connections (WebSocket, Kafka, Redis), and Scale tier gets 100+ connections including advanced protocols like MQTT, SSE, and gRPC."
+          id: "model-deployment",
+          question: "How do model deployments work?",
+          answer: "Deploy models to CPU or GPU runtimes. Professional tier includes 5 concurrent models, Enterprise supports up to 25. Additional models can be added at $75/month (CPU) or $250/month (GPU)."
         },
         {
-          id: "training-quotas",
-          question: "How do ML training quotas work?",
-          answer: "Training quotas limit the number of ML jobs you can run daily and inference requests per hour. Develop: 5 jobs/day + 100 inferences/hour, Growth: 50 jobs/day + 1,000 inferences/hour, Scale: 500 jobs/day + 10,000 inferences/hour."
-        },
-        {
-          id: "data-scaling",
-          question: "How does data processing scaling work?",
-          answer: "All plans deliver optimized performance through efficient streaming. Develop processes up to 50GB daily (10GB per file), Growth handles up to 200GB daily (25GB per file), and Scale manages up to 500GB daily (50GB per file). With BYOS, process unlimited data directly in your own storage - daily limits apply only to API processing."
+          id: "inference-quotas",
+          question: "How do inference quotas work?",
+          answer: "Inference quotas limit the number of predictions per month. Starter: 500k CPU inferences, Professional: 5M CPU + 500k GPU, Enterprise: 50M CPU + 5M GPU. Overages are charged per 1,000 inferences."
         },
         {
           id: "data-security",
           question: "Is my data secure?",
-          answer: "Yes! All plans include encryption in transit and at rest. Growth and Scale plans add advanced security features, request monitoring, and enhanced protection controls."
-        },
-        {
-          id: "byos-benefits",
-          question: "What are the benefits of Bring-Your-Own-Storage (BYOS)?",
-          answer: "Process data directly in your AWS S3, Google Cloud, or Azure storage. No data transfer costs, no compliance headaches. Your data stays in your infrastructure while we do the processing."
+          answer: "Yes! All plans include encryption in transit and at rest. Professional and Enterprise plans add advanced security features and monitoring."
         },
         {
           id: "sla-guarantees",
           question: "What are the SLA guarantees?",
-          answer: "Each tier includes uptime guarantees: Develop tier offers 99.0% uptime, Growth tier provides 99.5% uptime, and Scale tier delivers 99.9% uptime with priority infrastructure and monitoring."
-        },
-        {
-          id: "self-service-portal",
-          question: "What's included in the self-service portal?",
-          answer: "Growth tier includes usage tracking and basic management features. Scale tier provides a dedicated portal with full API key management, team role administration, billing controls, and support ticket management."
+          answer: "Each tier includes uptime guarantees: Starter offers 99.0% uptime, Professional provides 99.5% uptime, and Enterprise delivers 99.9% uptime with priority infrastructure."
         }
       ]
     },
@@ -166,12 +108,7 @@ export default function Pricing() {
         {
           id: "support-levels",
           question: "What support do I get?",
-          answer: "Develop includes business hours support (9am-5pm). Growth and Scale plans get 24/7 support access, with Scale receiving <4 hour response times."
-        },
-        {
-          id: "scale-solutions",
-          question: "Do you offer advanced scale solutions?",
-          answer: "Yes! Our Scale plan includes advanced features like parallel processing, 500GB daily processing capacity, priority integrations, and priority support. Contact us for custom Scale pricing."
+          answer: "Starter includes community support. Professional and Enterprise plans get 24/7 email support, with Enterprise receiving <4 hour response times and dedicated account management."
         },
         {
           id: "custom-quote",
@@ -189,263 +126,116 @@ export default function Pricing() {
 
   const plans = [
     {
-      name: "Develop",
-      title: "Develop",
-      basePrice: 99,
-      cta: "Start Develop trial",
+      key: 'starter' as const,
+      name: pricing.tiers.starter.name,
+      cta: "Start Starter trial",
       ctaLink: "/auth/register",
-      tagline: "Process up to 50GB daily with optimized performance.\nPerfect for individual developers and small teams.",
+      tagline: `Perfect for teams getting started with inference orchestration.\nDeploy up to ${pricing.tiers.starter.models_included} CPU models with ${formatNumber(pricing.tiers.starter.inference_included_cpu)} monthly inferences.`,
       highlights: [
-        { icon: Activity, text: "5M API calls included" },
-        { icon: Database, text: "50GB daily processing limit" },
-        { icon: Zap, text: "Optimized CSV processing" },
-        { icon: Globe, text: "2 WebSocket connections" },
-        { icon: Brain, text: "sklearn ML framework" },
-        { icon: Gauge, text: "5 training jobs/day, 100 inferences/hour" },
-        { icon: Users, text: "3 team members" },
-        { icon: Shield, text: "99.0% SLA + basic security" },
-        { icon: Headphones, text: "Business hours support" }
+        { icon: Activity, text: `${formatNumber(pricing.tiers.starter.inference_included_cpu)} CPU inferences/month` },
+        { icon: Cpu, text: `${pricing.tiers.starter.models_included} CPU model deployments` },
+        { icon: Brain, text: "gRPC + REST inference APIs" },
+        { icon: Gauge, text: "Basic monitoring dashboard" },
+        { icon: Shield, text: `${pricing.tiers.starter.sla_uptime}% SLA + encryption` },
+        { icon: Headphones, text: "Community support" }
       ]
     },
     {
-      name: "Growth",
-      title: "Growth",
-      basePrice: 299,
-      cta: "Start Growth trial",
+      key: 'professional' as const,
+      name: pricing.tiers.professional.name,
+      cta: "Start Professional trial",
       ctaLink: "/auth/register",
-      tagline: "Enhanced performance for growing teams.\nProcess large datasets with improved efficiency.",
+      tagline: `Enhanced performance for production ML workloads.\nDeploy up to ${pricing.tiers.professional.models_included} models with GPU acceleration.`,
       popular: true,
       highlights: [
-        { icon: Activity, text: "25M API calls included" },
-        { icon: Database, text: "200GB daily processing limit" },
-        { icon: Zap, text: "Memory-efficient processing" },
-        { icon: Globe, text: "10 streaming connections (WebSocket, Kafka, Redis)" },
-        { icon: Brain, text: "TensorFlow + PyTorch access" },
-        { icon: Gauge, text: "50 training jobs/day, 1,000 inferences/hour" },
-        { icon: BarChart3, text: "Real-time metrics dashboard" },
-        { icon: Shield, text: "Integration health monitoring" },
-        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "https://docs.schlep-engine.com/concepts/byos" },
-        { icon: Users, text: "15 team members + self-service" },
-        { icon: Shield, text: "99.5% SLA + enhanced security" },
-        { icon: Headphones, text: "24/7 support" }
+        { icon: Activity, text: `${formatNumber(pricing.tiers.professional.inference_included_cpu)} CPU + ${formatNumber(pricing.tiers.professional.inference_included_gpu)} GPU inferences/month` },
+        { icon: Cpu, text: `${pricing.tiers.professional.models_included} model deployments (CPU + GPU)` },
+        { icon: Zap, text: "GPU acceleration + CUDA/TensorRT" },
+        { icon: Brain, text: "Multi-Model Routing (Thompson Sampling)" },
+        { icon: Activity, text: "Streaming Inference (WebSocket/SSE)" },
+        { icon: Gauge, text: "Advanced monitoring + metrics" },
+        { icon: Shield, text: `${pricing.tiers.professional.sla_uptime}% SLA + enhanced security` },
+        { icon: Headphones, text: "24/7 email support" }
       ]
     },
     {
-      name: "Scale",
-      title: "Scale",
-      basePrice: 599,
-      cta: "Start Scale trial",
+      key: 'enterprise' as const,
+      name: pricing.tiers.enterprise.name,
+      cta: "Start Enterprise trial",
       ctaLink: "/auth/register",
-      tagline: "Maximum performance optimization.\nAdvanced processing for high-volume data workloads.",
+      tagline: `Maximum performance for high-scale inference.\nDeploy up to ${pricing.tiers.enterprise.models_included} models with drift detection and tracing.`,
       popular: false,
       highlights: [
-        { icon: Activity, text: "100M API calls included" },
-        { icon: Database, text: "500GB daily processing limit" },
-        { icon: Zap, text: "High-performance processing" },
-        { icon: Globe, text: "100+ streaming connections (incl. MQTT, SSE, gRPC)" },
-        { icon: Brain, text: "All ML frameworks + large models (up to 5GB)" },
-        { icon: Gauge, text: "500 training jobs/day, 10,000 inferences/hour" },
-        { icon: Layers, text: "Advanced integration patterns (GraphQL, MQTT, SSE)" },
-        { icon: Wrench, text: "Dedicated self-service portal" },
-        { icon: Settings, text: "Bring Your Own", linkText: "Storage", linkUrl: "https://docs.schlep-engine.com/concepts/byos" },
-        { icon: Users, text: "50 team members + full portal" },
-        { icon: Shield, text: "99.9% SLA + advanced security" },
-        { icon: Headphones, text: "Priority support" }
+        { icon: Activity, text: `${formatNumber(pricing.tiers.enterprise.inference_included_cpu)} CPU + ${formatNumber(pricing.tiers.enterprise.inference_included_gpu)} GPU inferences/month` },
+        { icon: Cpu, text: `${pricing.tiers.enterprise.models_included} model deployments (CPU + GPU)` },
+        { icon: Zap, text: "Priority GPU access + optimization" },
+        { icon: Brain, text: "All Professional features + drift detection" },
+        { icon: Activity, text: "Distributed Tracing (Jaeger access)" },
+        { icon: Users, text: "Dedicated account manager" },
+        { icon: Shield, text: `${pricing.tiers.enterprise.sla_uptime}% SLA + custom agreements` },
+        { icon: Headphones, text: "Priority support (<4hr response)" }
       ]
     }
   ];
 
-  const getPrice = (plan: any) => {
-    const pricingPlan = pricingPlans.find(p => p.name === plan.name);
-    if (!pricingPlan) return plan.basePrice;
-
-    const usageCost = calculateUsageCost(pricingPlan, apiCalls);
-
-    // Safety guard against invalid calculations
-    if (!usageCost || isNaN(usageCost) || usageCost < 0) {
-      return plan.basePrice;
-    }
-
-    if (billingPeriod === 'yearly') {
-      return Math.round((usageCost * 10) / 12);
-    }
-    return Math.round(usageCost);
-  };
-
-  const getPeriod = () => {
-    return '/ month';
-  };
-
-  // Animated Number Component
-  const AnimatedNumber = ({ value }: { value: number }) => {
-    const [displayValue, setDisplayValue] = useState(value);
-    const [isAnimating, setIsAnimating] = useState(false);
-    const animationRef = useRef(null);
-
-    useEffect(() => {
-      // Initialize with current value on first render
-      if (displayValue === 0) {
-        setDisplayValue(value);
-        return;
-      }
-
-      if (displayValue !== value) {
-        setIsAnimating(true);
-
-        const startValue = displayValue;
-        const endValue = value;
-        const duration = 800;
-        const startTime = Date.now();
-
-        const animate = () => {
-          const now = Date.now();
-          const elapsed = now - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-
-          // Easing function
-          const easeOutQuart = 1 - Math.pow(1 - progress, 4);
-
-          const currentValue = Math.round(startValue + (endValue - startValue) * easeOutQuart);
-          setDisplayValue(currentValue);
-
-          if (progress < 1) {
-            animationRef.current = requestAnimationFrame(animate);
-          } else {
-            setIsAnimating(false);
-            animationRef.current = null;
-          }
-        };
-
-        // Cancel any existing animation
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-
-        animationRef.current = requestAnimationFrame(animate);
-      }
-
-      return () => {
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-        }
-      };
-    }, [value]);
-
-    return (
-      <span
-        className={`inline-block transition-transform duration-200 ${isAnimating ? 'scale-110 text-blue-600' : 'scale-100'}`}
-        style={{
-          fontWeight: isAnimating ? '600' : '500',
-          color: isAnimating ? '#1f53d0' : 'inherit'
-        }}
-      >
-        {displayValue}
-      </span>
-    );
-  };
-
   const features = [
     {
-      category: "Performance & Processing",
+      category: "Inference Performance",
       icon: Cpu,
       items: [
-        { name: "Daily Processing Quota", develop: "50GB/day", growth: "200GB/day", scale: "500GB/day" },
-        { name: "Use Your Own Storage", develop: true, growth: true, scale: true },
-        { name: "Processing Architecture", develop: "Streaming pipeline", growth: "Memory-optimized processing", scale: "Parallel distributed processing" },
-        { name: "Processing Optimization", develop: "Standard optimization", growth: "Memory-efficient processing", scale: "High-performance kernels" },
-        { name: "Memory Efficiency", develop: "40-60% less memory", growth: "50-70% less memory", scale: "70-80% less memory" },
-        { name: "AI Training Data Support", develop: "TensorFlow integration", growth: "Multi-framework support", scale: "Advanced ML Operations" }
+        { name: "CPU Inferences Included", starter: formatNumber(pricing.tiers.starter.inference_included_cpu), professional: formatNumber(pricing.tiers.professional.inference_included_cpu), enterprise: formatNumber(pricing.tiers.enterprise.inference_included_cpu) },
+        { name: "GPU Inferences Included", starter: "Not available", professional: formatNumber(pricing.tiers.professional.inference_included_gpu), enterprise: formatNumber(pricing.tiers.enterprise.inference_included_gpu) },
+        { name: "CPU Overage (per 1k)", starter: `$${pricing.tiers.starter.overage_cpu_per_1k}`, professional: `$${pricing.tiers.professional.overage_cpu_per_1k}`, enterprise: `$${pricing.tiers.enterprise.overage_cpu_per_1k}` },
+        { name: "GPU Overage (per 1k)", starter: "Not available", professional: `$${pricing.tiers.professional.overage_gpu_per_1k}`, enterprise: `$${pricing.tiers.enterprise.overage_gpu_per_1k}` },
+        { name: "Model Deployments", starter: `${pricing.tiers.starter.models_included} CPU`, professional: `${pricing.tiers.professional.models_included} (CPU + GPU)`, enterprise: `${pricing.tiers.enterprise.models_included} (CPU + GPU)` },
+        { name: "GPU Acceleration", starter: false, professional: true, enterprise: true }
       ]
     },
     {
-      category: "Data Pipeline Platform",
-      icon: Database,
-      items: [
-        { name: "Data Preparation Pipeline", develop: "Essential stages", growth: "Advanced workflows", scale: "Automated pipelines" },
-        { name: "Data Sources", develop: "All major databases", growth: "All major databases", scale: "All major databases" },
-        { name: "Use Your Own Storage", develop: true, growth: true, scale: true },
-        { name: "Real-time Data Processing", develop: false, growth: true, scale: true },
-        { name: "File Upload Limit", develop: "10GB per file", growth: "25GB per file", scale: "50GB per file" },
-        { name: "Automated Error Recovery", develop: false, growth: true, scale: true }
-      ]
-    },
-    {
-      category: "ML Data Preparation",
+      category: "Inference APIs",
       icon: Zap,
       items: [
-        { name: "ML Framework Access", develop: "scikit-learn only", growth: "+ TensorFlow + PyTorch", scale: "All frameworks + large models (5GB)" },
-        { name: "ML Training Quotas", develop: "5 jobs/day, 100 inferences/hour", growth: "50 jobs/day, 1,000 inferences/hour", scale: "500 jobs/day, 10,000 inferences/hour" },
-        { name: "ML Resource Quotas", develop: "2GB memory", growth: "8GB memory", scale: "32GB memory" },
-        { name: "ML Framework Export Support", develop: "TensorFlow Only", growth: "TensorFlow + PyTorch", scale: "All Frameworks + Custom" },
-        { name: "Data Registry & Version Control", develop: false, growth: true, scale: true },
-        { name: "Feature Engineering Pipeline", develop: "Basic", growth: "Advanced", scale: "Custom Pipelines" }
+        { name: "gRPC Inference API", starter: true, professional: true, enterprise: true },
+        { name: "REST API Endpoints", starter: true, professional: true, enterprise: true },
+        { name: "Streaming Inference (WebSocket/SSE)", starter: false, professional: true, enterprise: true },
+        { name: "Multi-Model Routing (Thompson Sampling)", starter: false, professional: true, enterprise: true },
+        { name: "Batch Inference", starter: true, professional: true, enterprise: true }
       ]
     },
     {
-      category: "API & Integration",
-      icon: Settings,
+      category: "Monitoring & Observability",
+      icon: Activity,
       items: [
-        { name: "REST API Endpoints", develop: true, growth: true, scale: true },
-        { name: "API Calls Included", develop: "5M calls", growth: "25M calls", scale: "100M calls" },
-        { name: "Database Connectors", develop: "PostgreSQL, MySQL, MongoDB", growth: "+ Snowflake, Elasticsearch", scale: "+ Enterprise databases" },
-        { name: "Streaming Connections", develop: "2 WebSocket connections", growth: "10 connections (WebSocket, Kafka, Redis)", scale: "100+ connections (incl. MQTT, SSE, gRPC)" },
-        { name: "Advanced Integration Patterns", develop: false, growth: "Basic patterns", scale: "GraphQL, MQTT, SSE, gRPC" },
-        { name: "Real-time Streaming", develop: "WebSockets", growth: "Kafka, Redis", scale: "All streaming" },
-        { name: "Stream-to-Webhook Bridge", develop: false, growth: "10/min rate limit", scale: "100/min rate limit" },
-        { name: "Webhook Integration", develop: false, growth: true, scale: true },
-        { name: "Custom API Integrations", develop: false, growth: true, scale: true },
-        { name: "OpenAPI Documentation", develop: true, growth: true, scale: true }
+        { name: "SLA Guarantees", starter: `${pricing.tiers.starter.sla_uptime}% uptime`, professional: `${pricing.tiers.professional.sla_uptime}% uptime`, enterprise: `${pricing.tiers.enterprise.sla_uptime}% uptime` },
+        { name: "Basic Monitoring", starter: true, professional: true, enterprise: true },
+        { name: "Advanced Monitoring Dashboard", starter: false, professional: true, enterprise: true },
+        { name: "Drift Detection & Monitoring", starter: false, professional: false, enterprise: true },
+        { name: "Distributed Tracing (Jaeger)", starter: false, professional: false, enterprise: true },
+        { name: "Custom Dashboards", starter: false, professional: false, enterprise: true }
       ]
     },
     {
       category: "Security & Compliance",
       icon: Shield,
       items: [
-        { name: "Multi-Factor Authentication", develop: true, growth: true, scale: true },
-        { name: "Single Sign-On (SSO)", develop: false, growth: true, scale: true },
-        { name: "Data Encryption", develop: "Basic", growth: "Advanced", scale: "Advanced Plus" },
-        { name: "Advanced Security Controls", develop: false, growth: true, scale: true },
-        { name: "Request Monitoring", develop: false, growth: "Basic tracking", scale: "Advanced analytics" },
-        { name: "Advanced Security Controls", develop: false, growth: true, scale: true }
-      ]
-    },
-    {
-      category: "Monitoring & Analytics",
-      icon: Activity,
-      items: [
-        { name: "SLA Guarantees", develop: "99.0% uptime", growth: "99.5% uptime", scale: "99.9% uptime" },
-        { name: "Real-time Metrics Dashboard", develop: "Basic metrics", growth: "Live dashboard with quota visualization", scale: "Advanced analytics + custom dashboards" },
-        { name: "Integration Health Monitoring", develop: false, growth: "Health monitoring for connectors", scale: "Full monitoring suite + alerting" },
-        { name: "Performance Monitoring", develop: "Essential metrics", growth: "Advanced dashboards", scale: "Comprehensive analytics" },
-        { name: "Smart Alerting System", develop: false, growth: true, scale: true },
-        { name: "Usage Analytics & Reporting", develop: "Essential reports", growth: "Advanced insights", scale: "Custom dashboards" },
-        { name: "High Availability", develop: false, growth: false, scale: "Priority infrastructure" }
-      ]
-    },
-    {
-      category: "Customer Self-Service",
-      icon: Settings,
-      items: [
-        { name: "API Key Management", develop: "Basic keys", growth: "Advanced key management", scale: "Full key management" },
-        { name: "Team Management", develop: "Basic roles", growth: "Advanced roles + invites", scale: "Full RBAC + SSO" },
-        { name: "Self-Service Portal", develop: false, growth: "Usage tracking + basic management", scale: "Dedicated portal (API keys, billing, roles)" },
-        { name: "Load Testing & Benchmarks", develop: false, growth: false, scale: "Performance validation" }
+        { name: "Data Encryption (in transit + at rest)", starter: true, professional: true, enterprise: true },
+        { name: "Advanced Security Controls", starter: false, professional: true, enterprise: true },
+        { name: "Custom SLA Agreements", starter: false, professional: false, enterprise: true },
+        { name: "Dedicated Account Manager", starter: false, professional: false, enterprise: true }
       ]
     },
     {
       category: "Support & Service",
       icon: Headphones,
       items: [
-        { name: "Team Members", develop: "3", growth: "15", scale: "50" },
-        { name: "Technical Support", develop: "Business hours", growth: "24/7 support", scale: "24/7 support" },
-        { name: "Extended Support Hours", develop: false, growth: true, scale: true },
-        { name: "Priority Response Time", develop: false, growth: false, scale: true },
-        { name: "Response Time", develop: false, growth: false, scale: "<4 hour response" }
+        { name: "Technical Support", starter: "Community", professional: "24/7 email", enterprise: "24/7 email" },
+        { name: "Priority Response Time", starter: false, professional: false, enterprise: true },
+        { name: "Response Time SLA", starter: false, professional: false, enterprise: "<4 hour response" }
       ]
     }
   ];
 
-  const renderFeatureValue = (value: any, planName: string) => {
+  const renderFeatureValue = (value: any) => {
     if (typeof value === 'boolean') {
       return value ? (
         <div className="flex items-center justify-center">
@@ -462,8 +252,6 @@ export default function Pricing() {
   return (
     <section>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-
-
 
         {/* Pricing Table Header */}
         <div className="mt-12">
@@ -487,15 +275,15 @@ export default function Pricing() {
             <div className="min-w-full">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-8" style={{ backgroundColor: '#f7f7f3' }}>
                 {plans.map((plan, index) => (
-                  <div key={index} className="rounded-lg p-8 h-[50rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
+                  <div key={index} className="rounded-lg p-8 h-[42rem] flex flex-col" style={{ backgroundColor: '#f2f1ed' }}>
                     <div>
-                      <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">{plan.title}</h3>
+                      <h3 className="text-lg font-normal text-gray-900 mb-2 font-inter text-left">{plan.name}</h3>
                       <p className="text-4xl font-medium text-gray-900 mb-2">
-                        $<AnimatedNumber key={`${plan.name}-${billingPeriod}-${apiCalls}`} value={getPrice(plan)} />
-                        <span className="text-lg text-gray-600">{getPeriod()}</span>
+                        ${getPrice(plan.key)}
+                        <span className="text-lg text-gray-600">/ month</span>
                       </p>
                       {billingPeriod === 'yearly' && (
-                        <p className="text-sm text-gray-500 mb-4">*billed annually - <span style={{ color: '#1f53d0' }}>Save 17%</span></p>
+                        <p className="text-sm text-gray-500 mb-4">*billed annually - <span style={{ color: '#1f53d0' }}>Save 15%</span></p>
                       )}
                       {billingPeriod === 'monthly' && (
                         <div className="mb-4"></div>
@@ -511,17 +299,6 @@ export default function Pricing() {
                             </div>
                             <span className="text-sm text-gray-600">
                               {highlight.text}
-                              {highlight.linkText && (
-                                <>
-                                  {' '}
-                                  <Link href={highlight.linkUrl} className="text-blue-600 underline hover:text-blue-700 inline-flex items-center">
-                                    {highlight.linkText}
-                                    <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                    </svg>
-                                  </Link>
-                                </>
-                              )}
                             </span>
                           </div>
                         ))}
@@ -581,7 +358,7 @@ export default function Pricing() {
                       </div>
                       {plans.map((plan, index) => (
                         <div key={index} className="p-4 text-center text-sm font-medium text-gray-600 tracking-wider border-l border-gray-200">
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">{plan.title}</h3>
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">{plan.name}</h3>
                         </div>
                       ))}
                     </div>
@@ -610,9 +387,9 @@ export default function Pricing() {
                           {isCategoryOpen && category.items.map((item, itemIndex) => (
                             <div key={itemIndex} className="grid grid-cols-4 border-b border-gray-200 last:border-b-0">
                               <div className="p-4 text-left text-sm text-gray-600">{item.name}</div>
-                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.develop, 'Develop')}</div>
-                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.growth, 'Growth')}</div>
-                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.scale, 'Scale')}</div>
+                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.starter)}</div>
+                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.professional)}</div>
+                              <div className="p-4 text-center border-l border-gray-200">{renderFeatureValue(item.enterprise)}</div>
                             </div>
                           ))}
                         </React.Fragment>
@@ -707,10 +484,10 @@ export default function Pricing() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center px-6 py-8">
                 <div className="text-left">
                   <h3 className="text-2xl md:text-3xl font-normal mb-4 leading-tight" style={{ color: '#1f53d0' }}>
-                    Understand your return
+                    Ready for production ML?
                   </h3>
                   <p className="text-base mb-8 opacity-90 text-gray-700">
-                    Optimize your choice with our ROI calculator and pick the plan that delivers the most value.
+                    Start deploying high-performance inference with our orchestration platform.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-4 justify-start">
                     <Link
@@ -718,7 +495,7 @@ export default function Pricing() {
                       className="text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
                       style={{ backgroundColor: '#1f53d0' }}
                     >
-                      Run the numbers
+                      Contact Sales
                     </Link>
                   </div>
                 </div>

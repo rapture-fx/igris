@@ -16,6 +16,16 @@ libc = "0.2"
 serde_json = "1.0.145"
 serde = { version = "1.0", features = ["derive"] }
 
+# FFI Safety and Runtime dependencies
+lazy_static = "1.4"
+parking_lot = "0.12"
+log = "0.4"
+tokio = { version = "1.0", features = ["rt", "sync", "time"] }
+once_cell = "1.18"
+thiserror = "1.0"
+async-trait = "0.1"
+tonic = "0.9"
+
 # REMOVED deprecated data processing deps:
 # csv = "1.3" - not used in inference pipeline
 # polars = "0.51.0" - removed with data_normalizer

@@ -1,0 +1,19 @@
+{{ define "slack.default.title" }}
+[{{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}] {{ .GroupLabels.alertname }}
+{{ end }}
+
+{{ define "slack.default.text" }}
+{{ range .Alerts }}
+*Alert:* {{ .Labels.alertname }} - `{{ .Labels.severity }}`
+*Service:* {{ .Labels.service }}
+*Description:* {{ .Annotations.description }}
+*Summary:* {{ .Annotations.summary }}
+*Details:*
+{{ range .Labels.SortedPairs }} • *{{ .Name }}:* `{{ .Value }}`
+{{ end }}
+{{ end }}
+{{ end }}
+
+{{ define "slack.default.username" }}Schlep-Engine AlertManager{{ end }}
+{{ define "slack.default.icon_emoji" }}:fire:{{ end }}
+{{ define "slack.default.icon_url" }}{{ end }}
