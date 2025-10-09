@@ -1,5 +1,4 @@
 {
-  "enableAllProjectMcpServers": true,
   "permissions": {
     "allow": [
       "Bash(python3:*)",
@@ -68,9 +67,18 @@
       "Bash(helm lint:*)",
       "Bash(gh pr checks:*)",
       "Bash(test:*)",
-      "Bash(gh run list:*)"
+      "Bash(gh run list:*)",
+      "Bash(docker stats:*)",
+      "Bash(psql:*)",
+      "Bash(npm install)",
+      "Bash(pnpm --filter @schlep/pricing-config build)",
+      "Bash(cargo test:*)",
+      "Bash(tree:*)",
+      "Bash(git -C /Users/wira/Desktop/schlep-engine log --all --oneline -- .env.production)",
+      "Bash(git -C /Users/wira/Desktop/schlep-engine check-ignore .env.production)"
     ],
     "deny": [],
     "ask": []
-  }
+  },
+  "enableAllProjectMcpServers": true
 }

@@ -1,52 +1,60 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, CheckCircle, X, Zap, Shield, Users, Star, Clock, Database, Brain } from 'lucide-react'
-
+import { ArrowRight, CheckCircle, X, Zap, Shield, Users, Star, Brain } from 'lucide-react'
 import { Footer } from '@/components/layout/Footer'
+import { pricing } from '@schlep/pricing-config'
 
 const PricingPage = () => {
+  const formatNumber = (num: number) => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1).replace('.0', '') + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(0) + 'k';
+    }
+    return num.toString();
+  };
+
   const plans = [
     {
-      name: "Starter",
-      price: "$99",
+      key: 'starter',
+      name: pricing.tiers.starter.name,
+      price: `$${pricing.tiers.starter.base_price_monthly}`,
       period: "/month",
-      description: "Perfect for small teams getting started with AI",
+      description: "Perfect for teams getting started with inference orchestration",
       features: [
-        "10,000 API calls/month",
-        "50GB data processing",
-        "Basic data cleaning",
-        "Standard file formats",
-        "Email support",
-        "API access",
-        "Basic analytics"
+        `${formatNumber(pricing.tiers.starter.inference_included_cpu)} CPU inferences/month`,
+        `${pricing.tiers.starter.models_included} CPU model deployments`,
+        "gRPC + REST inference APIs",
+        "Basic monitoring",
+        `${pricing.tiers.starter.sla_uptime}% SLA uptime`,
+        "Community support"
       ],
       limitations: [
-        "No custom models",
-        "No priority support",
-        "No advanced integrations"
+        "No GPU acceleration",
+        "No multi-model routing",
+        "No advanced monitoring"
       ],
       popular: false,
       cta: "Start Free Trial",
       icon: <Zap className="w-6 h-6" />
     },
     {
-      name: "Professional",
-      price: "$299",
+      key: 'professional',
+      name: pricing.tiers.professional.name,
+      price: `$${pricing.tiers.professional.base_price_monthly}`,
       period: "/month",
-      description: "For growing teams with serious AI initiatives",
+      description: "For production ML workloads with GPU acceleration",
       features: [
-        "100,000 API calls/month",
-        "500GB data processing",
-        "Advanced data cleaning",
-        "All file formats",
-        "Priority support",
-        "Advanced API access",
-        "Detailed analytics",
-        "Custom data models",
-        "Workflow automation",
-        "Team collaboration",
-        "SSO integration"
+        `${formatNumber(pricing.tiers.professional.inference_included_cpu)} CPU + ${formatNumber(pricing.tiers.professional.inference_included_gpu)} GPU inferences/month`,
+        `${pricing.tiers.professional.models_included} model deployments (CPU + GPU)`,
+        "GPU acceleration (CUDA/TensorRT)",
+        "Multi-Model Routing (Thompson Sampling)",
+        "Streaming Inference (WebSocket/SSE)",
+        "Advanced monitoring dashboard",
+        `${pricing.tiers.professional.sla_uptime}% SLA uptime`,
+        "24/7 email support"
       ],
       limitations: [
         "No on-premise deployment"
@@ -56,26 +64,21 @@ const PricingPage = () => {
       icon: <Brain className="w-6 h-6" />
     },
     {
-      name: "Enterprise",
-      price: "Custom",
-      period: "",
-      description: "For large organizations with complex needs",
+      key: 'enterprise',
+      name: pricing.tiers.enterprise.name,
+      price: `$${pricing.tiers.enterprise.base_price_monthly}`,
+      period: "/month",
+      description: "For large-scale inference with drift detection and tracing",
       features: [
-        "Unlimited API calls",
-        "Custom processing limits",
-        "Enterprise data cleaning",
-        "All file formats + custom",
-        "Dedicated support",
-        "Full API access",
-        "Advanced analytics",
-        "Custom AI models",
-        "Advanced workflows",
-        "Enterprise collaboration",
-        "SSO + SAML",
-        "On-premise deployment",
-        "Custom integrations",
-        "SLA guarantees",
-        "Compliance certifications"
+        `${formatNumber(pricing.tiers.enterprise.inference_included_cpu)} CPU + ${formatNumber(pricing.tiers.enterprise.inference_included_gpu)} GPU inferences/month`,
+        `${pricing.tiers.enterprise.models_included} model deployments (CPU + GPU)`,
+        "Priority GPU access",
+        "Drift detection & monitoring",
+        "Distributed tracing (Jaeger access)",
+        "Custom SLA agreements",
+        "Dedicated account manager",
+        `${pricing.tiers.enterprise.sla_uptime}% SLA uptime`,
+        "Priority support (<4hr response)"
       ],
       limitations: [],
       popular: false,
@@ -86,20 +89,20 @@ const PricingPage = () => {
 
   const faqs = [
     {
-      question: "What counts as an API call?",
-      answer: "Each request to our data processing API counts as one call. This includes data upload, cleaning, analysis, and export operations. Batch operations count as one call regardless of the number of records processed."
+      question: "What counts as an inference?",
+      answer: "Each prediction request to your deployed model counts as one inference. This includes both CPU and GPU inference requests. Batch operations count as one inference per item in the batch."
     },
     {
       question: "Can I change plans anytime?",
-      answer: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the billing accordingly. Your data and settings remain intact when switching plans."
+      answer: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the billing accordingly. Your deployed models remain intact when switching plans."
     },
     {
-      question: "What file formats do you support?",
-      answer: "We support CSV, JSON, Excel (.xlsx, .xls), Parquet, TSV, and many other common data formats. Enterprise plans include support for custom formats and direct database connections."
+      question: "What ML frameworks do you support?",
+      answer: "We support all major ML frameworks including TensorFlow, PyTorch, scikit-learn, XGBoost, and more. You can deploy models trained in any framework using our inference orchestration platform."
     },
     {
       question: "Is my data secure?",
-      answer: "Absolutely. We use enterprise-grade security with end-to-end encryption, SOC 2 Type II compliance, and GDPR compliance. Your data is never stored permanently and is deleted after processing."
+      answer: "Absolutely. We use enterprise-grade security with end-to-end encryption. Your model data and inference requests are encrypted in transit and at rest. Professional and Enterprise plans include advanced security controls."
     },
     {
       question: "Do you offer refunds?",
@@ -113,48 +116,48 @@ const PricingPage = () => {
 
   const features = [
     {
-      icon: <Database className="w-5 h-5" />,
-      title: "Data Processing",
-      description: "Handle files up to 10GB with real-time streaming"
+      icon: <Brain className="w-5 h-5" />,
+      title: "High-Performance Inference",
+      description: "Deploy models with 10,000 RPS throughput and P99 latency <100ms"
     },
     {
-      icon: <Brain className="w-5 h-5" />,
-      title: "AI-Powered Cleaning",
-      description: "Automatic detection and fixing of data quality issues"
+      icon: <Zap className="w-5 h-5" />,
+      title: "GPU Acceleration",
+      description: "CUDA and TensorRT optimizations for 56% faster inference"
     },
     {
       icon: <Shield className="w-5 h-5" />,
       title: "Enterprise Security",
-      description: "SOC 2, GDPR compliant with end-to-end encryption"
+      description: "End-to-end encryption with advanced security controls"
     },
     {
       icon: <Users className="w-5 h-5" />,
-      title: "Team Collaboration",
-      description: "Share projects and collaborate with your team"
+      title: "Multi-Model Routing",
+      description: "Thompson Sampling for intelligent A/B testing of models"
     }
   ]
 
   return (
     <div className="min-h-screen bg-white">
-        {/* Header */}
-        <header className="px-6 lg:px-8 bg-white border-b border-gray-200">
-          <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
-            <div className="flex lg:flex-1">
-              <Link href="/" className="-m-1.5 p-1.5">
-                <span className="text-2xl font-bold text-gray-900">Schlep-engine</span>
-              </Link>
-            </div>
-            <div className="flex lg:flex-1 lg:justify-end gap-x-8">
-              <Link href="/documentation" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
-                Documentation
-              </Link>
-              <Link href="/auth/signin" className="text-sm font-semibold leading-6 text-gray-900">
-                Log in <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </div>
-          </nav>
-        </header>
-      
+      {/* Header */}
+      <header className="px-6 lg:px-8 bg-white border-b border-gray-200">
+        <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+          <div className="flex lg:flex-1">
+            <Link href="/" className="-m-1.5 p-1.5">
+              <span className="text-2xl font-bold text-gray-900">Schlep-engine</span>
+            </Link>
+          </div>
+          <div className="flex lg:flex-1 lg:justify-end gap-x-8">
+            <Link href="/documentation" className="text-sm font-semibold leading-6 text-gray-900 hover:text-blue-600">
+              Documentation
+            </Link>
+            <Link href="/auth/signin" className="text-sm font-semibold leading-6 text-gray-900">
+              Log in <span aria-hidden="true">&rarr;</span>
+            </Link>
+          </div>
+        </nav>
+      </header>
+
       {/* Hero Section */}
       <section className="pt-32 pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto text-center">
@@ -162,14 +165,14 @@ const PricingPage = () => {
             Simple, transparent pricing
           </h1>
           <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto font-apple">
-            Choose the plan that fits your team's needs. All plans include our core AI features with a 14-day free trial.
+            Choose the plan that fits your inference workloads. All plans include high-performance ML inference with a 14-day free trial.
           </p>
-          
+
           {/* Billing Toggle */}
           <div className="flex items-center justify-center mb-12">
             <span className="text-sm text-gray-600 font-apple">Monthly billing</span>
             <div className="mx-3 text-mercury-accent font-medium text-sm font-apple">
-              💰 Save 20% with annual billing
+              💰 Save 15% with annual billing
             </div>
           </div>
         </div>
@@ -181,8 +184,8 @@ const PricingPage = () => {
           <div className="grid lg:grid-cols-3 gap-8">
             {plans.map((plan, index) => (
               <div key={index} className={`relative bg-white rounded-2xl p-8 border-2 transition-all hover:shadow-lg ${
-                plan.popular 
-                  ? 'border-mercury-accent shadow-lg' 
+                plan.popular
+                  ? 'border-mercury-accent shadow-lg'
                   : 'border-gray-200'
               }`}>
                 {plan.popular && (
@@ -193,7 +196,7 @@ const PricingPage = () => {
                     </span>
                   </div>
                 )}
-                
+
                 {/* Plan Header */}
                 <div className="text-center mb-8">
                   <div className="w-16 h-16 bg-mercury-muted rounded-lg flex items-center justify-center text-mercury-primary mx-auto mb-4">
@@ -218,7 +221,7 @@ const PricingPage = () => {
                       </li>
                     ))}
                   </ul>
-                  
+
                   {plan.limitations.length > 0 && (
                     <div className="mt-6">
                       <h5 className="text-sm font-medium text-gray-500 mb-2 font-apple">Not included:</h5>
@@ -246,7 +249,7 @@ const PricingPage = () => {
                   {plan.cta}
                   <ArrowRight className="w-4 h-4" />
                 </Link>
-                
+
                 {plan.price !== "Custom" && (
                   <p className="text-xs text-gray-500 text-center mt-3 font-apple">
                     14-day free trial • No credit card required
@@ -263,10 +266,10 @@ const PricingPage = () => {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-semibold text-gray-900 mb-4 font-apple">
-              Everything you need to succeed
+              Everything you need for production ML
             </h2>
             <p className="text-lg text-gray-600 font-apple">
-              All plans include these powerful features to transform your data workflow
+              All plans include these powerful features for high-performance inference orchestration
             </p>
           </div>
 
@@ -311,28 +314,28 @@ const PricingPage = () => {
       <section className="py-16 bg-mercury-muted px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-semibold text-gray-900 mb-4 font-apple">
-            Ready to transform your data workflow?
+            Ready for production ML inference?
           </h2>
           <p className="text-lg text-gray-600 mb-8 font-apple">
-            Start your free trial today and see why thousands of AI teams choose Schlep-engine
+            Start deploying high-performance models with our inference orchestration platform
           </p>
-          
+
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="px-8 py-4 bg-mercury-accent hover:bg-mercury-primary text-white font-semibold rounded-lg transition-all hover:scale-105 hover:shadow-lg inline-flex items-center justify-center gap-2 font-apple"
             >
               Start Free Trial
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <Link 
-              href="/enterprise" 
+            <Link
+              href="/enterprise"
               className="px-8 py-4 border border-gray-300 text-gray-700 hover:bg-white font-semibold rounded-lg transition-colors font-apple"
             >
               Talk to Sales
             </Link>
           </div>
-          
+
           <p className="text-sm text-gray-500 mt-4 font-apple">
             Questions? <a href="mailto:sales@Schlep-engine.com" className="text-mercury-primary hover:text-mercury-accent">Contact our sales team</a>
           </p>
@@ -344,4 +347,4 @@ const PricingPage = () => {
   )
 }
 
-export default PricingPage 
+export default PricingPage

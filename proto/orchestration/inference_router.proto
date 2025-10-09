@@ -1,0 +1,1155 @@
+syntax = "proto3";
+
+package orchestration;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/schlep-engine/go-gateway/proto/orchestration";
+
+// ============================================================================
+// Core Routing Policy Schema
+// ============================================================================
+
+// RoutingPolicy defines how inference requests should be routed
+message RoutingPolicy {
+  // Policy identifier
+  string policy_id = 1;
+  
+  // Policy version for backward compatibility
+  string version = 2;
+  
+  // Policy name for human reference
+  string name = 3;
+  
+  // Policy description
+  string description = 4;
+  
+  // Whether this policy is enabled
+  bool enabled = 5;
+  
+  // Priority for policy selection (higher = more priority)
+  int32 priority = 6;
+  
+  // Policy conditions
+  PolicyConditions conditions = 7;
+  
+  // Routing preferences
+  RoutingPreferences preferences = 8;
+  
+  // Fallback configuration
+  FallbackPolicy fallback = 9;
+  
+  // Rate limiting
+  RateLimit rate_limit = 10;
+  
+  // Health check requirements
+  HealthCheckRequirements health_requirements = 11;
+  
+  // Cost constraints
+  CostConstraints cost_constraints = 12;
+  
+  // Quality of Service requirements
+  QoSRequirements qos_requirements = 13;
+  
+  // Policy metadata
+  map<string, string> metadata = 14;
+  
+  // Creation and modification timestamps
+  google.protobuf.Timestamp created_at = 15;
+  google.protobuf.Timestamp updated_at = 16;
+  
+  // Policy tags for selection
+  repeated string tags = 17;
+}
+
+// PolicyConditions define when this policy applies
+message PolicyConditions {
+  // Model-specific conditions
+  repeated string model_ids = 1;
+  repeated string model_families = 2;
+  repeated string model_capabilities = 3;
+  
+  // Request-specific conditions
+  RequestSizeConstraints request_size = 4;
+  repeated string allowed_regions = 5;
+  repeated string allowed_tenants = 6;
+  repeated string denied_tenants = 7;
+  
+  // Performance requirements
+  PerformanceRequirements performance = 8;
+  
+  // Feature flags
+  repeated string feature_flags = 9;
+  
+  // Custom conditions
+  google.protobuf.Struct custom_conditions = 10;
+}
+
+message RequestSizeConstraints {
+  int32 min_features = 1;
+  int32 max_features = 2;
+  int32 min_batch_size = 3;
+  int32 max_batch_size = 4;
+  
+  // Size constraints
+  int64 max_request_size_bytes = 5;
+  int64 max_response_size_bytes = 6;
+}
+
+message PerformanceRequirements {
+  // Latency requirements
+  int32 max_p50_latency_ms = 1;
+  int32 max_p95_latency_ms = 2;
+  int32 max_p99_latency_ms = 3;
+  
+  // Throughput requirements
+  int32 min_throughput_rps = 4;
+  
+  // Reliability requirements  
+  double min_availability = 5;  // 0.0 to 1.0
+  double max_error_rate = 6;     // 0.0 to 1.0
+  
+  // Resource requirements
+  double max_cpu_usage = 7;     // 0.0 to 1.0
+  double max_memory_usage = 8;  // 0.0 to 1.0
+}
+
+// RoutingPreferences define model selection preferences
+message RoutingPreferences {
+  // Primary selection criteria
+  SelectionCriteria primary_criteria = 1;
+  
+  // Secondary selection criteria (used for tie-breaking)
+  repeated SelectionCriteria secondary_criteria = 2;
+  
+  // Model affinity preferences
+  bool prefer_cheapest = 3;
+  bool prefer_fastest = 4;
+  bool prefer_most_available = 5;
+  bool prefer_most_accurate = 6;
+  bool prefer_lowest_memory = 7;
+  
+  // Regional preferences
+  repeated string preferred_regions = 8;
+  bool regional_affinity_required = 9;
+  
+  // Load balancing strategy
+  LoadBalancingStrategy load_balancing = 10;
+  
+  // Cache preferences
+  bool prefer_cached_results = 11;
+  bool allow_cache_bypass = 12;
+  
+  // Model-specific preferences
+  repeated string preferred_models = 13;
+  repeated string deprecated_models = 14;
+  repeated string blocked_models = 15;
+  
+  // Runtime preferences
+  repeated string allowed_runtimes = 16;
+  bool prefer_native_runtime = 17;
+}
+
+enum SelectionCriteria {
+  SELECTION_CRITERIA_UNSPECIFIED = 0;
+  SELECTION_CRITERIA_COST = 1;
+  SELECTION_CRITERIA_LATENCY = 2;
+  SELECTION_CRITERIA_AVAILABILITY = 3;
+  SELECTION_CRITERIA_ACCURACY = 4;
+  SELECTION_CRITERIA_RELIABILITY = 5;
+  SELECTION_CRITERIA_THROUGHPUT = 6;
+  SELECTION_CRITERIA_MODEL_FAMILY = 7;
+  SELECTION_CRITERIA_REGION = 8;
+}
+
+enum LoadBalancingStrategy {
+  LOAD_BALANCING_UNSPECIFIED = 0;
+  LOAD_BALANCING_ROUND_ROBIN = 1;
+  LOAD_BALANCING_WEIGHTED_ROUND_ROBIN = 2;
+  LOAD_BALANCING_LEAST_CONNECTIONS = 3;
+  LOAD_BALANCING_LEAST_LATENCY = 4;
+  LOAD_BALANCING_WEIGHTED_LATENCY = 5;
+  LOAD_BALANCING_RESPONSE_TIME = 6;
+  LOAD_BALANCING_HASH_BASED = 7;
+  LOAD_BALANCING_CONSISTENT_HASH = 8;
+}
+
+// FallbackPolicy defines behavior when primary routing fails
+message FallbackPolicy {
+  // Whether to enable fallback
+  bool enabled = 1;
+  
+  // Fallback strategy
+  FallbackStrategy strategy = 2;
+  
+  // Maximum number of retry attempts
+  int32 max_retries = 3;
+  
+  // Retry delay configuration
+  RetryDelay retry_delay = 4;
+  
+  // Fallback models (in order of preference)
+  repeated string fallback_models = 5;
+  
+  // Fallback regions
+  repeated string fallback_regions = 6;
+  
+  // Alternative policies to use
+  repeated string fallback_policy_ids = 7;
+  
+  // When to use fallback
+  FallbackTrigger[] triggers = 8;
+}
+
+enum FallbackStrategy {
+  FALLBACK_STRATEGY_UNSPECIFIED = 0;
+  FALLBACK_STRATEGY_SIMPLE = 1;          // Try alternatives once
+  FALLBACK_STRATEGY_EXPONENTIAL_BACKOFF = 2;
+  FALLBACK_STRATEGY_GRACEFUL_DEGRADATION = 3;
+  FALLBACK_STRATEGY_CIRCUIT_BREAKER = 4;
+  FALLBACK_STRATEGY_REPLICATION_BASED = 5;
+}
+
+message RetryDelay {
+  int32 base_delay_ms = 1;
+  int32 max_delay_ms = 2;
+  float multiplier = 3;
+  bool jitter_enabled = 4;
+}
+
+message FallbackTrigger {
+  // Trigger condition
+  FallbackTriggerType type = 1;
+  
+  // Threshold value for the trigger
+  double threshold = 2;
+  
+  // Duration of the condition before triggering
+  int32 trigger_duration_seconds = 3;
+}
+
+enum FallbackTriggerType {
+  FALLBACK_TRIGGER_UNSPECIFIED = 0;
+  FALLBACK_TRIGGER_ERROR_RATE = 1;
+  FALLBACK_TRIGGER_LATENCY_P99 = 2;
+  FALLBACK_TRIGGER_AVAILABILITY = 3;
+  FALLBACK_TRIGGER_QUEUE_TIME = 4;
+  FALLBACK_TRIGGER_COST_THRESHOLD = 5;
+}
+
+// Rate limiting configuration
+message RateLimit {
+  // Per-client rate limits
+  RateLimitConfig per_client = 1;
+  
+  // Global rate limits
+  RateLimitConfig global = 2;
+  
+  // Per-model rate limits
+  map<string, RateLimitConfig> per_model = 3;
+  
+  // Per-policy rate limits
+  map<string, RateLimitConfig> per_policy = 4;
+  
+  // Rate limiting strategy
+  RateLimitStrategy strategy = 5;
+}
+
+message RateLimitConfig {
+  int32 requests_per_second = 1;
+  int32 requests_per_minute = 2;
+  int32 requests_per_hour = 3;
+  int32 requests_per_day = 4;
+  
+  // Burst capacity
+  int32 burst_capacity = 5;
+  
+  // Rate limiting algorithm
+  RateLimitAlgorithm algorithm = 6;
+}
+
+enum RateLimitStrategy {
+  RATE_LIMIT_UNSPECIFIED = 0;
+  RATE_LIMIT_GLOBAL = 1;
+  RATE_LIMIT_PER_CLIENT = 2;
+  RATE_LIMIT_PER_MODEL = 3;
+  RATE_LIMIT_PER_REGION = 4;
+  RATE_LIMIT_TIERED = 5;
+}
+
+enum RateLimitAlgorithm {
+  RATE_LIMIT_ALGORITHM_UNSPECIFIED = 0;
+  RATE_LIMIT_ALGORITHM_TOKEN_BUCKET = 1;
+  RATE_LIMIT_ALGORITHM_LEAKY_BUCKET = 2;
+  RATE_LIMIT_ALGORITHM_FIXED_WINDOW = 3;
+  RATE_LIMIT_ALGORITHM_SLIDING_WINDOW = 4;
+}
+
+// Health check requirements
+message HealthCheckRequirements {
+  // Minimum health score (0.0 to 1.0)
+  double min_health_score = 1;
+  bool require_all_healthy = 2;
+  
+  // Response time requirements
+  int32 max_health_check_latency_ms = 3;
+  double max_failure_rate = 4;
+  
+  // Health check interval
+  int32 health_check_interval_seconds = 5;
+}
+
+// Cost constraints
+message CostConstraints {
+  // Maximum cost per request
+  double max_cost_per_request = 1;
+  
+  // Maximum cost per batch
+  double max_cost_per_batch = 2;
+  
+  // Daily/monthly cost limits
+  double max_cost_per_hour = 3;
+  double max_cost_per_day = 4;
+  double max_cost_per_month = 5;
+  
+  // Cost optimization preferences
+  bool prefer_predictable_costs = 6;
+  bool enable_cost_caching = 7;
+  
+  // Budget alerting
+  double budget_alert_threshold = 8;
+}
+
+// QoS (Quality of Service) requirements
+message QoSRequirements {
+  // Priority level
+  PriorityLevel priority = 1;
+  
+  // Resource guarantees
+  ResourceGuarantees guarantees = 2;
+  
+  // Service level objectives
+  repeated SLO slo = 3;
+  
+  // Preemption settings
+  bool preemptible = 4;
+  int32 preemption_timeout_seconds = 5;
+}
+
+enum PriorityLevel {
+  PRIORITY_UNSPECIFIED = 0;
+  PRIORITY_CRITICAL = 1;
+  PRIORITY_HIGH = 2;
+  PRIORITY_NORMAL = 3;
+  PRIORITY_LOW = 4;
+  PRIORITY_BACKGROUND = 5;
+}
+
+message ResourceGuarantees {
+  double min_cpu_cores = 1;
+  double min_memory_gb = 2;
+  double min_gpu_count = 3;
+  bool requires_dedicated_resources = 4;
+}
+
+message SLO {
+  string name = 1;
+  string description = 2;
+  double target_value = 3;
+  string unit = 4;
+  bool mandatory = 5;
+}
+
+// ============================================================================
+// Inference Request Message
+// ============================================================================
+
+message InferenceRequest {
+  // Request identifier
+  string request_id = 1;
+  
+  // Request metadata
+  RequestMetadata metadata = 2;
+  
+  // Inference content
+  oneof inference_type {
+    TextInferenceRequest text = 10;
+    EmbeddingInferenceRequest embedding = 11;
+    GenerationInferenceRequest generation = 12;
+    StructuredInferenceRequest structured = 13;
+    ImageInferenceRequest image = 14;
+    CustomInferenceRequest custom = 15;
+  }
+  
+  // Routing hints
+  RoutingHints routing_hints = 20;
+  
+  // Quality requirements
+  QoSRequirements qos_requirements = 22;
+  
+  // Timestamps
+  google.protobuf.Timestamp created_at = 30;
+}
+
+message RequestMetadata {
+  string tenant_id = 1;
+  string user_id = 2;
+  string session_id = 3;
+  string correlation_id = 4;
+  string request_source = 5;
+  
+  string client_version = 6;
+  string client_platform = 7;
+  
+  map<string, string> custom_metadata = 8;
+  
+  // Geographic information (if provided)
+  string client_region = 9;
+  string client_country = 10;
+  
+  // Authentication context
+  string auth_token_ref = 11;
+  repeated string permissions = 12;
+}
+
+message RoutingHints {
+  // Preferred models (in order)
+  repeated string preferred_models = 1;
+  
+  // Blocked models
+  repeated string blocked_models = 2;
+  
+  // Desired characteristics
+  bool prefer_cached = 3;
+  bool allow_cold_start = 4;
+  bool require_dedicated = 5;
+  
+  // Performance preferences
+  bool prioritize_latency = 6;
+  bool prioritize_cost = 7;
+  bool prioritize_accuracy = 8;
+  
+  // Fallback tolerance
+  bool allow_fallback = 9;
+  int32 max_fallback_attempts = 10;
+  
+  // Custom routing hints
+  google.protobuf.Struct custom_hints = 11;
+}
+
+// Text inference for classification, sentiment, etc.
+message TextInferenceRequest {
+  string text = 1;
+  string task_type = 2;  // classification, sentiment, extraction, etc.
+  map<string, string> parameters = 3;
+}
+
+// Embedding inference for vector representations
+message EmbeddingInferenceRequest {
+  string text = 1;
+  string model_type = 2;  // text-embedding, multilingual, etc.
+  int32 embedding_dimension = 3;
+}
+
+// Generation inference for text generation
+message GenerationInferenceRequest {
+  string prompt = 1;
+  int32 max_tokens = 2;
+  double temperature = 3;
+  double top_p = 4;
+  int32 num_return_sequences = 5;
+  bool stream = 6;
+  map<string, string> generation_parameters = 7;
+}
+
+// Structured data inference
+message StructuredInferenceRequest {
+  google.protobuf.Struct input_data = 1;
+  string task_type = 2;
+  map<string, string> schema = 3;
+}
+
+// Image inference
+message ImageInferenceRequest {
+  bytes image_data = 1;
+  string image_format = 2;  // jpeg, png, etc.
+  string task_type = 3;  // classification, detection, etc.
+  map<string, string> parameters = 4;
+}
+
+// Custom inference type
+message CustomInferenceRequest {
+  string type_name = 1;
+  google.protobuf.Struct parameters = 2;
+  bytes payload = 3;
+}
+
+// ============================================================================
+// Inference Response Message
+// ============================================================================
+
+message InferenceResponse {
+  // Request identifier (matches request)
+  string request_id = 1;
+  
+  // Response status
+  ResponseStatus status = 2;
+  
+  // Inference result (if successful)
+  InferenceResult result = 3;
+  
+  // Error information (if failed)
+  ErrorInfo error = 4;
+  
+  // Routing information
+  RoutingInfo routing = 5;
+  
+  // Performance metrics
+  PerformanceMetrics performance = 6;
+  
+  // Cost information
+  CostInfo cost = 7;
+  
+  // Cache information
+  CacheInfo cache = 8;
+  
+  // Response metadata
+  ResponseMetadata metadata = 9;
+  
+  // Timestamps
+  google.protobuf.Timestamp created_at = 20;
+  google.protobuf.Timestamp completed_at = 21;
+}
+
+enum ResponseStatus {
+  RESPONSE_STATUS_UNSPECIFIED = 0;
+  RESPONSE_STATUS_SUCCESS = 1;
+  RESPONSE_STATUS_ERROR = 2;
+  RESPONSE_STATUS_PARTIAL = 3;
+  RESPONSE_STATUS_TIMEOUT = 4;
+  RESPONSE_STATUS_RATE_LIMITED = 5;
+  RESPONSE_STATUS_MODEL_UNAVAILABLE = 6;
+}
+
+message InferenceResult {
+  // Result content
+  oneof result_type {
+    TextInferenceResult text_result = 1;
+    EmbeddingInferenceResult embedding_result = 2;
+    GenerationInferenceResult generation_result = 3;
+    StructuredInferenceResult structured_result = 4;
+    ImageInferenceResult image_result = 5;
+    CustomInferenceResult custom_result = 6;
+  }
+  
+  // Model confidence (if applicable)
+  double confidence = 10;
+  
+  // Additional result metadata
+  map<string, string> result_metadata = 11;
+}
+
+message TextInferenceResult {
+  string classification = 1;
+  string sentiment = 2;
+  double probability = 3;
+  repeated string extracted_entities = 4;
+  map<string, double> class_probabilities = 5;
+}
+
+message EmbeddingInferenceResult {
+  repeated float embedding = 1;
+  int32 dimension = 2;
+  string model_used = 3;
+}
+
+message GenerationInferenceResult {
+  string generated_text = 1;
+  repeated string sequences = 2;
+  repeated float token_probabilities = 3;
+  int32 tokens_used = 4;
+  bool finished_reason = 5;
+}
+
+message StructuredInferenceResult {
+  google.protobuf.Struct structured_output = 1;
+  map<string, double> field_confidences = 2;
+}
+
+message ImageInferenceResult {
+  repeated DetectionResult detections = 1;
+  string classification = 2;
+  double confidence = 3;
+}
+
+message DetectionResult {
+  string label = 1;
+  float confidence = 2;
+  BoundingBox bbox = 3;
+}
+
+message BoundingBox {
+  float x = 1;
+  float y = 2;
+  float width = 3;
+  float height = 4;
+}
+
+message CustomInferenceResult {
+  google.protobuf.Struct custom_output = 1;
+  bytes binary_data = 2;
+}
+
+message ErrorInfo {
+  string error_code = 1;
+  string error_message = 2;
+  string error_details = 3;
+  
+  bool retryable = 4;
+  int32 retry_after_seconds = 5;
+  
+  string model_id = 6;
+  string policy_id = 7;
+  
+  google.protobuf.Struct error_metadata = 8;
+}
+
+message RoutingInfo {
+  // Selected model
+  string model_id = 1;
+  string model_version = 2;
+  string runtime_type = 3;
+  
+  // Policy used for routing decision
+  string policy_id = 4;
+  string policy_name = 5;
+  
+  // Routing reasoning
+  repeated RoutingDecision decisions = 6;
+  string routing_explanation = 7;
+  
+  // Model availability
+  bool was_cached = 8;
+  bool required_warm_start = 9;
+  
+  // Load balancing info
+  string load_balancer_algorithm = 10;
+  string server_id = 11;
+  
+  // Region and availability zone
+  string region = 12;
+  string availability_zone = 13;
+}
+
+message RoutingDecision {
+  string criterion = 1;
+  string model_id = 2;
+  double score = 3;
+  bool selected = 4;
+  string reasoning = 5;
+}
+
+message PerformanceMetrics {
+  // Timing metrics
+  int64 total_duration_ms = 1;
+  int64 queue_time_ms = 2;
+  int64 routing_time_ms = 3;
+  int64 inference_time_ms = 4;
+  int64 post_processing_time_ms = 5;
+  
+  // Throughput metrics
+  int32 request_size_bytes = 6;
+  int32 response_size_bytes = 7;
+  
+  // Resource metrics
+  double cpu_utilization = 8;
+  double memory_utilization = 9;
+  double gpu_utilization = 10;
+  
+  // Quality metrics
+  bool met_sla = 11;
+  repeated SLOResult slo_results = 12;
+  
+  // Queue metrics
+  int32 queue_length_at_request = 13;
+  double avg_queue_length = 14;
+}
+
+message SLOResult {
+  string slo_name = 1;
+  bool satisfied = 2;
+  double actual_value = 3;
+  double target_value = 4;
+}
+
+message CostInfo {
+  // Cost breakdown
+  double total_cost = 1;
+  double base_cost = 2;
+  double premium_cost = 3;
+  double cache_cost = 4;
+  
+  // Token/inference costs
+  int32 tokens_input = 5;
+  int32 tokens_output = 6;
+  double cost_per_1k_tokens = 7;
+  double cost_per_1k_inferences = 8;
+  
+  // Pricing model
+  PricingModel pricing_model = 9;
+  string currency = 10;
+  
+  // Cost optimization
+  double cost_savings_vs_baseline = 11;
+  bool was_cost_optimized = 12;
+}
+
+enum PricingModel {
+  PRICING_MODEL_UNSPECIFIED = 0;
+  PRICING_MODEL_PER_TOKEN = 1;
+  PRICING_MODEL_PER_INFERENCE = 2;
+  PRICING_MODEL_PER_MINUTE = 3;
+  PRICING_MODEL_TIERED = 4;
+  PRICING_MODEL_CUSTOM = 5;
+}
+
+message CacheInfo {
+  bool hit = 1;
+  string cache_key = 2;
+  google.protobuf.Timestamp cache_time = 3;
+  int32 ttl_seconds = 4;
+  string cache_tier = 5;
+  
+  // Cache warming info
+  bool was_warmed = 6;
+  bool pre_fetched = 7;
+}
+
+message ResponseMetadata {
+  string request_id = 1;
+  string correlation_id = 2;
+  string trace_id = 3;
+  
+  // Server information
+  string server_id = 4;
+  string version = 5;
+  
+  // Model information
+  string model_id = 6;
+  string model_version = 7;
+  string model_provider = 8;
+  
+  // Performance information
+  double latency_ms = 9;
+  double tokens_per_second = 10;
+  
+  // Additional metadata
+  map<string, string> custom_metadata = 11;
+}
+
+// ============================================================================
+// Router API Messages
+// ============================================================================
+
+message RouteInferenceRequest {
+  InferenceRequest inference_request = 1;
+  
+  // Optional routing override
+  RoutingOverride override = 2;
+  
+  // Request context
+  RequestContext context = 3;
+}
+
+message RoutingOverride {
+  // Force specific model
+  string force_model_id = 1;
+  
+  // Force specific policy
+  string force_policy_id = 2;
+  
+  // Bypass routing logic
+  bool bypass_routing = 3;
+  
+  // Custom routing parameters
+  google.protobuf.Struct custom_parameters = 4;
+}
+
+message RequestContext {
+  string client_ip = 1;
+  string user_agent = 2;
+  repeated string client_capabilities = 3;
+  
+  // Geographic context
+  string region = 4;
+  string country = 5;
+  
+  // Network context
+  string network_path = 6;
+  
+  // Security context
+  repeated string permissions = 7;
+  string auth_method = 8;
+}
+
+message RouteInferenceResponse {
+  // Routing decision
+  string model_id = 1;
+  string policy_id = 2;
+  string runtime_type = 3;
+  
+  // Routing decision details
+  RoutingDecisionInfo decision_info = 4;
+  
+  // Estimated performance
+  PerformanceEstimate performance_estimate = 5;
+  
+  // Cost estimate
+  CostEstimate cost_estimate = 6;
+  
+  // Queue information
+  QueueInfo queue_info = 7;
+}
+
+message RoutingDecisionInfo {
+  repeated RoutingDecision decisions = 1;
+  double total_score = 2;
+  string reasoning = 3;
+  bool requires_warm_start = 4;
+}
+
+message PerformanceEstimate {
+  int32 estimated_p50_latency_ms = 1;
+  int32 estimated_p95_latency_ms = 2;
+  double estimated_throughput_rps = 3;
+  double estimated_availability = 4;
+}
+
+message CostEstimate {
+  double estimated_cost = 1;
+  double cost_per_1k_tokens = 2;
+  double cost_per_1k_inferences = 3;
+  PricingModel pricing_model = 4;
+}
+
+message QueueInfo {
+  int32 current_queue_length = 1;
+  int32 estimated_wait_time_ms = 2;
+  int32 queue_position = 3;
+  bool queue_full = 4;
+}
+
+// ============================================================================
+// Model Registry Integration
+// ============================================================================
+
+message ModelInfo {
+  string model_id = 1;
+  string name = 2;
+  string version = 3;
+  string provider = 4;
+  string family = 5;
+  
+  // Capabilities
+  repeated string capabilities = 6;
+  ModelType model_type = 7;
+  RuntimeType runtime_type = 8;
+  
+  // Performance characteristics
+  PerformanceCharacteristics performance = 9;
+  
+  // Cost information
+  ModelCost cost = 10;
+  
+  // Availability
+  bool available = 11;
+  int32 max_concurrent_requests = 12;
+  
+  // Geographic distribution
+  repeated string regions = 13;
+  
+  // Metadata
+  map<string, string> metadata = 14;
+  
+  // Quality metrics
+  QualityMetrics quality = 15;
+}
+
+enum ModelType {
+  MODEL_TYPE_UNSPECIFIED = 0;
+  MODEL_TYPE_TEXT_GENERATION = 1;
+  MODEL_TYPE_TEXT_CLASSIFICATION = 2;
+  MODEL_TYPE_EMBEDDING = 3;
+  MODEL_TYPE_IMAGE_CLASSIFICATION = 4;
+  MODEL_TYPE_IMAGE_GENERATION = 5;
+  MODEL_TYPE_AUDIO = 6;
+  MODEL_TYPE_MULTIMODAL = 7;
+  MODEL_TYPE_CUSTOM = 8;
+}
+
+enum RuntimeType {
+  RUNTIME_TYPE_UNSPECIFIED = 0;
+  RUNTIME_TYPE_PYTHON = 1;
+  RUNTIME_TYPE_RUST = 2;
+  RUNTIME_TYPE_GO = 3;
+  RUNTIME_TYPE_JAVA = 4;
+  RUNTIME_TYPE_WASM = 5;
+}
+
+message PerformanceCharacteristics {
+  int32 max_p50_latency_ms = 1;
+  int32 max_p95_latency_ms = 2;
+  int32 max_throughput_rps = 3;
+  double max_memory_gb = 4;
+  double max_gpu_gb = 5;
+  
+  // Warm-up requirements
+  int32 warm_up_time_seconds = 6;
+  bool requires_warm_start = 7;
+  
+  // Scaling characteristics
+  bool horizontally_scalable = 8;
+  int32 optimal_batch_size = 9;
+}
+
+message ModelCost {
+  PricingModel pricing_model = 1;
+  double cost_per_1k_tokens = 2;
+  double cost_per_1k_inferences = 3;
+  double cost_per_minute = 4;
+  string currency = 5;
+  
+  // Tiered pricing
+  repeated CostTier cost_tiers = 6;
+  
+  // Additional costs
+  double warm_up_cost = 7;
+  double idle_cost_per_minute = 8;
+}
+
+message CostTier {
+  string tier_name = 1;
+  int32 min_requests = 2;
+  int32 max_requests = 3;
+  double cost_per_unit = 4;
+}
+
+message QualityMetrics {
+  double accuracy = 1;
+  double completeness = 2;
+  double consistency = 3;
+  double latency = 4;
+  double throughput = 5;
+  
+  // Quality scoring
+  double overall_score = 6;
+  string rating_grade = 7;
+  
+  // Benchmark results
+  map<string, double> benchmark_scores = 8;
+}
+
+// ============================================================================
+// Service Definition
+// ============================================================================
+
+service InferenceRouterService {
+  // Core routing API
+  rpc RouteInference(RouteInferenceRequest) returns (RouteInferenceResponse);
+  
+  // Batch routing
+  rpc RouteBatchInference(stream RouteInferenceRequest) returns (stream RouteInferenceResponse);
+  
+  // Policy management
+  rpc CreatePolicy(CreatePolicyRequest) returns (CreatePolicyResponse);
+  rpc UpdatePolicy(UpdatePolicyRequest) returns (UpdatePolicyResponse);
+  rpc DeletePolicy(DeletePolicyRequest) returns (DeletePolicyResponse);
+  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse);
+  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse);
+  
+  // Model registry integration
+  rpc RegisterModel(RegisterModelRequest) returns (RegisterModelResponse);
+  rpc UpdateModelInfo(UpdateModelInfoRequest) returns (UpdateModelInfoResponse);
+  rpc GetModelInfo(GetModelInfoRequest) returns (GetModelInfoResponse);
+  rpc ListModels(ListModelsRequest) returns (ListModelsResponse);
+  
+  // Health and metrics
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+  rpc GetMetrics(MetricsRequest) returns (MetricsResponse);
+  rpc GetRoutingStats(RoutingStatsRequest) returns (RoutingStatsResponse);
+}
+
+service InferenceExecutionService {
+  // Execute inference (after routing)
+  rpc ExecuteInference(InferenceRequest) returns (InferenceResponse);
+  
+  // Batch execution
+  rpc ExecuteBatch(stream InferenceRequest) returns (stream InferenceResponse);
+}
+
+// ==================== Request/Response Messages for Services ====================
+
+message CreatePolicyRequest {
+  RoutingPolicy policy = 1;
+}
+
+message CreatePolicyResponse {
+  string policy_id = 1;
+  bool created = 2;
+  string message = 3;
+}
+
+message UpdatePolicyRequest {
+  string policy_id = 1;
+  RoutingPolicy policy = 2;
+}
+
+message UpdatePolicyResponse {
+  bool updated = 1;
+  string message = 2;
+}
+
+message DeletePolicyRequest {
+  string policy_id = 1;
+}
+
+message DeletePolicyResponse {
+  bool deleted = 1;
+  string message = 2;
+}
+
+message GetPolicyRequest {
+  string policy_id = 1;
+}
+
+message GetPolicyResponse {
+  RoutingPolicy policy = 1;
+}
+
+message ListPoliciesRequest {
+  bool include_disabled = 1;
+  repeated string tags = 2;
+  int32 page_size = 3;
+  int32 page_token = 4;
+}
+
+message ListPoliciesResponse {
+  repeated RoutingPolicy policies = 1;
+  int32 total_count = 2;
+  string next_page_token = 3;
+}
+
+message RegisterModelRequest {
+  ModelInfo model_info = 1;
+}
+
+message RegisterModelResponse {
+  string model_id = 1;
+  bool registered = 2;
+  string message = 3;
+}
+
+message UpdateModelInfoRequest {
+  string model_id = 1;
+  ModelInfo model_info = 2;
+}
+
+message UpdateModelInfoResponse {
+  bool updated = 1;
+  string message = 2;
+}
+
+message GetModelInfoRequest {
+  string model_id = 1;
+}
+
+message GetModelInfoResponse {
+  ModelInfo model_info = 1;
+}
+
+message ListModelsRequest {
+  bool include_unavailable = 1;
+  repeated string families = 2;
+  repeated string capabilities = 3;
+  repeated string regions = 4;
+  int32 page_size = 5;
+  int32 page_token = 6;
+}
+
+message ListModelsResponse {
+  repeated ModelInfo models = 1;
+  int32 total_count = 2;
+  string next_page_token = 3;
+}
+
+message HealthCheckRequest {
+  bool check_dependencies = 1;
+}
+
+message HealthCheckResponse {
+  bool healthy = 1;
+  string status = 2;
+  repeated HealthCheckResult component_health = 3;
+  google.protobuf.Timestamp timestamp = 4;
+}
+
+message HealthCheckResult {
+  string component = 1;
+  bool healthy = 2;
+  string message = 3;
+  double response_time_ms = 4;
+}
+
+message MetricsRequest {
+  repeated string metric_names = 1;
+  google.protobuf.Timestamp start_time = 2;
+  google.protobuf.Timestamp end_time = 3;
+}
+
+message MetricsResponse {
+  google.protobuf.Struct metrics = 1;
+  string next_token = 2;
+}
+
+message RoutingStatsRequest {
+  google.protobuf.Timestamp start_time = 1;
+  google.protobuf.Timestamp end_time = 2;
+  repeated string policy_ids = 3;
+  repeated string model_ids = 4;
+}
+
+message RoutingStatsResponse {
+  RoutingStatistics stats = 1;
+  repeated PolicyStats policy_stats = 2;
+  repeated ModelStats model_stats = 3;
+}
+
+message RoutingStatistics {
+  int64 total_requests = 1;
+  int64 successful_requests = 2;
+  int64 failed_requests = 3;
+  int64 cache_hits = 4;
+  int64 cache_misses = 5;
+  double avg_queue_time_ms = 6;
+  double avg_routing_time_ms = 7;
+  double avg_inference_time_ms = 8;
+  double total_cost = 9;
+}
+
+message PolicyStats {
+  string policy_id = 1;
+  int64 requests_processed = 2;
+  double avg_score = 3;
+  int64 fallbacks_used = 4;
+  double avg_latency_ms = 5;
+}
+
+message ModelStats {
+  string model_id = 1;
+  int64 requests_processed = 2;
+  double avg_inference_time_ms = 3;
+  double avg_queue_time_ms = 4;
+  double total_cost = 5;
+  int64 tokens_processed = 6;
+}

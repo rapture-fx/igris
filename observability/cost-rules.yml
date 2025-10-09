@@ -1,0 +1,207 @@
+# Cost Tracking Recording Rules for Schlep-Engine
+# These rules aggregate and compute cost metrics for ML inference
+
+groups:
+  # =====================================================
+  # Cost Recording Rules
+  # =====================================================
+
+  - name: cost_recording_rules
+    interval: 1m
+    rules:
+      # Total inference cost per runtime (per second)
+      - record: inference:cost_usd:rate1m
+        expr: |
+          rate(inference_cost_usd_total[1m])
+        labels:
+          aggregation: "rate1m"
+
+      # Cost per 1000 inferences by runtime
+      - record: inference:cost_per_1k:rate5m
+        expr: |
+          (
+            rate(inference_cost_usd_total[5m])
+            /
+            rate(inference_requests_total[5m])
+          ) * 1000
+        labels:
+          aggregation: "per_1k_requests"
+
+      # Average inference duration by runtime (milliseconds)
+      - record: inference:duration_ms:avg5m
+        expr: |
+          avg(rate(inference_duration_seconds_sum[5m]) / rate(inference_duration_seconds_count[5m])) by (runtime) * 1000
+        labels:
+          aggregation: "avg5m"
+
+      # Total compute time by runtime (seconds)
+      - record: inference:compute_seconds:rate5m
+        expr: |
+          rate(inference_compute_seconds_total[5m])
+        labels:
+          aggregation: "compute_rate5m"
+
+      # Average memory usage per inference by runtime (MB)
+      - record: inference:memory_mb:avg5m
+        expr: |
+          avg(rate(inference_memory_bytes_sum[5m]) / rate(inference_memory_bytes_count[5m])) by (runtime) / (1024 * 1024)
+        labels:
+          aggregation: "avg5m"
+
+      # Cost efficiency: inferences per dollar
+      - record: inference:efficiency_per_dollar:rate5m
+        expr: |
+          (
+            rate(inference_requests_total[5m])
+            /
+            rate(inference_cost_usd_total[5m])
+          )
+        labels:
+          aggregation: "efficiency"
+
+      # Rust vs Python cost comparison (ratio)
+      - record: inference:rust_vs_python_cost_ratio:rate5m
+        expr: |
+          (
+            sum(rate(inference_cost_usd_total{runtime="rust"}[5m]))
+            /
+            sum(rate(inference_cost_usd_total{runtime="python"}[5m]))
+          )
+        labels:
+          aggregation: "cost_ratio"
+
+  # =====================================================
+  # Hourly Cost Aggregations
+  # =====================================================
+
+  - name: cost_hourly_aggregations
+    interval: 5m
+    rules:
+      # Projected hourly cost by runtime
+      - record: inference:cost_usd_hourly:projection
+        expr: |
+          rate(inference_cost_usd_total[15m]) * 3600
+        labels:
+          aggregation: "hourly_projection"
+
+      # Projected daily cost by runtime
+      - record: inference:cost_usd_daily:projection
+        expr: |
+          rate(inference_cost_usd_total[1h]) * 86400
+        labels:
+          aggregation: "daily_projection"
+
+      # Hourly inference volume
+      - record: inference:requests_hourly:projection
+        expr: |
+          rate(inference_requests_total[15m]) * 3600
+        labels:
+          aggregation: "hourly_volume"
+
+  # =====================================================
+  # Cost Breakdown by Service
+  # =====================================================
+
+  - name: cost_by_service
+    interval: 1m
+    rules:
+      # Cost by service endpoint
+      - record: inference:cost_by_endpoint:rate5m
+        expr: |
+          sum(rate(inference_cost_usd_total[5m])) by (endpoint, runtime)
+        labels:
+          aggregation: "by_endpoint"
+
+      # Cost by model type
+      - record: inference:cost_by_model:rate5m
+        expr: |
+          sum(rate(inference_cost_usd_total[5m])) by (model, runtime)
+        labels:
+          aggregation: "by_model"
+
+      # Request count by runtime
+      - record: inference:requests_by_runtime:rate5m
+        expr: |
+          sum(rate(inference_requests_total[5m])) by (runtime)
+        labels:
+          aggregation: "by_runtime"
+
+  # =====================================================
+  # Performance vs Cost Metrics
+  # =====================================================
+
+  - name: performance_cost_metrics
+    interval: 1m
+    rules:
+      # Cost per millisecond of compute time
+      - record: inference:cost_per_ms_compute:rate5m
+        expr: |
+          (
+            rate(inference_cost_usd_total[5m])
+            /
+            (rate(inference_compute_seconds_total[5m]) * 1000)
+          )
+        labels:
+          aggregation: "cost_per_ms"
+
+      # Cost per GB of memory used
+      - record: inference:cost_per_gb_memory:rate5m
+        expr: |
+          (
+            rate(inference_cost_usd_total[5m])
+            /
+            (rate(inference_memory_bytes_sum[5m]) / (1024 * 1024 * 1024))
+          )
+        labels:
+          aggregation: "cost_per_gb"
+
+      # Latency-adjusted cost (cost * latency)
+      - record: inference:latency_adjusted_cost:rate5m
+        expr: |
+          (
+            rate(inference_cost_usd_total[5m])
+            *
+            (rate(inference_duration_seconds_sum[5m]) / rate(inference_duration_seconds_count[5m]))
+          )
+        labels:
+          aggregation: "latency_adjusted"
+
+  # =====================================================
+  # Cost Trend Analysis
+  # =====================================================
+
+  - name: cost_trends
+    interval: 5m
+    rules:
+      # Cost growth rate (compared to 1 hour ago)
+      - record: inference:cost_growth_rate:1h
+        expr: |
+          (
+            rate(inference_cost_usd_total[5m])
+            /
+            rate(inference_cost_usd_total[5m] offset 1h)
+          ) - 1
+        labels:
+          aggregation: "growth_1h"
+
+      # Volume growth rate (compared to 1 hour ago)
+      - record: inference:volume_growth_rate:1h
+        expr: |
+          (
+            rate(inference_requests_total[5m])
+            /
+            rate(inference_requests_total[5m] offset 1h)
+          ) - 1
+        labels:
+          aggregation: "volume_growth_1h"
+
+      # Average cost change (compared to 24 hours ago)
+      - record: inference:cost_change:24h
+        expr: |
+          (
+            rate(inference_cost_usd_total[15m])
+            -
+            rate(inference_cost_usd_total[15m] offset 24h)
+          )
+        labels:
+          aggregation: "cost_change_24h"
