@@ -168,9 +168,55 @@ export default function Hero() {
                   </div>
 
 
-                  <div className="flex min-h-96 max-w-full">
+                  <div className="flex flex-col md:flex-row min-h-96 max-w-full">
                     {/* Directory/File Explorer */}
-                    <div className="w-64 border-r border-gray-300 p-3" style={{ backgroundColor: '#f2f1ed' }}>
+                    <div className="w-full md:w-64 border-r border-gray-300 p-3 md:block hidden" style={{ backgroundColor: '#f2f1ed' }}>
+                      
+                      {/* Mobile File Tabs */}
+                      <div className="md:hidden mb-4">
+                        <div className="flex space-x-2 overflow-x-auto pb-2">
+                          <button
+                            onClick={() => setActiveTab('python')}
+                            className={`px-3 py-1 text-xs rounded whitespace-nowrap ${
+                              activeTab === 'python'
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            Python
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('curl')}
+                            className={`px-3 py-1 text-xs rounded whitespace-nowrap ${
+                              activeTab === 'curl'
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            cURL
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('streaming')}
+                            className={`px-3 py-1 text-xs rounded whitespace-nowrap ${
+                              activeTab === 'streaming'
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            Streaming
+                          </button>
+                          <button
+                            onClick={() => setActiveTab('frameworks')}
+                            className={`px-3 py-1 text-xs rounded whitespace-nowrap ${
+                              activeTab === 'frameworks'
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            Frameworks
+                          </button>
+                        </div>
+                      </div>
                       <div className="space-y-1">
                         <div className="flex items-center space-x-2 text-sm text-gray-500">
                           <svg className="w-4 h-4 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
@@ -265,7 +311,7 @@ export default function Hero() {
                     {/* Code area with tabs */}
                     <div className="flex-1" style={{ backgroundColor: '#f2f1ed' }}>
                       {/* Tabs above code */}
-                      <div className="relative flex items-end" style={{ backgroundColor: '#f2f1ed', paddingLeft: '44px' }}>
+                      <div className="relative flex items-end hidden md:flex" style={{ backgroundColor: '#f2f1ed', paddingLeft: '44px' }}>
                         {/* Line numbers area background */}
                         <div className="absolute top-0 bottom-0" style={{ left: 0, width: '44px', backgroundColor: '#f7f7f3' }}></div>
                         {/* Vertical border extension */}
@@ -369,9 +415,9 @@ export default function Hero() {
                           className="absolute top-0 bottom-0 w-px bg-gray-300"
                           style={{ left: '44px' }}
                         ></div>
-                        <div className="flex" style={{ minHeight: '500px' }}>
+                        <div className="flex md:flex-row flex-col" style={{ minHeight: '500px' }}>
                           <div
-                            className="flex-shrink-0 pr-2 text-right mr-2 w-8 relative"
+                            className="flex-shrink-0 pr-2 text-right mr-2 w-8 relative md:block hidden"
                             style={{ color: '#6b7280' }}
                           >
                             <div
@@ -384,9 +430,9 @@ export default function Hero() {
                               })()}
                             </div>
                           </div>
-                          <div className="flex-1 overflow-auto pl-6">
+                          <div className="flex-1 overflow-auto pl-6 md:pl-6 pl-0">
                             <pre
-                              className="text-sm leading-relaxed whitespace-pre"
+                              className="text-xs md:text-sm leading-relaxed whitespace-pre break-all md:whitespace-pre"
                               style={{ color: '#374151' }}
                               dangerouslySetInnerHTML={{
                                 __html: getActiveCode()
@@ -398,7 +444,7 @@ export default function Hero() {
                     </div>
 
                     {/* Right sidebar */}
-                    <div className="w-[28rem] border-l border-gray-300 p-3" style={{ backgroundColor: '#f2f1ed' }}>
+                    <div className="w-full md:w-[28rem] border-l border-gray-300 p-3 hidden md:block" style={{ backgroundColor: '#f2f1ed' }}>
                       <h3 className="text-sm font-medium text-gray-600 mb-4 text-left">
                         Built for engineers shipping ML at speed.
                       </h3>

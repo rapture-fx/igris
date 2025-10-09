@@ -21,11 +21,8 @@ import SchlepEngineInStack from '../src/components/sections/SchlepEngineInStack'
 export default function HomePage() {
   return (
     <div className="min-h-screen">
-
-      
-
       <Header />
-      <main style={{ backgroundColor: '#f6f6f4' }}>
+      <main style={{ backgroundColor: '#f6f6f4', paddingTop: '80px' }}>
         <Hero />
         <StackIntegrations />
         <WorksOutOfTheBox />
