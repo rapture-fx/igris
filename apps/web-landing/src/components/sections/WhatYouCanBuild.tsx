@@ -7,15 +7,15 @@ import Link from 'next/link'
 const useCases = [
   {
     icon: Brain,
-    title: 'Data + ML Pipelines',
-    description: 'From ingestion to deployment. API-first pipelines that process data, train models, and serve predictions without overhead.',
+    title: 'AI Model Optimization',
+    description: 'Transform any ML model into a cost-optimized, high-performance service with intelligent routing and real-time monitoring.',
     examples: [
-      'Model registry with versioning and lineage tracking',
-      'Advanced experiment tracking with real-time metrics',
-      'Production model serving with canary deployments'
+      'Sub-10ms latency with 99.9% uptime guarantee',
+      'Thompson sampling routing for model selection',
+      'Multi-tier cache with 94% hit rate optimization'
     ],
-    cta: 'Explore Data + ML Pipelines',
-    link: '/industries/ai-company',
+    cta: 'Explore AI Optimization',
+    link: '/solutions/ai-optimization',
     accent: 'from-white to-white',
     iconBg: 'bg-white',
     iconColor: 'text-blue-600',

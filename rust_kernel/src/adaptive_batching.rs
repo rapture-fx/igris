@@ -6,16 +6,15 @@
 //! - Model performance characteristics
 //! - Queue depth and wait times
 
-use std::collections::{HashMap, VecDeque, Vec};
-use std::sync::{Arc, RwLock, Mutex};
+use std::collections::{HashMap, VecDeque};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
-use std::thread;
-use tokio::sync::{mpsc, OwnedMutexPermit};
+use tokio::sync::mpsc;
 
 use serde::{Deserialize, Serialize};
 use parking_lot::RwLock;
 use log::{debug, info, warn, error};
-use tokio::time::{interval, sleep};
+use tokio::time::interval;
 
 use crate::ffi_guard::{FFIContext, FFIError, safe_ffi_wrapper};
 
@@ -240,7 +239,7 @@ pub struct SLARequirements {
 }
 
 /// Batch processing metrics
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct BatchMetrics {
     pub total_requests: usize,
     pub successful_requests: usize,
@@ -298,7 +297,7 @@ pub struct ModelMetrics {
     pub average_processing_time_ms: f64,
     pub queue_time_ms: f64,
     
-    pub resource_utilization:(ResourceUtilization),
+    pub resource_utilization: ResourceUtilization,
     pub cost_per_thousand_tokens: Option<f64>,
     pub tokens_per_second: Option<f64>,
 }
@@ -363,23 +362,23 @@ pub enum ScalingDirection {
 pub struct AdaptiveBatchingController {
     config: BatchingConfig,
     performance_tracker: Arc<RwLock<PerformanceTracker>>,
-    batch_queue: Arc<Mutex<VecDeque<BatchRequest>>>,
-    
+    batch_queue: Arc<parking_lot::Mutex<VecDeque<BatchRequest>>>,
+
     // Current state
     current_batch_size: Arc<RwLock<HashMap<String, usize>>>,
     current_window_ms: Arc<RwLock<u64>>,
     last_adjustment: Arc<RwLock<Instant>>,
     adjustment_cooldown: Arc<RwLock<bool>>,
-    
+
     // Communication channels
     batch_tx: mpsc::UnboundedSender<BatchRequest>,
-    batch_rx: Arc<Mutex<mpsc::UnboundedReceiver<BatchRequest>>>,
-    
+    batch_rx: Arc<tokio::sync::Mutex<mpsc::UnboundedReceiver<BatchRequest>>>,
+
     // Request handlers
     request_processor: Arc<dyn BatchRequestProcessor>,
-    
+
     // Monitoring
-    metrics_collector: Arc<Mutex<MetricsCollector>>,
+    metrics_collector: Arc<parking_lot::Mutex<MetricsCollector>>,
 }
 
 /// Performance tracker for historical data
@@ -423,21 +422,26 @@ pub struct BatchResult {
 
 #[derive(Debug, thiserror::Error)]
 pub enum BatchingError {
+    #[error("Processing error: {0}")]
     ProcessingError(String),
+    #[error("Queue is full")]
     QueueFull,
+    #[error("Model unavailable: {0}")]
     ModelUnavailable(String),
+    #[error("Timeout error: {0}")]
     TimeoutError(String),
+    #[error("Configuration error: {0}")]
     ConfigurationError(String),
 }
 
 /// Metrics collector for monitoring
 pub struct MetricsCollector {
-    total_requests: Mutex<u64>,
-    successful_batches: Mutex<u64>,
-    failed_batches: Mutex<u64>,
-    average_batch_size: Mutex<f64>,
-    average_latency_ms: Mutex<f64>,
-    throughput_rps: Mutex<f64>,
+    total_requests: parking_lot::Mutex<u64>,
+    successful_batches: parking_lot::Mutex<u64>,
+    failed_batches: parking_lot::Mutex<u64>,
+    average_batch_size: parking_lot::Mutex<f64>,
+    average_latency_ms: parking_lot::Mutex<f64>,
+    throughput_rps: parking_lot::Mutex<f64>,
 }
 
 impl AdaptiveBatchingController {
@@ -457,31 +461,34 @@ impl AdaptiveBatchingController {
                 history: RwLock::new(VecDeque::with_capacity(config.performance_history_size)),
                 max_samples: config.performance_history_size,
             })),
-            batch_queue: Arc::new(Mutex::new(VecDeque::new())),
+            batch_queue: Arc::new(parking_lot::Mutex::new(VecDeque::new())),
             current_batch_size,
             current_window_ms,
             last_adjustment: Arc::new(RwLock::new(Instant::now())),
             adjustment_cooldown: Arc::new(RwLock::new(false)),
-            batch_tx
-        });
-        
+            batch_tx,
+            batch_rx: Arc::new(tokio::sync::Mutex::new(batch_rx)),
+            request_processor,
+            metrics_collector: Arc::new(parking_lot::Mutex::new(MetricsCollector::new())),
+        };
+
         // Initialize with configured values
         {
             let mut batch_sizes = controller.current_batch_size.write();
             let mut windows = controller.current_window_ms.write();
-            
+
             // Initialize all model configs with default values
-            for (model_id, model_config) in config.model_configs.iter() {
+            for (model_id, model_config) in controller.config.model_configs.iter() {
                 batch_sizes.insert(model_id.clone(), model_config.preferred_batch_size);
             }
-            
-            *windows = config.batch_window_ms;
-            
-            // Start monitoring
-            ctrl.start_monitoring();
-            ctrl.start_batch_processing_loop();
+
+            *windows = controller.config.batch_window_ms;
         }
-        
+
+        // Start background tasks
+        controller.start_monitoring();
+        controller.start_batch_processing_loop();
+
         controller
     }
     
@@ -495,29 +502,35 @@ impl AdaptiveBatchingController {
             }
         }
         
+        let model_id = "default".to_string(); // Simplified for now
+
         // Create batch request
         let batch_request = BatchRequest {
             id: request.id.clone(),
-            model_id: request.metadata.model_id.clone()
-                .unwrap_or_else(|| "default".to_string()),
-            requests: VecDeque::from([request]),
+            model_id: model_id.clone(),
+            requests: VecDeque::from([request.clone()]),
             created_at: Instant::now(),
             batch_start_time: None,
             batch_end_time: None,
-            target_batch_size: self.get_current_batch_size(&request.model_id),
+            target_batch_size: self.get_current_batch_size(&model_id),
             current_size: 1,
             priority: request.priority.clone(),
             deadline: None, // Would be set from SLA requirements
-            metrics: BatchMetrics::new(),
+            metrics: BatchMetrics::default(),
         };
         
         // Add to queue
         {
             let mut queue = self.batch_queue.lock();
-            queue.push_back(batch_request);
+            queue.push_back(batch_request.clone());
         }
-        
-        send_batch_request(&self.batch_tx, batch_request).await
+
+        // Send to processing channel
+        if let Err(_) = self.batch_tx.send(batch_request) {
+            return Err(BatchingError::ProcessingError("Failed to queue request".to_string()));
+        }
+
+        Ok(model_id)
     }
 
     /// Get current batch size for a model
@@ -600,16 +613,17 @@ impl AdaptiveBatchingController {
     ) -> BatchingAction {
         
         // P95 latency is the primary driver
-        if system_metrics.overall_latency_p95_ms > self.config.max_p95_latency_ms {
+        if system_metrics.overall_latency_p95_ms > self.config.max_p95_latency_ms as f64 {
             factors.push(DecisionFactor {
                 factor_type: "latency".to_string(),
                 value: system_metrics.overall_latency_p95_ms,
                 weight: 10.0,
                 description: "P95 latency exceeds threshold".to_string(),
             });
-            
+
             // Scale down if possible
-            if system_metrics.current_batch_size > self.config.min_batch_size {
+            let current_size = self.get_current_batch_size(&request.model_id);
+            if current_size > self.config.min_batch_size {
                 return BatchingAction::ScaleDown;
             } else {
                 return BatchingAction::ConservativeScaleDown;
@@ -679,11 +693,11 @@ impl AdaptiveBatchingController {
     fn calculate_new_parameters(
         &self,
         action: &BatchingAction,
-        model_config: &ModelConfig,
+        model_config: &ModelBatchConfig,
         system_metrics: &SystemMetrics,
         factors: &Vec<DecisionFactor>,
     ) -> (usize, u64) {
-        let current_size = self.get_current_batch_size(&model_config(preferred_batch_size));
+        let current_size = model_config.preferred_batch_size;
         let current_window = *self.current_window_ms.read();
         
         let mut new_batch_size = current_size;
@@ -728,13 +742,6 @@ impl AdaptiveBatchingController {
                 }
             }
             
-            BatchingAction::MaxSize => {
-                // Can't grow further, but might adjust window
-                if system_metrics.queue_length > self.config.aggressive_queue_threshold {
-                    new_window = (current_window * 75 / 100).max(20);
-                }
-            }
-            
             BatchingAction::NoChange => {
                 // No changes
             }
@@ -744,26 +751,24 @@ impl AdaptiveBatchingController {
                 new_batch_size = self.config.min_batch_size;
                 new_window = 20;
             }
-            
-            // Apply constraints
-            new_batch_size = new_batch_size
-                .max(model_config.max_batch_size)
-                .max(self.config.max_batch_size)
-                .min(self.config.min_batch_size);
-            
-            new_window = new_window
-                .max(500) // Reasonable upper limit
-                .min(10)  // Minimum to maintain batching benefits
-                .max(1000); // Absolute maximum
         }
+
+        // Apply constraints
+        new_batch_size = new_batch_size
+            .min(model_config.max_batch_size)
+            .min(self.config.max_batch_size)
+            .max(self.config.min_batch_size);
+
+        new_window = new_window
+            .min(500) // Reasonable upper limit
+            .max(10)  // Minimum to maintain batching benefits
+            .min(1000); // Absolute maximum
         
         (new_batch_size, new_window)
     }
-    }
 
-    // Private helper methods implementation
-    impl AdaptiveBatchingController {
-        fn start_monitoring(&self) {
+    // Private helper methods
+    fn start_monitoring(&self) {
             let metrics_collector = Arc::clone(&self.metrics_collector);
             let adjustment_cooldown = Arc::clone(&self.adjustment_cooldown);
             let adjustment_interval = Duration::from_secs(self.config.adjustment_interval_secs);
@@ -1011,7 +1016,7 @@ impl AdaptiveBatchingController {
                 p95_latency_ms: result.batch_metrics.p95_latency_ms,
                 p50_latency_ms: result.batch_metrics.p50_latency_ms,
                 throughput_rps: result.batch_metrics.successful_requests as f64 / (result.batch_metrics.total_processing_time_ms / 1000.0),
-                efficiency: result.batch_metrics.batch_efficiency，
+                efficiency: result.batch_metrics.batch_efficiency,
                 queue_length: 0, // Would calculate from system metrics
                 system_load: 0.0,
                 resource_utilization: ResourceUtilization {
@@ -1184,9 +1189,9 @@ impl AdaptiveBatchingController {
             Ok(())
         }
 
-        async fn handle_batch_request(&self, batch_request: BatchRequest) -> Result<(), String> {
-            let _ = self.batch_tx.send(batch_query).await.map_err(|e| eformat!("Failed to queue batch request: {}", e))
-        }
+    async fn handle_batch_request(&self, batch_request: BatchRequest) -> Result<(), String> {
+        self.batch_tx.send(batch_request)
+            .map_err(|e| format!("Failed to queue batch request: {}", e))
     }
 }
 
@@ -1195,58 +1200,50 @@ impl AdaptiveBatchingController {
 // ============================================================================
 
 impl MetricsCollector {
-    /// Singleton instance
-    static INSTANCE: once_cell::sync::OnceCell<Mutex<MetricsCollector>>;
-    
-    /// Get the global instance
-    pub fn instance() -> &'static Arc<Mutex<MetricsCollector>> {
-        Self::INSTANCE.get_or_init(|| Arc::new(Mutex::new(MetricsCollector::new()));
-    }
-    
     fn new() -> Self {
-        Self {}
+        Self {
+            total_requests: parking_lot::Mutex::new(0),
+            successful_batches: parking_lot::Mutex::new(0),
+            failed_batches: parking_lot::Mutex::new(0),
+            average_batch_size: parking_lot::Mutex::new(0.0),
+            average_latency_ms: parking_lot::Mutex::new(0.0),
+            throughput_rps: parking_lot::Mutex::new(0.0),
+        }
     }
     
-    async fn get_queue_length(&self) -> Result<f64, String> {
+    async fn get_queue_length(&self) -> Result<usize, String> {
         // Query Prometheus for queue length
         // TODO: Implement Prometheus query
-        
-        Ok(10.0) // Placeholder
+        Ok(10) // Placeholder
     }
-    
+
     async fn get_system_load(&self) -> Result<f64, String> {
         // TODO: Implement system load calculation
-        
         Ok(0.5) // Placeholder
     }
-    
+
     async fn get_latency_p95(&self) -> Result<f64, String> {
         // TODO: Implement P95 latency calculation
-        
         Ok(100.0) // Placeholder
     }
-    
+
     async fn get_throughput(&self) -> Result<f64, String> {
         // TODO: Implement throughput calculation
-        
         Ok(100.0) // Placeholder
     }
-    
+
     async fn get_cpu_utilization(&self) -> Result<f64, String> {
         // TODO: Implement CPU utilization
-        
         Ok(0.3) // Placeholder
     }
-    
+
     async fn get_memory_utilization(&self) -> Result<f64, String> {
         // TODO: Implement memory utilization
-        
-        Ok(50.0) // Placeholder
+        Ok(0.5) // Placeholder
     }
-    
-    async fn get_model_metrics(&self) -> Result<rusts::HashMap<String, ModelMetrics>, String> {
+
+    async fn get_model_metrics(&self) -> Result<HashMap<String, ModelMetrics>, String> {
         // TODO: Implement model-specific metrics
-        
         Ok(HashMap::new())
     }
 }
@@ -1368,7 +1365,8 @@ impl MockBatchProcessor {
     }
 }
 
-#[async_trait::impl BatchRequestProcessor for MockBatchProcessor {
+#[async_trait::async_trait]
+impl BatchRequestProcessor for MockBatchProcessor {
     async fn process_batch(&self, batch: crate::adaptive_batching::BatchRequest) -> Result<crate::adaptive_batching::BatchResult, crate::adaptive_batching::BatchingError> {
         // Simulate processing delay
         let delay = *self.processing_delay.lock().await;

@@ -14,6 +14,19 @@ use chrono::Utc;
 pub mod runtime_abstraction;
 pub mod ffi_guard;
 
+// Phase 6: Memory pooling and caching modules
+pub mod cache;
+pub mod mempool;
+
+// Phase 7: Parallel batch processing
+pub mod parallel;
+
+// Phase 8: Predictive prefetching
+pub mod prefetch;
+
+// Phase 9: Reliability and adaptive performance
+pub mod reliability;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
@@ -446,9 +459,9 @@ fn compare_values(a: &Value, b: &Value) -> std::cmp::Ordering {
 pub extern "C" fn rust_benchmark_operation(iterations: i32) -> i64 {
     let start = std::time::Instant::now();
 
-    let mut sum: i64 = 0;
+    let mut _sum: i64 = 0;
     for i in 0..iterations {
-        sum += (i * i) as i64;
+        _sum += (i * i) as i64;
     }
 
     let elapsed = start.elapsed();

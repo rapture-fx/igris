@@ -4,13 +4,14 @@
 //! including native Rust, Python gRPC, and future WASM runtimes.
 
 use std::collections::HashMap;
-use std::path::Path;
 use std::sync::Arc;
-use std::time::{Duration, Instant};
+use std::time::Instant;
+use std::ffi::c_void;
+use std::os::raw::c_char;
 use tokio::sync::RwLock;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use log::{error, info, warn, debug};
+use log::{debug, error, info};
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 
@@ -162,7 +163,10 @@ pub enum RuntimeError {
     
     #[error("Connection error: {0}")]
     ConnectionError(String),
-    
+
+    #[error("Model already loaded: {0}")]
+    ModelAlreadyLoaded(String),
+
     #[error("Internal error: {0}")]
     InternalError(String),
 }
@@ -760,9 +764,14 @@ pub extern "C" fn runtime_manager_initialize(manager_ptr: *mut c_void) -> i32 {
         let manager = unsafe { &*(manager_ptr as *const RuntimeManager) };
         
         // Block on async operation
-        tokio::block_on(async {
-            manager.initialize_default_runtimes().await
-        })
+        tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+                manager.initialize_default_runtimes().await
+            })
+            .map_err(|_e| FFIError::InternalError)?;
+
+        Ok(())
     });
     
     match result {
@@ -792,7 +801,10 @@ pub extern "C" fn runtime_manager_load_model(
         let manager = unsafe { &*(manager_ptr as *const RuntimeManager) };
         
         let model_id = crate::ffi_guard::safe_read_c_string(model_id_ptr)?;
-        let model_type = crate::ffi_guard::safe_read_c_string(model_type_ptr.ok_or(FFIError::NullPointer)?)?;
+        if model_type_ptr.is_null() {
+            return Err(FFIError::NullPointer);
+        }
+        let model_type = crate::ffi_guard::safe_read_c_string(model_type_ptr)?;
         let runtime_name = if !runtime_name_ptr.is_null() {
             Some(crate::ffi_guard::safe_read_c_string(runtime_name_ptr)?)
         } else {
@@ -814,9 +826,14 @@ pub extern "C" fn runtime_manager_load_model(
         };
         
         // Block on async operation
-        tokio::block_on(async {
-            manager.load_model(&model_id, &config, runtime_name.as_deref()).await
-        })
+        tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+                manager.load_model(&model_id, &config, runtime_name.as_deref()).await
+            })
+            .map_err(|_e| FFIError::InternalError)?;
+
+        Ok(())
     });
     
     match result {
@@ -860,14 +877,17 @@ pub extern "C" fn runtime_manager_predict(
             model_id,
             features,
             metadata: HashMap::new(),
-            request_id None,
-            timeout_ms Some(DEFAULT_TIMEOUT_MS),
+            request_id: None,
+            timeout_ms: Some(DEFAULT_TIMEOUT_MS),
         };
         
         // Block on async operation
-        let response = tokio::block_on(async {
-            manager.predict(request).await
-        })?;
+        let response = tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+                manager.predict(request).await
+            })
+            .map_err(|_e| FFIError::InternalError)?;
         
         // Convert response to JSON and create C string
         let response_json = json!(response);
@@ -902,7 +922,9 @@ pub extern "C" fn runtime_manager_health_check(manager_ptr: *mut c_void) -> *mut
     
     let manager = unsafe { &*(manager_ptr as *const RuntimeManager) };
     
-    let health_results = tokio::block_on(async {
+    let health_results = tokio::runtime::Runtime::new()
+        .unwrap()
+        .block_on(async {
         manager.health_check_all().await
     });
     
