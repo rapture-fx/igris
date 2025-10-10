@@ -27,6 +27,9 @@ pub mod prefetch;
 // Phase 9: Reliability and adaptive performance
 pub mod reliability;
 
+// Phase 10: Adaptive Orchestration Layer
+pub mod orchestration;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
