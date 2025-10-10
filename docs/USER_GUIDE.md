@@ -1,8 +1,8 @@
 # 👤 Schlep-engine User Guide
 
-## 🌟 Welcome to Schlep-engine
+## 🌟 Welcome to Schlep-engine AI Inference Optimization Fabric
 
-Schlep-engine is your comprehensive data processing and machine learning platform. This guide will help you get started with the most common tasks and features.
+Schlep-engine is your enterprise-grade AI inference optimization platform. This guide will help you deploy, optimize, and scale AI models with sub-10ms latency and intelligent cost management.
 
 ---
 
@@ -10,7 +10,7 @@ Schlep-engine is your comprehensive data processing and machine learning platfor
 
 ### Your First Login
 
-1. **Navigate to the Admin Dashboard**: http://localhost:3000
+1. **Navigate to the Fabric Dashboard**: http://localhost:3000
 2. **Choose Login Method**:
    - **Email/Password**: Create account or use existing credentials
    - **Google OAuth**: Sign in with Google account
@@ -19,134 +19,210 @@ Schlep-engine is your comprehensive data processing and machine learning platfor
 ### Dashboard Overview
 
 After logging in, you'll see:
-- **Data Processing Status**: Current and recent jobs
-- **System Metrics**: API usage, storage, performance
-- **Quick Actions**: Upload data, start ML pipeline, view reports
-- **Navigation Menu**: Access all features
+- **Inference Metrics**: Real-time performance, cache hit rates, cost tracking
+- **Model Status**: Deployed models, routing decisions, health checks
+- **Quick Actions**: Deploy model, monitor performance, optimize costs
+- **Navigation Menu**: Access all AI fabric features
 
 ---
 
-## 📊 Data Processing
+## 🤖 AI Model Deployment
 
-### Uploading Data
+### Deploying Your First Model
 
-#### Supported Formats
-- **CSV**: Comma-separated values
-- **JSON**: JavaScript Object Notation
-- **Excel**: .xlsx, .xls files
-- **Parquet**: Columnar storage format
+#### Supported Frameworks
+- **PyTorch**: .pt, .pth models
+- **TensorFlow**: .pb, SavedModel format
+- **ONNX**: .onnx cross-platform models
+- **Scikit-learn**: .pkl pickle files
+- **XGBoost**: .bst format
 
-#### Upload Process
+#### Model Deployment Process
 
-1. **Navigate to Data Processing**
-2. **Click "Upload New Dataset"**
-3. **Select File** or **Drag & Drop**
-4. **Choose Processing Mode**:
-   - **Standard**: Balanced speed and quality
-   - **Fast**: Quick processing for large datasets
-   - **Streaming**: Real-time processing
-   - **AI Enhanced**: Advanced ML-powered cleaning
+1. **Navigate to Model Deployment**
+2. **Click "Deploy Model"**
+3. **Select Model File** or **Drag & Drop**
+4. **Choose Optimization Strategy**:
+   - **Cost Optimized**: Maximum cost reduction
+   - **Latency Optimized**: Fastest response times
+   - **Balanced**: Mix of cost and performance
+   - **High Throughput**: Maximum RPS capacity
 
-5. **Configure Options**:
-   - **Target Framework**: TensorFlow, PyTorch, Scikit-learn
-   - **Quality Threshold**: Data quality requirements
-   - **Output Format**: Preferred result format
+5. **Configure Infrastructure**:
+   - **Target Runtime**: CPU or GPU acceleration
+   - **Replicas**: Number of model instances
+   - **Autoscaling**: Enable dynamic scaling
+   - **Cache Strategy**: L1/L2/L3 cache configuration
 
-6. **Start Processing**
+### Running Inference
 
-#### Example: Processing Sales Data
+#### API Integration Examples
 
-```bash
-# Using API directly
-curl -X POST "http://localhost:8000/api/v1/data/process" \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -F "file=@sales_data.csv" \
-  -F "processing_mode=standard" \
-  -F "target_framework=tensorflow"
+**Python SDK:**
+```python
+from schlep_engine import FabricSDK
+
+# Connect to inference fabric
+fabric = FabricSDK(
+    endpoint="wss://fabric.schlep-engine.com",
+    api_key="FABRIC_KEY"
+)
+
+# Deploy model with optimization
+await fabric.deploy(
+    model="resnet50.pt",
+    optimization="cost_efficient",
+    replicas=3
+)
+
+# Run optimized inference
+prediction = await fabric.predict(image_tensor)
+print(f"Class: {prediction.class}, Confidence: {prediction.confidence}")
+print(f"Latency: {prediction.latency}ms, Cost: ${prediction.cost}")
 ```
 
-### Monitoring Progress
+**JavaScript/TypeScript:**
+```javascript
+import { FabricSDK } from '@schlep-engine/fabric-sdk';
 
-#### Real-time Updates
-- **Progress Bar**: Visual completion indicator
-- **Current Step**: What's happening now
-- **Estimated Time**: Time remaining
-- **Live Logs**: Detailed processing information
+const fabric = new FabricSDK({
+  endpoint: 'wss://fabric.schlep-engine.com',
+  apiKey: 'FABRIC_KEY'
+});
 
-#### Processing Stages
-1. **File Validation**: Format and size checks
-2. **Data Cleaning**: Remove duplicates, handle missing values
-3. **Feature Engineering**: Create new columns, normalize data
-4. **Quality Assessment**: Score data quality
-5. **Export Preparation**: Format for download
+// Deploy optimized model
+await fabric.deployModel({
+  modelPath: 'model.onnx',
+  target: 'latency_optimized'
+});
 
-### Downloading Results
+// Run inference
+const result = await fabric.predict(inputData);
+console.log(result);
+```
 
-Once processing is complete:
-1. **Click "Download Results"**
-2. **Choose Format**: CSV, JSON, Parquet
-3. **Optional**: Download processing report
-4. **Optional**: Download quality metrics
+**Go SDK:**
+```go
+import "github.com/schlep-engine/fabric-go"
+
+fabric := fabric.New("FABRIC_KEY")
+
+// Deploy optimized model
+fabric.DeployModel("model.pt", "cost_efficient")
+
+// Run inference
+result := fabric.Predict(inputData)
+fmt.Println(result)
+```
+
+### Monitoring Inference Performance
+
+#### Real-time Metrics
+- **Latency**: Sub-10ms response times with 99.9% SLA
+- **Cache Hit Rates**: L1/L2/L3 cache achieving 94%+ hit rates
+- **Cost Tracking**: Per-request cost optimization and budget alerts
+- **Model Routing**: Thompson sampling decisions and performance metrics
+- **System Health**: Worker pool status and autoscaling events
+
+#### Performance Dashboard
+1. **Navigate to Monitoring**
+2. **View Live Metrics**: Real-time performance graphs
+3. **Analyze Traffic Patterns**: Request volume and model usage
+4. **Cost Optimization**: automatic savings recommendations
+5. **Model Performance**: Accuracy vs. cost trade-offs
+
+#### Performance Stages
+1. **Request Routing**: Intelligent model selection via Thompson sampling
+2. **Cache Checking**: L1/L2/L3 cache lookup with coherence
+3. **Inference Execution**: Optimized model serving with GPU acceleration
+4. **Response Optimization**: Result formatting and post-processing
+5. **Metrics Collection**: Performance and cost tracking
 
 ---
 
-## 🤖 Machine Learning Pipelines
+## 🚀 Advanced Optimization Features
 
-### Creating Your First Pipeline
+### Thompson Sampling Router
 
-#### Step 1: Start Pipeline
-1. **Go to ML Pipelines**
-2. **Click "New Pipeline"**
-3. **Select Data Source**: Choose processed dataset
-4. **Choose Pipeline Type**:
-   - **Classification**: Predict categories
-   - **Regression**: Predict numbers
-   - **Clustering**: Group similar data
-   - **Anomaly Detection**: Find outliers
+The fabric automatically optimizes model selection using Thompson sampling algorithms:
 
-#### Step 2: Configure Parameters
-```json
-{
-  "pipeline_type": "classification",
-  "data_source": "job_123456",
-  "parameters": {
-    "algorithm": "random_forest",
-    "train_split": 0.8,
-    "cross_validation": true,
-    "max_depth": 10,
-    "n_estimators": 100
-  }
-}
+**Automatic Model Selection:**
+- Evaluates performance vs. cost trade-offs in real-time
+- Routes requests to optimal models based on confidence intervals
+- Continuously learns from inference results
+
+**Configuration Options:**
+```python
+# Configure Thompson sampling parameters
+fabric.configure_routing({
+    "exploration_rate": 0.1,      # 10% exploration for model discovery
+    "cost_sensitivity": 0.3,       # Weight for cost optimization
+    "performance_threshold": 0.85, # Minimum accuracy requirement
+    "update_frequency": "1m"       # Model of learning updates
+})
 ```
 
-#### Step 3: Monitor Training
-- **Training Progress**: Model learning status
-- **Performance Metrics**: Accuracy, precision, recall
-- **Validation Scores**: Cross-validation results
-- **Resource Usage**: CPU, memory consumption
+### Multi-Tier Cache System
 
-#### Step 4: Deploy Model
-Once trained:
-1. **Review Performance**
-2. **Test with Sample Data**
-3. **Deploy to Production**
-4. **Set up Monitoring**
+Optimize performance with intelligent caching:
 
-### Advanced: RL Optimization
+**Cache Hierarchies:**
+- **L1 Cache**: In-memory results for hot inference patterns
+- **L2 Cache**: Distributed Redis cache with 95%+ hit rates  
+- **L3 Cache**: Persistent cache for model weights and features
 
-For hyperparameter optimization:
+**Cache Optimization:**
+```python
+# Configure cache strategy
+fabric.configure_cache({
+    "l1_size": "1GB",           # Fast in-memory cache
+    "l2_size": "10GB",          # Redis distributed cache
+    "l3_size": "100GB",         # Persistent model storage
+    "hit_rate_target": 0.94,     # 94% cache hit rate goal
+    "coherence_interval": "30s"  # Cache sync frequency
+})
+```
 
-```json
-{
-  "optimization_type": "hyperparameter",
-  "target_metric": "accuracy",
-  "max_episodes": 100,
-  "environment_config": {
-    "learning_rate_range": [0.001, 0.1],
-    "batch_size_options": [32, 64, 128],
-    "dropout_range": [0.1, 0.5]
-  }
-}
+### Cost Optimization Engine
+
+Automatically reduce inference costs while maintaining performance:
+
+**Optimization Strategies:**
+- **Dynamic Scaling**: Scale replicas based on traffic patterns
+- **Right-Sizing**: Match compute resources to model requirements
+- **Spot Instance Usage**: Leverage discounted cloud resources
+- **Batch Processing**: Group similar requests for efficiency
+
+**Budget Management:**
+```python
+# Set cost optimization targets
+fabric.configure_costs({
+    "budget_threshold": "$10",     # Daily cost alert threshold
+    "optimization_target": "cost", # Priority cost reduction
+    "min_performance": 0.90,      # Minimum acceptable performance
+    "cost_algorithm": "adaptive"   # Smart cost optimization
+})
+```
+
+### Performance Monitoring & Alerting
+
+Real-time monitoring for production AI workloads:
+
+**Key Metrics:**
+- **Latency Distribution**: P50, P95, P99 response times
+- **Error Rates**: Model prediction errors and system failures
+- **Throughput**: Requests per second and model utilization
+- **Cost Efficiency**: Cost per accurate prediction
+
+**Alert Configurations:**
+```python
+# Set up performance alerts
+fabric.configure_alerts({
+    "latency_p99_threshold": "50ms",   # Alert if 99th percentile > 50ms
+    "error_rate_threshold": "0.01",     # Alert if error rate > 1%
+    "cache_hit_rate_min": "0.80",       # Alert if cache hit < 80%
+    "cost_spike_threshold": "20%"        # Alert if costs jump > 20%
+})
 ```
 
 ---

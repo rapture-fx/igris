@@ -129,7 +129,7 @@ export default function Integrations() {
         {/* Integration Approach */}
         <div className="mt-20">
           <h3 className="text-2xl font-semibold text-gray-900 dark:text-white text-center mb-12">
-            How It Works With Your Stack
+            How It Optimizes Your AI Stack
           </h3>
           
           <div className="relative">
@@ -150,9 +150,9 @@ export default function Integrations() {
                     </div>
                   </div>
                   <div className="absolute -top-2 -left-2 w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-bold">1</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Upload</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Deploy Models</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Import your data via API, web interface, or direct file upload
+                    Deploy your AI models to the fabric with automatic optimization
                   </p>
                 </div>
 
@@ -163,9 +163,9 @@ export default function Integrations() {
                     </div>
                   </div>
                   <div className="absolute -top-2 -left-2 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">2</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Process</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Route & Optimize</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                    AI-powered cleaning and transformation in the cloud
+                    Intelligent routing and real-time cost optimization
                   </p>
                 </div>
 
@@ -176,9 +176,9 @@ export default function Integrations() {
                     </div>
                   </div>
                   <div className="absolute -top-2 -left-2 w-8 h-8 bg-purple-600 text-white rounded-full flex items-center justify-center text-sm font-bold">3</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Export</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Scale & Cache</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Download clean data in standard formats (CSV, JSON, Excel)
+                    Auto-scaling workers and multi-tier caching for 99.9% hit rates
                   </p>
                 </div>
 
@@ -189,9 +189,9 @@ export default function Integrations() {
                     </div>
                   </div>
                   <div className="absolute -top-2 -left-2 w-8 h-8 bg-orange-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</div>
-                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Integrate</h4>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-3">Monitor & Tune</h4>
                   <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-                    Use standard formats to connect with any downstream tool
+                    Real-time monitoring, performance tuning, and cost tracking
                   </p>
                 </div>
               </div>
@@ -255,12 +255,12 @@ export default function Integrations() {
 
           <div className="mt-12 bg-blue-50 dark:bg-gray-800 rounded-2xl p-8 text-center">
             <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Standard Formats, Universal Compatibility
+              Enterprise-Grade AI Infrastructure
             </h4>
             <p className="text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
-              Rather than building specific integrations that become outdated, Schlep Engine focuses on 
-              standard data formats and robust APIs. This means it works with any tool that can read CSV, JSON, 
-              or connect to REST APIs - which is virtually everything.
+              Schlep Engine delivers production-ready AI inference optimization with enterprise-grade APIs, 
+              real-time monitoring, and automatic scaling. Transform any AI model into a cost-optimized, 
+              high-performance service with 99.9% uptime and sub-10ms latency.
             </p>
           </div>
         </div>

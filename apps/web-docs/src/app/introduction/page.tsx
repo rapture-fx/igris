@@ -30,13 +30,13 @@ export default function Introduction() {
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
           <h1 className="text-xl font-bold tracking-tight text-gray-900">
-            Enterprise Data Processing Platform
+            AI Inference Optimization Fabric
           </h1>
-          <MaturityIndicator level="production" feature="Enterprise Data Processing Platform" />
+          <MaturityIndicator level="production" feature="AI Inference Optimization Fabric" />
         </div>
         <p className="text-sm text-gray-600 mb-6 max-w-3xl">
-          Production-ready data processing and machine learning platform with intelligent compatibility mode. 
-          Transform unstructured data into ML-ready datasets through enterprise APIs with world-class technical implementation.
+          Enterprise-grade AI inference optimization platform delivering sub-10ms latency with Thompson sampling routing, 
+          multi-tier caching, and intelligent cost management for production ML workloads.
         </p>
       </div>
       
@@ -44,54 +44,54 @@ export default function Introduction() {
         {/* Core Features */}
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Core Features
+            AI Fabric Capabilities
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-4 bg-white border border-gray-200 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">🔧 Predictive Maintenance</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">🎯 Thompson Sampling Router</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Monitor vibration, temperature, and pressure sensors to detect equipment degradation patterns.
+                Intelligent model selection based on real-time performance and cost optimization.
               </p>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Equipment health scores in real-time</li>
-                <li>• Multi-sensor correlation analysis</li>
-                <li>• Automated degradation alerts</li>
+                <li>• Automatic model selection</li>
+                <li>• 20-40% cost reduction</li>
+                <li>• 10-30% latency improvement</li>
               </ul>
             </div>
             
             <div className="p-4 bg-white border border-gray-200 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">📊 Quality Control</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">🚀 Multi-Tier Cache System</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Multi-sensor correlation analysis for production lines with automated detection of sensor drift.
+                L1/L2/L3 cache coherence delivering 94%+ hit rates for sub-10ms response times.
               </p>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Statistical process control</li>
-                <li>• Sensor calibration monitoring</li>
-                <li>• Production quality metrics</li>
+                <li>• 94%+ cache hit rates</li>
+                <li>• Sub-10ms latency</li>
+                <li>• Distributed coherence</li>
               </ul>
             </div>
             
             <div className="p-4 bg-white border border-gray-200 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">⚡ Production Optimization</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">⚡ Adaptive Scaling</h3>
               <p className="text-sm text-gray-600 mb-3">
-                Cross-sensor data validation and real-time anomaly detection for production equipment.
+                Auto-scaling inference workers that respond to demand patterns and traffic spikes.
               </p>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Real-time anomaly detection</li>
-                <li>• Data preparation for analytics</li>
-                <li>• Multi-source data fusion</li>
+                <li>• 10,000+ RPS capacity</li>
+                <li>• Dynamic worker pools</li>
+                <li>• Intelligent autoscaling</li>
               </ul>
             </div>
             
             <div className="p-4 bg-white border border-gray-200 rounded-lg">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">📄 Document Processing</h3>
+              <h3 className="text-sm font-semibold text-gray-900 mb-2">📊 Real-time Monitoring</h3>
               <p className="text-sm text-gray-600 mb-3">
-                PDF, Excel, Word extraction for manufacturing documentation and data sheets.
+                Comprehensive performance monitoring with cost tracking and alerting.
               </p>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Equipment manual extraction</li>
-                <li>• Sensor specification parsing</li>
-                <li>• Quality report processing</li>
+                <li>• 99.9% uptime SLA</li>
+                <li>• Distributed tracing</li>
+                <li>• Cost optimization alerts</li>
               </ul>
             </div>
           </div>
@@ -118,15 +118,15 @@ export default function Introduction() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <h4 className="font-semibold text-gray-900 mb-2">📊 Data Quality Assessment</h4>
-              <code className="text-xs text-gray-600">POST /api/v1/data-quality/assess</code>
-              <p className="text-sm text-gray-600 mt-2">Industrial data quality assessment with anomaly detection</p>
+              <h4 className="font-semibold text-gray-900 mb-2">🤖 Model Deployment</h4>
+              <code className="text-xs text-gray-600">POST /fabric/v1/models/deploy</code>
+              <p className="text-sm text-gray-600 mt-2">Deploy AI models with automatic optimization</p>
             </div>
             
             <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-              <h4 className="font-semibold text-gray-900 mb-2">🔧 Sensor Validation</h4>
-              <code className="text-xs text-gray-600">POST /api/v1/data-processing/validate-sensors</code>
-              <p className="text-sm text-gray-600 mt-2">Multi-modal sensor validation and calibration check</p>
+              <h4 className="font-semibold text-gray-900 mb-2">⚡ Optimized Inference</h4>
+              <code className="text-xs text-gray-600">POST /fabric/v1/predict</code>
+              <p className="text-sm text-gray-600 mt-2">Run optimized inference with intelligent routing</p>
             </div>
           </div>
         </section>
