@@ -25,6 +25,10 @@ crossbeam = "0.8"
 dashmap = "5.5"
 lru = "0.12"
 
+# Phase 7: Parallel processing
+rayon = "1.8"
+num_cpus = "1.16"
+
 # FFI Safety and Runtime dependencies
 lazy_static = "1.4"
 parking_lot = "0.12"

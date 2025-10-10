@@ -18,6 +18,9 @@ pub mod ffi_guard;
 pub mod cache;
 pub mod mempool;
 
+// Phase 7: Parallel batch processing
+pub mod parallel;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
