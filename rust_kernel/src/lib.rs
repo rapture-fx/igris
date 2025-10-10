@@ -30,6 +30,9 @@ pub mod reliability;
 // Phase 10: Adaptive Orchestration Layer
 pub mod orchestration;
 
+// Phase 11: AI-Driven Policy Autotuner (RL)
+pub mod rl;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
