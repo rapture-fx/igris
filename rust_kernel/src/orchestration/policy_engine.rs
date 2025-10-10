@@ -150,6 +150,22 @@ pub struct PolicyUpdate {
     pub version: u32,
 }
 
+impl Default for PolicyUpdate {
+    fn default() -> Self {
+        Self {
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_millis() as u64,
+            routing: RoutingPolicy::default(),
+            batching: BatchingPolicy::default(),
+            confidence: 1.0,
+            trigger_metrics: TelemetrySnapshot::default(),
+            version: 0,
+        }
+    }
+}
+
 /// Snapshot of telemetry metrics used for policy decisions
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TelemetrySnapshot {
