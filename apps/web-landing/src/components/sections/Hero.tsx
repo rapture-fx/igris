@@ -4,74 +4,98 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
-const pythonCode = `<code><span style="color: #114dcd;">import</span> requests
+const pythonCode = `<code><span style="color: #114dcd;">import</span> asyncio
+<span style="color: #6b7280;">from</span> schlep_engine <span style="color: #114dcd;">import</span> InferenceClient
 
-<span style="color: #6b7280;"># Upload a CSV, extract data</span>
-files = {<span style="color: #4b5563;">'file'</span>: <span style="color: #114dcd;">open</span>(<span style="color: #4b5563;">'sales_data.csv'</span>, <span style="color: #4b5563;">'rb'</span>)}
-res = <span style="color: #114dcd;">requests.post</span>(
-  <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/extract/csv'</span>,
-  headers={<span style="color: #4b5563;">'Authorization'</span>: <span style="color: #4b5563;">'Bearer API_KEY'</span>},
-  files=files
+<span style="color: #6b7280;"># Connect to inference optimization fabric</span>
+client = <span style="color: #114dcd;">InferenceClient</span>(
+    <span style="color: #4b5563;">'wss://fabric.schlep-engine.com'</span>,
+    api_key=<span style="color: #4b5563;">'INFERENCE_KEY'</span>
 )
 
-<span style="color: #6b7280;"># Train a model in one call</span>
-train = {
-  <span style="color: #4b5563;">"features"</span>: <span style="color: #114dcd;">res.json</span>()[<span style="color: #4b5563;">"data"</span>],
-  <span style="color: #4b5563;">"target_column"</span>: <span style="color: #4b5563;">"revenue_category"</span>
-}
-ml = <span style="color: #114dcd;">requests.post</span>(
-  <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/ml/train/new_pipeline'</span>,
-  headers={<span style="color: #4b5563;">'Authorization'</span>: <span style="color: #4b5563;">'Bearer API_KEY'</span>},
-  json=train
+<span style="color: #6b7280;"># Deploy model with automatic optimization</span>
+<span style="color: #114dcd;">await</span> client.<span style="color: #4b5563;">deploy_model</span>(
+    model_path=<span style="color: #4b5563;">'resnet50.pt'</span>,
+    optimization=<span style="color: #6b7280;">'cost'</span>,  <span style="color: #6b7280;"># or 'latency' or 'throughput'</span>
+    replicas=<span style="color: #114dcd;">3</span>
 )
 
-<span style="color: #114dcd;">print</span>(f<span style="color: #4b5563;">"Accuracy: {ml.json()['accuracy']:.2f}"</span>)
+<span style="color: #6b7280;"># Real-time inference with routing</span>
+prediction = <span style="color: #114dcd;">await</span> client.<span style="color: #4b5563;">predict</span>(
+    input_data=image_tensor,
+    model=<span style="color: #4b5563;">'resnet50_v2'</span>
+)
 
-<span style="color: #114dcd;"># → Accuracy: 0.89</span>
+<span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">f"Class: {prediction.class}, Confidence: {prediction.confidence}"</span>)
+<span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">f"Latency: {prediction.latency}ms, Cost: ${prediction.cost}"</span>)
+
+<span style="color: #114dcd;"># → Class: "golden_retriever", Confidence: 0.94, Latency: 8ms, Cost: $0.0004</span>
 </code>`
 
-const curlCode = `<code><span style="color: #6b7280;"># Upload CSV and trigger training</span>
-<span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/upload'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer API_KEY'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-F</span> <span style="color: #4b5563;">'file=@data.csv'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-F</span> <span style="color: #4b5563;">'target=revenue'</span>
+const curlCode = `<code><span style="color: #6b7280;"># Deploy model to inference fabric</span>
+<span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST <span style="color: #4b5563;">'https://fabric.schlep-engine.com/v1/models/deploy'</span> <span style="color: #dc2626;">\\</span>
+  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer INFERENCE_KEY'</span> <span style="color: #dc2626;">\\</span>
+  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> <span style="color: #dc2626;">\\</span>
+  <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{"model_path": "resnet50.pt", "optimization": "cost"}'</span>
 
-<span style="color: #6b7280;"># Get trained model</span>
-<span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> GET <span style="color: #4b5563;">'https://api.schlep-engine.com/api/v1/models/latest'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer API_KEY'</span>
+<span style="color: #6b7280;"># Run optimized inference</span>
+<span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST <span style="color: #4b5563;">'https://fabric.schlep-engine.com/v1/predict'</span> <span style="color: #dc2626;">\\</span>
+  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer INFERENCE_KEY'</span> <span style="color: #dc2626;">\\</span>
+  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> <span style="color: #dc2626;">\\</span>
+  <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{"input": [0.1, 0.2, 0.3], "model": "resnet50_v2"}'</span>
 
-<span style="color: #114dcd;"># → {"model_id": "abc123", "accuracy": 0.89}</span>
+<span style="color: #114dcd;"># → {"class": "cat", "confidence": 0.89, "latency_ms": 8, "cost_usd": 0.0004}</span>
 </code>`
 
-const streamingCode = `<code><span style="color: #6b7280;">// Real-time data streaming</span>
-<span style="color: #114dcd;">const</span> <span style="color: #4b5563;">WebSocket</span> = <span style="color: #114dcd;">require</span>(<span style="color: #4b5563;">'ws'</span>)
-
-<span style="color: #114dcd;">const</span> <span style="color: #4b5563;">ws</span> = <span style="color: #114dcd;">new</span> <span style="color: #4b5563;">WebSocket</span>(<span style="color: #4b5563;">'wss://stream.schlep-engine.com'</span>)
+const streamingCode = `<code><span style="color: #6b7280;">// Real-time inference orchestration</span>
+<span style="color: #114dcd;">const</span> ws = <span style="color: #114dcd;">new</span> <span style="color: #4b5563;">WebSocket</span>(<span style="color: #4b5563;">'wss://fabric.schlep-engine.com/orchestrator'</span>)
 
 <span style="color: #4b5563;">ws</span>.<span style="color: #4b5563;">on</span>(<span style="color: #4b5563;">'open'</span>, () => {
-  <span style="color: #6b7280;">// Stream live data</span>
+  <span style="color: #6b7280;">// Subscribe to optimization events</span>
   <span style="color: #4b5563;">ws</span>.<span style="color: #4b5563;">send</span>(<span style="color: #114dcd;">JSON</span>.<span style="color: #4b5563;">stringify</span>({
-    <span style="color: #4b5563;">event</span>: <span style="color: #4b5563;">'data_point'</span>,
-    <span style="color: #4b5563;">data</span>: { <span style="color: #4b5563;">price</span>: 1200, <span style="color: #4b5563;">volume</span>: 500 }
+    <span style="color: #4b5563;">type</span>: <span style="color: #6b7280;">'subscribe'</span>,
+    <span style="color: #4b5563;">events</span>: [<span style="color: #4b5563;">'model_routing'</span>, <span style="color: #4b5563;">'cost_alerts'</span>, <span style="color: #4b5563;">'scaling'</span>]
   }))
 })
 
-<span style="color: #114dcd;">// → Real-time ML predictions</span>
+<span style="color: #4b5563;">ws</span>.<span style="color: #4b5563;">on</span>(<span style="color: #4b5563;">'message'</span>, (event) => {
+  <span style="color: #114dcd;">const</span> data = <span style="color: #114dcd;">JSON</span>.<span style="color: #4b5563;">parse</span>(event.data)
+  
+  <span style="color: #114dcd;">switch</span> (data.<span style="color: #4b5563;">type</span>) {
+    <span style="color: #114dcd;">case</span> <span style="color: #4b5563;">'model_routing'</span>:
+      <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">\`Routed \${data.total\_requests} to \${data.optimal\_model}\`</span>)
+      <span style="color: #114dcd;">break</span>
+    <span style="color: #114dcd;">case</span> <span style="color: #4b5563;">'cost_alert'</span>:
+      <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">\`Cost spike: \${data.increase}% - auto-scaling triggered\`</span>)
+      <span style="color: #114dcd;">break</span>
+  }
+})
+
+<span style="color: #114dcd;">// → Live: "Routed 15,432 requests to resnet50_v2 (94% cache hit)"</span>
 </code>`
 
-const frameworksCode = `<code><span style="color: #6b7280;"># Export to ML frameworks</span>
-<span style="color: #114dcd;">from</span> schlep_engine <span style="color: #114dcd;">import</span> SchlepClient
+const frameworksCode = `<code><span style="color: #6b7280;"># SDK Integration for popular frameworks</span>
+<span style="color: #114dcd;">from</span> schlep_engine <span style="color: #114dcd;">import</span> FabricSDK
 
-<span style="color: #4b5563;">client</span> = <span style="color: #4b5563;">SchlepClient</span>(<span style="color: #4b5563;">api_key</span>=<span style="color: #4b5563;">"API_KEY"</span>)
-<span style="color: #4b5563;">dataset</span> = <span style="color: #4b5563;">client</span>.<span style="color: #4b5563;">get_processed_data</span>(<span style="color: #4b5563;">"dataset_id"</span>)
+<span style="color: #6b7280;"># Initialize with your inference fabric</span>
+fabric = FabricSDK(
+    endpoint=<span style="color: #4b5563;">"wss://fabric.schlep-engine.com"</span>,
+    api_key=<span style="color: #4b5563;">"FABRIC_KEY"</span>
+)
 
-<span style="color: #6b7280;"># Export to TensorFlow</span>
-<span style="color: #4b5563;">tf_dataset</span> = <span style="color: #4b5563;">dataset</span>.<span style="color: #4b5563;">to_tensorflow</span>()
+<span style="color: #6b7280;"># Wrap PyTorch model for automatic optimization</span>
+<span style="color: #114dcd;">import</span> torch
+model = torch.<span style="color: #4b5563;">load</span>(<span style="color: #4b5563;">"resnet50.pt"</span>)
+optimized_model = fabric.<span style="color: #4b5563;">optimize</span>(model, target=<span style="color: #4b5563;">"cost_efficient"</span>)
 
-<span style="color: #6b7280;"># Export to PyTorch</span>
-<span style="color: #4b5563;">torch_dataset</span> = <span style="color: #4b5563;">dataset</span>.<span style="color: #4b5563;">to_pytorch</span>()
+<span style="color: #6b7280;"># Deploy with one line - handles routing, scaling, monitoring</span>
+service = fabric.<span style="color: #4b5563;">deploy</span>(
+    model=optimized_model,
+    name=<span style="color: #4b5563;">"image_classifier_v2"</span>,
+    autoscaling=<span style="color: #114dcd;">True</span>
+)
 
-<span style="color: #114dcd;"># → Ready for your ML pipeline</span>
+<span style="color: #114dcd;"># → Running on fabric with 99.9% uptime, 8ms latency, $0.0004 per request</span>
 </code>`
 
 export default function Hero() {
@@ -102,17 +126,17 @@ export default function Hero() {
         <div className="text-left pt-8">
           <div className="mt-0 mx-auto relative">
             <div className="text-left relative">
-              {/* Content Container with Original Width */}
+              {/* Content Container with Updated Width */}
               <div className="w-full">
                 <h1
                   style={{ color: '#1f53d0' }}
                   className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
                 >
-                  High-Performance Inference Orchestration for Production ML.
+                  AI Inference Optimization Fabric
                 </h1>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  Deploy models with 10,000 RPS throughput, GPU acceleration, and multi-model routing. <br /> Built for production ML inference at scale.
+                  The invisible layer that makes every model <span className="text-blue-600 font-semibold">cheaper</span>, <span className="text-green-600 font-semibold">faster</span>, and <span className="text-purple-600 font-semibold">smarter</span> to use. <br /> Real-time orchestration, cost optimization, and performance tuning at scale.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-12">
@@ -121,7 +145,7 @@ export default function Hero() {
                     style={{ backgroundColor: '#1f53d0' }}
                     className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
                   >
-                    Get Started
+                    Start Optimizing
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Link>
                 </div>
@@ -446,10 +470,10 @@ export default function Hero() {
                     {/* Right sidebar */}
                     <div className="w-full md:w-[28rem] border-l border-gray-300 p-3 hidden md:block" style={{ backgroundColor: '#f2f1ed' }}>
                       <h3 className="text-sm font-medium text-gray-600 mb-4 text-left">
-                        Built for engineers shipping ML at speed.
+                        Built for MLOps engineers managing model deployments.
                       </h3>
                       <p className="text-sm text-gray-600 text-left leading-relaxed mb-6">
-                        Most ML projects stall on infrastructure. Schlep-engine removes that bottleneck with simple APIs that take you from messy data to working models—fast.
+                        Optimize ML inference routing and reduce infrastructure overhead. We handle the complex orchestration so you can focus on model performance and accuracy.
                       </p>
 
                       {/* Cards */}

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, Zap, Database, BarChart3, Cloud, Globe, Code, Users, Megaphone, FileSpreadsheet, FileText, Braces, Terminal, Webhook, Shield, BookOpen, Package } from 'lucide-react'
+import { ChevronRight, Zap, Database, BarChart3, Cloud, Globe, Code, Users, Megaphone, Cpu, Activity, Shield, BookOpen, Package, Network, GitBranch, Settings, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 
 export default function Integrations() {
@@ -9,47 +9,47 @@ export default function Integrations() {
 
   const categories = {
     all: {
-      title: 'All Capabilities',
-      icon: Zap,
+      title: 'AI Fabric Capabilities',
+      icon: Network,
       integrations: [
-        { icon: FileText, name: 'CSV Files', description: 'Import and export comma-separated value files.' },
-        { icon: FileSpreadsheet, name: 'Excel/XLSX', description: 'Process Excel spreadsheets and workbooks.' },
-        { icon: Braces, name: 'JSON Data', description: 'Handle structured JSON data formats.' },
-        { icon: Globe, name: 'REST APIs', description: 'Standard HTTP APIs for programmatic access.' },
+        { icon: Activity, name: 'Thompson Sampling Router', description: 'Intelligent model routing based on real-time performance and cost metrics.' },
+        { icon: TrendingUp, name: 'Cost Optimization Engine', description: 'Automatic cost reduction through smart caching and model selection.' },
+        { icon: Cpu, name: 'Multi-Tier Cache System', description: 'L1/L2/L3 cache coherence for 99.9% cache hit rates.' },
+        { icon: GitBranch, name: 'Adaptive Worker Pools', description: 'Auto-scaling inference workers based on demand patterns.' },
         { icon: Code, name: 'Python SDK', description: 'Full-featured Python library with async support and type hints.' },
         { icon: Package, name: 'JavaScript/TypeScript SDK', description: 'Official npm package with browser and Node.js support.' },
         { icon: Database, name: 'Go SDK', description: 'High-performance Go library for backend integrations.' },
-        { icon: Terminal, name: 'CLI Tools', description: 'Command-line interface for batch processing and automation.' },
+        { icon: Settings, name: 'Kubernetes Operator', description: 'Production K8s deployment with auto-scaling and monitoring.' },
       ],
     },
-    formats: {
-      title: 'Data Formats',
-      icon: BarChart3,
+    orchestration: {
+      title: 'Orchestration',
+      icon: Activity,
       integrations: [
-        { icon: FileText, name: 'CSV Files', description: 'Import and export comma-separated value files.' },
-        { icon: FileSpreadsheet, name: 'Excel/XLSX', description: 'Process Excel spreadsheets and workbooks.' },
-        { icon: Braces, name: 'JSON Data', description: 'Handle structured JSON data formats.' },
-        { icon: FileText, name: 'TSV Files', description: 'Tab-separated value file support.' },
+        { icon: Activity, name: 'Thompson Sampling Router', description: 'Intelligent model routing based on real-time performance.' },
+        { icon: TrendingUp, name: 'Cost Optimization', description: 'Dynamic cost reduction through smart routing and caching.' },
+        { icon: Cpu, name: 'Cache Coherence', description: 'Multi-tier cache with automatic invalidation.' },
+        { icon: GitBranch, name: 'Adaptive Pools', description: 'Auto-scaling worker pools responsive to load.' },
       ],
     },
     apis: {
-      title: 'API Access',
+      title: 'APIs & Interfaces',
       icon: Code,
       integrations: [
-        { icon: Globe, name: 'REST APIs', description: 'Standard HTTP APIs for programmatic access.' },
-        { icon: Webhook, name: 'Webhooks', description: 'Real-time event notifications and triggers.' },
-        { icon: Shield, name: 'API Authentication', description: 'Secure token-based API access.' },
-        { icon: BookOpen, name: 'API Documentation', description: 'Comprehensive API reference and examples.' },
+        { icon: Globe, name: 'gRPC Inference API', description: 'High-performance gRPC for real-time inference requests.' },
+        { icon: Network, name: 'WebSocket Orchestration', description: 'Real-time events for routing and monitoring.' },
+        { icon: Shield, name: 'JWT Auth', description: 'Enterprise-grade authentication and authorization.' },
+        { icon: Settings, name: 'Prometheus Metrics', description: 'Built-in monitoring and performance metrics.' },
       ],
     },
     sdks: {
-      title: 'SDKs & Libraries',
+      title: 'SDKs & Deployment',
       icon: Users,
       integrations: [
-        { icon: Code, name: 'Python SDK', description: 'Full-featured Python library with async support and type hints.' },
-        { icon: Package, name: 'JavaScript/TypeScript SDK', description: 'Official npm package with browser and Node.js support.' },
-        { icon: Database, name: 'Go SDK', description: 'High-performance Go library for backend integrations.' },
-        { icon: Terminal, name: 'CLI Tools', description: 'Command-line interface for batch processing and automation.' },
+        { icon: Code, name: 'Python SDK', description: 'Async Python client for inference and orchestration.' },
+        { icon: Package, name: 'TypeScript SDK', description: 'Type-safe client for browser and Node.js environments.' },
+        { icon: Database, name: 'Go SDK', description: 'High-performance Go client for backend services.' },
+        { icon: Settings, name: 'Kubernetes Operator', description: 'Production K8s deployment with auto-scaling.' },
       ],
     },
   };
@@ -62,11 +62,11 @@ export default function Integrations() {
       <div className="max-w-[1300px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-16">
           <h2 className="text-3xl md:text-4xl font-semibold text-gray-900 dark:text-white mb-6 text-left">
-            Built for Integration
+            AI Fabric Integration Platform
           </h2>
           <p className="text-lg text-gray-700 dark:text-gray-300 max-w-3xl text-left">
-            Schlep Engine is designed with standard APIs and common data formats to work seamlessly 
-            with your existing tools and workflows.
+            Schlep Engine provides enterprise-grade APIs and SDKs to seamlessly integrate our AI inference 
+            optimization fabric with your existing MLOps workflows and infrastructure.
           </p>
         </div>
 
