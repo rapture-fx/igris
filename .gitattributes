@@ -1,0 +1,46 @@
+# ───────────────────────────────
+# 📊 GITHUB LINGUIST CONFIGURATION
+# ───────────────────────────────
+# Purpose: Ensure GitHub's language breakdown reflects the current architecture.
+# Schlep-Engine stack: Rust + Go + TypeScript core, minimal Python (tooling only)
+
+# ── 1. Ignore legacy or prototype code ──────────────────────────────
+legacy/**                  linguist-detectable=false
+prototypes/**              linguist-detectable=false
+experimental/**            linguist-detectable=false
+archive/**                 linguist-detectable=false
+
+# ── 2. Ignore generated or vendor code ──────────────────────────────
+vendor/**                  linguist-vendored
+node_modules/**            linguist-vendored
+dist/**                    linguist-vendored
+build/**                   linguist-vendored
+generated/**               linguist-vendored
+proto/**                   linguist-generated=true
+
+# ── 3. Mark Python as secondary / tooling language ─────────────────
+# Python scripts for build, ops, or analytics — not core logic
+scripts/**/*.py            linguist-detectable=false
+tools/**/*.py              linguist-detectable=false
+infra/**/*.py              linguist-detectable=false
+infrastructure/**/*.py     linguist-detectable=false
+tests/**/*.py              linguist-detectable=false
+security/**/*.py           linguist-detectable=false
+database/**/*.py           linguist-detectable=false
+
+# ── 4. Prioritize core languages ────────────────────────────────────
+*.rs                       linguist-language=Rust
+*.go                       linguist-language=Go
+*.ts                       linguist-language=TypeScript
+*.tsx                      linguist-language=TypeScript
+
+# ── 5. Mark lock files as generated ─────────────────────────────────
+pnpm-lock.yaml             linguist-generated=true
+package-lock.json          linguist-generated=true
+yarn.lock                  linguist-generated=true
+Cargo.lock                 linguist-generated=true
+go.sum                     linguist-generated=true
+
+# ── 6. Miscellaneous ───────────────────────────────────────────────
+*.sh                       linguist-language=Shell
+Makefile                   linguist-language=Makefile
