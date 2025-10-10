@@ -21,6 +21,9 @@ pub mod mempool;
 // Phase 7: Parallel batch processing
 pub mod parallel;
 
+// Phase 8: Predictive prefetching
+pub mod prefetch;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================

@@ -611,7 +611,7 @@ mod tests {
     fn test_panic_recovery() {
         let context = FFIContext::new("panic_test", 1000);
         
-        let result = safe_ffi_wrapper(context, || {
+        let result: Result<(), FFIError> = safe_ffi_wrapper(context, || {
             panic!("Test panic");
         });
         

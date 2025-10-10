@@ -45,7 +45,7 @@ impl Default for BatchFusionConfig {
 pub struct BatchableRequest<T> {
     pub inner: T,
     pub received_at: Instant,
-    pub priority: super::priority::Priority,
+    pub priority: crate::parallel::Priority,
 }
 
 /// Micro-batch of requests
@@ -268,7 +268,7 @@ mod tests {
             req_tx.send(BatchableRequest {
                 inner: TestRequest { id: i },
                 received_at: Instant::now(),
-                priority: super::priority::Priority::Normal,
+                priority: crate::parallel::Priority::Normal,
             }).unwrap();
         }
 
@@ -308,7 +308,7 @@ mod tests {
             req_tx.send(BatchableRequest {
                 inner: TestRequest { id: i },
                 received_at: Instant::now(),
-                priority: super::priority::Priority::Normal,
+                priority: crate::parallel::Priority::Normal,
             }).unwrap();
         }
 
@@ -334,7 +334,7 @@ mod tests {
             batch.requests.push(BatchableRequest {
                 inner: TestRequest { id: i },
                 received_at: Instant::now(),
-                priority: super::priority::Priority::Normal,
+                priority: crate::parallel::Priority::Normal,
             });
         }
 
