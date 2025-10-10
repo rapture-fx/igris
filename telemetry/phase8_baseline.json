@@ -1,0 +1,176 @@
+{
+  "deployment": {
+    "environment": "staging",
+    "version": "phase8-prod-candidate",
+    "timestamp": "2025-10-10T00:00:00Z",
+    "binary_hash": "sha256:abc123...",
+    "configuration_profile": "telemetry-only"
+  },
+  "configuration": {
+    "prefetch": {
+      "enabled": false,
+      "telemetry_only_mode": true,
+      "telemetry": {
+        "enabled": true,
+        "sample_rate": 0.01,
+        "window_duration_secs": 60,
+        "max_tracked_keys": 100000
+      }
+    },
+    "cache": {
+      "max_entries": 10000,
+      "default_ttl_secs": 300,
+      "enable_metrics": true
+    },
+    "parallel": {
+      "worker_threads": 8,
+      "batch_size": 10,
+      "max_concurrent": 50,
+      "fusion_window_ms": 10
+    },
+    "reliability": {
+      "trace_recorder": {
+        "enabled": false,
+        "max_entries": 10000
+      },
+      "checkpoint": {
+        "enabled": false,
+        "interval_secs": 10
+      },
+      "failure_predictor": {
+        "enabled": false,
+        "confidence_threshold": 0.80
+      }
+    }
+  },
+  "baseline_metrics": {
+    "expected_performance": {
+      "throughput_rps": {
+        "1x_load": 200,
+        "3x_load": 600,
+        "5x_load": 1000
+      },
+      "latency_ms": {
+        "p50": 30,
+        "p95": 80,
+        "p99": 150
+      },
+      "cache_hit_rate": {
+        "without_prefetch": 0.85,
+        "with_prefetch": 0.97
+      },
+      "resource_usage": {
+        "cpu_percent": 25,
+        "memory_mb": 11,
+        "prefetch_overhead_percent": 1.2
+      }
+    },
+    "monitoring_endpoints": {
+      "prometheus": "http://staging:9090/metrics",
+      "grafana": "http://staging:3000/d/schlep-engine",
+      "health_check": "http://staging:8080/health"
+    }
+  },
+  "test_scenarios": {
+    "load_1x": {
+      "threads": 4,
+      "connections": 100,
+      "duration_secs": 900,
+      "target_rps": 200,
+      "validation_criteria": {
+        "latency_p99_ms": 150,
+        "error_rate_percent": 0.1,
+        "cpu_percent": 30
+      }
+    },
+    "load_3x": {
+      "threads": 8,
+      "connections": 300,
+      "duration_secs": 900,
+      "target_rps": 600,
+      "validation_criteria": {
+        "latency_p99_ms": 150,
+        "cache_hit_rate": 0.90,
+        "batch_fusion_efficiency": 0.70
+      }
+    },
+    "load_5x": {
+      "threads": 12,
+      "connections": 500,
+      "duration_secs": 900,
+      "target_rps": 1000,
+      "validation_criteria": {
+        "latency_p99_ms": 200,
+        "queue_depth_max": 800,
+        "circuit_breaker_triggers": 0
+      }
+    },
+    "soak_test": {
+      "threads": 8,
+      "connections": 200,
+      "duration_secs": 86400,
+      "target_rps": 400,
+      "validation_criteria": {
+        "memory_leak_mb": 0,
+        "cache_hit_rate_sustained": 0.95,
+        "error_rate_percent": 0.1
+      }
+    }
+  },
+  "success_gates": {
+    "stage_1_telemetry": {
+      "duration_hours": 24,
+      "criteria": {
+        "zero_panics": true,
+        "telemetry_data_collected": true,
+        "cpu_overhead_percent": 1.0,
+        "memory_stable": true
+      }
+    },
+    "stage_2_prefetch_validation": {
+      "duration_hours": 6,
+      "criteria": {
+        "cache_hit_rate_min": 0.97,
+        "latency_regression_percent": 0,
+        "prefetch_cpu_overhead_percent": 2.0
+      }
+    },
+    "stage_3_canary_5pct": {
+      "duration_hours": 24,
+      "criteria": {
+        "error_rate_delta_percent": 0.5,
+        "latency_delta_percent": 10,
+        "zero_rollbacks": true
+      }
+    },
+    "stage_4_canary_25pct": {
+      "duration_hours": 48,
+      "criteria": {
+        "customer_complaints": 0,
+        "metrics_stable": true,
+        "cost_efficiency_improved": true
+      }
+    },
+    "stage_5_canary_100pct": {
+      "duration_hours": 72,
+      "criteria": {
+        "all_slas_met": true,
+        "incident_count": 0,
+        "cache_hit_rate_sustained": 0.97
+      }
+    }
+  },
+  "rollback_triggers": {
+    "immediate": [
+      "kernel_panic",
+      "error_rate > 1%",
+      "latency_p99 > 200ms for 5min",
+      "memory_leak > 50MB in 1h"
+    ],
+    "graceful": [
+      "cache_hit_rate < 90% for 10min",
+      "cpu_utilization > 90% for 5min",
+      "customer_complaints > 5"
+    ]
+  }
+}
