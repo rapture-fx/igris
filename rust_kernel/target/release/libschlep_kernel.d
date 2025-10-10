@@ -1,1 +1,1 @@
-/Users/wira/Desktop/schlep-engine/rust_kernel/target/release/libschlep_kernel.dylib: /Users/wira/Desktop/schlep-engine/rust_kernel/src/ffi_guard.rs /Users/wira/Desktop/schlep-engine/rust_kernel/src/lib.rs /Users/wira/Desktop/schlep-engine/rust_kernel/src/runtime_abstraction.rs
+/Users/wira/Desktop/schlep-engine/rust_kernel/target/release/libschlep_kernel.a: /Users/wira/Desktop/schlep-engine/rust_kernel/src/ffi_guard.rs /Users/wira/Desktop/schlep-engine/rust_kernel/src/lib.rs /Users/wira/Desktop/schlep-engine/rust_kernel/src/runtime_abstraction.rs
