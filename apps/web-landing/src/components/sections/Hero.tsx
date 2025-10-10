@@ -119,7 +119,7 @@ export default function Hero() {
 
   return (
     <div
-      className="relative overflow-visible dark:bg-gray-900 pt-36"
+      className="relative overflow-visible dark:bg-gray-900 pt-16"
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="relative z-20 mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
