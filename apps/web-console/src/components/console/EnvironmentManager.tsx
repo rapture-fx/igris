@@ -44,14 +44,15 @@ interface Environment {
 }
 
 interface EnvironmentManagerProps {
+  isOpen: boolean
+  onClose: () => void
   onEnvironmentChange?: (environment: Environment) => void
   onVariableChange?: (variables: Record<string, string>) => void
 }
 
-export function EnvironmentManager({ onEnvironmentChange, onVariableChange }: EnvironmentManagerProps) {
+export function EnvironmentManager({ isOpen, onClose, onEnvironmentChange, onVariableChange }: EnvironmentManagerProps) {
   const [environments, setEnvironments] = useState<Environment[]>([])
   const [activeEnvironment, setActiveEnvironment] = useState<Environment | null>(null)
-  const [isOpen, setIsOpen] = useState(false)
   const [editingEnv, setEditingEnv] = useState<Environment | null>(null)
   const [showSecrets, setShowSecrets] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -156,7 +157,7 @@ export function EnvironmentManager({ onEnvironmentChange, onVariableChange }: En
     }
     
     saveEnvironments(updatedEnvs)
-    setIsOpen(false)
+    onClose()
   }
 
   const createEnvironment = () => {
@@ -259,139 +260,123 @@ export function EnvironmentManager({ onEnvironmentChange, onVariableChange }: En
     env.description?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  if (!isOpen) return null
+
   return (
-    <div className="relative">
-      {/* Environment Selector */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-      >
-        <div 
-          className="w-3 h-3 rounded-full" 
-          style={{ backgroundColor: activeEnvironment?.color || '#6B7280' }}
-        />
-        <span className="text-sm font-medium text-gray-900 dark:text-white">
-          {activeEnvironment?.name || 'No Environment'}
-        </span>
-        <ChevronDown className="w-4 h-4 text-gray-500" />
-      </button>
-
-      {/* Environment Dropdown */}
-      {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-96">
-          {/* Header */}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Environments</h3>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setShowSecrets(!showSecrets)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  title={showSecrets ? "Hide secrets" : "Show secrets"}
-                >
-                  {showSecrets ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-                <button
-                  onClick={exportEnvironments}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                  title="Export environments"
-                >
-                  <Download className="w-4 h-4" />
-                </button>
-                <label className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer" title="Import environments">
-                  <Upload className="w-4 h-4" />
-                  <input
-                    type="file"
-                    accept=".json"
-                    onChange={importEnvironments}
-                    className="hidden"
-                  />
-                </label>
-                <button
-                  onClick={createEnvironment}
-                  className="p-1 text-blue-600 hover:text-blue-700"
-                  title="Create environment"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-            
-            <input
-              type="text"
-              placeholder="Search environments..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {/* Environment List */}
-          <div className="max-h-96 overflow-y-auto">
-            {filteredEnvironments.map((env) => (
-              <div 
-                key={env.id}
-                className={`p-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
-                  env.isActive ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                }`}
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={onClose}>
+      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-96" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Environments</h3>
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setShowSecrets(!showSecrets)}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                title={showSecrets ? "Hide secrets" : "Show secrets"}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <button
-                    onClick={() => switchEnvironment(env.id)}
-                    className="flex items-center space-x-3 flex-1 text-left"
-                  >
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: env.color }}
-                    />
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-white">{env.name}</div>
-                      {env.description && (
-                        <div className="text-sm text-gray-600 dark:text-gray-400">{env.description}</div>
-                      )}
-                      <div className="text-xs text-gray-500 dark:text-gray-500 font-mono">{env.baseUrl}</div>
-                    </div>
-                  </button>
-                  
-                  <div className="flex items-center space-x-1">
-                    <button
-                      onClick={() => setEditingEnv(env)}
-                      className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    {environments.length > 1 && (
-                      <button
-                        onClick={() => deleteEnvironment(env.id)}
-                        className="p-1 text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                </div>
+                {showSecrets ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+              <button
+                onClick={exportEnvironments}
+                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                title="Export environments"
+              >
+                <Download className="w-4 h-4" />
+              </button>
+              <label className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer" title="Import environments">
+                <Upload className="w-4 h-4" />
+                <input
+                  type="file"
+                  accept=".json"
+                  onChange={importEnvironments}
+                  className="hidden"
+                />
+              </label>
+              <button
+                onClick={createEnvironment}
+                className="p-1 text-blue-600 hover:text-blue-700"
+                title="Create environment"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+          
+          <input
+            type="text"
+            placeholder="Search environments..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
 
-                {/* Variables Preview */}
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {env.variables.slice(0, 4).map((variable) => (
-                    <div key={variable.key} className="text-xs">
-                      <span className="text-gray-500 dark:text-gray-400">{variable.key}:</span>
-                      <span className="ml-1 text-gray-700 dark:text-gray-300">
-                        {variable.secret && !showSecrets ? '••••••••' : variable.value || '[empty]'}
-                      </span>
-                    </div>
-                  ))}
-                  {env.variables.length > 4 && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400">
-                      +{env.variables.length - 4} more
-                    </div>
+        {/* Environment List */}
+        <div className="max-h-96 overflow-y-auto">
+          {filteredEnvironments.map((env) => (
+            <div 
+              key={env.id}
+              className={`p-4 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 ${
+                env.isActive ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={() => switchEnvironment(env.id)}
+                  className="flex items-center space-x-3 flex-1 text-left"
+                >
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: env.color }}
+                  />
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-white">{env.name}</div>
+                    {env.description && (
+                      <div className="text-sm text-gray-600 dark:text-gray-400">{env.description}</div>
+                    )}
+                    <div className="text-xs text-gray-500 dark:text-gray-500 font-mono">{env.baseUrl}</div>
+                  </div>
+                </button>
+                
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={() => setEditingEnv(env)}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  {environments.length > 1 && (
+                    <button
+                      onClick={() => deleteEnvironment(env.id)}
+                      className="p-1 text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Variables Preview */}
+              <div className="grid grid-cols-2 gap-2 mt-2">
+                {env.variables.slice(0, 4).map((variable) => (
+                  <div key={variable.key} className="text-xs">
+                    <span className="text-gray-500 dark:text-gray-400">{variable.key}:</span>
+                    <span className="ml-1 text-gray-700 dark:text-gray-300">
+                      {variable.secret && !showSecrets ? '••••••••' : variable.value || '[empty]'}
+                    </span>
+                  </div>
+                ))}
+                {env.variables.length > 4 && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    +{env.variables.length - 4} more
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
-      )}
+      </div>
 
       {/* Environment Editor Modal */}
       {editingEnv && (

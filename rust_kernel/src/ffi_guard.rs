@@ -236,15 +236,17 @@ where
 {
     // Acquire semaphore permit
     let _permit = if ENABLE_TIMEOUT_CHECKING {
-        Some(tokio::block_on(async {
-            match tokio::time::timeout(Duration::from_millis(1000), FFI_SEMAPHORE.acquire()).await {
-                Ok(permit) => Some(permit),
-                Err(_) => {
-                    error!("FFI semaphore acquire timeout for: {}", context.operation_name);
-                    return Err(FFIError::ResourceExhausted);
-                }
+        match tokio::runtime::Runtime::new()
+            .unwrap()
+            .block_on(async {
+            tokio::time::timeout(Duration::from_millis(1000), FFI_SEMAPHORE.acquire()).await
+        }) {
+            Ok(Ok(permit)) => Some(permit),
+            _ => {
+                error!("FFI semaphore acquire timeout for: {}", context.operation_name);
+                return Err(FFIError::ResourceExhausted);
             }
-        }))
+        }
     } else {
         None
     };
@@ -447,7 +449,7 @@ fn flatten_json(value: &Value) -> Value {
     value.clone()
 }
 
-fn validate_schema(value: &Value) -> Value {
+fn validate_schema(_value: &Value) -> Value {
     // Simplified schema validation
     json!({
         "valid": true,
@@ -609,7 +611,7 @@ mod tests {
     fn test_panic_recovery() {
         let context = FFIContext::new("panic_test", 1000);
         
-        let result = safe_ffi_wrapper(context, || {
+        let result: Result<(), FFIError> = safe_ffi_wrapper(context, || {
             panic!("Test panic");
         });
         

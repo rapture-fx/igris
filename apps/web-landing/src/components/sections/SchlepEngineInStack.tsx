@@ -4,50 +4,110 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { ArrowUpRight } from 'lucide-react'
 
-const pythonCode = `<code><span style="color: #114dcd;">from</span> schlep_engine <span style="color: #114dcd;">import</span> SchlepEngineClient
+const pythonCode = `<code><span style="color: #114dcd;">from</span> schlep_engine <span style="color: #114dcd;">import</span> FabricSDK
 
-client = SchlepEngineClient(api_key=<span style="color: #4b5563;">"YOUR_API_KEY"</span>)
+<span style="color: #6b7280;"># Connect to inference fabric</span>
+fabric = FabricSDK(
+    endpoint=<span style="color: #4b5563;">"wss://fabric.schlep-engine.com"</span>,
+    api_key=<span style="color: #4b5563;">"FABRIC_KEY"</span>
+)
 
-result = client.data.process_data(<span style="color: #4b5563;">"sales_data.csv"</span>)
+<span style="color: #6b7280;"># Deploy model with optimization</span>
+<span style="color: #114dcd;">await</span> fabric.deploy(
+    model=<span style="color: #4b5563;">"resnet50.pt"</span>,
+    optimization=<span style="color: #4b5563;">"cost_efficient"</span>
+)
 
-<span style="color: #114dcd;">print</span>(result)</code>`;
+<span style="color: #6b7280;"># Run optimized inference</span>
+prediction = <span style="color: #114dcd;">await</span> fabric.predict(
+    input_data=image_tensor
+)</code>`;
 
-const jsCode = `<code><span style="color: #114dcd;">import</span> { SchlepEngineClient } <span style="color: #114dcd;">from</span> <span style="color: #4b5563;">'@schlep-engine/javascript-sdk'</span>;
+const jsCode = `<code><span style="color: #114dcd;">import</span> { FabricSDK } <span style="color: #114dcd;">from</span> <span style="color: #4b5563;">'@schlep-engine/fabric-sdk'</span>;
 
-<span style="color: #114dcd;">const</span> client = <span style="color: #114dcd;">new</span> SchlepEngineClient({
-  apiKey: <span style="color: #4b5563;">'YOUR_API_KEY'</span>
+<span style="color: #6b7280;">// Initialize fabric client</span>
+<span style="color: #114dcd;">const</span> fabric = <span style="color: #114dcd;">new</span> FabricSDK({
+  endpoint: <span style="color: #4b5563;">'wss://fabric.schlep-engine.com'</span>,
+  apiKey: <span style="color: #4b5563;">'FABRIC_KEY'</span>
 });
 
-<span style="color: #114dcd;">const</span> result = <span style="color: #114dcd;">await</span> client.data.processFile(<span style="color: #4b5563;">'sales_data.csv'</span>);
+<span style="color: #6b7280;">// Deploy with auto-optimization</span>
+<span style="color: #114dcd;">await</span> fabric.deployModel({
+  modelPath: <span style="color: #4b5563;">'model.onnx'</span>,
+  target: <span style="color: #4b5563;">'latency_optimized'</span>
+});
 
+<span style="color: #6b7280;">// Run inference</span>
+<span style="color: #114dcd;">const</span> result = <span style="color: #114dcd;">await</span> fabric.predict(inputData);
 console.<span style="color: #114dcd;">log</span>(result);</code>`;
 
-const rustCode = `<code><span style="color: #114dcd;">use</span> schlep_engine::SchlepEngineClient;
+const rustCode = `<code><span style="color: #114dcd;">use</span> schlep_engine::fabric::FabricClient;
 
-<span style="color: #6b7280;">// Create client with API key</span>
-<span style="color: #114dcd;">let</span> client = SchlepEngineClient::<span style="color: #114dcd;">new</span>(<span style="color: #4b5563;">"YOUR_API_KEY"</span>);
+<span style="color: #6b7280;">// Create fabric client</span>
+<span style="color: #114dcd;">let</span> fabric = FabricClient::<span style="color: #114dcd;">new</span>(
+    <span style="color: #4b5563;">"wss://fabric.schlep-engine.com"</span>,
+    <span style="color: #4b5563;">"FABRIC_KEY"</span>
+);
 
-<span style="color: #6b7280;">// Process the file</span>
-<span style="color: #114dcd;">let</span> result = client.data().process_file(<span style="color: #4b5563;">"sales_data.csv"</span>).<span style="color: #114dcd;">await</span>?;
+<span style="color: #6b7280;">// Deploy optimized model</span>
+<span style="color: #114dcd;">let</span> service = fabric.deploy_model(
+    Model::<span style="color: #114dcd;">from_file</span>(<span style="color: #4b5563;">"model.pt"</span>),
+    OptimizationTarget::CostEfficient
+).<span style="color: #114dcd;">await</span>?;
 
-<span style="color: #114dcd;">println!</span>(<span style="color: #4b5563;">"{:?}"</span>, result);</code>`;
+<span style="color: #114dcd;">let</span> prediction = service.predict(input_data).<span style="color: #114dcd;">await</span>?;
+<span style="color: #114dcd;">println!</span>(<span style="color: #4b5563;">"{:?}"</span>, prediction);</code>`;
 
-const javaCode = ``;
+const javaCode = `<code><span style="color: #114dcd;">import</span> com.schlep.engine.FabricSDK;
+
+<span style="color: #114dcd;">public class</span> InferenceService {
+    <span style="color: #114dcd;">public static void</span> main(String[] args) {
+        FabricSDK fabric = <span style="color: #114dcd;">new</span> FabricSDK(
+            <span style="color: #4b5563;">"wss://fabric.schlep-engine.com"</span>,
+            <span style="color: #4b5563;">"FABRIC_KEY"</span>
+        );
+        
+        <span style="color: #114dcd;">// Deploy and run inference</span>
+        fabric.deployModel(<span style="color: #4b5563;">"model.onnx"</span>, <span style="color: #4b5563;">"cost_optimized"</span>);
+        Prediction result = fabric.predict(inputData);
+        System.out.println(result);
+    }
+}</code>`;
 
 const goCode = `<code><span style="color: #114dcd;">package</span> main
 
 <span style="color: #114dcd;">import</span> (
     <span style="color: #4b5563;">"fmt"</span>
-    <span style="color: #4b5563;">"github.com/schlep-engine/go-sdk"</span>
+    <span style="color: #4b5563;">"github.com/schlep-engine/fabric-go"</span>
 )
 
 <span style="color: #114dcd;">func</span> main() {
-    client := schlep.NewClient(<span style="color: #4b5563;">"YOUR_API_KEY"</span>)
-    result, err := client.Data.ProcessFile(<span style="color: #4b5563;">"sales_data.csv"</span>)
+    fabric := fabric.New(<span style="color: #4b5563;">"FABRIC_KEY"</span>)
+    
+    <span style="color: #6b7280;">// Deploy optimized model</span>
+    fabric.DeployModel(<span style="color: #4b5563;">"model.pt"</span>, <span style="color: #4b5563;">"cost_efficient"</span>)
+    
+    <span style="color: #6b7280;">// Run inference</span>
+    result := fabric.Predict(inputData)
     fmt.<span style="color: #114dcd;">Println</span>(result)
 }</code>`;
 
-const rubyCode = ``;
+const rubyCode = `<code><span style="color: #114dcd;">require</span> <span style="color: #4b5563;">'schlep_engine/fabric'</span>
+
+fabric = SchlepEngine::Fabric.<span style="color: #114dcd;">new</span>(
+  endpoint: <span style="color: #4b5563;">'wss://fabric.schlep-engine.com'</span>,
+  api_key: <span style="color: #4b5563;">'FABRIC_KEY'</span>
+)
+
+<span style="color: #6b7280;"># Deploy optimized model</span>
+fabric.deploy_model(
+  model_path: <span style="color: #4b5563;">'model.pt'</span>,
+  optimization: <span style="color: #4b5563;">'cost_efficient'</span>
+)
+
+<span style="color: #6b7280;"># Run inference</span>
+prediction = fabric.predict(input_data)
+<span style="color: #114dcd;">puts</span> prediction</code>`;
 
 const dotnetCode = ``;
 

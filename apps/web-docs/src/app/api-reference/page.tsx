@@ -8,51 +8,51 @@ import { ArrowRightIcon, DocumentTextIcon, ShieldCheckIcon, CloudIcon, CogIcon }
 export default function ApiReferencePage() {
   const apiSections = [
     {
-      title: 'Financial Services',
+      title: 'Model Deployment',
       icon: ShieldCheckIcon,
-      description: 'AI-powered fraud detection, credit risk assessment, and AML compliance screening',
-      href: '/api-reference/financial-ai',
-      methods: ['POST /industry/financial/fraud-detection', 'POST /industry/financial/credit-risk', 'POST /industry/financial/aml-check'],
+      description: 'Deploy AI models with automatic optimization and intelligent routing',
+      href: '/api-reference/model-deployment',
+      methods: ['POST /fabric/v1/models/deploy', 'POST /fabric/v1/models/configure', 'GET /fabric/v1/models/list'],
       color: 'text-blue-600'
     },
     {
-      title: 'E-commerce',
-      icon: CogIcon,
-      description: 'Personalized recommendations, demand forecasting, and dynamic pricing optimization',
-      href: '/api-reference/ecommerce-ai',
-      methods: ['POST /industry/ecommerce/recommendations', 'POST /industry/ecommerce/demand-forecast', 'POST /industry/ecommerce/price-optimization'],
+      title: 'Optimized Inference',
+      icon: CloudIcon,
+      description: 'Run predictions with Thompson sampling routing and cost optimization',
+      href: '/api-reference/inference',
+      methods: ['POST /fabric/v1/predict', 'POST /fabric/v1/batch-predict', 'GET /fabric/v1/predictions/{id}'],
       color: 'text-green-600'
     },
     {
-      title: 'Manufacturing',
-      icon: CloudIcon,
-      description: 'Predictive maintenance, quality control, and forecasting with ML models',
-      href: '/api-reference/manufacturing-forecasting',
-      methods: ['POST /industry/manufacturing/predictive-maintenance', 'POST /industry/manufacturing/quality-control', 'POST /industry/manufacturing/supply-chain'],
+      title: 'Performance Monitoring',
+      icon: CogIcon,
+      description: 'Real-time metrics, cache performance, and cost tracking',
+      href: '/api-reference/monitoring',
+      methods: ['GET /fabric/v1/metrics', 'GET /fabric/v1/performance', 'GET /fabric/v1/caching'],
       color: 'text-purple-600'
     },
     {
-      title: 'Authentication',
+      title: 'Authentication & Security',
       icon: DocumentTextIcon,
-      description: 'User login, API key management, and session handling',
+      description: 'JWT authentication, API key management, and enterprise security',
       href: '/api-reference/authentication',
-      methods: ['POST /auth/login', 'POST /auth/register', 'POST /auth/refresh'],
+      methods: ['POST /fabric/v1/auth/login', 'POST /fabric/v1/auth/token', 'GET /fabric/v1/auth/validate'],
       color: 'text-orange-600'
     },
     {
-      title: 'Data Processing',
+      title: 'Cache Management',
       icon: ShieldCheckIcon,
-      description: 'Model execution, parameter tuning, and job management',
-      href: '/api-reference/data-processing',
-      methods: ['POST /process/start', 'POST /process/configure', 'GET /process/jobs/{id}'],
+      description: 'L1/L2/L3 cache configuration and performance optimization',
+      href: '/api-reference/cache-management',
+      methods: ['POST /fabric/v1/cache/configure', 'GET /fabric/v1/cache/stats', 'DELETE /fabric/v1/cache/invalidate'],
       color: 'text-red-600'
     },
     {
-      title: 'Real-time Processing',
+      title: 'Cost Optimization',
       icon: CloudIcon,
-      description: 'WebSocket connections and streaming data endpoints',
-      href: '/api-reference/streaming',
-      methods: ['WS /stream/connect', 'POST /stream/data', 'GET /stream/status'],
+      description: 'Configure cost optimization targets and budget management',
+      href: '/api-reference/cost-optimization',
+      methods: ['POST /fabric/v1/cost/optimize', 'GET /fabric/v1/cost/analytics', 'PUT /fabric/v1/cost/budget'],
       color: 'text-indigo-600'
     }
   ]
@@ -68,7 +68,7 @@ export default function ApiReferencePage() {
             Welcome to Schlep-engine! We're excited to have you onboard. This guide is your launchpad for getting started.
           </p>
           <p className="text-sm text-gray-600 mb-6">
-            Schlep-engine is a REST API platform that transforms messy, unstructured data into ML-ready formats with just a few API calls. It comes with built-in real-time data processing, advanced Machine Learning (ML), and Reinforcement Learning (RL) to deliver powerful, domain-specific solutions across AI, Manufacturing, Financial Services, and E-commerce.
+            Schlep-engine is an enterprise-grade AI inference optimization platform that delivers sub-10ms latency with Thompson sampling routing, multi-tier caching, and intelligent cost management for production ML workloads.
           </p>
         </div>
 
@@ -122,10 +122,10 @@ export default function ApiReferencePage() {
 
         {/* SDKs and Libraries */}
         <section className="mb-12">
-          <h2 id="sdks-and-libraries" className="text-xl font-semibold mb-6 text-[#114dcd]">SDKs and Libraries</h2>
+          <h2 id="fabric-sdks" className="text-xl font-semibold mb-6 text-[#114dcd]">Fabric SDKs</h2>
           
           <p className="text-sm text-gray-600 mb-6">
-            For a smoother developer experience, we suggest using our official SDKs instead of making direct REST API calls.
+            For optimal AI inference integration, use our fabric SDKs that handle Thompson sampling, caching, and optimization automatically.
           </p>
           
           <div className="flex flex-row flex-wrap gap-6">
@@ -173,7 +173,7 @@ export default function ApiReferencePage() {
 
         {/* API Sections */}
         <section className="mb-12">
-          <h2 id="api-sections" className="text-2xl font-semibold text-gray-900 mb-6">API Sections</h2>
+          <h2 id="fabric-api-sections" className="text-2xl font-semibold text-gray-900 mb-6">Inference Fabric API Sections</h2>
           
           <div className="flex flex-col gap-6">
             {apiSections.map((section, index) => {
@@ -381,7 +381,7 @@ Retry-After: 3600`}
 
         {/* Resources */}
         <section className="bg-gray-50 rounded-lg p-6">
-          <h2 id="additional-resources" className="text-xl font-semibold text-gray-900 mb-4">Additional Resources</h2>
+          <h2 id="fabric-resources" className="text-xl font-semibold text-gray-900 mb-4">Fabric Resources</h2>
           
           <div className="flex flex-col gap-6">
             <div>
@@ -414,13 +414,13 @@ Retry-After: 3600`}
                   </Link>
                 </li>
                 <li>
-                  <Link href="https://postman.com/schlep-engine" className="text-blue-600 hover:text-blue-700">
-                    Postman Collection →
+                  <Link href="https://postman.com/schlep-engine/fabric" className="text-blue-600 hover:text-blue-700">
+                    Fabric Collection →
                   </Link>
                 </li>
                 <li>
                   <Link href="/sdks/openapi" className="text-blue-600 hover:text-blue-700">
-                    OpenAPI Generator →
+                    Fabric OpenAPI Generator →
                   </Link>
                 </li>
               </ul>
@@ -440,8 +440,8 @@ Retry-After: 3600`}
                   </Link>
                 </li>
                 <li>
-                  <Link href="/use-cases" className="text-blue-600 hover:text-blue-700">
-                    Use Cases & Examples →
+                  <Link href="/introduction/examples" className="text-blue-600 hover:text-blue-700">
+                    Inference Examples →
                   </Link>
                 </li>
               </ul>

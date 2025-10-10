@@ -16,22 +16,22 @@ const Card = ({ title, description, cta, ctaLink }) => (
 const CardSection = () => {
   const cards = [
     {
-      title: 'For Developers',
-      description: 'Integrate our API in minutes. Robust, scalable, and well-documented.',
-      cta: 'Read the Docs',
-      ctaLink: 'https://docs.schlep-engine.com'
+      title: 'For MLOps Engineers',
+      description: 'Optimize ML inference routing and reduce infrastructure overhead. We handle the complex orchestration so you can focus on model performance.',
+      cta: 'See Architecture',
+      ctaLink: '/architecture'
     },
     {
-      title: 'For Product Managers',
-      description: 'Focus on building great products, not on infrastructure. We handle the heavy lifting.',
-      cta: 'Explore Features',
-      ctaLink: '/solutions'
+      title: 'For DevOps Teams',
+      description: 'Deploy scalable inference infrastructure with auto-scaling, resilience, and real-time observability.',
+      cta: 'View Deployment Guide',
+      ctaLink: '/deployment'
     },
     {
-      title: 'For Data Scientists',
-      description: 'Leverage our powerful models to build your own AI-powered applications.',
-      cta: 'See Use Cases',
-      ctaLink: '/case-studies'
+      title: 'For CTOs & Architects',
+      description: 'Build enterprise-grade AI infrastructure that scales automatically and optimizes costs in real-time.',
+      cta: 'Explore Infrastructure',
+      ctaLink: '/infrastructure'
     }
   ];
 

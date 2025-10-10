@@ -7,46 +7,50 @@ import VerticalWorkflow from './VerticalWorkflow'
 
 const features = [
   {
-    name: 'No-code Interface',
-    description: 'A simple, intuitive interface for non-technical users to clean and prepare data.',
+    name: 'Intelligent Routing',
+    description: 'Automatic model selection and routing based on performance metrics and cost optimization.',
     icon: Zap,
   },
   {
-    name: 'Pre-built Templates',
-    description: 'Get started quickly with pre-built templates for common data preparation tasks.',
+    name: 'Real-time Analytics',
+    description: 'Monitor inference performance, cost tracking, and optimization metrics through comprehensive dashboards.',
     icon: BarChart2,
   },
   {
-    name: 'Automatic Data Profiling',
-    description: 'Automatically profile your data to identify quality issues and suggest transformations.',
+    name: 'Auto-scaling Infrastructure',
+    description: 'Adaptive worker pools that automatically scale based on demand patterns and traffic spikes.',
     icon: Cloud,
   },
   {
-    name: 'One-click Deployments',
-    description: 'Deploy your data pipelines to production with a single click.',
+    name: 'One-click Optimization',
+    description: 'Deploy models with automatic cost and performance optimization in a single command.',
     icon: GitBranch,
   },
 ]
 
-const pythonCode = `from schlep_engine import SchlepEngineClient
+const pythonCode = `from schlep_engine import FabricSDK
 
-client = SchlepEngineClient(api_key="YOUR_API_KEY")
+fabric = FabricSDK(
+    endpoint="wss://fabric.schlep-engine.com",
+    api_key="FABRIC_KEY"
+)
 
-result = client.data.process_data("sales_data.csv")
+result = await fabric.predict(image_tensor)
 
 print(result)`;
 
-const jsCode = `import { SchlepEngineClient } from '@schlep-engine/javascript-sdk';
+const jsCode = `import { FabricSDK } from '@schlep-engine/fabric-sdk';
 
-const client = new SchlepEngineClient({
-  apiKey: 'YOUR_API_KEY'
+const fabric = new FabricSDK({
+  endpoint: 'wss://fabric.schlep-engine.com',
+  apiKey: 'FABRIC_KEY'
 });
 
-const result = await client.data.processFile(file);
+const result = await fabric.predict(inputData);
 
 console.log(result);`;
 
-const goCode = `import "github.com/schlep-engine/go-sdk"
+const goCode = `import "github.com/schlep-engine/fabric-go"
 
 client := schlep.NewClient("YOUR_API_KEY")
 

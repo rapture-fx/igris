@@ -1,18 +1,20 @@
-# 📚 Schlep-engine API Documentation
+# 📚 Schlep-engine AI Inference API Documentation
 
 ## 🚀 Overview
 
-The Schlep-engine API is a comprehensive FastAPI-based REST API that provides enterprise-grade data processing, machine learning, and authentication capabilities. This documentation covers all available endpoints, authentication methods, and integration examples.
+The Schlep-engine API is a comprehensive gRPC/REST API that provides enterprise-grade AI inference optimization with Thompson sampling routing, multi-tier caching, and intelligent cost management. This documentation covers all inference endpoints, authentication methods, and optimization configurations.
 
-**Base URL:** `https://api.schlep-engine.com` (Production) | `http://localhost:8000` (Development)
+**Base URLs:** 
+- **Inference Fabric gRPC:** `grpc.fabric.schlep-engine.com:443` (Production) | `localhost:50051` (Development)
+- **REST API:** `https://api.schlep-engine.com` (Production) | `http://localhost:8080` (Development)
 
 **API Version:** v1
 
 **Documentation Links:**
-- 📖 [Interactive API Docs (Swagger UI)](http://localhost:8000/docs)
-- 📋 [OpenAPI Specification](http://localhost:8000/openapi.json)
+- 📖 [Interactive API Docs (Swagger UI)](http://localhost:8080/docs)
+- 📋 [OpenAPI Specification](http://localhost:8080/openapi.json)
 - 🔐 [Authentication Guide](#authentication)
-- 🔧 [SDK Documentation](#sdks-and-clients)
+- 🔧 [Fabric SDK Documentation](#fabric-sdks-and-clients)
 
 ---
 
