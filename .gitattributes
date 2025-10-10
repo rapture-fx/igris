@@ -1,46 +1,91 @@
 # ───────────────────────────────
 # 📊 GITHUB LINGUIST CONFIGURATION
 # ───────────────────────────────
-# Purpose: Ensure GitHub's language breakdown reflects the current architecture.
-# Schlep-Engine stack: Rust + Go + TypeScript core, minimal Python (tooling only)
+# Goal: Display Schlep-Engine as Rust + Go + Python core system
+# TypeScript is frontend/supporting layer only
 
-# ── 1. Ignore legacy or prototype code ──────────────────────────────
+# ── 1. De-prioritize frontend & UI code ────────────────────────────
+apps/web-landing/**        linguist-detectable=false
+apps/web-admin/**          linguist-detectable=false
+apps/web-console/**        linguist-detectable=false
+apps/web-docs/**           linguist-detectable=false
+packages/ui/**             linguist-detectable=false
+packages/frontend/**       linguist-detectable=false
+packages/admin/**          linguist-detectable=false
+cypress/**                 linguist-detectable=false
+tests/e2e/**/*.ts          linguist-detectable=false
+tests/e2e/**/*.tsx         linguist-detectable=false
+
+# TypeScript SDK and client libraries (keep these, but lower priority)
+packages/*-sdk/**/*.ts     linguist-detectable=false
+packages/openapi-client/** linguist-detectable=false
+packages/javascript-sdk/** linguist-detectable=false
+
+# ── 2. Prioritize backend core languages ───────────────────────────
+# Rust kernel (core compute engine)
+rust_kernel/**/*.rs        linguist-language=Rust
+
+# Go gateway and services
+go_gateway/**/*.go         linguist-language=Go
+apps/go-gateway/**/*.go    linguist-language=Go
+
+# Python ML service and core tooling
+python_ml/**/*.py          linguist-language=Python
+apps/python-ml-service/**/*.py linguist-language=Python
+
+# ── 3. Ignore legacy, archives, and prototypes ──────────────────────
+archive/**                 linguist-detectable=false
 legacy/**                  linguist-detectable=false
+migration-archive/**       linguist-detectable=false
 prototypes/**              linguist-detectable=false
 experimental/**            linguist-detectable=false
-archive/**                 linguist-detectable=false
+examples/**                linguist-detectable=false
 
-# ── 2. Ignore generated or vendor code ──────────────────────────────
+# ── 4. Ignore generated, vendor, and build artifacts ────────────────
 vendor/**                  linguist-vendored
 node_modules/**            linguist-vendored
 dist/**                    linguist-vendored
 build/**                   linguist-vendored
+target/**                  linguist-vendored
 generated/**               linguist-vendored
+*.pb.go                    linguist-generated=true
+*_pb2.py                   linguist-generated=true
 proto/**                   linguist-generated=true
 
-# ── 3. Mark Python as secondary / tooling language ─────────────────
-# Python scripts for build, ops, or analytics — not core logic
-scripts/**/*.py            linguist-detectable=false
-tools/**/*.py              linguist-detectable=false
-infra/**/*.py              linguist-detectable=false
-infrastructure/**/*.py     linguist-detectable=false
-tests/**/*.py              linguist-detectable=false
+# ── 5. De-prioritize tooling and scripts ────────────────────────────
+scripts/**                 linguist-detectable=false
+tools/**                   linguist-detectable=false
+infrastructure/scripts/**  linguist-detectable=false
 security/**/*.py           linguist-detectable=false
 database/**/*.py           linguist-detectable=false
 
-# ── 4. Prioritize core languages ────────────────────────────────────
-*.rs                       linguist-language=Rust
-*.go                       linguist-language=Go
-*.ts                       linguist-language=TypeScript
-*.tsx                      linguist-language=TypeScript
+# ── 6. Ignore tests, benchmarks, and reports ────────────────────────
+tests/**                   linguist-detectable=false
+benchmarks/**              linguist-detectable=false
+reports/**                 linguist-detectable=false
+.benchmarks/**             linguist-detectable=false
 
-# ── 5. Mark lock files as generated ─────────────────────────────────
+# ── 7. Ignore documentation and config ──────────────────────────────
+docs/**                    linguist-documentation
+*.md                       linguist-documentation
+*.json                     linguist-detectable=false
+*.yaml                     linguist-detectable=false
+*.yml                      linguist-detectable=false
+
+# ── 8. Mark lock files as generated ─────────────────────────────────
 pnpm-lock.yaml             linguist-generated=true
 package-lock.json          linguist-generated=true
 yarn.lock                  linguist-generated=true
 Cargo.lock                 linguist-generated=true
 go.sum                     linguist-generated=true
+go.mod                     linguist-detectable=false
 
-# ── 6. Miscellaneous ───────────────────────────────────────────────
+# ── 9. Infrastructure as Code ───────────────────────────────────────
+infrastructure/**/*.tf     linguist-language=HCL
+deploy/**/*.yaml           linguist-language=YAML
+helm/**/*.yaml             linguist-language=YAML
+
+# ── 10. Miscellaneous ───────────────────────────────────────────────
 *.sh                       linguist-language=Shell
 Makefile                   linguist-language=Makefile
+Dockerfile                 linguist-language=Dockerfile
