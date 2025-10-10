@@ -3,16 +3,19 @@ package ml
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/rs/zerolog"
 	"github.com/sony/gobreaker"
+	"github.com/golang-jwt/jwt/v5"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
 	pb "github.com/schlep-engine/go-gateway/proto/ml"
@@ -29,6 +32,12 @@ type ClientConfig struct {
 	KeepaliveTimeout     time.Duration
 	EnableCircuitBreaker bool
 	CircuitBreakerConfig CircuitBreakerConfig
+	
+	// Authentication config
+	JWTSecret            string        // For JWT auth
+	APIKey               string        // For API key auth
+	AuthType             string        // "jwt" or "api_key" or "none"
+	EnableAuth           bool
 }
 
 // CircuitBreakerConfig holds circuit breaker settings
@@ -244,6 +253,9 @@ func (c *Client) Predict(ctx context.Context, modelID string, features []float64
 func (c *Client) predictWithRetry(ctx context.Context, request *pb.PredictRequest) (*pb.PredictResponse, error) {
 	var lastErr error
 
+	// Add authentication metadata
+	ctx = c.authenticateContext(ctx)
+
 	for attempt := 0; attempt <= c.config.MaxRetries; attempt++ {
 		if attempt > 0 {
 			// Exponential backoff
@@ -295,6 +307,67 @@ func (c *Client) predictWithRetry(ctx context.Context, request *pb.PredictReques
 	}
 
 	return nil, fmt.Errorf("ML prediction failed after %d retries: %w", c.config.MaxRetries, lastErr)
+}
+
+// authenticateContext adds authentication metadata to gRPC context
+func (c *Client) authenticateContext(ctx context.Context) context.Context {
+	if !c.config.EnableAuth || c.config.AuthType == "none" {
+		return ctx
+	}
+
+	var md metadata.MD
+
+	switch c.config.AuthType {
+	case "jwt":
+		// Generate JWT token for service-to-service communication
+		if c.config.JWTSecret != "" {
+			token := c.generateServiceJWT()
+			md = metadata.Pairs("authorization", "bearer "+token)
+		} else {
+			c.logger.Warn().Msg("JWT authentication enabled but no JWT secret provided")
+		}
+	case "api_key":
+		if c.config.APIKey != "" {
+			md = metadata.Pairs("x-api-key", c.config.APIKey)
+		} else {
+			c.logger.Warn().Msg("API key authentication enabled but no API key provided")
+		}
+	default:
+		c.logger.Warn().Str("auth_type", c.config.AuthType).Msg("Unknown auth type")
+		return ctx
+	}
+
+	if len(md) > 0 {
+		return metadata.NewOutgoingContext(ctx, md)
+	}
+
+	return ctx
+}
+
+// generateServiceJWT creates a JWT token for service-to-service communication
+func (c *Client) generateServiceJWT() string {
+	if c.config.JWTSecret == "" {
+		c.logger.Warn().Msg("Cannot generate JWT: no secret provided")
+		return ""
+	}
+
+	claims := &jwt.MapClaims{
+		"user_id": "ml-service",
+		"email":   "ml-service@schlep-engine.internal",
+		"roles":   []string{"service"},
+		"exp":     time.Now().Add(time.Hour).Unix(),  // 1 hour expiry
+		"iat":     time.Now().Unix(),
+		"iss":     "schlep-gateway",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(c.config.JWTSecret))
+	if err != nil {
+		c.logger.Error().Err(err).Msg("Failed to generate JWT token")
+		return ""
+	}
+
+	return tokenString
 }
 
 // BatchPredict performs batch predictions
