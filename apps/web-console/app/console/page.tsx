@@ -608,11 +608,11 @@ export default function UnifiedConsolePage() {
       />
 
       {/* Environment Manager Modal */}
-      {showEnvironmentManager && (
-        <EnvironmentManager 
-          onEnvironmentChange={handleEnvironmentChange}
-        />
-      )}
+      <EnvironmentManager 
+        isOpen={showEnvironmentManager}
+        onClose={() => setShowEnvironmentManager(false)}
+        onEnvironmentChange={handleEnvironmentChange}
+      />
 
       {/* Authentication Manager Modal */}
       {showAuthManager && (

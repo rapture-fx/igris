@@ -27,7 +27,7 @@ prediction = <span style="color: #114dcd;">await</span> client.<span style="colo
 )
 
 <span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">f"Class: {prediction.class}, Confidence: {prediction.confidence}"</span>)
-<span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">f"Latency: {prediction.latency}ms, Cost: ${prediction.cost}"</span>)
+<span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">f"Latency: {prediction.latency}ms, Cost: $" + str(prediction.cost)</span>)
 
 <span style="color: #114dcd;"># → Class: "golden_retriever", Confidence: 0.94, Latency: 8ms, Cost: $0.0004</span>
 </code>`
@@ -63,10 +63,10 @@ const streamingCode = `<code><span style="color: #6b7280;">// Real-time inferenc
   
   <span style="color: #114dcd;">switch</span> (data.<span style="color: #4b5563;">type</span>) {
     <span style="color: #114dcd;">case</span> <span style="color: #4b5563;">'model_routing'</span>:
-      <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">\`Routed \${data.total\_requests} to \${data.optimal\_model}\`</span>)
+      <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">'Routed ' + data.total_requests + ' to ' + data.optimal_model</span>)
       <span style="color: #114dcd;">break</span>
     <span style="color: #114dcd;">case</span> <span style="color: #4b5563;">'cost_alert'</span>:
-      <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">\`Cost spike: \${data.increase}% - auto-scaling triggered\`</span>)
+      <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">'Cost spike: ' + data.increase + '% - auto-scaling triggered'</span>)
       <span style="color: #114dcd;">break</span>
   }
 })
@@ -127,7 +127,7 @@ export default function Hero() {
           <div className="mt-0 mx-auto relative">
             <div className="text-left relative">
               {/* Content Container with Updated Width */}
-              <div className="w-full">
+              <div className="w-full max-w-full overflow-hidden">
                 <h1
                   style={{ color: '#1f53d0' }}
                   className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
@@ -192,13 +192,13 @@ export default function Hero() {
                   </div>
 
 
-                  <div className="flex flex-col md:flex-row min-h-96 max-w-full">
+                  <div className="flex flex-col lg:flex-row min-h-96 w-full">
                     {/* Directory/File Explorer */}
                     <div className="w-full md:w-64 border-r border-gray-300 p-3 md:block hidden" style={{ backgroundColor: '#f2f1ed' }}>
                       
                       {/* Mobile File Tabs */}
                       <div className="md:hidden mb-4">
-                        <div className="flex space-x-2 overflow-x-auto pb-2">
+                        <div className="flex space-x-2 overflow-x-auto pb-2 whitespace-nowrap">
                           <button
                             onClick={() => setActiveTab('python')}
                             className={`px-3 py-1 text-xs rounded whitespace-nowrap ${
@@ -433,7 +433,7 @@ export default function Hero() {
                       </div>
 
                       {/* Code content */}
-                      <div className="p-4 pb-32 relative" style={{ backgroundColor: '#f7f7f3', minHeight: '600px', overflow: 'hidden' }}>
+                      <div className="p-4 pb-8 lg:pb-32 relative" style={{ backgroundColor: '#f7f7f3', minHeight: '400px', maxHeight: '600px', overflow: 'auto' }}>
                         {/* Full-height vertical border */}
                         <div
                           className="absolute top-0 bottom-0 w-px bg-gray-300"
@@ -468,7 +468,7 @@ export default function Hero() {
                     </div>
 
                     {/* Right sidebar */}
-                    <div className="w-full md:w-[28rem] border-l border-gray-300 p-3 hidden md:block" style={{ backgroundColor: '#f2f1ed' }}>
+                    <div className="w-full lg:w-80 xl:w-[28rem] border-l border-gray-300 p-3 hidden lg:block" style={{ backgroundColor: '#f2f1ed' }}>
                       <h3 className="text-sm font-medium text-gray-600 mb-4 text-left">
                         Built for MLOps engineers managing model deployments.
                       </h3>

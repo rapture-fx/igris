@@ -18,33 +18,33 @@ import {
 export default function Features() {
   const features = [
     {
-      icon: Brain,
-      title: "Smart Data Profiling",
-      description: "AI automatically detects data types, quality issues, and structural patterns across CSV, JSON, Excel, and database sources.",
+      icon: Activity,
+      title: "Thompson Sampling Router",
+      description: "Intelligent model routing based on real-time performance metrics and cost optimization.",
       color: "from-purple-500 to-pink-500"
     },
     {
-      icon: Zap,
-      title: "Intelligent Transformation",
-      description: "Adaptive cleaning rules and preprocessing workflows that learn from your data patterns with automated outlier detection.",
+      icon: TrendingUp,
+      title: "Cost Optimization Engine",
+      description: "Dynamic cost reduction through smart caching, model selection, and resource allocation.",
       color: "from-soft-blue to-blue-600"
     },
     {
-      icon: Target,
-      title: "Auto-Labeling & Classification",
-      description: "Unsupervised learning for automatic categorization, anomaly detection, and intelligent feature engineering.",
+      icon: Cpu,
+      title: "Multi-Tier Cache System",
+      description: "L1/L2/L3 cache coherence delivers 99.9% cache hit rates and sub-10ms response times.",
       color: "from-green-500 to-emerald-500"
     },
     {
-      icon: Database,
-      title: "Framework-Ready Export",
-      description: "Direct export to TensorFlow, PyTorch, scikit-learn with optimized formats and train/validation/test splits.",
+      icon: Network,
+      title: "Adaptive Worker Pools",
+      description: "Auto-scaling inference workers that respond to demand patterns and traffic spikes.",
       color: "from-orange-500 to-red-500"
     },
     {
-      icon: BarChart3,
-      title: "Real-time Analytics",
-      description: "Monitor data quality, transformation progress, and pipeline performance with comprehensive dashboards.",
+      icon: Brain,
+      title: "Real-time Orchestration",
+      description: "WebSocket-based monitoring and control for live optimization and performance tuning.",
       color: "from-cyan-500 to-blue-500"
     },
     {
