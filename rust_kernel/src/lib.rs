@@ -24,6 +24,9 @@ pub mod parallel;
 // Phase 8: Predictive prefetching
 pub mod prefetch;
 
+// Phase 9: Reliability and adaptive performance
+pub mod reliability;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================

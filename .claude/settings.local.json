@@ -76,7 +76,8 @@
       "Bash(tree:*)",
       "Bash(git -C /Users/wira/Desktop/schlep-engine log --all --oneline -- .env.production)",
       "Bash(git -C /Users/wira/Desktop/schlep-engine check-ignore .env.production)",
-      "Bash(cargo check:*)"
+      "Bash(cargo check:*)",
+      "Bash(cargo tree:*)"
     ],
     "deny": [],
     "ask": []
