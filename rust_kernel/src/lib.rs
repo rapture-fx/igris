@@ -13,6 +13,10 @@ use chrono::Utc;
 // =====================================================
 pub mod runtime_abstraction;
 pub mod ffi_guard;
+// TODO: Re-enable after fixing circular dependencies
+// pub mod cache_adapter;
+// pub mod cache_coherence;
+// pub mod adaptive_batching;
 
 // =====================================================
 // Basic Math Operations (From Prototype)
@@ -446,9 +450,9 @@ fn compare_values(a: &Value, b: &Value) -> std::cmp::Ordering {
 pub extern "C" fn rust_benchmark_operation(iterations: i32) -> i64 {
     let start = std::time::Instant::now();
 
-    let mut sum: i64 = 0;
+    let mut _sum: i64 = 0;
     for i in 0..iterations {
-        sum += (i * i) as i64;
+        _sum += (i * i) as i64;
     }
 
     let elapsed = start.elapsed();

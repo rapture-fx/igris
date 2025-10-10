@@ -5,15 +5,15 @@
 //! Integrates with Redis for distributed cache.
 
 use std::collections::HashMap;
-use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
-use std::thread;
+use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
+use std::os::raw::c_char;
+use std::ptr;
 use serde::{Deserialize, Serialize};
 
 use tokio::sync::{RwLock as TokioRwLock, Mutex as TokioMutex, mpsc};
-use redis::{Client, Commands, Connection, RedisError};
+use redis::RedisError;
 use hashbrown::HashMap as BrownHashMap;
-use once_cell::sync::Lazy;
 use parking_lot::RwLock as ParkingRwLock;
 
 use crate::ffi_guard::{FFIContext, FFIError, safe_ffi_wrapper};
@@ -217,10 +217,11 @@ impl RedisClient {
     /// Set cache entry in Redis
     async fn set(&self, key: &str, entry: &CacheEntry) -> Result<(), RedisError> {
         let json_str = serde_json::to_string(entry)
-        
+            .map_err(|e| RedisError::from((redis::ErrorKind::TypeError, "Serialization failed", e.to_string())))?;
+
         // Set with TTL
         let _: () = self.client.set_ex(key, &json_str, entry.ttl).await?;
-        
+
         Ok(())
     }
     
@@ -305,6 +306,7 @@ impl CacheAdapter {
             redis_connected: redis_client.is_some(),
             last_cleanup: SystemTime::now()
                 .duration_since(UNIX_EPOCH)
+                .unwrap_or_default()
                 .as_secs(),
         }));
         
@@ -351,168 +353,157 @@ impl CacheAdapter {
     
     /// Get cached inference result
     pub async fn get_cache(&self, model_id: &str, feature_hash: &str, policy_tags: &[String]) -> Result<Option<String>, String> {
-        let context = FFIContext::new("cache_get", 1000);
-        
-        safe_ffi_wrapper(context, move || {
-            let key = self.generate_cache_key(model_id, feature_hash, policy_tags);
-            
-            // Try local cache first
-            {
-                let cache = self.local_cache.read();
-                if let Some(entry) = cache.get(&key) {
-                    // Check if entry is still valid
+        let key = self.generate_cache_key(model_id, feature_hash, policy_tags);
+
+        // Try local cache first
+        {
+            let cache = self.local_cache.read();
+            if let Some(entry) = cache.get(&key) {
+                // Check if entry is still valid
+                if self.is_entry_valid(&entry) {
+                    // Update access statistics
+                    drop(cache);
+                    self.update_access_stats_local(&key, true);
+
+                    let mut stats = self.stats.write().await;
+                    stats.local_hits += 1;
+                    self.update_hit_rate(&mut stats);
+
+                    return Ok(Some(entry.data.clone()));
+                } else {
+                    // Remove expired entry
+                    drop(cache);
+                    let mut cache = self.local_cache.write();
+                    cache.remove(&key);
+
+                    let mut stats = self.stats.write().await;
+                    stats.total_entries = cache.len();
+                    stats.evictions += 1;
+                }
+            }
+        }
+
+        // Try distributed cache
+        if let Some(redis_client) = &self.redis_client {
+            match redis_client.get(&key).await {
+                Ok(Some(entry)) => {
                     if self.is_entry_valid(&entry) {
+                        // Store in local cache (with size limits)
+                        self.store_in_local_cache(&key, &entry);
+
                         // Update access statistics
-                        self.update_access_stats_local(&key, true);
-                        
-                        let mut stats = self.stats.blocking_write();
-                        stats.local_hits += 1;
+                        self.update_access_stats_remote(&key, true);
+
+                        let mut stats = self.stats.write().await;
+                        stats.remote_hits += 1;
                         self.update_hit_rate(&mut stats);
-                        
-                        return Ok(Some(entry.data.clone()));
+
+                        return Ok(Some(entry.data));
                     } else {
-                        // Remove expired entry
-                        drop(cache);
-                        let mut cache = self.local_cache.write();
-                        cache.remove(&key);
-                        
-                        let mut stats = self.stats.blocking_write();
-                        stats.total_entries = cache.len();
-                        stats.evictions += 1;
+                        // Remove expired entry from Redis
+                        let _ = redis_client.delete(&key).await;
                     }
                 }
-            }
-            
-            // Try distributed cache
-            if let Some(redis_client) = &self.redis_client {
-                match redis_client.get(&key).await {
-                    Ok(Some(entry)) => {
-                        if self.is_entry_valid(&entry) {
-                            // Store in local cache (with size limits)
-                            self.store_in_local_cache(&key, &entry);
-                            
-                            // Update access statistics
-                            self.update_access_stats_remote(&key, true);
-                            
-                            let mut stats = self.stats.blocking_write();
-                            stats.remote_hits += 1;
-                            self.update_hit_rate(&mut stats);
-                            
-                            return Ok(Some(entry.data));
-                        } else {
-                            // Remove expired entry from Redis
-                            let _: () = redis_client.delete(&key).await;
-                        }
-                    }
-                    Err(_) => {
-                        let mut stats = self.stats.blocking_write();
-                        stats.redis_connected = false;
-                        stats.errors += 1;
-                    }
-                    }
+                Err(_) => {
+                    let mut stats = self.stats.write().await;
+                    stats.redis_connected = false;
+                    stats.errors += 1;
                 }
             }
-            
-            // Cache miss
-            let mut stats = self.stats.blocking_write();
-            stats.misses += 1;
-            self.update_hit_rate(&mut stats);
-            
-            Ok(None)
-        })
+        }
+
+        // Cache miss
+        let mut stats = self.stats.write().await;
+        stats.misses += 1;
+        self.update_hit_rate(&mut stats);
+
+        Ok(None)
     }
     
     /// Set cached inference result
     pub async fn set_cache(&self, model_id: &str, feature_hash: &str, policy_tags: &[String], data: &str, ttl_override: Option<u64>) -> Result<(), String> {
-        let context = FFIContext::new("cache_set", 1000);
-        
-        safe_ffi_wrapper(context, move || {
-            let key = self.generate_cache_key(model_id, feature_hash, policy_tags);
-            let ttl = ttl_override.unwrap_or(self.config.default_ttl_secs);
-            
-            // Create cache entry
-            let now = SystemTime::now()
-                .duration_since(UNIX_EPOCH)
-                .as_secs();
-            
-            let entry = CacheEntry {
-                data: data.to_string(),
-                created_at: now,
-                ttl,
-                model_id: model_id.to_string(),
-                feature_hash: feature_hash.to_string(),
-                policy_tags: policy_tags.to_vec(),
-                size_bytes: data.len(),
-                compressed: false, // Would implement compression if needed
-                access_count: 1,
-                last_accessed_at: now,
-                version: self.get_current_version(),
-            };
-            
-            // Store in local cache
-            self.store_in_local_cache(&key, &entry);
-            
-            // Store in distributed cache
-            if let Some(redis_client) = &self.redis_client {
-                match redis_client.set(&key, &entry).await {
-                    Ok(()) => {
-                        let mut stats = self.stats.blocking_write();
-                        stats.redis_connected = true;
-                    }
-                    Err(_) => {
-                        let mut stats = self.stats.blocking_write();
-                        stats.redis_connected = false;
-                        stats.errors += 1;
-                    }
+        let key = self.generate_cache_key(model_id, feature_hash, policy_tags);
+        let ttl = ttl_override.unwrap_or(self.config.default_ttl_secs);
+
+        // Create cache entry
+        let now = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs();
+
+        let entry = CacheEntry {
+            data: data.to_string(),
+            created_at: now,
+            ttl,
+            model_id: model_id.to_string(),
+            feature_hash: feature_hash.to_string(),
+            policy_tags: policy_tags.to_vec(),
+            size_bytes: data.len(),
+            compressed: false, // Would implement compression if needed
+            access_count: 1,
+            last_accessed_at: now,
+            version: self.get_current_version(),
+        };
+
+        // Store in local cache
+        self.store_in_local_cache(&key, &entry);
+
+        // Store in distributed cache
+        if let Some(redis_client) = &self.redis_client {
+            match redis_client.set(&key, &entry).await {
+                Ok(()) => {
+                    let mut stats = self.stats.write().await;
+                    stats.redis_connected = true;
+                }
+                Err(_) => {
+                    let mut stats = self.stats.write().await;
+                    stats.redis_connected = false;
+                    stats.errors += 1;
                 }
             }
-            
-            Ok(())
-        })
+        }
+
+        Ok(())
     }
     
     /// Invalidate cache entries matching pattern
     pub async fn invalidate(&self, pattern: &str) -> Result<u64, String> {
-        let context = FFIContext::new("cache_invalidate", 1000);
-        
-        safe_ffi_wrapper(context, move || {
-            let mut invalidated_count = 0u64;
-            
-            // Invalidate from local cache
-            {
-                let cache = self.local_cache.read();
-                let keys_to_remove: Vec<String> = cache
-                    .keys()
-                    .filter(|key| key.contains(pattern))
-                    .cloned()
-                    .collect();
-                
-                drop(cache);
-                let mut cache = self.local_cache.write();
-                for key in keys_to_remove {
-                    cache.remove(&key);
-                    invalidated_count += 1;
-                }
+        let mut invalidated_count = 0u64;
+
+        // Invalidate from local cache
+        {
+            let cache = self.local_cache.read();
+            let keys_to_remove: Vec<String> = cache
+                .keys()
+                .filter(|key| key.contains(pattern))
+                .cloned()
+                .collect();
+
+            drop(cache);
+            let mut cache = self.local_cache.write();
+            for key in keys_to_remove {
+                cache.remove(&key);
+                invalidated_count += 1;
             }
-            
-            // Invalidate from distributed cache
-            if let Some(redis_client) = &self.redis_client {
-                // We would need Redis SCAN to find keys matching pattern
-                // For now, use a simple implementation
-                // In production, this should use SCAN with pattern matching
-                let _: () = redis_client.client.flushdb().await; // Clear all for simplicity
-            }
-            
-            // Update statistics
-            {
-                let cache = self.local_cache.read();
-                let mut stats = self.stats.blocking_write();
-                stats.total_entries = cache.len();
-                stats.evictions += invalidated_count;
-            }
-            
-            Ok(invalidated_count)
-        })
+        }
+
+        // Invalidate from distributed cache
+        if let Some(_redis_client) = &self.redis_client {
+            // We would need Redis SCAN to find keys matching pattern
+            // For now, use a simple implementation
+            // In production, this should use SCAN with pattern matching
+            // TODO: Implement proper pattern-based invalidation
+        }
+
+        // Update statistics
+        {
+            let cache = self.local_cache.read();
+            let mut stats = self.stats.write().await;
+            stats.total_entries = cache.len();
+            stats.evictions += invalidated_count;
+        }
+
+        Ok(invalidated_count)
     }
     
     /// Get cache statistics
@@ -536,41 +527,37 @@ impl CacheAdapter {
     
     /// Preload cache with known data
     pub async fn preload_cache(&self, entries: Vec<(String, String, u64)>) -> Result<usize, String> {
-        let context = FFIContext::new("cache_preload", 10000);
-        
-        safe_ffi_wrapper(context, move || {
-            let mut loaded_count = 0;
-            
-            for (key, data, ttl) in entries {
-                // Parse key components
-                let parts = key.split(':').collect::<Vec<&str>>();
-                if parts.len() < 3 {
-                    continue; // Invalid key format
-                }
-                
-                let model_id = parts[1].trim_start_matches("model:").to_string();
-                let feature_hash = parts[2].trim_start_matches("hash:").to_string();
-                let policy_tags = if parts.len() > 3 {
-                    parts[3]
-                        .trim_start_matches("policy:")
-                        .split(',')
-                        .map(|s| s.trim().to_string())
-                        .collect()
-                } else {
-                    vec![]
-                };
-                
-                // Store in cache
-                if let Err(e) = self.set_cache(&model_id, &feature_hash, &policy_tags, &data, Some(ttl)).await {
-                    eprintln!("Failed to preload cache entry {}: {}", key, e);
-                    continue;
-                }
-                
-                loaded_count += 1;
+        let mut loaded_count = 0;
+
+        for (key, data, ttl) in entries {
+            // Parse key components
+            let parts = key.split(':').collect::<Vec<&str>>();
+            if parts.len() < 3 {
+                continue; // Invalid key format
             }
-            
-            Ok(loaded_count)
-        })
+
+            let model_id = parts[1].trim_start_matches("model:").to_string();
+            let feature_hash = parts[2].trim_start_matches("hash:").to_string();
+            let policy_tags = if parts.len() > 3 {
+                parts[3]
+                    .trim_start_matches("policy:")
+                    .split(',')
+                    .map(|s| s.trim().to_string())
+                    .collect()
+            } else {
+                vec![]
+            };
+
+            // Store in cache
+            if let Err(e) = self.set_cache(&model_id, &feature_hash, &policy_tags, &data, Some(ttl)).await {
+                eprintln!("Failed to preload cache entry {}: {}", key, e);
+                continue;
+            }
+
+            loaded_count += 1;
+        }
+
+        Ok(loaded_count)
     }
     
     // Private helper methods
@@ -638,13 +625,13 @@ impl CacheAdapter {
         self.update_access_stats_local(key, hit);
     }
     
-    fn update_hit_rate(&mut self, stats: &mut CacheStats) {
-        total_requests = stats.local_hits + stats.remote_hits + stats.misses;
-        
+    fn update_hit_rate(&self, stats: &mut CacheStats) {
+        let total_requests = stats.local_hits + stats.remote_hits + stats.misses;
+
         if total_requests > 0 {
             stats.hit_rate = (stats.local_hits + stats.remote_hits) as f64 / total_requests as f64;
         }
-        
+
         // Update average access count
         let cache = self.local_cache.read();
         if !cache.is_empty() {
@@ -1042,7 +1029,7 @@ mod tests {
     #[tokio::test]
     async fn test_cache_invalidation() {
         let config = CacheConfig::default();
-        let adapter = Arc::new(CacheAdapter::new(config).await.unwrap();
+        let adapter = Arc::new(CacheAdapter::new(config).await.unwrap());
         
         // Set multiple entries
         adapter.set_cache("model1", "hash1", &["tag1"], "data1", Some(300)).await.unwrap();
