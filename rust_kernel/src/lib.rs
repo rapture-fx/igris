@@ -13,10 +13,10 @@ use chrono::Utc;
 // =====================================================
 pub mod runtime_abstraction;
 pub mod ffi_guard;
-// TODO: Re-enable after fixing circular dependencies
-// pub mod cache_adapter;
-// pub mod cache_coherence;
-// pub mod adaptive_batching;
+
+// Phase 6: Memory pooling and caching modules
+pub mod cache;
+pub mod mempool;
 
 // =====================================================
 // Basic Math Operations (From Prototype)
