@@ -77,7 +77,10 @@
       "Bash(git -C /Users/wira/Desktop/schlep-engine log --all --oneline -- .env.production)",
       "Bash(git -C /Users/wira/Desktop/schlep-engine check-ignore .env.production)",
       "Bash(cargo check:*)",
-      "Bash(cargo tree:*)"
+      "Bash(cargo tree:*)",
+      "Bash(touch:*)",
+      "Bash(RUST_BACKTRACE=1 cargo test --manifest-path /Users/wira/Desktop/schlep-engine/rust_kernel/Cargo.toml --lib predictive::forecast_engine::tests::test_forecast_generation -- --nocapture)",
+      "Bash(while read f)"
     ],
     "deny": [],
     "ask": []
