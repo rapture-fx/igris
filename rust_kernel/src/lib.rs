@@ -27,6 +27,21 @@ pub mod prefetch;
 // Phase 9: Reliability and adaptive performance
 pub mod reliability;
 
+// Phase 10: Adaptive Orchestration Layer
+pub mod orchestration;
+
+// Phase 11: AI-Driven Policy Autotuner (RL)
+pub mod rl;
+
+// Phase 11.2: Predictive Intelligence Layer
+pub mod predictive;
+
+// Phase 12: Autonomous Reliability Layer
+pub mod autonomous;
+
+// Phase 12: SLO Enforcer & Auditor
+pub mod slo_enforcer;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
