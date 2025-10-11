@@ -1,235 +1,4 @@
 {
-  "b1p1r3": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2435,
-    "action_id": "b1p1r3"
-  },
-  "b0p1r2": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.261052380952381,
-    "action_id": "b0p1r2"
-  },
-  "b1p3r2": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2829833333333334,
-    "action_id": "b1p3r2"
-  },
-  "b2p0r2": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.3197,
-    "action_id": "b2p0r2"
-  },
-  "b1p0r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2851333333333335,
-    "action_id": "b1p0r1"
-  },
-  "b3p1r2": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6612333333333333,
-    "action_id": "b3p1r2"
-  },
-  "b3p3r3": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6461749999999999,
-    "action_id": "b3p3r3"
-  },
-  "b3p2r1": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6735333333333333,
-    "action_id": "b3p2r1"
-  },
-  "b3p3r2": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6610472222222222,
-    "action_id": "b3p3r2"
-  },
-  "b1p1r0": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2777333333333332,
-    "action_id": "b1p1r0"
-  },
-  "b2p1r0": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6776,
-    "action_id": "b2p1r0"
-  },
-  "b2p3r3": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6322416666666667,
-    "action_id": "b2p3r3"
-  },
-  "b3p2r3": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6565666666666667,
-    "action_id": "b3p2r3"
-  },
-  "b1p0r2": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2784444444444445,
-    "action_id": "b1p0r2"
-  },
-  "b2p1r3": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.65215,
-    "action_id": "b2p1r3"
-  },
-  "b1p2r2": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2727428571428572,
-    "action_id": "b1p2r2"
-  },
-  "b2p2r2": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.63995,
-    "action_id": "b2p2r2"
-  },
-  "b2p3r1": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6508750000000001,
-    "action_id": "b2p3r1"
-  },
-  "b3p3r0": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6907916666666667,
-    "action_id": "b3p3r0"
-  },
-  "b1p1r2": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2553873015873016,
-    "action_id": "b1p1r2"
-  },
-  "b1p2r3": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2561333333333333,
-    "action_id": "b1p2r3"
-  },
-  "b0p0r0": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2355666666666667,
-    "action_id": "b0p0r0"
-  },
-  "b3p0r3": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6489333333333334,
-    "action_id": "b3p0r3"
-  },
-  "b2p1r1": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6691166666666667,
-    "action_id": "b2p1r1"
-  },
-  "b3p2r2": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6650499999999999,
-    "action_id": "b3p2r2"
-  },
-  "b0p3r0": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.3157166666666666,
-    "action_id": "b0p3r0"
-  },
-  "b1p3r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2999500000000002,
-    "action_id": "b1p3r1"
-  },
-  "b2p1r2": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6606333333333334,
-    "action_id": "b2p1r2"
-  },
-  "b2p0r3": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.3027333333333333,
-    "action_id": "b2p0r3"
-  },
-  "b2p0r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.3366666666666667,
-    "action_id": "b2p0r1"
-  },
-  "b1p0r3": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2662,
-    "action_id": "b1p0r3"
-  },
-  "b3p2r0": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6820166666666667,
-    "action_id": "b3p2r0"
-  },
-  "b0p2r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2888666666666666,
-    "action_id": "b0p2r1"
-  },
   "b0p0r3": {
     "alpha": 1.0,
     "beta": 3.0,
@@ -244,48 +13,6 @@
     "cumulative_reward": -1.2281412698412697,
     "action_id": "b0p0r2"
   },
-  "b0p2r2": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2719,
-    "action_id": "b0p2r2"
-  },
-  "b2p3r2": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6415583333333333,
-    "action_id": "b2p3r2"
-  },
-  "b3p3r1": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.681475,
-    "action_id": "b3p3r1"
-  },
-  "b1p1r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2613222222222222,
-    "action_id": "b1p1r1"
-  },
-  "b0p1r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.275677777777778,
-    "action_id": "b0p1r1"
-  },
-  "b0p3r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.29875,
-    "action_id": "b0p3r1"
-  },
   "b1p2r1": {
     "alpha": 1.0,
     "beta": 3.0,
@@ -293,26 +20,26 @@
     "cumulative_reward": -1.2889555555555554,
     "action_id": "b1p2r1"
   },
-  "b2p2r0": {
+  "b1p2r2": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2727428571428572,
+    "action_id": "b1p2r2"
+  },
+  "b2p1r1": {
     "alpha": 1.0,
     "beta": 2.0,
     "pulls": 1,
-    "cumulative_reward": -0.6585833333333333,
-    "action_id": "b2p2r0"
+    "cumulative_reward": -0.6691166666666667,
+    "action_id": "b2p1r1"
   },
-  "b0p1r0": {
+  "b1p2r0": {
     "alpha": 1.0,
     "beta": 3.0,
     "pulls": 2,
-    "cumulative_reward": -1.2883851851851853,
-    "action_id": "b0p1r0"
-  },
-  "b0p2r3": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2549333333333335,
-    "action_id": "b0p2r3"
+    "cumulative_reward": -1.3046259259259259,
+    "action_id": "b1p2r0"
   },
   "b3p0r2": {
     "alpha": 1.0,
@@ -321,12 +48,19 @@
     "cumulative_reward": -0.6574166666666668,
     "action_id": "b3p0r2"
   },
-  "b2p0r0": {
+  "b1p3r3": {
     "alpha": 1.0,
     "beta": 3.0,
     "pulls": 2,
-    "cumulative_reward": -1.3536333333333332,
-    "action_id": "b2p0r0"
+    "cumulative_reward": -1.2660166666666666,
+    "action_id": "b1p3r3"
+  },
+  "b0p2r0": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.3051851851851852,
+    "action_id": "b0p2r0"
   },
   "b3p1r0": {
     "alpha": 1.0,
@@ -342,40 +76,19 @@
     "cumulative_reward": -1.2817833333333335,
     "action_id": "b0p3r2"
   },
-  "b1p3r0": {
+  "b3p1r3": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6527499999999999,
+    "action_id": "b3p1r3"
+  },
+  "b0p1r1": {
     "alpha": 1.0,
     "beta": 3.0,
     "pulls": 2,
-    "cumulative_reward": -1.317009259259259,
-    "action_id": "b1p3r0"
-  },
-  "b2p2r1": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6492666666666667,
-    "action_id": "b2p2r1"
-  },
-  "b3p0r0": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6759574074074074,
-    "action_id": "b3p0r0"
-  },
-  "b3p1r1": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6697166666666667,
-    "action_id": "b3p1r1"
-  },
-  "b1p2r0": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.3046259259259259,
-    "action_id": "b1p2r0"
+    "cumulative_reward": -1.275677777777778,
+    "action_id": "b0p1r1"
   },
   "b0p3r3": {
     "alpha": 1.0,
@@ -384,33 +97,47 @@
     "cumulative_reward": -1.2648166666666667,
     "action_id": "b0p3r3"
   },
-  "b2p3r0": {
-    "alpha": 1.0,
-    "beta": 2.0,
-    "pulls": 1,
-    "cumulative_reward": -0.6601916666666667,
-    "action_id": "b2p3r0"
-  },
-  "b0p2r0": {
+  "b1p3r0": {
     "alpha": 1.0,
     "beta": 3.0,
     "pulls": 2,
-    "cumulative_reward": -1.3051851851851852,
-    "action_id": "b0p2r0"
+    "cumulative_reward": -1.317009259259259,
+    "action_id": "b1p3r0"
   },
-  "b0p0r1": {
-    "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2213777777777777,
-    "action_id": "b0p0r1"
-  },
-  "b3p1r3": {
+  "b2p1r3": {
     "alpha": 1.0,
     "beta": 2.0,
     "pulls": 1,
-    "cumulative_reward": -0.6527499999999999,
-    "action_id": "b3p1r3"
+    "cumulative_reward": -0.65215,
+    "action_id": "b2p1r3"
+  },
+  "b1p0r1": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2851333333333335,
+    "action_id": "b1p0r1"
+  },
+  "b3p1r1": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6697166666666667,
+    "action_id": "b3p1r1"
+  },
+  "b2p3r2": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6415583333333333,
+    "action_id": "b2p3r2"
+  },
+  "b0p3r1": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.29875,
+    "action_id": "b0p3r1"
   },
   "b1p0r0": {
     "alpha": 1.0,
@@ -419,12 +146,12 @@
     "cumulative_reward": -1.3029333333333333,
     "action_id": "b1p0r0"
   },
-  "b1p3r3": {
+  "b2p2r3": {
     "alpha": 1.0,
-    "beta": 3.0,
-    "pulls": 2,
-    "cumulative_reward": -1.2660166666666666,
-    "action_id": "b1p3r3"
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6306333333333334,
+    "action_id": "b2p2r3"
   },
   "b3p0r1": {
     "alpha": 1.0,
@@ -433,12 +160,222 @@
     "cumulative_reward": -0.6658999999999999,
     "action_id": "b3p0r1"
   },
-  "b2p2r3": {
+  "b1p3r1": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2999500000000002,
+    "action_id": "b1p3r1"
+  },
+  "b2p3r1": {
     "alpha": 1.0,
     "beta": 2.0,
     "pulls": 1,
-    "cumulative_reward": -0.6306333333333334,
-    "action_id": "b2p2r3"
+    "cumulative_reward": -0.6508750000000001,
+    "action_id": "b2p3r1"
+  },
+  "b0p2r1": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2888666666666666,
+    "action_id": "b0p2r1"
+  },
+  "b0p2r3": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2549333333333335,
+    "action_id": "b0p2r3"
+  },
+  "b2p3r0": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6601916666666667,
+    "action_id": "b2p3r0"
+  },
+  "b2p1r0": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6776,
+    "action_id": "b2p1r0"
+  },
+  "b0p2r2": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2719,
+    "action_id": "b0p2r2"
+  },
+  "b1p1r3": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2435,
+    "action_id": "b1p1r3"
+  },
+  "b1p1r0": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2777333333333332,
+    "action_id": "b1p1r0"
+  },
+  "b0p3r0": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.3157166666666666,
+    "action_id": "b0p3r0"
+  },
+  "b3p3r2": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6610472222222222,
+    "action_id": "b3p3r2"
+  },
+  "b3p3r1": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.681475,
+    "action_id": "b3p3r1"
+  },
+  "b0p1r0": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2883851851851853,
+    "action_id": "b0p1r0"
+  },
+  "b2p3r3": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6322416666666667,
+    "action_id": "b2p3r3"
+  },
+  "b1p3r2": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2829833333333334,
+    "action_id": "b1p3r2"
+  },
+  "b1p1r1": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2613222222222222,
+    "action_id": "b1p1r1"
+  },
+  "b2p0r1": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.3366666666666667,
+    "action_id": "b2p0r1"
+  },
+  "b2p2r2": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.63995,
+    "action_id": "b2p2r2"
+  },
+  "b2p0r2": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.3197,
+    "action_id": "b2p0r2"
+  },
+  "b3p0r0": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6759574074074074,
+    "action_id": "b3p0r0"
+  },
+  "b3p1r2": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6612333333333333,
+    "action_id": "b3p1r2"
+  },
+  "b3p2r0": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6820166666666667,
+    "action_id": "b3p2r0"
+  },
+  "b3p2r1": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6735333333333333,
+    "action_id": "b3p2r1"
+  },
+  "b0p0r0": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2355666666666667,
+    "action_id": "b0p0r0"
+  },
+  "b3p2r3": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6565666666666667,
+    "action_id": "b3p2r3"
+  },
+  "b2p0r0": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.3536333333333332,
+    "action_id": "b2p0r0"
+  },
+  "b0p1r2": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.261052380952381,
+    "action_id": "b0p1r2"
+  },
+  "b1p0r2": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2784444444444445,
+    "action_id": "b1p0r2"
+  },
+  "b1p0r3": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2662,
+    "action_id": "b1p0r3"
+  },
+  "b1p2r3": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2561333333333333,
+    "action_id": "b1p2r3"
+  },
+  "b1p1r2": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2553873015873016,
+    "action_id": "b1p1r2"
   },
   "b0p1r3": {
     "alpha": 1.0,
@@ -446,5 +383,68 @@
     "pulls": 2,
     "cumulative_reward": -1.2456333333333331,
     "action_id": "b0p1r3"
+  },
+  "b3p0r3": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6489333333333334,
+    "action_id": "b3p0r3"
+  },
+  "b2p2r0": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6585833333333333,
+    "action_id": "b2p2r0"
+  },
+  "b0p0r1": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.2213777777777777,
+    "action_id": "b0p0r1"
+  },
+  "b2p1r2": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6606333333333334,
+    "action_id": "b2p1r2"
+  },
+  "b2p0r3": {
+    "alpha": 1.0,
+    "beta": 3.0,
+    "pulls": 2,
+    "cumulative_reward": -1.3027333333333333,
+    "action_id": "b2p0r3"
+  },
+  "b3p3r3": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6461749999999999,
+    "action_id": "b3p3r3"
+  },
+  "b3p3r0": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6907916666666667,
+    "action_id": "b3p3r0"
+  },
+  "b3p2r2": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6650499999999999,
+    "action_id": "b3p2r2"
+  },
+  "b2p2r1": {
+    "alpha": 1.0,
+    "beta": 2.0,
+    "pulls": 1,
+    "cumulative_reward": -0.6492666666666667,
+    "action_id": "b2p2r1"
   }
 }

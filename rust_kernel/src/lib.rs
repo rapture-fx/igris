@@ -36,6 +36,9 @@ pub mod rl;
 // Phase 11.2: Predictive Intelligence Layer
 pub mod predictive;
 
+// Phase 12: Autonomous Reliability Layer
+pub mod autonomous;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
