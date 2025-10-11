@@ -39,6 +39,9 @@ pub mod predictive;
 // Phase 12: Autonomous Reliability Layer
 pub mod autonomous;
 
+// Phase 12: SLO Enforcer & Auditor
+pub mod slo_enforcer;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================

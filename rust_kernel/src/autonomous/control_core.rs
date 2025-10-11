@@ -1,6 +1,6 @@
 //! Autonomous Control Core
 //!
-//! Orchestrates self-healing workflows: detect ’ isolate ’ recover ’ verify ’ resume
+//! Orchestrates self-healing workflows: detect -> isolate -> recover -> verify -> resume
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -228,7 +228,7 @@ impl AutonomousControlCore {
         let forecast = &forecasts[0];
 
         // Check if preemptive scaling is needed
-        if forecast.decision.decision_type == "scale_up" && forecast.decision.urgent {
+        if matches!(forecast.decision.decision_type, crate::predictive::proactive_adjuster::DecisionType::ScaleUp) && forecast.decision.urgent {
             let config = self.config.read().await;
             return Some(ControlDecision {
                 decision_type: DecisionType::ScaleUp,
@@ -241,7 +241,7 @@ impl AutonomousControlCore {
             });
         }
 
-        if forecast.decision.decision_type == "scale_down" {
+        if matches!(forecast.decision.decision_type, crate::predictive::proactive_adjuster::DecisionType::ScaleDown) {
             let config = self.config.read().await;
             return Some(ControlDecision {
                 decision_type: DecisionType::ScaleDown,
@@ -276,7 +276,7 @@ impl AutonomousControlCore {
 
         let forecast = &forecasts[0];
 
-        if forecast.decision.decision_type == "preemptive_rollback" {
+        if matches!(forecast.decision.decision_type, crate::predictive::proactive_adjuster::DecisionType::AdjustPolicy) {
             let config = self.config.read().await;
             return Some(ControlDecision {
                 decision_type: DecisionType::IsolateNode,
