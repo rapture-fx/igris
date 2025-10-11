@@ -33,6 +33,9 @@ pub mod orchestration;
 // Phase 11: AI-Driven Policy Autotuner (RL)
 pub mod rl;
 
+// Phase 11.2: Predictive Intelligence Layer
+pub mod predictive;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
