@@ -42,6 +42,9 @@ pub mod autonomous;
 // Phase 12: SLO Enforcer & Auditor
 pub mod slo_enforcer;
 
+// Phase 13: Cognitive Control Layer
+pub mod cognitive;
+
 // =====================================================
 // Basic Math Operations (From Prototype)
 // =====================================================
