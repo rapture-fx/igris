@@ -1,7 +1,9 @@
-//! On-Device RL Agent
+//! On-Device RL Agent (Phase 11.1 + Phase 13.2)
 //!
 //! Production agent that consumes live telemetry, runs online learning,
 //! and emits policy suggestions to the Policy Orchestrator.
+//!
+//! Phase 13.2: Integrated with cognitive reasoning for hybrid decision-making
 
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, RwLock};
@@ -9,6 +11,7 @@ use std::collections::VecDeque;
 use crate::rl::thompson_sampling::{ThompsonSampling, ActionSpace};
 use crate::rl::offline_trainer::PolicySeed;
 use crate::orchestration::policy_engine::TelemetrySnapshot;
+use crate::cognitive::{ReasoningOutput, RiskLevel};
 
 /// Configuration for RL agent
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -53,7 +56,7 @@ impl Default for AgentConfig {
     }
 }
 
-/// Agent decision with confidence
+/// Agent decision with confidence (Phase 13.2: with cognitive integration)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AgentDecision {
     /// Suggested batch size
@@ -79,6 +82,15 @@ pub struct AgentDecision {
 
     /// Reason for decision
     pub reason: String,
+
+    /// Phase 13.2: Whether cognitive reasoning agreed with RL
+    pub cognitive_agreed: bool,
+
+    /// Phase 13.2: Source of final decision ("rl", "cognitive_override", "hybrid")
+    pub decision_source: String,
+
+    /// Phase 13.2: Cognitive confidence if available
+    pub cognitive_confidence: Option<f64>,
 }
 
 /// Agent metrics for monitoring
@@ -180,8 +192,16 @@ impl RLAgent {
         }
     }
 
-    /// Generate policy suggestion
+    /// Generate policy suggestion (backward-compatible wrapper)
     pub fn generate_suggestion(&self) -> Result<AgentDecision, String> {
+        self.generate_suggestion_with_cognitive(None)
+    }
+
+    /// Generate policy suggestion with optional cognitive signal (Phase 13.2)
+    pub fn generate_suggestion_with_cognitive(
+        &self,
+        cognitive_signal: Option<ReasoningOutput>,
+    ) -> Result<AgentDecision, String> {
         let start = std::time::Instant::now();
 
         let config = self.config.read().unwrap();
@@ -204,13 +224,13 @@ impl RLAgent {
         // Get current telemetry state
         let current_state = self.get_current_state()?;
 
-        // Select action using Thompson Sampling
+        // Select action using Thompson Sampling (RL baseline)
         let ts = self.thompson_sampling.read().unwrap();
-        let (batch_idx, pf_idx, rs_idx) = ts.select_action();
+        let (rl_batch_idx, rl_pf_idx, rl_rs_idx) = ts.select_action();
 
         // Get best arm for confidence estimation
         let best_arm = ts.get_best_arm();
-        let confidence = if let Some((_, reward)) = best_arm {
+        let rl_confidence = if let Some((_, reward)) = best_arm {
             // Normalize reward to confidence (0.0-1.0)
             ((reward + 1.0) / 2.0).clamp(0.0, 1.0)
         } else {
@@ -219,10 +239,28 @@ impl RLAgent {
 
         drop(ts);
 
-        // Convert to policy parameters
-        let batch_size = Self::batch_idx_to_size(batch_idx);
-        let prefetch_confidence = Self::prefetch_idx_to_value(pf_idx);
-        let routing_split = Self::routing_idx_to_value(rs_idx);
+        // Phase 13.2: Hybrid decision with cognitive override
+        let (final_batch_idx, final_pf_idx, final_rs_idx, cognitive_agreed, decision_source, cognitive_conf) =
+            if let Some(ref cog) = cognitive_signal {
+                if cog.should_override_rl() {
+                    // High confidence + low risk → override with cognitive action
+                    let cog_action = cog.proposed_action.unwrap();
+                    let agreed = cog_action == (rl_batch_idx, rl_pf_idx, rl_rs_idx);
+                    (cog_action.0, cog_action.1, cog_action.2, agreed, "cognitive_override".to_string(), Some(cog.confidence))
+                } else {
+                    // Fall back to RL (low confidence or high risk)
+                    let agreed = cog.proposed_action == Some((rl_batch_idx, rl_pf_idx, rl_rs_idx));
+                    (rl_batch_idx, rl_pf_idx, rl_rs_idx, agreed, "rl_fallback".to_string(), Some(cog.confidence))
+                }
+            } else {
+                // No cognitive signal → pure RL
+                (rl_batch_idx, rl_pf_idx, rl_rs_idx, false, "rl".to_string(), None)
+            };
+
+        // Convert final action to policy parameters
+        let batch_size = Self::batch_idx_to_size(final_batch_idx);
+        let prefetch_confidence = Self::prefetch_idx_to_value(final_pf_idx);
+        let routing_split = Self::routing_idx_to_value(final_rs_idx);
 
         // Estimate reward improvement
         let expected_reward_improvement = self.estimate_reward_improvement(
@@ -233,36 +271,43 @@ impl RLAgent {
         );
 
         // Apply safety gates
-        let should_apply = confidence >= config.min_confidence
+        let should_apply = rl_confidence >= config.min_confidence
             && self.passes_safety_gates(&current_state);
 
         let reason = if !should_apply {
-            if confidence < config.min_confidence {
-                format!("Confidence {:.3} < threshold {:.3}", confidence, config.min_confidence)
+            if rl_confidence < config.min_confidence {
+                format!("Confidence {:.3} < threshold {:.3}", rl_confidence, config.min_confidence)
             } else {
                 "Failed safety gates".to_string()
             }
         } else {
-            format!("Action: batch={}, prefetch={:.2}, routing={:.2}",
-                batch_size, prefetch_confidence, routing_split)
+            format!("{}: batch={}, prefetch={:.2}, routing={:.2}{}",
+                decision_source,
+                batch_size,
+                prefetch_confidence,
+                routing_split,
+                if cognitive_agreed { " (cognitive agreed)" } else { "" })
         };
 
         // Store last action for reward feedback
-        *self.last_action.write().unwrap() = Some((batch_idx, pf_idx, rs_idx));
+        *self.last_action.write().unwrap() = Some((final_batch_idx, final_pf_idx, final_rs_idx));
 
         // Update metrics
         let decision_latency = start.elapsed().as_secs_f64() * 1000.0;
-        self.update_metrics(should_apply, confidence, decision_latency);
+        self.update_metrics(should_apply, rl_confidence, decision_latency);
 
         Ok(AgentDecision {
             batch_size,
             prefetch_confidence,
             routing_split,
-            confidence,
+            confidence: rl_confidence,
             expected_reward_improvement,
             timestamp_ms: Self::current_timestamp_ms(),
             should_apply,
             reason,
+            cognitive_agreed,
+            decision_source,
+            cognitive_confidence: cognitive_conf,
         })
     }
 
