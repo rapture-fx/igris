@@ -20215,3 +20215,13 @@ path.zsh.inc
 /run_tests.py
 /test_*.py
 .mcp.json
+
+# Rust build artifacts
+/target/
+**/target/
+*.rlib
+*.rmeta
+*.dylib
+*.so
+*.a
+Cargo.lock

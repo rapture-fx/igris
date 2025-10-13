@@ -42,7 +42,8 @@ pub mod autonomous;
 // Phase 12: SLO Enforcer & Auditor
 pub mod slo_enforcer;
 
-// Phase 13.2: Cognitive Reasoning Integration
+// Phase 13: Cognitive Control Layer
+>>>>>>> validation-suite
 pub mod cognitive;
 
 // =====================================================

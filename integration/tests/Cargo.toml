@@ -1,0 +1,22 @@
+[package]
+name = "cognitive-validation-tests"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+chrono = { version = "0.4", features = ["serde"] }
+serde_json = "1.0"
+
+[[bin]]
+name = "cognitive_validation"
+path = "cognitive_validation.rs"
+
+[[bin]]
+name = "phase13_regression"
+path = "phase13_regression.rs"
+
+[[bin]]
+name = "shadow_replay_validation"
+path = "shadow_replay_validation.rs"
