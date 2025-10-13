@@ -1,4 +1,4 @@
-//! Reinforcement Learning Module (Phase 11.1)
+//! Reinforcement Learning Module (Phase 11.1 + Phase 13.1)
 //!
 //! AI-Driven Policy Autotuner using contextual bandits and lightweight RL
 //! for safe, adaptive optimization of routing, batching, and prefetch policies.
@@ -6,11 +6,12 @@
 //! # Architecture
 //! ```text
 //! Telemetry → Simulator → Offline Trainer → Policy Seed
+//!                ↓             ↓
+//!           RL Agent    Multi-Objective
+//!                ↓      Reward Engine
+//!           Policy Evaluator → Control Surface
 //!                ↓
-//!           RL Agent → Policy Evaluator → Control Surface
-//!                ↓           ↓
-//!         Thompson     Shadow Eval
-//!         Sampling
+//!           Shadow Eval
 //! ```
 //!
 //! # Safety Guarantees
@@ -18,15 +19,22 @@
 //! - Automatic rollback on drift >5%
 //! - Checkpointed policy changes
 //! - Kill-switch via configuration
+//!
+//! # Phase 13.1 Enhancements
+//! - Multi-objective reward engine (latency, cost, error, reliability)
+//! - Configurable reward weights via TrainerConfig
+//! - Pareto frontier tracking for trade-off analysis
 
 pub mod simulation;
 pub mod offline_trainer;
 pub mod rl_agent;
 pub mod policy_evaluator;
 pub mod thompson_sampling;
+pub mod reward_engine;
 
 pub use simulation::{SimulationHarness, SimulationConfig, TelemetryTrace};
 pub use offline_trainer::{OfflineTrainer, TrainerConfig, PolicySeed};
 pub use rl_agent::{RLAgent, AgentConfig, AgentDecision};
 pub use policy_evaluator::{PolicyEvaluator, EvaluatorConfig, EvaluationResult};
 pub use thompson_sampling::{ThompsonSampling, BanditArm, ActionSpace};
+pub use reward_engine::{RewardEngine, RewardWeights, MultiObjectiveReward, BaselineMetrics, ParetoCandidate};
