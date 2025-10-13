@@ -1,0 +1,147 @@
+{
+  "policy_name": "Cognitive Advisory Safety Policy",
+  "version": "11.5.0",
+  "description": "Safety policy governing cognitive advisory proposal generation and output validation",
+  "confidence_gates": {
+    "minimum_threshold": 0.85,
+    "critical_threshold": 0.7,
+    "strict_mode": false,
+    "human_review_threshold": 0.6,
+    "description": "Minimum confidence scores for proposal generation and review"
+  },
+  "risk_gates": {
+    "rollback_risk_threshold": 0.15,
+    "performance_degradation_threshold": 0.1,
+    "service_disruption_threshold": 0.05,
+    "critical_risk_threshold": 0.3,
+    "description": "Maximum acceptable risk levels for different impact categories"
+  },
+  "drift_gates": {
+    "max_acceptable_drift_percent": 5,
+    "critical_drift_threshold": 10,
+    "drift_detection_window_minutes": 15,
+    "drift_recovery_cooldown_minutes": 30,
+    "description": "Maximum allowable change in system performance due to proposal"
+  },
+  "resource_gates": {
+    "cpu_utilization_threshold": 0.95,
+    "memory_utilization_threshold": 0.95,
+    "max_resource_pressure": 0.9,
+    "resource_emergency_threshold": 0.98,
+    "description": "Resource utilization limits for safe proposal generation"
+  },
+  "anomaly_gates": {
+    "max_critical_anomalies": 2,
+    "max_total_anomalies": 5,
+    "anomaly_severity_threshold_high": 0.8,
+    "anomaly_severity_threshold_critical": 0.9,
+    "description": "Anomaly detection thresholds and limits"
+  },
+  "gate_enforcement": {
+    "strict_mode_enabled": false,
+    "allow_partial_gates_pass": true,
+    "gate_violation_tolerance_percent": 0.02,
+    "max_consecutive_violations": 3,
+    "description": "Gate enforcement policies and tolerance levels"
+  },
+  "proposal_safety": {
+    "require_all_gates_pass": false,
+    "require_confidence_gate": true,
+    "require_risk_gate": true,
+    "require_drift_gate": true,
+    "require_resource_gate": false,
+    "require_anomaly_gate": true,
+    "min_proposals_per_interval": 1,
+    "max_proposals_per_interval": 5,
+    "description": "Proposal-specific safety requirements"
+  },
+  "escalation_policy": {
+    "human_review_triggers": [
+      "confidence_below_threshold",
+      "rollback_risk_exceeded", 
+      "multiple_gate_violations",
+      "anomaly_detection",
+      "resource_emergency",
+      "high_drift_prediction"
+    ],
+    "auto_disable_triggers": [
+      "critical_violations_consecutive",
+      "system_instability_detected",
+      "safety_score_below_threshold",
+      "proposals_exceed_limit"
+    ],
+    "escalation_levels": [
+      "informational",
+      "warning", 
+      "critical",
+      "emergency"
+    ],
+    "description": "When and how to escalate safety concerns"
+  },
+  "output_validation": {
+    "require_proposal_id": true,
+    "require_timestamp": true,
+    "require_rationale": true,
+    "require_evidence_links": true,
+    "require_safety_assessment": true,
+    "require_system_state": true,
+    "max_proposal_size_kb": 1000,
+    "description": "Required fields and validation for proposal output"
+  },
+  "monitoring": {
+    "real_time_monitoring": true,
+    "violation_logging": true,
+    "performance_impact_tracking": true,
+    "gate_statistics_collection": true,
+    "audit_trail_enabled": true,
+    "proposal_metrics_collection": true,
+    "description": "Monitoring and logging settings"
+  },
+  "compliance": {
+    "safety_first_principle": true,
+    "no_production_impact": true,
+    "human_in_loop_required": false,
+    "documentation_requirements": [
+      "gate_violations",
+      "decision_rationales", 
+      "safety_assessments",
+      "proposal_outputs"
+    ],
+    "audit_retention_days": 90,
+    "description": "Compliance requirements and documentation"
+  },
+  "testing": {
+    "gate_validation_tests": true,
+    "proposal_generation_tests": true,
+    "output_format_tests": true,
+    "safety_enforcement_tests": true,
+    "load_testing_enabled": false,
+    "chaos_testing_enabled": false,
+    "regression_testing_required": true,
+    "description": "Testing requirements for safety policy implementation"
+  },
+  "version_control": {
+    "policy_version_tracking": true,
+    "change_control_required": false,
+    "rollback_policy": "automatic_on_critical",
+    "audit_retention_days": 90,
+    "description": "Policy version and change management"
+  },
+  "experimental": {
+    "enable_adaptive_thresholds": false,
+    "enable_ml_risk_assessment": false,
+    "enable_predictive_gating": false,
+    "enable_anomaly_learning": false,
+    "enable_dynamic_gate_adjustment": false,
+    "description": "Experimental safety features (disabled by default)"
+  },
+  "phase_11_5_specific": {
+    "advisory_only_mode": true,
+    "no_policy_mutations": true,
+    "shadow_output_directory": "experiments/cognitive/proposals/",
+    "minimum_proposals_for_validation": 5,
+    "max_proposal_retries": 3,
+    "proposal_timeout_seconds": 30,
+    "description": "Phase 11.5 advisory mode specific configurations"
+  }
+}
