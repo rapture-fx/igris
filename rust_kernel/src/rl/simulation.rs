@@ -1,13 +1,16 @@
-//! Simulation Harness for Offline RL Training
+//! Simulation Harness for Offline RL Training (Phase 11.1 + Phase 13.1)
 //!
 //! Replays stored Phase 8/10 telemetry to train policies in a safe,
 //! controlled environment before production deployment.
+//!
+//! Phase 13.1: Integrated with multi-objective RewardEngine
 
 use serde::{Deserialize, Serialize};
 use std::collections::VecDeque;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
+use crate::rl::reward_engine::{RewardEngine, RewardWeights, BaselineMetrics};
 
 /// Configuration for simulation harness
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -175,29 +178,12 @@ pub struct Reward {
     pub error_penalty: f64,
 }
 
-/// Simulation harness for RL training
+/// Simulation harness for RL training (Phase 13.1: with RewardEngine)
 pub struct SimulationHarness {
     config: SimulationConfig,
     traces: VecDeque<TelemetryTrace>,
     current_step: usize,
-    reward_weights: RewardWeights,
-}
-
-#[derive(Debug, Clone)]
-struct RewardWeights {
-    alpha_latency: f64,
-    beta_cost: f64,
-    gamma_error: f64,
-}
-
-impl Default for RewardWeights {
-    fn default() -> Self {
-        Self {
-            alpha_latency: 0.5,
-            beta_cost: 0.3,
-            gamma_error: 0.2,
-        }
-    }
+    reward_engine: RewardEngine,
 }
 
 impl SimulationHarness {
@@ -205,11 +191,38 @@ impl SimulationHarness {
     pub fn new(config: SimulationConfig) -> Result<Self, String> {
         let traces = Self::load_traces(&config)?;
 
+        // Initialize RewardEngine with default weights and baseline
+        let reward_engine = RewardEngine::new(
+            RewardWeights::default(),
+            BaselineMetrics::default(),
+        );
+
         Ok(Self {
             config,
             traces,
             current_step: 0,
-            reward_weights: RewardWeights::default(),
+            reward_engine,
+        })
+    }
+
+    /// Create a new simulation harness with custom reward weights
+    pub fn new_with_weights(
+        config: SimulationConfig,
+        weights: RewardWeights,
+    ) -> Result<Self, String> {
+        let traces = Self::load_traces(&config)?;
+
+        // Initialize RewardEngine with custom weights
+        let reward_engine = RewardEngine::new(
+            weights,
+            BaselineMetrics::default(),
+        );
+
+        Ok(Self {
+            config,
+            traces,
+            current_step: 0,
+            reward_engine,
         })
     }
 
@@ -349,28 +362,29 @@ impl SimulationHarness {
         state
     }
 
-    /// Compute reward for state-action pair
-    fn compute_reward(&self, state: &SimulationState, _action: &SimulationAction) -> Reward {
-        let avg_latency = state.latency_samples.iter().sum::<f64>() / state.latency_samples.len() as f64;
+    /// Compute reward for state-action pair (Phase 13.1: using RewardEngine)
+    fn compute_reward(&mut self, state: &SimulationState, action: &SimulationAction) -> Reward {
+        // Use RewardEngine for multi-objective reward computation
+        let multi_objective_reward = self.reward_engine
+            .compute_multi_objective_reward(state, action);
 
-        // Normalize latency (lower is better)
-        let latency_component = -(avg_latency / 150.0) * self.reward_weights.alpha_latency;
-
-        // Cost estimate (based on throughput and resource usage)
-        let cost_estimate = state.cpu_utilization * 0.5 + (1.0 - state.cache_hit_rate) * 0.5;
-        let cost_component = -cost_estimate * self.reward_weights.beta_cost;
-
-        // Error penalty
-        let error_penalty = -state.error_rate * 100.0 * self.reward_weights.gamma_error;
-
-        let total = latency_component + cost_component + error_penalty;
-
+        // Convert MultiObjectiveReward to legacy Reward format for backward compatibility
         Reward {
-            total,
-            latency_component,
-            cost_component,
-            error_penalty,
+            total: multi_objective_reward.total,
+            latency_component: multi_objective_reward.latency_component,
+            cost_component: multi_objective_reward.cost_component,
+            error_penalty: multi_objective_reward.error_penalty,
         }
+    }
+
+    /// Get Pareto frontier candidates from reward engine
+    pub fn get_pareto_candidates(&self) -> Vec<crate::rl::reward_engine::ParetoCandidate> {
+        self.reward_engine.get_pareto_candidates()
+    }
+
+    /// Get reward statistics from engine
+    pub fn get_reward_statistics(&self) -> crate::rl::reward_engine::RewardStatistics {
+        self.reward_engine.get_statistics()
     }
 
     /// Get total number of traces
@@ -440,7 +454,7 @@ mod tests {
     #[test]
     fn test_reward_computation() {
         let config = SimulationConfig::default();
-        let harness = SimulationHarness::new(config).unwrap();
+        let mut harness = SimulationHarness::new(config).unwrap();
 
         let state = SimulationState {
             latency_samples: vec![100.0, 105.0, 98.0],
@@ -460,8 +474,8 @@ mod tests {
 
         let reward = harness.compute_reward(&state, &action);
 
-        // Good performance should give positive total reward
-        assert!(reward.total < 0.0); // Negative because we minimize
+        // Good performance should give negative total reward (we're minimizing)
+        assert!(reward.total < 0.0);
         assert!(reward.latency_component < 0.0);
     }
 }

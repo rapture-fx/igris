@@ -1,7 +1,9 @@
-//! Offline Trainer for RL Policy
+//! Offline Trainer for RL Policy (Phase 11.1 + Phase 13.1)
 //!
 //! Replays stored telemetry traces to pre-train a policy seed
 //! using Thompson Sampling before deploying to production.
+//!
+//! Phase 13.1: Added configurable multi-objective reward weights
 
 use serde::{Deserialize, Serialize};
 use std::path::Path;
@@ -9,6 +11,7 @@ use std::fs::File;
 use std::io::Write;
 use crate::rl::simulation::{SimulationHarness, SimulationConfig, SimulationAction};
 use crate::rl::thompson_sampling::{ThompsonSampling, ActionSpace};
+use crate::rl::reward_engine::RewardWeights;
 
 /// Configuration for offline trainer
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -36,6 +39,9 @@ pub struct TrainerConfig {
 
     /// Output path for policy seed
     pub output_path: String,
+
+    /// Multi-objective reward weights (Phase 13.1)
+    pub reward_weights: Option<RewardWeights>,
 }
 
 impl Default for TrainerConfig {
@@ -49,6 +55,7 @@ impl Default for TrainerConfig {
             min_exploration: 0.05,
             save_interval: 10,
             output_path: "policy_seed_v1.json".to_string(),
+            reward_weights: None, // Use default weights from RewardEngine
         }
     }
 }
@@ -117,7 +124,13 @@ impl OfflineTrainer {
         trainer_config: TrainerConfig,
         simulation_config: SimulationConfig,
     ) -> Result<Self, String> {
-        let simulation = SimulationHarness::new(simulation_config)?;
+        // Phase 13.1: Use custom reward weights if provided
+        let simulation = if let Some(ref weights) = trainer_config.reward_weights {
+            SimulationHarness::new_with_weights(simulation_config, weights.clone())?
+        } else {
+            SimulationHarness::new(simulation_config)?
+        };
+
         let action_space = ActionSpace::default();
         let agent = ThompsonSampling::new(action_space, trainer_config.success_threshold);
 
