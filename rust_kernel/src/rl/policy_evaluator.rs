@@ -408,6 +408,9 @@ mod tests {
             timestamp_ms: 0,
             should_apply: true,
             reason: "test".to_string(),
+            cognitive_agreed: false,
+            decision_source: "rl".to_string(),
+            cognitive_confidence: None,
         };
 
         let baseline = PolicyUpdate {
@@ -438,6 +441,9 @@ mod tests {
             timestamp_ms: 0,
             should_apply: true,
             reason: "test".to_string(),
+            cognitive_agreed: false,
+            decision_source: "rl".to_string(),
+            cognitive_confidence: None,
         };
 
         let baseline = PolicyUpdate::default();
@@ -473,6 +479,9 @@ mod tests {
             timestamp_ms: 0,
             should_apply: true,
             reason: "test".to_string(),
+            cognitive_agreed: false,
+            decision_source: "rl".to_string(),
+            cognitive_confidence: None,
         };
 
         let baseline = PolicyUpdate::default();
