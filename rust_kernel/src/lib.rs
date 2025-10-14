@@ -30,21 +30,12 @@ pub mod reliability;
 // Phase 10: Adaptive Orchestration Layer
 pub mod orchestration;
 
-// Phase 11: AI-Driven Policy Autotuner (RL)
-pub mod rl;
-
-// Phase 11.2: Predictive Intelligence Layer
-pub mod predictive;
-
-// Phase 12: Autonomous Reliability Layer
-pub mod autonomous;
-
-// Phase 12: SLO Enforcer & Auditor
-pub mod slo_enforcer;
-
-// Phase 13: Cognitive Control Layer
->>>>>>> validation-suite
-pub mod cognitive;
+// Experimental modules moved to labs/research/:
+// - cognitive (Phase 13): labs/research/cognitive
+// - rl (Phase 11): labs/research/rl
+// - predictive (Phase 11.2): labs/research/predictive
+// - autonomous (Phase 12): labs/research/autonomous
+// - slo_enforcer (Phase 12): labs/research/slo_enforcer
 
 // =====================================================
 // Basic Math Operations (From Prototype)
