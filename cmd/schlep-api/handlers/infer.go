@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/schlep-engine/schlep-engine/internal/inference"
+	"github.com/schlep-engine/schlep-engine/internal/inference/router"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 	"github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
@@ -14,7 +14,7 @@ import (
 
 // InferHandler handles /v1/infer requests
 type InferHandler struct {
-	router *inference.InferenceRouter
+	router *router.InferenceRouter
 }
 
 // NewInferHandler creates a new infer handler
@@ -58,10 +58,10 @@ func NewInferHandler() (*InferHandler, error) {
 	// TODO: Register Python adapter provider
 
 	// Create inference router
-	router := inference.NewInferenceRouter(registry)
+	inferenceRouter := router.NewInferenceRouter(registry)
 
 	return &InferHandler{
-		router: router,
+		router: inferenceRouter,
 	}, nil
 }
 

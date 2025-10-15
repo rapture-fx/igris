@@ -1,4 +1,4 @@
-package inference
+package router
 
 import (
 	"context"
