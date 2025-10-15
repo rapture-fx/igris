@@ -5,7 +5,7 @@ package orchestration;
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/struct.proto";
 
-option go_package = "github.com/schlep-engine/go-gateway/proto/orchestration";
+option go_package = "github.com/schlep-engine/schlep-engine/proto/orchestration";
 
 // ============================================================================
 // Core Routing Policy Schema
@@ -199,7 +199,7 @@ message FallbackPolicy {
   repeated string fallback_policy_ids = 7;
   
   // When to use fallback
-  FallbackTrigger[] triggers = 8;
+  repeated FallbackTrigger triggers = 8;
 }
 
 enum FallbackStrategy {

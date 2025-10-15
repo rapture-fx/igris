@@ -12,7 +12,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	mlv1 "github.com/schlep-engine/go-gateway/proto/ml/v1"
+	mlv1 "github.com/schlep-engine/schlep-engine/web/apps/go-gateway/proto/ml/v1"
 )
 
 // EdgeNodeConfig holds configuration for an edge inference node

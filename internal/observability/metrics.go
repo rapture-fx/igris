@@ -252,6 +252,50 @@ var (
 		},
 		[]string{"model_id"},
 	)
+
+	// /v1/infer endpoint metrics (Phase 8: Metrics & Telemetry)
+	inferRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "infer_requests_total",
+			Help: "Total number of /v1/infer requests",
+		},
+		[]string{"provider", "model", "status"}, // status: success, error
+	)
+
+	inferRequestLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "infer_request_latency_ms",
+			Help:    "Request latency for /v1/infer in milliseconds",
+			Buckets: []float64{50, 100, 200, 400, 800, 1600, 3200, 6400},
+		},
+		[]string{"provider", "model"},
+	)
+
+	inferTokensUsed = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "infer_tokens_used",
+			Help:    "Tokens used per /v1/infer request",
+			Buckets: []float64{10, 50, 100, 200, 500, 1000, 2000, 4000, 8000},
+		},
+		[]string{"provider", "model", "token_type"}, // token_type: prompt, completion, total
+	)
+
+	inferCostUSD = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "infer_cost_usd",
+			Help:    "Cost per /v1/infer request in USD",
+			Buckets: []float64{0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0},
+		},
+		[]string{"provider", "model"},
+	)
+
+	inferProviderStats = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "infer_provider_stats_total",
+			Help: "Aggregated statistics per provider",
+		},
+		[]string{"provider", "metric_type"}, // metric_type: requests, errors, tokens
+	)
 )
 
 // PrometheusMiddleware records HTTP metrics
@@ -446,4 +490,50 @@ func RecordGPURecovery(gpuID int) {
 // Called as: RecordLoadRebalance() with no arguments
 func RecordLoadRebalance() {
 	// Placeholder - implement if load balancing metrics are needed
+}
+
+// Phase 8: /v1/infer endpoint metrics
+
+// RecordInferRequest records a /v1/infer request with latency, tokens, and cost
+func RecordInferRequest(provider, model string, latencyMs int64, promptTokens, completionTokens, totalTokens int, costUSD float64, success bool) {
+	status := "success"
+	if !success {
+		status = "error"
+	}
+
+	// Record request count
+	inferRequestsTotal.WithLabelValues(provider, model, status).Inc()
+
+	// Record latency
+	inferRequestLatency.WithLabelValues(provider, model).Observe(float64(latencyMs))
+
+	// Record token usage
+	if totalTokens > 0 {
+		inferTokensUsed.WithLabelValues(provider, model, "total").Observe(float64(totalTokens))
+	}
+	if promptTokens > 0 {
+		inferTokensUsed.WithLabelValues(provider, model, "prompt").Observe(float64(promptTokens))
+	}
+	if completionTokens > 0 {
+		inferTokensUsed.WithLabelValues(provider, model, "completion").Observe(float64(completionTokens))
+	}
+
+	// Record cost
+	if costUSD > 0 {
+		inferCostUSD.WithLabelValues(provider, model).Observe(costUSD)
+	}
+
+	// Update provider stats
+	inferProviderStats.WithLabelValues(provider, "requests").Inc()
+	if !success {
+		inferProviderStats.WithLabelValues(provider, "errors").Inc()
+	}
+	if totalTokens > 0 {
+		inferProviderStats.WithLabelValues(provider, "tokens").Add(float64(totalTokens))
+	}
+}
+
+// RecordInferLatency records just the latency metric (for use in middleware)
+func RecordInferLatency(provider, model string, latencyMs int64) {
+	inferRequestLatency.WithLabelValues(provider, model).Observe(float64(latencyMs))
 }
