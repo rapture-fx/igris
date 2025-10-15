@@ -78,7 +78,13 @@
       "Bash(git -C /Users/wira/Desktop/schlep-engine check-ignore .env.production)",
       "Bash(cargo check:*)",
       "Bash(cargo tree:*)",
-      "Bash(git fetch:*)"
+      "Bash(git fetch:*)",
+      "Bash(for item in infrastructure/monitoring/*)",
+      "Bash(do [ -e \"$item\" ])",
+      "Bash(for item in infrastructure/k8s/*)",
+      "Bash(rmdir:*)",
+      "Bash(for f in docker-compose*.yml Dockerfile)",
+      "Bash(do [ -f \"$f\" ])"
     ],
     "deny": [],
     "ask": []
