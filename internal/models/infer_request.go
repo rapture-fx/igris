@@ -1,0 +1,176 @@
+package models
+
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// Message represents a chat message in the inference request
+type Message struct {
+	Role    string `json:"role"`    // "system", "user", "assistant"
+	Content string `json:"content"` // Message content
+}
+
+// InferRequest represents a unified inference API request
+// Compatible with OpenAI and Anthropic chat completion formats
+type InferRequest struct {
+	// Core fields
+	Model    string    `json:"model"`              // Model identifier (e.g., "gpt-4", "claude-3-opus")
+	Messages []Message `json:"messages"`           // Conversation messages
+	Stream   bool      `json:"stream,omitempty"`   // Enable streaming responses
+
+	// Generation parameters
+	MaxTokens        int      `json:"max_tokens,omitempty"`         // Maximum tokens to generate
+	Temperature      float64  `json:"temperature,omitempty"`        // Sampling temperature (0.0-2.0)
+	TopP             float64  `json:"top_p,omitempty"`              // Nucleus sampling threshold
+	TopK             int      `json:"top_k,omitempty"`              // Top-K sampling (Anthropic)
+	PresencePenalty  float64  `json:"presence_penalty,omitempty"`   // Presence penalty (OpenAI)
+	FrequencyPenalty float64  `json:"frequency_penalty,omitempty"`  // Frequency penalty (OpenAI)
+	Stop             []string `json:"stop,omitempty"`               // Stop sequences
+
+	// Routing and optimization (Schlep-engine specific)
+	Policy          *PolicyOverride    `json:"policy,omitempty"`           // Routing policy override
+	EnableCaching   bool               `json:"enable_caching,omitempty"`   // Enable response caching
+	CacheTTL        int                `json:"cache_ttl,omitempty"`        // Cache TTL in seconds
+	PreferredRegion string             `json:"preferred_region,omitempty"` // Preferred edge region
+	Metadata        map[string]string  `json:"metadata,omitempty"`         // Request metadata for tracking
+
+	// Provider-specific extensions
+	ProviderConfig map[string]interface{} `json:"provider_config,omitempty"` // Provider-specific parameters
+}
+
+// PolicyOverride allows per-request routing policy customization
+type PolicyOverride struct {
+	Provider        string  `json:"provider,omitempty"`         // Force specific provider ("openai", "anthropic", "python-adapter")
+	Region          string  `json:"region,omitempty"`           // Force specific region
+	OptimizeFor     string  `json:"optimize_for,omitempty"`     // "latency", "cost", "quality"
+	FallbackEnabled bool    `json:"fallback_enabled,omitempty"` // Enable fallback on failure
+	TimeoutMs       int     `json:"timeout_ms,omitempty"`       // Request timeout in milliseconds
+}
+
+// Validate performs validation on the InferRequest
+func (r *InferRequest) Validate() error {
+	if r.Model == "" {
+		return fmt.Errorf("model is required")
+	}
+
+	if len(r.Messages) == 0 {
+		return fmt.Errorf("messages cannot be empty")
+	}
+
+	// Validate message roles
+	validRoles := map[string]bool{"system": true, "user": true, "assistant": true}
+	for i, msg := range r.Messages {
+		if msg.Content == "" {
+			return fmt.Errorf("message[%d]: content cannot be empty", i)
+		}
+		if !validRoles[msg.Role] {
+			return fmt.Errorf("message[%d]: invalid role '%s', must be system/user/assistant", i, msg.Role)
+		}
+	}
+
+	// Validate generation parameters
+	if r.Temperature < 0 || r.Temperature > 2.0 {
+		return fmt.Errorf("temperature must be between 0.0 and 2.0")
+	}
+
+	if r.TopP < 0 || r.TopP > 1.0 {
+		return fmt.Errorf("top_p must be between 0.0 and 1.0")
+	}
+
+	if r.MaxTokens < 0 {
+		return fmt.Errorf("max_tokens cannot be negative")
+	}
+
+	return nil
+}
+
+// GetProvider extracts the target provider from the model name or policy
+// Returns provider name and model identifier
+func (r *InferRequest) GetProvider() (string, string) {
+	// TODO: Implement smart provider detection based on model name
+	// Examples:
+	// - "gpt-4" -> "openai", "gpt-4"
+	// - "claude-3-opus" -> "anthropic", "claude-3-opus-20240229"
+	// - "custom-llama2" -> "python-adapter", "llama2-7b"
+
+	if r.Policy != nil && r.Policy.Provider != "" {
+		return r.Policy.Provider, r.Model
+	}
+
+	// Placeholder logic (will be replaced with router integration)
+	if len(r.Model) > 0 {
+		switch {
+		case r.Model[:3] == "gpt":
+			return "openai", r.Model
+		case len(r.Model) >= 6 && r.Model[:6] == "claude":
+			return "anthropic", r.Model
+		default:
+			return "python-adapter", r.Model
+		}
+	}
+
+	return "python-adapter", r.Model
+}
+
+// ToJSON serializes the request to JSON
+func (r *InferRequest) ToJSON() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+// FromJSON deserializes the request from JSON
+func FromJSON(data []byte) (*InferRequest, error) {
+	var req InferRequest
+	if err := json.Unmarshal(data, &req); err != nil {
+		return nil, err
+	}
+	return &req, nil
+}
+
+// Clone creates a deep copy of the InferRequest
+func (r *InferRequest) Clone() *InferRequest {
+	clone := &InferRequest{
+		Model:            r.Model,
+		Stream:           r.Stream,
+		MaxTokens:        r.MaxTokens,
+		Temperature:      r.Temperature,
+		TopP:             r.TopP,
+		TopK:             r.TopK,
+		PresencePenalty:  r.PresencePenalty,
+		FrequencyPenalty: r.FrequencyPenalty,
+		EnableCaching:    r.EnableCaching,
+		CacheTTL:         r.CacheTTL,
+		PreferredRegion:  r.PreferredRegion,
+	}
+
+	// Deep copy messages
+	clone.Messages = make([]Message, len(r.Messages))
+	copy(clone.Messages, r.Messages)
+
+	// Deep copy stop sequences
+	if r.Stop != nil {
+		clone.Stop = make([]string, len(r.Stop))
+		copy(clone.Stop, r.Stop)
+	}
+
+	// Deep copy metadata
+	if r.Metadata != nil {
+		clone.Metadata = make(map[string]string)
+		for k, v := range r.Metadata {
+			clone.Metadata[k] = v
+		}
+	}
+
+	// Deep copy policy
+	if r.Policy != nil {
+		clone.Policy = &PolicyOverride{
+			Provider:        r.Policy.Provider,
+			Region:          r.Policy.Region,
+			OptimizeFor:     r.Policy.OptimizeFor,
+			FallbackEnabled: r.Policy.FallbackEnabled,
+			TimeoutMs:       r.Policy.TimeoutMs,
+		}
+	}
+
+	return clone
+}
