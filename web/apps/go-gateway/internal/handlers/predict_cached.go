@@ -9,8 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 
-	"github.com/schlep-engine/go-gateway/internal/cache"
-	"github.com/schlep-engine/go-gateway/internal/ml"
+	"github.com/schlep-engine/schlep-engine/web/apps/go-gateway/internal/cache"
+	"github.com/schlep-engine/schlep-engine/web/apps/go-gateway/internal/ml"
 )
 
 // PredictWithCacheHandler handles ML predictions with Redis caching

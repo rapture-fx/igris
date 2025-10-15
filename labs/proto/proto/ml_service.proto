@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ml;
 
-option go_package = "github.com/schlep-engine/go-gateway/proto";
+option go_package = "github.com/schlep-engine/schlep-engine/proto/ml";
 
 // ML Service for predictions
 service MLService {
