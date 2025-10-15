@@ -6,7 +6,10 @@
       "Bash(go mod tidy:*)",
       "Bash(go build:*)",
       "Bash(paste -:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(cargo build:*)",
+      "Bash($HOME/.cargo/bin/cbindgen:*)",
+      "Bash(cargo run:*)"
     ],
     "deny": [],
     "ask": []
