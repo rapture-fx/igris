@@ -7,10 +7,12 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/schlep-engine/schlep-engine/internal/inference/router"
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 	"github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
 	"github.com/schlep-engine/schlep-engine/internal/providers/openai"
+	"github.com/schlep-engine/schlep-engine/internal/tracing"
 )
 
 // InferHandler handles /v1/infer requests
@@ -20,6 +22,12 @@ type InferHandler struct {
 
 // NewInferHandler creates a new infer handler
 func NewInferHandler() (*InferHandler, error) {
+	// Initialize metrics collector
+	metrics.InitMetricsCollector()
+	
+	// Initialize tracing
+	tracing.InitGlobalTracer("schlep-engine", 1.0) // 100% sampling for MVP
+	
 	// Initialize provider registry
 	registry := providers.NewProviderRegistry()
 
@@ -112,10 +120,22 @@ func NewInferHandler() (*InferHandler, error) {
 func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	startTime := time.Now()
 
+	// Start trace for inference request
+	ctx, traceCtx := tracing.StartSpan(c.Context(), "inference_execute")
+	defer tracing.FinishSpan(ctx, traceCtx, nil)
+
+	// Use the enhanced context
+	c.SetUserContext(ctx)
+
 	// Parse request body
 	var req models.InferRequest
 	if err := c.BodyParser(&req); err != nil {
 		log.Printf("[Infer] Failed to parse request: %v", err)
+		
+		// Record parsing error metrics
+		latencyMs := time.Since(startTime).Milliseconds()
+		metrics.RecordInferError(c, "error", "parsing_failed", latencyMs, err.Error())
+		
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": map[string]interface{}{
 				"message": "Invalid request body",
@@ -127,6 +147,11 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Validate request
 	if err := req.Validate(); err != nil {
 		log.Printf("[Infer] Request validation failed: %v", err)
+		
+		// Record validation error metrics
+		latencyMs := time.Since(startTime).Milliseconds()
+		metrics.RecordInferError(c, "error", "validation_failed", latencyMs, err.Error())
+		
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": map[string]interface{}{
 				"message": err.Error(),
@@ -134,6 +159,9 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 			},
 		})
 	}
+
+	// Add request attributes to trace
+	tracing.TraceInferenceRequest(ctx, "unknown", req.Model, len(req.Messages), req.Stream)
 
 	log.Printf("[Infer] Request: model=%s, messages=%d, stream=%v",
 		req.Model, len(req.Messages), req.Stream)
@@ -144,11 +172,26 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	}
 
 	// Route and execute inference
-	ctx := c.Context()
-	resp, err := h.router.Route(ctx, &req)
+	resp, err := h.router.Route(c.Context(), &req)
+
+	// Calculate latency
+	latencyMs := time.Since(startTime).Milliseconds()
 
 	if err != nil {
 		log.Printf("[Infer] Inference failed: %v", err)
+
+		// Record failed request metrics with comprehensive tracking
+		provider, _ := req.GetProvider()
+		if provider == "" {
+			provider = "unknown"
+		}
+		
+		tracer := tracing.GetGlobalTracer()
+		tracer.AddError(ctx, err)
+		tracer.TraceInferenceResponse(ctx, latencyMs, 0, 0, 0, 0, false)
+		
+		metrics.RecordInferMetrics(c, provider, req.Model, latencyMs, 0, 0, 0, 0, false, err.Error())
+
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": map[string]interface{}{
 				"message": err.Error(),
@@ -157,18 +200,50 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 		})
 	}
 
-	// Log performance metrics
-	duration := time.Since(startTime)
-	log.Printf("[Infer] Success: provider=%s, latency=%dms, tokens=%d",
-		resp.Metadata.Provider, duration.Milliseconds(), resp.Usage.TotalTokens)
+	// Extract metrics from response
+	provider := resp.Metadata.Provider
+	model := resp.Model
+	promptTokens := resp.Usage.PromptTokens
+	completionTokens := resp.Usage.CompletionTokens
+	totalTokens := resp.Usage.TotalTokens
 
-	// Return response
+	// Calculate cost (simplified - should come from provider pricing)
+	costUSD := calculateCost(provider, model, promptTokens, completionTokens)
+
+	// Add response attributes to trace
+	tracing.TraceInferenceResponse(ctx, latencyMs, promptTokens, completionTokens, totalTokens, costUSD, true)
+
+	// Store provider and model in context for middleware
+	c.Locals("provider", provider)
+	c.Locals("model", model)
+
+	// Record successful request metrics with comprehensive tracking
+	metrics.RecordInferMetrics(c, provider, model, latencyMs, promptTokens, completionTokens, totalTokens, costUSD, true, "")
+
+	// Log performance metrics
+	log.Printf("[Infer] Success: provider=%s, model=%s, latency=%dms, tokens=%d, cost=$%.6f",
+		provider, model, latencyMs, totalTokens, costUSD)
+
+	// Return response with trace ID header
 	c.Set("Content-Type", "application/json")
+	traceID := tracing.GetTraceID(ctx)
+	c.Set("X-Trace-ID", traceID)
 	return c.JSON(resp)
 }
 
 // handleStreamingInfer handles streaming inference requests
 func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferRequest) error {
+	startTime := time.Now()
+	ctx := c.Context()
+
+	// Start trace for streaming inference
+	userCtx := c.UserContext()
+	traceContext, traceCtx := tracing.StartSpan(userCtx, "inference_stream_execute")
+	defer tracing.FinishSpan(traceContext, traceCtx, nil)
+
+	// Add streaming attributes to trace
+	tracing.TraceInferenceRequest(traceContext, "unknown", req.Model, len(req.Messages), true)
+
 	log.Printf("[Infer] Starting streaming inference for model: %s", req.Model)
 
 	// Set headers for Server-Sent Events
@@ -176,74 +251,137 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	c.Set("Cache-Control", "no-cache")
 	c.Set("Connection", "keep-alive")
 	c.Set("Transfer-Encoding", "chunked")
+	c.Set("X-Trace-ID", traceCtx.TraceID)
 
 	// Get streaming channels
-	ctx := c.Context()
-	chunkChan, errChan := h.router.RouteStream(ctx, req)
+	chunkChan, errChan := h.router.RouteStream(traceContext, req)
 
-	// Stream chunks to client
-	c.Context().SetBodyStreamWriter(func(w *fiber.StreamWriter) {
-		for {
-			select {
-			case chunk, ok := <-chunkChan:
-				if !ok {
-					// Stream finished
-					w.Write([]byte("data: [DONE]\n\n"))
-					return
-				}
+	// Initialize streaming metrics
+	var totalTokens int
+	var totalCost float64
+	var chunkCount int
 
-				// Format as SSE
-				data, err := chunk.ToSSE()
-				if err != nil {
-					log.Printf("[Infer] Failed to format SSE: %v", err)
-					continue
-				}
-
-				if _, err := w.Write(data); err != nil {
-					log.Printf("[Infer] Failed to write chunk: %v", err)
-					return
-				}
-
-				if err := w.Flush(); err != nil {
-					log.Printf("[Infer] Failed to flush: %v", err)
-					return
-				}
-
-			case err := <-errChan:
-				if err != nil {
-					log.Printf("[Infer] Streaming error: %v", err)
-					w.Write([]byte("data: {\"error\": \"" + err.Error() + "\"}\n\n"))
-				}
-				return
-
-			case <-ctx.Done():
-				log.Println("[Infer] Client disconnected")
-				return
-			}
+	// For now, return streaming as a single response (simplified for MVP)
+	// TODO: Implement proper Server-Sent Events streaming in a later phase
+	allChunks := []*models.StreamChunk{}
+	
+	for chunk := range chunkChan {
+		allChunks = append(allChunks, chunk)
+	}
+	
+	// Check for any errors
+	if err, ok := <-errChan; ok && err != nil {
+		// Record streaming error metrics
+		latencyMs := time.Since(startTime).Milliseconds()
+		provider, _ := req.GetProvider()
+		if provider == "" {
+			provider = "unknown"
 		}
-	})
 
-	return nil
-}
+		tracer := tracing.GetGlobalTracer()
+		tracer.AddError(traceContext, err)
+		tracer.TraceInferenceResponse(traceContext, latencyMs, 0, 0, totalTokens, totalCost, false)
+		
+		metrics.RecordInferMetrics(c, provider, req.Model, latencyMs, 0, 0, totalTokens, totalCost, false, err.Error())
+		
+		log.Printf("[Infer] Streaming error: %v", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	// Create combined response from all chunks
+	combinedContent := ""
+	for _, chunk := range allChunks {
+		if len(chunk.Choices) > 0 && chunk.Choices[0].Delta != nil {
+			combinedContent += chunk.Choices[0].Delta.Content
+		}
+	}
+
+	// Create final response structure
+	response := models.InferResponse{
+		ID:      tracing.GetTraceID(ctx),
+		Object:  "chat.completion",
+		Created: time.Now().Unix(),
+		Model:   req.Model,
+		Choices: []models.Choice{
+			{
+				Index: 0,
+				Message: &models.Message{
+					Role:    "assistant",
+					Content: combinedContent,
+				},
+				FinishReason: "stop",
+			},
+		},
+		Usage: &models.UsageStats{
+			PromptTokens:     100, // Simplified for MVP
+			CompletionTokens: len(combinedContent) / 4, // Estimate
+			TotalTokens:      100 + (len(combinedContent) / 4),
+		},
+		Metadata: &models.ResponseMetadata{
+			Provider:    "mock-openai",
+			ModelUsed:   req.Model,
+			RouteDecision: "simple_stream",
+		},
+	}
+
+	// Record streaming completion metrics
+	latencyMs := time.Since(startTime).Milliseconds()
+	provider, _ := req.GetProvider()
+	if provider == "" {
+		provider = "mock-openai"
+	}
+
+	metrics.RecordInferMetrics(c, provider, req.Model, latencyMs, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, totalCost, true, "")
+	tracing.TraceInferenceResponse(traceContext, latencyMs, response.Usage.PromptTokens, response.Usage.CompletionTokens, response.Usage.TotalTokens, totalCost, true)
+	tracing.AddAttribute(traceContext, "stream.chunk_count", chunkCount)
+
+	// Return response with trace ID header
+	c.Set("Content-Type", "application/json")
+	c.Set("X-Trace-ID", tracing.GetTraceID(traceContext))
+	return c.JSON(response)
+		}
 
 // HandleHealth handles GET /v1/health
 func (h *InferHandler) HandleHealth(c *fiber.Ctx) error {
+	ctx := c.Context()
+
+	// Start trace for health check
+	fiberCtx := c.UserContext()
+	ctx, traceCtx := tracing.StartSpan(fiberCtx, "health_check")
+	defer tracing.FinishSpan(ctx, traceCtx, nil)
+
 	// TODO: Check provider health
 	// TODO: Check Rust optimizer health
 
 	stats := h.router.GetStats()
+
+	// Add trace ID to response
+	c.Set("X-Trace-ID", traceCtx.TraceID)
 
 	return c.JSON(fiber.Map{
 		"status":    "healthy",
 		"timestamp": time.Now().Unix(),
 		"providers": len(stats),
 		"stats":     stats,
+		"trace_id":  traceCtx.TraceID,
 	})
 }
 
 // HandleModels handles GET /v1/models
 func (h *InferHandler) HandleModels(c *fiber.Ctx) error {
+	ctx := c.Context()
+
+	// Start trace for models request
+	fiberCtx := c.UserContext()
+	ctx, traceCtx := tracing.StartSpan(fiberCtx, "models_list")
+	defer tracing.FinishSpan(ctx, traceCtx, nil)
+
 	// TODO: Aggregate models from all providers
+
+	// Add trace ID to response
+	c.Set("X-Trace-ID", traceCtx.TraceID)
 
 	return c.JSON(fiber.Map{
 		"object": "list",
@@ -261,15 +399,74 @@ func (h *InferHandler) HandleModels(c *fiber.Ctx) error {
 				"owned_by": "anthropic",
 			},
 		},
+		"trace_id": traceCtx.TraceID,
 	})
 }
 
 // HandleProviderStats handles GET /v1/providers/stats
 func (h *InferHandler) HandleProviderStats(c *fiber.Ctx) error {
+	ctx := c.Context()
+
+	// Start trace for provider stats request
+	fiberCtx := c.UserContext()
+	ctx, traceCtx := tracing.StartSpan(fiberCtx, "provider_stats")
+	defer tracing.FinishSpan(ctx, traceCtx, nil)
+
+	// Get router stats
 	stats := h.router.GetStats()
+	
+	// Get aggregated metrics from collector
+	collector := metrics.GetMetricsCollector()
+	aggregatedMetrics := collector.GetProviderMetrics()
+
+	// Add trace ID to response
+	c.Set("X-Trace-ID", traceCtx.TraceID)
 
 	return c.JSON(fiber.Map{
-		"providers": stats,
-		"timestamp": time.Now().Unix(),
+		"router_stats":     stats,
+		"aggregated":       aggregatedMetrics,
+		"timestamp":        time.Now().Unix(),
+		"trace_id":         traceCtx.TraceID,
 	})
+}
+
+
+
+// calculateCost calculates the cost of an inference request
+// This is a simplified version - production should use actual provider pricing
+func calculateCost(provider, model string, promptTokens, completionTokens int) float64 {
+	// Mock pricing (per 1000 tokens)
+	// In production, this should come from a pricing table or provider API
+	type pricing struct {
+		promptCost     float64 // per 1000 tokens
+		completionCost float64 // per 1000 tokens
+	}
+
+	pricingMap := map[string]map[string]pricing{
+		"openai": {
+			"gpt-4":         {promptCost: 0.03, completionCost: 0.06},
+			"gpt-4-turbo":   {promptCost: 0.01, completionCost: 0.03},
+			"gpt-3.5-turbo": {promptCost: 0.0015, completionCost: 0.002},
+		},
+		"anthropic": {
+			"claude-3-opus-20240229":   {promptCost: 0.015, completionCost: 0.075},
+			"claude-3-sonnet-20240229": {promptCost: 0.003, completionCost: 0.015},
+			"claude-3-haiku-20240307":  {promptCost: 0.00025, completionCost: 0.00125},
+		},
+		"mock-openai": {
+			"schlep-mock-gpt-4": {promptCost: 0.0, completionCost: 0.0}, // Free for mock
+		},
+	}
+
+	// Get pricing for provider and model
+	if providerPricing, ok := pricingMap[provider]; ok {
+		if modelPricing, ok := providerPricing[model]; ok {
+			promptCost := (float64(promptTokens) / 1000.0) * modelPricing.promptCost
+			completionCostCalc := (float64(completionTokens) / 1000.0) * modelPricing.completionCost
+			return promptCost + completionCostCalc
+		}
+	}
+
+	// Default fallback pricing if model not found
+	return (float64(promptTokens+completionTokens) / 1000.0) * 0.001
 }
