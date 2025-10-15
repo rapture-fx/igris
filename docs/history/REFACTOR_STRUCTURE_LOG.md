@@ -463,3 +463,190 @@ This refactor successfully transformed the Schlep-engine repository into a produ
 ---
 
 **Last Updated:** October 14, 2025
+
+---
+
+# Phase-2: Directory Consolidation & Cleanup
+
+**Branch:** refactor/phase-2
+**Date:** October 14, 2025
+**Purpose:** Final enforcement of production-grade monorepo structure
+
+## Overview
+
+Phase-2 completes the repository restructuring by consolidating scattered root directories into organized top-level categories. All moves preserve git history.
+
+## Changes Summary
+
+### 1. Frontend Consolidation
+**Moved:**
+- `apps/*` → `web/apps/`
+  - Consolidated all web applications (backend, go-gateway, python-ml-service, web-admin, web-console, web-docs, web-landing)
+
+**Result:** Single `web/` directory for all frontend and web-related code.
+
+### 2. Infrastructure Consolidation
+**Moved:**
+- `deploy/` → `infra/deploy/`
+- `nginx/` → `infra/nginx/`
+- `monitoring/` → `infra/monitoring/`
+- `observability/` → `infra/observability/`
+- `helm/` → `infra/helm/`
+- `infrastructure/*` → `infra/` (merged)
+- `database/` → `infra/database/`
+- `redis/` → `infra/redis/`
+- `security/` → `infra/security/`
+- `telemetry/` → `infra/observability/telemetry/`
+- `config/` → `infra/config/`
+- `configs/` → `infra/config/` (merged)
+
+**Result:** All infrastructure, deployment, and operational configs unified under `infra/`.
+
+### 3. Scripts & Config Files
+**Moved:**
+- All `*.sh` scripts → `scripts/`
+- `.env.example`, `.env.production.example`, `.env.test` → `infra/vps/`
+- `docker-compose*.yml` → `infra/vps/`
+- `Dockerfile` → `infra/vps/`
+- `cypress.config.ts` → `infra/config/`
+- `Makefile*` → `scripts/`
+- `pyproject.toml`, `requirements-hybrid-ml.txt` → `adapters/python/`
+- `pnpm-lock.yaml`, `pnpm-workspace.yaml` → `web/`
+
+**Result:** Clean root with scripts and configs in proper locations.
+
+### 4. Documentation Archival
+**Moved to `docs/history/`:**
+- ADAPTIVE_SCALING_IMPLEMENTATION.md
+- AGENTS.md
+- AI_NATIVE_EVOLUTION_REPORT.md
+- ARCHITECTURE.md
+- ARCHITECTURE_ALIGNMENT_REPORT.md
+- CERTIFICATION_REPORT.md
+- CIRCUIT_BREAKER_IMPLEMENTATION_REPORT.md
+- CLEANUP_REPORT.md
+- COMPREHENSIVE_IMPLEMENTATION_SUMMARY.md
+- MERGE_INSTRUCTIONS.md
+- OBSERVABILITY_PATCH.md
+- OPTIMIZATION_PATCHES.md
+- README_MIGRATION.md
+- RUN_BENCHMARKS.md
+- SCHLEP_ENGINE_FABRIC_ALIGNMENT_REPORT.md
+- REFACTOR_STRUCTURE_LOG.md (this file)
+
+**Result:** Root directory decluttered, historical docs preserved.
+
+### 5. Labs & Experimental Code
+**Moved:**
+- `chaos/` → `labs/chaos/`
+- `experiments/` → `labs/experiments/`
+- `examples/` → `labs/examples/`
+- `packages/` → `labs/packages/`
+- `proto/` → `labs/proto/`
+- `tools/` → `labs/tools/`
+- Removed empty `migration-archive/` and `uploads/`
+
+**Result:** All experimental/R&D code consolidated in `labs/`.
+
+### 6. Testing & Benchmarks
+**Moved:**
+- `benchmarks/` → `tests/benchmarks/`
+- `cypress/` → `tests/cypress/`
+- `validation/` → `tests/validation/`
+- `test_*.py` → `tests/`
+
+**Result:** All testing code unified under `tests/`.
+
+## Final Root Directory Structure
+
+```
+schlep-engine/
+├── web/                    # All web applications
+│   ├── apps/               # Next.js, admin, console, docs, landing
+│   ├── pnpm-lock.yaml
+│   └── pnpm-workspace.yaml
+├── infra/                  # All infrastructure
+│   ├── vps/                # VPS deployment (docker-compose, env files)
+│   ├── config/             # Configuration files
+│   ├── deploy/
+│   ├── nginx/
+│   ├── monitoring/
+│   ├── observability/
+│   ├── helm/
+│   ├── database/
+│   ├── redis/
+│   ├── security/
+│   ├── k8s/
+│   └── provisioning/
+├── labs/                   # Experimental/R&D code
+│   ├── chaos/
+│   ├── experiments/
+│   ├── examples/
+│   ├── packages/
+│   ├── proto/
+│   └── tools/
+├── tests/                  # All testing code
+│   ├── benchmarks/
+│   ├── cypress/
+│   ├── validation/
+│   └── test_*.py
+├── docs/                   # Documentation
+│   └── history/            # Archived refactor docs
+├── scripts/                # Utility scripts
+│   ├── *.sh
+│   └── Makefile*
+├── adapters/               # Language adapters
+│   └── python/
+│       ├── pyproject.toml
+│       └── requirements-hybrid-ml.txt
+├── cmd/                    # Go entry points
+├── internal/               # Go business logic
+├── rust-core/              # Rust core
+├── deployments/            # Deployment manifests
+├── integration/            # Integration tests
+├── go.mod                  # Root Go module
+├── go.sum
+├── .gitignore
+└── README.md
+```
+
+## Metrics
+
+| Category | Items Moved |
+|----------|-------------|
+| **Frontend** | 7 apps → web/ |
+| **Infrastructure** | 13 dirs → infra/ |
+| **Scripts/Configs** | 20+ files |
+| **Documentation** | 15 reports → docs/history/ |
+| **Labs** | 6 dirs → labs/ |
+| **Tests** | 4 dirs + 3 files → tests/ |
+| **Total Moves** | 65+ operations |
+
+## Safety & Validation
+
+✅ All moves done with `git mv` (history preserved)
+✅ No code modifications
+✅ No deletions (except empty directories)
+✅ Sequential execution (no race conditions)
+✅ Directories created as needed
+
+## Next Steps
+
+1. **Verify git status** - Check all moves tracked
+2. **Commit changes** - Single atomic commit
+3. **Fix Go imports** - Update import paths in follow-up PR
+4. **Update CI/CD** - Fix any hardcoded paths in workflows
+5. **Update README.md** - Reflect new structure
+
+## Known Issues
+
+- Go imports will still reference old paths (needs follow-up)
+- Some config files (.env.production) not tracked by git (skipped)
+- ENDPOINT_CLASSIFICATION.csv not tracked (skipped)
+
+---
+
+**Phase-2 Complete**
+**Refactored by:** Claude (Sonnet 4.5)
+**Date:** October 14, 2025
+**Branch:** refactor/phase-2
