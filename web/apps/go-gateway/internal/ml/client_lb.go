@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 
-	pb "github.com/schlep-engine/go-gateway/proto/ml"
+	pb "github.com/schlep-engine/schlep-engine/web/apps/go-gateway/proto/ml"
 )
 
 // LoadBalancingStrategy defines load balancing behavior

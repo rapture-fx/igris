@@ -1,4 +1,4 @@
-package router
+package policy
 
 import (
 	"crypto/sha256"

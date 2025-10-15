@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/schlep-engine/go-gateway/internal/cache"
+	"github.com/schlep-engine/schlep-engine/web/apps/go-gateway/internal/cache"
 )
 
 // TestCacheIntegration_L1ToL2Fallback tests the multi-tier cache fallback flow

@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package ml_service;
 
+option go_package = "github.com/schlep-engine/schlep-engine/proto/ml_service";
+
 // Extended ML Service with Orchestration Capabilities
 // Includes: Training, Model Management, Advanced Inference
 
