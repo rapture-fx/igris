@@ -41,7 +41,7 @@ func NewInferHandler() (*InferHandler, error) {
 	registry := providers.NewProviderRegistry()
 
 	// Check PROVIDER_MODE environment variable
-	// Options: "mock" (default), "real", "hybrid"
+	// Options: "mock" (default), "real", "hybrid", "benchmark"
 	providerMode := os.Getenv("PROVIDER_MODE")
 	if providerMode == "" {
 		providerMode = "mock" // Default to mock mode for development
@@ -64,6 +64,42 @@ func NewInferHandler() (*InferHandler, error) {
 		} else {
 			registry.Register(mockProvider)
 			log.Println("[Handler] ✓ Registered Mock OpenAI provider")
+		}
+	}
+
+	if providerMode == "benchmark" || providerMode == "hybrid" {
+		// Register Benchmark OpenAI provider (Phase 11)
+		// Simulates OpenAI with realistic pricing and latency, no API calls
+		benchmarkOpenAIConfig := &providers.ProviderConfig{
+			BaseURL:       "https://api.openai.com/v1",
+			Timeout:       60,
+			MaxRetries:    3,
+			RetryDelay:    1000,
+			EnableMetrics: true,
+		}
+		benchmarkOpenAI, err := openai.NewBenchmarkOpenAIProvider(benchmarkOpenAIConfig)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Benchmark OpenAI provider: %v", err)
+		} else {
+			registry.Register(benchmarkOpenAI)
+			log.Println("[Handler] ✓ Registered Benchmark OpenAI provider (Phase 11)")
+		}
+
+		// Register Benchmark Anthropic provider (Phase 11)
+		// Simulates Claude with realistic pricing and latency, no API calls
+		benchmarkAnthropicConfig := &providers.ProviderConfig{
+			BaseURL:       "https://api.anthropic.com/v1",
+			Timeout:       60,
+			MaxRetries:    3,
+			RetryDelay:    1000,
+			EnableMetrics: true,
+		}
+		benchmarkAnthropic, err := anthropic.NewBenchmarkAnthropicProvider(benchmarkAnthropicConfig)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Benchmark Anthropic provider: %v", err)
+		} else {
+			registry.Register(benchmarkAnthropic)
+			log.Println("[Handler] ✓ Registered Benchmark Anthropic provider (Phase 11)")
 		}
 	}
 
@@ -556,41 +592,17 @@ func (h *InferHandler) HandleProviderStats(c *fiber.Ctx) error {
 
 
 
-// calculateCost calculates the cost of an inference request
-// This is a simplified version - production should use actual provider pricing
+// calculateCost calculates the cost of an inference request using the centralized cost model
 func calculateCost(provider, model string, promptTokens, completionTokens int) float64 {
-	// Mock pricing (per 1000 tokens)
-	// In production, this should come from a pricing table or provider API
-	type pricing struct {
-		promptCost     float64 // per 1000 tokens
-		completionCost float64 // per 1000 tokens
+	// Use the centralized cost model from Phase 11
+	costModel := providers.NewCostModel()
+
+	cost, err := costModel.EstimateCost(provider, model, promptTokens, completionTokens)
+	if err != nil {
+		// Fallback to simple estimation if model not found
+		log.Printf("WARNING: Cost estimation failed for %s:%s, using fallback: %v", provider, model, err)
+		return (float64(promptTokens+completionTokens) / 1000.0) * 0.001
 	}
 
-	pricingMap := map[string]map[string]pricing{
-		"openai": {
-			"gpt-4":         {promptCost: 0.03, completionCost: 0.06},
-			"gpt-4-turbo":   {promptCost: 0.01, completionCost: 0.03},
-			"gpt-3.5-turbo": {promptCost: 0.0015, completionCost: 0.002},
-		},
-		"anthropic": {
-			"claude-3-opus-20240229":   {promptCost: 0.015, completionCost: 0.075},
-			"claude-3-sonnet-20240229": {promptCost: 0.003, completionCost: 0.015},
-			"claude-3-haiku-20240307":  {promptCost: 0.00025, completionCost: 0.00125},
-		},
-		"mock-openai": {
-			"schlep-mock-gpt-4": {promptCost: 0.0, completionCost: 0.0}, // Free for mock
-		},
-	}
-
-	// Get pricing for provider and model
-	if providerPricing, ok := pricingMap[provider]; ok {
-		if modelPricing, ok := providerPricing[model]; ok {
-			promptCost := (float64(promptTokens) / 1000.0) * modelPricing.promptCost
-			completionCostCalc := (float64(completionTokens) / 1000.0) * modelPricing.completionCost
-			return promptCost + completionCostCalc
-		}
-	}
-
-	// Default fallback pricing if model not found
-	return (float64(promptTokens+completionTokens) / 1000.0) * 0.001
+	return cost
 }
