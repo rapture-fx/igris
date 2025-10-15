@@ -650,3 +650,57 @@ schlep-engine/
 **Refactored by:** Claude (Sonnet 4.5)
 **Date:** October 14, 2025
 **Branch:** refactor/phase-2
+
+---
+
+## Post-Phase-2: Stray Files Cleanup
+
+**Branch:** refactor/clean-strays
+**Date:** October 15, 2025
+**Purpose:** Clean up remaining stray files at root after Phase-2
+
+### Changes
+
+**Junk/Generated Files:**
+- Removed all .DS_Store files (not tracked)
+
+**Config Files Moved:**
+- .semgrep.yml → infra/config/
+- .vercelignore → web/
+- .env.production → infra/vps/ (not tracked)
+
+**Test Files Moved:**
+- conftest.py → tests/
+- run_tests.py → tests/
+
+**Deployment Files Moved:**
+- Dockerfile → infra/vps/
+- docker-compose*.yml (5 files) → infra/vps/
+- deployments/grafana/dashboards → infra/monitoring/grafana/
+
+**Documentation Moved:**
+- PROTOTYPE_HYBRID_ARCHITECTURE.yml → docs/history/
+- phase13_certification_status.json → docs/history/
+- phase13_operations_summary.json → docs/history/
+
+**Frontend/Web Files Moved:**
+- package.json → web/
+- .vercelignore → web/
+
+**Integration Tests Moved:**
+- integration/ → labs/integration/
+
+### Metrics
+- Files moved: 23
+- Directories cleaned: 1 (deployments/)
+- Junk files removed: All .DS_Store
+
+### Result
+Root directory is now clean with only essential files:
+- go.mod, go.sum (Go module)
+- .gitignore, .git/ (Git)
+- README.md (Documentation)
+- Top-level directories: web/, infra/, labs/, tests/, docs/, cmd/, internal/, rust-core/, adapters/
+
+**Cleanup Complete**
+**Date:** October 15, 2025
