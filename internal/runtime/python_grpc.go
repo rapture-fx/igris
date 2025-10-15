@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/schlep-engine/go-gateway/internal/ml"
+	"github.com/schlep-engine/schlep-engine/internal/ml"
 )
 
 // ============================================================================

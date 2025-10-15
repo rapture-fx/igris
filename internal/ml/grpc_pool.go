@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"github.com/rs/zerolog/log"
 
-	pb "github.com/schlep-engine/go-gateway/proto"
+	pb "github.com/schlep-engine/schlep-engine/proto"
 )
 
 // Connection pool configuration

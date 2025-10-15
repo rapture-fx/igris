@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
-	"github.com/schlep-engine/go-gateway/internal/ml"
-	"github.com/schlep-engine/go-gateway/internal/rust"
+	"github.com/schlep-engine/schlep-engine/internal/ml"
+	"github.com/schlep-engine/schlep-engine/internal/rust"
 )
 
 func main() {
