@@ -178,7 +178,8 @@ func (l *ShadowLogger) CleanupOldLogs(daysToKeep int) error {
 		}
 
 		// Check if it's a shadow log file
-		if !filepath.Match("shadow-*.jsonl", entry.Name()) {
+		matched, err := filepath.Match("shadow-*.jsonl", entry.Name())
+		if err != nil || !matched {
 			continue
 		}
 

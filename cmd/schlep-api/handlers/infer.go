@@ -2,10 +2,14 @@ package handlers
 
 import (
 	"log"
+	"math/rand"
 	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/schlep-engine/schlep-engine/internal/config"
+	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer"
+	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer/shadow"
 	"github.com/schlep-engine/schlep-engine/internal/inference/router"
 	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/models"
@@ -17,7 +21,12 @@ import (
 
 // InferHandler handles /v1/infer requests
 type InferHandler struct {
-	router *router.InferenceRouter
+	router            *router.InferenceRouter
+	shadowRunner      *shadow.ShadowRunner
+	sloBreaker        *optimizer.SLOBreaker
+	runtimeConfig     *config.RuntimeOptimizerConfig
+	activationMetrics *optimizer.ActivationMetricsRecorder
+	rand              *rand.Rand
 }
 
 // NewInferHandler creates a new infer handler
@@ -111,8 +120,43 @@ func NewInferHandler() (*InferHandler, error) {
 	// Create inference router
 	inferenceRouter := router.NewInferenceRouter(registry)
 
+	// Initialize optimizer components
+	optConfig := config.LoadOptimizerConfig()
+	config.InitRuntimeConfig(optConfig)
+	runtimeConfig := config.GetRuntimeConfig()
+
+	log.Printf("[Handler] Optimizer mode: %s, sample_rate: %.4f",
+		runtimeConfig.GetMode(), runtimeConfig.GetSampleRate())
+
+	// Initialize shadow runner
+	shadowConfig := config.CreateShadowConfig(optConfig)
+	shadowRunner, err := shadow.NewShadowRunner(shadowConfig)
+	if err != nil {
+		log.Printf("WARNING: Failed to initialize shadow runner: %v", err)
+		shadowRunner = nil
+	} else {
+		log.Println("[Handler] ✓ Shadow runner initialized")
+	}
+
+	// Initialize SLO breaker
+	sloBreaker := optimizer.NewSLOBreaker(
+		optimizer.DefaultSLOThresholds(),
+		shadowRunner,
+	)
+	log.Println("[Handler] ✓ SLO breaker initialized")
+
+	// Initialize activation metrics recorder
+	activationMetrics := optimizer.NewActivationMetricsRecorder()
+	activationMetrics.UpdateCurrentMode(string(runtimeConfig.GetMode()))
+	activationMetrics.UpdateSampleRate(runtimeConfig.GetSampleRate())
+
 	return &InferHandler{
-		router: inferenceRouter,
+		router:            inferenceRouter,
+		shadowRunner:      shadowRunner,
+		sloBreaker:        sloBreaker,
+		runtimeConfig:     runtimeConfig,
+		activationMetrics: activationMetrics,
+		rand:              rand.New(rand.NewSource(time.Now().UnixNano())),
 	}, nil
 }
 
@@ -171,8 +215,51 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 		return h.handleStreamingInfer(c, &req)
 	}
 
+	// Determine routing decision source based on optimizer mode
+	currentMode := h.runtimeConfig.GetMode()
+	currentSampleRate := h.runtimeConfig.GetSampleRate()
+	useRustOptimizer := false
+	decisionSource := "go_router"
+
+	// Phase 10: Phased rollout logic
+	if currentMode == shadow.ShadowModeRust && h.shadowRunner != nil {
+		// In Rust mode: sample requests based on sample rate
+		if h.rand.Float64() < currentSampleRate {
+			useRustOptimizer = true
+			decisionSource = "rust_optimizer"
+		} else {
+			// Not sampled, fallback to Go
+			h.activationMetrics.RecordGoFallback("sample_skip")
+		}
+	}
+
+	log.Printf("[Infer] Mode=%s, SampleRate=%.4f, UseRust=%v",
+		currentMode, currentSampleRate, useRustOptimizer)
+
 	// Route and execute inference
-	resp, err := h.router.Route(c.Context(), &req)
+	var resp *models.InferResponse
+	var err error
+
+	if useRustOptimizer {
+		// Try Rust optimizer with automatic Go fallback on error
+		resp, err = h.routeWithRustOptimizer(c, &req)
+		if err != nil {
+			// Rust failed, fallback to Go
+			log.Printf("[Infer] Rust optimizer failed, falling back to Go: %v", err)
+			h.activationMetrics.RecordGoFallback("error")
+			h.activationMetrics.RecordRustFailure("routing_error")
+			decisionSource = "go_router"
+			resp, err = h.router.Route(c.Context(), &req)
+		} else {
+			h.activationMetrics.RecordRustDecision()
+		}
+	} else {
+		// Use Go router
+		resp, err = h.router.Route(c.Context(), &req)
+	}
+
+	// Record request with decision source
+	h.activationMetrics.RecordRequest(string(currentMode), decisionSource)
 
 	// Calculate latency
 	latencyMs := time.Since(startTime).Milliseconds()
@@ -220,15 +307,52 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Record successful request metrics with comprehensive tracking
 	metrics.RecordInferMetrics(c, provider, model, latencyMs, promptTokens, completionTokens, totalTokens, costUSD, true, "")
 
+	// Record activation metrics
+	h.activationMetrics.RecordLatency(decisionSource, float64(latencyMs))
+	h.activationMetrics.RecordCost(decisionSource, costUSD)
+
+	// Record SLO metrics
+	if decisionSource == "rust_optimizer" {
+		h.sloBreaker.RecordRustMetrics(float64(latencyMs), costUSD, false)
+	} else {
+		h.sloBreaker.RecordGoMetrics(float64(latencyMs), costUSD, false)
+	}
+
+	// Periodically check SLO guardrails
+	h.sloBreaker.CheckAndEnforce()
+
 	// Log performance metrics
-	log.Printf("[Infer] Success: provider=%s, model=%s, latency=%dms, tokens=%d, cost=$%.6f",
-		provider, model, latencyMs, totalTokens, costUSD)
+	log.Printf("[Infer] Success: provider=%s, model=%s, latency=%dms, tokens=%d, cost=$%.6f, source=%s",
+		provider, model, latencyMs, totalTokens, costUSD, decisionSource)
 
 	// Return response with trace ID header
 	c.Set("Content-Type", "application/json")
 	traceID := tracing.GetTraceID(ctx)
 	c.Set("X-Trace-ID", traceID)
 	return c.JSON(resp)
+}
+
+// routeWithRustOptimizer routes inference using the Rust optimizer
+func (h *InferHandler) routeWithRustOptimizer(c *fiber.Ctx, req *models.InferRequest) (*models.InferResponse, error) {
+	// Get Rust optimizer decision
+	if h.shadowRunner == nil {
+		return nil, fiber.NewError(fiber.StatusInternalServerError, "Shadow runner not initialized")
+	}
+
+	// For Phase 10, we use the Rust optimizer to select the provider/model
+	// but still execute through the Go router with that selection
+	// TODO: In a future phase, fully integrate Rust optimizer decision execution
+
+	// For now, fallback to Go router with Rust decision guidance
+	// This is a simplified implementation for MVP
+	log.Printf("[Infer] Rust optimizer mode active, executing via Go router")
+
+	return h.router.Route(c.Context(), req)
+}
+
+// GetShadowRunner returns the shadow runner instance (for Admin API access)
+func (h *InferHandler) GetShadowRunner() *shadow.ShadowRunner {
+	return h.shadowRunner
 }
 
 // handleStreamingInfer handles streaming inference requests

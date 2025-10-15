@@ -1,8 +1,8 @@
 package config
 
 import (
-	"os"
-	"strconv"
+	"sync"
+	"time"
 
 	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer/ffi"
 	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer/shadow"
@@ -13,14 +13,30 @@ type OptimizerConfig struct {
 	Mode       shadow.ShadowMode
 	SampleRate float64
 	LogDir     string
+	AdminToken string // Required for admin API authentication
 }
+
+// RuntimeOptimizerConfig holds the runtime configuration with hot-reload support
+type RuntimeOptimizerConfig struct {
+	mu         sync.RWMutex
+	mode       shadow.ShadowMode
+	sampleRate float64
+	logDir     string
+	adminToken string
+	updatedAt  time.Time
+}
+
+// Global runtime configuration instance
+var globalRuntimeConfig *RuntimeOptimizerConfig
+var configInitOnce sync.Once
 
 // LoadOptimizerConfig loads optimizer configuration from environment variables
 func LoadOptimizerConfig() OptimizerConfig {
 	config := OptimizerConfig{
 		Mode:       shadow.ShadowMode(getEnv("OPTIMIZER_MODE", "shadow")),
-		SampleRate: getEnvFloat("OPTIMIZER_SAMPLE_RATE", 1.0),
+		SampleRate: getEnvFloat("OPTIMIZER_SAMPLE_RATE", 0.0),
 		LogDir:     getEnv("OPTIMIZER_LOG_DIR", "logs/optimizer"),
+		AdminToken: getEnv("ADMIN_TOKEN", ""),
 	}
 
 	// Validate mode
@@ -42,6 +58,90 @@ func LoadOptimizerConfig() OptimizerConfig {
 	return config
 }
 
+// InitRuntimeConfig initializes the global runtime configuration
+func InitRuntimeConfig(config OptimizerConfig) {
+	configInitOnce.Do(func() {
+		globalRuntimeConfig = &RuntimeOptimizerConfig{
+			mode:       config.Mode,
+			sampleRate: config.SampleRate,
+			logDir:     config.LogDir,
+			adminToken: config.AdminToken,
+			updatedAt:  time.Now(),
+		}
+	})
+}
+
+// GetRuntimeConfig returns the global runtime configuration
+func GetRuntimeConfig() *RuntimeOptimizerConfig {
+	if globalRuntimeConfig == nil {
+		// Initialize with defaults if not yet initialized
+		InitRuntimeConfig(LoadOptimizerConfig())
+	}
+	return globalRuntimeConfig
+}
+
+// GetMode returns the current optimizer mode
+func (r *RuntimeOptimizerConfig) GetMode() shadow.ShadowMode {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.mode
+}
+
+// SetMode sets the optimizer mode (hot-reload)
+func (r *RuntimeOptimizerConfig) SetMode(mode shadow.ShadowMode) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.mode = mode
+	r.updatedAt = time.Now()
+}
+
+// GetSampleRate returns the current sample rate
+func (r *RuntimeOptimizerConfig) GetSampleRate() float64 {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.sampleRate
+}
+
+// SetSampleRate sets the sample rate (hot-reload)
+func (r *RuntimeOptimizerConfig) SetSampleRate(rate float64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	// Clamp to [0, 1]
+	if rate < 0 {
+		rate = 0
+	} else if rate > 1 {
+		rate = 1
+	}
+	r.sampleRate = rate
+	r.updatedAt = time.Now()
+}
+
+// GetAdminToken returns the admin API token
+func (r *RuntimeOptimizerConfig) GetAdminToken() string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.adminToken
+}
+
+// GetUpdatedAt returns the last update timestamp
+func (r *RuntimeOptimizerConfig) GetUpdatedAt() time.Time {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.updatedAt
+}
+
+// Snapshot returns a snapshot of the current configuration
+func (r *RuntimeOptimizerConfig) Snapshot() OptimizerConfig {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return OptimizerConfig{
+		Mode:       r.mode,
+		SampleRate: r.sampleRate,
+		LogDir:     r.logDir,
+		AdminToken: r.adminToken,
+	}
+}
+
 // CreateShadowConfig creates a shadow config from optimizer config
 func CreateShadowConfig(optConfig OptimizerConfig) shadow.ShadowConfig {
 	return shadow.ShadowConfig{
@@ -50,22 +150,4 @@ func CreateShadowConfig(optConfig OptimizerConfig) shadow.ShadowConfig {
 		LogDir:       optConfig.LogDir,
 		OptimizerCfg: ffi.DefaultConfig(),
 	}
-}
-
-// getEnv gets an environment variable with a default value
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
-// getEnvFloat gets a float environment variable with a default value
-func getEnvFloat(key string, defaultValue float64) float64 {
-	if value := os.Getenv(key); value != "" {
-		if parsed, err := strconv.ParseFloat(value, 64); err == nil {
-			return parsed
-		}
-	}
-	return defaultValue
 }
