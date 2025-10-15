@@ -30,6 +30,9 @@ pub mod reliability;
 // Phase 10: Adaptive Orchestration Layer
 pub mod orchestration;
 
+// Phase 11: Thompson Sampling Optimizer with FFI
+pub mod optimizer;
+
 // Experimental modules moved to labs/research/:
 // - cognitive (Phase 13): labs/research/cognitive
 // - rl (Phase 11): labs/research/rl
