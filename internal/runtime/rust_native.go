@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/schlep-engine/go-gateway/internal/rust"
+	"github.com/schlep-engine/schlep-engine/internal/rust"
 )
 
 // ============================================================================

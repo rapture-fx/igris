@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/sony/gobreaker"
-	"github.com/schlep-engine/go-gateway/internal/observability"
+	"github.com/schlep-engine/schlep-engine/internal/observability"
 )
 
 // CircuitBreakerClient wraps ML client with circuit breaker protection

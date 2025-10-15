@@ -10,7 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
-	"github.com/schlep-engine/go-gateway/internal/observability"
+	"github.com/schlep-engine/schlep-engine/internal/observability"
 )
 
 // StreamingInferenceHandler manages WebSocket streaming inference

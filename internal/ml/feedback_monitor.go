@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/schlep-engine/go-gateway/internal/observability"
+	"github.com/schlep-engine/schlep-engine/internal/observability"
 )
 
 // FeedbackSignal represents telemetry feedback from an inference

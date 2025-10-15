@@ -7,7 +7,7 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	pb "github.com/schlep-engine/go-gateway/proto"
+	pb "github.com/schlep-engine/schlep-engine/proto"
 )
 
 // Client is a gRPC client for the Python ML service

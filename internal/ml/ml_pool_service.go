@@ -15,8 +15,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 	
-	pb "github.com/schlep-engine/go-gateway/proto"
-	"github.com/schlep-engine/go-gateway/internal/metrics"
+	pb "github.com/schlep-engine/schlep-engine/proto"
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 )
 
 // PoolService manages ML service connections via connection pooling

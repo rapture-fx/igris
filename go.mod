@@ -1,4 +1,4 @@
-module github.com/schlep-engine/go-gateway
+module github.com/schlep-engine/schlep-engine
 
 go 1.23.0
 

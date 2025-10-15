@@ -10,7 +10,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/rs/zerolog/log"
 
-	pb "github.com/schlep-engine/go-gateway/proto/orchestration"
+	pb "github.com/schlep-engine/schlep-engine/proto/orchestration"
 )
 
 // TransactionState represents the state of a transaction

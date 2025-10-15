@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	pb "github.com/schlep-engine/go-gateway/proto"
+	pb "github.com/schlep-engine/schlep-engine/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

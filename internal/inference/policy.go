@@ -18,10 +18,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/schlep-engine/go-gateway/proto/orchestration"
-	"github.com/schlep-engine/go-gateway/internal/metrics"
-	"github.com/schlep-engine/go-gateway/internal/cache"
-	"github.com/schlep-engine/go-gateway/internal/vault"
+	pb "github.com/schlep-engine/schlep-engine/proto/orchestration"
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
+	"github.com/schlep-engine/schlep-engine/internal/cache"
+	"github.com/schlep-engine/schlep-engine/internal/vault"
 )
 
 // PolicyEngine handles routing decision-making based on policies and live metrics

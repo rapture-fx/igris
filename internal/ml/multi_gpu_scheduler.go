@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/schlep-engine/go-gateway/internal/observability"
+	"github.com/schlep-engine/schlep-engine/internal/observability"
 )
 
 // GPUDevice represents a single GPU device

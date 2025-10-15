@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	pb "github.com/schlep-engine/go-gateway/proto/orchestration"
+	pb "github.com/schlep-engine/schlep-engine/proto/orchestration"
 )
 
 // PolicyVersion represents a versioned set of policies

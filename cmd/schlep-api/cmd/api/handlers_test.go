@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/schlep-engine/go-gateway/internal/ml"
+	"github.com/schlep-engine/schlep-engine/internal/ml"
 )
 
 func setupTestApp(mlClient *ml.Client) *fiber.App {
