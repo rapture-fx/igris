@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -22,40 +23,82 @@ func NewInferHandler() (*InferHandler, error) {
 	// Initialize provider registry
 	registry := providers.NewProviderRegistry()
 
-	// TODO: Load API keys from environment or config
-	// For MVP, using placeholder configs
-
-	// Register OpenAI provider
-	openaiConfig := &providers.ProviderConfig{
-		APIKey:     "sk-placeholder", // TODO: Load from env
-		BaseURL:    "https://api.openai.com/v1",
-		Timeout:    30,
-		MaxRetries: 3,
-	}
-	openaiProvider, err := openai.NewOpenAIProvider(openaiConfig)
-	if err != nil {
-		log.Printf("WARNING: Failed to initialize OpenAI provider: %v", err)
-	} else {
-		registry.Register(openaiProvider)
-		log.Println("[Handler] Registered OpenAI provider")
+	// Check PROVIDER_MODE environment variable
+	// Options: "mock" (default), "real", "hybrid"
+	providerMode := os.Getenv("PROVIDER_MODE")
+	if providerMode == "" {
+		providerMode = "mock" // Default to mock mode for development
 	}
 
-	// Register Anthropic provider
-	anthropicConfig := &providers.ProviderConfig{
-		APIKey:     "sk-ant-placeholder", // TODO: Load from env
-		BaseURL:    "https://api.anthropic.com/v1",
-		Timeout:    30,
-		MaxRetries: 3,
-	}
-	anthropicProvider, err := anthropic.NewAnthropicProvider(anthropicConfig)
-	if err != nil {
-		log.Printf("WARNING: Failed to initialize Anthropic provider: %v", err)
-	} else {
-		registry.Register(anthropicProvider)
-		log.Println("[Handler] Registered Anthropic provider")
+	log.Printf("[Handler] Provider mode: %s", providerMode)
+
+	// Register providers based on mode
+	if providerMode == "mock" || providerMode == "hybrid" {
+		// Register Mock OpenAI provider
+		mockConfig := &providers.ProviderConfig{
+			BaseURL:       "https://mock.schlep-engine.local",
+			Timeout:       30,
+			MaxRetries:    3,
+			EnableMetrics: true,
+		}
+		mockProvider, err := openai.NewMockOpenAIProvider(mockConfig)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Mock OpenAI provider: %v", err)
+		} else {
+			registry.Register(mockProvider)
+			log.Println("[Handler] ✓ Registered Mock OpenAI provider")
+		}
 	}
 
-	// TODO: Register Python adapter provider
+	if providerMode == "real" || providerMode == "hybrid" {
+		// TODO: Load API keys from environment or config
+		// For MVP, using placeholder configs
+
+		// Register OpenAI provider
+		openaiConfig := &providers.ProviderConfig{
+			APIKey:     os.Getenv("OPENAI_API_KEY"), // Load from env
+			BaseURL:    "https://api.openai.com/v1",
+			Timeout:    30,
+			MaxRetries: 3,
+		}
+		if openaiConfig.APIKey == "" {
+			openaiConfig.APIKey = "sk-placeholder" // Fallback placeholder
+		}
+		openaiProvider, err := openai.NewOpenAIProvider(openaiConfig)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize OpenAI provider: %v", err)
+		} else {
+			registry.Register(openaiProvider)
+			log.Println("[Handler] ✓ Registered OpenAI provider")
+		}
+
+		// Register Anthropic provider
+		anthropicConfig := &providers.ProviderConfig{
+			APIKey:     os.Getenv("ANTHROPIC_API_KEY"), // Load from env
+			BaseURL:    "https://api.anthropic.com/v1",
+			Timeout:    30,
+			MaxRetries: 3,
+		}
+		if anthropicConfig.APIKey == "" {
+			anthropicConfig.APIKey = "sk-ant-placeholder" // Fallback placeholder
+		}
+		anthropicProvider, err := anthropic.NewAnthropicProvider(anthropicConfig)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Anthropic provider: %v", err)
+		} else {
+			registry.Register(anthropicProvider)
+			log.Println("[Handler] ✓ Registered Anthropic provider")
+		}
+
+		// TODO: Register Python adapter provider
+	}
+
+	// Verify at least one provider is registered
+	if len(registry.List()) == 0 {
+		log.Fatal("[Handler] ERROR: No providers registered. Cannot start server.")
+	}
+
+	log.Printf("[Handler] Registered providers: %v", registry.List())
 
 	// Create inference router
 	inferenceRouter := router.NewInferenceRouter(registry)

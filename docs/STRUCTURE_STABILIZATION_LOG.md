@@ -807,3 +807,331 @@ grep -r "internal/inference\"" . --include="*.go" | wc -l
 
 ---
 
+## Phase 7: Mock Provider Integration (Realistic Mode)
+
+### Objective
+Integrate a realistic mock OpenAI provider into the Schlep-engine inference pipeline to enable cost-free development and testing with production-like behavior simulation.
+
+### Problem Statement
+Development teams need to test the `/v1/infer` endpoint without:
+- Incurring external API costs
+- Managing API keys during development
+- Dealing with rate limits or network issues
+- Waiting for real API latency
+
+### Solution
+Implemented `MockOpenAIProvider` that simulates realistic production behavior including:
+- Latency simulation (50-200ms)
+- Token usage calculation (100-1200 tokens)
+- Cost estimation ($0.000002 per token)
+- Streaming inference
+- All provider interface methods
+
+### Files Created
+
+**1. Mock Provider Implementation**
+- `internal/providers/openai/mock_openai.go` (386 lines)
+  - `MockOpenAIProvider` struct with realistic simulation
+  - Configurable mock behavior via `MockConfig`
+  - Random variation in latency and token counts
+  - Context-aware mock responses
+  - Full streaming support
+
+**2. Comprehensive Test Suite**
+- `tests/mock_provider_test.go` (522 lines)
+  - 11 test scenarios covering all functionality
+  - Latency simulation validation
+  - Token usage verification
+  - Cost calculation accuracy
+  - Streaming inference tests
+  - Context cancellation handling
+  - Response variation testing
+
+### Implementation Details
+
+**Mock Behavior Configuration:**
+```go
+type MockConfig struct {
+    MinLatencyMs    int     // Default: 50ms
+    MaxLatencyMs    int     // Default: 200ms
+    MinTokens       int     // Default: 100
+    MaxTokens       int     // Default: 1200
+    CostPerToken    float64 // Default: $0.000002
+    EnableVariation bool    // Default: true
+}
+```
+
+**Realistic Simulation Features:**
+1. **Latency Simulation**
+   - Random latency between 50-200ms
+   - Actual `time.Sleep()` to simulate real API behavior
+   - Separate queue time and inference time tracking
+
+2. **Token Usage**
+   - Prompt tokens estimated from message content (1 token ≈ 4 chars)
+   - Completion tokens respect `MaxTokens` parameter
+   - Random variation (±10 tokens) for realism
+
+3. **Cost Calculation**
+   - Rate: $0.000002 per token ($2 per 1M tokens)
+   - Accurate cost metadata in responses
+   - Cost estimation method for pre-flight checks
+
+4. **Streaming Inference**
+   - Time-to-first-token (TTFT) simulation: 20-70ms
+   - Inter-token delay: 5-20ms
+   - Proper finish reason handling
+
+5. **Response Content**
+   - Context-aware responses including user's query
+   - Simulation metrics in response body
+   - OpenAI-compatible format
+
+### Environment Variable Integration
+
+**PROVIDER_MODE Environment Variable:**
+```bash
+export PROVIDER_MODE=mock    # Use mock provider (default)
+export PROVIDER_MODE=real    # Use real OpenAI/Anthropic APIs
+export PROVIDER_MODE=hybrid  # Register both mock and real providers
+```
+
+**Handler Integration** (`cmd/schlep-api/handlers/infer.go`):
+- Auto-detects `PROVIDER_MODE` environment variable
+- Defaults to `mock` mode for development safety
+- Registers appropriate providers based on mode
+- Validates at least one provider is available
+
+### Model Name Detection
+
+**Updated `internal/models/infer_request.go`:**
+```go
+// Models starting with "schlep-mock-" route to mock-openai provider
+case len(r.Model) >= 12 && r.Model[:12] == "schlep-mock-":
+    return "mock-openai", r.Model
+```
+
+**Supported Mock Models:**
+- `schlep-mock-gpt-4`
+- `schlep-mock-gpt-3.5-turbo`
+
+### Test Coverage
+
+**11 Comprehensive Tests:**
+1. `TestMockProviderInitialization` - Provider creation
+2. `TestMockProviderInference` - Basic inference with metadata validation
+3. `TestMockProviderTokenUsage` - Token simulation accuracy
+4. `TestMockProviderCostSimulation` - Cost calculation verification
+5. `TestMockProviderStreaming` - Streaming inference with chunk counts
+6. `TestMockProviderCapabilities` - Provider capabilities validation
+7. `TestMockProviderHealthCheck` - Health check always passes
+8. `TestMockProviderCostEstimation` - Pre-flight cost estimation
+9. `TestMockProviderVariation` - Response variation across requests
+10. `TestMockProviderWithPolicy` - Policy-based provider selection
+11. `TestMockProviderContextCancellation` - Context cancellation handling
+
+**Test Execution:**
+```bash
+go test ./tests -run TestMockProvider -v
+```
+
+### Provider Capabilities
+
+```go
+ProviderCapabilities{
+    Models: ["schlep-mock-gpt-4", "schlep-mock-gpt-3.5-turbo"],
+    SupportsStreaming: true,
+    SupportsVision: true,
+    SupportsTools: true,
+    SupportsFunctionCall: true,
+    SupportsTemperature: true,
+    SupportsTopP: true,
+    SupportsStop: true,
+    MaxTokens: 4096,
+    MaxContextWindow: 128000,
+    RateLimitRPM: 10000,      // Mock has high limits
+    RateLimitTPM: 1000000,    // No real rate limiting
+    AverageLatencyMs: 125,    // Average of 50-200ms
+    ReliabilityScore: 1.0,    // Always reliable
+    CostPerToken: 0.000002,
+}
+```
+
+### Usage Examples
+
+**1. Basic Inference Request:**
+```bash
+curl -X POST http://localhost:8080/v1/infer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "schlep-mock-gpt-4",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ],
+    "max_tokens": 150
+  }'
+```
+
+**2. Streaming Inference:**
+```bash
+curl -X POST http://localhost:8080/v1/infer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "schlep-mock-gpt-4",
+    "messages": [{"role": "user", "content": "Stream me content"}],
+    "stream": true
+  }'
+```
+
+**3. Policy Override:**
+```bash
+curl -X POST http://localhost:8080/v1/infer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "schlep-mock-gpt-4",
+    "messages": [{"role": "user", "content": "Test"}],
+    "policy": {
+      "provider": "mock-openai",
+      "optimize_for": "latency"
+    }
+  }'
+```
+
+### Response Format Example
+
+```json
+{
+  "id": "chatcmpl-1729012345000000000",
+  "object": "chat.completion",
+  "created": 1729012345,
+  "model": "schlep-mock-gpt-4",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Hello from Schlep Mock OpenAI! 🎭\n\n📊 **Simulation Metrics:**\n- Model: schlep-mock-gpt-4\n- Tokens Used: 342 tokens\n- Latency: 127ms\n- Estimated Cost: $0.000684\n\n💬 **Your Query:** \"Hello!\"\n\n✨ This is a realistic mock response..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 12,
+    "completion_tokens": 330,
+    "total_tokens": 342
+  },
+  "metadata": {
+    "provider": "mock-openai",
+    "region": "",
+    "model_used": "schlep-mock-gpt-4",
+    "route_decision": "mock_provider_selected",
+    "latency_ms": 127,
+    "queue_time_ms": 5,
+    "inference_time_ms": 122,
+    "cost_usd": 0.000684,
+    "quality_score": 0.95,
+    "cache_hit": false,
+    "request_id": "chatcmpl-1729012345000000000",
+    "timestamp": "2025-10-15T14:30:45Z",
+    "retry_count": 0,
+    "fallback": false
+  }
+}
+```
+
+### Benefits
+
+**For Developers:**
+- ✅ Zero external API costs during development
+- ✅ No API key management required
+- ✅ Deterministic testing environment
+- ✅ Fast iteration cycles
+- ✅ Works offline
+
+**For Testing:**
+- ✅ Predictable latency ranges for performance testing
+- ✅ Consistent response structure validation
+- ✅ Cost calculation verification
+- ✅ Streaming behavior testing
+- ✅ Context cancellation testing
+
+**For CI/CD:**
+- ✅ No external dependencies in test pipelines
+- ✅ Fast test execution (no real API latency)
+- ✅ No rate limit concerns
+- ✅ Reproducible test results
+
+### Build Verification
+
+```bash
+# Test compilation
+go build ./internal/providers/openai/...
+# ✅ Compiles successfully
+
+# Run mock provider tests
+go test ./tests -run TestMockProvider -v
+# ✅ All 11 tests pass
+
+# Verify handler integration
+go build ./cmd/schlep-api/...
+# ✅ Builds successfully with mock provider
+```
+
+### Integration with Existing Systems
+
+**Compatible With:**
+- ✅ Provider registry (`internal/providers/provider_interface.go`)
+- ✅ Inference router (`internal/inference/router/router_integration.go`)
+- ✅ API handlers (`cmd/schlep-api/handlers/infer.go`)
+- ✅ Test infrastructure (`tests/infer_api_test.go`)
+- ✅ Response models (`internal/models/infer_response.go`)
+
+**Router Integration:**
+- Mock provider automatically participates in routing decisions
+- Can be selected via model name pattern (`schlep-mock-*`)
+- Can be forced via policy override
+- Supports all optimization goals (latency, cost, quality)
+
+### Future Enhancements
+
+**Potential Extensions:**
+1. **Configurable Response Templates**
+   - Allow custom response content
+   - Support different response styles
+
+2. **Error Simulation**
+   - Simulate rate limits
+   - Simulate network failures
+   - Simulate timeout scenarios
+
+3. **Advanced Metrics**
+   - Request/response size tracking
+   - Throughput simulation
+   - Concurrent request handling
+
+4. **Mock Response Recording**
+   - Record real API responses
+   - Replay for deterministic testing
+
+### Constraints Validated
+
+✅ **No external network calls** - All simulation is local
+✅ **No dependency on OpenAI SDKs** - Pure Go implementation
+✅ **Uses math/rand and time.Sleep** - Realistic simulation
+✅ **No API keys required** - Safe for open development
+
+### Documentation Updated
+
+**Files Modified:**
+- ✅ `STRUCTURE_STABILIZATION_LOG.md` - Added Phase 7 documentation
+- ✅ Test coverage documented in test file headers
+- ✅ Code comments explain simulation logic
+
+### Change Log Entry
+
+| Date | Phase | Action | Status |
+|------|-------|--------|--------|
+| 2025-10-15 | 7 | Mock Provider Integration (Realistic Mode) | ✅ Complete |
+
+---
+
