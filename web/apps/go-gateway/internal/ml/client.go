@@ -18,7 +18,7 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	pb "github.com/schlep-engine/go-gateway/proto/ml"
+	pb "github.com/schlep-engine/schlep-engine/web/apps/go-gateway/proto/ml"
 )
 
 // ClientConfig holds configuration for ML gRPC client
