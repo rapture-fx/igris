@@ -88,23 +88,24 @@ func (r *InferRequest) Validate() error {
 // GetProvider extracts the target provider from the model name or policy
 // Returns provider name and model identifier
 func (r *InferRequest) GetProvider() (string, string) {
-	// TODO: Implement smart provider detection based on model name
-	// Examples:
-	// - "gpt-4" -> "openai", "gpt-4"
-	// - "claude-3-opus" -> "anthropic", "claude-3-opus-20240229"
-	// - "custom-llama2" -> "python-adapter", "llama2-7b"
-
+	// Priority 1: Explicit provider override in policy
 	if r.Policy != nil && r.Policy.Provider != "" {
 		return r.Policy.Provider, r.Model
 	}
 
-	// Placeholder logic (will be replaced with router integration)
+	// Priority 2: Model-based provider detection
 	if len(r.Model) > 0 {
 		switch {
-		case r.Model[:3] == "gpt":
+		// Mock provider models
+		case len(r.Model) >= 12 && r.Model[:12] == "schlep-mock-":
+			return "mock-openai", r.Model
+		// OpenAI models
+		case len(r.Model) >= 3 && r.Model[:3] == "gpt":
 			return "openai", r.Model
+		// Anthropic models
 		case len(r.Model) >= 6 && r.Model[:6] == "claude":
 			return "anthropic", r.Model
+		// Python adapter for custom models
 		default:
 			return "python-adapter", r.Model
 		}
