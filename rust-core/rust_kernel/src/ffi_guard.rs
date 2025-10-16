@@ -5,18 +5,15 @@
 
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
-use std::panic::{self, catch_unwind, PanicInfo};
+use std::panic::catch_unwind;
 use std::ptr;
-use std::slice;
 use std::time::Duration;
-use lazy_static::lazy_static;
-use std::sync::{Arc, Mutex};
 use parking_lot::RwLock;
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
 
 use serde_json::{Value, json};
-use log::{error, warn, info, debug};
+use log::{error, warn, info};
 use tokio::sync::Semaphore;
 
 // Global FFI state tracking

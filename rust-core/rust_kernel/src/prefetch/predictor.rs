@@ -16,7 +16,6 @@
 
 use crate::prefetch::telemetry::AccessPattern;
 use std::sync::atomic::{AtomicU64, Ordering};
-use std::sync::Arc;
 use parking_lot::RwLock;
 
 /// Configuration for the access predictor
