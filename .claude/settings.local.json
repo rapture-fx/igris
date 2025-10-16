@@ -9,7 +9,10 @@
       "Bash(tree:*)",
       "Bash(cargo build:*)",
       "Bash($HOME/.cargo/bin/cbindgen:*)",
-      "Bash(cargo run:*)"
+      "Bash(cargo run:*)",
+      "Bash(go test ./tests -run TestBenchmark -v -timeout 120s)",
+      "Bash(go test -v ./tests/benchmark_provider_test.go -timeout 120s)",
+      "Bash(/tmp/benchmark-verify)"
     ],
     "deny": [],
     "ask": []
