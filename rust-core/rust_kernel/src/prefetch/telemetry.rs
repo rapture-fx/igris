@@ -9,9 +9,9 @@
 //! Designed for low overhead with sampling and lock-free data structures.
 
 use dashmap::DashMap;
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use parking_lot::RwLock;
 
 /// Configuration for telemetry collection

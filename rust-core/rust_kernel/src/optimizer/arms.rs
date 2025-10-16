@@ -3,7 +3,6 @@
 //! Implements Beta distribution-based arms for Thompson Sampling.
 
 use serde::{Deserialize, Serialize};
-use std::f64::consts::PI;
 
 /// Bandit arm representing a discrete action with Beta distribution parameters
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -10,8 +10,8 @@
 //! 4. Resume (450ms) - Health verification, circuit breaker closes
 
 use crate::reliability::{
-    CheckpointManager, StateSnapshot, TraceRecorder, TraceEntry,
-    FailurePredictor, PredictionSignal, TelemetrySignals,
+    CheckpointManager, StateSnapshot, TraceRecorder,
+    FailurePredictor, TelemetrySignals,
 };
 use serde::{Deserialize, Serialize};
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};

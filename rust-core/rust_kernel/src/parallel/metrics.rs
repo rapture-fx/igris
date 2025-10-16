@@ -2,7 +2,7 @@
 //!
 //! Comprehensive metrics collection for parallel batch processing
 
-use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::Instant;
 use serde::{Deserialize, Serialize};
 
