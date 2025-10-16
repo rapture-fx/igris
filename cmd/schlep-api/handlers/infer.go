@@ -505,8 +505,6 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 
 // HandleHealth handles GET /v1/health
 func (h *InferHandler) HandleHealth(c *fiber.Ctx) error {
-	ctx := c.Context()
-
 	// Start trace for health check
 	fiberCtx := c.UserContext()
 	ctx, traceCtx := tracing.StartSpan(fiberCtx, "health_check")
@@ -531,8 +529,6 @@ func (h *InferHandler) HandleHealth(c *fiber.Ctx) error {
 
 // HandleModels handles GET /v1/models
 func (h *InferHandler) HandleModels(c *fiber.Ctx) error {
-	ctx := c.Context()
-
 	// Start trace for models request
 	fiberCtx := c.UserContext()
 	ctx, traceCtx := tracing.StartSpan(fiberCtx, "models_list")
@@ -565,8 +561,6 @@ func (h *InferHandler) HandleModels(c *fiber.Ctx) error {
 
 // HandleProviderStats handles GET /v1/providers/stats
 func (h *InferHandler) HandleProviderStats(c *fiber.Ctx) error {
-	ctx := c.Context()
-
 	// Start trace for provider stats request
 	fiberCtx := c.UserContext()
 	ctx, traceCtx := tracing.StartSpan(fiberCtx, "provider_stats")

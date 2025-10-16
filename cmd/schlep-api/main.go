@@ -10,7 +10,6 @@ import (
 	"github.com/schlep-engine/schlep-engine/internal/api"
 	"github.com/schlep-engine/schlep-engine/internal/logging"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
-	"github.com/schlep-engine/schlep-engine/internal/observability"
 )
 
 func main() {

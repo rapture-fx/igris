@@ -19,7 +19,7 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 
 	// Prometheus metrics endpoint
 	// Exposes metrics in Prometheus format
-	app.Get("/metrics", metrics.PrometheusMiddleware(), func(c *fiber.Ctx) error {
+	app.Get("/metrics", func(c *fiber.Ctx) error {
 		return adaptor.HTTPHandler(promhttp.Handler())(c)
 	})
 	log.Println("[Routes] ✓ GET /metrics (Prometheus metrics)")
@@ -27,10 +27,9 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 	// Schlep-engine specific aggregated metrics endpoint
 	// Returns JSON with provider statistics and aggregated metrics
 	app.Get("/v1/metrics", func(c *fiber.Ctx) error {
-		ctx := c.Context()
-		
 		// Start trace for metrics request
-		ctx, traceCtx := tracing.StartSpan(ctx, "metrics_request")
+		fiberCtx := c.UserContext()
+		ctx, traceCtx := tracing.StartSpan(fiberCtx, "metrics_request")
 		defer tracing.FinishSpan(ctx, traceCtx, nil)
 
 		// Get metrics collector
@@ -54,11 +53,10 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 
 	// Metrics health check endpoint
 	// Verifies metrics collection is working
-	app.Get("/v1/metrics/health", metrics.HealthCheckMetrics(), func(c *fiber.Ctx) error {
-		ctx := c.Context()
-		
+	app.Get("/v1/metrics/health", func(c *fiber.Ctx) error {
 		// Start trace for metrics health check
-		ctx, traceCtx := tracing.StartSpan(ctx, "metrics_health")
+		fiberCtx := c.UserContext()
+		ctx, traceCtx := tracing.StartSpan(fiberCtx, "metrics_health")
 		defer tracing.FinishSpan(ctx, traceCtx, nil)
 
 		collector := metrics.GetMetricsCollector()
@@ -81,11 +79,10 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 
 	// Metrics debug endpoint
 	// Returns detailed debug information about metrics collection
-	app.Get("/v1/metrics/debug", tracing.TimingMiddleware(), func(c *fiber.Ctx) error {
-		ctx := c.Context()
-		
+	app.Get("/v1/metrics/debug", func(c *fiber.Ctx) error {
 		// Start trace for metrics debug request
-		ctx, traceCtx := tracing.StartSpan(ctx, "metrics_debug")
+		fiberCtx := c.UserContext()
+		ctx, traceCtx := tracing.StartSpan(fiberCtx, "metrics_debug")
 		defer tracing.FinishSpan(ctx, traceCtx, nil)
 
 		collector := metrics.GetMetricsCollector()
