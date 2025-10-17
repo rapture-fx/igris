@@ -1,33 +1,23 @@
-import WorksOutOfTheBox from '../src/components/sections/WorksOutOfTheBox';
-import BuiltForEngineers from '../src/components/sections/BuiltForEngineers';
 import Header from '../src/components/sections/Header'
-import AudienceTabs from '../src/components/sections/AudienceTabs'
 import Hero from '../src/components/sections/Hero';
-import CardSection from '../src/components/sections/CardSection';
-import AdditionalFeatures from '../src/components/sections/AdditionalFeatures'
-import SecurityFeatures from '../src/components/sections/SecurityFeatures'
-import SecuritySection from '../src/components/sections/SecuritySection'
-import AudienceGuide from '../src/components/sections/AudienceGuide'
-import Integrations from '../src/components/sections/Integrations'
-import Benefits from '../src/components/sections/Benefits'
-import HowItWorks from '../src/components/sections/HowItWorks'
-import LatestUpdate from '../src/components/sections/LatestUpdate'
 import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
-import StackIntegrations from '../src/components/sections/StackIntegrations'
-import SchlepEngineInStack from '../src/components/sections/SchlepEngineInStack'
-
-
+import CoreCapabilities from '../src/components/sections/CoreCapabilities'
+import DeveloperIntegration from '../src/components/sections/DeveloperIntegration'
+import SafetyReliability from '../src/components/sections/SafetyReliability'
+import SupportedModels from '../src/components/sections/SupportedModels'
+import CurrentPhase from '../src/components/sections/CurrentPhase'
 export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Header />
       <main style={{ backgroundColor: '#f6f6f4', paddingTop: '80px' }}>
         <Hero />
-        <StackIntegrations />
-        <WorksOutOfTheBox />
-        <SchlepEngineInStack />
-        <SecuritySection />
+        <CoreCapabilities />
+        <DeveloperIntegration />
+        <SafetyReliability />
+        <SupportedModels />
+        <CurrentPhase />
         <CallToAction />
       </main>
       <Footer />
