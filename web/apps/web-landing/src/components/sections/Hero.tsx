@@ -132,11 +132,11 @@ export default function Hero() {
                   style={{ color: '#1f53d0' }}
                   className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
                 >
-                  AI Inference Optimization Fabric
+                  The Routing Engine and Control Plane for AI Inference
                 </h1>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  The invisible layer that makes every model <span className="text-blue-600 font-semibold">cheaper</span>, <span className="text-green-600 font-semibold">faster</span>, and <span className="text-purple-600 font-semibold">smarter</span> to use. <br /> Real-time orchestration, cost optimization, and performance tuning at scale.
+                  Optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-12">
@@ -147,6 +147,15 @@ export default function Hero() {
                   >
                     Start Optimizing
                     <ChevronRight className="ml-2 h-4 w-4" />
+                  </Link>
+                  <Link
+                    href="https://github.com/schlep-engine"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ backgroundColor: '#24292e' }}
+                    className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                  >
+                    GitHub
                   </Link>
                 </div>
 
