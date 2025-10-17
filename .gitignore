@@ -20225,3 +20225,8 @@ path.zsh.inc
 *.so
 *.a
 Cargo.lock
+
+# Build artifacts
+**/.next/
+**/node_modules/
+**/.turbo/

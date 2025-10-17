@@ -1,15 +1,25 @@
 // Minimal JavaScript stub implementation for web-landing build compatibility
 
+interface ApiError {
+  message: string;
+  code?: string;
+  status?: number;
+}
+
 class AuthManager {
-  constructor(config) {}
+  constructor(config: any) {}
   
-  async login(email, password) {
+  async login(email: string, password: string) {
     return null;
   }
   
   async logout() {}
   
   async refresh() {}
+  
+  async handleOAuthCallback(params: { code: string; provider: string }) {
+    return null;
+  }
   
   isAuthenticated() {
     return false;
@@ -27,16 +37,17 @@ const createTokenStorage = () => ({
 });
 
 class SchlepEngineClient {
-  constructor(config) {}
+  constructor(config: any) {}
   
-  async upload(file) {
+  async upload(file: File) {
     return null;
   }
   
-  async processData(data) {
+  async processData(data: any) {
     return null;
   }
 }
 
 export { AuthManager, createTokenStorage, SchlepEngineClient };
+export type { ApiError };
 export default SchlepEngineClient;
