@@ -26,20 +26,20 @@ export default function CurrentPhase() {
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* Current Phase (Alpha) */}
+              {/* Now Available */}
               <div className="text-left">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Current Phase</h2>
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Now Available</h2>
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Alpha: Benchmark Mode Active
+                  Benchmark Mode — Available Now
                 </h3>
 
                 <div className="space-y-4 text-gray-700 dark:text-gray-300 font-inter">
                   <p className="text-base leading-7">
-                    <strong className="text-gray-900 dark:text-white">Phase 11 Complete:</strong> Benchmark providers simulate OpenAI and Anthropic APIs without external requests. Zero cost testing with realistic latency profiles.
+                    <strong className="text-gray-900 dark:text-white">Simulated Providers with Real Latency & Cost:</strong> Benchmark providers simulate OpenAI and Anthropic APIs without external requests. Zero-cost testing with realistic latency profiles — no API keys required.
                   </p>
 
                   <p className="text-base leading-7">
-                    <strong className="text-gray-900 dark:text-white">Optimizer Activation Ready:</strong> Admin-controlled phased rollout (1% → 100%) with shadow mode validation and automatic SLO guardrails.
+                    <strong className="text-gray-900 dark:text-white">Smart Routing & Optimization:</strong> Admin-controlled phased rollout (1% → 100%) with shadow mode validation and automatic SLO guardrails.
                   </p>
 
                   <ul className="list-disc list-inside space-y-2 text-sm">
@@ -51,11 +51,11 @@ export default function CurrentPhase() {
                 </div>
               </div>
 
-              {/* Phase 12 Roadmap */}
+              {/* Coming Soon */}
               <div className="text-left">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Coming Next</h2>
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Coming Soon</h2>
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Phase 12: Real Provider APIs
+                  Live Provider Integration
                 </h3>
 
                 <div className="space-y-4 text-gray-700 dark:text-gray-300 font-inter">
@@ -64,12 +64,12 @@ export default function CurrentPhase() {
                   </p>
 
                   <div className="rounded-lg p-4 border border-gray-200" style={{ backgroundColor: '#f2f1ed' }}>
-                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">Planned Features</h4>
+                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">Upcoming Capabilities</h4>
                     <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      <li>Real API calls with rate limit handling</li>
-                      <li>Credential rotation and secret management</li>
+                      <li>Live API connections to OpenAI and Anthropic</li>
+                      <li>Secure API key management with rotation</li>
                       <li>Connection validation before routing</li>
-                      <li>True server-sent events streaming</li>
+                      <li>True streaming with provider-native responses</li>
                     </ul>
                   </div>
 
