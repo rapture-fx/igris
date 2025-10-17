@@ -73,7 +73,7 @@ export default function SupportedModels() {
                 Route across OpenAI and Anthropic models.<br />Automatic cost and latency optimization.
               </h3>
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl mx-auto">
-                Benchmark mode simulates all models with realistic latency profiles. Phase 12 adds live API integration.
+                Benchmark mode simulates all models with realistic latency profiles. Live API integration coming soon.
               </p>
             </div>
 
@@ -167,7 +167,7 @@ export default function SupportedModels() {
                 </div>
                 <div className="text-xs font-mono">
                   <span className="font-semibold text-gray-900">real:</span>
-                  <p className="text-gray-600 mt-1">Live API integration (Phase 12+)</p>
+                  <p className="text-gray-600 mt-1">Live API integration (Coming Soon)</p>
                 </div>
                 <div className="text-xs font-mono">
                   <span className="font-semibold text-gray-900">hybrid:</span>
