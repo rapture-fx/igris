@@ -159,14 +159,7 @@ export default function Hero() {
                   </Link>
                 </div>
 
-                <div
-                  className="text-left relative z-10 rounded-xl overflow-hidden"
-                  style={{
-                    backgroundColor: '#f2f1ed',
-                    border: '1px solid #e5e7eb',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 -10px 15px -3px rgba(0, 0, 0, 0.1)'
-                  }}
-                >
+                <div className="relative z-10 rounded-xl overflow-hidden" style={{ backgroundColor: '#f7f7f3', minHeight: '600px', padding: '40px' }}>
                   {/* IDE-style header with window controls */}
                   <div className="flex items-center justify-between px-4 py-1 border-b border-gray-300" style={{ backgroundColor: '#f2f1ed' }}>
                     <div className="flex items-center space-x-2">

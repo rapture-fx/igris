@@ -1,5 +1,5 @@
 import Header from '../src/components/sections/Header'
-import Hero from '../src/components/sections/Hero';
+import Hero from '../src/components/sections/Hero-Simple';
 import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
