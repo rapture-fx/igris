@@ -1,0 +1,246 @@
+{
+  "audit_metadata": {
+    "audit_date": "2025-10-17",
+    "phase": "Post-Phase 11 (Benchmark Provider Integration)",
+    "auditor": "Claude Code",
+    "scope": "Legacy backend components under /web/apps/"
+  },
+  "summary": {
+    "total_components_audited": 4,
+    "safe_to_delete": 2,
+    "recommend_archive": 2,
+    "requires_review": 1,
+    "blocking_dependencies": 0
+  },
+  "components": [
+    {
+      "path": "web/apps/backend",
+      "name": "FastAPI Backend",
+      "status": "unused",
+      "reason": "No references in active codebase. Replaced by Go-based /cmd/schlep-api",
+      "action": "delete",
+      "risk_level": "low",
+      "size_estimate": "~5MB",
+      "replacement": "/cmd/schlep-api",
+      "dependencies_found": [],
+      "contains_valuable_patterns": false,
+      "technical_justification": "FastAPI backend was an early prototype for ML lifecycle management. All functionality has been migrated to the Go architecture with no remaining references in cmd/, internal/, or CI/CD workflows.",
+      "deletion_command": "rm -rf web/apps/backend/"
+    },
+    {
+      "path": "web/apps/go-gateway",
+      "name": "Go Gateway (Legacy)",
+      "status": "deprecated",
+      "reason": "Superseded by /cmd/schlep-api with different architecture focus",
+      "action": "archive",
+      "risk_level": "medium",
+      "size_estimate": "~10MB",
+      "replacement": "/cmd/schlep-api",
+      "dependencies_found": [],
+      "contains_valuable_patterns": true,
+      "valuable_patterns": [
+        "JWT authentication middleware",
+        "Rate limiting with Redis",
+        "Multi-tier caching implementation",
+        "Prometheus metrics integration",
+        "GORM database patterns",
+        "Rust FFI integration examples"
+      ],
+      "technical_justification": "go-gateway (295 LOC) was a full-featured API gateway with DB, Redis, auth, and caching. Replaced by simpler schlep-api (96 LOC) focused on inference. No active imports found (different module: github.com/schlep-engine/gateway vs. github.com/schlep-engine/schlep-engine). CI workflow references non-existent go_gateway/ directory.",
+      "archive_command": "mv web/apps/go-gateway docs/archive/phase-11-cleanup/go-gateway"
+    },
+    {
+      "path": "web/apps/python-ml-service",
+      "name": "Python ML Service (Legacy)",
+      "status": "deprecated",
+      "reason": "Replaced by simplified /adapters/python/python_ml/ adapter",
+      "action": "archive",
+      "risk_level": "medium",
+      "size_estimate": "~8MB",
+      "replacement": "/adapters/python/python_ml/",
+      "dependencies_found": [],
+      "contains_valuable_patterns": true,
+      "valuable_patterns": [
+        "BatchPredict implementation",
+        "Dynamic model loading/unloading",
+        "GetModelInfo endpoint",
+        "gRPC authentication interceptor",
+        "Server reflection setup"
+      ],
+      "proto_comparison": {
+        "legacy_proto": "web/apps/python-ml-service/proto/ml_service.proto",
+        "active_proto": "adapters/python/python_ml/proto/ml_service.proto",
+        "legacy_rpcs": 6,
+        "active_rpcs": 2,
+        "difference": "Legacy version has BatchPredict, GetModelInfo, LoadModel, UnloadModel which were removed for simplicity"
+      },
+      "technical_justification": "Active ML client in /internal/ml/client.go imports from github.com/schlep-engine/schlep-engine/proto, which maps to /adapters/python/python_ml/proto/. Proto files differ significantly (6 RPCs vs 2 RPCs). Docker compose references ./python_ml context which doesn't match this legacy path.",
+      "archive_command": "mv web/apps/python-ml-service docs/archive/phase-11-cleanup/python-ml-service"
+    },
+    {
+      "path": "web/apps/web-docs",
+      "name": "Documentation Site (Next.js)",
+      "status": "unused",
+      "reason": "Not included in pnpm-workspace.yaml, no CI/CD references",
+      "action": "evaluate_then_archive",
+      "risk_level": "low",
+      "size_estimate": "~730MB (includes node_modules and .next build)",
+      "replacement": "Unknown - may have been migrated or replaced",
+      "dependencies_found": [],
+      "contains_valuable_patterns": false,
+      "valuable_content": [
+        "SDK documentation (Go, Python, Rust, Java, CLI)",
+        "API introduction and quickstart guides",
+        "Changelog entries (v2.1.0, v2.2.0, v2.3.0)",
+        "Security documentation",
+        "Pricing documentation"
+      ],
+      "technical_justification": "Not referenced in /web/pnpm-workspace.yaml (only web-landing is active). No GitHub Actions workflows. No Docker compose references. Contains potentially valuable documentation content that should be reviewed before deletion.",
+      "evaluation_steps": [
+        "Check if SDK documentation exists in current docs location",
+        "Verify changelog content is preserved elsewhere",
+        "Extract pricing/security docs if still relevant",
+        "Review API reference material"
+      ],
+      "archive_command": "mv web/apps/web-docs docs/archive/phase-11-cleanup/web-docs"
+    }
+  ],
+  "infrastructure_cleanup": [
+    {
+      "path": ".github/workflows/go-gateway-ci.yml",
+      "type": "ci_workflow",
+      "status": "stale",
+      "reason": "References non-existent go_gateway/ directory",
+      "action": "delete",
+      "risk_level": "low",
+      "deletion_command": "rm .github/workflows/go-gateway-ci.yml"
+    },
+    {
+      "path": "infra/vps/docker-compose.production.yml",
+      "type": "docker_compose",
+      "status": "outdated",
+      "reason": "References non-existent build contexts for go-gateway and python-ml",
+      "action": "update",
+      "risk_level": "medium",
+      "issues": [
+        "go-gateway service references docker/go-gateway/Dockerfile which doesn't exist",
+        "python-ml service references ./python_ml context which doesn't exist",
+        "Should reference adapters/python/python_ml/ instead"
+      ],
+      "recommended_fixes": [
+        "Remove go-gateway service definition (replaced by active API)",
+        "Update python-ml build context to ../../adapters/python/python_ml/",
+        "Verify production deployment doesn't actually use this file"
+      ]
+    }
+  ],
+  "action_plan": {
+    "phase_1_immediate_safe_deletions": {
+      "description": "Components with zero dependencies and low risk",
+      "actions": [
+        {
+          "command": "rm -rf web/apps/backend/",
+          "component": "FastAPI backend",
+          "risk": "low"
+        },
+        {
+          "command": "rm .github/workflows/go-gateway-ci.yml",
+          "component": "Stale CI workflow",
+          "risk": "low"
+        }
+      ],
+      "estimated_space_freed": "~5MB"
+    },
+    "phase_2_content_review": {
+      "description": "Components requiring content extraction before archival",
+      "actions": [
+        {
+          "component": "web-docs",
+          "steps": [
+            "Verify SDK documentation exists in active docs location",
+            "Extract changelog entries if not preserved elsewhere",
+            "Copy security/pricing docs to current documentation",
+            "Review API reference material for completeness"
+          ],
+          "estimated_time": "1-2 hours"
+        }
+      ]
+    },
+    "phase_3_archival": {
+      "description": "Move deprecated but potentially valuable components to archive",
+      "actions": [
+        {
+          "command": "mkdir -p docs/archive/phase-11-cleanup/",
+          "description": "Create archive directory"
+        },
+        {
+          "command": "mv web/apps/go-gateway docs/archive/phase-11-cleanup/",
+          "component": "go-gateway",
+          "reason": "Preserve auth/caching patterns"
+        },
+        {
+          "command": "mv web/apps/python-ml-service docs/archive/phase-11-cleanup/",
+          "component": "python-ml-service",
+          "reason": "Preserve BatchPredict and model management patterns"
+        },
+        {
+          "command": "mv web/apps/web-docs docs/archive/phase-11-cleanup/",
+          "component": "web-docs",
+          "reason": "After content review in Phase 2"
+        }
+      ],
+      "estimated_space_freed": "~18MB (after removing node_modules from web-docs)"
+    },
+    "phase_4_infrastructure_cleanup": {
+      "description": "Update or remove outdated infrastructure configs",
+      "actions": [
+        {
+          "file": "infra/vps/docker-compose.production.yml",
+          "action": "manual_edit",
+          "changes": [
+            "Remove go-gateway service definition",
+            "Fix python-ml build context path",
+            "Verify this file is actually used in production"
+          ]
+        }
+      ]
+    }
+  },
+  "validation_checklist": {
+    "before_deletion": [
+      "✅ Verify no imports in /cmd/ directory",
+      "✅ Verify no imports in /internal/ directory",
+      "✅ Check go.mod for module dependencies",
+      "✅ Search CI/CD workflows for references",
+      "✅ Check Docker Compose files",
+      "✅ Verify not in pnpm-workspace.yaml"
+    ],
+    "after_deletion": [
+      "Run go build ./cmd/schlep-api to verify no broken imports",
+      "Run go test ./... to verify tests still pass",
+      "Check CI/CD pipelines run successfully",
+      "Verify documentation is still accessible"
+    ]
+  },
+  "rollback_plan": {
+    "description": "If issues arise after deletion/archival",
+    "steps": [
+      "Archived components remain in docs/archive/phase-11-cleanup/",
+      "Use git history to restore deleted components if needed",
+      "Check commit before cleanup: git log --oneline -1",
+      "Restore with: git checkout <commit-hash> -- <path>"
+    ]
+  },
+  "estimated_impact": {
+    "disk_space_freed": "~23MB (or ~750MB if web-docs node_modules cleaned)",
+    "reduced_confusion": "Removes 4 inactive components from codebase",
+    "maintenance_burden_reduction": "No need to update dependencies for unused components",
+    "documentation_clarity": "Clearer separation of active vs archived code"
+  },
+  "notes": [
+    "No blocking dependencies found - all deletions/archives are safe",
+    "Docker compose production file has stale references that should be fixed",
+    "Consider documenting which features from legacy components may be useful for future phases",
+    "web-docs content should be reviewed before final archival to ensure no documentation loss"
+  ]
+}
