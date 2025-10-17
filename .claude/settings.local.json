@@ -12,7 +12,10 @@
       "Bash(cargo run:*)",
       "Bash(go test ./tests -run TestBenchmark -v -timeout 120s)",
       "Bash(go test -v ./tests/benchmark_provider_test.go -timeout 120s)",
-      "Bash(/tmp/benchmark-verify)"
+      "Bash(/tmp/benchmark-verify)",
+      "Bash(rm:*)",
+      "Bash(git rm:*)",
+      "Bash(ln:*)"
     ],
     "deny": [],
     "ask": []
