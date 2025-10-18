@@ -60,7 +60,7 @@ const streamingCode = `<code><span style="color: #6b7280;">// Real-time inferenc
 
 <span style="color: #4b5563;">ws</span>.<span style="color: #4b5563;">on</span>(<span style="color: #4b5563;">'message'</span>, (event) => {
   <span style="color: #114dcd;">const</span> data = <span style="color: #114dcd;">JSON</span>.<span style="color: #4b5563;">parse</span>(event.data)
-  
+
   <span style="color: #114dcd;">switch</span> (data.<span style="color: #4b5563;">type</span>) {
     <span style="color: #114dcd;">case</span> <span style="color: #4b5563;">'model_routing'</span>:
       <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">'Routed ' + data.total_requests + ' to ' + data.optimal_model</span>)
@@ -132,11 +132,11 @@ export default function Hero() {
                   style={{ color: '#1f53d0' }}
                   className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
                 >
-                  AI Inference Optimization Fabric
+                  The Routing Engine and Control Plane for AI Inference
                 </h1>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  The invisible layer that makes every model <span className="text-blue-600 font-semibold">cheaper</span>, <span className="text-green-600 font-semibold">faster</span>, and <span className="text-purple-600 font-semibold">smarter</span> to use. <br /> Real-time orchestration, cost optimization, and performance tuning at scale.
+                  Schelp-engine optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-12">
@@ -148,16 +148,18 @@ export default function Hero() {
                     Start Optimizing
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Link>
+                  <Link
+                    href="https://github.com/schlep-engine"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ backgroundColor: '#24292e' }}
+                    className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                  >
+                    GitHub
+                  </Link>
                 </div>
 
-                <div
-                  className="text-left relative z-10 rounded-xl overflow-hidden"
-                  style={{
-                    backgroundColor: '#f2f1ed',
-                    border: '1px solid #e5e7eb',
-                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 -10px 15px -3px rgba(0, 0, 0, 0.1)'
-                  }}
-                >
+                <div className="relative z-10 rounded-xl overflow-hidden" style={{ backgroundColor: '#f7f7f3', minHeight: '600px', padding: '40px' }}>
                   {/* IDE-style header with window controls */}
                   <div className="flex items-center justify-between px-4 py-1 border-b border-gray-300" style={{ backgroundColor: '#f2f1ed' }}>
                     <div className="flex items-center space-x-2">
@@ -195,7 +197,7 @@ export default function Hero() {
                   <div className="flex flex-col lg:flex-row min-h-96 w-full">
                     {/* Directory/File Explorer */}
                     <div className="w-full md:w-64 border-r border-gray-300 p-3 md:block hidden" style={{ backgroundColor: '#f2f1ed' }}>
-                      
+
                       {/* Mobile File Tabs */}
                       <div className="md:hidden mb-4">
                         <div className="flex space-x-2 overflow-x-auto pb-2 whitespace-nowrap">

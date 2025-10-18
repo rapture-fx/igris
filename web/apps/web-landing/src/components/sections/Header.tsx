@@ -45,26 +45,19 @@ export default function Header() {
           </div>
 
           <nav className="hidden md:flex justify-center flex-grow space-x-8 mr-auto">
-            <Link href="/" className={`text-sm transition-colors duration-200 font-inter ${pathname === '/' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
-              Platform
-            </Link>
-            <Link href="/solutions" className={`text-sm transition-colors duration-200 font-inter ${pathname === '/solutions' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
-              Solution
-            </Link>
-            <Link href="http://localhost:3005/api-reference" className="text-sm text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200 font-inter">
-              Docs
-            </Link>
-            <Link href="/blog" className={`text-sm transition-colors duration-200 font-inter ${pathname === '/blog' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
-              Blog
-            </Link>
-            <Link href="/pricing" className={`text-sm transition-colors duration-200 font-inter ${pathname === '/pricing' ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
-              Pricing
-            </Link>
           </nav>
 
           <div className="hidden md:flex items-center space-x-3">
-            <Link href="/auth" style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }} className="text-white px-3 py-1.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold text-xs shadow-md hover:shadow-lg font-inter">
-              Sign Up
+            <Link href="/auth" style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }} className="text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter">
+              Docs
+            </Link>
+            <Link href="https://github.com/schlep-engine"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ backgroundColor: '#ffffff' }}
+              className="text-black px-6 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
+            >
+              GitHub
             </Link>
           </div>
 
