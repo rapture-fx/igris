@@ -60,7 +60,7 @@ const streamingCode = `<code><span style="color: #6b7280;">// Real-time inferenc
 
 <span style="color: #4b5563;">ws</span>.<span style="color: #4b5563;">on</span>(<span style="color: #4b5563;">'message'</span>, (event) => {
   <span style="color: #114dcd;">const</span> data = <span style="color: #114dcd;">JSON</span>.<span style="color: #4b5563;">parse</span>(event.data)
-  
+
   <span style="color: #114dcd;">switch</span> (data.<span style="color: #4b5563;">type</span>) {
     <span style="color: #114dcd;">case</span> <span style="color: #4b5563;">'model_routing'</span>:
       <span style="color: #114dcd;">console</span>.<span style="color: #4b5563;">log</span>(<span style="color: #4b5563;">'Routed ' + data.total_requests + ' to ' + data.optimal_model</span>)
@@ -136,7 +136,7 @@ export default function Hero() {
                 </h1>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  Optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
+                  Schelp-engine optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-12">
@@ -197,7 +197,7 @@ export default function Hero() {
                   <div className="flex flex-col lg:flex-row min-h-96 w-full">
                     {/* Directory/File Explorer */}
                     <div className="w-full md:w-64 border-r border-gray-300 p-3 md:block hidden" style={{ backgroundColor: '#f2f1ed' }}>
-                      
+
                       {/* Mobile File Tabs */}
                       <div className="md:hidden mb-4">
                         <div className="flex space-x-2 overflow-x-auto pb-2 whitespace-nowrap">
