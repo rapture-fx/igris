@@ -54,8 +54,8 @@ export default function Header() {
             <Link href="https://github.com/schlep-engine"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ backgroundColor: '#1a1e21' }}
-              className="text-white px-6 py-2.5 rounded-lg hover:bg-gray-800 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
+              style={{ backgroundColor: '#ffffff' }}
+              className="text-black px-6 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
             >
               GitHub
             </Link>

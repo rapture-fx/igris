@@ -13,7 +13,7 @@ export default function Footer() {
             {/* Brand Column */}
             <div className="flex justify-center">
               <div className="flex flex-col items-center">
-                <div className="flex items-center justify-center mt-8 mb-4">
+                <div className="flex items-center justify-center mt-8 mb-12">
                   <Image
                     src="/Docs Schlep-engne.svg"
                     alt="Schlep-engine"

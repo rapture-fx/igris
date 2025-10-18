@@ -105,30 +105,7 @@ export default function DeveloperIntegration() {
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-              {/* Left Column - Title and Description */}
-              <div className="text-left lg:col-span-2">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Developer Integration</h2>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  OpenAI-compatible API.<br />Drop-in replacement for existing clients.
-                </h3>
-
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-6">
-                  Use standard chat completions endpoints with added optimization controls. Response metadata includes provider, latency, cost, and routing decisions.
-                </p>
-
-                <div className="mb-6">
-                  <Link
-                    href="/docs/api"
-                    className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"
-                    style={{ color: '#1f53d0' }}
-                  >
-                    View API Documentation
-                    <ArrowUpRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right Column - Code Examples */}
+              {/* Left Column - Code Examples */}
               <div className="lg:col-span-3">
                 <div
                   className="text-left relative z-10 rounded-xl overflow-hidden"
@@ -198,6 +175,29 @@ export default function DeveloperIntegration() {
                       }}
                     />
                   </div>
+                </div>
+              </div>
+
+              {/* Right Column - Title and Description */}
+              <div className="text-left lg:col-span-2">
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Developer Integration</h2>
+                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+                  OpenAI-compatible API.<br />Drop-in replacement for existing clients.
+                </h3>
+
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-6">
+                  Use standard chat completions endpoints with added optimization controls. Response metadata includes provider, latency, cost, and routing decisions.
+                </p>
+
+                <div className="mb-6">
+                  <Link
+                    href="/docs/api"
+                    className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"
+                    style={{ color: '#1f53d0' }}
+                  >
+                    View API Documentation
+                    <ArrowUpRight className="ml-2 h-4 w-4" />
+                  </Link>
                 </div>
               </div>
             </div>

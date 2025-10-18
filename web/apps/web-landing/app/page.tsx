@@ -7,6 +7,7 @@ import DeveloperIntegration from '../src/components/sections/DeveloperIntegratio
 import SafetyReliability from '../src/components/sections/SafetyReliability'
 import SupportedModels from '../src/components/sections/SupportedModels'
 import CurrentPhase from '../src/components/sections/CurrentPhase'
+import EngineeringFAQ from '../src/components/sections/EngineeringFAQ'
 export default function HomePage() {
   return (
     <div className="min-h-screen">
@@ -18,6 +19,7 @@ export default function HomePage() {
         <SafetyReliability />
         <SupportedModels />
         <CurrentPhase />
+        <EngineeringFAQ />
         <CallToAction />
       </main>
       <Footer />
