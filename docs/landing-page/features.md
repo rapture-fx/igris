@@ -7,20 +7,10 @@
 ## Hero Section
 
 ### Headline
-**Intelligent LLM Gateway with Rust-Powered Optimization**
+**The Routing Engine and Control Plane for AI Inference**
 
 ### Subheadline
-Route inference requests across OpenAI, Anthropic, and more with automatic cost optimization, zero-downtime configuration, and sub-200ms overhead.
-
-### Key Stats (Hero Badges)
-```
-✓ <200ms routing overhead
-✓ 99.9% uptime with automatic fallback
-✓ Real-time cost tracking per request
-✓ Hot-reload configuration (zero downtime)
-```
-
----
+Optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
 
 ## Core Features
 
