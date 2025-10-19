@@ -1,0 +1,71 @@
+%% Schlep-Engine System Overview Diagram
+%% Render with: https://mermaid.live or any Mermaid-compatible tool
+
+graph TB
+    Client[Client Application]
+
+    subgraph Gateway["API Gateway (Go/Fiber)"]
+        Router[HTTP Router]
+        Middleware[Middleware Stack]
+        Handler[Inference Handler]
+    end
+
+    subgraph Routing["Intelligent Routing Layer"]
+        GoRouter[Go Router<br/>Policy-Based]
+        RustOpt[Rust Optimizer<br/>Thompson Sampling]
+        Shadow[Shadow Runner<br/>Parallel Testing]
+    end
+
+    subgraph Providers["Provider Layer"]
+        OpenAI[OpenAI Provider]
+        Anthropic[Anthropic Provider]
+        Mock[Mock Provider]
+    end
+
+    subgraph External["External APIs"]
+        OpenAI_API[OpenAI API]
+        Anthropic_API[Anthropic API]
+    end
+
+    subgraph Observability["Observability"]
+        Prometheus[Prometheus Metrics]
+        Traces[Distributed Tracing]
+        Logs[Structured Logging]
+    end
+
+    subgraph Control["Control Plane"]
+        Admin[Admin API<br/>Hot-Reload]
+        Config[Runtime Config<br/>Thread-Safe]
+    end
+
+    Client -->|POST /v1/infer| Router
+    Router --> Middleware
+    Middleware -->|CORS, Auth, TraceID| Handler
+
+    Handler -->|Mode: go| GoRouter
+    Handler -->|Mode: shadow| Shadow
+    Handler -->|Mode: rust| RustOpt
+
+    Shadow -.->|Primary| GoRouter
+    Shadow -.->|Parallel| RustOpt
+
+    GoRouter --> Providers
+    RustOpt --> Providers
+
+    OpenAI --> OpenAI_API
+    Anthropic --> Anthropic_API
+
+    Handler --> Observability
+    GoRouter --> Observability
+    RustOpt --> Observability
+
+    Admin -->|POST /admin/optimizer| Config
+    Config -.->|Updates| Handler
+
+    style Client fill:#e1f5ff
+    style Gateway fill:#fff4e1
+    style Routing fill:#e8f5e9
+    style Providers fill:#f3e5f5
+    style External fill:#fce4ec
+    style Observability fill:#e0f2f1
+    style Control fill:#fff3e0

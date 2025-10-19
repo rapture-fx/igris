@@ -1,0 +1,52 @@
+    %% Shadow Mode: Parallel Testing Without Production Impact
+
+    sequenceDiagram
+        participant C as Client
+        participant H as Handler
+        participant Go as Go Router
+        participant Rust as Rust Optimizer
+        participant P1 as Provider (Go)
+        participant P2 as Provider (Rust)
+        participant L as Shadow Logger
+        participant M as Metrics
+
+        C->>H: POST /v1/infer
+        activate H
+
+        H->>H: Mode = shadow<br/>Sample Rate = 0.1<br/>rand() < 0.1 ✓
+
+        par Primary Path (Go Router)
+            H->>Go: Execute Primary
+            activate Go
+            Go->>Go: Select Provider<br/>(latency optimized)
+            Go->>P1: Infer Request
+            activate P1
+            P1-->>Go: Response A<br/>latency: 200ms<br/>cost: $0.002
+            deactivate P1
+            Go-->>H: Result A
+            deactivate Go
+        and Shadow Path (Rust Optimizer)
+            H->>Rust: Execute Shadow
+            activate Rust
+            Rust->>Rust: Thompson Sampling<br/>Beta(α,β)
+            Rust->>P2: Infer Request
+            activate P2
+            P2-->>Rust: Response B<br/>latency: 185ms<br/>cost: $0.0015
+            deactivate P2
+            Rust-->>H: Result B
+            deactivate Rust
+        end
+
+        H->>H: Wait for Primary (A) ONLY
+        H-->>C: Return Response A
+        deactivate H
+
+        Note over C: Client unaffected by shadow
+
+        H->>L: Log Comparison (Background)
+        activate L
+        L->>L: Compare A vs B:<br/>Go: openai/gpt-4<br/>Rust: anthropic/claude-sonnet<br/>Agreed: false<br/>Cost Δ: -$0.0005<br/>Latency Δ: -15ms
+        L->>M: Update Shadow Metrics
+        deactivate L
+
+        M->>M: shadow_agreement_rate<br/>shadow_cost_delta<br/>shadow_latency_delta

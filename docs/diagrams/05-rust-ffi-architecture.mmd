@@ -1,0 +1,60 @@
+%% Rust FFI Integration: Thompson Sampling Optimizer
+
+graph TB
+    subgraph Go["Go Layer"]
+        ShadowRunner[Shadow Runner<br/>shadow_runner.go]
+        FFIWrapper[FFI Wrapper<br/>ffi_wrapper.go]
+        Handler[Inference Handler]
+    end
+
+    subgraph CGO["CGO Layer"]
+        InitFunc[optimizer_init]
+        SelectFunc[optimizer_select_action]
+        UpdateFunc[optimizer_update_reward]
+        MetricsFunc[optimizer_update_metrics]
+        StatsFunc[optimizer_get_stats]
+        FreeFunc[optimizer_free]
+    end
+
+    subgraph Rust["Rust Optimizer (libschlep_kernel)"]
+        BanditEngine[Multi-Armed Bandit<br/>Thompson Sampling]
+        BetaDist[Beta Distribution<br/>Per-Arm State]
+        RewardCalc[Reward Calculator<br/>Weighted Metrics]
+        StateManager[State Manager<br/>Export/Import]
+    end
+
+    Config[Optimizer Config<br/>Arms, Weights, Thresholds] --> FFIWrapper
+
+    FFIWrapper -->|JSON config| InitFunc
+    InitFunc --> BanditEngine
+
+    Handler --> ShadowRunner
+    ShadowRunner -->|SelectAction| FFIWrapper
+    FFIWrapper --> SelectFunc
+    SelectFunc --> BanditEngine
+    BanditEngine -->|Sample Beta| BetaDist
+    BetaDist -->|Action ID| SelectFunc
+    SelectFunc -->|JSON result| FFIWrapper
+    FFIWrapper -->|Action struct| ShadowRunner
+
+    ShadowRunner -->|UpdateMetrics| FFIWrapper
+    FFIWrapper -->|JSON metrics| MetricsFunc
+    MetricsFunc --> RewardCalc
+    RewardCalc -->|Calculate reward| BanditEngine
+    BanditEngine -->|Update α, β| BetaDist
+
+    FFIWrapper -->|GetStats| StatsFunc
+    StatsFunc --> StateManager
+    StateManager -->|Arm stats JSON| StatsFunc
+    StatsFunc -->|JSON| FFIWrapper
+
+    FFIWrapper -.->|Cleanup| FreeFunc
+    FreeFunc -.-> BanditEngine
+
+    Feedback[Inference Result<br/>latency, cost, success] --> ShadowRunner
+
+    style Go fill:#e3f2fd
+    style CGO fill:#fff9c4
+    style Rust fill:#ffccbc
+    style BetaDist fill:#c8e6c9
+    style RewardCalc fill:#f8bbd0

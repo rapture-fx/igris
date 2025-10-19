@@ -1,0 +1,54 @@
+%% Request Flow: Standard Inference
+%% Shows the complete path from client to response
+
+sequenceDiagram
+    participant C as Client
+    participant G as API Gateway
+    participant H as Handler
+    participant R as Router
+    participant P as Provider
+    participant E as External LLM
+    participant M as Metrics
+
+    C->>G: POST /v1/infer<br/>{model, messages}
+
+    activate G
+    G->>G: CORS, Recovery, TraceID
+    G->>H: Route to InferHandler
+    activate H
+
+    H->>H: Parse & Validate Request
+    H->>H: Check Optimizer Mode
+
+    alt Mode: go
+        H->>R: Use Go Router
+        activate R
+        R->>R: Select Provider<br/>(policy/model/optimization)
+        R->>P: Route to Provider
+    else Mode: rust (sampled)
+        H->>R: Try Rust Optimizer
+        R-->>H: Rust Error
+        H->>R: Automatic Fallback to Go
+        R->>P: Route to Provider
+    end
+
+    activate P
+    P->>E: HTTP Request to LLM
+    E-->>P: LLM Response
+    deactivate P
+
+    P-->>R: InferResponse
+    deactivate R
+
+    R-->>H: Response + Metadata
+
+    H->>M: Record Metrics<br/>(latency, tokens, cost)
+
+    H->>H: Calculate Cost<br/>Add Trace ID
+    H-->>G: JSON Response
+    deactivate H
+
+    G-->>C: 200 OK<br/>X-Trace-ID: xxx
+    deactivate G
+
+    Note over M: Prometheus: infer_requests_total++<br/>latency, cost, tokens recorded
