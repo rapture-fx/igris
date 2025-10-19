@@ -1,0 +1,48 @@
+%% Admin Control Plane: Hot-Reload Configuration
+
+sequenceDiagram
+    participant A as Admin
+    participant API as Admin API
+    participant Config as Runtime Config<br/>(Thread-Safe)
+    participant Handler as Inference Handler
+    participant Req1 as Request N
+    participant Req2 as Request N+1
+
+    Note over A,Req2: Before: mode=shadow, sample_rate=0.01
+
+    Req1->>Handler: POST /v1/infer
+    Handler->>Config: GetMode()
+    Config-->>Handler: shadow
+    Handler->>Handler: Use Go Router + Shadow
+    Handler-->>Req1: Response
+
+    A->>API: POST /admin/optimizer<br/>X-Admin-Token: secret<br/>{mode: "rust", sample_rate: 0.25}
+    activate API
+
+    API->>API: Validate Token
+    API->>Config: SetMode("rust")
+    activate Config
+    Config->>Config: Lock, Update, Unlock<br/>mode = rust
+    Config-->>API: OK
+    deactivate Config
+
+    API->>Config: SetSampleRate(0.25)
+    activate Config
+    Config->>Config: Lock, Update, Unlock<br/>sample_rate = 0.25
+    Config-->>API: OK
+    deactivate Config
+
+    API-->>A: 200 OK<br/>{status: "ok", current_mode: "rust", sample_rate: 0.25}
+    deactivate API
+
+    Note over Handler: No restart required!
+
+    Req2->>Handler: POST /v1/infer<br/>(next request)
+    Handler->>Config: GetMode()
+    Config-->>Handler: rust
+    Handler->>Config: GetSampleRate()
+    Config-->>Handler: 0.25
+    Handler->>Handler: Sample check: 25% use Rust
+    Handler-->>Req2: Response
+
+    Note over A,Req2: After: mode=rust, sample_rate=0.25 (live)

@@ -47,46 +47,59 @@ export default function CoreCapabilities() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-              {/* Left Column - Title and Description */}
-              <div className="text-left lg:col-span-2">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Core Capabilities</h2>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Intelligent routing with safety controls built in.
-                </h3>
+            {/* Section Title - Above Cards */}
+            <div className="text-left mb-12">
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Core Capabilities</h2>
+              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+                Intelligent routing with safety controls built in.
+              </h3>
+              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
+                Multi-armed bandit optimization, phased activation, and shadow testing ensure safe production rollouts without service disruption.
+              </p>
+            </div>
 
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-6">
-                  Multi-armed bandit optimization, phased activation, and shadow testing ensure safe production rollouts without service disruption.
-                </p>
-              </div>
-
-              {/* Right Column - Capabilities Grid */}
-              <div className="rounded-lg p-12 lg:col-span-3 min-h-[500px] flex items-center" style={{
-                backgroundColor: '#f2f1ed',
-                backgroundImage: `repeating-linear-gradient(
-                  45deg,
-                  transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.02) 2px,
-                  rgba(0,0,0,0.02) 4px
-                )`
-              }}>
-                <div className="space-y-4 max-w-lg mx-auto w-full">
-                  {capabilities.map((capability) => (
-                    <div key={capability.name} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
-                      <div className="flex h-12 w-12 items-center justify-center flex-shrink-0">
-                        <capability.icon className="h-6 w-6 text-black" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
-                          {capability.name}
-                        </h3>
-                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">{capability.description}</p>
-                      </div>
+            {/* Horizontal Cards Stack */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {capabilities.map((capability) => (
+                <div
+                  key={capability.name}
+                  className="rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col justify-between overflow-hidden"
+                  style={{
+                    backgroundColor: '#f7f7f3',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    minHeight: '400px'
+                  }}
+                >
+                  {/* Icon at top with background pattern */}
+                  <div
+                    className="flex-1 flex items-center justify-center p-8"
+                    style={{
+                      backgroundColor: '#f2f1ed',
+                      backgroundImage: `repeating-linear-gradient(
+                        45deg,
+                        transparent,
+                        transparent 2px,
+                        rgba(0,0,0,0.02) 2px,
+                        rgba(0,0,0,0.02) 4px
+                      )`
+                    }}
+                  >
+                    <div className="flex h-16 w-16 items-center justify-center">
+                      <capability.icon className="h-10 w-10 text-black" aria-hidden="true" />
                     </div>
-                  ))}
+                  </div>
+
+                  {/* Title and Description at Bottom */}
+                  <div className="p-6" style={{ backgroundColor: '#f7f7f3' }}>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">
+                      {capability.name}
+                    </h3>
+                    <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
+                      {capability.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
