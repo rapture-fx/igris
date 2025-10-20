@@ -60,20 +60,21 @@ export default function SafetyReliability() {
                 </p>
               </div>
 
-              {/* Right Column - Safety Features */}
-              <div className="rounded-lg p-12 lg:col-span-3 min-h-[500px] flex items-center" style={{
-                backgroundColor: '#f2f1ed',
-                backgroundImage: `repeating-linear-gradient(
-                  45deg,
-                  transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.02) 2px,
-                  rgba(0,0,0,0.02) 4px
-                )`
+              {/* Right Column - Safety Features with SVG Background */}
+              <div className="rounded-lg p-12 lg:col-span-3 min-h-[500px] flex items-center relative overflow-hidden" style={{
+                backgroundImage: 'url("/Safety & Reliability bg.svg")',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat'
               }}>
-                <div className="space-y-4 max-w-lg mx-auto w-full">
+                {/* Text overlay for readability */}
+                <div className="absolute inset-0" style={{
+                  backgroundColor: 'rgba(247, 247, 243, 0.35)'
+                }} />
+                
+                <div className="space-y-4 max-w-lg mx-auto w-full relative z-10">
                   {safetyFeatures.map((feature) => (
-                    <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+                    <div key={feature.name} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05), 0 8px 8px -4px rgba(0, 0, 0, 0.04)' }}>
                       <div className="flex h-12 w-12 items-center justify-center flex-shrink-0">
                         <feature.icon className="h-6 w-6 text-black" aria-hidden="true" />
                       </div>

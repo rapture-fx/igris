@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
@@ -10,11 +10,23 @@ export default function Hero() {
       className="relative overflow-visible dark:bg-gray-900 pt-16"
       style={{ backgroundColor: '#f7f7f3' }}
     >
+      {/* Hero Background Image */}
+      <div 
+        className="absolute inset-0 z-10 opacity-45"
+        style={{
+          backgroundImage: 'url("/HEROBG.svg")',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+          width: '100%',
+          height: '100%'
+        }}
+      />
       <div className="relative z-20 mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="text-left pt-8">
-          <div className="mt-0 mx-auto relative">
-            <div className="text-left relative">
-              {/* Content Container */}
+        {/* Content Container */}
+        <div className="max-w-[1300px] mx-auto pt-8">
+          <div className="text-left pt-8">
+            <div className="mt-0 mx-auto relative">
               <div className="w-full max-w-full overflow-hidden">
                 <h1
                   style={{ color: '#1f53d0' }}
@@ -38,12 +50,11 @@ export default function Hero() {
                   </Link>
                 </div>
 
-                {/* Hero content area */}
-                <div style={{ backgroundColor: '#f7f7f3', minHeight: '600px' }}>
+                {/* Hero content area - displays background */}
+                <div style={{ backgroundColor: 'transparent', minHeight: '600px', maxHeight: '800px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
