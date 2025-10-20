@@ -1,6 +1,7 @@
 package safety
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"sync"
@@ -8,11 +9,11 @@ import (
 )
 
 // BudgetTracker tracks cumulative costs and enforces spending limits
-// FUTURE: This will become the Customer Budget Dashboard backend
+// Phase 13: Now supports optional database persistence for production deployments
 type BudgetTracker struct {
 	config *SafetyConfig
 
-	// Current period tracking
+	// Current period tracking (in-memory, always maintained)
 	currentMonth      string
 	monthlySpend      float64
 	requestCount      int64
@@ -20,9 +21,12 @@ type BudgetTracker struct {
 	budgetBreached    bool
 	firstBreachTime   *time.Time
 
-	// Detailed tracking (FUTURE: per-tenant, per-user)
+	// Detailed tracking (in-memory, synced with DB if available)
 	costByProvider    map[string]float64
 	costByModel       map[string]float64
+
+	// Phase 13: Optional persistence layer
+	persistence *BudgetPersistence
 
 	mu sync.RWMutex
 }
@@ -40,7 +44,14 @@ type BudgetCheckResult struct {
 }
 
 // NewBudgetTracker creates a new budget tracker
+// Phase 13: Now accepts optional database connection for persistence
 func NewBudgetTracker(config *SafetyConfig) *BudgetTracker {
+	return NewBudgetTrackerWithDB(config, nil, "default")
+}
+
+// NewBudgetTrackerWithDB creates a new budget tracker with optional database persistence
+// If db is nil, tracker operates in memory-only mode (backward compatible)
+func NewBudgetTrackerWithDB(config *SafetyConfig, db *sql.DB, tenantID string) *BudgetTracker {
 	currentMonth := time.Now().Format("2006-01")
 
 	tracker := &BudgetTracker{
@@ -52,11 +63,64 @@ func NewBudgetTracker(config *SafetyConfig) *BudgetTracker {
 		budgetBreached: false,
 		costByProvider: make(map[string]float64),
 		costByModel:    make(map[string]float64),
+		persistence:    NewBudgetPersistence(db, tenantID),
 	}
 
-	log.Printf("[BudgetTracker] Initialized for month %s, limit: $%.2f", currentMonth, config.MaxMonthlyCostUSD)
+	// Phase 13: Load existing budget from database if available
+	if tracker.persistence.IsEnabled() {
+		if err := tracker.loadFromDatabase(); err != nil {
+			log.Printf("[BudgetTracker] Warning: Failed to load from database: %v (starting fresh)", err)
+		} else {
+			log.Printf("[BudgetTracker] Loaded from database for month %s: $%.2f spent",
+				currentMonth, tracker.monthlySpend)
+		}
+	}
+
+	log.Printf("[BudgetTracker] Initialized for month %s, limit: $%.2f (persistence: %v)",
+		currentMonth, config.MaxMonthlyCostUSD, tracker.persistence.IsEnabled())
 
 	return tracker
+}
+
+// loadFromDatabase loads budget state from database (Phase 13)
+func (bt *BudgetTracker) loadFromDatabase() error {
+	if !bt.persistence.IsEnabled() {
+		return nil
+	}
+
+	// Load current month budget
+	record, err := bt.persistence.LoadCurrentMonth()
+	if err != nil {
+		return fmt.Errorf("failed to load current month: %w", err)
+	}
+
+	if record == nil {
+		// No existing record - create one
+		_, err := bt.persistence.GetOrCreateBudget(bt.config.MaxMonthlyCostUSD)
+		if err != nil {
+			return fmt.Errorf("failed to create budget: %w", err)
+		}
+		return nil
+	}
+
+	// Restore state from database
+	bt.monthlySpend = record.TotalSpendUSD
+	bt.requestCount = record.RequestCount
+	bt.budgetBreached = record.Breached
+	if record.FirstBreachTime != nil {
+		bt.firstBreachTime = record.FirstBreachTime
+	}
+
+	// Load cost breakdowns
+	costByProvider, costByModel, err := bt.persistence.GetCostBreakdown()
+	if err != nil {
+		log.Printf("[BudgetTracker] Warning: Failed to load cost breakdown: %v", err)
+	} else {
+		bt.costByProvider = costByProvider
+		bt.costByModel = costByModel
+	}
+
+	return nil
 }
 
 // CheckBudget checks if a request would exceed the budget
@@ -123,8 +187,13 @@ func (bt *BudgetTracker) CheckBudget(estimatedCost float64) *BudgetCheckResult {
 }
 
 // RecordCost records the actual cost of a request
-// FUTURE: This will record per-tenant, per-user costs
+// Phase 13: Now persists to database if available
 func (bt *BudgetTracker) RecordCost(provider, model string, cost float64) error {
+	return bt.RecordCostWithTrace(provider, model, cost, "", "")
+}
+
+// RecordCostWithTrace records cost with request/trace IDs for audit trail (Phase 13)
+func (bt *BudgetTracker) RecordCostWithTrace(provider, model string, cost float64, requestID, traceID string) error {
 	bt.mu.Lock()
 	defer bt.mu.Unlock()
 
@@ -134,7 +203,7 @@ func (bt *BudgetTracker) RecordCost(provider, model string, cost float64) error 
 		bt.resetMonth(currentMonth)
 	}
 
-	// Record cost
+	// Record cost in memory
 	bt.monthlySpend += cost
 	bt.requestCount++
 
@@ -149,6 +218,22 @@ func (bt *BudgetTracker) RecordCost(provider, model string, cost float64) error 
 		bt.firstBreachTime = &now
 		log.Printf("[BudgetTracker] ⚠️  BUDGET BREACHED: $%.4f > $%.2f (month: %s)",
 			bt.monthlySpend, bt.config.MaxMonthlyCostUSD, bt.currentMonth)
+	}
+
+	// Phase 13: Persist to database asynchronously (non-blocking)
+	if bt.persistence.IsEnabled() {
+		go func() {
+			// Ensure budget exists for current month
+			if _, err := bt.persistence.GetOrCreateBudget(bt.config.MaxMonthlyCostUSD); err != nil {
+				log.Printf("[BudgetTracker] Warning: Failed to ensure budget exists: %v", err)
+				return
+			}
+
+			// Record spending (includes tokens if provided, 0 is acceptable)
+			if err := bt.persistence.RecordSpending(provider, model, cost, 0, 0, requestID, traceID); err != nil {
+				log.Printf("[BudgetTracker] Warning: Failed to persist spending: %v", err)
+			}
+		}()
 	}
 
 	// Log every $0.50 spent
@@ -221,8 +306,16 @@ func (bt *BudgetTracker) GetCurrentSpend() float64 {
 	return bt.monthlySpend
 }
 
-// TODO Phase 14: Add persistence to database for tracking across restarts
-// TODO Phase 14: Add per-tenant budget tracking (multi-tenancy support)
+// GetHistoricalSpending returns historical spending data (Phase 13)
+func (bt *BudgetTracker) GetHistoricalSpending(months int) ([]BudgetRecord, error) {
+	if !bt.persistence.IsEnabled() {
+		return nil, fmt.Errorf("persistence not enabled")
+	}
+	return bt.persistence.GetHistoricalSpending(months)
+}
+
+// ✅ COMPLETED Phase 13: Database persistence for tracking across restarts
+// ✅ COMPLETED Phase 13: Per-tenant budget tracking foundation (multi-tenancy support)
 // TODO Phase 14: Add budget alerts via webhook/email
 // TODO Phase 15: Add budget forecasting based on usage trends
 // TODO Phase 15: Add budget allocation by team/project
