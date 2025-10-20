@@ -327,6 +327,40 @@ func (r *InferenceRouter) GetStats() map[string]*ProviderStats {
 	return r.providerStats
 }
 
+// RouteToProvider routes to a specific provider (used by Rust optimizer)
+func (r *InferenceRouter) RouteToProvider(ctx context.Context, req *models.InferRequest, providerName string) (*models.InferResponse, error) {
+	startTime := time.Now()
+
+	// Get provider from registry
+	provider, exists := r.registry.Get(providerName)
+	if !exists {
+		return nil, fmt.Errorf("provider %s not found in registry", providerName)
+	}
+
+	log.Printf("[Router] Routing to specific provider: %s for model: %s", providerName, req.Model)
+
+	// Execute inference
+	resp, err := provider.Infer(ctx, req)
+	if err != nil {
+		log.Printf("[Router] Provider %s failed: %v", providerName, err)
+		r.recordFailure(providerName)
+		return nil, err
+	}
+
+	// Record success metrics
+	latency := time.Since(startTime).Milliseconds()
+	r.recordSuccess(providerName, latency)
+
+	// Add routing metadata
+	if resp.Metadata == nil {
+		resp.Metadata = &models.ResponseMetadata{}
+	}
+	resp.Metadata.RouteDecision = fmt.Sprintf("Direct routing to %s", providerName)
+	resp.Metadata.LatencyMs = latency
+
+	return resp, nil
+}
+
 // TODO: Future Rust optimizer integration
 // This function will be called once Rust FFI is integrated per OPTIMIZER_RFC.md
 func (r *InferenceRouter) sendOptimizerFeedback(providerName string, latencyMs int64, resp *models.InferResponse) {

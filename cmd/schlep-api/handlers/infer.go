@@ -1,14 +1,17 @@
 package handlers
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/schlep-engine/schlep-engine/internal/config"
 	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer"
+	ffi "github.com/schlep-engine/schlep-engine/internal/inference/optimizer/ffi"
 	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer/shadow"
 	"github.com/schlep-engine/schlep-engine/internal/inference/router"
 	"github.com/schlep-engine/schlep-engine/internal/metrics"
@@ -104,46 +107,66 @@ func NewInferHandler() (*InferHandler, error) {
 	}
 
 	if providerMode == "real" || providerMode == "hybrid" {
-		// TODO: Load API keys from environment or config
-		// For MVP, using placeholder configs
+		// PHASE 12: Real provider integration with BYOK (Bring Your Own Key)
 
-		// Register OpenAI provider
-		openaiConfig := &providers.ProviderConfig{
-			APIKey:     os.Getenv("OPENAI_API_KEY"), // Load from env
-			BaseURL:    "https://api.openai.com/v1",
-			Timeout:    30,
-			MaxRetries: 3,
-		}
-		if openaiConfig.APIKey == "" {
-			openaiConfig.APIKey = "sk-placeholder" // Fallback placeholder
-		}
-		openaiProvider, err := openai.NewOpenAIProvider(openaiConfig)
-		if err != nil {
-			log.Printf("WARNING: Failed to initialize OpenAI provider: %v", err)
+		// Register OpenAI provider (if API key available)
+		openaiAPIKey := os.Getenv("OPENAI_API_KEY")
+		if openaiAPIKey != "" {
+			// Validate API key format
+			if !validateOpenAIKey(openaiAPIKey) {
+				log.Printf("ERROR: Invalid OPENAI_API_KEY format. Expected format: sk-...")
+			} else {
+				openaiConfig := &providers.ProviderConfig{
+					APIKey:     openaiAPIKey,
+					BaseURL:    "https://api.openai.com/v1",
+					Timeout:    30,
+					MaxRetries: 3,
+					RetryDelay: 500,
+					EnableMetrics: true,
+				}
+				openaiProvider, err := openai.NewOpenAIProvider(openaiConfig)
+				if err != nil {
+					log.Printf("ERROR: Failed to initialize OpenAI provider: %v", err)
+				} else {
+					registry.Register(openaiProvider)
+					log.Println("[Handler] ✓ Registered OpenAI provider (REAL MODE)")
+				}
+			}
 		} else {
-			registry.Register(openaiProvider)
-			log.Println("[Handler] ✓ Registered OpenAI provider")
+			log.Println("[Handler] ⚠ OPENAI_API_KEY not set - OpenAI provider not registered")
 		}
 
-		// Register Anthropic provider
-		anthropicConfig := &providers.ProviderConfig{
-			APIKey:     os.Getenv("ANTHROPIC_API_KEY"), // Load from env
-			BaseURL:    "https://api.anthropic.com/v1",
-			Timeout:    30,
-			MaxRetries: 3,
-		}
-		if anthropicConfig.APIKey == "" {
-			anthropicConfig.APIKey = "sk-ant-placeholder" // Fallback placeholder
-		}
-		anthropicProvider, err := anthropic.NewAnthropicProvider(anthropicConfig)
-		if err != nil {
-			log.Printf("WARNING: Failed to initialize Anthropic provider: %v", err)
+		// Register Anthropic provider (if API key available)
+		anthropicAPIKey := os.Getenv("ANTHROPIC_API_KEY")
+		if anthropicAPIKey != "" {
+			// Validate API key format
+			if !validateAnthropicKey(anthropicAPIKey) {
+				log.Printf("ERROR: Invalid ANTHROPIC_API_KEY format. Expected format: sk-ant-...")
+			} else {
+				anthropicConfig := &providers.ProviderConfig{
+					APIKey:     anthropicAPIKey,
+					BaseURL:    "https://api.anthropic.com/v1",
+					Timeout:    30,
+					MaxRetries: 3,
+					RetryDelay: 500,
+					EnableMetrics: true,
+				}
+				anthropicProvider, err := anthropic.NewAnthropicProvider(anthropicConfig)
+				if err != nil {
+					log.Printf("ERROR: Failed to initialize Anthropic provider: %v", err)
+				} else {
+					registry.Register(anthropicProvider)
+					log.Println("[Handler] ✓ Registered Anthropic provider (REAL MODE)")
+				}
+			}
 		} else {
-			registry.Register(anthropicProvider)
-			log.Println("[Handler] ✓ Registered Anthropic provider")
+			log.Println("[Handler] ⚠ ANTHROPIC_API_KEY not set - Anthropic provider not registered")
 		}
 
-		// TODO: Register Python adapter provider
+		// Fail fast if no providers registered in real mode
+		if providerMode == "real" && len(registry.List()) == 0 {
+			log.Fatal("[Handler] FATAL: PROVIDER_MODE=real but no API keys provided. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.")
+		}
 	}
 
 	// Verify at least one provider is registered
@@ -370,20 +393,92 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 
 // routeWithRustOptimizer routes inference using the Rust optimizer
 func (h *InferHandler) routeWithRustOptimizer(c *fiber.Ctx, req *models.InferRequest) (*models.InferResponse, error) {
+	startTime := time.Now()
+
 	// Get Rust optimizer decision
 	if h.shadowRunner == nil {
 		return nil, fiber.NewError(fiber.StatusInternalServerError, "Shadow runner not initialized")
 	}
 
-	// For Phase 10, we use the Rust optimizer to select the provider/model
-	// but still execute through the Go router with that selection
-	// TODO: In a future phase, fully integrate Rust optimizer decision execution
+	// Get optimizer handle from shadow runner
+	optimizerHandle := h.shadowRunner.GetOptimizerHandle()
+	if optimizerHandle == nil {
+		log.Printf("[Infer] Rust optimizer not available, falling back to Go router")
+		return h.router.Route(c.Context(), req)
+	}
 
-	// For now, fallback to Go router with Rust decision guidance
-	// This is a simplified implementation for MVP
-	log.Printf("[Infer] Rust optimizer mode active, executing via Go router")
+	// Select action using Thompson Sampling
+	action, err := optimizerHandle.SelectAction()
+	if err != nil {
+		log.Printf("[Infer] Rust optimizer SelectAction failed: %v, falling back to Go router", err)
+		h.activationMetrics.RecordGoFallback("optimizer_error")
+		return h.router.Route(c.Context(), req)
+	}
 
-	return h.router.Route(c.Context(), req)
+	log.Printf("[Infer] Rust optimizer selected action: %s", action.ActionID)
+
+	// Parse action ID to get provider name
+	// Action ID format: "openai/gpt-4" or "anthropic/claude-3-5-sonnet"
+	providerName := parseActionToProvider(action.ActionID)
+	if providerName == "" {
+		log.Printf("[Infer] Failed to parse action ID %s, falling back to Go router", action.ActionID)
+		h.activationMetrics.RecordGoFallback("parse_error")
+		return h.router.Route(c.Context(), req)
+	}
+
+	// Execute inference with selected provider
+	resp, err := h.router.RouteToProvider(c.Context(), req, providerName)
+	if err != nil {
+		log.Printf("[Infer] Provider %s failed: %v, attempting fallback", providerName, err)
+
+		// Record failure with negative reward
+		metrics := ffi.RewardMetrics{
+			LatencyMs:    float64(time.Since(startTime).Milliseconds()),
+			Success:      false,
+			CacheHit:     false,
+			CostUsd:      0.0,
+			QualityScore: nil,
+		}
+		_ = optimizerHandle.UpdateMetrics(action.ActionID, metrics)
+
+		// Fallback to Go router for alternative provider
+		h.activationMetrics.RecordGoFallback("provider_error")
+		return h.router.Route(c.Context(), req)
+	}
+
+	// Calculate reward and update optimizer
+	latencyMs := float64(time.Since(startTime).Milliseconds())
+	costUsd := resp.Metadata.CostUSD
+
+	rewardMetrics := ffi.RewardMetrics{
+		LatencyMs:    latencyMs,
+		Success:      true,
+		CacheHit:     false, // TODO: Check cache status
+		CostUsd:      costUsd,
+		QualityScore: nil, // TODO: Quality scoring
+	}
+
+	if err := optimizerHandle.UpdateMetrics(action.ActionID, rewardMetrics); err != nil {
+		log.Printf("[Infer] Failed to update optimizer metrics: %v", err)
+	}
+
+	// Add optimizer metadata to response
+	if resp.Metadata == nil {
+		resp.Metadata = &models.ResponseMetadata{}
+	}
+	resp.Metadata.RouteDecision = fmt.Sprintf("Rust Thompson Sampling: %s", action.ActionID)
+
+	return resp, nil
+}
+
+// parseActionToProvider extracts provider name from action ID
+// Action ID format: "provider/model" (e.g., "openai/gpt-4")
+func parseActionToProvider(actionID string) string {
+	parts := strings.Split(actionID, "/")
+	if len(parts) < 1 {
+		return ""
+	}
+	return parts[0]
 }
 
 // GetShadowRunner returns the shadow runner instance (for Admin API access)
@@ -599,4 +694,40 @@ func calculateCost(provider, model string, promptTokens, completionTokens int) f
 	}
 
 	return cost
+}
+
+// validateOpenAIKey validates OpenAI API key format
+// Valid format: sk-[alphanumeric]{48+}
+func validateOpenAIKey(key string) bool {
+	if len(key) < 51 { // "sk-" + at least 48 characters
+		return false
+	}
+	if !strings.HasPrefix(key, "sk-") {
+		return false
+	}
+	// Check remaining characters are alphanumeric
+	for _, ch := range key[3:] {
+		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')) {
+			return false
+		}
+	}
+	return true
+}
+
+// validateAnthropicKey validates Anthropic API key format
+// Valid format: sk-ant-[alphanumeric]{40+}
+func validateAnthropicKey(key string) bool {
+	if len(key) < 47 { // "sk-ant-" + at least 40 characters
+		return false
+	}
+	if !strings.HasPrefix(key, "sk-ant-") {
+		return false
+	}
+	// Check remaining characters are alphanumeric or hyphen
+	for _, ch := range key[7:] {
+		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-') {
+			return false
+		}
+	}
+	return true
 }

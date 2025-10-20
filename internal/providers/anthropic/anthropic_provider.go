@@ -1,8 +1,12 @@
 package anthropic
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 
 	"github.com/schlep-engine/schlep-engine/internal/models"
@@ -13,7 +17,7 @@ import (
 type AnthropicProvider struct {
 	config       *providers.ProviderConfig
 	capabilities *providers.ProviderCapabilities
-	client       interface{} // TODO: Replace with actual Anthropic client
+	client       *http.Client
 }
 
 // NewAnthropicProvider creates a new Anthropic provider instance
@@ -26,10 +30,25 @@ func NewAnthropicProvider(config *providers.ProviderConfig) (*AnthropicProvider,
 		config.BaseURL = "https://api.anthropic.com/v1"
 	}
 
+	// Initialize HTTP client with timeout
+	timeout := time.Duration(config.Timeout) * time.Second
+	if timeout == 0 {
+		timeout = 60 * time.Second // Default 60s timeout
+	}
+
+	httpClient := &http.Client{
+		Timeout: timeout,
+		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     90 * time.Second,
+		},
+	}
+
 	provider := &AnthropicProvider{
 		config:       config,
 		capabilities: getAnthropicCapabilities(),
-		client:       nil, // TODO: Initialize actual Anthropic HTTP client
+		client:       httpClient,
 	}
 
 	return provider, nil
@@ -42,36 +61,80 @@ func (p *AnthropicProvider) Name() string {
 
 // Infer performs a single inference request
 func (p *AnthropicProvider) Infer(ctx context.Context, req *models.InferRequest) (*models.InferResponse, error) {
-	// TODO: Implement actual Anthropic API call
-	// Steps:
-	// 1. Convert InferRequest to Anthropic messages format
-	// 2. Extract system message if present
-	// 3. Make HTTP POST to /v1/messages
-	// 4. Parse response
-	// 5. Convert to InferResponse format
-	// 6. Calculate costs and metrics
-	//
-	// Note: Anthropic API differences from OpenAI:
-	// - System message is a separate parameter, not in messages array
-	// - Uses "anthropic-version" header
-	// - Token counting uses different tokenizer
-
 	startTime := time.Now()
 
-	// STUB: Return mock response for now
-	response := models.NewInferResponse(generateRequestID(), req.Model)
-	response.AddChoice(0, &models.Message{
-		Role:    "assistant",
-		Content: "[STUB] Anthropic (Claude) response not implemented yet. Actual API integration pending.",
-	}, "stop")
+	// Convert to Anthropic format
+	anthropicReq := p.buildAnthropicRequest(req)
 
-	response.SetUsage(
-		estimatePromptTokens(req),
-		60, // Mock completion tokens
-	)
+	// Marshal request
+	reqBody, err := json.Marshal(anthropicReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
 
-	response.Metadata.Provider = "anthropic"
-	response.Metadata.ModelUsed = req.Model
+	// Create HTTP request
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", p.config.BaseURL+"/messages", bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	// Set Anthropic-specific headers
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("x-api-key", p.config.APIKey)
+	httpReq.Header.Set("anthropic-version", "2023-06-01") // Required by Anthropic API
+
+	// Execute request with retry logic
+	var resp *http.Response
+	var lastErr error
+	maxRetries := p.config.MaxRetries
+	if maxRetries == 0 {
+		maxRetries = 3
+	}
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		resp, lastErr = p.client.Do(httpReq)
+		if lastErr == nil && resp.StatusCode < 500 {
+			break // Success or client error (don't retry)
+		}
+
+		if attempt < maxRetries {
+			// Exponential backoff
+			backoff := time.Duration(p.config.RetryDelay*(1<<uint(attempt))) * time.Millisecond
+			if backoff == 0 {
+				backoff = time.Duration(100*(1<<uint(attempt))) * time.Millisecond
+			}
+			time.Sleep(backoff)
+		}
+	}
+
+	if lastErr != nil {
+		return nil, fmt.Errorf("request failed after %d retries: %w", maxRetries, lastErr)
+	}
+	defer resp.Body.Close()
+
+	// Read response body
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	// Handle error responses
+	if resp.StatusCode != http.StatusOK {
+		var errResp AnthropicErrorResponse
+		if err := json.Unmarshal(body, &errResp); err == nil && errResp.Error.Message != "" {
+			return nil, fmt.Errorf("Anthropic API error (status %d): %s", resp.StatusCode, errResp.Error.Message)
+		}
+		return nil, fmt.Errorf("Anthropic API error (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	// Parse success response
+	var anthropicResp AnthropicMessageResponse
+	if err := json.Unmarshal(body, &anthropicResp); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	// Convert to unified format
+	response := p.convertToInferResponse(&anthropicResp, req.Model)
 	response.CalculateLatency(startTime)
 	response.Metadata.CostUSD = p.calculateCost(response.Usage, req.Model)
 
@@ -230,4 +293,117 @@ func (p *AnthropicProvider) calculateCost(usage *models.UsageStats, model string
 	completionCost := float64(usage.CompletionTokens) * 0.000015
 
 	return promptCost + completionCost
+}
+
+// Anthropic API request/response types
+
+type AnthropicMessageRequest struct {
+	Model       string             `json:"model"`
+	Messages    []AnthropicMessage `json:"messages"`
+	MaxTokens   int                `json:"max_tokens"`
+	System      string             `json:"system,omitempty"`
+	Temperature float64            `json:"temperature,omitempty"`
+	TopP        float64            `json:"top_p,omitempty"`
+	TopK        int                `json:"top_k,omitempty"`
+	Stream      bool               `json:"stream,omitempty"`
+	StopSequences []string         `json:"stop_sequences,omitempty"`
+}
+
+type AnthropicMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type AnthropicMessageResponse struct {
+	ID           string                `json:"id"`
+	Type         string                `json:"type"`
+	Role         string                `json:"role"`
+	Content      []AnthropicContent    `json:"content"`
+	Model        string                `json:"model"`
+	StopReason   string                `json:"stop_reason"`
+	Usage        AnthropicUsage        `json:"usage"`
+}
+
+type AnthropicContent struct {
+	Type string `json:"type"`
+	Text string `json:"text"`
+}
+
+type AnthropicUsage struct {
+	InputTokens  int `json:"input_tokens"`
+	OutputTokens int `json:"output_tokens"`
+}
+
+type AnthropicErrorResponse struct {
+	Type  string `json:"type"`
+	Error struct {
+		Type    string `json:"type"`
+		Message string `json:"message"`
+	} `json:"error"`
+}
+
+// buildAnthropicRequest converts unified request to Anthropic format
+func (p *AnthropicProvider) buildAnthropicRequest(req *models.InferRequest) *AnthropicMessageRequest {
+	anthropicReq := &AnthropicMessageRequest{
+		Model:         req.Model,
+		Messages:      make([]AnthropicMessage, 0, len(req.Messages)),
+		MaxTokens:     req.MaxTokens,
+		Temperature:   req.Temperature,
+		TopP:          req.TopP,
+		TopK:          req.TopK,
+		Stream:        req.Stream,
+		StopSequences: req.Stop,
+	}
+
+	// Default max tokens if not specified
+	if anthropicReq.MaxTokens == 0 {
+		anthropicReq.MaxTokens = 1024
+	}
+
+	// Extract system message and convert messages
+	// Anthropic requires system message as separate parameter
+	for _, msg := range req.Messages {
+		if msg.Role == "system" {
+			anthropicReq.System = msg.Content
+		} else {
+			anthropicReq.Messages = append(anthropicReq.Messages, AnthropicMessage{
+				Role:    msg.Role,
+				Content: msg.Content,
+			})
+		}
+	}
+
+	return anthropicReq
+}
+
+// convertToInferResponse converts Anthropic response to unified format
+func (p *AnthropicProvider) convertToInferResponse(anthropicResp *AnthropicMessageResponse, model string) *models.InferResponse {
+	response := models.NewInferResponse(anthropicResp.ID, model)
+
+	// Convert content blocks to single message
+	var content string
+	if len(anthropicResp.Content) > 0 {
+		for _, block := range anthropicResp.Content {
+			if block.Type == "text" {
+				content += block.Text
+			}
+		}
+	}
+
+	response.AddChoice(0, &models.Message{
+		Role:    anthropicResp.Role,
+		Content: content,
+	}, anthropicResp.StopReason)
+
+	// Set usage
+	response.SetUsage(
+		anthropicResp.Usage.InputTokens,
+		anthropicResp.Usage.OutputTokens,
+	)
+
+	// Set metadata
+	response.Metadata.Provider = "anthropic"
+	response.Metadata.ModelUsed = anthropicResp.Model
+
+	return response
 }
