@@ -19,6 +19,7 @@ import (
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 	"github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
 	"github.com/schlep-engine/schlep-engine/internal/providers/openai"
+	"github.com/schlep-engine/schlep-engine/internal/safety"
 	"github.com/schlep-engine/schlep-engine/internal/tracing"
 )
 
@@ -29,6 +30,7 @@ type InferHandler struct {
 	sloBreaker        *optimizer.SLOBreaker
 	runtimeConfig     *config.RuntimeOptimizerConfig
 	activationMetrics *optimizer.ActivationMetricsRecorder
+	safetyController  *safety.SafetyController
 	rand              *rand.Rand
 }
 
@@ -209,12 +211,43 @@ func NewInferHandler() (*InferHandler, error) {
 	activationMetrics.UpdateCurrentMode(string(runtimeConfig.GetMode()))
 	activationMetrics.UpdateSampleRate(runtimeConfig.GetSampleRate())
 
+	// PHASE 12: Initialize Safety Controller
+	safetyConfig := safety.LoadSafetyConfig()
+	safetyController := safety.NewSafetyController(safetyConfig)
+
+	// Set benchmark provider for fallback (if available)
+	benchmarkProvider, _ := registry.Get("benchmark-openai")
+	if benchmarkProvider != nil {
+		safetyController.SetBenchmarkProvider(benchmarkProvider)
+		log.Println("[Handler] ✓ Benchmark fallback configured")
+	}
+
+	// Validate API keys if in real mode
+	if providerMode == "real" || providerMode == "hybrid" {
+		openaiKey := os.Getenv("OPENAI_API_KEY")
+		anthropicKey := os.Getenv("ANTHROPIC_API_KEY")
+
+		keyValidator := safetyController.GetKeyValidator()
+		if err := keyValidator.ValidateAllKeys(openaiKey, anthropicKey); err != nil {
+			log.Fatalf("[Handler] FATAL: API key validation failed: %v", err)
+		}
+	}
+
+	// Log production safety status
+	if safe, warnings := safetyController.ValidateConfiguration(); !safe {
+		log.Println("[Handler] ⚠️  PRODUCTION SAFETY WARNINGS:")
+		for _, warning := range warnings {
+			log.Printf("  - %s", warning)
+		}
+	}
+
 	return &InferHandler{
 		router:            inferenceRouter,
 		shadowRunner:      shadowRunner,
 		sloBreaker:        sloBreaker,
 		runtimeConfig:     runtimeConfig,
 		activationMetrics: activationMetrics,
+		safetyController:  safetyController,
 		rand:              rand.New(rand.NewSource(time.Now().UnixNano())),
 	}, nil
 }
@@ -268,6 +301,41 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 
 	log.Printf("[Infer] Request: model=%s, messages=%d, stream=%v",
 		req.Model, len(req.Messages), req.Stream)
+
+	// PHASE 12: Safety checks (Budget + Token Limits)
+	estimatedCost := 0.01 // Rough estimate, will be refined
+	safetyCheck, err := h.safetyController.PreRequestCheck(&req, estimatedCost)
+	if err != nil || !safetyCheck.Allowed {
+		log.Printf("[Infer] Safety check failed: %v", safetyCheck.Reason)
+
+		// Record safety rejection metrics
+		latencyMs := time.Since(startTime).Milliseconds()
+		safety.RecordSafetyCheck(false, false, float64(latencyMs))
+
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
+			"error": map[string]interface{}{
+				"message": safetyCheck.Reason,
+				"type":    "safety_limit_exceeded",
+				"details": map[string]interface{}{
+					"budget_check": safetyCheck.BudgetCheck,
+					"token_check":  safetyCheck.TokenCheck,
+				},
+			},
+		})
+	}
+
+	// Log safety warnings
+	for _, warning := range safetyCheck.WarningMessages {
+		log.Printf("[Infer] Safety warning: %s", warning)
+	}
+
+	// Check if we should use benchmark fallback
+	useBenchmark := safetyCheck.UseBenchmark
+	if useBenchmark {
+		log.Printf("[Infer] Using benchmark mode due to: %s", safetyCheck.Reason)
+		traceID := tracing.GetTraceID(ctx)
+		safety.RecordBudgetFallback(time.Now().Format("2006-01"), traceID)
+	}
 
 	// Handle streaming requests
 	if req.Stream {
@@ -369,6 +437,13 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Record activation metrics
 	h.activationMetrics.RecordLatency(decisionSource, float64(latencyMs))
 	h.activationMetrics.RecordCost(decisionSource, costUSD)
+
+	// PHASE 12: Record cost in budget tracker
+	if err := h.safetyController.PostRequestRecord(provider, model, costUSD); err != nil {
+		log.Printf("[Infer] WARNING: Failed to record cost: %v", err)
+	}
+	safety.RecordCost(provider, model, costUSD)
+	safety.RecordSafetyCheck(true, useBenchmark, float64(latencyMs))
 
 	// Record SLO metrics
 	if decisionSource == "rust_optimizer" {
