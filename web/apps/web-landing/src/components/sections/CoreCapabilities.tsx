@@ -3,23 +3,23 @@ import { Cpu, Zap, Shield, BarChart } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Real Provider Routing',
-    description: 'Live integration with OpenAI and Anthropic APIs. Automatic provider selection using Thompson Sampling optimization based on cost, latency, and reliability metrics.',
-    icon: Cpu,
+    name: 'Intelligent Provider Routing',
+    description: 'Smart routing across OpenAI, Anthropic, and custom models. Thompson Sampling algorithm continuously learns from performance to optimize for cost, speed, and reliability.',
+    icon: BarChart,
   },
   {
-    name: 'Budget & Safety Controls',
-    description: 'Enforce monthly spending limits, token caps per request, and automatic fallback to benchmark mode when budgets are exceeded. Enterprise-grade cost protection built-in.',
+    name: 'Budget Protection',
+    description: 'Set custom spending limits and token caps to prevent cost overruns. Automatic alerts and budget safeguards with real-time usage tracking. Never overspend again.',
     icon: Shield,
   },
   {
-    name: 'BYOK with Validation',
-    description: 'Bring Your Own Keys for OpenAI and Anthropic. Pre-flight validation on startup, automatic key rotation support, and isolated provider credentials.',
+    name: 'Bring Your Own Keys',
+    description: 'Use your existing OpenAI and Anthropic API keys with confidence. Secure key management, validation, and isolation - we never store or share your credentials.',
     icon: Shield,
   },
   {
-    name: 'Benchmark Mode',
-    description: 'Zero-cost testing with simulated providers. Realistic latency and pricing models for OpenAI and Anthropic without making real API calls. No keys required.',
+    name: 'Risk-Free Testing',
+    description: 'Test your integration at zero cost with our realistic simulation mode. Perfect for development, load testing, and feature validation without API calls.',
     icon: Zap,
   },
 ]
@@ -51,10 +51,10 @@ export default function CoreCapabilities() {
             <div className="text-left mb-12">
               <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Enterprise Features</h2>
               <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                Production-Ready AI Routing with Cost and Safety Controls
+                Smart AI Routing That Optimizes Your Costs
               </h3>
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
-                Built for teams that need cost visibility, budget protection, and reliable multi-provider failover. Bring your own API keys or test with zero-cost benchmark mode.
+                Automatically route your AI requests to the best providers based on your preferences. Cut costs, improve performance, and never worry about overspending with our intelligent optimization engine.
               </p>
             </div>
 
