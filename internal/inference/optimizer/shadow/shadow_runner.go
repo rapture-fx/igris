@@ -332,3 +332,11 @@ func (r *ShadowRunner) Sync() error {
 	}
 	return nil
 }
+
+// GetOptimizerHandle returns the Rust optimizer handle (for direct use)
+// Returns nil if optimizer is not initialized
+func (r *ShadowRunner) GetOptimizerHandle() *ffi.OptimizerHandle {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return r.optimizer
+}
