@@ -13,19 +13,47 @@ export default function EngineeringFAQ() {
     },
     {
       question: "Does Schlep-engine generate any additional API cost?",
-      answer: "No. In Benchmark Mode, all responses are simulated with zero cost. In Live Mode, all token usage is billed directly to your own provider accounts."
+      answer: "No. In Benchmark Mode, all responses are simulated with zero cost. In Live Mode, all token usage is billed directly to your own provider accounts. Schlep-engine itself doesn't add any per-request fees."
     },
     {
       question: "Can I use my OpenAI or Anthropic API keys?",
-      answer: "Yes. Live provider mode supports BYOK (Bring Your Own Key), allowing Schlep-engine to route requests securely through your existing accounts."
+      answer: "Yes. Live provider mode supports BYOK (Bring Your Own Key), allowing Schlep-engine to route requests securely through your existing accounts. Keys are never stored or shared."
     },
     {
       question: "Is Schlep safe for production traffic?",
-      answer: "Yes. Schlep-engine includes shadow mode, phased activation, and automatic fallback for safety. You control rollout and SLO guardrails."
+      answer: "Yes. Schlep-engine includes shadow mode (parallel validation without user impact), phased activation (1-100% traffic control), automatic fallback, and SLO guardrails. You maintain full control over rollout speed."
+    },
+    {
+      question: "How does the Thompson Sampling algorithm work?",
+      answer: "Thompson Sampling uses Beta distributions for each provider, sampling from Beta(α,β) to balance exploration (trying new providers) and exploitation (using known good providers). It continuously updates α/β based on latency, cost, and error rate feedback."
+    },
+    {
+      question: "What's the performance overhead of Schlep-engine?",
+      answer: "Minimal overhead - typically <5ms additional latency. The Go gateway handles high concurrency efficiently, and the Rust optimizer uses FFI for CPU-intensive bandit calculations with ~10-100x faster sampling than pure Go."
+    },
+    {
+      question: "How does the hybrid polyglot architecture work?",
+      answer: "Go handles HTTP gateway and request routing via Fiber. Rust provides the Thompson Sampling optimizer through FFI for CPU-intensive bandit calculations. Python serves ML models via gRPC. This leverages each language's strengths: Go's concurrency, Rust's performance, Python's ML ecosystem."
+    },
+    {
+      question: "Can I run Schlep-engine in containerized environments?",
+      answer: "Yes. Full Docker Compose setup is provided with health checks, resource limits, and service dependencies. Kubernetes manifests are also available for production deployments with auto-scaling configuration."
+    },
+    {
+      question: "What monitoring and observability features are available?",
+      answer: "Comprehensive monitoring including Prometheus metrics (latency histograms, error rates, routing decisions), distributed tracing with trace IDs and span IDs, cost tracking per request, provider performance statistics, and Jaeger/OpenTelemetry integration ready."
+    },
+    {
+      question: "How does connection pooling and circuit breaking work?",
+      answer: "ML service connection pools with health checks, automatic retries with exponential backoff, circuit breakers for failed providers, configurable timeout policies, and connection reuse for improved performance."
+    },
+    {
+      question: "What's the current development status of real provider integration?",
+      answer: "Infrastructure for real OpenAI/Anthropic providers is complete with API stubs implemented. Actual integration is in active development. Benchmark mode is fully functional for testing and development."
     },
     {
       question: "How do I get support or ask architectural questions?",
-      answer: "You can reach the engineering team at support@schlep-engine.com."
+      answer: "You can reach the engineering team at support@schlep-engine.com. The project is open-source with GitHub issues for bug reports and feature requests."
     }
   ]
 

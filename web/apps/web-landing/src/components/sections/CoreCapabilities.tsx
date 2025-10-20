@@ -1,26 +1,50 @@
 import React from 'react'
-import { Cpu, Zap, Shield, BarChart } from 'lucide-react'
+import { Shield, Box } from 'lucide-react'
 
 const capabilities = [
   {
     name: 'Intelligent Provider Routing',
-    description: 'Smart routing across OpenAI, Anthropic, and custom models. Thompson Sampling algorithm continuously learns from performance to optimize for cost, speed, and reliability.',
-    icon: BarChart,
+    description: 'Smart routing across OpenAI, Anthropic, and custom models. Thompson Sampling algorithm continuously learns from performance to optimize your costs, speed, and reliability.',
+    icon: () => (
+      <img 
+        src="/Intelligent route.svg" 
+        alt="Intelligent Provider Routing" 
+        className="h-56 w-56 text-black"
+      />
+    ),
   },
   {
     name: 'Budget Protection',
-    description: 'Set custom spending limits and token caps to prevent cost overruns. Automatic alerts and budget safeguards with real-time usage tracking. Never overspend again.',
-    icon: Shield,
+    description: 'Set custom spending limits and token caps to prevent cost overruns. Automatic alerts and budget safeguards with real-time usage tracking. Never overspend again with our protection.',
+    icon: () => (
+      <img 
+        src="/budget protection.svg" 
+        alt="Budget Protection" 
+        className="h-72 w-72 text-black"
+      />
+    ),
   },
   {
     name: 'Bring Your Own Keys',
-    description: 'Use your existing OpenAI and Anthropic API keys with confidence. Secure key management, validation, and isolation - we never store or share your credentials.',
-    icon: Shield,
+    description: 'Use your existing OpenAI and Anthropic API keys with confidence. Secure key management, validation, and isolation ensures we never store or share your credentials.',
+    icon: () => (
+      <img 
+        src="/BYOK.svg" 
+        alt="Bring Your Own Keys" 
+        className="h-56 w-56 text-black opacity-85"
+      />
+    ),
   },
   {
     name: 'Risk-Free Testing',
-    description: 'Test your integration at zero cost with our realistic simulation mode. Perfect for development, load testing, and feature validation without API calls.',
-    icon: Zap,
+    description: 'Test your integration at zero cost with our realistic simulation mode. Perfect for development, load testing, and feature validation without making any API calls.',
+    icon: () => (
+      <img 
+        src="/Rsik free testing.svg" 
+        alt="Risk-Free Testing" 
+        className="h-60 w-60 text-black"
+      />
+    ),
   },
 ]
 
@@ -49,7 +73,7 @@ export default function CoreCapabilities() {
           <div className="max-w-[1300px] mx-auto">
             {/* Section Title - Above Cards */}
             <div className="text-left mb-12">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Enterprise Features</h2>
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Features</h2>
               <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
                 Smart AI Routing That Optimizes Your Costs
               </h3>
@@ -84,9 +108,15 @@ export default function CoreCapabilities() {
                       )`
                     }}
                   >
-                    <div className="flex h-16 w-16 items-center justify-center">
-                      <capability.icon className="h-10 w-10 text-black" aria-hidden="true" />
-                    </div>
+                    {capability.name === 'Budget Protection' ? (
+                      <capability.icon className="h-72 w-72 text-black" aria-hidden="true" />
+                    ) : (capability.name === 'Intelligent Provider Routing' || capability.name === 'Risk-Free Testing' || capability.name === 'Bring Your Own Keys') ? (
+                      <capability.icon className="h-56 w-56 text-black" aria-hidden="true" />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center">
+                        <capability.icon className="h-10 w-10 text-black" aria-hidden="true" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Title and Description at Bottom */}
