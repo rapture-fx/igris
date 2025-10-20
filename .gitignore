@@ -20230,3 +20230,9 @@ Cargo.lock
 **/.next/
 **/node_modules/
 **/.turbo/
+
+# Phase 13: Database credentials and local config
+.env
+config/.env
+*.env.local
+database_*.env

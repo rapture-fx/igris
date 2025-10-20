@@ -30,26 +30,26 @@ export default function CurrentPhase() {
               <div className="text-left">
                 <div className="flex items-center gap-2 mb-4">
                   <Check className="h-5 w-5 text-green-600" />
-                  <h2 className="text-sm leading-7 text-green-600 dark:text-green-400 font-inter font-semibold">Production Ready</h2>
+                  <h2 className="text-sm leading-7 text-green-600 dark:text-green-400 font-inter font-semibold">Complete Control</h2>
                 </div>
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Real Provider Integration & Safety Controls
+                  Your API Keys, Your Budget, Your Rules
                 </h3>
 
                 <div className="space-y-4 text-gray-700 dark:text-gray-300 font-inter">
                   <p className="text-base leading-7">
-                    <strong className="text-gray-900 dark:text-white">Live OpenAI & Anthropic Routing:</strong> Production-ready HTTP clients with retry logic, error handling, and cost tracking for GPT-4, Claude 3 Opus, Claude 3.5 Sonnet, and all major models.
+                    <strong className="text-gray-900 dark:text-white">Intelligent Multi-Provider Routing:</strong> Seamlessly route requests between OpenAI GPT-4, Claude 3 Opus, Claude 3.5 Sonnet and more. Our algorithm learns performance patterns to optimize for your specific priorities.
                   </p>
 
                   <p className="text-base leading-7">
-                    <strong className="text-gray-900 dark:text-white">Enterprise Safety Guardrails:</strong> Budget caps ($5 default), token limits (1024 default), fail-fast key validation, and automatic fallback to benchmark mode on errors or budget breaches.
+                    <strong className="text-gray-900 dark:text-white">Custom Budget Protection:</strong> Set spending limits that work for your team - from $5 to $5000 per month. Real-time alerts, automatic safeguards, and detailed usage insights keep you in control.
                   </p>
 
                   <ul className="list-disc list-inside space-y-2 text-sm">
-                    <li>Real-time cost tracking with USD per-request breakdown</li>
-                    <li>BYOK validation on startup with latency measurement</li>
-                    <li>Thompson Sampling optimizer (Rust) with Go fallback</li>
-                    <li>Prometheus metrics and distributed tracing</li>
+                    <li>Per-request cost breakdown and spend tracking</li>
+                    <li>API key validation and secure management</li>
+                    <li>Automatic provider optimization based on your goals</li>
+                    <li>Comprehensive usage analytics and insights</li>
                   </ul>
                 </div>
               </div>
@@ -58,33 +58,33 @@ export default function CurrentPhase() {
               <div className="text-left">
                 <div className="flex items-center gap-2 mb-4">
                   <Zap className="h-5 w-5" style={{ color: '#1f53d0' }} />
-                  <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter font-semibold">Testing & Development</h2>
+                  <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter font-semibold">Risk-Free Development</h2>
                 </div>
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Zero-Cost Benchmark Mode
+                  Test Without Limits, Zero Cost
                 </h3>
 
                 <div className="space-y-4 text-gray-700 dark:text-gray-300 font-inter">
                   <p className="text-base leading-7">
-                    Test routing logic without spending a dollar. Benchmark providers simulate OpenAI and Anthropic APIs with realistic latency (150-350ms) and pricing—no API keys required.
+                    Build and test your AI applications without worrying about costs. Our simulation mode provides realistic responses with accurate timing and pricing models—perfect for development and stress testing.
                   </p>
 
                   <div className="rounded-lg p-4 border border-gray-200" style={{ backgroundColor: '#f2f1ed' }}>
                     <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono flex items-center gap-2">
                       <Shield className="h-4 w-4" />
-                      Test Mode Safety Features
+                      Developer-Friendly Testing
                     </h4>
                     <ul className="list-disc list-inside space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                      <li>Token truncation instead of rejection (developer-friendly)</li>
-                      <li>Parameter safety limits (temperature, top_p)</li>
-                      <li>Automatic benchmark fallback on real provider errors</li>
-                      <li>Sandbox environment for experimentation</li>
+                      <li>Realistic API responses with actual model behavior</li>
+                      <li>Authentic latency simulation (150-350ms)</li>
+                      <li>Accurate token counting and cost estimation</li>
+                      <li>No API keys or billing required for testing</li>
                     </ul>
                   </div>
 
                   <div className="mt-4">
                     <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded font-mono">
-                      PROVIDER_MODE=benchmark PROVIDER_TEST_MODE=true
+                      Switch to test mode with one click
                     </code>
                   </div>
                 </div>
