@@ -2,6 +2,7 @@ package safety
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 
@@ -10,7 +11,7 @@ import (
 )
 
 // SafetyController orchestrates all safety controls
-// FUTURE: This will become the Customer Safety Dashboard backend
+// Phase 13: Now supports optional audit logging and persistence
 type SafetyController struct {
 	config         *SafetyConfig
 	budgetTracker  *BudgetTracker
@@ -19,6 +20,9 @@ type SafetyController struct {
 
 	// Benchmark provider for fallback
 	benchmarkProvider providers.Provider
+
+	// Phase 13: Optional audit logger
+	auditLogger *AuditLogger
 }
 
 // SafetyCheckResult represents the combined result of all safety checks
@@ -33,11 +37,18 @@ type SafetyCheckResult struct {
 
 // NewSafetyController creates a new safety controller
 func NewSafetyController(config *SafetyConfig) *SafetyController {
+	return NewSafetyControllerWithDB(config, nil, "default")
+}
+
+// NewSafetyControllerWithDB creates a new safety controller with optional database persistence
+// Phase 13: If db is provided, enables audit logging and budget persistence
+func NewSafetyControllerWithDB(config *SafetyConfig, db *sql.DB, tenantID string) *SafetyController {
 	return &SafetyController{
 		config:        config,
-		budgetTracker: NewBudgetTracker(config),
+		budgetTracker: NewBudgetTrackerWithDB(config, db, tenantID),
 		tokenEnforcer: NewTokenEnforcer(config),
 		keyValidator:  NewKeyValidator(config),
+		auditLogger:   NewAuditLogger(db, tenantID),
 	}
 }
 
@@ -48,13 +59,24 @@ func (sc *SafetyController) SetBenchmarkProvider(provider providers.Provider) {
 }
 
 // PreRequestCheck performs all safety checks before executing a request
-// FUTURE: This will enforce customer-configured policies
+// Phase 13: Now logs audit events for budget and token checks
 func (sc *SafetyController) PreRequestCheck(req *models.InferRequest, estimatedCost float64) (*SafetyCheckResult, error) {
+	return sc.PreRequestCheckWithTrace(req, estimatedCost, "")
+}
+
+// PreRequestCheckWithTrace performs safety checks with trace ID for audit logging (Phase 13)
+func (sc *SafetyController) PreRequestCheckWithTrace(req *models.InferRequest, estimatedCost float64, traceID string) (*SafetyCheckResult, error) {
 	warnings := []string{}
 
 	// 1. Check token limits
 	tokenCheck, err := sc.tokenEnforcer.CheckAndEnforce(req)
 	if err != nil {
+		// Phase 13: Log token limit error
+		if sc.auditLogger != nil {
+			sc.auditLogger.LogTokenLimit(ActionRejected, tokenCheck.OriginalTokens, 0,
+				sc.config.MaxTokensPerRequest, req.Model, traceID)
+		}
+
 		return &SafetyCheckResult{
 			Allowed:     false,
 			TokenCheck:  tokenCheck,
@@ -62,17 +84,38 @@ func (sc *SafetyController) PreRequestCheck(req *models.InferRequest, estimatedC
 		}, err
 	}
 
+	// Phase 13: Log token enforcement action
 	if tokenCheck.Truncated {
 		warnings = append(warnings, fmt.Sprintf("Tokens truncated from %d to %d", tokenCheck.OriginalTokens, tokenCheck.RequestedTokens))
+		if sc.auditLogger != nil {
+			sc.auditLogger.LogTokenLimit(ActionTruncated, tokenCheck.OriginalTokens,
+				tokenCheck.RequestedTokens, sc.config.MaxTokensPerRequest, req.Model, traceID)
+		}
+	} else if sc.auditLogger != nil {
+		sc.auditLogger.LogTokenLimit(ActionAllowed, tokenCheck.RequestedTokens,
+			tokenCheck.RequestedTokens, sc.config.MaxTokensPerRequest, req.Model, traceID)
 	}
 
 	// 2. Check budget
 	budgetCheck := sc.budgetTracker.CheckBudget(estimatedCost)
 
+	// Phase 13: Log budget check
+	if sc.auditLogger != nil {
+		sc.auditLogger.LogBudgetCheck(budgetCheck.Allowed, budgetCheck.CurrentSpend,
+			budgetCheck.Limit, estimatedCost, traceID)
+	}
+
 	if !budgetCheck.Allowed {
 		// Budget exceeded - check if we should fallback
 		if sc.config.FallbackOnBudgetBreach && sc.config.EnableBenchmarkFallback {
 			log.Printf("[SafetyController] ⚠️  Budget exceeded, falling back to benchmark mode")
+
+			// Phase 13: Log budget breach and fallback
+			if sc.auditLogger != nil {
+				sc.auditLogger.LogBudgetBreach(budgetCheck.CurrentSpend, budgetCheck.Limit, traceID)
+				sc.auditLogger.LogFallback("budget_breach", "", req.Model, traceID)
+			}
+
 			return &SafetyCheckResult{
 				Allowed:         true,
 				UseBenchmark:    true,
@@ -84,6 +127,11 @@ func (sc *SafetyController) PreRequestCheck(req *models.InferRequest, estimatedC
 		}
 
 		// No fallback available - reject request
+		// Phase 13: Log budget breach
+		if sc.auditLogger != nil {
+			sc.auditLogger.LogBudgetBreach(budgetCheck.CurrentSpend, budgetCheck.Limit, traceID)
+		}
+
 		return &SafetyCheckResult{
 			Allowed:         false,
 			UseBenchmark:    false,
@@ -111,7 +159,12 @@ func (sc *SafetyController) PreRequestCheck(req *models.InferRequest, estimatedC
 
 // PostRequestRecord records the actual cost after a successful request
 func (sc *SafetyController) PostRequestRecord(provider, model string, cost float64) error {
-	return sc.budgetTracker.RecordCost(provider, model, cost)
+	return sc.PostRequestRecordWithTrace(provider, model, cost, "", "")
+}
+
+// PostRequestRecordWithTrace records cost with trace ID (Phase 13)
+func (sc *SafetyController) PostRequestRecordWithTrace(provider, model string, cost float64, requestID, traceID string) error {
+	return sc.budgetTracker.RecordCostWithTrace(provider, model, cost, requestID, traceID)
 }
 
 // HandleProviderError determines fallback strategy on provider errors
@@ -180,6 +233,21 @@ func (sc *SafetyController) ValidateConfiguration() (bool, []string) {
 	return sc.config.IsProductionSafe()
 }
 
+// GetAuditLogger returns the audit logger (Phase 13)
+func (sc *SafetyController) GetAuditLogger() *AuditLogger {
+	return sc.auditLogger
+}
+
+// Close gracefully shuts down the safety controller (Phase 13)
+func (sc *SafetyController) Close() error {
+	if sc.auditLogger != nil {
+		return sc.auditLogger.Close()
+	}
+	return nil
+}
+
+// ✅ COMPLETED Phase 13: Audit logging for compliance and debugging
+// ✅ COMPLETED Phase 13: Database persistence for budget tracking
 // TODO Phase 14: Add rate limiting per tenant
 // TODO Phase 14: Add custom policy DSL for customer-defined rules
 // TODO Phase 15: Add automated budget increase suggestions based on usage

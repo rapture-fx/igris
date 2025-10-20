@@ -3,24 +3,24 @@ import { Cpu, Zap, Shield, BarChart } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Multi-Provider Routing',
-    description: 'Thompson Sampling-based optimization routes requests across OpenAI and Anthropic models based on cost, latency, and quality metrics.',
+    name: 'Real Provider Routing',
+    description: 'Live integration with OpenAI and Anthropic APIs. Automatic provider selection using Thompson Sampling optimization based on cost, latency, and reliability metrics.',
     icon: Cpu,
   },
   {
-    name: 'Phased Optimizer Activation',
-    description: 'Admin-controlled rollout from 1% to 100% traffic with automatic SLO guardrails and instant revert on performance degradation.',
-    icon: Zap,
-  },
-  {
-    name: 'Shadow Mode Testing',
-    description: 'Non-invasive validation runs Rust optimizer in parallel with Go router. Zero user impact, full decision comparison logging.',
+    name: 'Budget & Safety Controls',
+    description: 'Enforce monthly spending limits, token caps per request, and automatic fallback to benchmark mode when budgets are exceeded. Enterprise-grade cost protection built-in.',
     icon: Shield,
   },
   {
-    name: 'Cost & Latency Control',
-    description: 'Per-request optimization for cost, latency, or quality. Response metadata includes provider, latency (ms), cost (USD), and routing decision.',
-    icon: BarChart,
+    name: 'BYOK with Validation',
+    description: 'Bring Your Own Keys for OpenAI and Anthropic. Pre-flight validation on startup, automatic key rotation support, and isolated provider credentials.',
+    icon: Shield,
+  },
+  {
+    name: 'Benchmark Mode',
+    description: 'Zero-cost testing with simulated providers. Realistic latency and pricing models for OpenAI and Anthropic without making real API calls. No keys required.',
+    icon: Zap,
   },
 ]
 
@@ -49,12 +49,12 @@ export default function CoreCapabilities() {
           <div className="max-w-[1300px] mx-auto">
             {/* Section Title - Above Cards */}
             <div className="text-left mb-12">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Core Capabilities</h2>
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Enterprise Features</h2>
               <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                Intelligent routing with safety controls built in.
+                Production-Ready AI Routing with Cost and Safety Controls
               </h3>
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
-                Multi-armed bandit optimization, phased activation, and shadow testing ensure safe production rollouts without service disruption.
+                Built for teams that need cost visibility, budget protection, and reliable multi-provider failover. Bring your own API keys or test with zero-cost benchmark mode.
               </p>
             </div>
 
