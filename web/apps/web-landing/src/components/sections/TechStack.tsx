@@ -1,11 +1,29 @@
 import React from 'react'
-import Link from 'next/link'
+import { Send, Zap, BarChart3 } from 'lucide-react'
+
+const steps = [
+  {
+    name: 'Send Request',
+    description: 'Submit AI inference requests through a unified API endpoint. Support for OpenAI, Anthropic, and other major providers.',
+    icon: Send,
+  },
+  {
+    name: 'Smart Routing',
+    description: 'Engine analyzes provider performance, availability, and cost in real-time. Routes to optimal endpoint automatically.',
+    icon: Zap,
+  },
+  {
+    name: 'Learn & Optimize',
+    description: 'Continuous monitoring of latency, accuracy, and reliability. System learns and adapts routing decisions over time.',
+    icon: BarChart3,
+  },
+]
 
 export default function TechStack() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative p-40 relative" style={{
+        <div className="relative p-40" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -24,126 +42,60 @@ export default function TechStack() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            {/* Section Title */}
-            <div className="text-left mb-12">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">How It Works</h2>
-              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                Intelligent Routing.<br/>Zero configuration optimization.
-              </h3>
-              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
-                Schlep Engine automatically optimizes AI inference requests across providers, learning from performance data to deliver the best results without manual intervention.
-              </p>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+              {/* Left Column - Title, Description, and Cards */}
+              <div className="text-left lg:col-span-2">
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">How It Works</h2>
+                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+                  Intelligent Routing.<br/>Zero configuration optimization.
+                </h3>
 
-            {/* Placeholder Stack - Vertical Layout */}
-            <div className="space-y-8 mt-8">
-              {/* Top - Diagram */}
-              <div className="w-full rounded-lg border border-gray-200 dark:border-gray-700 min-h-[400px] bg-cover bg-center relative shadow-lg hover:shadow-xl transition-all duration-300" style={{backgroundImage: 'url(/bgright.svg)'}}>
-                <div className="relative z-10 flex items-center justify-center h-full p-8">
-                  <img src="/How it works diagram.svg" alt="How It Works Diagram" className="max-w-full max-h-full object-contain" />
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
+                  Schlep-engine automatically optimizes AI inference requests across providers, learning from performance data to deliver the best results without manual intervention.
+                </p>
+
+                {/* Steps Cards */}
+                <div className="space-y-2 max-w-md relative">
+                  {steps.map((step, index) => (
+                    <div key={step.name} className="flex items-start gap-3 relative">
+                      {/* Git branch style line and dots on the left */}
+                      {index < steps.length - 1 && (
+                        <div className="absolute left-3 top-6 w-0.5 h-20" style={{ backgroundColor: '#299a93' }}></div>
+                      )}
+                      
+                      {/* Dot on the left side */}
+                      <div className="flex h-6 w-6 items-center justify-center flex-shrink-0 relative z-10">
+                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#299a93' }}></div>
+                      </div>
+                      
+                      {/* Card with icon inside */}
+                      <div key={step.name} className="flex-1 min-w-0">
+                        <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+                          <div className="flex items-start gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center flex-shrink-0">
+                              <step.icon className="h-4 w-4 text-black" aria-hidden="true" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-xs font-semibold text-gray-900 dark:text-white mb-1 font-mono break-words">
+                                {step.name}
+                              </h3>
+                              <p className="text-xs text-gray-700 dark:text-gray-300 leading-tight font-mono break-words">{step.description}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              {/* Bottom - Legend and Values */}
-              <div className="w-full rounded-lg border border-gray-200 dark:border-gray-700 relative overflow-hidden card-hover shadow-lg hover:shadow-xl transition-all duration-300" style={{ 
-                backgroundColor: '#f2f1ed',
-                position: 'relative'
+
+              {/* Right Column - SVG Diagram */}
+              <div className="rounded-lg lg:col-span-3 min-h-[500px] relative overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg" style={{
+                backgroundColor: '#f2f1ed'
               }}>
-                <div className="relative z-10 p-8">
-                  {/* Legend Section */}
-                  <div className="mb-8">
-                    <h3 className="text-xl font-semibold mb-2" style={{ color: '#0E1E40', fontFamily: 'Inter, sans-serif' }}>Legend</h3>
-                    <p className="text-sm text-gray-600 mb-6" style={{ fontFamily: 'Inter, sans-serif' }}>How to read the diagram</p>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🩵</span>
-                        <div>
-                          <div className="font-medium text-sm" style={{ color: '#333333', fontFamily: 'Inter, sans-serif' }}>Client & Gateway</div>
-                          <div className="text-xs text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>Request entry point</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🟣</span>
-                        <div>
-                          <div className="font-medium text-sm" style={{ color: '#333333', fontFamily: 'Inter, sans-serif' }}>Intelligent Routing Layer</div>
-                          <div className="text-xs text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>Policy selection and request optimization</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🟠</span>
-                        <div>
-                          <div className="font-medium text-sm" style={{ color: '#333333', fontFamily: 'Inter, sans-serif' }}>Adaptive Learning Core</div>
-                          <div className="text-xs text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>Optimizes latency, cost, and quality</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🟢</span>
-                        <div>
-                          <div className="font-medium text-sm" style={{ color: '#333333', fontFamily: 'Inter, sans-serif' }}>Provider Layer</div>
-                          <div className="text-xs text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>Executes inference across LLM APIs</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">💛</span>
-                        <div>
-                          <div className="font-medium text-sm" style={{ color: '#333333', fontFamily: 'Inter, sans-serif' }}>Observability & Control</div>
-                          <div className="text-xs text-gray-500" style={{ fontFamily: 'Inter, sans-serif' }}>Tracks metrics and enables live tuning</div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Value Section */}
-                  <div>
-                    <h3 className="text-xl font-semibold mb-6" style={{ color: '#0E1E40', fontFamily: 'Inter, sans-serif' }}>Why It Matters</h3>
-                    
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">⚙️</span>
-                        <div className="font-medium text-sm" style={{ color: '#1A1A1A', fontFamily: 'Inter, sans-serif' }}>
-                          Zero configuration setup
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🧠</span>
-                        <div className="font-medium text-sm" style={{ color: '#1A1A1A', fontFamily: 'Inter, sans-serif' }}>
-                          Self-learning optimizer
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">🌐</span>
-                        <div className="font-medium text-sm" style={{ color: '#1A1A1A', fontFamily: 'Inter, sans-serif' }}>
-                          Multi-provider compatible
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-3">
-                        <span className="text-xl">📊</span>
-                        <div className="font-medium text-sm" style={{ color: '#1A1A1A', fontFamily: 'Inter, sans-serif' }}>
-                          Fully observable system
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="relative z-10 flex items-center justify-center h-full p-8">
+                  <img src="/How it works diagram.svg" alt="How It Works Diagram" className="max-w-[80%] max-h-[80%] object-contain" />
                 </div>
-                {/* Diagonal pattern overlay */}
-                <div 
-                  className="absolute inset-0 pointer-events-none opacity-[0.05]"
-                  style={{
-                    backgroundImage: `
-                      linear-gradient(45deg, transparent, transparent 48%, rgba(255,255,255,0.1) 49%, rgba(255,255,255,0.1) 51%, transparent 52%, transparent),
-                      linear-gradient(-45deg, transparent, transparent 48%, rgba(255,255,255,0.1) 49%, rgba(255,255,255,0.1) 51%, transparent 52%, transparent)
-                    `,
-                    backgroundSize: '40px 40px'
-                  }}
-                />
               </div>
             </div>
           </div>
