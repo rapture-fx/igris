@@ -1,21 +1,21 @@
 import React from 'react'
-import { Send, Zap, BarChart3 } from 'lucide-react'
+import { Send, Zap, BarChart3, GitBranch, Cpu } from 'lucide-react'
 
 const steps = [
   {
-    name: 'Send Request',
-    description: 'Submit AI inference requests through a unified API endpoint. Support for OpenAI, Anthropic, and other major providers.',
+    name: 'API Gateway',
+    description: 'Client requests enter via unified REST API endpoint. Authentication, validation, and request processing handled at entry point.',
     icon: Send,
   },
   {
-    name: 'Smart Routing',
-    description: 'Engine analyzes provider performance, availability, and cost in real-time. Routes to optimal endpoint automatically.',
-    icon: Zap,
+    name: 'Intelligent Routing',
+    description: 'Policy-based selection between providers. Engine analyzes performance, availability, and cost to route to optimal endpoint.',
+    icon: GitBranch,
   },
   {
-    name: 'Learn & Optimize',
-    description: 'Continuous monitoring of latency, accuracy, and reliability. System learns and adapts routing decisions over time.',
-    icon: BarChart3,
+    name: 'Adaptive Learning',
+    description: 'Thompson Sampling optimization tracks latency, cost, and reliability. System continuously learns and improves routing decisions.',
+    icon: Cpu,
   },
 ]
 
@@ -55,7 +55,7 @@ export default function TechStack() {
                 </p>
 
                 {/* Steps Cards */}
-                <div className="space-y-2 max-w-md relative">
+                <div className="space-y-2 max-w-lg relative">
                   {steps.map((step, index) => (
                     <div key={step.name} className="flex items-start gap-3 relative">
                       {/* Git branch style line and dots on the left */}
@@ -71,8 +71,8 @@ export default function TechStack() {
                       {/* Card with icon inside */}
                       <div key={step.name} className="flex-1 min-w-0">
                         <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
-                          <div className="flex items-start gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center flex-shrink-0">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 mx-auto">
                               <step.icon className="h-4 w-4 text-black" aria-hidden="true" />
                             </div>
                             <div className="flex-1 min-w-0">
@@ -94,7 +94,7 @@ export default function TechStack() {
                 backgroundColor: '#f2f1ed'
               }}>
                 <div className="relative z-10 flex items-center justify-center h-full p-8">
-                  <img src="/How it works diagram.svg" alt="How It Works Diagram" className="max-w-[80%] max-h-[80%] object-contain" />
+                  <img src="/How it works diagram.svg" alt="How It Works Diagram" className="max-w-[90%] max-h-[90%] object-contain" />
                 </div>
               </div>
             </div>

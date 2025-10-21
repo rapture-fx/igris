@@ -1,6 +1,6 @@
 packages:
-  # Frontend application (landing page only)
-  - 'apps/web-landing'
+  # Frontend applications
+  - 'apps/*'
 
   # Shared packages (reference labs monorepo)
   # Note: These packages exist in /labs/packages/
@@ -18,4 +18,4 @@ packages:
   # - '../labs/packages/ui'
   # - '../labs/packages/pricing-config'
   # - '../labs/packages/config'
-  # - '../labs/packages/javascript-sdk' 
+  # - '../labs/packages/javascript-sdk'

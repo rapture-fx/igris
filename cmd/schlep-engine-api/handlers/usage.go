@@ -96,7 +96,6 @@ func (uh *UsageHandler) GetCurrentUsage(c *fiber.Ctx) error {
 
 	// Get summary from view
 	var usage UsageResponse
-	var breachedAt sql.NullTime
 
 	err := uh.db.QueryRow(`
 		SELECT tenant_id, year_month, total_spend_usd, budget_limit_usd,

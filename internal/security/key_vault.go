@@ -267,7 +267,7 @@ func (kv *KeyVault) getActiveKeyDB(tenantID, provider string) (*EncryptedKey, er
 // getActiveKeyMemory retrieves the active key from memory
 func (kv *KeyVault) getActiveKeyMemory(tenantID, provider string) (*EncryptedKey, error) {
 	// Try exact match first
-	for keyName := range []string{"default", "primary", "main"} {
+	for _, keyName := range []string{"default", "primary", "main"} {
 		mapKey := fmt.Sprintf("%s:%s:%s", tenantID, provider, keyName)
 		if key, ok := kv.inMemoryKeys[mapKey]; ok && key.IsActive {
 			return key, nil

@@ -115,12 +115,12 @@ CREATE TABLE IF NOT EXISTS tenant_sessions (
 -- Index for active session lookups
 CREATE INDEX IF NOT EXISTS idx_tenant_sessions_active
     ON tenant_sessions(tenant_id, token_hash)
-    WHERE revoked_at IS NULL AND expires_at > NOW();
+    WHERE revoked_at IS NULL;
 
 -- Index for session expiry cleanup
 CREATE INDEX IF NOT EXISTS idx_tenant_sessions_expired
     ON tenant_sessions(expires_at)
-    WHERE revoked_at IS NULL AND expires_at <= NOW();
+    WHERE revoked_at IS NULL;
 
 -- ============================================================================
 -- TABLE: tenant_policies (Per-Tenant Policy Overrides)
@@ -163,6 +163,30 @@ CREATE TABLE IF NOT EXISTS tenant_policies (
     -- Ensure one policy per tenant
     UNIQUE(tenant_id)
 );
+
+-- ============================================================================
+-- SEED DATA: Create default tenant for backward compatibility (MUST BE BEFORE FK)
+-- ============================================================================
+
+-- Create default tenant (for backward compatibility with Phase 13)
+INSERT INTO tenants (
+    tenant_id, tenant_name, api_key_hash, api_key_prefix, status, email
+) VALUES (
+    'default',
+    'Default Tenant',
+    'none',  -- No authentication for default tenant
+    'none',
+    'active',
+    'admin@localhost'
+) ON CONFLICT (tenant_id) DO NOTHING;
+
+-- Ensure default tenant has policy
+INSERT INTO tenant_policies (
+    tenant_id, max_monthly_cost_usd, max_tokens_per_request,
+    enable_budget_limit, enable_token_limit
+) VALUES (
+    'default', 5.0, 1024, TRUE, TRUE
+) ON CONFLICT (tenant_id) DO NOTHING;
 
 -- ============================================================================
 -- UPDATE EXISTING TABLES: Add tenant_id foreign keys
@@ -376,29 +400,7 @@ CREATE TRIGGER update_tenant_policies_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
--- ============================================================================
--- SEED DATA: Create default tenant for backward compatibility
--- ============================================================================
-
--- Create default tenant (for backward compatibility with Phase 13)
-INSERT INTO tenants (
-    tenant_id, tenant_name, api_key_hash, api_key_prefix, status, email
-) VALUES (
-    'default',
-    'Default Tenant',
-    'none',  -- No authentication for default tenant
-    'none',
-    'active',
-    'admin@localhost'
-) ON CONFLICT (tenant_id) DO NOTHING;
-
--- Ensure default tenant has policy
-INSERT INTO tenant_policies (
-    tenant_id, max_monthly_cost_usd, max_tokens_per_request,
-    enable_budget_limit, enable_token_limit
-) VALUES (
-    'default', 5.0, 1024, TRUE, TRUE
-) ON CONFLICT (tenant_id) DO NOTHING;
+-- Note: Default tenant creation moved earlier (before FK constraints)
 
 -- ============================================================================
 -- COMMENTS: Documentation for database objects

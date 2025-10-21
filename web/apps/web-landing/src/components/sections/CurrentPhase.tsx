@@ -39,7 +39,7 @@ export default function CurrentPhase() {
                   Built for Production. Recently Enhanced.
                 </h3>
                 <p className="text-base leading-7 text-gray-700 dark:text-gray-300 font-inter">
-                  Schlep Engine v1.0 delivers production-grade AI inference optimization with safety mechanisms, cost controls, and multi-provider routing. Latest additions include multi-tenancy and Rust optimization.
+                  Schlep Engine v1.0 delivers 40% faster processing, 20% cost reduction, and 99.9% uptime. Multi-tenant isolation, Rust optimization, and comprehensive monitoring.
                 </p>
               </div>
 

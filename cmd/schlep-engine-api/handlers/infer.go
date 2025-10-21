@@ -365,7 +365,6 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 
 	// Route and execute inference
 	var resp *models.InferResponse
-	var err error
 
 	if useRustOptimizer {
 		// Try Rust optimizer with automatic Go fallback on error
