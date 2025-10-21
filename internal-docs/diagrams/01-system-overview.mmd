@@ -1,0 +1,85 @@
+%% Schlep-Engine System Overview Diagram
+%% Render with: https://mermaid.live or any Mermaid-compatible tool
+%% Updated: 2025-10-20 - Synchronized with codebase
+
+graph TB
+    Client[Client Application]
+
+    subgraph Gateway["API Gateway (Go/Fiber)"]
+        Router[HTTP Router<br/>fiber.Router]
+        Middleware[Middleware Stack<br/>CORS, Recovery, TraceID]
+        InferHandler[InferHandler<br/>handlers/infer.go]
+    end
+
+    subgraph Routing["Intelligent Routing Layer"]
+        InferenceRouter[InferenceRouter<br/>router.InferenceRouter]
+        ShadowRunner[ShadowRunner<br/>shadow.ShadowRunner]
+        RustOptimizer[RustOptimizer<br/>ffi.OptimizerHandle]
+    end
+
+    subgraph Providers["Provider Layer"]
+        ProviderRegistry[ProviderRegistry<br/>providers.ProviderRegistry]
+        OpenAIProvider[OpenAIProvider<br/>openai.Provider]
+        AnthropicProvider[AnthropicProvider<br/>anthropic.Provider]
+        MockProvider[MockProvider<br/>openai.MockProvider]
+        BenchmarkProvider[BenchmarkProvider<br/>openai.BenchmarkProvider]
+    end
+
+    subgraph External["External APIs"]
+        OpenAI_API[OpenAI API]
+        Anthropic_API[Anthropic API]
+    end
+
+    subgraph Observability["Observability"]
+        Prometheus[Prometheus Metrics<br/>metrics.Collector]
+        Traces[Distributed Tracing<br/>tracing.GlobalTracer]
+        Logs[Structured Logging]
+    end
+
+    subgraph Control["Control Plane"]
+        Admin[Admin API<br/>POST /admin/optimizer]
+        RuntimeConfig[RuntimeOptimizerConfig<br/>config.RuntimeOptimizerConfig]
+    end
+
+    subgraph Safety["Safety & Reliability"]
+        SafetyController[SafetyController<br/>safety.SafetyController]
+        SLOBreaker[SLOBreaker<br/>optimizer.SLOBreaker]
+    end
+
+    Client -->|POST /v1/infer| Router
+    Router --> Middleware
+    Middleware --> InferHandler
+
+    InferHandler -->|selectProvider| InferenceRouter
+    InferHandler -->|runShadow| ShadowRunner
+    InferHandler -->|check safety| SafetyController
+
+    ShadowRunner -->|selectAction| RustOptimizer
+    ShadowRunner -->|fallback| InferenceRouter
+
+    InferenceRouter --> ProviderRegistry
+    ProviderRegistry --> OpenAIProvider
+    ProviderRegistry --> AnthropicProvider
+    ProviderRegistry --> MockProvider
+    ProviderRegistry --> BenchmarkProvider
+
+    OpenAIProvider --> OpenAI_API
+    AnthropicProvider --> Anthropic_API
+
+    InferHandler --> Observability
+    ShadowRunner --> Observability
+    InferenceRouter --> Observability
+
+    Admin -->|hot-reload| RuntimeConfig
+    RuntimeConfig -.->|dynamic updates| InferHandler
+
+    SLOBreaker -.->|circuit breaker| InferHandler
+
+    style Client fill:#D6EAF8
+    style Gateway fill:#D6EAF8
+    style Routing fill:#E8DAEF
+    style Providers fill:#D5F5E3
+    style External fill:#FDEBD0
+    style Observability fill:#EBDEF0
+    style Control fill:#FEF9E7
+    style Safety fill:#FADBD8
