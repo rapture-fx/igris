@@ -11,7 +11,7 @@ export default function HeroGridBackground() {
             linear-gradient(#1A5799 1px, transparent 1px),
             linear-gradient(90deg, #1A5799 1px, transparent 1px)
           `,
-          backgroundSize: '16px 16px',
+          backgroundSize: '8px 8px',
           backgroundPosition: '0 0, 0 0',
           // Apply mask for fade effects
           maskImage: `

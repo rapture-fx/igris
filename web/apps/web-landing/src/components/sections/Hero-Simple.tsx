@@ -7,25 +7,45 @@ import { ChevronRight } from 'lucide-react'
 export default function Hero() {
   return (
     <div
-      className="relative overflow-visible dark:bg-gray-900 pt-16"
+      className="relative overflow-visible dark:bg-gray-900 -pt-4"
       style={{ backgroundColor: '#f7f7f3' }}
     >
-      {/* Hero Background Image */}
-      <div 
-        className="absolute inset-0 z-10 opacity-45"
-        style={{
-          backgroundImage: 'url("/HEROBG.svg")',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat',
-          width: '100%',
-          height: '100%'
-        }}
-      />
-      <div className="relative z-20 mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+        <div className="relative" style={{ paddingTop: '40px', paddingBottom: '80px', paddingLeft: '80px', paddingRight: '160px',
+          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+        }}>
+          {/* Top left bleeding cross */}
+          <div className="absolute -top-4 -left-4 w-8 h-8">
+            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+          </div>
+          {/* Bottom right bleeding cross */}
+          <div className="absolute -bottom-4 -right-4 w-8 h-8">
+            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+          </div>
+
+          {/* Hero Background Image inside frame */}
+          <div 
+            className="absolute inset-0 z-10 opacity-45"
+            style={{
+              backgroundImage: 'url("/HEROBG.svg")',
+              backgroundSize: '150% 150%',
+              backgroundPosition: 'center',
+              backgroundRepeat: 'no-repeat',
+              width: '100%',
+              height: '100%'
+            }}
+          />
+
+          {/* Content Container */}
+          <div className="max-w-[1300px] mx-auto pt-8 relative z-20">
         {/* Content Container */}
-        <div className="max-w-[1300px] mx-auto pt-8">
-          <div className="text-left pt-8">
+            <div className="max-w-[1300px] mx-auto pt-8">
+              <div className="text-left pt-8 pl-0">
             <div className="mt-0 mx-auto relative">
               <div className="w-full max-w-full overflow-hidden">
                 <h1
@@ -56,6 +76,8 @@ export default function Hero() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
             </div>
           </div>
         </div>
