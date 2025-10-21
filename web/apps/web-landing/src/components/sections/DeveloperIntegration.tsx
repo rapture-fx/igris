@@ -17,7 +17,7 @@ const basicInferenceCode = `<code><span style="color: #114dcd;">curl</span> <spa
     "stream": false
   }'</span>
 
-<span style="color: #6b7280;"># Response with Schlep-engine optimization metadata:</span>
+<span style="color: #6b7280;"># Response with Schlep-engine routing metadata:</span>
 {
   "id": "chatcmpl-schlep-123",
   "object": "chat.completion",
@@ -37,11 +37,11 @@ const basicInferenceCode = `<code><span style="color: #114dcd;">curl</span> <spa
     "total_tokens": 168
   },
   <span style="color: #1f53d0;">"metadata": {</span>
-    <span style="color: #1f53d0;">"provider": "benchmark-openai",</span>
+    <span style="color: #1f53d0;">"provider": "openai",</span>
     <span style="color: #1f53d0;">"latency_ms": 234,</span>
     <span style="color: #1f53d0;">"cost_usd": 0.00134,</span>
-    <span style="color: #1f53d0;">"routing_decision": "thompson-sampling",</span>
-    <span style="color: #1f53d0;">"trace_id": "550e8400-e29b-41d4-a716-446655440000"</span>
+    <span style="color: #1f53d0;">"route_decision": "policy-based",</span>
+    <span style="color: #1f53d0;">"request_id": "550e8400-e29b-41d4-a716-446655440000"</span>
   <span style="color: #1f53d0;">}</span>
 }
 
@@ -51,37 +51,35 @@ const basicInferenceCode = `<code><span style="color: #114dcd;">curl</span> <spa
 
 const optimizedCode = `<code><span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST <span style="color: #4b5563;">'http://localhost:8080/v1/chat/completions'</span> <span style="color: #dc2626;">\\</span>
   <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'X-Schlep-Optimization: cost'</span> <span style="color: #dc2626;">\\</span>
+  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer your-api-key'</span> <span style="color: #dc2626;">\\</span>
   <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{
-    "model": "auto",
+    "model": "gpt-3.5-turbo",
     "messages": [
       {"role": "system", "content": "You are an expert copywriter."},
       {"role": "user", "content": "Write a product description for an AI router"}
     ],
     "max_tokens": 300,
-    <span style="color: #1f53d0;">"optimization": {
-      "goal": "cost",
-      "constraints": {
-        "max_latency_ms": 2000,
-        "max_cost_per_request": 0.01,
-        "min_quality_score": 0.8
-      }
-    }</span>
+    <span style="color: #1f53d0;">"policy": {</span>
+      <span style="color: #1f53d0;">"optimize_for": "cost",</span>
+      <span style="color: #1f53d0;">"timeout_ms": 2000,</span>
+      <span style="color: #1f53d0;">"fallback_enabled": true</span>
+    <span style="color: #1f53d0;">}</span>
   }'</span>
 
-<span style="color: #6b7280;"># Thompson Sampling automatically selects:</span>
+<span style="color: #6b7280;"># Policy-based routing automatically selects:</span>
 <span style="color: #6b7280;"># - Models with best cost/latency tradeoff</span>
-<span style="color: #6b7280;"># - Learns from real performance data</span>
+<span style="color: #6b7280;"># - Learns from performance data collection</span>
 <span style="color: #6b7280;"># - Balances exploration vs exploitation</span>
-<span style="color: #6b7280;"># - Respects your optimization constraints</span>
+<span style="color: #6b7280;"># - Respects your optimization preferences</span>
 
 <span style="color: #6b7280;"># Response shows routing decision:</span>
 {
   <span style="color: #1f53d0;">"metadata": {</span>
-    <span style="color: #1f53d0;">"selected_model": "gpt-3.5-turbo",</span>
-    <span style="color: #1f53d0;">"selected_provider": "anthropic",</span>
-    <span style="color: #1f53d0;">"optimization_score": 0.94,</span>
-    <span style="color: #1f53d0;">"cost_saved": 0.0042</span>
+    <span style="color: #1f53d0;">"provider": "openai",</span>
+    <span style="color: #1f53d0;">"latency_ms": 125,</span>
+    <span style="color: #1f53d0;">"cost_usd": 0.0008,</span>
+    <span style="color: #1f53d0;">"route_decision": "cost-optimized",</span>
+    <span style="color: #1f53d0;">"fallback": false</span>
   <span style="color: #1f53d0;">}</span>
 }
 </code>`
@@ -101,14 +99,14 @@ client = OpenAI(
 <span style="color: #114dcd;">def</span> generate_text(prompt, optimize_for=<span style="color: #4b5563;">"cost"</span>):
     <span style="color: #114dcd;">try</span>:
         response = client.chat.completions.create(
-            model=<span style="color: #4b5563;">"auto"</span>,  <span style="color: #6b7280;"># Let Schlep-engine select best model</span>
+            model=<span style="color: #4b5563;">"gpt-4"</span>,
             messages=[
                 {<span style="color: #4b5563;">"role"</span>: <span style="color: #4b5563;">"user"</span>, <span style="color: #4b5563;">"content"</span>: prompt}
             ],
             max_tokens=<span style="color: #114dcd;">500</span>,
             temperature=<span style="color: #114dcd;">0.7</span>,
-            <span style="color: #6b7280;"># Pass optimization preferences to Schlep-engine</span>
-            extra_headers={<span style="color: #4b5563;">"X-Schlep-Goal"</span>: optimize_for}
+            <span style="color: #6b7280;"># Policy override for optimization</span>
+            extra_body={<span style="color: #4b5563;">"policy"</span>: {<span style="color: #4b5563;">"optimize_for"</span>: optimize_for}}
         )
         
         <span style="color: #114dcd;">return</span> {
@@ -130,7 +128,8 @@ result = generate_text(
 
 <span style="color: #114dcd;">if</span> result:
     <span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">"Response:"</span>, result[<span style="color: #4b5563;">"content"</span>])
-    <span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">"Used provider:"</span>, result[<span style="color: #4b5563;">"provider"</span>])
+    <span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">"Model used:"</span>, result[<span style="color: #4b5563;">"model"</span>])
+    <span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">"Trace ID:"</span>, result[<span style="color: #4b5563;">"trace_id"</span>])
 </code>`
 
 const javascriptCode = `<code><span style="color: #1f53d0;">// JavaScript/TypeScript - drop-in OpenAI replacement</span>
@@ -156,8 +155,7 @@ const javascriptCode = `<code><span style="color: #1f53d0;">// JavaScript/TypeSc
 
   <span style="color: #114dcd;">async</span> generateText(prompt, options = {}) {
     <span style="color: #114dcd;">const</span> {
-      model = <span style="color: #4b5563;">'auto'</span>,  <span style="color: #6b7280;">// Let Schlep-engine choose best model</span>
-      optimizeFor = <span style="color: #4b5563;">'cost'</span>,
+      model = <span style="color: #4b5563;">'gpt-4'</span>,  <span style="color: #6b7280;">// Specify target model</span>
       ...openAIOptions
     } = options;
 
@@ -166,9 +164,11 @@ const javascriptCode = `<code><span style="color: #1f53d0;">// JavaScript/TypeSc
         model,
         messages: [{ role: <span style="color: #4b5563;">'user'</span>, content: prompt }],
         ...openAIOptions,
-        <span style="color: #6b7280;">// Send optimization preferences to Schlep-engine</span>
-        headers: {
-          <span style="color: #4b5563;">'X-Schlep-Goal'</span>: optimizeFor
+        <span style="color: #6b7280;">// Policy override for optimization</span>
+        body: {
+          policy: {
+            optimizeFor: optimizeFor
+          }
         }
       });
 
@@ -182,10 +182,10 @@ const javascriptCode = `<code><span style="color: #1f53d0;">// JavaScript/TypeSc
 
       <span style="color: #114dcd;">return</span> {
         content: completion.choices[<span style="color: #114dcd;">0</span>].message.content,
-        <span style="color: #1f53d0;">provider: selectedProvider</span>,
+        <span style="color: #1f53d0;">model: completion.model</span>,
         <span style="color: #1f53d0;">tokens: completion.usage.total_tokens</span>,
         <span style="color: #1f53d0;">traceId: completion.id</span>,
-        <span style="color: #1f53d0;">optimization: completion.metadata?.routing_decision</span>
+        <span style="color: #1f53d0;">routing: completion.metadata?.route_decision</span>
       };
 
     } <span style="color: #114dcd;">catch</span> (error) {
@@ -213,7 +213,8 @@ const javascriptCode = `<code><span style="color: #1f53d0;">// JavaScript/TypeSc
   );
   
   console.<span style="color: #114dcd;">log</span>(<span style="color: #4b5563;">"Response:"</span>, result.content);
-  console.<span style="color: #114dcd;">log</span>(<span style="color: #4b5563;">"Routed via:"</span>, result.provider);
+  console.<span style="color: #114dcd;">log</span>(<span style="color: #4b5563;">"Used model:"</span>, result.model);
+  console.<span style="color: #114dcd;">log</span>(<span style="color: #4b5563;">"Trace ID:"</span>, result.traceId);
   console.<span style="color: #114dcd;">log</span>(<span style="color: #4b5563;">"Stats:"</span>, router.getStats());
 }
 </code>`
@@ -329,7 +330,7 @@ export default function DeveloperIntegration() {
                   </div>
 
                   {/* Code area */}
-                  <div className="p-4" style={{ backgroundColor: '#f7f7f3', height: '450px', overflow: 'auto' }}>
+                  <div className="p-4" style={{ height: '450px', overflow: 'auto', backgroundColor: '#f7f7f3' }}>
                     <pre
                       className="text-xs md:text-sm leading-relaxed"
                       style={{ color: '#374151' }}

@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/schlep-engine/schlep-engine/cmd/schlep-api/handlers"
+	"github.com/schlep-engine/schlep-engine/cmd/schlep-engine-api/handlers"
 )
 
 // RegisterInferRoutes registers /v1/infer and related endpoints

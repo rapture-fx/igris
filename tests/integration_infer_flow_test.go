@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/schlep-engine/schlep-engine/cmd/schlep-api/handlers"
+	"github.com/schlep-engine/schlep-engine/cmd/schlep-engine-api/handlers"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

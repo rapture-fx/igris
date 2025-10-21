@@ -120,7 +120,7 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 	return nil
 }
 
-// RegisterAllRoutes registers all API routes including metrics
+// RegisterAllRoutes registers all API routes including metrics and multi-tenancy
 func RegisterAllRoutes(app *fiber.App) error {
 	// Register inference routes
 	if err := RegisterInferRoutes(app); err != nil {
@@ -131,6 +131,9 @@ func RegisterAllRoutes(app *fiber.App) error {
 	if err := RegisterMetricsRoutes(app); err != nil {
 		return err
 	}
+
+	// Note: Multi-tenancy routes are registered separately via SetupMultiTenancy
+	// in main.go when ENABLE_MULTI_TENANCY=true
 
 	return nil
 }

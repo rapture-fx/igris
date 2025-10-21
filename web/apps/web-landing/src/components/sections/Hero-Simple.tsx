@@ -11,7 +11,7 @@ export default function Hero() {
       style={{ backgroundColor: '#f7f7f3' }}
     >
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative" style={{ paddingTop: '40px', paddingBottom: '80px', paddingLeft: '80px', paddingRight: '160px',
+        <div className="relative" style={{ paddingTop: '40px', paddingBottom: '40px', paddingLeft: '80px', paddingRight: '160px',
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -30,7 +30,7 @@ export default function Hero() {
 
           {/* Hero Background Image inside frame */}
           <div 
-            className="absolute inset-0 z-10 opacity-45"
+            className="absolute inset-0 z-10 opacity-15"
             style={{
               backgroundImage: 'url("/HEROBG.svg")',
               backgroundSize: '150% 150%',
