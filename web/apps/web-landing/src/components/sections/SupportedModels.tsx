@@ -7,10 +7,16 @@ const openaiModels = [
     name: 'GPT-4',
     input: '$0.03 / 1K tokens',
     output: '$0.06 / 1K tokens',
-    latency: 'P50: 1200ms',
+    latency: 'P50: 800ms',
   },
   {
     name: 'GPT-4 Turbo',
+    input: '$0.01 / 1K tokens',
+    output: '$0.03 / 1K tokens',
+    latency: 'P50: 800ms',
+  },
+  {
+    name: 'GPT-4 Turbo Preview',
     input: '$0.01 / 1K tokens',
     output: '$0.03 / 1K tokens',
     latency: 'P50: 800ms',
@@ -21,26 +27,44 @@ const openaiModels = [
     output: '$0.0015 / 1K tokens',
     latency: 'P50: 600ms',
   },
+  {
+    name: 'GPT-3.5 Turbo 16K',
+    input: '$0.001 / 1K tokens',
+    output: '$0.002 / 1K tokens',
+    latency: 'P50: 600ms',
+  },
 ]
 
 const anthropicModels = [
   {
-    name: 'Claude 3 Opus',
+    name: 'Claude 3 Opus (20240229)',
     input: '$0.015 / 1K tokens',
     output: '$0.075 / 1K tokens',
     latency: 'P50: 1800ms',
   },
   {
-    name: 'Claude 3 Sonnet',
+    name: 'Claude 3 Sonnet (20240229)',
     input: '$0.003 / 1K tokens',
     output: '$0.015 / 1K tokens',
     latency: 'P50: 1000ms',
   },
   {
-    name: 'Claude 3 Haiku',
+    name: 'Claude 3 Haiku (20240307)',
     input: '$0.00025 / 1K tokens',
     output: '$0.00125 / 1K tokens',
     latency: 'P50: 400ms',
+  },
+  {
+    name: 'Claude 2.1',
+    input: '$0.008 / 1K tokens',
+    output: '$0.024 / 1K tokens',
+    latency: 'P50: 1500ms',
+  },
+  {
+    name: 'Claude 2.0',
+    input: '$0.008 / 1K tokens',
+    output: '$0.024 / 1K tokens',
+    latency: 'P50: 1500ms',
   },
 ]
 
@@ -67,12 +91,12 @@ export default function SupportedModels() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="text-center mb-12">
+            <div className="text-left mb-12">
               <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Supported Models & Providers</h2>
               <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
                 Route across OpenAI and Anthropic models.<br />Automatic cost and latency optimization.
               </h3>
-              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl mx-auto">
+              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
                 Benchmark mode simulates all models with realistic latency profiles. Live API integration coming soon.
               </p>
             </div>

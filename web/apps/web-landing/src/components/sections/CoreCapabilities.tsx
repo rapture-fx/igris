@@ -37,11 +37,11 @@ const capabilities = [
   },
   {
     name: 'Risk-Free Testing',
-    description: 'Test your integration at zero cost with our realistic simulation mode. Perfect for development, load testing, and feature validation without making any API calls.',
+    description: 'Benchmark mode simulates API providers with realistic latency and pricing. Zero costs during development and CI/CD testing. One env var to switch to production.',
     icon: () => (
-      <img 
-        src="/Rsik free testing.svg" 
-        alt="Risk-Free Testing" 
+      <img
+        src="/Rsik free testing.svg"
+        alt="Risk-Free Testing"
         className="h-60 w-60 text-black"
       />
     ),

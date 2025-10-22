@@ -344,7 +344,7 @@ export default function DeveloperIntegration() {
 
               {/* Right Column - Title and Description */}
               <div className="text-left lg:col-span-2">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Developer Integration</h2>
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">REST API</h2>
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
                   OpenAI-compatible API.<br />Drop-in replacement for existing clients.
                 </h3>
