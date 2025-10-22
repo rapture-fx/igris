@@ -6,12 +6,9 @@ import { ChevronRight } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <div
-      className="relative overflow-visible dark:bg-gray-900 -pt-4"
-      style={{ backgroundColor: '#f7f7f3' }}
-    >
+    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative" style={{ paddingTop: '40px', paddingBottom: '40px', paddingLeft: '80px', paddingRight: '160px',
+        <div className="relative" style={{ paddingLeft: '80px', paddingRight: '160px',
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -29,11 +26,11 @@ export default function Hero() {
           </div>
 
           {/* Hero Background Image inside frame */}
-          <div 
-            className="absolute inset-0 z-10 opacity-15"
+          <div
+            className="absolute inset-0 z-10 opacity-10"
             style={{
               backgroundImage: 'url("/HEROBG.svg")',
-              backgroundSize: '150% 150%',
+              backgroundSize: 'cover',
               backgroundPosition: 'center',
               backgroundRepeat: 'no-repeat',
               width: '100%',
@@ -71,7 +68,7 @@ export default function Hero() {
                 </div>
 
                 {/* Hero content area - displays background */}
-                <div style={{ backgroundColor: 'transparent', minHeight: '600px', maxHeight: '800px' }}>
+                <div style={{ backgroundColor: 'transparent', minHeight: '350px', maxHeight: '800px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                   </div>
                 </div>
@@ -82,6 +79,6 @@ export default function Hero() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

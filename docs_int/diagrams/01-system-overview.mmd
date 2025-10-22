@@ -1,6 +1,6 @@
 %% Schlep-Engine System Overview Diagram
 %% Render with: https://mermaid.live or any Mermaid-compatible tool
-%% Updated: 2025-10-20 - Synchronized with codebase
+%% Updated: 2025-10-22 - Added Multi-Tenancy, Database Layer, and Expanded Safety Components
 
 graph TB
     Client[Client Application]
@@ -43,16 +43,43 @@ graph TB
 
     subgraph Safety["Safety & Reliability"]
         SafetyController[SafetyController<br/>safety.SafetyController]
+        BudgetTracker[BudgetTracker<br/>safety.BudgetTracker]
+        TokenEnforcer[TokenEnforcer<br/>safety.TokenEnforcer]
+        KeyValidator[KeyValidator<br/>safety.KeyValidator]
+        AuditLogger[AuditLogger<br/>safety.AuditLogger]
         SLOBreaker[SLOBreaker<br/>optimizer.SLOBreaker]
+    end
+
+    subgraph MultiTenancy["Multi-Tenancy (Phase 14)"]
+        TenantAuth[TenantAuth Middleware<br/>middleware.TenantAuth]
+        TenantMgmt[Tenant Management<br/>handlers/tenant.go]
+        VaultKeys[Vault Key Storage<br/>handlers/vault.go]
+        PerTenantPolicies[Per-Tenant Policies<br/>policy.PolicyHandler]
+    end
+
+    subgraph Persistence["Data Persistence"]
+        PostgreSQL[(PostgreSQL)]
+        BudgetsTable[Budgets Table]
+        SpendingLog[Spending Log]
+        PolicySettings[Policy Settings]
+        Redis[(Redis Cache)]
+        MLPredictions[ML Predictions Cache]
     end
 
     Client -->|POST /v1/infer| Router
     Router --> Middleware
+    Middleware --> TenantAuth
+    TenantAuth -.->|if enabled| TenantMgmt
     Middleware --> InferHandler
+
+    InferHandler -->|check safety| SafetyController
+    SafetyController --> BudgetTracker
+    SafetyController --> TokenEnforcer
+    SafetyController --> KeyValidator
+    SafetyController --> AuditLogger
 
     InferHandler -->|selectProvider| InferenceRouter
     InferHandler -->|runShadow| ShadowRunner
-    InferHandler -->|check safety| SafetyController
 
     ShadowRunner -->|selectAction| RustOptimizer
     ShadowRunner -->|fallback| InferenceRouter
@@ -66,13 +93,33 @@ graph TB
     OpenAIProvider --> OpenAI_API
     AnthropicProvider --> Anthropic_API
 
+    %% Multi-tenancy connections
+    TenantMgmt --> VaultKeys
+    TenantMgmt --> PerTenantPolicies
+    PerTenantPolicies --> PolicySettings
+
+    %% Database connections
+    BudgetTracker --> BudgetsTable
+    BudgetTracker --> SpendingLog
+    AuditLogger --> SpendingLog
+    BudgetsTable -.-> PostgreSQL
+    SpendingLog -.-> PostgreSQL
+    PolicySettings -.-> PostgreSQL
+
+    ProviderRegistry --> MLPredictions
+    MLPredictions -.-> Redis
+
+    %% Observability connections
     InferHandler --> Observability
     ShadowRunner --> Observability
     InferenceRouter --> Observability
 
+    %% Control plane
     Admin -->|hot-reload| RuntimeConfig
     RuntimeConfig -.->|dynamic updates| InferHandler
 
+    %% SLO monitoring
+    SLOBreaker -.->|monitor & revert| ShadowRunner
     SLOBreaker -.->|circuit breaker| InferHandler
 
     style Client fill:#D6EAF8
@@ -83,3 +130,5 @@ graph TB
     style Observability fill:#EBDEF0
     style Control fill:#FEF9E7
     style Safety fill:#FADBD8
+    style MultiTenancy fill:#E1F5FE,stroke:#0277BD,stroke-dasharray: 5 5
+    style Persistence fill:#FCE4EC,stroke:#C2185B

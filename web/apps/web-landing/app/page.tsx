@@ -9,6 +9,9 @@ import SafetyReliability from '../src/components/sections/SafetyReliability'
 import SupportedModels from '../src/components/sections/SupportedModels'
 import CurrentPhase from '../src/components/sections/CurrentPhase'
 import EngineeringFAQ from '../src/components/sections/EngineeringFAQ'
+import MultiTenancy from '../src/components/sections/MultiTenancy'
+import Observability from '../src/components/sections/Observability'
+import SDKSupport from '../src/components/sections/SDKSupport'
 export default function HomePage() {
   return (
     <div className="min-h-screen">
@@ -17,8 +20,11 @@ export default function HomePage() {
         <Hero />
         <CoreCapabilities />
         <TechStack />
-        <DeveloperIntegration />
         <SafetyReliability />
+        <MultiTenancy />
+        <Observability />
+        <SDKSupport />
+        <DeveloperIntegration />
         <SupportedModels />
         <CurrentPhase />
         <EngineeringFAQ />

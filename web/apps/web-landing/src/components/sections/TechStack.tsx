@@ -1,21 +1,26 @@
 import React from 'react'
-import { Send, Zap, BarChart3, GitBranch, Cpu } from 'lucide-react'
+import { Send, Zap, BarChart3, GitBranch, Cpu, Shield } from 'lucide-react'
 
 const steps = [
   {
     name: 'API Gateway',
-    description: 'Client requests enter via unified REST API endpoint. Authentication, validation, and request processing handled at entry point.',
+    description: 'Unified REST API with built-in authentication and request validation. Every request is traced and logged for complete observability.',
     icon: Send,
   },
   {
     name: 'Intelligent Routing',
-    description: 'Policy-based selection between providers. Engine analyzes performance, availability, and cost to route to optimal endpoint.',
+    description: 'Real-time analysis of performance, cost, and availability across providers. Automatic fallback on failures ensures zero-downtime operation.',
     icon: GitBranch,
   },
   {
     name: 'Adaptive Learning',
-    description: 'Thompson Sampling optimization tracks latency, cost, and reliability. System continuously learns and improves routing decisions.',
+    description: 'Thompson Sampling algorithm continuously optimizes routing decisions. Gradual rollout with shadow mode testing ensures safe deployment.',
     icon: Cpu,
+  },
+  {
+    name: 'Safety Controls',
+    description: 'Built-in budget tracking and token limits prevent runaway costs. Audit logging ensures compliance and complete cost visibility.',
+    icon: Shield,
   },
 ]
 
@@ -47,20 +52,20 @@ export default function TechStack() {
               <div className="text-left lg:col-span-2">
                 <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">How It Works</h2>
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Intelligent Routing.<br/>Zero configuration optimization.
+                  Intelligent Routing.<br/>Built-in cost protection.
                 </h3>
 
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
-                  Schlep-engine automatically optimizes AI inference requests across providers, learning from performance data to deliver the best results without manual intervention.
+                  Schlep-engine automatically optimizes AI inference requests across providers with built-in budget tracking and safety controls. Adaptive learning improves performance while preventing runaway costs.
                 </p>
 
                 {/* Steps Cards */}
-                <div className="space-y-2 max-w-lg relative">
+                <div className="space-y-8 max-w-lg relative">
                   {steps.map((step, index) => (
                     <div key={step.name} className="flex items-start gap-3 relative">
                       {/* Git branch style line and dots on the left */}
                       {index < steps.length - 1 && (
-                        <div className="absolute left-3 top-6 w-0.5 h-20" style={{ backgroundColor: '#299a93' }}></div>
+                        <div className="absolute left-2.5 top-6 w-px h-24 bg-[#299a93]"></div>
                       )}
                       
                       {/* Dot on the left side */}
@@ -91,10 +96,17 @@ export default function TechStack() {
 
               {/* Right Column - SVG Diagram */}
               <div className="rounded-lg lg:col-span-3 min-h-[500px] relative overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg" style={{
-                backgroundColor: '#f2f1ed'
+                backgroundColor: '#f2f1ed',
+                backgroundImage: `repeating-linear-gradient(
+                  45deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(0,0,0,0.02) 2px,
+                  rgba(0,0,0,0.02) 4px
+                )`
               }}>
                 <div className="relative z-10 flex items-center justify-center h-full p-8">
-                  <img src="/How it works diagram.svg" alt="How It Works Diagram" className="max-w-[90%] max-h-[90%] object-contain" />
+                  <img src="/public diagram.svg" alt="How It Works Diagram" className="w-full h-full object-contain"  />
                 </div>
               </div>
             </div>
