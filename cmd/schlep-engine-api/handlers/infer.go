@@ -181,6 +181,15 @@ func NewInferHandler() (*InferHandler, error) {
 	// Create inference router
 	inferenceRouter := router.NewInferenceRouter(registry)
 
+	// PHASE 1.2: Initialize Rust Thompson Sampling optimizer
+	log.Println("[Handler] Initializing Rust Thompson Sampling optimizer...")
+	if err := inferenceRouter.InitializeOptimizer(); err != nil {
+		log.Printf("[Handler] ⚠️  WARNING: Failed to initialize Rust optimizer: %v", err)
+		log.Println("[Handler] ⚠️  Falling back to Go-based routing")
+	} else {
+		log.Println("[Handler] 🦀 Rust optimizer initialized successfully")
+	}
+
 	// Initialize optimizer components
 	optConfig := config.LoadOptimizerConfig()
 	config.InitRuntimeConfig(optConfig)

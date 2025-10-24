@@ -1,3 +1,8 @@
+// +build ignore
+
+// This tool is excluded from normal builds as it depends on experimental packages
+// To build: go build -tags ignore ./labs/tools/cache_warmer/
+
 package main
 
 import (

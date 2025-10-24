@@ -1,3 +1,8 @@
+// +build ignore
+
+// This test is excluded from normal builds as it depends on experimental packages
+// It also requires a running Redis instance
+
 package tests
 
 import (
