@@ -7,19 +7,19 @@ const openaiModels = [
     name: 'GPT-4',
     input: '$0.03 / 1K tokens',
     output: '$0.06 / 1K tokens',
-    latency: 'P50: 800ms',
+    latency: 'P50: 1200ms',
   },
   {
     name: 'GPT-4 Turbo',
     input: '$0.01 / 1K tokens',
     output: '$0.03 / 1K tokens',
-    latency: 'P50: 800ms',
+    latency: 'P50: 1200ms',
   },
   {
     name: 'GPT-4 Turbo Preview',
     input: '$0.01 / 1K tokens',
     output: '$0.03 / 1K tokens',
-    latency: 'P50: 800ms',
+    latency: 'P50: 1200ms',
   },
   {
     name: 'GPT-3.5 Turbo',
@@ -43,7 +43,19 @@ const anthropicModels = [
     latency: 'P50: 1800ms',
   },
   {
+    name: 'Claude 3 Opus',
+    input: '$0.015 / 1K tokens',
+    output: '$0.075 / 1K tokens',
+    latency: 'P50: 1800ms',
+  },
+  {
     name: 'Claude 3 Sonnet (20240229)',
+    input: '$0.003 / 1K tokens',
+    output: '$0.015 / 1K tokens',
+    latency: 'P50: 1000ms',
+  },
+  {
+    name: 'Claude 3 Sonnet',
     input: '$0.003 / 1K tokens',
     output: '$0.015 / 1K tokens',
     latency: 'P50: 1000ms',
@@ -55,16 +67,10 @@ const anthropicModels = [
     latency: 'P50: 400ms',
   },
   {
-    name: 'Claude 2.1',
-    input: '$0.008 / 1K tokens',
-    output: '$0.024 / 1K tokens',
-    latency: 'P50: 1500ms',
-  },
-  {
-    name: 'Claude 2.0',
-    input: '$0.008 / 1K tokens',
-    output: '$0.024 / 1K tokens',
-    latency: 'P50: 1500ms',
+    name: 'Claude 3 Haiku',
+    input: '$0.00025 / 1K tokens',
+    output: '$0.00125 / 1K tokens',
+    latency: 'P50: 400ms',
   },
 ]
 

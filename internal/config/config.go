@@ -16,6 +16,7 @@ type Config struct {
 	Observability   ObservabilityConfig
 	RateLimit       RateLimitConfig
 	Security        SecurityConfig
+	Persistence     PersistenceConfig // Phase 2: External state persistence
 }
 
 // ServerConfig holds server configuration
@@ -79,8 +80,34 @@ type SecurityConfig struct {
 	AllowedHosts string
 }
 
+// PersistenceConfig holds persistence layer configuration (Phase 2)
+type PersistenceConfig struct {
+	// Redis configuration
+	UseRedis           bool   // Enable Redis for provider stats
+	RedisURL           string // Redis connection URL
+	RedisEnabled       bool   // Computed: true if UseRedis && RedisURL is set
+
+	// PostgreSQL configuration
+	UsePostgres        bool   // Enable Postgres for optimizer state
+	PostgresURL        string // PostgreSQL connection URL
+	PostgresEnabled    bool   // Computed: true if UsePostgres && PostgresURL is set
+
+	// Distributed locking
+	UseDistributedLock bool   // Enable distributed locking for multi-instance setups
+}
+
 // LoadConfig loads configuration from environment variables
 func LoadConfig() *Config {
+	// Load persistence configuration
+	useRedis := getEnvBool("USE_REDIS", false)
+	redisURL := getEnv("REDIS_URL", "")
+
+	usePostgres := getEnvBool("USE_PG_OPTIMIZER_STATE", false)
+	postgresURL := getEnv("DATABASE_URL", "")
+	if postgresURL == "" {
+		postgresURL = getEnv("POSTGRES_URL", "")
+	}
+
 	return &Config{
 		Server: ServerConfig{
 			Port:        getEnv("PORT", "8080"),
@@ -126,6 +153,15 @@ func LoadConfig() *Config {
 			CORSEnabled:  getEnvBool("CORS_ENABLED", true),
 			CORSOrigins:  getEnv("CORS_ORIGINS", "*"),
 			AllowedHosts: getEnv("ALLOWED_HOSTS", "localhost"),
+		},
+		Persistence: PersistenceConfig{
+			UseRedis:           useRedis,
+			RedisURL:           redisURL,
+			RedisEnabled:       useRedis && redisURL != "",
+			UsePostgres:        usePostgres,
+			PostgresURL:        postgresURL,
+			PostgresEnabled:    usePostgres && postgresURL != "",
+			UseDistributedLock: getEnvBool("USE_DISTRIBUTED_LOCK", false),
 		},
 	}
 }
