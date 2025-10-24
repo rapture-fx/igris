@@ -7,7 +7,7 @@ import TechStack from '../src/components/sections/TechStack'
 
 import SafetyReliability from '../src/components/sections/SafetyReliability'
 import SupportedModels from '../src/components/sections/SupportedModels'
-import CurrentPhase from '../src/components/sections/CurrentPhase'
+
 import EngineeringFAQ from '../src/components/sections/EngineeringFAQ'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Observability from '../src/components/sections/Observability'
@@ -25,7 +25,7 @@ export default function HomePage() {
         <Observability />
         <SDKSupport />
         <SupportedModels />
-        <CurrentPhase />
+        
         <EngineeringFAQ />
         <CallToAction />
       </main>

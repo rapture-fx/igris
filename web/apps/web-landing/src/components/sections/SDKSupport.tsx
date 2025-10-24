@@ -4,39 +4,10 @@ import React, { useState } from 'react'
 import { Code, Package, Zap, CheckCircle, ArrowUpRight, Copy } from 'lucide-react'
 import Link from 'next/link'
 
-const sdks = [
-  { name: 'Python', logo: '/PYthon.svg' },
-  { name: 'JavaScript', logo: '/NODE.svg' },
-  { name: 'Rust', logo: '/RUST.svg' },
-  { name: 'Go', logo: '/GO.svg' },
-]
-
-const codeExample = `<code><span style="color: #1f53d0;"># Python SDK Example</span>
-<span style="color: #114dcd;">from</span> schlep_engine <span style="color: #114dcd;">import</span> SchlepEngine
-
-client = SchlepEngine(api_key=<span style="color: #4b5563;">"your-api-key"</span>)
-
-response = client.chat.completions.create(
-    model=<span style="color: #4b5563;">"gpt-4"</span>,
-    messages=[
-        {<span style="color: #4b5563;">"role"</span>: <span style="color: #4b5563;">"user"</span>, <span style="color: #4b5563;">"content"</span>: <span style="color: #4b5563;">"Hello!"</span>}
-    ],
-    <span style="color: #1f53d0;">policy</span>={
-        <span style="color: #4b5563;">"optimize_for"</span>: <span style="color: #4b5563;">"cost"</span>,
-        <span style="color: #4b5563;">"fallback_enabled"</span>: <span style="color: #114dcd;">true</span>
-    }
-)
-
-<span style="color: #6b7280;"># Response includes routing metadata</span>
-<span style="color: #114dcd;">print</span>(f<span style="color: #4b5563;">"Cost: </span>$<span style="color: #4b5563;">{response.metadata.cost_usd}"</span>)
-<span style="color: #114dcd;">print</span>(f<span style="color: #4b5563;">"Provider: {response.metadata.provider}"</span>)
-<span style="color: #114dcd;">print</span>(f<span style="color: #4b5563;">"Latency: {response.metadata.latency_ms}ms"</span>)
-</code>`
-
-const basicInferenceCode = `<code><span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST <span style="color: #4b5563;">'http://localhost:8080/v1/chat/completions'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer your-api-key'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{
+const basicInferenceCode = `curl -X POST 'http://localhost:8080/v1/chat/completions' \\
+  -H 'Content-Type: application/json' \\
+  -H 'Authorization: Bearer your-api-key' \\
+  -d '{
     "model": "gpt-4",
     "messages": [
       {"role": "user", "content": "Explain Thompson Sampling in AI routing"}
@@ -44,11 +15,11 @@ const basicInferenceCode = `<code><span style="color: #114dcd;">curl</span> <spa
     "max_tokens": 500,
     "temperature": 0.7,
     "stream": false
-  }'</span>
+  }'
 
-<span style="color: #6b7280;"># Response with Schlep-engine routing metadata:</span>
+# Response with comprehensive Schlep-engine metadata:
 {
-  "id": "chatcmpl-schlep-123",
+  "id": "chatcmpl-schlep-550e8400e29b",
   "object": "chat.completion",
   "created": 1699014083,
   "model": "gpt-4",
@@ -56,7 +27,7 @@ const basicInferenceCode = `<code><span style="color: #114dcd;">curl</span> <spa
     "index": 0,
     "message": {
       "role": "assistant", 
-      "content": "Thompson Sampling is a Bayesian..."
+      "content": "Thompson Sampling is a Bayesian approach..."
     },
     "finish_reason": "stop"
   }],
@@ -65,24 +36,71 @@ const basicInferenceCode = `<code><span style="color: #114dcd;">curl</span> <spa
     "completion_tokens": 156, 
     "total_tokens": 168
   },
-  <span style="color: #1f53d0;">"metadata": {</span>
-    <span style="color: #1f53d0;">"provider": "openai",</span>
-    <span style="color: #1f53d0;">"latency_ms": 234,</span>
-    <span style="color: #1f53d0;">"cost_usd": 0.00134,</span>
-    <span style="color: #1f53d0;">"route_decision": "policy-based",</span>
-    <span style="color: #1f53d0;">"request_id": "550e8400-e29b-41d4-a716-446655440000"</span>
-  <span style="color: #1f53d0;">}</span>
+  "metadata": {
+    "provider": "openai",
+    "region": "us-west-2", 
+    "model_used": "gpt-4",
+    "route_decision": "Rust Thompson Sampling: action-123",
+    "latency_ms": 1567,
+    "queue_time_ms": 34,
+    "inference_time_ms": 1533,
+    "ttft_ms": 234,
+    "cost_usd": 0.01038,
+    "quality_score": 0.85,
+    "cache_hit": false,
+    "cache_key": "",
+    "optimizer_action": "thompson_sampling",
+    "reward_signal": 0.0,
+    "exploration_bonus": 0.15,
+    "request_id": "550e8400-e29b-41d4-a716-446655440000",
+    "timestamp": "2024-10-24T12:34:43Z",
+    "retry_count": 0,
+    "fallback": false,
+    "fallback_reason": ""
+  }
 }
-</code>`
+
+# Available models include:
+# OpenAI: gpt-4, gpt-4-turbo, gpt-4-turbo-preview, gpt-3.5-turbo, gpt-3.5-turbo-16k
+# Anthropic: claude-3-opus, claude-3-opus-20240229, claude-3-sonnet, claude-3-sonnet-20240229, claude-3-haiku, claude-3-haiku-20240307
+# Each model has optimized cost estimation and latency profiles`;
+
+const pythonCode = `# Python SDK Example
+from schlep_engine import SchlepEngine
+
+client = SchlepEngine(api_key="your-api-key")
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ],
+    policy={
+        "optimize_for": "cost",
+        "fallback_enabled": true
+    }
+)
+
+# Response includes routing metadata
+print("Cost: $" + str(response.metadata.cost_usd))
+print("Provider: " + response.metadata.provider)
+print("Latency: " + str(response.metadata.latency_ms) + "ms")`;
+
+const sdks = [
+  { name: 'Python', logo: '/PYthon.svg' },
+  { name: 'JavaScript', logo: '/NODE.svg' },
+  { name: 'Rust', logo: '/RUST.svg' },
+  { name: 'Go', logo: '/GO.svg' },
+];
 
 export default function SDKSupport() {
   const [activeTab, setActiveTab] = useState('sdk');
 
   const getActiveCode = () => {
     switch (activeTab) {
-      case 'sdk': return codeExample;
+      case 'sdk': return pythonCode;
       case 'api': return basicInferenceCode;
-      default: return codeExample;
+      default: return pythonCode;
     }
   };
 
@@ -161,8 +179,6 @@ export default function SDKSupport() {
                     </div>
                   ))}
                 </div>
-
-                
               </div>
 
               {/* Right Column - REST API Section */}
@@ -178,45 +194,27 @@ export default function SDKSupport() {
 
                 {/* API Code Example */}
                 <div
-                  className="text-left relative z-10 rounded-xl overflow-hidden mb-6"
+                  className="text-left relative z-10 overflow-hidden mb-6 shadow-lg"
                   style={{
                     width: '100%',
-                    backgroundColor: '#f2f1ed',
-                    border: '1px solid #e5e7eb',
-                    boxShadow: '0 10px 20px -6px rgba(0, 0, 0, 0.15), 0 8px 16px -4px rgba(0, 0, 0, 0.1)'
+                    backgroundColor: '#f7f7f3',
+                    border: '1px solid #299a93'
                   }}
                 >
-                  {/* Terminal header */}
-                  <div className="flex items-center justify-between px-4 py-2 border-b border-gray-300" style={{ backgroundColor: '#f2f1ed' }}>
-                    <div className="flex items-center space-x-2">
-                      <div className="flex space-x-2">
-                        <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                        <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                        <div className="w-3 h-3 rounded-full bg-gray-300"></div>
-                      </div>
-                    </div>
-                    <div className="absolute left-1/2 transform -translate-x-1/2">
-                      <span className="text-sm text-gray-500 font-medium">API Examples</span>
-                    </div>
-                    <button
-                      className="p-1.5 text-gray-500 hover:text-gray-700 transition-colors rounded"
-                      onClick={handleCopyClick}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Code area */}
-                  <div className="p-4" style={{ height: '400px', overflow: 'auto', backgroundColor: '#f7f7f3' }}>
+                  <div 
+                    className="p-4 overflow-auto hide-scrollbar" 
+                    style={{ 
+                      height: '400px',
+                      scrollbarWidth: 'none',
+                      msOverflowStyle: 'none',
+                      '&::-webkit-scrollbar': { display: 'none' }
+                    }}
+                  >
                     <pre
-                      className="text-xs md:text-sm leading-relaxed"
-                      style={{ color: '#374151' }}
-                      dangerouslySetInnerHTML={{
-                        __html: basicInferenceCode
-                      }}
-                    />
+                      className="text-xs leading-relaxed"
+                    >
+                      {basicInferenceCode}
+                    </pre>
                   </div>
                 </div>
 
