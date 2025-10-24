@@ -14,7 +14,15 @@
       "Bash(curl -s -X POST http://localhost:8081/v1/infer -H 'Content-Type: application/json' -d '{\n    \"\"\"\"model\"\"\"\": \"\"\"\"gpt-4\"\"\"\",\n    \"\"\"\"messages\"\"\"\": [{\"\"\"\"role\"\"\"\": \"\"\"\"user\"\"\"\", \"\"\"\"content\"\"\"\": \"\"\"\"Test\"\"\"\"}],\n    \"\"\"\"max_tokens\"\"\"\": 50\n  }')",
       "Bash(curl -X POST http://localhost:8081/v1/infer -H 'Content-Type: application/json' -d '{\"\"model\"\":\"\"gpt-4\"\",\"\"messages\"\":[{\"\"role\"\":\"\"user\"\",\"\"content\"\":\"\"Test\"\"}],\"\"max_tokens\"\":50}')",
       "Bash(go mod tidy:*)",
-      "Bash(go build:*)"
+      "Bash(go build:*)",
+      "Bash(git -C /Users/wira/Desktop/schlep-engine log --oneline -20)",
+      "Bash(git -C /Users/wira/Desktop/schlep-engine log --all --oneline)",
+      "Bash(git -C /Users/wira/Desktop/schlep-engine log --all --oneline --grep=\"TODO\\|FIXME\\|WIP\")",
+      "Bash(git -C /Users/wira/Desktop/schlep-engine branch:*)",
+      "Bash(find:*)",
+      "Bash(cd /Users/wira/Desktop/schlep-engine && go test:*)",
+      "Bash(mkdir:*)",
+      "Bash(go test:*)"
     ],
     "deny": [],
     "ask": []

@@ -146,22 +146,55 @@ func (p *AnthropicProvider) InferStream(ctx context.Context, req *models.InferRe
 	chunkChan := make(chan *models.StreamChunk, 10)
 	errChan := make(chan error, 1)
 
-	// TODO: Implement actual Anthropic streaming
-	// Steps:
-	// 1. Make streaming HTTP request to /v1/messages with stream=true
-	// 2. Parse SSE stream (Anthropic format differs from OpenAI)
-	// 3. Handle event types: message_start, content_block_start, content_block_delta, message_delta, message_stop
-	// 4. Convert each delta to StreamChunk format
-
 	go func() {
 		defer close(chunkChan)
 		defer close(errChan)
 
-		// STUB: Send mock streaming chunks
-		requestID := generateRequestID()
-		mockContent := []string{"Greetings", " from", " Claude", " streaming", " interface", "!"}
+		// Convert to Anthropic format with streaming enabled
+		anthropicReq := p.buildAnthropicRequest(req)
+		anthropicReq.Stream = true
 
-		for i, word := range mockContent {
+		// Marshal request
+		reqBody, err := json.Marshal(anthropicReq)
+		if err != nil {
+			errChan <- fmt.Errorf("failed to marshal streaming request: %w", err)
+			return
+		}
+
+		// Create HTTP request
+		httpReq, err := http.NewRequestWithContext(ctx, "POST", p.config.BaseURL+"/messages", bytes.NewBuffer(reqBody))
+		if err != nil {
+			errChan <- fmt.Errorf("failed to create streaming request: %w", err)
+			return
+		}
+
+		// Set Anthropic-specific headers for streaming
+		httpReq.Header.Set("Content-Type", "application/json")
+		httpReq.Header.Set("x-api-key", p.config.APIKey)
+		httpReq.Header.Set("anthropic-version", "2023-06-01")
+		httpReq.Header.Set("Accept", "text/event-stream")
+
+		// Execute streaming request
+		resp, err := p.client.Do(httpReq)
+		if err != nil {
+			errChan <- fmt.Errorf("streaming request failed: %w", err)
+			return
+		}
+		defer resp.Body.Close()
+
+		// Handle non-200 responses
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			errChan <- fmt.Errorf("Anthropic streaming error (status %d): %s", resp.StatusCode, string(body))
+			return
+		}
+
+		// Parse SSE stream (Anthropic format)
+		buffer := make([]byte, 4096)
+		var requestID string
+
+		for {
+			// Check context cancellation
 			select {
 			case <-ctx.Done():
 				errChan <- ctx.Err()
@@ -169,15 +202,86 @@ func (p *AnthropicProvider) InferStream(ctx context.Context, req *models.InferRe
 			default:
 			}
 
-			finishReason := ""
-			if i == len(mockContent)-1 {
-				finishReason = "end_turn"
+			// Read line from stream
+			n, err := resp.Body.Read(buffer)
+			if err != nil {
+				if err == io.EOF {
+					return // Stream ended normally
+				}
+				errChan <- fmt.Errorf("error reading stream: %w", err)
+				return
 			}
 
-			chunk := models.NewStreamChunk(requestID, req.Model, word, 0, finishReason)
-			chunkChan <- chunk
+			line := string(buffer[:n])
 
-			time.Sleep(60 * time.Millisecond) // Simulate streaming delay
+			// Anthropic SSE format: "event: {type}\ndata: {json}\n\n"
+			if len(line) > 6 && line[:6] == "data: " {
+				data := line[6:]
+
+				// Parse JSON event
+				var streamEvent AnthropicStreamEvent
+				if err := json.Unmarshal([]byte(data), &streamEvent); err != nil {
+					// Skip malformed chunks
+					continue
+				}
+
+				// Handle different event types
+				switch streamEvent.Type {
+				case "message_start":
+					// Extract request ID
+					if streamEvent.Message.ID != "" {
+						requestID = streamEvent.Message.ID
+					}
+
+				case "content_block_delta":
+					// Content delta contains the actual text
+					if streamEvent.Delta.Type == "text_delta" {
+						chunk := models.NewStreamChunk(
+							requestID,
+							req.Model,
+							streamEvent.Delta.Text,
+							streamEvent.Index,
+							"",
+						)
+						// Send chunk with context cancellation check to prevent goroutine leak
+						select {
+						case chunkChan <- chunk:
+							// Successfully sent
+						case <-ctx.Done():
+							errChan <- ctx.Err()
+							return
+						}
+					}
+
+				case "message_delta":
+					// Message delta might contain stop reason
+					finishReason := ""
+					if streamEvent.Delta.StopReason != "" {
+						finishReason = streamEvent.Delta.StopReason
+					}
+					if finishReason != "" {
+						chunk := models.NewStreamChunk(
+							requestID,
+							req.Model,
+							"",
+							0,
+							finishReason,
+						)
+						// Send chunk with context cancellation check to prevent goroutine leak
+						select {
+						case chunkChan <- chunk:
+							// Successfully sent
+						case <-ctx.Done():
+							errChan <- ctx.Err()
+							return
+						}
+					}
+
+				case "message_stop":
+					// Stream completed
+					return
+				}
+			}
 		}
 	}()
 
@@ -186,14 +290,47 @@ func (p *AnthropicProvider) InferStream(ctx context.Context, req *models.InferRe
 
 // HealthCheck verifies provider availability
 func (p *AnthropicProvider) HealthCheck(ctx context.Context) error {
-	// TODO: Implement actual health check
-	// Note: Anthropic doesn't have a dedicated health endpoint
-	// Options:
-	// 1. Make a minimal messages API call with very short input
-	// 2. Validate API key format
-	// 3. Check rate limit headers from last request
+	// Anthropic doesn't have a dedicated health endpoint like OpenAI's /models
+	// We'll make a minimal messages API call to verify API key and connectivity
 
-	// STUB: Always return healthy for now
+	// Create minimal request
+	minimalReq := &AnthropicMessageRequest{
+		Model:     "claude-3-haiku-20240307", // Use cheapest model for health check
+		Messages:  []AnthropicMessage{{Role: "user", Content: "Hi"}},
+		MaxTokens: 10, // Minimal tokens
+	}
+
+	reqBody, err := json.Marshal(minimalReq)
+	if err != nil {
+		return fmt.Errorf("failed to create health check request: %w", err)
+	}
+
+	httpReq, err := http.NewRequestWithContext(ctx, "POST", p.config.BaseURL+"/messages", bytes.NewBuffer(reqBody))
+	if err != nil {
+		return fmt.Errorf("failed to create health check HTTP request: %w", err)
+	}
+
+	// Set headers
+	httpReq.Header.Set("Content-Type", "application/json")
+	httpReq.Header.Set("x-api-key", p.config.APIKey)
+	httpReq.Header.Set("anthropic-version", "2023-06-01")
+
+	resp, err := p.client.Do(httpReq)
+	if err != nil {
+		return fmt.Errorf("health check request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check response status
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		return fmt.Errorf("invalid API key (status %d)", resp.StatusCode)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("health check failed (status %d): %s", resp.StatusCode, string(body))
+	}
+
 	return nil
 }
 
@@ -204,32 +341,29 @@ func (p *AnthropicProvider) GetCapabilities() *providers.ProviderCapabilities {
 
 // EstimateCost estimates the cost for a given request
 func (p *AnthropicProvider) EstimateCost(req *models.InferRequest) (float64, error) {
-	// TODO: Implement accurate cost estimation based on model and token count
-	// Anthropic Pricing (as of 2024):
-	// Claude 3 Opus:
-	//   - $15/MTok input, $75/MTok output
-	// Claude 3 Sonnet:
-	//   - $3/MTok input, $15/MTok output
-	// Claude 3 Haiku:
-	//   - $0.25/MTok input, $1.25/MTok output
+	// Get model-specific pricing
+	pricing := getClaudeModelPricing(req.Model)
 
+	// Estimate token counts
 	promptTokens := estimatePromptTokens(req)
 	maxCompletionTokens := req.MaxTokens
 	if maxCompletionTokens == 0 {
 		maxCompletionTokens = 200 // Default
 	}
 
-	// STUB: Use Sonnet pricing as default
-	costPerPromptToken := 0.000003    // $3/1M tokens
-	costPerCompletionToken := 0.000015 // $15/1M tokens
+	// Calculate estimated cost
+	inputCost := float64(promptTokens) * pricing.InputPrice / 1000000.0
+	outputCost := float64(maxCompletionTokens) * pricing.OutputPrice / 1000000.0
 
-	cost := float64(promptTokens)*costPerPromptToken + float64(maxCompletionTokens)*costPerCompletionToken
-	return cost, nil
+	return inputCost + outputCost, nil
 }
 
 // Close releases provider resources
 func (p *AnthropicProvider) Close() error {
-	// TODO: Close HTTP client connections
+	// Close idle connections in the HTTP client
+	if p.client != nil {
+		p.client.CloseIdleConnections()
+	}
 	return nil
 }
 
@@ -287,12 +421,52 @@ func (p *AnthropicProvider) calculateCost(usage *models.UsageStats, model string
 		return 0.0
 	}
 
-	// TODO: Use actual model-specific pricing
-	// STUB: Use Sonnet pricing for all models
-	promptCost := float64(usage.PromptTokens) * 0.000003
-	completionCost := float64(usage.CompletionTokens) * 0.000015
+	// Get model-specific pricing (prices per 1M tokens as of January 2025)
+	pricing := getClaudeModelPricing(model)
 
-	return promptCost + completionCost
+	inputCost := float64(usage.PromptTokens) * pricing.InputPrice / 1000000.0
+	outputCost := float64(usage.CompletionTokens) * pricing.OutputPrice / 1000000.0
+
+	return inputCost + outputCost
+}
+
+// ClaudeModelPricing represents pricing for a Claude model
+type ClaudeModelPricing struct {
+	InputPrice  float64 // Price per 1M input tokens
+	OutputPrice float64 // Price per 1M output tokens
+}
+
+// getClaudeModelPricing returns pricing based on model name
+// Prices as of January 2025
+func getClaudeModelPricing(model string) ClaudeModelPricing {
+	switch {
+	case model == "claude-3-opus-20240229" || model == "claude-3-opus":
+		return ClaudeModelPricing{
+			InputPrice:  15.0,  // $15/1M tokens
+			OutputPrice: 75.0,  // $75/1M tokens
+		}
+	case model == "claude-3-sonnet-20240229" || model == "claude-3-sonnet" || model == "claude-3.5-sonnet" || model == "claude-3-5-sonnet-20240620":
+		return ClaudeModelPricing{
+			InputPrice:  3.0,   // $3/1M tokens
+			OutputPrice: 15.0,  // $15/1M tokens
+		}
+	case model == "claude-3-haiku-20240307" || model == "claude-3-haiku":
+		return ClaudeModelPricing{
+			InputPrice:  0.25,  // $0.25/1M tokens
+			OutputPrice: 1.25,  // $1.25/1M tokens
+		}
+	case model == "claude-2.1" || model == "claude-2.0":
+		return ClaudeModelPricing{
+			InputPrice:  8.0,   // $8/1M tokens
+			OutputPrice: 24.0,  // $24/1M tokens
+		}
+	default:
+		// Default to Sonnet pricing for unknown models
+		return ClaudeModelPricing{
+			InputPrice:  3.0,
+			OutputPrice: 15.0,
+		}
+	}
 }
 
 // Anthropic API request/response types
@@ -340,6 +514,20 @@ type AnthropicErrorResponse struct {
 		Type    string `json:"type"`
 		Message string `json:"message"`
 	} `json:"error"`
+}
+
+// Anthropic streaming event types
+type AnthropicStreamEvent struct {
+	Type    string                    `json:"type"`
+	Index   int                       `json:"index,omitempty"`
+	Message *AnthropicMessageResponse `json:"message,omitempty"`
+	Delta   *AnthropicStreamDelta     `json:"delta,omitempty"`
+}
+
+type AnthropicStreamDelta struct {
+	Type       string `json:"type,omitempty"`
+	Text       string `json:"text,omitempty"`
+	StopReason string `json:"stop_reason,omitempty"`
 }
 
 // buildAnthropicRequest converts unified request to Anthropic format
