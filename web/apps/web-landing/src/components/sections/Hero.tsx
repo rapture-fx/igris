@@ -4,48 +4,90 @@ import React, { useState } from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
 
-const pythonCode = `<code><span style="color: #114dcd;">import</span> asyncio
-<span style="color: #6b7280;">from</span> schlep_engine <span style="color: #114dcd;">import</span> InferenceClient
+const highlightSyntax = (code: string, language: string) => {
+  let highlightedCode = code;
+  
+  if (language === 'python') {
+    // Python syntax highlighting
+    highlightedCode = code
+      .replace(/\b(import|from|await|async|def|class|if|elif|else|for|while|return|print)\b/g, '<span style="color: #114dcd; font-weight: 500;">$1</span>')
+      .replace(/\b(InferenceClient|client)\b/g, '<span style="color: #8b5cf6; font-weight: 600;">$1</span>')
+      .replace(/\b(deploy_model|predict)\b/g, '<span style="color: #3b82f6; font-weight: 500;">$1</span>')
+      .replace(/"([^"]*)"/g, '<span style="color: #16a34a;">"$1"</span>')
+      .replace(/'([^']*)'/g, '<span style="color: #16a34a;">\'$1\'</span>')
+      .replace(/\b(cost|latency|throughput)\b/g, '<span style="color: #f59e0b; font-weight: 500;">$1</span>')
+      .replace(/\b(\d+)\b/g, '<span style="color: #6b7280;">$1</span>')
+      .replace(/[{}()[\]]/g, '<span style="color: #6b7280;">$&</span>')
+      .replace(/\./g, '<span style="color: #6b7280;">.</span>')
+      .replace(/#(.*)/g, '<span style="color: #6b7280; font-style: italic;">#$1</span>');
+  } else if (language === 'curl') {
+    // Shell/curl syntax highlighting
+    highlightedCode = code
+      .replace(/(^.*?)(curl)/gm, '$1<span style="color: #114dcd; font-weight: 500;">curl</span>')
+      .replace(/\b(-X|--header|--data)\b/g, '<span style="color: #f59e0b; font-weight: 500;">$1</span>')
+      .replace(/\b(POST|GET|PUT|DELETE)\b/g, '<span style="color: #8b5cf6; font-weight: 500;">$1</span>')
+      .replace(/'([^']*)'|"([^"]*)"/g, function(match) {
+        const content = match.slice(1, -1);
+        const quote = match[0];
+        return `<span style="color: #16a34a;">${quote}${content}${quote}</span>`;
+      })
+      .replace(/https?:\/\/[^\s"']+/g, '<span style="color: #06b6d4; text-decoration: underline;">$&</span>');
+  } else if (language === 'javascript') {
+    // JavaScript syntax highlighting
+    highlightedCode = code
+      .replace(/\b(import|from|await|async|const|let|var|function|return|if|else|for|while|class|extends|switch|case|break|console|log)\b/g, '<span style="color: #114dcd; font-weight: 500;">$1</span>')
+      .replace(/\b(new|WebSocket|JSON)\b/g, '<span style="color: #8b5cf6; font-weight: 600;">$1</span>')
+      .replace(/\b(send|parse|stringify|on)\b/g, '<span style="color: #3b82f6; font-weight: 500;">$1</span>')
+      .replace(/"([^"]*)"/g, '<span style="color: #16a34a;">"$1"</span>')
+      .replace(/'([^']*)'/g, '<span style="color: #16a34a;">\'$1\'</span>')
+      .replace(/`([^`]*)`/g, '<span style="color: #059669;">`$1`</span>')
+      .replace(/[{}()[\]]/g, '<span style="color: #6b7280;">$&</span>')
+      .replace(/\./g, '<span style="color: #6b7280;">.</span>')
+      .replace(/\/\/(.*)/g, '<span style="color: #6b7280; font-style: italic;">//$1</span>');
+  }
+  return highlightedCode;
+};
 
-<span style="color: #6b7280;"># Connect to inference optimization fabric</span>
-client = <span style="color: #114dcd;">InferenceClient</span>(
-    <span style="color: #4b5563;">'wss://fabric.schlep-engine.com'</span>,
-    api_key=<span style="color: #4b5563;">'INFERENCE_KEY'</span>
+const pythonCode = highlightSyntax(`import asyncio
+from schlep_engine import InferenceClient
+
+# Connect to inference optimization fabric
+client = InferenceClient(
+    'wss://fabric.schlep-engine.com',
+    api_key='INFERENCE_KEY'
 )
 
-<span style="color: #6b7280;"># Deploy model with automatic optimization</span>
-<span style="color: #114dcd;">await</span> client.<span style="color: #4b5563;">deploy_model</span>(
-    model_path=<span style="color: #4b5563;">'resnet50.pt'</span>,
-    optimization=<span style="color: #6b7280;">'cost'</span>,  <span style="color: #6b7280;"># or 'latency' or 'throughput'</span>
-    replicas=<span style="color: #114dcd;">3</span>
+# Deploy model with automatic optimization
+await client.deploy_model(
+    model_path='resnet50.pt',
+    optimization='cost',  # or 'latency' or 'throughput'
+    replicas=3
 )
 
-<span style="color: #6b7280;"># Real-time inference with routing</span>
-prediction = <span style="color: #114dcd;">await</span> client.<span style="color: #4b5563;">predict</span>(
+# Real-time inference with routing
+prediction = await client.predict(
     input_data=image_tensor,
-    model=<span style="color: #4b5563;">'resnet50_v2'</span>
+    model='resnet50_v2'
 )
 
-<span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">f"Class: {prediction.class}, Confidence: {prediction.confidence}"</span>)
-<span style="color: #114dcd;">print</span>(<span style="color: #4b5563;">f"Latency: {prediction.latency}ms, Cost: $" + str(prediction.cost)</span>)
+print(f"Class: {prediction.class}, Confidence: {prediction.confidence}")
+print(f"Latency: {prediction.latency}ms, Cost: $" + str(prediction.cost))
 
-<span style="color: #114dcd;"># → Class: "golden_retriever", Confidence: 0.94, Latency: 8ms, Cost: $0.0004</span>
-</code>`
+# → Class: "golden_retriever", Confidence: 0.94, Latency: 8ms, Cost: $0.0004`, 'python');
 
-const curlCode = `<code><span style="color: #6b7280;"># Deploy model to inference fabric</span>
-<span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST <span style="color: #4b5563;">'https://fabric.schlep-engine.com/v1/models/deploy'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer INFERENCE_KEY'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{"model_path": "resnet50.pt", "optimization": "cost"}'</span>
+const curlCode = highlightSyntax(`# Deploy model to inference fabric
+curl -X POST 'https://fabric.schlep-engine.com/v1/models/deploy' \
+  -H 'Authorization: Bearer INFERENCE_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"model_path": "resnet50.pt", "optimization": "cost"}'
 
-<span style="color: #6b7280;"># Run optimized inference</span>
-<span style="color: #114dcd;">curl</span> <span style="color: #dc2626;">-X</span> POST <span style="color: #4b5563;">'https://fabric.schlep-engine.com/v1/predict'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Authorization: Bearer INFERENCE_KEY'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-H</span> <span style="color: #4b5563;">'Content-Type: application/json'</span> <span style="color: #dc2626;">\\</span>
-  <span style="color: #dc2626;">-d</span> <span style="color: #4b5563;">'{"input": [0.1, 0.2, 0.3], "model": "resnet50_v2"}'</span>
+# Run optimized inference
+curl -X POST 'https://fabric.schlep-engine.com/v1/predict' \
+  -H 'Authorization: Bearer INFERENCE_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"input": [0.1, 0.2, 0.3], "model": "resnet50_v2"}'
 
-<span style="color: #114dcd;"># → {"class": "cat", "confidence": 0.89, "latency_ms": 8, "cost_usd": 0.0004}</span>
-</code>`
+# → {"class": "cat", "confidence": 0.89, "latency_ms": 8, "cost_usd": 0.0004}`, 'curl');
 
 const streamingCode = `<code><span style="color: #6b7280;">// Real-time inference orchestration</span>
 <span style="color: #114dcd;">const</span> ws = <span style="color: #114dcd;">new</span> <span style="color: #4b5563;">WebSocket</span>(<span style="color: #4b5563;">'wss://fabric.schlep-engine.com/orchestrator'</span>)
@@ -113,7 +155,18 @@ export default function Hero() {
 
   const handleCopyClick = () => {
     if (navigator.clipboard) {
-      navigator.clipboard.writeText(getActiveCode().replace(/<[^>]*>/g, ''));
+      // Get the raw code without syntax highlighting for copying
+  const getRawCode = () => {
+    switch (activeTab) {
+      case 'python': return pythonCode.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');;
+      case 'curl': return curlCode.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');;
+      case 'streaming': return streamingCode.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');;
+      case 'frameworks': return frameworksCode.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');;
+      default: return pythonCode.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+    }
+  };
+  
+  navigator.clipboard.writeText(getRawCode());
     }
   };
 
@@ -159,7 +212,7 @@ export default function Hero() {
                   </Link>
                 </div>
 
-                <div className="relative z-10 rounded-xl overflow-hidden" style={{ backgroundColor: '#f7f7f3', minHeight: '600px', padding: '40px' }}>
+                <div className="relative z-10 overflow-hidden" style={{ backgroundColor: '#f7f7f3', minHeight: '600px', padding: '40px' }}>
                   {/* IDE-style header with window controls */}
                   <div className="flex items-center justify-between px-4 py-1 border-b border-gray-300" style={{ backgroundColor: '#f2f1ed' }}>
                     <div className="flex items-center space-x-2">
@@ -456,7 +509,12 @@ export default function Hero() {
                               })()}
                             </div>
                           </div>
-                          <div className="flex-1 overflow-auto pl-6 md:pl-6 pl-0">
+                          <div className="flex-1 overflow-auto pl-6 md:pl-6 pl-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} ref={(el) => {
+                            if (el) {
+                              el.style.webkitScrollbar = 'none';
+                              el.style.setProperty('scrollbar-width', 'none', 'important');
+                            }
+                          }}>
                             <pre
                               className="text-xs md:text-sm leading-relaxed whitespace-pre break-all md:whitespace-pre"
                               style={{ color: '#374151' }}
@@ -480,17 +538,17 @@ export default function Hero() {
 
                       {/* Cards */}
                       <div className="space-y-3">
-                        <div className="border border-gray-200 rounded-lg p-4" style={{ backgroundColor: '#f7f7f3' }}>
+                        <div className="border border-gray-200 p-4" style={{ backgroundColor: '#f7f7f3' }}>
                           <h4 className="text-sm font-medium text-gray-600 mb-2">API-First Architecture</h4>
                           <p className="text-xs text-gray-600">REST APIs for data and ML workflows. Upload CSVs, train models, and get predictions with simple HTTP calls.</p>
                         </div>
 
-                        <div className="border border-gray-200 rounded-lg p-4" style={{ backgroundColor: '#f7f7f3' }}>
+                        <div className="border border-gray-200 p-4" style={{ backgroundColor: '#f7f7f3' }}>
                           <h4 className="text-sm font-medium text-gray-600 mb-2">Developer Experience</h4>
                           <p className="text-xs text-gray-600">APIs that hide the heavy lifting. Focus on your data and logic, not infrastructure setup or maintenance.</p>
                         </div>
 
-                        <div className="border border-gray-200 rounded-lg p-4" style={{ backgroundColor: '#f7f7f3' }}>
+                        <div className="border border-gray-200 p-4" style={{ backgroundColor: '#f7f7f3' }}>
                           <h4 className="text-sm font-medium text-gray-600 mb-2">Data to Model Pipeline</h4>
                           <p className="text-xs text-gray-600">From messy CSVs to trained models. Automate processing and training through API calls—no complex pipeline setup required.</p>
                         </div>

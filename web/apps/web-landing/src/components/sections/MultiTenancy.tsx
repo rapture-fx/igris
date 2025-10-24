@@ -1,13 +1,16 @@
 import React from 'react';
+import { DollarSign, Shield, Database, KeyRound } from 'lucide-react';
 
 const features = [
   {
     name: 'Per-Tenant Budgets',
     description: 'Set individual spending limits for each tenant. Automatic enforcement prevents any tenant from exceeding their allocated budget.',
+    icon: DollarSign,
   },
   {
     name: 'Secure Key Storage',
     description: 'Vault-encrypted API key storage with AES-256 encryption. Keys never stored in plaintext and isolated per tenant.',
+    icon: KeyRound,
   },
   {
     name: '',
@@ -17,16 +20,18 @@ const features = [
   {
     name: 'Complete Data Isolation',
     description: 'Tenant data, policies, and usage logs are completely isolated. No cross-tenant data leakage with database-level separation.',
+    icon: Database,
   },
   {
     name: 'JWT Authentication',
     description: 'Enterprise-grade authentication with JSON Web Tokens. Secure tenant context propagation across all API calls.',
+    icon: Shield,
   },
 ];
 
 export default function MultiTenancy() {
   return (
-    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative p-40" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -52,28 +57,29 @@ export default function MultiTenancy() {
                 </h3>
 
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-6">
-                  Complete tenant isolation with per-tenant controls. Production architecture designed for scale.
+                  Complete tenant isolation with per-tenant controls.<br />
+                  Production architecture designed for scale.
                 </p>
 
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-gray-500 dark:text-gray-400 font-mono mb-8">
-                  <span className="text-gray-500 dark:text-gray-400">Designed for:</span>
-                  <div className="flex flex-wrap gap-x-4 gap-y-2">
-                    <span className="inline-flex items-center">
+                <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-8">
+                  <p className="text-gray-500 dark:text-gray-400 mb-3">Designed for:</p>
+                  <div className="flex flex-col space-y-3">
+                    <div className="flex items-center">
                       <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
                       B2B AI platforms
-                    </span>
-                    <span className="inline-flex items-center">
+                    </div>
+                    <div className="flex items-center">
                       <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
                       SaaS applications with AI features
-                    </span>
-                    <span className="inline-flex items-center">
+                    </div>
+                    <div className="flex items-center">
                       <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
                       Enterprise deployments
-                    </span>
-                    <span className="inline-flex items-center">
+                    </div>
+                    <div className="flex items-center">
                       <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
                       Companies building AI infrastructure
-                    </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -82,35 +88,49 @@ export default function MultiTenancy() {
                 {/* Left column: Per-Tenant Budgets and Secure Key Storage */}
                 <div className="flex flex-col">
                   {features.slice(0, 2).map((feature, index) => (
-                    <div
-                      key={feature.name}
-                      className={`flex flex-col p-4 ${index === 1 ? 'border-l border-t border-b border-r border-gray-200 mt-2' : 'border-l border-t border-b border-r border-gray-200'}`}
-                      style={{
-                        backgroundColor: '#f7f7f3',
-                        minHeight: '180px'
-                      }}
-                    >
-                      {index === 1 ? (
-                        <div className="text-left mb-1 mt-1">
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
-                            {feature.name}
-                          </h3>
-                          <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
-                            {feature.description}
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex-1"></div>
-                          <div className="text-left mb-1">
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
-                              {feature.name}
-                            </h3>
-                            <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
+                    <div key={feature.name}>
+                      <div
+                        className={`flex flex-col p-4`}
+                        style={{
+                          backgroundColor: '#f7f7f3',
+                          minHeight: '180px'
+                        }}
+                      >
+                        {index === 1 ? (
+                          <div className="text-left mb-1 mt-1">
+                            <div className="flex items-center gap-3 mb-1">
+                              <div className="flex h-8 w-8 items-center justify-center flex-shrink-0">
+                                <feature.icon className="h-5 w-5 text-black" aria-hidden="true" />
+                              </div>
+                              <h3 className="text-sm text-gray-900 dark:text-white font-mono">
+                                {feature.name}
+                              </h3>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-mono ml-11">
                               {feature.description}
                             </p>
                           </div>
-                        </>
+                        ) : (
+                          <>
+                            <div className="flex-1"></div>
+                            <div className="text-left mb-1">
+                              <div className="flex items-center gap-3 mb-1">
+                                <div className="flex h-8 w-8 items-center justify-center flex-shrink-0">
+                                  <feature.icon className="h-5 w-5 text-black" aria-hidden="true" />
+                                </div>
+                                <h3 className="text-sm text-gray-900 dark:text-white font-mono">
+                                  {feature.name}
+                                </h3>
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-mono ml-11">
+                                {feature.description}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      {index === 0 && (
+                        <div className="w-full" style={{ borderTop: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '2px' }}></div>
                       )}
                     </div>
                   ))}
@@ -138,35 +158,49 @@ export default function MultiTenancy() {
                 {/* Right column: Complete Data Isolation and JWT Authentication */}
                 <div className="flex flex-col">
                   {features.slice(3, 5).map((feature, index) => (
-                    <div
-                      key={feature.name}
-                      className={`flex flex-col p-4 ${index === 0 ? 'border-l border-t border-b border-r border-gray-200' : 'border-l border-t border-b border-r border-gray-200 mt-2'}`}
-                      style={{
-                        backgroundColor: '#f7f7f3',
-                        minHeight: '180px'
-                      }}
-                    >
-                      {index === 1 ? (
-                        <div className="text-left mb-1 mt-1">
-                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
-                            {feature.name}
-                          </h3>
-                          <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
-                            {feature.description}
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="flex-1"></div>
-                          <div className="text-left mb-1">
-                            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
-                              {feature.name}
-                            </h3>
-                            <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
+                    <div key={feature.name}>
+                      <div
+                        className={`flex flex-col p-4`}
+                        style={{
+                          backgroundColor: '#f7f7f3',
+                          minHeight: '180px'
+                        }}
+                      >
+                        {index === 1 ? (
+                          <div className="text-left mb-1 mt-1">
+                            <div className="flex items-center gap-3 mb-1">
+                              <div className="flex h-8 w-8 items-center justify-center flex-shrink-0">
+                                <feature.icon className="h-5 w-5 text-black" aria-hidden="true" />
+                              </div>
+                              <h3 className="text-sm text-gray-900 dark:text-white font-mono">
+                                {feature.name}
+                              </h3>
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-mono ml-11">
                               {feature.description}
                             </p>
                           </div>
-                        </>
+                        ) : (
+                          <>
+                            <div className="flex-1"></div>
+                            <div className="text-left mb-1">
+                              <div className="flex items-center gap-3 mb-1">
+                                <div className="flex h-8 w-8 items-center justify-center flex-shrink-0">
+                                  <feature.icon className="h-5 w-5 text-black" aria-hidden="true" />
+                                </div>
+                                <h3 className="text-sm text-gray-900 dark:text-white font-mono">
+                                  {feature.name}
+                                </h3>
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed font-mono ml-11">
+                                {feature.description}
+                              </p>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      {index === 0 && (
+                        <div className="w-full" style={{ borderTop: '0.5px solid rgba(156, 163, 175, 0.3)', marginTop: '2px' }}></div>
                       )}
                     </div>
                   ))}
