@@ -53,7 +53,7 @@ export default function Hero() {
                 </h1>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  Optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
+                  Schlep-engine optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-12">

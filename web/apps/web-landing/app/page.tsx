@@ -4,7 +4,7 @@ import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import TechStack from '../src/components/sections/TechStack'
-import DeveloperIntegration from '../src/components/sections/DeveloperIntegration'
+
 import SafetyReliability from '../src/components/sections/SafetyReliability'
 import SupportedModels from '../src/components/sections/SupportedModels'
 import CurrentPhase from '../src/components/sections/CurrentPhase'
@@ -24,7 +24,6 @@ export default function HomePage() {
         <MultiTenancy />
         <Observability />
         <SDKSupport />
-        <DeveloperIntegration />
         <SupportedModels />
         <CurrentPhase />
         <EngineeringFAQ />
