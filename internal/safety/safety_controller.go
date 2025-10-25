@@ -12,9 +12,11 @@ import (
 
 // SafetyController orchestrates all safety controls
 // Phase 13: Now supports optional audit logging and persistence
+// Phase 2: Now supports per-tenant budget tracking
 type SafetyController struct {
 	config         *SafetyConfig
-	budgetTracker  *BudgetTracker
+	budgetTracker  *BudgetTracker           // Legacy: single-tenant mode
+	tenantBudgetMgr *TenantBudgetManager    // Phase 2: multi-tenant mode
 	tokenEnforcer  *TokenEnforcer
 	keyValidator   *KeyValidator
 
@@ -23,6 +25,10 @@ type SafetyController struct {
 
 	// Phase 13: Optional audit logger
 	auditLogger *AuditLogger
+
+	// Phase 2: Multi-tenancy mode flag
+	multiTenantMode bool
+	db              *sql.DB
 }
 
 // SafetyCheckResult represents the combined result of all safety checks
@@ -35,20 +41,36 @@ type SafetyCheckResult struct {
 	WarningMessages  []string
 }
 
-// NewSafetyController creates a new safety controller
+// NewSafetyController creates a new safety controller in single-tenant mode
 func NewSafetyController(config *SafetyConfig) *SafetyController {
 	return NewSafetyControllerWithDB(config, nil, "default")
 }
 
 // NewSafetyControllerWithDB creates a new safety controller with optional database persistence
 // Phase 13: If db is provided, enables audit logging and budget persistence
+// Single-tenant mode: uses legacy budget tracker
 func NewSafetyControllerWithDB(config *SafetyConfig, db *sql.DB, tenantID string) *SafetyController {
 	return &SafetyController{
-		config:        config,
-		budgetTracker: NewBudgetTrackerWithDB(config, db, tenantID),
-		tokenEnforcer: NewTokenEnforcer(config),
-		keyValidator:  NewKeyValidator(config),
-		auditLogger:   NewAuditLogger(db, tenantID),
+		config:          config,
+		budgetTracker:   NewBudgetTrackerWithDB(config, db, tenantID),
+		tokenEnforcer:   NewTokenEnforcer(config),
+		keyValidator:    NewKeyValidator(config),
+		auditLogger:     NewAuditLogger(db, tenantID),
+		multiTenantMode: false,
+		db:              db,
+	}
+}
+
+// NewMultiTenantSafetyController creates a new safety controller in multi-tenant mode
+// Phase 2: Uses TenantBudgetManager for per-tenant budget isolation
+func NewMultiTenantSafetyController(config *SafetyConfig, db *sql.DB) *SafetyController {
+	return &SafetyController{
+		config:          config,
+		tenantBudgetMgr: NewTenantBudgetManager(config, db),
+		tokenEnforcer:   NewTokenEnforcer(config),
+		keyValidator:    NewKeyValidator(config),
+		multiTenantMode: true,
+		db:              db,
 	}
 }
 
@@ -60,12 +82,122 @@ func (sc *SafetyController) SetBenchmarkProvider(provider providers.Provider) {
 
 // PreRequestCheck performs all safety checks before executing a request
 // Phase 13: Now logs audit events for budget and token checks
+// Legacy: single-tenant mode (uses default tenant)
 func (sc *SafetyController) PreRequestCheck(req *models.InferRequest, estimatedCost float64) (*SafetyCheckResult, error) {
-	return sc.PreRequestCheckWithTrace(req, estimatedCost, "")
+	return sc.PreRequestCheckForTenant(req, estimatedCost, "default", "")
+}
+
+// PreRequestCheckForTenant performs safety checks for a specific tenant
+// Phase 2: Multi-tenant mode - checks budget per tenant
+func (sc *SafetyController) PreRequestCheckForTenant(req *models.InferRequest, estimatedCost float64, tenantID string, traceID string) (*SafetyCheckResult, error) {
+	warnings := []string{}
+
+	// 1. Check token limits
+	tokenCheck, err := sc.tokenEnforcer.CheckAndEnforce(req)
+	if err != nil {
+		// Phase 13: Log token limit error
+		if sc.auditLogger != nil {
+			sc.auditLogger.LogTokenLimit(ActionRejected, tokenCheck.OriginalTokens, 0,
+				sc.config.MaxTokensPerRequest, req.Model, traceID)
+		}
+
+		return &SafetyCheckResult{
+			Allowed:     false,
+			TokenCheck:  tokenCheck,
+			Reason:      fmt.Sprintf("Token limit check failed: %v", err),
+		}, err
+	}
+
+	// Phase 13: Log token enforcement action
+	if tokenCheck.Truncated {
+		warnings = append(warnings, fmt.Sprintf("Tokens truncated from %d to %d", tokenCheck.OriginalTokens, tokenCheck.RequestedTokens))
+		if sc.auditLogger != nil {
+			sc.auditLogger.LogTokenLimit(ActionTruncated, tokenCheck.OriginalTokens,
+				tokenCheck.RequestedTokens, sc.config.MaxTokensPerRequest, req.Model, traceID)
+		}
+	} else if sc.auditLogger != nil {
+		sc.auditLogger.LogTokenLimit(ActionAllowed, tokenCheck.RequestedTokens,
+			tokenCheck.RequestedTokens, sc.config.MaxTokensPerRequest, req.Model, traceID)
+	}
+
+	// 2. Check budget (per-tenant or global)
+	var budgetCheck *BudgetCheckResult
+
+	if sc.multiTenantMode {
+		// Multi-tenant mode: get tracker for specific tenant
+		tracker := sc.tenantBudgetMgr.GetTracker(tenantID)
+		budgetCheck = tracker.CheckBudget(estimatedCost)
+	} else {
+		// Single-tenant mode: use legacy tracker
+		budgetCheck = sc.budgetTracker.CheckBudget(estimatedCost)
+	}
+
+	// Phase 13: Log budget check
+	if sc.auditLogger != nil {
+		sc.auditLogger.LogBudgetCheck(budgetCheck.Allowed, budgetCheck.CurrentSpend,
+			budgetCheck.Limit, estimatedCost, traceID)
+	}
+
+	if !budgetCheck.Allowed {
+		// Budget exceeded - check if we should fallback
+		if sc.config.FallbackOnBudgetBreach && sc.config.EnableBenchmarkFallback {
+			log.Printf("[SafetyController] ⚠️  Budget exceeded for tenant %s, falling back to benchmark mode", tenantID)
+
+			// Phase 13: Log budget breach and fallback
+			if sc.auditLogger != nil {
+				sc.auditLogger.LogBudgetBreach(budgetCheck.CurrentSpend, budgetCheck.Limit, traceID)
+				sc.auditLogger.LogFallback("budget_breach", "", req.Model, traceID)
+			}
+
+			return &SafetyCheckResult{
+				Allowed:         true,
+				UseBenchmark:    true,
+				Reason:          fmt.Sprintf("Budget exceeded for tenant %s - using benchmark fallback", tenantID),
+				BudgetCheck:     budgetCheck,
+				TokenCheck:      tokenCheck,
+				WarningMessages: warnings,
+			}, nil
+		}
+
+		// No fallback available - reject request
+		// Phase 13: Log budget breach
+		if sc.auditLogger != nil {
+			sc.auditLogger.LogBudgetBreach(budgetCheck.CurrentSpend, budgetCheck.Limit, traceID)
+		}
+
+		return &SafetyCheckResult{
+			Allowed:         false,
+			UseBenchmark:    false,
+			Reason:          budgetCheck.Reason,
+			BudgetCheck:     budgetCheck,
+			TokenCheck:      tokenCheck,
+			WarningMessages: warnings,
+		}, fmt.Errorf("budget exceeded for tenant %s and fallback disabled", tenantID)
+	}
+
+	// Add budget warnings
+	if budgetCheck.PercentageUsed >= 80 {
+		warnings = append(warnings, fmt.Sprintf("%.1f%% of monthly budget used", budgetCheck.PercentageUsed))
+	}
+
+	return &SafetyCheckResult{
+		Allowed:         true,
+		UseBenchmark:    false,
+		Reason:          "All safety checks passed",
+		BudgetCheck:     budgetCheck,
+		TokenCheck:      tokenCheck,
+		WarningMessages: warnings,
+	}, nil
 }
 
 // PreRequestCheckWithTrace performs safety checks with trace ID for audit logging (Phase 13)
+// Legacy: uses default tenant
 func (sc *SafetyController) PreRequestCheckWithTrace(req *models.InferRequest, estimatedCost float64, traceID string) (*SafetyCheckResult, error) {
+	return sc.PreRequestCheckForTenant(req, estimatedCost, "default", traceID)
+}
+
+// DEPRECATED: Old implementation - keeping for reference
+func (sc *SafetyController) preRequestCheckWithTraceLegacy(req *models.InferRequest, estimatedCost float64, traceID string) (*SafetyCheckResult, error) {
 	warnings := []string{}
 
 	// 1. Check token limits
@@ -158,13 +290,28 @@ func (sc *SafetyController) PreRequestCheckWithTrace(req *models.InferRequest, e
 }
 
 // PostRequestRecord records the actual cost after a successful request
+// Legacy: uses default tenant
 func (sc *SafetyController) PostRequestRecord(provider, model string, cost float64) error {
-	return sc.PostRequestRecordWithTrace(provider, model, cost, "", "")
+	return sc.PostRequestRecordForTenant(provider, model, cost, "default", "", "")
 }
 
 // PostRequestRecordWithTrace records cost with trace ID (Phase 13)
+// Legacy: uses default tenant
 func (sc *SafetyController) PostRequestRecordWithTrace(provider, model string, cost float64, requestID, traceID string) error {
-	return sc.budgetTracker.RecordCostWithTrace(provider, model, cost, requestID, traceID)
+	return sc.PostRequestRecordForTenant(provider, model, cost, "default", requestID, traceID)
+}
+
+// PostRequestRecordForTenant records cost for a specific tenant
+// Phase 2: Multi-tenant mode - records cost per tenant
+func (sc *SafetyController) PostRequestRecordForTenant(provider, model string, cost float64, tenantID string, requestID, traceID string) error {
+	if sc.multiTenantMode {
+		// Multi-tenant mode: get tracker for specific tenant
+		tracker := sc.tenantBudgetMgr.GetTracker(tenantID)
+		return tracker.RecordCostWithTrace(provider, model, cost, requestID, traceID)
+	} else {
+		// Single-tenant mode: use legacy tracker
+		return sc.budgetTracker.RecordCostWithTrace(provider, model, cost, requestID, traceID)
+	}
 }
 
 // HandleProviderError determines fallback strategy on provider errors

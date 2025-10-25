@@ -10,11 +10,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/schlep-engine/schlep-engine/internal/config"
+	"github.com/schlep-engine/schlep-engine/internal/database"
 	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer"
 	ffi "github.com/schlep-engine/schlep-engine/internal/inference/optimizer/ffi"
 	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer/shadow"
 	"github.com/schlep-engine/schlep-engine/internal/inference/router"
 	"github.com/schlep-engine/schlep-engine/internal/metrics"
+	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 	"github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
@@ -220,9 +222,34 @@ func NewInferHandler() (*InferHandler, error) {
 	activationMetrics.UpdateCurrentMode(string(runtimeConfig.GetMode()))
 	activationMetrics.UpdateSampleRate(runtimeConfig.GetSampleRate())
 
-	// PHASE 12: Initialize Safety Controller
+	// PHASE 2: Initialize Safety Controller (multi-tenant or single-tenant mode)
 	safetyConfig := safety.LoadSafetyConfig()
-	safetyController := safety.NewSafetyController(safetyConfig)
+	var safetyController *safety.SafetyController
+
+	enableMultiTenancy := os.Getenv("ENABLE_MULTI_TENANCY") == "true"
+	if enableMultiTenancy {
+		// Multi-tenant mode: Connect to database
+		log.Println("[Handler] Initializing multi-tenant safety controller...")
+
+		dbConfig := database.NewConfig()
+		db, err := database.Connect(dbConfig)
+		if err != nil {
+			log.Printf("[Handler] WARNING: Failed to connect to database for multi-tenancy: %v", err)
+			log.Println("[Handler] Falling back to single-tenant mode")
+			safetyController = safety.NewSafetyController(safetyConfig)
+		} else if db != nil && db.IsEnabled() {
+			// Multi-tenant mode with database
+			safetyController = safety.NewMultiTenantSafetyController(safetyConfig, db.DB)
+			log.Println("[Handler] ✅ Multi-tenant safety controller initialized")
+		} else {
+			log.Println("[Handler] WARNING: Database not available, falling back to single-tenant mode")
+			safetyController = safety.NewSafetyController(safetyConfig)
+		}
+	} else {
+		// Single-tenant mode (legacy)
+		safetyController = safety.NewSafetyController(safetyConfig)
+		log.Println("[Handler] Single-tenant safety controller initialized")
+	}
 
 	// Set benchmark provider for fallback (if available)
 	benchmarkProvider, _ := registry.Get("benchmark-openai")
@@ -308,14 +335,18 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	// Add request attributes to trace
 	tracing.TraceInferenceRequest(ctx, "unknown", req.Model, len(req.Messages), req.Stream)
 
-	log.Printf("[Infer] Request: model=%s, messages=%d, stream=%v",
-		req.Model, len(req.Messages), req.Stream)
+	// Phase 2: Extract tenant ID from context (multi-tenancy)
+	tenantID := middleware.GetTenantIDFromContext(c)
+	traceID := tracing.GetTraceID(ctx)
 
-	// PHASE 12: Safety checks (Budget + Token Limits)
+	log.Printf("[Infer] Request: tenant=%s, model=%s, messages=%d, stream=%v",
+		tenantID, req.Model, len(req.Messages), req.Stream)
+
+	// PHASE 2: Safety checks (Budget + Token Limits) - per-tenant
 	estimatedCost := 0.01 // Rough estimate, will be refined
-	safetyCheck, err := h.safetyController.PreRequestCheck(&req, estimatedCost)
+	safetyCheck, err := h.safetyController.PreRequestCheckForTenant(&req, estimatedCost, tenantID, traceID)
 	if err != nil || !safetyCheck.Allowed {
-		log.Printf("[Infer] Safety check failed: %v", safetyCheck.Reason)
+		log.Printf("[Infer] Safety check failed for tenant %s: %v", tenantID, safetyCheck.Reason)
 
 		// Record safety rejection metrics
 		latencyMs := time.Since(startTime).Milliseconds()
@@ -446,9 +477,10 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 	h.activationMetrics.RecordLatency(decisionSource, float64(latencyMs))
 	h.activationMetrics.RecordCost(decisionSource, costUSD)
 
-	// PHASE 12: Record cost in budget tracker
-	if err := h.safetyController.PostRequestRecord(provider, model, costUSD); err != nil {
-		log.Printf("[Infer] WARNING: Failed to record cost: %v", err)
+	// PHASE 2: Record cost in budget tracker (per-tenant)
+	requestID := c.Get("X-Request-ID")
+	if err := h.safetyController.PostRequestRecordForTenant(provider, model, costUSD, tenantID, requestID, traceID); err != nil {
+		log.Printf("[Infer] WARNING: Failed to record cost for tenant %s: %v", tenantID, err)
 	}
 	safety.RecordCost(provider, model, costUSD)
 	safety.RecordSafetyCheck(true, useBenchmark, float64(latencyMs))
@@ -469,7 +501,6 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 
 	// Return response with trace ID header
 	c.Set("Content-Type", "application/json")
-	traceID := tracing.GetTraceID(ctx)
 	c.Set("X-Trace-ID", traceID)
 	return c.JSON(resp)
 }

@@ -70,6 +70,11 @@ func (psc *ProviderStatsClient) IsEnabled() bool {
 	return psc.enabled
 }
 
+// GetClient returns the underlying Redis client for health checks
+func (psc *ProviderStatsClient) GetClient() *redis.Client {
+	return psc.client
+}
+
 // GetStats retrieves statistics for a specific provider
 func (psc *ProviderStatsClient) GetStats(ctx context.Context, providerKey string) (*ProviderStats, error) {
 	if !psc.enabled {
