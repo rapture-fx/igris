@@ -1,16 +1,20 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/redis/go-redis/v9"
 	"github.com/schlep-engine/schlep-engine/internal/api"
+	"github.com/schlep-engine/schlep-engine/internal/cache"
 	"github.com/schlep-engine/schlep-engine/internal/database"
 	"github.com/schlep-engine/schlep-engine/internal/logging"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
+	"github.com/schlep-engine/schlep-engine/internal/security"
 )
 
 func main() {
@@ -36,22 +40,54 @@ func main() {
 	app.Use(middleware.TraceID())           // Add trace IDs to all requests
 	app.Use(middleware.RequestLogger())      // Structured request logging
 
-	// Register all routes (including inference and metrics)
-	if err := api.RegisterAllRoutes(app); err != nil {
-		log.Fatalf("Failed to register routes: %v", err)
-	}
-
-	// Initialize database and Phase 14 multi-tenancy (optional)
+	// Phase 2: Initialize multi-tenancy BEFORE registering routes (if enabled)
+	var tenantAuth *middleware.TenantAuth
+	var db *database.DB
+	var redisClient *redis.Client
 	enableMultiTenancy := os.Getenv("ENABLE_MULTI_TENANCY") == "true"
-	if enableMultiTenancy {
-		log.Println("[Phase 14] Multi-tenancy enabled - initializing...")
+	useRedis := os.Getenv("USE_REDIS") == "true"
 
-		// Connect to database
+	// Initialize database (for multi-tenancy or health checks)
+	if enableMultiTenancy || os.Getenv("ENABLE_PERSISTENCE") == "true" {
+		log.Println("[Database] Initializing database connection...")
 		dbConfig := database.NewConfig()
-		db, err := database.Connect(dbConfig)
+		var err error
+		db, err = database.Connect(dbConfig)
 		if err != nil {
 			log.Fatalf("Failed to connect to database: %v", err)
 		}
+
+		if db != nil && db.IsEnabled() {
+			log.Println("[Database] ✅ Database connection established")
+
+			// Ensure database is closed on shutdown
+			defer func() {
+				if err := db.Close(); err != nil {
+					log.Printf("Error closing database: %v", err)
+				}
+			}()
+		}
+	}
+
+	// Initialize Redis (for Phase 2 state externalization)
+	if useRedis {
+		log.Println("[Redis] Initializing Redis connection...")
+		redisURL := os.Getenv("REDIS_URL")
+		if redisURL == "" {
+			redisURL = "redis://localhost:6379/0"
+		}
+
+		statsClient, err := cache.NewProviderStatsClient(redisURL)
+		if err != nil {
+			log.Printf("[Redis] ⚠️  Failed to connect to Redis: %v", err)
+		} else if statsClient.IsEnabled() {
+			redisClient = statsClient.GetClient()
+			log.Println("[Redis] ✅ Redis connection established")
+		}
+	}
+
+	if enableMultiTenancy {
+		log.Println("[Phase 2] Multi-tenancy enabled - initializing...")
 
 		if db != nil && db.IsEnabled() {
 			// Get configuration from environment
@@ -67,22 +103,45 @@ func main() {
 				vaultMasterKey = "default-vault-key-change-in-production"
 			}
 
-			// Setup multi-tenancy routes
+			// Initialize JWT manager for tenant auth
+			jwtManager, err := security.NewJWTManager(db.DB, jwtSecret, 24, true)
+			if err != nil {
+				log.Fatalf("Failed to initialize JWT manager: %v", err)
+			}
+
+			// Create tenant auth middleware
+			tenantAuth = middleware.NewTenantAuth(jwtManager, db.DB)
+
+			// Setup multi-tenancy routes (admin, vault, etc.)
 			if err := api.SetupMultiTenancy(app, db.DB, jwtSecret, vaultMasterKey); err != nil {
 				log.Fatalf("Failed to setup multi-tenancy: %v", err)
 			}
 
-			log.Println("[Phase 14] ✅ Multi-tenancy initialized successfully")
-
-			// Ensure database is closed on shutdown
-			defer func() {
-				if err := db.Close(); err != nil {
-					log.Printf("Error closing database: %v", err)
-				}
-			}()
+			log.Println("[Phase 2] ✅ Multi-tenancy initialized successfully")
 		} else {
 			log.Println("[Warning] Database not available - multi-tenancy features disabled")
 		}
+	}
+
+	// Phase 3: Initialize health checker with database and Redis
+	version := "1.0.0-rc1"
+	var dbInstance *sql.DB
+	var dbEnabled bool
+	if db != nil && db.IsEnabled() {
+		dbInstance = db.DB
+		dbEnabled = true
+	}
+	api.InitHealthChecker(version, dbInstance, dbEnabled, redisClient, useRedis)
+
+	// Register health check routes
+	if err := api.RegisterHealthRoutes(app); err != nil {
+		log.Fatalf("Failed to register health routes: %v", err)
+	}
+
+	// Register all routes (including inference and metrics)
+	// Pass tenant auth middleware (nil if multi-tenancy disabled)
+	if err := api.RegisterAllRoutes(app, tenantAuth); err != nil {
+		log.Fatalf("Failed to register routes: %v", err)
 	}
 
 	// Root health check
@@ -90,6 +149,9 @@ func main() {
 		endpoints := fiber.Map{
 			"inference": "/v1/infer",
 			"health":    "/v1/health",
+			"liveness":  "/healthz",
+			"readiness": "/readyz",
+			"startup":   "/startupz",
 			"models":    "/v1/models",
 			"metrics":   "/metrics",
 		}
@@ -103,10 +165,12 @@ func main() {
 
 		return c.JSON(fiber.Map{
 			"service": "schlep-engine",
-			"version": "0.1.0-alpha",
+			"version": version,
 			"status":  "running",
 			"features": fiber.Map{
 				"multi_tenancy": enableMultiTenancy,
+				"redis":         useRedis,
+				"persistence":   dbEnabled,
 			},
 			"endpoints": endpoints,
 		})
@@ -118,9 +182,11 @@ func main() {
 		port = "8080"
 	}
 
-	log.Printf("✅ Server ready on port %s", port)
+	log.Printf("✅ Server ready on port %s (version %s)", port, version)
 	log.Printf("   📍 Inference: http://localhost:%s/v1/infer", port)
 	log.Printf("   📍 Health:    http://localhost:%s/v1/health", port)
+	log.Printf("   📍 Liveness:  http://localhost:%s/healthz", port)
+	log.Printf("   📍 Readiness: http://localhost:%s/readyz", port)
 	log.Printf("   📍 Metrics:   http://localhost:%s/metrics", port)
 
 	if enableMultiTenancy {

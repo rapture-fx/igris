@@ -2,13 +2,16 @@ package api
 
 import (
 	"log"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/schlep-engine/schlep-engine/cmd/schlep-engine-api/handlers"
+	"github.com/schlep-engine/schlep-engine/internal/middleware"
 )
 
 // RegisterInferRoutes registers /v1/infer and related endpoints
-func RegisterInferRoutes(app *fiber.App) error {
+// Phase 2: Now supports optional JWT authentication for multi-tenancy
+func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth) error {
 	// Initialize handler
 	inferHandler, err := handlers.NewInferHandler()
 	if err != nil {
@@ -20,36 +23,59 @@ func RegisterInferRoutes(app *fiber.App) error {
 	// Create v1 route group
 	v1 := app.Group("/v1")
 
-	// Main inference endpoint
+	// Determine authentication mode
+	enableMultiTenancy := os.Getenv("ENABLE_MULTI_TENANCY") == "true"
+	requireAuth := os.Getenv("REQUIRE_AUTH_FOR_INFERENCE") == "true"
+
+	// Main inference endpoint with optional authentication
 	// Compatible with OpenAI and Anthropic chat completion APIs
-	v1.Post("/infer", inferHandler.HandleInfer)
-	log.Println("[Routes] ✓ POST /v1/infer")
+	if enableMultiTenancy && requireAuth && tenantAuth != nil {
+		// Protected mode: Require JWT authentication
+		v1.Post("/infer", tenantAuth.Authenticate(), inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/infer (JWT AUTH REQUIRED)")
 
-	// OpenAI-compatible alias
-	v1.Post("/chat/completions", inferHandler.HandleInfer)
-	log.Println("[Routes] ✓ POST /v1/chat/completions (OpenAI-compatible)")
+		v1.Post("/chat/completions", tenantAuth.Authenticate(), inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/chat/completions (JWT AUTH REQUIRED, OpenAI-compatible)")
+	} else if enableMultiTenancy && tenantAuth != nil {
+		// Optional auth mode: Extract tenant if token provided, allow anonymous otherwise
+		v1.Post("/infer", tenantAuth.OptionalAuth(), inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/infer (OPTIONAL AUTH)")
 
-	// Health and monitoring endpoints
+		v1.Post("/chat/completions", tenantAuth.OptionalAuth(), inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/chat/completions (OPTIONAL AUTH, OpenAI-compatible)")
+	} else {
+		// Public mode: No authentication (backward compatible)
+		v1.Post("/infer", inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/infer (PUBLIC)")
+
+		v1.Post("/chat/completions", inferHandler.HandleInfer)
+		log.Println("[Routes] ✓ POST /v1/chat/completions (PUBLIC, OpenAI-compatible)")
+	}
+
+	// Health and monitoring endpoints (always public)
 	v1.Get("/health", inferHandler.HandleHealth)
 	log.Println("[Routes] ✓ GET /v1/health")
 
-	// Model listing endpoint
+	// Model listing endpoint (public)
 	v1.Get("/models", inferHandler.HandleModels)
 	log.Println("[Routes] ✓ GET /v1/models")
 
-	// Provider statistics (Schlep-engine specific)
+	// Provider statistics (public for now, could be protected later)
 	v1.Get("/providers/stats", inferHandler.HandleProviderStats)
 	log.Println("[Routes] ✓ GET /v1/providers/stats")
 
 	log.Println("[Routes] All /v1/infer routes registered successfully")
+	if enableMultiTenancy {
+		log.Printf("[Routes] Multi-tenancy mode: %s", map[bool]string{true: "REQUIRED", false: "OPTIONAL"}[requireAuth])
+	}
 
 	return nil
 }
 
 // RegisterV1Routes is a convenience function that registers all v1 routes
-func RegisterV1Routes(app *fiber.App) error {
-	// Register inference routes
-	if err := RegisterInferRoutes(app); err != nil {
+func RegisterV1Routes(app *fiber.App, tenantAuth *middleware.TenantAuth) error {
+	// Register inference routes with optional tenant auth
+	if err := RegisterInferRoutes(app, tenantAuth); err != nil {
 		return err
 	}
 

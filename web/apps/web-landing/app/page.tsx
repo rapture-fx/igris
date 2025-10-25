@@ -4,8 +4,8 @@ import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import TechStack from '../src/components/sections/TechStack'
-
 import SafetyReliability from '../src/components/sections/SafetyReliability'
+
 import SupportedModels from '../src/components/sections/SupportedModels'
 
 import EngineeringFAQ from '../src/components/sections/EngineeringFAQ'

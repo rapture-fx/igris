@@ -95,18 +95,11 @@ export default function TechStack() {
               </div>
 
               {/* Right Column - SVG Diagram */}
-              <div className="rounded-lg lg:col-span-3 min-h-[500px] relative overflow-hidden border border-gray-200 dark:border-gray-700 shadow-lg" style={{
-                backgroundColor: '#f2f1ed',
-                backgroundImage: `repeating-linear-gradient(
-                  45deg,
-                  transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.02) 2px,
-                  rgba(0,0,0,0.02) 4px
-                )`
+              <div className="lg:col-span-3 min-h-[500px]" style={{
+                backgroundColor: '#f7f7f3'
               }}>
-                <div className="relative z-10 flex items-center justify-center h-full p-8">
-                  <img src="/public diagram.svg" alt="How It Works Diagram" className="w-full h-full object-contain"  />
+                <div className="flex items-center justify-center h-full p-8">
+                  <img src="/public diagram.svg" alt="How It Works Diagram" className="w-full h-full object-contain" style={{ opacity: '0.85' }} />
                 </div>
               </div>
             </div>

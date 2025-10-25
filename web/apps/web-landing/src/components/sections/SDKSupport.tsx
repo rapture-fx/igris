@@ -4,66 +4,25 @@ import React, { useState } from 'react'
 import { Code, Package, Zap, CheckCircle, ArrowUpRight, Copy } from 'lucide-react'
 import Link from 'next/link'
 
-const basicInferenceCode = `curl -X POST 'http://localhost:8080/v1/chat/completions' \\
-  -H 'Content-Type: application/json' \\
-  -H 'Authorization: Bearer your-api-key' \\
+const basicInferenceCode = `curl -X POST "https://api.schlep.engine/v1/chat/completions" \\
+  -H "Authorization: Bearer your-api-key" \\
   -d '{
     "model": "gpt-4",
-    "messages": [
-      {"role": "user", "content": "Explain Thompson Sampling in AI routing"}
-    ],
-    "max_tokens": 500,
-    "temperature": 0.7,
-    "stream": false
+    "messages": [{"role": "user", "content": "Explain Thompson Sampling"}],
+    "provider": "openai"
   }'
 
-# Response with comprehensive Schlep-engine metadata:
+# Response metadata:
 {
-  "id": "chatcmpl-schlep-550e8400e29b",
-  "object": "chat.completion",
-  "created": 1699014083,
+  "id": "chat-cmpl-abc123",
   "model": "gpt-4",
-  "choices": [{
-    "index": 0,
-    "message": {
-      "role": "assistant", 
-      "content": "Thompson Sampling is a Bayesian approach..."
-    },
-    "finish_reason": "stop"
-  }],
-  "usage": {
-    "prompt_tokens": 12, 
-    "completion_tokens": 156, 
-    "total_tokens": 168
-  },
+  "provider": "openai",
   "metadata": {
-    "provider": "openai",
-    "region": "us-west-2", 
-    "model_used": "gpt-4",
-    "route_decision": "Rust Thompson Sampling: action-123",
-    "latency_ms": 1567,
-    "queue_time_ms": 34,
-    "inference_time_ms": 1533,
-    "ttft_ms": 234,
-    "cost_usd": 0.01038,
-    "quality_score": 0.85,
-    "cache_hit": false,
-    "cache_key": "",
-    "optimizer_action": "thompson_sampling",
-    "reward_signal": 0.0,
-    "exploration_bonus": 0.15,
-    "request_id": "550e8400-e29b-41d4-a716-446655440000",
-    "timestamp": "2024-10-24T12:34:43Z",
-    "retry_count": 0,
-    "fallback": false,
-    "fallback_reason": ""
+    "latency_ms": 8.4,
+    "cost_usd": 0.002,
+    "region": "asia-southeast1"
   }
-}
-
-# Available models include:
-# OpenAI: gpt-4, gpt-4-turbo, gpt-4-turbo-preview, gpt-3.5-turbo, gpt-3.5-turbo-16k
-# Anthropic: claude-3-opus, claude-3-opus-20240229, claude-3-sonnet, claude-3-sonnet-20240229, claude-3-haiku, claude-3-haiku-20240307
-# Each model has optimized cost estimation and latency profiles`;
+}`;
 
 const pythonCode = `# Python SDK Example
 from schlep_engine import SchlepEngine
@@ -141,7 +100,8 @@ export default function SDKSupport() {
                 </h3>
 
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
-                  Idiomatic client libraries for every major language. Type-safe, well-documented, and production-ready.
+                  Idiomatic SDKs for every major language — type-safe, async-native, and built for real-time inference.
+                  Each client includes built-in routing metadata, latency tracking, and tenant isolation.
                 </p>
 
                 {/* SDK Logos and Installations */}
@@ -155,13 +115,13 @@ export default function SDKSupport() {
                     <div key={sdk.name} className="flex items-start gap-3">
                       {/* Logo inside the card */}
                       <div className="flex-1 min-w-0">
-                        <div className="px-2 py-1.5 rounded-lg border border-gray-200" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+                        <div className="px-2 py-1.5 border" style={{ backgroundColor: '#f7f7f3', borderColor: '#299a93', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
                           <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center flex-shrink-0">
                               <img src={sdk.logo} alt={sdk.name} className={`object-contain ${sdk.size}`} />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-gray-700 leading-tight font-mono break-words"><code className="text-xs font-mono" style={{ color: '#114dcd' }}>{sdk.install}</code></p>
+                              <p className="text-xs text-black leading-tight font-mono break-words"><code className="text-xs font-mono" style={{ color: 'black' }}>{sdk.install}</code></p>
                             </div>
                             <button
                               className="p-1.5 text-gray-500 hover:text-gray-700 transition-colors rounded"
@@ -185,11 +145,11 @@ export default function SDKSupport() {
               <div className="text-left lg:col-span-1 px-4 lg:px-8">
                 <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">REST API</h2>
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  OpenAI-compatible API.<br />Drop-in replacement for existing clients.
+                  Unified Inference API.
                 </h3>
 
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-6">
-                  Use standard chat completions endpoints with added optimization controls. Response metadata includes provider, latency, cost, and routing decisions.
+                  A single API for every model, provider, and route. Schlep-engine abstracts provider differences and returns detailed metadata — including latency, cost, and routing decisions.
                 </p>
 
                 {/* API Code Example */}
@@ -211,7 +171,7 @@ export default function SDKSupport() {
                     }}
                   >
                     <pre
-                      className="text-xs leading-relaxed"
+                      className="text-sm leading-relaxed"
                     >
                       {basicInferenceCode}
                     </pre>
