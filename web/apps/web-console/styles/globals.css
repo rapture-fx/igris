@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #f7f7f3;
+    --foreground: #1F1F1F;
+    --card: #f2f1ed;
+    --card-foreground: #1F1F1F;
+    --popover: #ffffff;
+    --popover-foreground: #1F1F1F;
+    --primary: #114dcd;
+    --primary-foreground: #ffffff;
+    --secondary: #299a93;
+    --secondary-foreground: #ffffff;
+    --muted: #F2F2F7;
+    --muted-foreground: #6B7280;
+    --accent: #1f53d0;
+    --accent-foreground: #ffffff;
+    --destructive: #ef4444;
+    --destructive-foreground: #ffffff;
+    --border: rgba(156, 163, 175, 0.3);
+    --input: rgba(156, 163, 175, 0.3);
+    --ring: #114dcd;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: #0A0A0A;
+    --foreground: #ffffff;
+    --card: #1F1F1F;
+    --card-foreground: #ffffff;
+    --popover: #1F1F1F;
+    --popover-foreground: #ffffff;
+    --primary: #3b82f6;
+    --primary-foreground: #ffffff;
+    --secondary: #299a93;
+    --secondary-foreground: #ffffff;
+    --muted: #374151;
+    --muted-foreground: #9CA3AF;
+    --accent: #3b82f6;
+    --accent-foreground: #ffffff;
+    --destructive: #dc2626;
+    --destructive-foreground: #ffffff;
+    --border: #1a1e21;
+    --input: #1a1e21;
+    --ring: #3b82f6;
+  }
+}
+
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .bleeding-cross-tl {
+    position: relative;
+  }
+  .bleeding-cross-tl::before {
+    content: '';
+    position: absolute;
+    top: -1rem;
+    left: -1rem;
+    width: 2rem;
+    height: 2rem;
+  }
+  .bleeding-cross-tl::before {
+    border-top: 0.5px solid #1a1e21;
+    border-left: 0.5px solid #1a1e21;
+  }
+
+  .bleeding-cross-br {
+    position: relative;
+  }
+  .bleeding-cross-br::after {
+    content: '';
+    position: absolute;
+    bottom: -1rem;
+    right: -1rem;
+    width: 2rem;
+    height: 2rem;
+    border-bottom: 0.5px solid #1a1e21;
+    border-right: 0.5px solid #1a1e21;
+  }
+}

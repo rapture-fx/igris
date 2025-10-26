@@ -1,0 +1,134 @@
+%% Schlep-Engine System Overview Diagram
+%% Render with: https://mermaid.live or any Mermaid-compatible tool
+%% Updated: 2025-10-22 - Added Multi-Tenancy, Database Layer, and Expanded Safety Components
+
+graph TB
+    Client[Client Application]
+
+    subgraph Gateway["API Gateway (Go/Fiber)"]
+        Router[HTTP Router<br/>fiber.Router]
+        Middleware[Middleware Stack<br/>CORS, Recovery, TraceID]
+        InferHandler[InferHandler<br/>handlers/infer.go]
+    end
+
+    subgraph Routing["Intelligent Routing Layer"]
+        InferenceRouter[InferenceRouter<br/>router.InferenceRouter]
+        ShadowRunner[ShadowRunner<br/>shadow.ShadowRunner]
+        RustOptimizer[RustOptimizer<br/>ffi.OptimizerHandle]
+    end
+
+    subgraph Providers["Provider Layer"]
+        ProviderRegistry[ProviderRegistry<br/>providers.ProviderRegistry]
+        OpenAIProvider[OpenAIProvider<br/>openai.Provider]
+        AnthropicProvider[AnthropicProvider<br/>anthropic.Provider]
+        MockProvider[MockProvider<br/>openai.MockProvider]
+        BenchmarkProvider[BenchmarkProvider<br/>openai.BenchmarkProvider]
+    end
+
+    subgraph External["External APIs"]
+        OpenAI_API[OpenAI API]
+        Anthropic_API[Anthropic API]
+    end
+
+    subgraph Observability["Observability"]
+        Prometheus[Prometheus Metrics<br/>metrics.Collector]
+        Traces[Distributed Tracing<br/>tracing.GlobalTracer]
+        Logs[Structured Logging]
+    end
+
+    subgraph Control["Control Plane"]
+        Admin[Admin API<br/>POST /admin/optimizer]
+        RuntimeConfig[RuntimeOptimizerConfig<br/>config.RuntimeOptimizerConfig]
+    end
+
+    subgraph Safety["Safety & Reliability"]
+        SafetyController[SafetyController<br/>safety.SafetyController]
+        BudgetTracker[BudgetTracker<br/>safety.BudgetTracker]
+        TokenEnforcer[TokenEnforcer<br/>safety.TokenEnforcer]
+        KeyValidator[KeyValidator<br/>safety.KeyValidator]
+        AuditLogger[AuditLogger<br/>safety.AuditLogger]
+        SLOBreaker[SLOBreaker<br/>optimizer.SLOBreaker]
+    end
+
+    subgraph MultiTenancy["Multi-Tenancy (Phase 14)"]
+        TenantAuth[TenantAuth Middleware<br/>middleware.TenantAuth]
+        TenantMgmt[Tenant Management<br/>handlers/tenant.go]
+        VaultKeys[Vault Key Storage<br/>handlers/vault.go]
+        PerTenantPolicies[Per-Tenant Policies<br/>policy.PolicyHandler]
+    end
+
+    subgraph Persistence["Data Persistence"]
+        PostgreSQL[(PostgreSQL)]
+        BudgetsTable[Budgets Table]
+        SpendingLog[Spending Log]
+        PolicySettings[Policy Settings]
+        Redis[(Redis Cache)]
+        MLPredictions[ML Predictions Cache]
+    end
+
+    Client -->|POST /v1/infer| Router
+    Router --> Middleware
+    Middleware --> TenantAuth
+    TenantAuth -.->|if enabled| TenantMgmt
+    Middleware --> InferHandler
+
+    InferHandler -->|check safety| SafetyController
+    SafetyController --> BudgetTracker
+    SafetyController --> TokenEnforcer
+    SafetyController --> KeyValidator
+    SafetyController --> AuditLogger
+
+    InferHandler -->|selectProvider| InferenceRouter
+    InferHandler -->|runShadow| ShadowRunner
+
+    ShadowRunner -->|selectAction| RustOptimizer
+    ShadowRunner -->|fallback| InferenceRouter
+
+    InferenceRouter --> ProviderRegistry
+    ProviderRegistry --> OpenAIProvider
+    ProviderRegistry --> AnthropicProvider
+    ProviderRegistry --> MockProvider
+    ProviderRegistry --> BenchmarkProvider
+
+    OpenAIProvider --> OpenAI_API
+    AnthropicProvider --> Anthropic_API
+
+    %% Multi-tenancy connections
+    TenantMgmt --> VaultKeys
+    TenantMgmt --> PerTenantPolicies
+    PerTenantPolicies --> PolicySettings
+
+    %% Database connections
+    BudgetTracker --> BudgetsTable
+    BudgetTracker --> SpendingLog
+    AuditLogger --> SpendingLog
+    BudgetsTable -.-> PostgreSQL
+    SpendingLog -.-> PostgreSQL
+    PolicySettings -.-> PostgreSQL
+
+    ProviderRegistry --> MLPredictions
+    MLPredictions -.-> Redis
+
+    %% Observability connections
+    InferHandler --> Observability
+    ShadowRunner --> Observability
+    InferenceRouter --> Observability
+
+    %% Control plane
+    Admin -->|hot-reload| RuntimeConfig
+    RuntimeConfig -.->|dynamic updates| InferHandler
+
+    %% SLO monitoring
+    SLOBreaker -.->|monitor & revert| ShadowRunner
+    SLOBreaker -.->|circuit breaker| InferHandler
+
+    style Client fill:#D6EAF8
+    style Gateway fill:#D6EAF8
+    style Routing fill:#E8DAEF
+    style Providers fill:#D5F5E3
+    style External fill:#FDEBD0
+    style Observability fill:#EBDEF0
+    style Control fill:#FEF9E7
+    style Safety fill:#FADBD8
+    style MultiTenancy fill:#E1F5FE,stroke:#0277BD,stroke-dasharray: 5 5
+    style Persistence fill:#FCE4EC,stroke:#C2185B

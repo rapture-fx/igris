@@ -5,22 +5,29 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
+	"sync"
 	"time"
 
+	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer/ffi"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 )
 
 // InferenceRouter handles intelligent routing of inference requests
-// This is a temporary Go-based router that will be replaced with Rust optimizer
+// Now integrated with Rust Thompson Sampling optimizer
 type InferenceRouter struct {
 	registry *providers.ProviderRegistry
 
-	// Routing state (will be migrated to Rust optimizer)
-	providerStats map[string]*ProviderStats
+	// Rust optimizer (primary routing engine)
+	optimizer *ffi.OptimizerHandle
+
+	// Routing state (Go fallback when optimizer unavailable)
+	providerStats   map[string]*ProviderStats
+	providerStatsMu sync.RWMutex // Protect concurrent access
 
 	// Configuration
 	enableOptimization bool
+	useRustOptimizer   bool
 	fallbackEnabled    bool
 	defaultProvider    string
 }
@@ -43,9 +50,52 @@ func NewInferenceRouter(registry *providers.ProviderRegistry) *InferenceRouter {
 		registry:           registry,
 		providerStats:      make(map[string]*ProviderStats),
 		enableOptimization: true,
+		useRustOptimizer:   false, // Will be enabled after InitializeOptimizer is called
 		fallbackEnabled:    true,
 		defaultProvider:    "openai",
 	}
+}
+
+// InitializeOptimizer initializes the Rust Thompson Sampling optimizer
+func (r *InferenceRouter) InitializeOptimizer() error {
+	// Get all registered provider names as arms
+	providerNames := r.registry.List()
+	if len(providerNames) == 0 {
+		return fmt.Errorf("no providers registered - cannot initialize optimizer")
+	}
+
+	log.Printf("[Router] Initializing Rust optimizer with %d providers: %v", len(providerNames), providerNames)
+
+	// Create optimizer configuration
+	config := ffi.OptimizerConfig{
+		Arms:             providerNames,
+		SuccessThreshold: 0.6,
+		InitialAlpha:     1.0,
+		InitialBeta:      1.0,
+		RewardPolicy: ffi.RewardPolicy{
+			LatencyWeight:   0.4,
+			SuccessWeight:   0.3,
+			CacheWeight:     0.0, // Not using cache yet
+			CostWeight:      0.15,
+			QualityWeight:   0.15,
+			TargetLatencyMs: 500.0,  // Target 500ms
+			MaxLatencyMs:    5000.0, // Max 5s
+			TargetCostUsd:   0.001,  // Target $0.001 per request
+			MaxCostUsd:      0.1,    // Max $0.10 per request
+		},
+	}
+
+	// Initialize Rust optimizer via FFI
+	optimizer, err := ffi.NewOptimizer(config)
+	if err != nil {
+		return fmt.Errorf("failed to initialize Rust optimizer: %w", err)
+	}
+
+	r.optimizer = optimizer
+	r.useRustOptimizer = true
+
+	log.Printf("[Router] ✅ Rust optimizer initialized successfully")
+	return nil
 }
 
 // Route selects the best provider and performs the inference
@@ -96,8 +146,8 @@ func (r *InferenceRouter) Route(ctx context.Context, req *models.InferRequest) (
 	resp.Metadata.RouteDecision = fmt.Sprintf("Selected %s based on optimization policy", providerName)
 	resp.Metadata.LatencyMs = latency
 
-	// TODO: Send feedback to Rust optimizer once integrated
-	// r.sendOptimizerFeedback(providerName, latency, resp)
+	// Step 6: Send feedback to Rust optimizer
+	r.sendOptimizerFeedback(providerName, latency, resp)
 
 	return resp, nil
 }
@@ -150,8 +200,8 @@ func (r *InferenceRouter) selectProvider(req *models.InferRequest) (string, erro
 	return r.defaultProvider, nil
 }
 
-// optimizeProviderSelection uses Thompson Sampling-like logic (interim)
-// TODO: Replace with Rust FFI call to optimizer
+// optimizeProviderSelection uses Rust Thompson Sampling optimizer (primary)
+// Falls back to Go-based selection if Rust optimizer unavailable
 func (r *InferenceRouter) optimizeProviderSelection(req *models.InferRequest) (string, error) {
 	// Get all available providers
 	providerNames := r.registry.List()
@@ -159,13 +209,29 @@ func (r *InferenceRouter) optimizeProviderSelection(req *models.InferRequest) (s
 		return "", fmt.Errorf("no providers available")
 	}
 
+	// Try Rust optimizer first if enabled
+	if r.useRustOptimizer && r.optimizer != nil {
+		action, err := r.optimizer.SelectAction()
+		if err != nil {
+			log.Printf("[Router] ⚠️  Rust optimizer selection failed: %v, falling back to Go", err)
+			// Fall through to Go-based selection
+		} else {
+			// Verify the selected provider exists
+			if _, exists := r.registry.Get(action.ActionID); exists {
+				log.Printf("[Router] 🦀 Rust optimizer selected: %s", action.ActionID)
+				return action.ActionID, nil
+			}
+			log.Printf("[Router] ⚠️  Rust optimizer returned invalid provider: %s, falling back", action.ActionID)
+		}
+	}
+
+	// Go-based fallback selection
 	// If optimization is based on request policy
 	if req.Policy != nil && req.Policy.OptimizeFor != "" {
 		return r.selectByOptimizationGoal(providerNames, req.Policy.OptimizeFor)
 	}
 
-	// TODO: Implement Thompson Sampling arm selection
-	// For now, use simple weighted random based on reliability
+	// Use simple weighted random based on reliability
 	return r.weightedRandomSelection(providerNames)
 }
 
@@ -291,8 +357,11 @@ func (r *InferenceRouter) attemptFallback(ctx context.Context, req *models.Infer
 	return nil, fmt.Errorf("all fallback providers failed")
 }
 
-// recordSuccess updates provider statistics on success
+// recordSuccess updates provider statistics on success (with mutex protection)
 func (r *InferenceRouter) recordSuccess(providerName string, latencyMs int64) {
+	r.providerStatsMu.Lock()
+	defer r.providerStatsMu.Unlock()
+
 	stats, exists := r.providerStats[providerName]
 	if !exists {
 		stats = &ProviderStats{}
@@ -308,8 +377,11 @@ func (r *InferenceRouter) recordSuccess(providerName string, latencyMs int64) {
 	stats.LastUpdated = time.Now()
 }
 
-// recordFailure updates provider statistics on failure
+// recordFailure updates provider statistics on failure (with mutex protection)
 func (r *InferenceRouter) recordFailure(providerName string) {
+	r.providerStatsMu.Lock()
+	defer r.providerStatsMu.Unlock()
+
 	stats, exists := r.providerStats[providerName]
 	if !exists {
 		stats = &ProviderStats{}
@@ -327,14 +399,70 @@ func (r *InferenceRouter) GetStats() map[string]*ProviderStats {
 	return r.providerStats
 }
 
-// TODO: Future Rust optimizer integration
-// This function will be called once Rust FFI is integrated per OPTIMIZER_RFC.md
-func (r *InferenceRouter) sendOptimizerFeedback(providerName string, latencyMs int64, resp *models.InferResponse) {
-	// Placeholder for Rust FFI call
-	// Expected implementation:
-	// 1. Calculate reward signal based on latency, success, cost
-	// 2. Call rust.OptimizerUpdateReward(actionID, reward)
-	// 3. Handle errors and fallback to Go-based routing
+// RouteToProvider routes to a specific provider (used by Rust optimizer)
+func (r *InferenceRouter) RouteToProvider(ctx context.Context, req *models.InferRequest, providerName string) (*models.InferResponse, error) {
+	startTime := time.Now()
 
-	log.Printf("[Router] TODO: Send optimizer feedback for %s (latency: %dms)", providerName, latencyMs)
+	// Get provider from registry
+	provider, exists := r.registry.Get(providerName)
+	if !exists {
+		return nil, fmt.Errorf("provider %s not found in registry", providerName)
+	}
+
+	log.Printf("[Router] Routing to specific provider: %s for model: %s", providerName, req.Model)
+
+	// Execute inference
+	resp, err := provider.Infer(ctx, req)
+	if err != nil {
+		log.Printf("[Router] Provider %s failed: %v", providerName, err)
+		r.recordFailure(providerName)
+		return nil, err
+	}
+
+	// Record success metrics
+	latency := time.Since(startTime).Milliseconds()
+	r.recordSuccess(providerName, latency)
+
+	// Add routing metadata
+	if resp.Metadata == nil {
+		resp.Metadata = &models.ResponseMetadata{}
+	}
+	resp.Metadata.RouteDecision = fmt.Sprintf("Direct routing to %s", providerName)
+	resp.Metadata.LatencyMs = latency
+
+	return resp, nil
+}
+
+// sendOptimizerFeedback sends reward feedback to the Rust optimizer
+func (r *InferenceRouter) sendOptimizerFeedback(providerName string, latencyMs int64, resp *models.InferResponse) {
+	// Only send feedback if Rust optimizer is enabled
+	if !r.useRustOptimizer || r.optimizer == nil {
+		return
+	}
+
+	// Calculate cost from response metadata
+	costUsd := 0.0
+	if resp.Metadata != nil && resp.Metadata.CostUSD > 0 {
+		costUsd = resp.Metadata.CostUSD
+	}
+
+	// Create metrics for reward calculation
+	metrics := ffi.RewardMetrics{
+		LatencyMs:    float64(latencyMs),
+		Success:      true, // If we got here, the request succeeded
+		CacheHit:     false,  // Not using cache yet
+		CostUsd:      costUsd,
+		QualityScore: nil, // Not measuring quality yet
+	}
+
+	// Send metrics to Rust optimizer
+	err := r.optimizer.UpdateMetrics(providerName, metrics)
+	if err != nil {
+		// Log error but don't fail the request
+		log.Printf("[Router] ⚠️  Failed to send optimizer feedback for %s: %v", providerName, err)
+		return
+	}
+
+	log.Printf("[Router] 🦀 Sent optimizer feedback: provider=%s, latency=%dms, cost=$%.6f",
+		providerName, latencyMs, costUsd)
 }
