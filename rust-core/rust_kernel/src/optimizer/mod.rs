@@ -40,6 +40,9 @@ pub mod rewards;
 pub mod bandits;
 pub mod ffi;
 
+// Phase 4: Distributed tracing support
+pub mod tracing;
+
 // Re-export main types for convenience
 pub use arms::BanditArm;
 pub use rewards::{RewardMetrics, RewardPolicy, calculate_reward};

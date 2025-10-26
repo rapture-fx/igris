@@ -92,6 +92,7 @@ services:
       # Observability
       METRICS_ENABLED: "true"
       TRACING_ENABLED: ${TRACING_ENABLED:-false}
+      JAEGER_ENDPOINT: ${JAEGER_ENDPOINT:-http://jaeger:14268/api/traces}
       LOG_LEVEL: ${LOG_LEVEL:-info}
       LOG_FORMAT: json
 
@@ -149,6 +150,24 @@ services:
       - grafana_data:/var/lib/grafana
       - ./infra/grafana/dashboards:/etc/grafana/provisioning/dashboards
       - ./infra/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - schlep-network
+    profiles:
+      - monitoring
+
+  # Jaeger (Distributed Tracing)
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: schlep-jaeger
+    restart: unless-stopped
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"        # Jaeger UI
+      - "${JAEGER_COLLECTOR_PORT:-14268}:14268" # Jaeger collector HTTP
+      - "${JAEGER_AGENT_PORT:-6831}:6831/udp"   # Jaeger agent (UDP)
+      - "${JAEGER_ZIPKIN_PORT:-9411}:9411"      # Zipkin compatible endpoint
+    environment:
+      COLLECTOR_ZIPKIN_HOST_PORT: ":9411"
+      COLLECTOR_OTLP_ENABLED: "true"
     networks:
       - schlep-network
     profiles:

@@ -14,6 +14,7 @@ import (
 	"github.com/schlep-engine/schlep-engine/internal/database"
 	"github.com/schlep-engine/schlep-engine/internal/logging"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
+	"github.com/schlep-engine/schlep-engine/internal/observability"
 	"github.com/schlep-engine/schlep-engine/internal/security"
 )
 
@@ -23,6 +24,18 @@ func main() {
 	logging.Init("schlep-engine", debug)
 
 	log.Println("🚀 Starting Schlep-Engine Inference API...")
+
+	// Initialize OpenTelemetry tracing (if enabled)
+	tracingEnabled := os.Getenv("TRACING_ENABLED") == "true"
+	var shutdownTracer func()
+	if tracingEnabled {
+		log.Println("[Tracing] Initializing OpenTelemetry with Jaeger...")
+		shutdownTracer = observability.InitTracing("schlep-engine-api")
+		defer shutdownTracer()
+		log.Println("[Tracing] ✅ OpenTelemetry tracing initialized")
+	} else {
+		log.Println("[Tracing] OpenTelemetry tracing disabled (set TRACING_ENABLED=true to enable)")
+	}
 
 	// Initialize Fiber app
 	app := fiber.New(fiber.Config{
@@ -37,6 +50,12 @@ func main() {
 	// Global middleware
 	app.Use(recover.New())
 	app.Use(cors.New())
+
+	// OpenTelemetry tracing middleware (if enabled)
+	if tracingEnabled {
+		app.Use(middleware.OpenTelemetry())
+	}
+
 	app.Use(middleware.TraceID())           // Add trace IDs to all requests
 	app.Use(middleware.RequestLogger())      // Structured request logging
 

@@ -61,27 +61,7 @@ export default function MultiTenancy() {
                   Production architecture designed for scale.
                 </p>
 
-                <div className="text-xs text-gray-500 dark:text-gray-400 font-mono mb-8">
-                  <p className="text-gray-500 dark:text-gray-400 mb-3">Designed for:</p>
-                  <div className="flex flex-col space-y-3">
-                    <div className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                      B2B AI platforms
-                    </div>
-                    <div className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                      SaaS applications with AI features
-                    </div>
-                    <div className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                      Enterprise deployments
-                    </div>
-                    <div className="flex items-center">
-                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                      Companies building AI infrastructure
-                    </div>
-                  </div>
-                </div>
+                
               </div>
 
               <div className="flex gap-0 pl-0 pr-8 justify-start">
