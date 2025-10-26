@@ -182,6 +182,8 @@ export default function SDKSupport() {
                     border: '1px solid #299a93'
                   }}
                 >
+                  
+
                   <div 
                     className="p-5 overflow-auto hide-scrollbar" 
                     style={{ 

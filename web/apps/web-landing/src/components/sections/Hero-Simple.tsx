@@ -25,18 +25,7 @@ export default function Hero() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
           </div>
 
-          {/* Hero Background Image inside frame */}
-          <div
-            className="absolute inset-0 z-10 opacity-10"
-            style={{
-              backgroundImage: 'url("/HEROBG.svg")',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              width: '100%',
-              height: '100%'
-            }}
-          />
+          
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto pt-8 relative z-20">
