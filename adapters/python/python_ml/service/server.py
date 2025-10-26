@@ -6,7 +6,6 @@ Real inference with PyTorch/ONNX models and authentication
 import grpc
 from concurrent import futures
 import time
-import logging
 import sys
 import os
 
@@ -22,35 +21,34 @@ from auth_interceptor import create_auth_server
 # Import OpenTelemetry tracing (Phase 4.2.3)
 from otel_interceptor import create_traced_server, init_tracing, shutdown_tracing
 
+# Phase 4.4.1: Import structured logging
+from structured_logger import get_logger
+
+# Initialize structured logger
+logger = get_logger("python-ml-service", "python-ml-service")
+
 # Import ML dependencies and enhanced components
 try:
     import torch
     import torch.nn as nn
     TORCH_AVAILABLE = True
-    logger.info("PyTorch available")
+    logger.info("PyTorch dependency check", pytorch_available=True)
 except ImportError:
     TORCH_AVAILABLE = False
-    logger.warning("PyTorch not available - using fallback inference")
+    logger.warning("PyTorch not available - using fallback inference", pytorch_available=False)
 
 try:
     import onnxruntime as ort
     ONNX_AVAILABLE = True
-    logger.info("ONNX Runtime available")
+    logger.info("ONNX Runtime dependency check", onnx_available=True)
 except ImportError:
     ONNX_AVAILABLE = False
-    logger.warning("ONNX Runtime not available")
+    logger.warning("ONNX Runtime not available", onnx_available=False)
 
 import numpy as np
 import jwt
 import os
 from typing import Dict, Optional
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
 
 
 class SimpleMLModel(nn.Module):
@@ -195,11 +193,14 @@ class MLServiceServicer(ml_pb2_grpc.MLServiceServicer):
     """
 
     def __init__(self):
-        logger.info("Initializing Production ML Service...")
+        logger.info("ML Service initializing", version="1.0.0-real-inference")
         self.engine = InferenceEngine()
         self.version = "1.0.0-real-inference"
         self.request_count = 0
-        logger.info(f"ML Service initialized (PyTorch: {TORCH_AVAILABLE}, ONNX: {ONNX_AVAILABLE})")
+        logger.info("ML Service initialized",
+                   pytorch_available=TORCH_AVAILABLE,
+                   onnx_available=ONNX_AVAILABLE,
+                   version=self.version)
 
     def Predict(self, request, context):
         """
@@ -208,10 +209,10 @@ class MLServiceServicer(ml_pb2_grpc.MLServiceServicer):
         """
         self.request_count += 1
 
-        logger.info(
-            f"Predict called (request #{self.request_count}): "
-            f"model_id={request.model_id}, features_len={len(request.features)}"
-        )
+        logger.info("Predict request received",
+                   request_number=self.request_count,
+                   model_id=request.model_id,
+                   features_count=len(request.features))
 
         # Validate input
         if not request.features:
@@ -231,9 +232,14 @@ class MLServiceServicer(ml_pb2_grpc.MLServiceServicer):
             model_id=request.model_id or "default"
         )
 
-        logger.info(
-            f"Prediction complete: pred={prediction:.4f}, "
-            f"conf={confidence:.4f}, time={inference_time:.2f}ms"
+        # Phase 4.4.1: Structured inference logging
+        logger.inference_request(
+            model_id=request.model_id or "default",
+            features_count=len(request.features),
+            latency_ms=inference_time,
+            prediction=prediction,
+            confidence=confidence,
+            success=True
         )
 
         return response

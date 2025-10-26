@@ -21,7 +21,11 @@ import "C"
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
+	"time"
 	"unsafe"
+
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 )
 
 // OptimizerHandle wraps the Rust optimizer handle
@@ -101,6 +105,9 @@ func (o *OptimizerHandle) SelectAction() (*Action, error) {
 		return nil, fmt.Errorf("optimizer handle is nil")
 	}
 
+	// Phase 4.3.1: Track selection timing
+	startTime := time.Now()
+
 	cResult := C.optimizer_select_action(o.handle)
 	if cResult == nil {
 		return nil, fmt.Errorf("optimizer_select_action returned null")
@@ -112,6 +119,11 @@ func (o *OptimizerHandle) SelectAction() (*Action, error) {
 	if err := json.Unmarshal([]byte(result), &action); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal action: %w", err)
 	}
+
+	// Phase 4.3.1: Record optimizer decision metrics
+	selectionTimeUs := time.Since(startTime).Microseconds()
+	provider := extractProviderFromAction(action.ActionID)
+	metrics.RecordOptimizerDecision(provider, "thompson_sampling", selectionTimeUs, -1) // -1 = no reward yet
 
 	return &action, nil
 }
@@ -134,12 +146,12 @@ func (o *OptimizerHandle) UpdateReward(actionID string, reward float64) error {
 }
 
 // UpdateMetrics updates the optimizer with detailed metrics
-func (o *OptimizerHandle) UpdateMetrics(actionID string, metrics RewardMetrics) error {
+func (o *OptimizerHandle) UpdateMetrics(actionID string, rewardMetrics RewardMetrics) error {
 	if o.handle == nil {
 		return fmt.Errorf("optimizer handle is nil")
 	}
 
-	metricsJSON, err := json.Marshal(metrics)
+	metricsJSON, err := json.Marshal(rewardMetrics)
 	if err != nil {
 		return fmt.Errorf("failed to marshal metrics: %w", err)
 	}
@@ -154,6 +166,9 @@ func (o *OptimizerHandle) UpdateMetrics(actionID string, metrics RewardMetrics) 
 	if result != 0 {
 		return fmt.Errorf("optimizer_update_metrics failed with code %d", result)
 	}
+
+	// Phase 4.3.1: After updating optimizer, refresh arm stats in Prometheus
+	go o.updateArmStatsMetrics()
 
 	return nil
 }
@@ -201,6 +216,34 @@ func (o *OptimizerHandle) Close() error {
 		o.handle = nil
 	}
 	return nil
+}
+
+// updateArmStatsMetrics updates Prometheus metrics with current arm statistics
+func (o *OptimizerHandle) updateArmStatsMetrics() {
+	stats, err := o.GetStats()
+	if err != nil {
+		return // Silently fail for metrics updates
+	}
+
+	for _, armStat := range stats {
+		provider := extractProviderFromAction(armStat.ActionID)
+
+		// Calculate success rate from Beta distribution
+		successRate := armStat.Alpha / (armStat.Alpha + armStat.Beta)
+
+		// Update Prometheus metrics
+		metrics.UpdateOptimizerArmStats(provider, armStat.Alpha, armStat.Beta, successRate)
+	}
+}
+
+// extractProviderFromAction extracts provider name from action ID
+// Action ID format: "provider/model" (e.g., "openai/gpt-4")
+func extractProviderFromAction(actionID string) string {
+	parts := strings.Split(actionID, "/")
+	if len(parts) == 0 {
+		return "unknown"
+	}
+	return parts[0]
 }
 
 // DefaultConfig returns a default optimizer configuration

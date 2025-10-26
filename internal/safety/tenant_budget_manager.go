@@ -3,6 +3,8 @@ package safety
 import (
 	"database/sql"
 	"sync"
+
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 )
 
 // TenantBudgetManager manages per-tenant budget trackers
@@ -96,6 +98,27 @@ func (tbm *TenantBudgetManager) GetAggregatedStats() map[string]interface{} {
 		"total_requests":       totalRequests,
 		"tenants_breached":     totalBreached,
 		"avg_spend_per_tenant": totalSpend / float64(len(tbm.trackers)),
+	}
+}
+
+// UpdatePrometheusMetrics updates Prometheus metrics for all tenants
+// Phase 4.3.1: Export tenant budget metrics to Prometheus
+func (tbm *TenantBudgetManager) UpdatePrometheusMetrics() {
+	tbm.mu.RLock()
+	defer tbm.mu.RUnlock()
+
+	// Update active tenant count
+	metrics.UpdateActiveTenants(len(tbm.trackers))
+
+	// Update per-tenant metrics
+	for tenantID, tracker := range tbm.trackers {
+		stats := tracker.GetStats()
+
+		monthlyCostUSD := stats["monthly_spend_usd"].(float64)
+		budgetUSD := tbm.config.MaxMonthlyCostUSD
+
+		// Update tenant budget metrics
+		metrics.UpdateTenantMetrics(tenantID, monthlyCostUSD, budgetUSD)
 	}
 }
 
