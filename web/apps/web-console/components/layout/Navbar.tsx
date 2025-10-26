@@ -1,0 +1,114 @@
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Menu, X, LogOut, User, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { logout } from '@/lib/auth';
+import { useTenant } from '@/hooks/useTenant';
+import { getInitials } from '@/utils/helpers';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+
+interface NavbarProps {
+  onMenuClick?: () => void;
+}
+
+export function Navbar({ onMenuClick }: NavbarProps) {
+  const router = useRouter();
+  const { data: tenant } = useTenant();
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
+  };
+
+  return (
+    <>
+      <nav className="sticky top-0 z-40 w-full border-b border-border-light bg-beige-primary/95 backdrop-blur supports-[backdrop-filter]:bg-beige-primary/60">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            {/* Left side - Logo and Menu */}
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden"
+                onClick={onMenuClick}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+
+              <Link href="/dashboard" className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-schlep-blue text-white font-bold text-sm">
+                  S
+                </div>
+                <span className="font-inter font-semibold text-lg text-gray-900 hidden sm:inline">
+                  Schlep-engine
+                </span>
+              </Link>
+            </div>
+
+            {/* Right side - User menu */}
+            <div className="flex items-center gap-4">
+              <div className="hidden sm:flex flex-col items-end">
+                <span className="text-sm font-medium font-inter text-gray-900">
+                  {tenant?.name || 'Loading...'}
+                </span>
+                <span className="text-xs text-gray-600 font-inter">
+                  {tenant?.plan || 'Free'} Plan
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-schlep-blue text-white font-semibold text-sm">
+                  {tenant ? getInitials(tenant.name) : 'U'}
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowLogoutDialog(true)}
+                  title="Logout"
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to log out of your account?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}

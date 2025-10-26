@@ -112,6 +112,9 @@ func RecordInferMetrics(c *fiber.Ctx, provider, model string, latencyMs int64, p
 	// Get trace ID from context
 	traceID := getTraceID(c)
 
+	// Get tenant ID from context (Phase 4.3.1)
+	tenantID := getTenantID(c)
+
 	// Get metrics collector
 	collector := getMetricsCollectorFromContext(c)
 	if collector == nil {
@@ -120,6 +123,19 @@ func RecordInferMetrics(c *fiber.Ctx, provider, model string, latencyMs int64, p
 
 	// Record in the collector
 	collector.RecordInferenceRequest(c.Context(), provider, model, latencyMs, promptTokens, completionTokens, totalTokens, costUSD, success)
+
+	// Phase 4.3.1: Record comprehensive Prometheus metrics
+	RecordInferenceRequestMetrics(
+		provider,
+		model,
+		tenantID,
+		latencyMs,
+		promptTokens,
+		completionTokens,
+		totalTokens,
+		costUSD,
+		success,
+	)
 
 	// Log structured inference request
 	logging.LogInferenceRequest(logging.InferenceFields{
@@ -211,10 +227,25 @@ func getTraceID(c *fiber.Ctx) string {
 	if traceID := getStringFromContext(c, "trace_id"); traceID != "" {
 		return traceID
 	}
-	
+
 	// Fallback to logging context
 	ctx := c.Context()
 	return logging.GetTraceID(ctx)
+}
+
+func getTenantID(c *fiber.Ctx) string {
+	// Try to get tenant ID from locals (set by tenant auth middleware)
+	if tenantID := getStringFromLocals(c, "tenant_id"); tenantID != "" {
+		return tenantID
+	}
+
+	// Try to get from context
+	if tenantID := getStringFromContext(c, "tenant_id"); tenantID != "" {
+		return tenantID
+	}
+
+	// Default to "default" for single-tenant mode
+	return "default"
 }
 
 func getMetricsCollectorFromContext(c *fiber.Ctx) *MetricsCollector {

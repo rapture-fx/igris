@@ -65,10 +65,11 @@ type ResponseMetadata struct {
 	ExplorationBonus float64 `json:"exploration_bonus,omitempty"`  // Exploration bonus applied
 
 	// Request tracking
-	RequestID   string    `json:"request_id"`              // Original request ID
-	Timestamp   time.Time `json:"timestamp"`               // Response timestamp
-	RetryCount  int       `json:"retry_count,omitempty"`   // Number of retries
-	Fallback    bool      `json:"fallback,omitempty"`      // Whether fallback was used
+	RequestID      string    `json:"request_id"`                 // Original request ID
+	Timestamp      time.Time `json:"timestamp"`                  // Response timestamp
+	RetryCount     int       `json:"retry_count,omitempty"`      // Number of retries
+	Fallback       bool      `json:"fallback,omitempty"`         // Whether fallback was used
+	FallbackReason string    `json:"fallback_reason,omitempty"`  // Reason for fallback
 }
 
 // NewInferResponse creates a new InferResponse with default values

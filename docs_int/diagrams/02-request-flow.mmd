@@ -1,0 +1,137 @@
+%% Request Flow: Standard Inference
+%% Shows the complete path from client to response
+%% Updated: 2025-10-22 - Expanded SafetyController details and added cost tracking
+
+sequenceDiagram
+    participant C as Client
+    participant G as API Gateway<br/>(Fiber)
+    participant H as InferHandler
+    participant S as SafetyController
+    participant BT as BudgetTracker
+    participant TE as TokenEnforcer
+    participant KV as KeyValidator
+    participant AL as AuditLogger
+    participant SR as ShadowRunner
+    participant R as InferenceRouter
+    participant PR as ProviderRegistry
+    participant P as Provider
+    participant E as External LLM
+    participant CT as CostTracker
+    participant M as Metrics & Tracing
+    participant DB as PostgreSQL
+
+    C->>G: POST /v1/infer<br/>{model, messages, stream}
+
+    activate G
+    G->>G: Middleware: CORS,<br/>Recovery, TraceID
+    G->>H: Route to InferHandler
+    activate H
+
+    H->>H: Parse & Validate Request<br/>models.InferRequest
+
+    H->>S: PreRequestCheckWithTrace()
+    activate S
+
+    S->>KV: ValidateKeys()<br/>Check API keys
+    activate KV
+    KV-->>S: Valid / Invalid
+    deactivate KV
+
+    S->>CT: EstimateCost(request)
+    activate CT
+    CT-->>S: estimated_cost_usd
+    deactivate CT
+
+    S->>BT: CheckBudget(tenant_id, cost)
+    activate BT
+    BT->>DB: Query budgets table
+    DB-->>BT: current_spend, limit
+    BT-->>S: Approved / Budget Exceeded
+    deactivate BT
+
+    S->>TE: EnforceTokenLimit(max_tokens)
+    activate TE
+    TE-->>S: Approved / Truncated / Rejected
+    deactivate TE
+
+    S->>AL: LogSafetyCheck(result, trace_id)
+    activate AL
+    AL->>DB: Write to spending_log
+    deactivate AL
+
+    S-->>H: SafetyCheckResult<br/>(approved/rejected)
+    deactivate S
+
+    H->>H: Get RuntimeConfig<br/>Check OptimizerMode
+
+    alt Mode: shadow (sampled)
+        par Primary Path (Go)
+            H->>R: selectProvider()
+            activate R
+            R->>PR: Select by policy
+            PR-->>R: Provider
+            R->>P: Infer(request)
+        and Shadow Path (Rust)
+            H->>SR: RunShadowComparison()
+            activate SR
+            SR->>SR: ShouldSample()<br/>Check sample rate
+            SR-->>SR: Rust selectAction()
+            SR-->>H: Log comparison
+            deactivate SR
+        end
+    else Mode: rust
+        H->>SR: SelectAction via Rust
+        SR-->>H: Action / Error
+        alt Rust Success
+            H->>R: Use Rust decision
+        else Rust Error
+            H->>R: Automatic fallback to Go
+        end
+    else Mode: go
+        H->>R: selectProvider()
+        R->>PR: Select by policy
+        PR-->>R: Provider
+    end
+
+    activate P
+    P->>E: HTTP POST /v1/chat/completions
+    E-->>P: LLM Response
+    deactivate P
+
+    P-->>R: InferResponse
+    deactivate R
+
+    R-->>H: Response + Metadata
+
+    H->>CT: CalculateCost(response)
+    activate CT
+    CT-->>H: actual_cost_usd
+    deactivate CT
+
+    H->>BT: RecordSpending(tenant_id, cost, tokens)
+    activate BT
+    BT->>DB: INSERT spending_log
+    BT->>DB: UPDATE budgets SET total_spend
+    deactivate BT
+
+    H->>AL: LogInference(request_id, cost, trace_id)
+    activate AL
+    AL->>DB: Write audit log
+    deactivate AL
+
+    H->>M: RecordMetrics()<br/>(latency, tokens, cost)
+    H->>M: RecordTrace()<br/>(span, trace_id)
+
+    alt Update Optimizer
+        H->>SR: UpdateMetrics()<br/>(action_id, reward_metrics)
+        SR-->>SR: Update Beta(α, β)
+    end
+
+    H->>H: Add metadata:<br/>X-Trace-ID, cost, latency
+    H-->>G: JSON Response
+    deactivate H
+
+    G-->>C: 200 OK<br/>X-Trace-ID: xxx-xxx
+    deactivate G
+
+    Note over M: Prometheus: infer_requests_total++<br/>latency_histogram, cost_gauge,<br/>tokens_total recorded

@@ -1,0 +1,73 @@
+%% Shadow Mode: Parallel Testing Without Production Impact
+%% Based on internal/inference/optimizer/shadow/shadow_runner.go
+%% Updated: 2025-10-20 - Synchronized with codebase
+
+sequenceDiagram
+    participant C as Client
+    participant H as InferHandler
+    participant SR as ShadowRunner
+    participant IR as InferenceRouter
+    participant RO as RustOptimizer<br/>(ffi.OptimizerHandle)
+    participant P1 as Provider (Go)
+    participant P2 as Provider (Rust)
+    participant L as ShadowLogger
+    participant M as MetricsRecorder
+
+    C->>H: POST /v1/infer<br/>{model, messages}
+    activate H
+
+    H->>SR: GetMode()
+    SR-->>H: ShadowModeShadow
+    H->>SR: ShouldSample()
+    SR->>SR: rand() < sample_rate<br/>sample_rate = 0.1<br/>rand() = 0.05 ✓
+    SR-->>H: true
+
+    par Primary Path (Go Router)
+        H->>IR: selectProvider()
+        activate IR
+        IR->>IR: Select by policy<br/>(latency, cost, model)
+        IR->>P1: Infer(request)
+        activate P1
+        P1-->>IR: InferResponse<br/>model: openai/gpt-4<br/>latency: 200ms<br/>cost: $0.002
+        deactivate P1
+        IR-->>H: Result A
+        deactivate IR
+    and Shadow Path (Rust Optimizer)
+        H->>SR: RunShadowComparison()
+        activate SR
+        SR->>RO: SelectAction()
+        activate RO
+        RO->>RO: Thompson Sampling<br/>Sample Beta(α,β)<br/>for each arm
+        RO-->>SR: Action{action_id, timestamp}
+        deactivate RO
+        SR->>P2: Infer(request)
+        activate P2
+        P2-->>SR: InferResponse<br/>model: anthropic/claude-sonnet<br/>latency: 185ms<br/>cost: $0.0015
+        deactivate P2
+        SR-->>H: Result B (async)
+        deactivate SR
+    end
+
+    H->>H: Wait for Primary (A) ONLY<br/>Ignore shadow timing
+    H-->>C: Return Response A<br/>X-Trace-ID: xxx
+    deactivate H
+
+    Note over C: Client receives Go result immediately<br/>Shadow has zero production impact
+
+    SR->>SR: Compare Results (Background)
+    activate SR
+    SR->>SR: agreed = (A.model == B.model)<br/>cost_delta = B.cost - A.cost<br/>latency_delta = B.latency - A.latency
+
+    SR->>L: Log(ComparisonLog)
+    activate L
+    L->>L: Write to shadow_comparisons.jsonl:<br/>Go: openai/gpt-4<br/>Rust: anthropic/claude-sonnet<br/>Agreed: false<br/>Cost Δ: -$0.0005<br/>Latency Δ: -15ms<br/>Arms: [{id, α, β, score}]
+    deactivate L
+
+    SR->>M: RecordAgreement(false)
+    SR->>M: RecordCostDelta(-0.0005)
+    SR->>M: RecordLatencyDelta(-15)
+    activate M
+    M->>M: shadow_agreement_rate.set(0.X)<br/>shadow_cost_delta.observe(-0.0005)<br/>shadow_latency_delta.observe(-15)
+    deactivate M
+
+    deactivate SR

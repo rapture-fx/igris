@@ -1,26 +1,50 @@
 import React from 'react'
-import { Cpu, Zap, Shield, BarChart } from 'lucide-react'
+import { Shield, Box } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Multi-Provider Routing',
-    description: 'Thompson Sampling-based optimization routes requests across OpenAI and Anthropic models based on cost, latency, and quality metrics.',
-    icon: Cpu,
+    name: 'Intelligent Provider Routing',
+    description: 'Smart routing across OpenAI, Anthropic, and custom models. Thompson Sampling algorithm continuously learns from performance to optimize your costs, speed, and reliability.',
+    icon: () => (
+      <img 
+        src="/Intelligent route.svg" 
+        alt="Intelligent Provider Routing" 
+        className="h-56 w-56 text-black"
+      />
+    ),
   },
   {
-    name: 'Phased Optimizer Activation',
-    description: 'Admin-controlled rollout from 1% to 100% traffic with automatic SLO guardrails and instant revert on performance degradation.',
-    icon: Zap,
+    name: 'Budget Protection',
+    description: 'Set custom spending limits and token caps to prevent cost overruns. Automatic alerts and budget safeguards with real-time usage tracking. Never overspend again with our protection.',
+    icon: () => (
+      <img 
+        src="/budget protection.svg" 
+        alt="Budget Protection" 
+        className="h-72 w-72 text-black"
+      />
+    ),
   },
   {
-    name: 'Shadow Mode Testing',
-    description: 'Non-invasive validation runs Rust optimizer in parallel with Go router. Zero user impact, full decision comparison logging.',
-    icon: Shield,
+    name: 'Bring Your Own Keys',
+    description: 'Use your existing OpenAI and Anthropic API keys with confidence. Secure key management, validation, and isolation ensures we never store or share your credentials.',
+    icon: () => (
+      <img 
+        src="/BYOK.svg" 
+        alt="Bring Your Own Keys" 
+        className="h-56 w-56 text-black opacity-85"
+      />
+    ),
   },
   {
-    name: 'Cost & Latency Control',
-    description: 'Per-request optimization for cost, latency, or quality. Response metadata includes provider, latency (ms), cost (USD), and routing decision.',
-    icon: BarChart,
+    name: 'Risk-Free Testing',
+    description: 'Benchmark mode simulates API providers with realistic latency and pricing. Zero costs during development and CI/CD testing. One env var to switch to production.',
+    icon: () => (
+      <img
+        src="/Rsik free testing.svg"
+        alt="Risk-Free Testing"
+        className="h-60 w-60 text-black"
+      />
+    ),
   },
 ]
 
@@ -47,46 +71,65 @@ export default function CoreCapabilities() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-center">
-              {/* Left Column - Title and Description */}
-              <div className="text-left lg:col-span-2">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Core Capabilities</h2>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Intelligent routing with safety controls built in.
-                </h3>
+            {/* Section Title - Above Cards */}
+            <div className="text-left mb-12">
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Features</h2>
+              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+                Smart AI Routing That Optimizes Your Costs
+              </h3>
+              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
+                Automatically route your AI requests to the best providers based on your preferences. Cut costs, improve performance, and never worry about overspending with our intelligent optimization engine.
+              </p>
+            </div>
 
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-6">
-                  Multi-armed bandit optimization, phased activation, and shadow testing ensure safe production rollouts without service disruption.
-                </p>
-              </div>
+            {/* Horizontal Cards Stack */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {capabilities.map((capability) => (
+                <div
+                  key={capability.name}
+                  className="rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col justify-between overflow-hidden"
+                  style={{
+                    backgroundColor: '#f7f7f3',
+                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                    minHeight: '400px'
+                  }}
+                >
+                  {/* Icon at top with background pattern */}
+                  <div
+                    className="flex-1 flex items-center justify-center p-8"
+                    style={{
+                      backgroundColor: '#f2f1ed',
+                      backgroundImage: `repeating-linear-gradient(
+                        45deg,
+                        transparent,
+                        transparent 2px,
+                        rgba(0,0,0,0.02) 2px,
+                        rgba(0,0,0,0.02) 4px
+                      )`
+                    }}
+                  >
+                    {capability.name === 'Budget Protection' ? (
+                      <capability.icon className="h-72 w-72 text-black" aria-hidden="true" />
+                    ) : (capability.name === 'Intelligent Provider Routing' || capability.name === 'Risk-Free Testing' || capability.name === 'Bring Your Own Keys') ? (
+                      <capability.icon className="h-56 w-56 text-black" aria-hidden="true" />
+                    ) : (
+                      <div className="flex h-16 w-16 items-center justify-center">
+                        <capability.icon className="h-10 w-10 text-black" aria-hidden="true" />
+                      </div>
+                    )}
+                  </div>
 
-              {/* Right Column - Capabilities Grid */}
-              <div className="rounded-lg p-12 lg:col-span-3 min-h-[500px] flex items-center" style={{
-                backgroundColor: '#f2f1ed',
-                backgroundImage: `repeating-linear-gradient(
-                  45deg,
-                  transparent,
-                  transparent 2px,
-                  rgba(0,0,0,0.02) 2px,
-                  rgba(0,0,0,0.02) 4px
-                )`
-              }}>
-                <div className="space-y-4 max-w-lg mx-auto w-full">
-                  {capabilities.map((capability) => (
-                    <div key={capability.name} className="flex items-center gap-4 p-4 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
-                      <div className="flex h-12 w-12 items-center justify-center flex-shrink-0">
-                        <capability.icon className="h-6 w-6 text-black" aria-hidden="true" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 font-mono">
-                          {capability.name}
-                        </h3>
-                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">{capability.description}</p>
-                      </div>
-                    </div>
-                  ))}
+                  {/* Title and Description at Bottom */}
+                  <div className="p-6" style={{ backgroundColor: '#f7f7f3' }}>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">
+                      {capability.name}
+                    </h3>
+                    <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
+                      {capability.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>

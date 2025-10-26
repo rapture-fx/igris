@@ -50,7 +50,7 @@ export default function Features() {
     {
       icon: GitBranch,
       title: "Version Control",
-      description: "Track data lineage, compare transformations, and maintain reproducible ML pipelines with git-like versioning.",
+      description: "Track data lineage with git-like versioning for reproducible ML pipelines and transformations.",
       color: "from-indigo-500 to-purple-500"
     }
   ]

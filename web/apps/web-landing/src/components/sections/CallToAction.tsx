@@ -3,6 +3,7 @@ import Image from 'next/image'
 export default function CallToAction() {
   return (
     <div className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+      {/* First Frame - CTA Content */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left p-40 relative min-h-[250px] flex items-center" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -25,9 +26,9 @@ export default function CallToAction() {
             <div>
               {/* Content */}
               <div className="text-left">
-                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#114dcd' }}>Enterprise-Grade AI Infrastructure</h2>
-                <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300">
-                  Deploy and optimize AI models with sub-10ms latency and 99.9% uptime.
+                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#114dcd' }}>Secure by design. Scalable by default.</h2>
+                <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300 max-w-2xl">
+                  From request routing to multi-tenant control, every Schlep-engine component is architected for isolation, observability, and performance.
                 </p>
                 <a
                   href="/dashboard"

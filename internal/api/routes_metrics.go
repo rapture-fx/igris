@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/adaptor/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/schlep-engine/schlep-engine/internal/metrics"
+	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/tracing"
 )
 
@@ -120,10 +121,19 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 	return nil
 }
 
-// RegisterAllRoutes registers all API routes including metrics
-func RegisterAllRoutes(app *fiber.App) error {
-	// Register inference routes
-	if err := RegisterInferRoutes(app); err != nil {
+// RegisterAllRoutes registers all API routes including metrics and multi-tenancy
+// Phase 2: Now accepts optional tenant auth middleware for inference endpoints
+func RegisterAllRoutes(app *fiber.App, tenantAuth interface{}) error {
+	// Type assert tenant auth middleware (can be nil for backward compatibility)
+	var ta *middleware.TenantAuth
+	if tenantAuth != nil {
+		if auth, ok := tenantAuth.(*middleware.TenantAuth); ok {
+			ta = auth
+		}
+	}
+
+	// Register inference routes with optional tenant auth
+	if err := RegisterInferRoutes(app, ta); err != nil {
 		return err
 	}
 
@@ -131,6 +141,9 @@ func RegisterAllRoutes(app *fiber.App) error {
 	if err := RegisterMetricsRoutes(app); err != nil {
 		return err
 	}
+
+	// Note: Multi-tenancy routes are registered separately via SetupMultiTenancy
+	// in main.go when ENABLE_MULTI_TENANCY=true
 
 	return nil
 }

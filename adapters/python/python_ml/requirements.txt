@@ -8,3 +8,13 @@ numpy==1.26.3
 scikit-learn==1.4.0
 torch==2.1.2
 onnxruntime==1.16.3
+
+# Phase 4: OpenTelemetry distributed tracing
+opentelemetry-api==1.21.0
+opentelemetry-sdk==1.21.0
+opentelemetry-instrumentation==0.42b0
+opentelemetry-instrumentation-grpc==0.42b0
+opentelemetry-exporter-jaeger==1.21.0
+
+# Additional dependencies
+PyJWT==2.8.0
