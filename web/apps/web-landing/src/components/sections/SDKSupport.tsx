@@ -5,22 +5,43 @@ import { Code, Package, Zap, CheckCircle, ArrowUpRight, Copy } from 'lucide-reac
 import Link from 'next/link'
 
 const basicInferenceCode = `curl -X POST "https://api.schlep.engine/v1/chat/completions" \\
-  -H "Authorization: Bearer your-api-key" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
   -d '{
     "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Explain Thompson Sampling"}],
-    "provider": "openai"
+    "messages": [
+      {"role": "user", "content": "What is machine learning?"}
+    ],
+    "temperature": 0.7,
+    "max_tokens": 500
   }'
 
-# Response metadata:
 {
-  "id": "chat-cmpl-abc123",
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1729347296,
   "model": "gpt-4",
-  "provider": "openai",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Machine learning is a subset of artificial intelligence..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 150,
+    "total_tokens": 175
+  },
   "metadata": {
-    "latency_ms": 8.4,
-    "cost_usd": 0.002,
-    "region": "asia-southeast1"
+    "provider": "openai",
+    "latency_ms": 234,
+    "cost_usd": 0.00171,
+    "route_decision": "thompson-sampling",
+    "trace_id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }`;
 
@@ -154,15 +175,15 @@ export default function SDKSupport() {
 
                 {/* API Code Example */}
                 <div
-                  className="text-left relative z-10 overflow-hidden mb-6 shadow-lg"
+                  className="text-left relative z-10 overflow-hidden mb-4 shadow-lg"
                   style={{
-                    width: '100%',
+                    width: '90%',
                     backgroundColor: '#f7f7f3',
                     border: '1px solid #299a93'
                   }}
                 >
                   <div 
-                    className="p-4 overflow-auto hide-scrollbar" 
+                    className="p-5 overflow-auto hide-scrollbar" 
                     style={{ 
                       height: '400px',
                       scrollbarWidth: 'none',
@@ -171,7 +192,12 @@ export default function SDKSupport() {
                     }}
                   >
                     <pre
-                      className="text-sm leading-relaxed"
+                      className="text-xs leading-relaxed"
+                      style={{ 
+                        color: '#1a1a1a',
+                        whiteSpace: 'pre',
+                        fontFamily: 'monospace'
+                      }}
                     >
                       {basicInferenceCode}
                     </pre>
@@ -179,7 +205,7 @@ export default function SDKSupport() {
                 </div>
 
                 {/* API Documentation Link */}
-                <div className="mt-20">
+                <div className="mt-6">
                   <Link
                     href="/docs/api"
                     className="inline-flex items-center text-sm transition-all duration-200 font-medium font-inter hover:underline"

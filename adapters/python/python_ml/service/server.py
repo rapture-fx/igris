@@ -19,6 +19,9 @@ import proto.ml_service_pb2_grpc as ml_pb2_grpc
 # Import authentication components
 from auth_interceptor import create_auth_server
 
+# Import OpenTelemetry tracing (Phase 4.2.3)
+from otel_interceptor import create_traced_server, init_tracing, shutdown_tracing
+
 # Import ML dependencies and enhanced components
 try:
     import torch
@@ -250,33 +253,63 @@ class MLServiceServicer(ml_pb2_grpc.MLServiceServicer):
         )
 
 
-def serve(port=50051, enable_auth=True, jwt_secret=None):
-    """Start the gRPC server with enhanced configuration and authentication"""
-    
+def serve(port=50051, enable_auth=True, jwt_secret=None, enable_tracing=False, jaeger_endpoint=None):
+    """Start the gRPC server with enhanced configuration, authentication, and tracing"""
+
     # Create servicer
     servicer = MLServiceServicer()
-    
-    # Configuration for authentication
-    auth_config = {
-        'enable_auth': enable_auth and jwt_secret is not None,
-        'jwt_secret': jwt_secret or os.getenv('JWT_SECRET'),
-        'auth_type': 'jwt',
-    }
-    
-    # Create server with authentication
-    if auth_config['enable_auth']:
-        logger.info("🔐 Authentication enabled (JWT)")
-        try:
-            server = create_auth_server(
-                servicer,
-                auth_config['jwt_secret'],
-                enable_auth=auth_config['enable_auth'],
-                auth_type=auth_config['auth_type']
-            )
-        except Exception as e:
-            logger.error(f"Failed to create authenticated server: {e}")
-            # Fallback to unauthenticated server
-            logger.warning("⚠️ Falling back to unauthenticated server")
+
+    # Configuration for tracing (Phase 4.2.3)
+    if enable_tracing:
+        logger.info("🔭 Distributed tracing enabled")
+        jaeger_url = jaeger_endpoint or os.getenv('JAEGER_ENDPOINT', 'http://jaeger:14268/api/traces')
+        logger.info(f"   Jaeger endpoint: {jaeger_url}")
+
+        # Use traced server
+        server = create_traced_server(
+            servicer,
+            port=port,
+            max_workers=10,
+            enable_tracing=True,
+            jaeger_endpoint=jaeger_url
+        )
+    else:
+        # Configuration for authentication
+        auth_config = {
+            'enable_auth': enable_auth and jwt_secret is not None,
+            'jwt_secret': jwt_secret or os.getenv('JWT_SECRET'),
+            'auth_type': 'jwt',
+        }
+
+        # Create server with authentication (legacy path)
+        if auth_config['enable_auth']:
+            logger.info("🔐 Authentication enabled (JWT)")
+            try:
+                server = create_auth_server(
+                    servicer,
+                    auth_config['jwt_secret'],
+                    enable_auth=auth_config['enable_auth'],
+                    auth_type=auth_config['auth_type']
+                )
+            except Exception as e:
+                logger.error(f"Failed to create authenticated server: {e}")
+                # Fallback to unauthenticated server
+                logger.warning("⚠️ Falling back to unauthenticated server")
+                server = grpc.server(
+                    futures.ThreadPoolExecutor(max_workers=10),
+                    options=[
+                        ('grpc.max_send_message_length', 50 * 1024 * 1024),  # 50MB
+                        ('grpc.max_receive_message_length', 50 * 1024 * 1024),
+                        ('grpc.keepalive_time_ms', 30000),
+                        ('grpc.keepalive_timeout_ms', 10000),
+                        ('grpc.http2.max_pings_without_data', 0),
+                        ('grpc.keepalive_permit_without_calls', 1),
+                    ]
+                )
+                ml_pb2_grpc.add_MLServiceServicer_to_server(servicer, server)
+                server.add_insecure_port(f'[::]:{port}')
+        else:
+            logger.info("🔓 Authentication disabled")
             server = grpc.server(
                 futures.ThreadPoolExecutor(max_workers=10),
                 options=[
@@ -289,26 +322,12 @@ def serve(port=50051, enable_auth=True, jwt_secret=None):
                 ]
             )
             ml_pb2_grpc.add_MLServiceServicer_to_server(servicer, server)
-    else:
-        logger.info("🔓 Authentication disabled")
-        server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=10),
-            options=[
-                ('grpc.max_send_message_length', 50 * 1024 * 1024),  # 50MB
-                ('grpc.max_receive_message_length', 50 * 1024 * 1024),
-                ('grpc.keepalive_time_ms', 30000),
-                ('grpc.keepalive_timeout_ms', 10000),
-                ('grpc.http2.max_pings_without_data', 0),
-                ('grpc.keepalive_permit_without_calls', 1),
-            ]
-        )
-        ml_pb2_grpc.add_MLServiceServicer_to_server(servicer, server)
-
-    server.add_insecure_port(f'[::]:{port}')
+            server.add_insecure_port(f'[::]:{port}')
 
     logger.info(f"🐍 Production Python ML Service starting on port {port}")
     logger.info(f"📊 Version: 1.0.0-real-inference")
     logger.info(f"🔧 PyTorch: {TORCH_AVAILABLE}, ONNX: {ONNX_AVAILABLE}")
+    logger.info(f"🔭 Tracing: {'enabled' if enable_tracing else 'disabled'}")
     logger.info("📡 gRPC endpoints:")
     logger.info(f"   - Predict: ml.MLService/Predict")
     logger.info(f"   - HealthCheck: ml.MLService/HealthCheck")
@@ -320,6 +339,8 @@ def serve(port=50051, enable_auth=True, jwt_secret=None):
         server.wait_for_termination()
     except KeyboardInterrupt:
         logger.info("Shutting down server...")
+        if enable_tracing:
+            shutdown_tracing()
         server.stop(grace=5)
         logger.info("Server stopped")
 
@@ -329,9 +350,18 @@ if __name__ == '__main__':
     port = int(os.getenv('GRPC_PORT', '50051'))
     enable_auth = os.getenv('ENABLE_AUTH', 'true').lower() == 'true'
     jwt_secret = os.getenv('JWT_SECRET')
-    
+    enable_tracing = os.getenv('TRACING_ENABLED', 'false').lower() == 'true'
+    jaeger_endpoint = os.getenv('JAEGER_ENDPOINT')
+
     logger.info(f"🚀 Starting secure ML service")
     logger.info(f"📡 Port: {port}")
     logger.info(f"🔐 Authentication: {'enabled' if enable_auth and jwt_secret else 'disabled'}")
-    
-    serve(port=port, enable_auth=enable_auth, jwt_secret=jwt_secret)
+    logger.info(f"🔭 Tracing: {'enabled' if enable_tracing else 'disabled'}")
+
+    serve(
+        port=port,
+        enable_auth=enable_auth,
+        jwt_secret=jwt_secret,
+        enable_tracing=enable_tracing,
+        jaeger_endpoint=jaeger_endpoint
+    )
