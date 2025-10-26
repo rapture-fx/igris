@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
@@ -64,13 +65,31 @@ func NewSafetyControllerWithDB(config *SafetyConfig, db *sql.DB, tenantID string
 // NewMultiTenantSafetyController creates a new safety controller in multi-tenant mode
 // Phase 2: Uses TenantBudgetManager for per-tenant budget isolation
 func NewMultiTenantSafetyController(config *SafetyConfig, db *sql.DB) *SafetyController {
-	return &SafetyController{
+	sc := &SafetyController{
 		config:          config,
 		tenantBudgetMgr: NewTenantBudgetManager(config, db),
 		tokenEnforcer:   NewTokenEnforcer(config),
 		keyValidator:    NewKeyValidator(config),
 		multiTenantMode: true,
 		db:              db,
+	}
+
+	// Phase 4.3.1: Start background metrics updater
+	go sc.startMetricsUpdater()
+
+	return sc
+}
+
+// startMetricsUpdater periodically updates Prometheus metrics
+// Phase 4.3.1: Updates tenant budget metrics every 30 seconds
+func (sc *SafetyController) startMetricsUpdater() {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		if sc.tenantBudgetMgr != nil {
+			sc.tenantBudgetMgr.UpdatePrometheusMetrics()
+		}
 	}
 }
 
