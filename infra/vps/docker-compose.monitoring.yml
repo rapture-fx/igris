@@ -86,6 +86,25 @@ services:
     depends_on:
       - prometheus
 
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.51
+    ports:
+      - "5775:5775/udp"    # accept zipkin.thrift over compact thrift protocol
+      - "6831:6831/udp"    # accept jaeger.thrift over compact thrift protocol
+      - "6832:6832/udp"    # accept jaeger.thrift over binary thrift protocol
+      - "5778:5778"        # serve configs
+      - "16686:16686"      # serve frontend
+      - "14268:14268"      # accept jaeger.thrift directly from clients
+      - "14250:14250"      # accept model.proto
+      - "9411:9411"        # Zipkin compatible endpoint
+    environment:
+      - COLLECTOR_ZIPKIN_HOST_PORT=:9411
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - schlep-engine
+    restart: unless-stopped
+
 networks:
   schlep-engine:
     external: true

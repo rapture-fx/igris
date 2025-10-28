@@ -70,7 +70,7 @@ export default function TechStack() {
 
           {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
           <div className="absolute top-0 bottom-0 left-1/2 hidden lg:block" style={{
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderLeft: '0.25px solid rgba(156, 163, 175, 0.3)',
           transform: 'translateX(-50%)'
           }}></div>
 
