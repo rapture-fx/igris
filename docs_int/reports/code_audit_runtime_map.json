@@ -1,0 +1,739 @@
+{
+  "audit_metadata": {
+    "audit_date": "2025-10-28",
+    "audit_version": "1.0.0",
+    "codebase": "schlep-engine",
+    "base_path": "/Users/wira/Desktop/schlep-engine",
+    "go_version": "1.23.0",
+    "auditor": "Claude Code Audit Agent"
+  },
+  "summary": {
+    "total_internal_modules": 25,
+    "active_runtime_modules": 19,
+    "requires_review_modules": 3,
+    "unused_modules": 3,
+    "docker_services": 9,
+    "key_dependencies": 28,
+    "cross_language_integrations": 3
+  },
+  "active_runtime_modules": {
+    "api": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "HTTP API layer with Fiber framework",
+      "files": [
+        "internal/api/routes_infer.go",
+        "internal/api/routes_health.go",
+        "internal/api/routes_metrics.go",
+        "internal/api/routes_tenancy.go",
+        "internal/api/admin_optimizer.go"
+      ],
+      "key_imports": [
+        "github.com/gofiber/fiber/v2",
+        "internal/middleware",
+        "cmd/schlep-engine-api/handlers"
+      ],
+      "runtime_dependencies": ["middleware", "handlers", "logging"]
+    },
+    "inference": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Core inference orchestration and routing",
+      "files": [
+        "internal/inference/core/handler.go",
+        "internal/inference/core/router.go",
+        "internal/inference/router/router_integration.go",
+        "internal/inference/optimizer/activation_metrics.go",
+        "internal/inference/optimizer/slo_breaker.go"
+      ],
+      "key_imports": [
+        "internal/providers",
+        "internal/router",
+        "internal/safety",
+        "internal/metrics",
+        "internal/tracing"
+      ],
+      "runtime_dependencies": ["providers", "router", "safety", "metrics", "optimizer"]
+    },
+    "router": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Adaptive routing with Thompson Sampling",
+      "files": [
+        "internal/router/*.go"
+      ],
+      "key_features": [
+        "Thompson Sampling (multi-armed bandit)",
+        "Round-robin routing",
+        "Least-latency routing",
+        "Least-load routing",
+        "Weighted-random routing",
+        "Circuit breaker pattern",
+        "State checkpointing"
+      ],
+      "runtime_dependencies": ["providers", "metrics", "database"],
+      "integrates_with_rust": true
+    },
+    "providers": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Multi-provider abstraction layer",
+      "supported_providers": [
+        "OpenAI (Real, Mock, Benchmark)",
+        "Anthropic (Real, Mock, Benchmark)"
+      ],
+      "provider_modes": ["mock", "real", "hybrid", "benchmark"],
+      "files": [
+        "internal/providers/*.go",
+        "internal/providers/openai/*.go",
+        "internal/providers/anthropic/*.go"
+      ],
+      "key_features": [
+        "BYOK (Bring Your Own Key) support",
+        "Provider registry",
+        "Circuit breaker per provider",
+        "Metrics collection per provider",
+        "Retry logic with exponential backoff"
+      ],
+      "runtime_dependencies": ["models", "metrics", "tracing"]
+    },
+    "safety": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Multi-layer safety and budget control",
+      "files": [
+        "internal/safety/*.go"
+      ],
+      "key_features": [
+        "Single-tenant budget tracking",
+        "Multi-tenant budget enforcement",
+        "Token limit enforcement",
+        "API key validation",
+        "Automatic fallback to benchmark provider",
+        "Safety webhook alerts",
+        "Audit logging"
+      ],
+      "fallback_triggers": [
+        "budget_exceeded",
+        "timeout",
+        "high_error_rate",
+        "slo_violation",
+        "invalid_key",
+        "missing_key"
+      ],
+      "runtime_dependencies": ["database", "metrics", "logging"]
+    },
+    "optimizer": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Runtime optimizer with shadow mode and Rust FFI",
+      "files": [
+        "internal/inference/optimizer/*.go",
+        "internal/inference/optimizer/ffi/ffi_wrapper.go",
+        "internal/inference/optimizer/shadow/shadow_runner.go",
+        "internal/inference/optimizer/shadow/shadow_logger.go",
+        "internal/inference/optimizer/shadow/shadow_metrics.go"
+      ],
+      "optimizer_modes": ["go", "shadow", "rust"],
+      "key_features": [
+        "Shadow mode with 0% to 100% sample rate",
+        "Decision comparison logging",
+        "Instant revert capability",
+        "Rust Thompson Sampling via FFI",
+        "SLO breaker for performance monitoring",
+        "Activation metrics recording"
+      ],
+      "runtime_dependencies": ["router", "metrics", "logging"],
+      "integrates_with_rust": true,
+      "rust_library": "librust_optimizer.so"
+    },
+    "shadow": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Shadow testing framework for non-invasive optimizer validation",
+      "files": [
+        "internal/inference/optimizer/shadow/*.go"
+      ],
+      "key_features": [
+        "Parallel decision making (Go vs Rust)",
+        "Zero user impact testing",
+        "Comprehensive decision logging",
+        "Metrics collection for comparison",
+        "Gradual rollout support"
+      ],
+      "runtime_dependencies": ["optimizer", "metrics", "logging"]
+    },
+    "observability": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "OpenTelemetry tracing integration",
+      "files": [
+        "internal/observability/*.go"
+      ],
+      "integrations": [
+        "Jaeger (distributed tracing)",
+        "OpenTelemetry SDK"
+      ],
+      "runtime_dependencies": ["tracing", "logging"],
+      "export_endpoint": "http://jaeger:14268"
+    },
+    "metrics": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Prometheus metrics collection and export",
+      "files": [
+        "internal/metrics/*.go"
+      ],
+      "metric_categories": [
+        "inference_requests_total",
+        "inference_latency_seconds",
+        "provider_requests_total",
+        "provider_errors_total",
+        "routing_decisions_total",
+        "budget_usage_tokens",
+        "shadow_mode_decisions_total",
+        "optimizer_activation_total"
+      ],
+      "export_format": "Prometheus",
+      "runtime_dependencies": ["logging"],
+      "prometheus_integration": true
+    },
+    "tracing": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Distributed tracing with span management",
+      "files": [
+        "internal/tracing/*.go"
+      ],
+      "runtime_dependencies": ["observability"],
+      "sampling_rate": 1.0
+    },
+    "middleware": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "HTTP middleware stack",
+      "files": [
+        "internal/middleware/*.go"
+      ],
+      "key_middleware": [
+        "TraceID injection",
+        "Request logging",
+        "OpenTelemetry tracing",
+        "Tenant authentication (JWT)",
+        "Optional authentication",
+        "CORS handling",
+        "Panic recovery"
+      ],
+      "runtime_dependencies": ["security", "logging", "observability"]
+    },
+    "security": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "Authentication and JWT management",
+      "files": [
+        "internal/security/*.go"
+      ],
+      "key_features": [
+        "JWT token generation",
+        "JWT token validation",
+        "Tenant-scoped authentication",
+        "Token expiration management"
+      ],
+      "runtime_dependencies": ["database"],
+      "jwt_library": "github.com/golang-jwt/jwt/v5"
+    },
+    "vault": {
+      "status": "active",
+      "classification": "core",
+      "purpose": "BYOK key management and encryption",
+      "files": [
+        "internal/vault/*.go"
+      ],
+      "key_features": [
+        "Encrypted API key storage",
+        "Tenant-scoped key isolation",
+        "AES-256-GCM encryption",
+        "Key retrieval and validation"
+      ],
+      "runtime_dependencies": ["database", "security"],
+      "encryption_library": "golang.org/x/crypto"
+    },
+    "database": {
+      "status": "active",
+      "classification": "infrastructure",
+      "purpose": "PostgreSQL connection management and persistence",
+      "files": [
+        "internal/database/*.go"
+      ],
+      "schema_tables": [
+        "optimizer_states",
+        "tenants",
+        "tenant_budget_usage",
+        "tenant_request_log"
+      ],
+      "key_features": [
+        "Connection pooling",
+        "Automatic reconnection",
+        "Health checking",
+        "Transaction support"
+      ],
+      "runtime_dependencies": [],
+      "driver": "github.com/lib/pq"
+    },
+    "cache": {
+      "status": "active",
+      "classification": "infrastructure",
+      "purpose": "Redis caching and state externalization",
+      "files": [
+        "internal/cache/*.go"
+      ],
+      "key_features": [
+        "Provider statistics caching",
+        "Distributed state management",
+        "Cache coherence",
+        "TTL management"
+      ],
+      "runtime_dependencies": [],
+      "driver": "github.com/redis/go-redis/v9"
+    },
+    "logging": {
+      "status": "active",
+      "classification": "infrastructure",
+      "purpose": "Structured logging with Zerolog",
+      "files": [
+        "internal/logging/*.go"
+      ],
+      "log_levels": ["DEBUG", "INFO", "WARN", "ERROR"],
+      "format": "JSON",
+      "key_features": [
+        "Trace ID propagation",
+        "Context-aware logging",
+        "Structured fields",
+        "Performance optimized"
+      ],
+      "runtime_dependencies": [],
+      "library": "github.com/rs/zerolog"
+    },
+    "health": {
+      "status": "active",
+      "classification": "infrastructure",
+      "purpose": "Kubernetes-compatible health checks",
+      "files": [
+        "internal/health/*.go"
+      ],
+      "endpoints": [
+        "/v1/health (detailed status)",
+        "/healthz (liveness)",
+        "/readyz (readiness)",
+        "/startupz (startup)"
+      ],
+      "checks": [
+        "Database connectivity",
+        "Redis connectivity",
+        "Service uptime"
+      ],
+      "runtime_dependencies": ["database", "cache"]
+    },
+    "models": {
+      "status": "active",
+      "classification": "data",
+      "purpose": "Shared data models and types",
+      "files": [
+        "internal/models/*.go"
+      ],
+      "key_types": [
+        "InferenceRequest",
+        "InferenceResponse",
+        "ProviderMetrics",
+        "TenantInfo",
+        "BudgetInfo"
+      ],
+      "runtime_dependencies": []
+    },
+    "config": {
+      "status": "active",
+      "classification": "infrastructure",
+      "purpose": "Configuration management",
+      "files": [
+        "internal/config/*.go"
+      ],
+      "config_sources": [
+        "Environment variables",
+        "Default values",
+        "Runtime configuration"
+      ],
+      "runtime_dependencies": []
+    }
+  },
+  "requires_review_modules": {
+    "policy": {
+      "status": "requires_review",
+      "classification": "advanced",
+      "purpose": "Policy management and versioning",
+      "files": [
+        "internal/policy/*.go",
+        "internal/inference/policy/policy.go",
+        "internal/inference/policy/policy_versioning.go"
+      ],
+      "note": "Policy system exists but integration with runtime unclear"
+    },
+    "ml": {
+      "status": "requires_review",
+      "classification": "advanced",
+      "purpose": "Python ML service integration",
+      "files": [
+        "internal/ml/*.go"
+      ],
+      "note": "gRPC client for Python ML service, unclear if actively used in inference flow"
+    },
+    "mesh": {
+      "status": "requires_review",
+      "classification": "advanced",
+      "purpose": "Service mesh integration",
+      "files": [
+        "internal/mesh/*.go"
+      ],
+      "note": "Service mesh support, may be for future Kubernetes deployment"
+    }
+  },
+  "unused_modules": {
+    "forecasting": {
+      "status": "unused",
+      "classification": "experimental",
+      "purpose": "Load forecasting",
+      "files": [
+        "internal/forecasting/*.go"
+      ],
+      "note": "No imports found in main.go or handlers"
+    },
+    "scheduler": {
+      "status": "unused",
+      "classification": "experimental",
+      "purpose": "Task scheduling",
+      "files": [
+        "internal/scheduler/*.go"
+      ],
+      "note": "No imports found in main.go or handlers"
+    },
+    "rust": {
+      "status": "unused",
+      "classification": "experimental",
+      "purpose": "Rust bindings (separate from FFI)",
+      "files": [
+        "internal/rust/*.go"
+      ],
+      "note": "Distinct from optimizer/ffi, unclear purpose"
+    }
+  },
+  "docker_services": {
+    "go-gateway": {
+      "image": "schlep-engine/go-gateway:production",
+      "port": 8080,
+      "purpose": "Main API gateway with full orchestration",
+      "dockerfile": "infra/docker/Dockerfile.api",
+      "build_stages": ["rust-builder", "go-builder", "runtime"],
+      "dependencies": ["postgres", "redis", "python-ml"],
+      "health_check": "/health",
+      "resources": {
+        "limits": {"memory": "1G", "cpus": "1.0"},
+        "reservations": {"memory": "512M", "cpus": "0.5"}
+      }
+    },
+    "python-ml": {
+      "image": "schlep-engine/python-ml:production",
+      "port": 50051,
+      "purpose": "gRPC ML inference service",
+      "dockerfile": "infra/docker/Dockerfile.ml",
+      "protocol": "gRPC",
+      "health_check": "gRPC HealthCheck",
+      "resources": {
+        "limits": {"memory": "2G", "cpus": "2.0"},
+        "reservations": {"memory": "1G", "cpus": "1.0"}
+      }
+    },
+    "postgres": {
+      "image": "postgres:15-alpine",
+      "port": 5432,
+      "purpose": "Primary data persistence",
+      "configuration": "Custom postgresql.conf with optimizations",
+      "health_check": "pg_isready",
+      "resources": {
+        "limits": {"memory": "4G", "cpus": "2.0"},
+        "reservations": {"memory": "2G", "cpus": "1.0"}
+      }
+    },
+    "redis": {
+      "image": "redis:7-alpine",
+      "port": 6379,
+      "purpose": "Caching and distributed state",
+      "configuration": "redis-production.conf",
+      "persistence": true,
+      "health_check": "redis-cli ping",
+      "resources": {
+        "limits": {"memory": "2G", "cpus": "1.0"},
+        "reservations": {"memory": "512M", "cpus": "0.25"}
+      }
+    },
+    "prometheus": {
+      "image": "prom/prometheus:latest",
+      "port": 9090,
+      "purpose": "Metrics collection and storage",
+      "retention": "30d",
+      "storage_size": "10GB",
+      "scrape_targets": ["go-gateway:8080", "python-ml:50051"],
+      "resources": {
+        "limits": {"memory": "2G", "cpus": "1.0"}
+      }
+    },
+    "grafana": {
+      "image": "grafana/grafana:latest",
+      "port": 3001,
+      "purpose": "Metrics visualization",
+      "datasources": ["Prometheus"],
+      "dashboards": ["Provider Performance", "Cost Tracking", "Routing Decisions"],
+      "resources": {
+        "limits": {"memory": "512M", "cpus": "0.5"}
+      }
+    },
+    "jaeger": {
+      "image": "jaegertracing/all-in-one:latest",
+      "ports": [16686, 9411],
+      "purpose": "Distributed tracing",
+      "ui_port": 16686,
+      "collector_port": 9411,
+      "resources": {
+        "limits": {"memory": "512M", "cpus": "0.5"}
+      }
+    },
+    "alertmanager": {
+      "image": "prom/alertmanager:latest",
+      "port": 9093,
+      "purpose": "Alert routing and management",
+      "configuration": "alertmanager.yml",
+      "health_check": "/-/healthy"
+    },
+    "nginx": {
+      "image": "nginx:alpine",
+      "ports": [80, 443],
+      "purpose": "Load balancer and TLS termination",
+      "configuration": "nginx.production.conf",
+      "ssl": true,
+      "resources": {
+        "limits": {"memory": "256M", "cpus": "0.25"}
+      }
+    }
+  },
+  "key_go_dependencies": {
+    "github.com/gofiber/fiber/v2": "v2.52.0 (HTTP framework)",
+    "github.com/redis/go-redis/v9": "v9.14.0 (Redis client)",
+    "github.com/lib/pq": "v1.10.9 (PostgreSQL driver)",
+    "github.com/prometheus/client_golang": "v1.18.0 (Prometheus metrics)",
+    "go.opentelemetry.io/otel": "v1.21.0 (OpenTelemetry SDK)",
+    "go.opentelemetry.io/otel/exporters/jaeger": "v1.17.0 (Jaeger exporter)",
+    "github.com/golang-jwt/jwt/v5": "v5.2.0 (JWT authentication)",
+    "github.com/google/uuid": "v1.5.0 (UUID generation)",
+    "github.com/rs/zerolog": "v1.34.0 (Structured logging)",
+    "github.com/sony/gobreaker": "v1.0.0 (Circuit breaker)",
+    "github.com/spf13/cobra": "v1.10.1 (CLI framework)",
+    "github.com/hashicorp/vault/api": "v1.22.0 (Vault integration)",
+    "github.com/nats-io/nats.go": "v1.46.1 (NATS messaging)",
+    "google.golang.org/grpc": "v1.60.1 (gRPC)",
+    "google.golang.org/protobuf": "v1.32.0 (Protocol Buffers)"
+  },
+  "cross_language_integrations": {
+    "go_to_rust": {
+      "mechanism": "CGO FFI",
+      "library": "librust_optimizer.so",
+      "wrapper": "internal/inference/optimizer/ffi/ffi_wrapper.go",
+      "purpose": "Thompson Sampling optimizer",
+      "build_requirement": "Rust 1.75+",
+      "runtime_requirement": "LD_LIBRARY_PATH=/usr/local/lib"
+    },
+    "go_to_python": {
+      "mechanism": "gRPC",
+      "protocol": "Protocol Buffers",
+      "client": "internal/ml/*.go",
+      "server": "adapters/python/python_ml/service/server.py",
+      "port": 50051,
+      "features": [
+        "Connection pooling",
+        "Circuit breaker",
+        "50MB message size",
+        "JWT authentication"
+      ]
+    },
+    "go_to_postgresql": {
+      "mechanism": "lib/pq (PostgreSQL driver)",
+      "connection_pooling": true,
+      "tables": ["optimizer_states", "tenants", "tenant_budget_usage", "tenant_request_log"],
+      "features": [
+        "GIN indexes on JSONB",
+        "Composite indexes",
+        "Automatic triggers",
+        "Transaction support"
+      ]
+    }
+  },
+  "configuration_patterns": {
+    "provider_mode": {
+      "env_var": "PROVIDER_MODE",
+      "options": ["mock", "real", "hybrid", "benchmark"],
+      "default": "mock"
+    },
+    "optimizer_mode": {
+      "env_var": "OPTIMIZER_MODE",
+      "options": ["go", "shadow", "rust"],
+      "default": "go"
+    },
+    "shadow_sample_rate": {
+      "env_var": "SHADOW_SAMPLE_RATE",
+      "range": "0.0 to 1.0",
+      "default": "0.1"
+    },
+    "multi_tenancy": {
+      "env_var": "ENABLE_MULTI_TENANCY",
+      "type": "boolean",
+      "default": "false"
+    },
+    "byok_keys": {
+      "openai": "OPENAI_API_KEY",
+      "anthropic": "ANTHROPIC_API_KEY",
+      "validation": "Key format validation on startup"
+    },
+    "observability": {
+      "tracing_enabled": "TRACING_ENABLED",
+      "jaeger_endpoint": "JAEGER_ENDPOINT",
+      "prometheus_enabled": "PROMETHEUS_ENABLED",
+      "log_level": "LOG_LEVEL (DEBUG|INFO|WARN|ERROR)"
+    },
+    "safety": {
+      "budget_enforcement": "Database-backed per-tenant tracking",
+      "token_limits": "Configurable per tenant",
+      "fallback_provider": "benchmark (no API calls)"
+    }
+  },
+  "entry_points": {
+    "api_gateway": {
+      "path": "cmd/schlep-engine-api/main.go",
+      "initialization_sequence": [
+        "1. Initialize structured logging",
+        "2. Initialize OpenTelemetry tracing (if enabled)",
+        "3. Initialize Fiber app",
+        "4. Initialize metrics middleware",
+        "5. Setup global middleware (recover, CORS, tracing, logging)",
+        "6. Initialize database connection (if multi-tenancy enabled)",
+        "7. Initialize Redis connection (if enabled)",
+        "8. Setup multi-tenancy (JWT, vault, tenant routes)",
+        "9. Initialize health checker",
+        "10. Register all HTTP routes",
+        "11. Start Fiber server on port 8080"
+      ],
+      "port": 8080,
+      "endpoints": [
+        "POST /v1/infer (main inference endpoint)",
+        "POST /v1/chat/completions (OpenAI-compatible)",
+        "GET /v1/health (detailed health)",
+        "GET /v1/models (list supported models)",
+        "GET /v1/providers/stats (provider statistics)",
+        "GET /healthz (liveness probe)",
+        "GET /readyz (readiness probe)",
+        "GET /startupz (startup probe)",
+        "GET /metrics (Prometheus metrics)",
+        "POST /v1/auth/login (tenant authentication)",
+        "POST /v1/tenants (tenant management)",
+        "POST /v1/vault/keys (BYOK key management)"
+      ]
+    },
+    "cli_tool": {
+      "path": "cmd/schlep-cli/main.go",
+      "purpose": "Administrative CLI for tenant, vault, and policy management",
+      "framework": "github.com/spf13/cobra"
+    },
+    "python_ml_service": {
+      "path": "adapters/python/python_ml/service/server.py",
+      "protocol": "gRPC",
+      "port": 50051,
+      "purpose": "ML inference service (optional extension point)"
+    }
+  },
+  "operational_readiness": {
+    "routing_engine": {
+      "status": "operational",
+      "policies": ["round-robin", "least-latency", "least-load", "weighted-random", "thompson-sampling"],
+      "circuit_breaker": true,
+      "state_persistence": true
+    },
+    "shadow_mode": {
+      "status": "operational",
+      "sample_rate_configurable": true,
+      "zero_user_impact": true,
+      "instant_revert": true,
+      "comprehensive_logging": true
+    },
+    "byok": {
+      "status": "operational",
+      "supported_providers": ["OpenAI", "Anthropic"],
+      "key_validation": true,
+      "encrypted_storage": true,
+      "tenant_isolation": true
+    },
+    "observability": {
+      "status": "operational",
+      "prometheus_metrics": true,
+      "jaeger_tracing": true,
+      "grafana_dashboards": true,
+      "structured_logging": true,
+      "health_endpoints": true
+    },
+    "safety_rollback": {
+      "status": "operational",
+      "budget_tracking": true,
+      "token_enforcement": true,
+      "automatic_fallback": true,
+      "audit_logging": true,
+      "webhook_alerts": true
+    },
+    "multi_tenancy": {
+      "status": "operational",
+      "jwt_authentication": true,
+      "tenant_isolation": true,
+      "per_tenant_budgets": true,
+      "per_tenant_keys": true
+    }
+  },
+  "benchmark_readiness": {
+    "requirements_met": {
+      "routing_engine": true,
+      "shadow_mode": true,
+      "byok_support": true,
+      "observability": true,
+      "safety_controls": true
+    },
+    "requirements_missing": {
+      "live_byok_keys": "Must provide OPENAI_API_KEY and ANTHROPIC_API_KEY environment variables",
+      "provider_mode": "Must set PROVIDER_MODE=real or PROVIDER_MODE=hybrid",
+      "services_running": "Must start Prometheus, Jaeger, PostgreSQL, Redis services"
+    },
+    "recommended_configuration": {
+      "PROVIDER_MODE": "hybrid (includes both real and benchmark providers)",
+      "OPTIMIZER_MODE": "shadow (enables Rust optimizer testing)",
+      "SHADOW_SAMPLE_RATE": "1.0 (100% for comprehensive testing)",
+      "TRACING_ENABLED": "true",
+      "PROMETHEUS_ENABLED": "true",
+      "ENABLE_MULTI_TENANCY": "true (for BYOK support)",
+      "LOG_LEVEL": "INFO"
+    }
+  },
+  "audit_recommendations": [
+    "Verify BYOK keys are configured for OpenAI and Anthropic",
+    "Ensure all observability services (Prometheus, Jaeger, Grafana) are running",
+    "Validate PostgreSQL and Redis connectivity",
+    "Configure shadow mode with appropriate sample rate",
+    "Review policy and ML modules for integration opportunities",
+    "Consider removing unused modules (forecasting, scheduler) if not planned",
+    "Ensure Rust optimizer library is built and accessible",
+    "Test all health endpoints before benchmark",
+    "Configure alerting in AlertManager for production monitoring",
+    "Validate multi-tenancy JWT authentication flow"
+  ]
+}

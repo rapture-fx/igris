@@ -60,12 +60,9 @@ export default function SafetyReliability() {
                 </p>
               </div>
 
-              {/* Right Column - Safety Features with SVG Background */}
+              {/* Right Column - Safety Features */}
               <div className="rounded-lg p-12 lg:col-span-3 min-h-[500px] flex items-center relative overflow-hidden" style={{
-                backgroundImage: 'url("/Safety & Reliability bg.svg")',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-                backgroundRepeat: 'no-repeat'
+                backgroundColor: '#f7f7f3'
               }}>
                 {/* Text overlay for readability */}
                 <div className="absolute inset-0" style={{
