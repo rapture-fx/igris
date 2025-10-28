@@ -4,14 +4,13 @@ import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import TechStack from '../src/components/sections/TechStack'
-import SafetyReliability from '../src/components/sections/SafetyReliability'
 
-import SupportedModels from '../src/components/sections/SupportedModels'
 
-import EngineeringFAQ from '../src/components/sections/EngineeringFAQ'
+
+
+
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Observability from '../src/components/sections/Observability'
-import SDKSupport from '../src/components/sections/SDKSupport'
 export default function HomePage() {
   return (
     <div className="min-h-screen">
@@ -20,13 +19,12 @@ export default function HomePage() {
         <Hero />
         <CoreCapabilities />
         <TechStack />
-        <SafetyReliability />
-        <MultiTenancy />
-        <Observability />
-        <SDKSupport />
-        <SupportedModels />
         
-        <EngineeringFAQ />
+        <Observability />
+        <MultiTenancy />
+        
+        
+        
         <CallToAction />
       </main>
       <Footer />

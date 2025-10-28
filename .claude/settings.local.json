@@ -22,7 +22,8 @@
       "Bash(find:*)",
       "Bash(cd /Users/wira/Desktop/schlep-engine && go test:*)",
       "Bash(mkdir:*)",
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(lsof:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Send, Zap, BarChart3, GitBranch, Cpu, Shield } from 'lucide-react'
+import { Send, Zap, BarChart3, GitBranch, Cpu, Shield, AlertCircle, Activity } from 'lucide-react'
 
 const steps = [
   {
@@ -24,6 +24,29 @@ const steps = [
   },
 ]
 
+const safetyFeatures = [
+  {
+    name: 'Shadow Mode Validation',
+    description: 'Go router operates normally while Rust optimizer runs in parallel (non-blocking). Decisions compared and logged. Zero impact on user requests.',
+    icon: GitBranch,
+  },
+  {
+    name: 'Automatic SLO Guardrails',
+    description: 'P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.',
+    icon: AlertCircle,
+  },
+  {
+    name: 'Rust Fallback Protection',
+    description: 'FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.',
+    icon: Shield,
+  },
+  {
+    name: 'Provider Health Checks',
+    description: 'Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.',
+    icon: Activity,
+  },
+]
+
 export default function TechStack() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
@@ -45,65 +68,109 @@ export default function TechStack() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
           </div>
 
+          {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
+          <div className="absolute top-0 bottom-0 left-1/2 hidden lg:block" style={{
+          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          transform: 'translateX(-50%)'
+          }}></div>
+
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
-              {/* Left Column - Title, Description, and Cards */}
-              <div className="text-left lg:col-span-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-stretch">
+          {/* Left Column - Title, Description, and Cards */}
+          <div className="text-left">
+
                 <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">How It Works</h2>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Intelligent Routing.<br/>Built-in cost protection.
-                </h3>
+          <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+            Intelligent Routing.<br/>Built-in cost protection.
+          </h3>
 
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
-                  Schlep-engine automatically optimizes AI inference requests across providers with built-in budget tracking and safety controls. Adaptive learning improves performance while preventing runaway costs.
-                </p>
+          <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
+          Schlep-engine automatically optimizes AI inference requests across providers with built-in budget tracking and safety controls. Adaptive learning improves performance while preventing runaway costs.
+          </p>
 
-                {/* Steps Cards */}
-                <div className="space-y-8 max-w-lg relative">
-                  {steps.map((step, index) => (
-                    <div key={step.name} className="flex items-start gap-3 relative">
-                      {/* Git branch style line and dots on the left */}
-                      {index < steps.length - 1 && (
-                        <div className="absolute left-2.5 top-6 w-px h-24 bg-[#299a93]"></div>
-                      )}
-                      
-                      {/* Dot on the left side */}
-                      <div className="flex h-6 w-6 items-center justify-center flex-shrink-0 relative z-10">
-                        <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#299a93' }}></div>
-                      </div>
-                      
-                      {/* Card with icon inside */}
-                      <div key={step.name} className="flex-1 min-w-0">
-                        <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 mx-auto">
-                              <step.icon className="h-4 w-4 text-black" aria-hidden="true" />
+          {/* Steps Cards */}
+          <div className="space-y-8 max-w-lg relative">
+          {steps.map((step, index) => (
+          <div key={step.name} className="flex items-start gap-3 relative">
+          {/* Git branch style line and dots on the left */}
+          {index < steps.length - 1 && (
+            <div className="absolute left-2.5 top-6 w-px h-24 bg-[#299a93]"></div>
+          )}
+
+          {/* Dot on the left side */}
+          <div className="flex h-6 w-6 items-center justify-center flex-shrink-0 relative z-10">
+          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#299a93' }}></div>
+          </div>
+
+          {/* Card with icon inside */}
+          <div key={step.name} className="flex-1 min-w-0">
+          <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+          <div className="flex items-center gap-3">
+          <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 mx-auto">
+              <step.icon className="h-4 w-4 text-black" aria-hidden="true" />
+              </div>
+                <div className="flex-1 min-w-0">
+                    <h3 className="text-xs font-semibold text-gray-900 dark:text-white mb-1 font-mono break-words">
+                        {step.name}
+                        </h3>
+                          <p className="text-xs text-gray-700 dark:text-gray-300 leading-tight font-mono break-words">{step.description}</p>
                             </div>
-                            <div className="flex-1 min-w-0">
-                              <h3 className="text-xs font-semibold text-gray-900 dark:text-white mb-1 font-mono break-words">
-                                {step.name}
-                              </h3>
-                              <p className="text-xs text-gray-700 dark:text-gray-300 leading-tight font-mono break-words">{step.description}</p>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </div>
-                  ))}
                 </div>
+            </div>
+          ))}
+          </div>
+          </div>
+
+              {/* Right Column - Safety Features */}
+              <div className="text-left">
+              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Safety & Reliability</h2>
+              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+              Builtin safety mechanisms.<br />Deploy optimizations without risk.
+              </h3>
+
+              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
+              Phased rollout with automatic guardrails. Shadow mode testing validates changes before production impact. Failures never affect user requests.
+              </p>
+
+              {/* Safety Features Cards with same layout as left side */}
+              <div className="space-y-8 max-w-lg">
+              {safetyFeatures.map((feature, index) => (
+              <div key={feature.name} className="flex items-start gap-3 relative">
+              {/* Git branch style line and dots on the left */}
+              {index < safetyFeatures.length - 1 && (
+              <div className="absolute left-2.5 top-6 w-px h-24 bg-[#299a93]"></div>
+              )}
+
+              {/* Dot on the left side */}
+              <div className="flex h-6 w-6 items-center justify-center flex-shrink-0 relative z-10">
+              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#299a93' }}></div>
               </div>
 
-              {/* Right Column - SVG Diagram */}
-              <div className="lg:col-span-3 min-h-[500px]" style={{
-                backgroundColor: '#f7f7f3'
-              }}>
-                <div className="flex items-center justify-center h-full p-8">
-                  <img src="/public diagram.svg" alt="How It Works Diagram" className="w-full h-full object-contain" style={{ opacity: '0.85' }} />
-                </div>
+              {/* Card with icon inside */}
+              <div key={feature.name} className="flex-1 min-w-0">
+              <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+              <div className="flex items-center gap-3">
+              <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 mx-auto">
+              <feature.icon className="h-4 w-4 text-black" aria-hidden="true" />
               </div>
-            </div>
-          </div>
+              <div className="flex-1 min-w-0">
+              <h3 className="text-xs font-semibold text-gray-900 dark:text-white mb-1 font-mono break-words">
+              {feature.name}
+              </h3>
+              <p className="text-xs text-gray-700 dark:text-gray-300 leading-tight font-mono break-words">{feature.description}</p>
+              </div>
+              </div>
+              </div>
+              </div>
+              </div>
+              ))}
+              </div>
+              </div>
+              </div>
+              </div>
         </div>
       </div>
     </section>
