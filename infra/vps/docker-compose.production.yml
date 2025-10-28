@@ -213,7 +213,7 @@ services:
   # Monitoring Stack
   prometheus:
     image: prom/prometheus:latest
-    container_name: schlep_prometheus
+    container_name: schlep_prometheus_prod
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
@@ -238,7 +238,7 @@ services:
 
   grafana:
     image: grafana/grafana:latest
-    container_name: schlep_grafana
+    container_name: schlep_grafana_prod
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
       GF_USERS_ALLOW_SIGN_UP: "false"
@@ -259,7 +259,7 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one:latest
-    container_name: schlep_jaeger
+    container_name: schlep_jaeger_prod
     environment:
       COLLECTOR_ZIPKIN_HOST_PORT: "9411"
     ports:
@@ -297,7 +297,7 @@ services:
   # Nginx Load Balancer
   nginx:
     image: nginx:alpine
-    container_name: schlep_nginx
+    container_name: schlep_nginx_prod
     volumes:
       - ./nginx/nginx.production.conf:/etc/nginx/conf.d/default.conf
       - ./nginx/ssl:/etc/nginx/ssl
