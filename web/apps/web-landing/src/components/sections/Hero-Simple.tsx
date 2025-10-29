@@ -6,7 +6,9 @@ import { ChevronRight } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ backgroundColor: '#f7f7f3' }}>
+    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ 
+      backgroundColor: '#f7f7f3'
+    }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative pt-8 px-40 pb-40" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',

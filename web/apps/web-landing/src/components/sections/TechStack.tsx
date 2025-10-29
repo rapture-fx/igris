@@ -135,35 +135,18 @@ export default function TechStack() {
               Phased rollout with automatic guardrails. Shadow mode testing validates changes before production impact. Failures never affect user requests.
               </p>
 
-              {/* Safety Features Cards with same layout as left side */}
+              {/* Safety Features Features without card styling */}
               <div className="space-y-8 max-w-lg">
-              {safetyFeatures.map((feature, index) => (
-              <div key={feature.name} className="flex items-start gap-3 relative">
-              {/* Git branch style line and dots on the left */}
-              {index < safetyFeatures.length - 1 && (
-              <div className="absolute left-2.5 top-6 w-px h-24 bg-[#299a93]"></div>
-              )}
-
-              {/* Dot on the left side */}
-              <div className="flex h-6 w-6 items-center justify-center flex-shrink-0 relative z-10">
-              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#299a93' }}></div>
-              </div>
-
-              {/* Card with icon inside */}
-              <div key={feature.name} className="flex-1 min-w-0">
-              <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
-              <div className="flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 mx-auto">
+              {safetyFeatures.map((feature) => (
+              <div key={feature.name} className="flex items-start gap-3">
+              <div className="flex h-8 w-8 items-center justify-center flex-shrink-0">
               <feature.icon className="h-4 w-4 text-black" aria-hidden="true" />
               </div>
               <div className="flex-1 min-w-0">
-              <h3 className="text-xs font-semibold text-gray-900 dark:text-white mb-1 font-mono break-words">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1 break-words">
               {feature.name}
               </h3>
-              <p className="text-xs text-gray-700 dark:text-gray-300 leading-tight font-mono break-words">{feature.description}</p>
-              </div>
-              </div>
-              </div>
+              <p className="text-sm text-gray-700 dark:text-gray-300 leading-tight break-words">{feature.description}</p>
               </div>
               </div>
               ))}

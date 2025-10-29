@@ -72,6 +72,21 @@ func NewInferHandler() (*InferHandler, error) {
 			registry.Register(mockProvider)
 			log.Println("[Handler] ✓ Registered Mock OpenAI provider")
 		}
+
+		// Register Mock Anthropic provider
+		mockAnthropicConfig := &providers.ProviderConfig{
+			BaseURL:       "https://mock.anthropic.schlep-engine.local",
+			Timeout:       30,
+			MaxRetries:    3,
+			EnableMetrics: true,
+		}
+		mockAnthropicProvider, err := anthropic.NewMockAnthropicProvider(mockAnthropicConfig)
+		if err != nil {
+			log.Printf("WARNING: Failed to initialize Mock Anthropic provider: %v", err)
+		} else {
+			registry.Register(mockAnthropicProvider)
+			log.Println("[Handler] ✓ Registered Mock Anthropic provider")
+		}
 	}
 
 	if providerMode == "benchmark" || providerMode == "hybrid" {
@@ -811,17 +826,17 @@ func calculateCost(provider, model string, promptTokens, completionTokens int) f
 }
 
 // validateOpenAIKey validates OpenAI API key format
-// Valid format: sk-[alphanumeric]{48+}
+// Valid format: sk-[alphanumeric with hyphens and underscores]{48+}
 func validateOpenAIKey(key string) bool {
-	if len(key) < 51 { // "sk-" + at least 48 characters
+	if len(key) < 20 { // "sk-" + at least some characters (modern keys vary in length)
 		return false
 	}
 	if !strings.HasPrefix(key, "sk-") {
 		return false
 	}
-	// Check remaining characters are alphanumeric
+	// Check remaining characters are alphanumeric, hyphens, or underscores
 	for _, ch := range key[3:] {
-		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9')) {
+		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '_') {
 			return false
 		}
 	}
@@ -829,17 +844,17 @@ func validateOpenAIKey(key string) bool {
 }
 
 // validateAnthropicKey validates Anthropic API key format
-// Valid format: sk-ant-[alphanumeric]{40+}
+// Valid format: sk-ant-[alphanumeric with hyphens and underscores]{40+}
 func validateAnthropicKey(key string) bool {
-	if len(key) < 47 { // "sk-ant-" + at least 40 characters
+	if len(key) < 20 { // "sk-ant-" + at least some characters
 		return false
 	}
 	if !strings.HasPrefix(key, "sk-ant-") {
 		return false
 	}
-	// Check remaining characters are alphanumeric or hyphen
+	// Check remaining characters are alphanumeric, hyphens, or underscores
 	for _, ch := range key[7:] {
-		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-') {
+		if !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') || (ch >= '0' && ch <= '9') || ch == '-' || ch == '_') {
 			return false
 		}
 	}
