@@ -122,7 +122,11 @@ func (r *InferenceRouter) Route(ctx context.Context, req *models.InferRequest) (
 	// Step 3: Handle failures with fallback
 	if err != nil {
 		log.Printf("[Router] Provider %s failed: %v", providerName, err)
+		latency := time.Since(startTime).Milliseconds()
 		r.recordFailure(providerName)
+
+		// Send failure feedback to optimizer to penalize this provider
+		r.sendFailureFeedback(providerName, latency)
 
 		if r.fallbackEnabled {
 			resp, err = r.attemptFallback(ctx, req, providerName)
@@ -344,14 +348,21 @@ func (r *InferenceRouter) attemptFallback(ctx context.Context, req *models.Infer
 
 		log.Printf("[Router] Attempting fallback to %s", name)
 
+		startTime := time.Now()
 		resp, err := provider.Infer(ctx, req)
+		latency := time.Since(startTime).Milliseconds()
+
 		if err == nil {
-			r.recordSuccess(name, 0)
+			r.recordSuccess(name, latency)
+			// Send success feedback for fallback provider
+			r.sendOptimizerFeedback(name, latency, resp)
 			return resp, nil
 		}
 
 		log.Printf("[Router] Fallback to %s failed: %v", name, err)
 		r.recordFailure(name)
+		// Send failure feedback for fallback provider
+		r.sendFailureFeedback(name, latency)
 	}
 
 	return nil, fmt.Errorf("all fallback providers failed")
@@ -465,4 +476,33 @@ func (r *InferenceRouter) sendOptimizerFeedback(providerName string, latencyMs i
 
 	log.Printf("[Router] 🦀 Sent optimizer feedback: provider=%s, latency=%dms, cost=$%.6f",
 		providerName, latencyMs, costUsd)
+}
+
+// sendFailureFeedback sends negative feedback to the Rust optimizer for failed requests
+// This strongly penalizes providers with high failure rates
+func (r *InferenceRouter) sendFailureFeedback(providerName string, latencyMs int64) {
+	// Only send feedback if Rust optimizer is enabled
+	if !r.useRustOptimizer || r.optimizer == nil {
+		return
+	}
+
+	// Create metrics with success=false to penalize the provider
+	// Use max latency and high cost to make the penalty even stronger
+	metrics := ffi.RewardMetrics{
+		LatencyMs:    float64(latencyMs),
+		Success:      false, // CRITICAL: Mark as failure
+		CacheHit:     false,
+		CostUsd:      0.1,  // Use max cost to penalize
+		QualityScore: nil,
+	}
+
+	// Send failure metrics to Rust optimizer
+	err := r.optimizer.UpdateMetrics(providerName, metrics)
+	if err != nil {
+		log.Printf("[Router] ⚠️  Failed to send failure feedback for %s: %v", providerName, err)
+		return
+	}
+
+	log.Printf("[Router] 🦀 Sent failure feedback: provider=%s, latency=%dms (FAILURE PENALTY)",
+		providerName, latencyMs)
 }

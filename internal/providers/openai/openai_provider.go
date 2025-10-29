@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 )
@@ -18,6 +19,7 @@ type OpenAIProvider struct {
 	config       *providers.ProviderConfig
 	capabilities *providers.ProviderCapabilities
 	client       *http.Client
+	rateLimiter  *RateLimiter
 }
 
 // NewOpenAIProvider creates a new OpenAI provider instance
@@ -45,10 +47,20 @@ func NewOpenAIProvider(config *providers.ProviderConfig) (*OpenAIProvider, error
 		},
 	}
 
+	// Initialize rate limiter with config from Custom map or defaults
+	rateLimiterConfig := extractRateLimiterConfig(config.Custom)
+	rateLimiter := NewRateLimiter(rateLimiterConfig)
+
 	provider := &OpenAIProvider{
 		config:       config,
 		capabilities: getOpenAICapabilities(),
 		client:       httpClient,
+		rateLimiter:  rateLimiter,
+	}
+
+	// Start periodic metrics updater if metrics enabled
+	if config.EnableMetrics {
+		go provider.updateMetricsLoop()
 	}
 
 	return provider, nil
@@ -63,79 +75,83 @@ func (p *OpenAIProvider) Name() string {
 func (p *OpenAIProvider) Infer(ctx context.Context, req *models.InferRequest) (*models.InferResponse, error) {
 	startTime := time.Now()
 
-	// Convert to OpenAI format
-	openaiReq := p.buildOpenAIRequest(req)
-
-	// Marshal request
-	reqBody, err := json.Marshal(openaiReq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	// Estimate tokens for rate limiting
+	estimatedTokens := estimatePromptTokens(req)
+	if req.MaxTokens > 0 {
+		estimatedTokens += req.MaxTokens
 	}
 
-	// Create HTTP request
-	httpReq, err := http.NewRequestWithContext(ctx, "POST", p.config.BaseURL+"/chat/completions", bytes.NewBuffer(reqBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
+	var response *models.InferResponse
 
-	// Set headers
-	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Authorization", "Bearer "+p.config.APIKey)
+	// Execute with rate limiting and retry
+	err := p.rateLimiter.ExecuteWithRetry(ctx, estimatedTokens, func() (bool, error) {
+		// Convert to OpenAI format
+		openaiReq := p.buildOpenAIRequest(req)
 
-	// Execute request with retry logic
-	var resp *http.Response
-	var lastErr error
-	maxRetries := p.config.MaxRetries
-	if maxRetries == 0 {
-		maxRetries = 3
-	}
-
-	for attempt := 0; attempt <= maxRetries; attempt++ {
-		resp, lastErr = p.client.Do(httpReq)
-		if lastErr == nil && resp.StatusCode < 500 {
-			break // Success or client error (don't retry)
+		// Marshal request
+		reqBody, err := json.Marshal(openaiReq)
+		if err != nil {
+			return false, fmt.Errorf("failed to marshal request: %w", err)
 		}
 
-		if attempt < maxRetries {
-			// Exponential backoff
-			backoff := time.Duration(p.config.RetryDelay*(1<<uint(attempt))) * time.Millisecond
-			if backoff == 0 {
-				backoff = time.Duration(100*(1<<uint(attempt))) * time.Millisecond
+		// Create HTTP request
+		httpReq, err := http.NewRequestWithContext(ctx, "POST", p.config.BaseURL+"/chat/completions", bytes.NewBuffer(reqBody))
+		if err != nil {
+			return false, fmt.Errorf("failed to create request: %w", err)
+		}
+
+		// Set headers
+		httpReq.Header.Set("Content-Type", "application/json")
+		httpReq.Header.Set("Authorization", "Bearer "+p.config.APIKey)
+
+		// Execute request
+		resp, err := p.client.Do(httpReq)
+		if err != nil {
+			return false, fmt.Errorf("request failed: %w", err)
+		}
+		defer resp.Body.Close()
+
+		// Read response body
+		body, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return false, fmt.Errorf("failed to read response: %w", err)
+		}
+
+		// Check for rate limit error (HTTP 429)
+		if resp.StatusCode == http.StatusTooManyRequests {
+			var errResp OpenAIErrorResponse
+			if err := json.Unmarshal(body, &errResp); err == nil && errResp.Error.Message != "" {
+				return true, fmt.Errorf("rate limit exceeded: %s", errResp.Error.Message)
 			}
-			time.Sleep(backoff)
+			return true, fmt.Errorf("rate limit exceeded (status 429)")
 		}
-	}
 
-	if lastErr != nil {
-		return nil, fmt.Errorf("request failed after %d retries: %w", maxRetries, lastErr)
-	}
-	defer resp.Body.Close()
+		// Handle other error responses
+		if resp.StatusCode != http.StatusOK {
+			var errResp OpenAIErrorResponse
+			if err := json.Unmarshal(body, &errResp); err == nil && errResp.Error.Message != "" {
+				return false, fmt.Errorf("OpenAI API error (status %d): %s", resp.StatusCode, errResp.Error.Message)
+			}
+			return false, fmt.Errorf("OpenAI API error (status %d): %s", resp.StatusCode, string(body))
+		}
 
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
+		// Parse success response
+		var openaiResp OpenAIChatCompletionResponse
+		if err := json.Unmarshal(body, &openaiResp); err != nil {
+			return false, fmt.Errorf("failed to parse response: %w", err)
+		}
+
+		// Convert to unified format
+		response = p.convertToInferResponse(&openaiResp, req.Model)
+		response.CalculateLatency(startTime)
+		response.Metadata.CostUSD = p.calculateCost(response.Usage, openaiResp.Model)
+
+		return false, nil // Success, not a rate limit
+	})
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
+		return nil, err
 	}
-
-	// Handle error responses
-	if resp.StatusCode != http.StatusOK {
-		var errResp OpenAIErrorResponse
-		if err := json.Unmarshal(body, &errResp); err == nil && errResp.Error.Message != "" {
-			return nil, fmt.Errorf("OpenAI API error (status %d): %s", resp.StatusCode, errResp.Error.Message)
-		}
-		return nil, fmt.Errorf("OpenAI API error (status %d): %s", resp.StatusCode, string(body))
-	}
-
-	// Parse success response
-	var openaiResp OpenAIChatCompletionResponse
-	if err := json.Unmarshal(body, &openaiResp); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	// Convert to unified format
-	response := p.convertToInferResponse(&openaiResp, req.Model)
-	response.CalculateLatency(startTime)
-	response.Metadata.CostUSD = p.calculateCost(response.Usage, openaiResp.Model)
 
 	return response, nil
 }
@@ -318,11 +334,24 @@ func (p *OpenAIProvider) EstimateCost(req *models.InferRequest) (float64, error)
 
 // Close releases provider resources
 func (p *OpenAIProvider) Close() error {
+	// Close the rate limiter
+	if p.rateLimiter != nil {
+		p.rateLimiter.Close()
+	}
+
 	// Close idle connections in the HTTP client
 	if p.client != nil {
 		p.client.CloseIdleConnections()
 	}
 	return nil
+}
+
+// GetRateLimiterMetrics returns current rate limiter metrics
+func (p *OpenAIProvider) GetRateLimiterMetrics() RateLimiterMetrics {
+	if p.rateLimiter != nil {
+		return p.rateLimiter.GetMetrics()
+	}
+	return RateLimiterMetrics{}
 }
 
 // getOpenAICapabilities returns OpenAI provider capabilities
@@ -544,4 +573,80 @@ func (p *OpenAIProvider) convertToInferResponse(openaiResp *OpenAIChatCompletion
 	response.Created = openaiResp.Created
 
 	return response
+}
+
+// extractRateLimiterConfig extracts rate limiter config from Custom map or returns defaults
+func extractRateLimiterConfig(custom map[string]interface{}) *RateLimiterConfig {
+	config := DefaultRateLimiterConfig()
+
+	if custom == nil {
+		return config
+	}
+
+	// Extract configuration values if present
+	if rpm, ok := custom["rate_limit_rpm"].(int); ok {
+		config.RequestsPerMinute = rpm
+	} else if rpm, ok := custom["rate_limit_rpm"].(float64); ok {
+		config.RequestsPerMinute = int(rpm)
+	}
+
+	if tpm, ok := custom["rate_limit_tpm"].(int); ok {
+		config.TokensPerMinute = tpm
+	} else if tpm, ok := custom["rate_limit_tpm"].(float64); ok {
+		config.TokensPerMinute = int(tpm)
+	}
+
+	if queueSize, ok := custom["rate_limit_queue_size"].(int); ok {
+		config.MaxQueueSize = queueSize
+	} else if queueSize, ok := custom["rate_limit_queue_size"].(float64); ok {
+		config.MaxQueueSize = int(queueSize)
+	}
+
+	if backoffMs, ok := custom["rate_limit_backoff_ms"].(int); ok {
+		config.BackoffBaseMs = backoffMs
+	} else if backoffMs, ok := custom["rate_limit_backoff_ms"].(float64); ok {
+		config.BackoffBaseMs = int(backoffMs)
+	}
+
+	if maxRetries, ok := custom["rate_limit_max_retries"].(int); ok {
+		config.MaxRetries = maxRetries
+	} else if maxRetries, ok := custom["rate_limit_max_retries"].(float64); ok {
+		config.MaxRetries = int(maxRetries)
+	}
+
+	if jitterMs, ok := custom["rate_limit_jitter_ms"].(int); ok {
+		config.JitterMaxMs = jitterMs
+	} else if jitterMs, ok := custom["rate_limit_jitter_ms"].(float64); ok {
+		config.JitterMaxMs = int(jitterMs)
+	}
+
+	if enabled, ok := custom["rate_limit_enabled"].(bool); ok {
+		config.Enabled = enabled
+	}
+
+	return config
+}
+
+// updateMetricsLoop periodically updates rate limiter metrics
+func (p *OpenAIProvider) updateMetricsLoop() {
+	ticker := time.NewTicker(5 * time.Second) // Update every 5 seconds
+	defer ticker.Stop()
+
+	for range ticker.C {
+		if p.rateLimiter == nil {
+			return
+		}
+
+		// Get current metrics from rate limiter
+		rlMetrics := p.rateLimiter.GetMetrics()
+
+		// Update Prometheus metrics
+		metrics.UpdateQueueLength("openai", rlMetrics.QueueLength)
+		metrics.UpdateRateLimiterTokens("openai", rlMetrics.RequestTokens, rlMetrics.TokenBudget)
+
+		// Record queue wait time if there are queued requests
+		if rlMetrics.QueueWaitTimeMs > 0 {
+			metrics.RecordQueueWait("openai", rlMetrics.QueueWaitTimeMs)
+		}
+	}
 }
