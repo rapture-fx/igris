@@ -162,13 +162,17 @@ func NewInferHandler() (*InferHandler, error) {
 			if !validateAnthropicKey(anthropicAPIKey) {
 				log.Printf("ERROR: Invalid ANTHROPIC_API_KEY format. Expected format: sk-ant-...")
 			} else {
+				// Load rate limiter configuration from environment
+				rateLimiterConfig := loadAnthropicRateLimiterConfig()
+
 				anthropicConfig := &providers.ProviderConfig{
-					APIKey:     anthropicAPIKey,
-					BaseURL:    "https://api.anthropic.com/v1",
-					Timeout:    30,
-					MaxRetries: 3,
-					RetryDelay: 500,
+					APIKey:        anthropicAPIKey,
+					BaseURL:       "https://api.anthropic.com/v1",
+					Timeout:       30,
+					MaxRetries:    3,
+					RetryDelay:    500,
 					EnableMetrics: true,
+					Custom:        rateLimiterConfig,
 				}
 				anthropicProvider, err := anthropic.NewAnthropicProvider(anthropicConfig)
 				if err != nil {
@@ -176,6 +180,10 @@ func NewInferHandler() (*InferHandler, error) {
 				} else {
 					registry.Register(anthropicProvider)
 					log.Println("[Handler] ✓ Registered Anthropic provider (REAL MODE)")
+					log.Printf("[Handler]   Rate Limiting: enabled=%v, rpm=%d, tpm=%d",
+						rateLimiterConfig["rate_limit_enabled"],
+						rateLimiterConfig["rate_limit_rpm"],
+						rateLimiterConfig["rate_limit_tpm"])
 				}
 			}
 		} else {
@@ -859,4 +867,79 @@ func validateAnthropicKey(key string) bool {
 		}
 	}
 	return true
+}
+
+// loadAnthropicRateLimiterConfig loads Anthropic rate limiter configuration from environment variables
+func loadAnthropicRateLimiterConfig() map[string]interface{} {
+	config := make(map[string]interface{})
+
+	// Load enabled flag (default: true)
+	enabled := os.Getenv("ANTHROPIC_RATE_LIMIT_ENABLED")
+	if enabled == "" || enabled == "true" {
+		config["rate_limit_enabled"] = true
+	} else {
+		config["rate_limit_enabled"] = false
+	}
+
+	// Load requests per minute (default: 50)
+	rpm := os.Getenv("ANTHROPIC_RATE_LIMIT_RPM")
+	if rpm != "" {
+		var rpmInt int
+		fmt.Sscanf(rpm, "%d", &rpmInt)
+		config["rate_limit_rpm"] = rpmInt
+	} else {
+		config["rate_limit_rpm"] = 50 // Default
+	}
+
+	// Load tokens per minute (default: 400000)
+	tpm := os.Getenv("ANTHROPIC_RATE_LIMIT_TPM")
+	if tpm != "" {
+		var tpmInt int
+		fmt.Sscanf(tpm, "%d", &tpmInt)
+		config["rate_limit_tpm"] = tpmInt
+	} else {
+		config["rate_limit_tpm"] = 400000 // Default
+	}
+
+	// Load queue size (default: 100)
+	queueSize := os.Getenv("ANTHROPIC_RATE_LIMIT_QUEUE_SIZE")
+	if queueSize != "" {
+		var queueSizeInt int
+		fmt.Sscanf(queueSize, "%d", &queueSizeInt)
+		config["rate_limit_queue_size"] = queueSizeInt
+	} else {
+		config["rate_limit_queue_size"] = 100 // Default
+	}
+
+	// Load backoff base in milliseconds (default: 200)
+	backoffMs := os.Getenv("ANTHROPIC_RATE_LIMIT_BACKOFF_MS")
+	if backoffMs != "" {
+		var backoffMsInt int
+		fmt.Sscanf(backoffMs, "%d", &backoffMsInt)
+		config["rate_limit_backoff_ms"] = backoffMsInt
+	} else {
+		config["rate_limit_backoff_ms"] = 200 // Default
+	}
+
+	// Load max retries (default: 5)
+	maxRetries := os.Getenv("ANTHROPIC_RATE_LIMIT_MAX_RETRIES")
+	if maxRetries != "" {
+		var maxRetriesInt int
+		fmt.Sscanf(maxRetries, "%d", &maxRetriesInt)
+		config["rate_limit_max_retries"] = maxRetriesInt
+	} else {
+		config["rate_limit_max_retries"] = 5 // Default
+	}
+
+	// Load jitter max in milliseconds (default: 100)
+	jitterMs := os.Getenv("ANTHROPIC_RATE_LIMIT_JITTER_MS")
+	if jitterMs != "" {
+		var jitterMsInt int
+		fmt.Sscanf(jitterMs, "%d", &jitterMsInt)
+		config["rate_limit_jitter_ms"] = jitterMsInt
+	} else {
+		config["rate_limit_jitter_ms"] = 100 // Default
+	}
+
+	return config
 }

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 )
@@ -18,6 +19,7 @@ type AnthropicProvider struct {
 	config       *providers.ProviderConfig
 	capabilities *providers.ProviderCapabilities
 	client       *http.Client
+	rateLimiter  *RateLimiter
 }
 
 // NewAnthropicProvider creates a new Anthropic provider instance
@@ -45,10 +47,20 @@ func NewAnthropicProvider(config *providers.ProviderConfig) (*AnthropicProvider,
 		},
 	}
 
+	// Initialize rate limiter with config from Custom map or defaults
+	rateLimiterConfig := extractRateLimiterConfig(config.Custom)
+	rateLimiter := NewRateLimiter(rateLimiterConfig)
+
 	provider := &AnthropicProvider{
 		config:       config,
 		capabilities: getAnthropicCapabilities(),
 		client:       httpClient,
+		rateLimiter:  rateLimiter,
+	}
+
+	// Start periodic metrics updater if metrics enabled
+	if config.EnableMetrics {
+		go provider.updateMetricsLoop()
 	}
 
 	return provider, nil
@@ -83,42 +95,53 @@ func (p *AnthropicProvider) Infer(ctx context.Context, req *models.InferRequest)
 	httpReq.Header.Set("x-api-key", p.config.APIKey)
 	httpReq.Header.Set("anthropic-version", "2023-06-01") // Required by Anthropic API
 
-	// Execute request with retry logic
+	// Estimate tokens for rate limiting (use max_tokens as upper bound)
+	estimatedTokens := req.MaxTokens
+	if estimatedTokens == 0 {
+		estimatedTokens = 1000 // Default estimate
+	}
+
+	// Execute request with rate-limit-aware retry logic
 	var resp *http.Response
-	var lastErr error
-	maxRetries := p.config.MaxRetries
-	if maxRetries == 0 {
-		maxRetries = 3
-	}
-
-	for attempt := 0; attempt <= maxRetries; attempt++ {
-		resp, lastErr = p.client.Do(httpReq)
-		if lastErr == nil && resp.StatusCode < 500 {
-			break // Success or client error (don't retry)
+	var body []byte
+	err = p.rateLimiter.ExecuteWithRetry(ctx, estimatedTokens, func() (bool, error) {
+		// Execute HTTP request
+		var execErr error
+		resp, execErr = p.client.Do(httpReq)
+		if execErr != nil {
+			// Network error - not a rate limit
+			return false, execErr
 		}
 
-		if attempt < maxRetries {
-			// Exponential backoff
-			backoff := time.Duration(p.config.RetryDelay*(1<<uint(attempt))) * time.Millisecond
-			if backoff == 0 {
-				backoff = time.Duration(100*(1<<uint(attempt))) * time.Millisecond
-			}
-			time.Sleep(backoff)
+		// Read response body
+		body, execErr = io.ReadAll(resp.Body)
+		resp.Body.Close()
+		if execErr != nil {
+			return false, fmt.Errorf("failed to read response: %w", execErr)
 		}
-	}
 
-	if lastErr != nil {
-		return nil, fmt.Errorf("request failed after %d retries: %w", maxRetries, lastErr)
-	}
-	defer resp.Body.Close()
+		// Check for rate limit (HTTP 429)
+		if resp.StatusCode == http.StatusTooManyRequests {
+			metrics.RecordRateLimitHit("anthropic")
+			metrics.RecordRetryAttempt("anthropic", "rate_limit")
+			return true, fmt.Errorf("rate limit exceeded (429)")
+		}
 
-	// Read response body
-	body, err := io.ReadAll(resp.Body)
+		// Check for server errors (5xx) - retryable but not rate limit
+		if resp.StatusCode >= 500 {
+			metrics.RecordRetryAttempt("anthropic", "server_error")
+			return false, fmt.Errorf("server error (status %d)", resp.StatusCode)
+		}
+
+		// Success or client error
+		return false, nil
+	})
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
+		return nil, fmt.Errorf("request failed: %w", err)
 	}
 
-	// Handle error responses
+	// Handle error responses (body already read in ExecuteWithRetry)
 	if resp.StatusCode != http.StatusOK {
 		var errResp AnthropicErrorResponse
 		if err := json.Unmarshal(body, &errResp); err == nil && errResp.Error.Message != "" {
@@ -364,6 +387,10 @@ func (p *AnthropicProvider) Close() error {
 	if p.client != nil {
 		p.client.CloseIdleConnections()
 	}
+	// Close rate limiter
+	if p.rateLimiter != nil {
+		p.rateLimiter.Close()
+	}
 	return nil
 }
 
@@ -594,4 +621,80 @@ func (p *AnthropicProvider) convertToInferResponse(anthropicResp *AnthropicMessa
 	response.Metadata.ModelUsed = anthropicResp.Model
 
 	return response
+}
+
+// extractRateLimiterConfig extracts rate limiter config from Custom map or returns defaults
+func extractRateLimiterConfig(custom map[string]interface{}) *RateLimiterConfig {
+	config := DefaultRateLimiterConfig()
+
+	if custom == nil {
+		return config
+	}
+
+	// Extract configuration values if present
+	if rpm, ok := custom["rate_limit_rpm"].(int); ok {
+		config.RequestsPerMinute = rpm
+	} else if rpm, ok := custom["rate_limit_rpm"].(float64); ok {
+		config.RequestsPerMinute = int(rpm)
+	}
+
+	if tpm, ok := custom["rate_limit_tpm"].(int); ok {
+		config.TokensPerMinute = tpm
+	} else if tpm, ok := custom["rate_limit_tpm"].(float64); ok {
+		config.TokensPerMinute = int(tpm)
+	}
+
+	if queueSize, ok := custom["rate_limit_queue_size"].(int); ok {
+		config.MaxQueueSize = queueSize
+	} else if queueSize, ok := custom["rate_limit_queue_size"].(float64); ok {
+		config.MaxQueueSize = int(queueSize)
+	}
+
+	if backoffMs, ok := custom["rate_limit_backoff_ms"].(int); ok {
+		config.BackoffBaseMs = backoffMs
+	} else if backoffMs, ok := custom["rate_limit_backoff_ms"].(float64); ok {
+		config.BackoffBaseMs = int(backoffMs)
+	}
+
+	if maxRetries, ok := custom["rate_limit_max_retries"].(int); ok {
+		config.MaxRetries = maxRetries
+	} else if maxRetries, ok := custom["rate_limit_max_retries"].(float64); ok {
+		config.MaxRetries = int(maxRetries)
+	}
+
+	if jitterMs, ok := custom["rate_limit_jitter_ms"].(int); ok {
+		config.JitterMaxMs = jitterMs
+	} else if jitterMs, ok := custom["rate_limit_jitter_ms"].(float64); ok {
+		config.JitterMaxMs = int(jitterMs)
+	}
+
+	if enabled, ok := custom["rate_limit_enabled"].(bool); ok {
+		config.Enabled = enabled
+	}
+
+	return config
+}
+
+// updateMetricsLoop periodically updates rate limiter metrics
+func (p *AnthropicProvider) updateMetricsLoop() {
+	ticker := time.NewTicker(5 * time.Second) // Update every 5 seconds
+	defer ticker.Stop()
+
+	for range ticker.C {
+		if p.rateLimiter == nil {
+			return
+		}
+
+		// Get current metrics from rate limiter
+		rlMetrics := p.rateLimiter.GetMetrics()
+
+		// Update Prometheus metrics
+		metrics.UpdateQueueLength("anthropic", rlMetrics.QueueLength)
+		metrics.UpdateRateLimiterTokens("anthropic", rlMetrics.RequestTokens, rlMetrics.TokenBudget)
+
+		// Record queue wait time if there are queued requests
+		if rlMetrics.QueueWaitTimeMs > 0 {
+			metrics.RecordQueueWait("anthropic", rlMetrics.QueueWaitTimeMs)
+		}
+	}
 }

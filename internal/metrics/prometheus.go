@@ -180,6 +180,56 @@ var (
 	)
 
 	// ==========================================
+	// Rate Limiter Metrics (NEW - Anthropic rate limiting)
+	// ==========================================
+
+	// ProviderRateLimitHits counts rate limit hits (HTTP 429)
+	ProviderRateLimitHits = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_provider_rate_limit_hits_total",
+			Help: "Total number of rate limit hits (HTTP 429) by provider",
+		},
+		[]string{"provider"},
+	)
+
+	// ProviderRetryAttempts counts retry attempts by reason
+	ProviderRetryAttempts = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_provider_retry_attempts_total",
+			Help: "Total number of retry attempts by provider and reason",
+		},
+		[]string{"provider", "reason"}, // reason: rate_limit, server_error, timeout
+	)
+
+	// ProviderQueueWaitMs tracks time spent waiting in queue
+	ProviderQueueWaitMs = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_provider_queue_wait_milliseconds",
+			Help:    "Time spent waiting in rate limiter queue in milliseconds",
+			Buckets: []float64{10, 25, 50, 100, 250, 500, 1000, 2000, 5000, 10000},
+		},
+		[]string{"provider"},
+	)
+
+	// ProviderQueueLength tracks current queue length
+	ProviderQueueLength = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_provider_queue_length",
+			Help: "Current number of requests waiting in rate limiter queue",
+		},
+		[]string{"provider"},
+	)
+
+	// ProviderRateLimiterTokens tracks available rate limiter tokens
+	ProviderRateLimiterTokens = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_provider_rate_limiter_tokens",
+			Help: "Available tokens in rate limiter (request or token budget)",
+		},
+		[]string{"provider", "token_type"}, // token_type: request, api_token
+	)
+
+	// ==========================================
 	// Cache Metrics
 	// ==========================================
 
@@ -367,6 +417,32 @@ func RecordProviderError(provider, errorType string) {
 // UpdateProviderAvailability updates provider availability gauge
 func UpdateProviderAvailability(provider string, availabilityPercent float64) {
 	ProviderAvailability.WithLabelValues(provider).Set(availabilityPercent)
+}
+
+// RecordRateLimitHit records a rate limit hit (HTTP 429)
+func RecordRateLimitHit(provider string) {
+	ProviderRateLimitHits.WithLabelValues(provider).Inc()
+}
+
+// RecordRetryAttempt records a retry attempt with reason
+func RecordRetryAttempt(provider, reason string) {
+	ProviderRetryAttempts.WithLabelValues(provider, reason).Inc()
+}
+
+// RecordQueueWait records time spent waiting in queue
+func RecordQueueWait(provider string, waitMs int64) {
+	ProviderQueueWaitMs.WithLabelValues(provider).Observe(float64(waitMs))
+}
+
+// UpdateQueueLength updates current queue length
+func UpdateQueueLength(provider string, length int) {
+	ProviderQueueLength.WithLabelValues(provider).Set(float64(length))
+}
+
+// UpdateRateLimiterTokens updates available rate limiter tokens
+func UpdateRateLimiterTokens(provider string, requestTokens, apiTokens float64) {
+	ProviderRateLimiterTokens.WithLabelValues(provider, "request").Set(requestTokens)
+	ProviderRateLimiterTokens.WithLabelValues(provider, "api_token").Set(apiTokens)
 }
 
 // RecordCacheOperation records cache metrics
