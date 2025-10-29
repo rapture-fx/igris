@@ -191,11 +191,11 @@ export default function Hero() {
                   style={{ color: '#1f53d0' }}
                   className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-tight font-inter"
                 >
-                  The Routing Engine and Control Plane for AI Inference
+                  Save up to 48% on your AI API costs — automatically.
                 </h1>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  Schlep-engine optimize and orchestrate LLM requests across providers with routing intelligence, shadow testing, and rollback safety.
+                  Schlep-engine routes your AI requests across OpenAI, Anthropic, and others, optimizing cost, latency, and reliability — using your own API keys.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-12">
