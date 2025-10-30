@@ -64,7 +64,8 @@ export default function EngineeringFAQ() {
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+          backgroundColor: '#f2f1ed'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">

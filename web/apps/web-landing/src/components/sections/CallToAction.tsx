@@ -9,7 +9,8 @@ export default function CallToAction() {
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+          backgroundColor: '#f2f1ed'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -26,9 +27,9 @@ export default function CallToAction() {
             <div>
               {/* Content */}
               <div className="text-left">
-                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#114dcd' }}>Secure by design. Scalable by default.</h2>
+                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#114dcd' }}>Run Schlep-Engine in your stack.</h2>
                 <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300 max-w-2xl">
-                  From request routing to multi-tenant control, every Schlep-engine component is architected for isolation, observability, and performance.
+                  From routing intelligence to multi-tenant control, every Schlep-Engine component is built for reliability, transparency, and scale.
                 </p>
                 <a
                   href="/dashboard"

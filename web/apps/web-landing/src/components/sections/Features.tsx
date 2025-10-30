@@ -12,6 +12,9 @@ import {
   GitBranch,
   Lock,
   Globe,
+  Activity,
+  TrendingUp,
+  Network,
   ArrowRight
 } from 'lucide-react'
 
@@ -20,38 +23,38 @@ export default function Features() {
     {
       icon: Activity,
       title: "Thompson Sampling Router",
-      description: "Intelligent model routing based on real-time performance metrics and cost optimization.",
+      description: "Multi-model router uses Bayesian optimization to balance exploration and exploitation across provider models.",
       color: "from-purple-500 to-pink-500"
     },
     {
       icon: TrendingUp,
-      title: "Cost Optimization Engine",
-      description: "Dynamic cost reduction through smart caching, model selection, and resource allocation.",
+      title: "Intelligent Rate Limiter",
+      description: "Adaptive rate limiting with token bucket algorithm and exponential backoff for graceful provider quota handling.",
       color: "from-soft-blue to-blue-600"
     },
     {
-      icon: Cpu,
-      title: "Multi-Tier Cache System",
-      description: "L1/L2/L3 cache coherence delivers 99.9% cache hit rates and sub-10ms response times.",
+      icon: Database,
+      title: "AES-256 Key Vault",
+      description: "Secure BYOK implementation with AES-256-GCM encryption for tenant API key storage and isolation.",
       color: "from-green-500 to-emerald-500"
     },
     {
-      icon: Network,
-      title: "Adaptive Worker Pools",
-      description: "Auto-scaling inference workers that respond to demand patterns and traffic spikes.",
-      color: "from-orange-500 to-red-500"
-    },
-    {
       icon: Brain,
-      title: "Real-time Orchestration",
-      description: "WebSocket-based monitoring and control for live optimization and performance tuning.",
+      title: "Real-time Observability",
+      description: "Prometheus-compatible metrics and latency histograms for cost tracking and performance monitoring.",
       color: "from-cyan-500 to-blue-500"
     },
     {
       icon: GitBranch,
-      title: "Version Control",
-      description: "Track data lineage with git-like versioning for reproducible ML pipelines and transformations.",
+      title: "Adaptive Worker Management",
+      description: "Auto-scaling inference pools with queue depth monitoring and target latency optimization.",
       color: "from-indigo-500 to-purple-500"
+    },
+    {
+      icon: Shield,
+      title: "Multi-tenant Control Surface",
+      description: "Per-tenant state isolation with budget tracking and policy enforcement for safe multi-tenancy.",
+      color: "from-orange-500 to-red-500"
     }
   ]
 
@@ -120,13 +123,13 @@ export default function Features() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {features.map((feature, index) => (
             <motion.div
               key={index}
               variants={itemVariants}
-              className="group relative bg-gray-900 rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700 card-hover"
+              className="group relative bg-gray-900 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700 card-hover"
             >
               <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-6`}>
                 <feature.icon className="w-6 h-6 text-white" />
