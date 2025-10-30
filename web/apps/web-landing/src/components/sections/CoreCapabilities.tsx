@@ -3,48 +3,20 @@ import { Shield, Box } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Intelligent Provider Routing',
-    description: 'Smart routing across OpenAI, Anthropic, and custom models. Thompson Sampling algorithm continuously learns from performance to optimize your costs, speed, and reliability.',
-    icon: () => (
-      <img 
-        src="/Intelligent route.svg" 
-        alt="Intelligent Provider Routing" 
-        className="h-56 w-56 text-black"
-      />
-    ),
+    name: 'Intelligent Routing Engine',
+    description: 'Schlep-Engine intelligently selects the best AI provider for every request using adaptive routing logic. It balances performance, reliability, and cost automatically — no manual configuration required.',
   },
   {
-    name: 'Budget Protection',
-    description: 'Set custom spending limits and token caps to prevent cost overruns. Automatic alerts and budget safeguards with real-time usage tracking. Never overspend again with our protection.',
-    icon: () => (
-      <img 
-        src="/budget protection.svg" 
-        alt="Budget Protection" 
-        className="h-72 w-72 text-black"
-      />
-    ),
+    name: 'Multi-Tenant Budget Control',
+    description: 'Each tenant runs within defined cost and usage limits. Real-time enforcement protects workloads from cost overruns while keeping performance stable across customers.',
   },
   {
-    name: 'Bring Your Own Keys',
-    description: 'Use your existing OpenAI and Anthropic API keys with confidence. Secure key management, validation, and isolation ensures we never store or share your credentials.',
-    icon: () => (
-      <img 
-        src="/BYOK.svg" 
-        alt="Bring Your Own Keys" 
-        className="h-56 w-56 text-black opacity-85"
-      />
-    ),
+    name: 'Smart Quota Management',
+    description: 'Automatically manages token usage and rate limits across providers. Requests are adjusted on the fly to stay within quota, preventing interruptions and failed calls.',
   },
   {
-    name: 'Risk-Free Testing',
-    description: 'Benchmark mode simulates API providers with realistic latency and pricing. Zero costs during development and CI/CD testing. One env var to switch to production.',
-    icon: () => (
-      <img
-        src="/Rsik free testing.svg"
-        alt="Risk-Free Testing"
-        className="h-60 w-60 text-black"
-      />
-    ),
+    name: 'Shadow Mode Validation',
+    description: 'Validate routing decisions in real time without affecting live traffic. Shadow requests run safely in the background to improve accuracy and reliability before deployment.',
   },
 ]
 
@@ -56,7 +28,8 @@ export default function CoreCapabilities() {
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+          backgroundColor: '#f2f1ed'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -71,65 +44,34 @@ export default function CoreCapabilities() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            {/* Section Title - Above Cards */}
-            <div className="text-left mb-12">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Features</h2>
-              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                Smart AI Routing That Optimizes Your Costs
-              </h3>
-              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
-                Automatically route your AI requests to the best providers based on your preferences. Cut costs, improve performance, and never worry about overspending with our intelligent optimization engine.
-              </p>
-            </div>
+            {/* Two-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              {/* Left Column - Section Title */}
+              <div className="text-left lg:col-span-1">
+                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Features</h2>
+                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+                  Built for Intelligent, Reliable AI Infrastructure
+                </h3>
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
+                  Schlep-Engine combines adaptive routing, quota-aware control, and real-time validation to keep your AI workloads efficient and predictable — 
+                  even at scale.
+                </p>
+              </div>
 
-            {/* Horizontal Cards Stack */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {capabilities.map((capability) => (
-                <div
-                  key={capability.name}
-                  className="rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col justify-between overflow-hidden"
-                  style={{
-                    backgroundColor: '#f7f7f3',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    minHeight: '400px'
-                  }}
-                >
-                  {/* Icon at top with background pattern */}
-                  <div
-                    className="flex-1 flex items-center justify-center p-8"
-                    style={{
-                      backgroundColor: '#f2f1ed',
-                      backgroundImage: `repeating-linear-gradient(
-                        45deg,
-                        transparent,
-                        transparent 2px,
-                        rgba(0,0,0,0.02) 2px,
-                        rgba(0,0,0,0.02) 4px
-                      )`
-                    }}
-                  >
-                    {capability.name === 'Budget Protection' ? (
-                      <capability.icon className="h-72 w-72 text-black" aria-hidden="true" />
-                    ) : (capability.name === 'Intelligent Provider Routing' || capability.name === 'Risk-Free Testing' || capability.name === 'Bring Your Own Keys') ? (
-                      <capability.icon className="h-56 w-56 text-black" aria-hidden="true" />
-                    ) : (
-                      <div className="flex h-16 w-16 items-center justify-center">
-                        <capability.icon className="h-10 w-10 text-black" aria-hidden="true" />
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Title and Description at Bottom */}
-                  <div className="p-6" style={{ backgroundColor: '#f7f7f3' }}>
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">
-                      {capability.name}
-                    </h3>
-                    <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
-                      {capability.description}
-                    </p>
-                  </div>
+              {/* Right Column - Vertical Text Stack */}
+              <div className="lg:col-span-1">
+              {capabilities.map((capability, index) => (
+                <div key={capability.name} className="mb-6">
+                  <h3 className="text-base font-medium text-gray-900 dark:text-white mb-2 font-inter">
+                    {capability.name}
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter max-w-2xl">
+                    {capability.description}
+                  </p>
+                  {index < capabilities.length - 1 && <div className="mt-6 border-b border-gray-300 opacity-30"></div>}
                 </div>
               ))}
+            </div>
             </div>
           </div>
         </div>
