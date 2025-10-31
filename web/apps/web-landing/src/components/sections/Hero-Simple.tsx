@@ -7,7 +7,7 @@ import { ChevronRight } from 'lucide-react'
 export default function Hero() {
   return (
     <section className="py-0 sm:py-0 lg:py-1 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ 
-      backgroundColor: '#f7f7f3',
+      backgroundColor: '#f6f6f4',
       
     }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
@@ -44,7 +44,7 @@ export default function Hero() {
                 </div>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  Schlep-engine routes AI inference across multiple models and providers to balance cost, latency, and reliability using your own API keys. <span style={{ color: '#114dcd' }}>Save up to 48% on AI API costs automatically.</span>
+                  Schlep-engine routes AI inference across multiple models and providers to balance cost, latency, and reliability using your own API keys.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-4">

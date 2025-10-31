@@ -2,7 +2,7 @@ import Image from 'next/image'
 
 export default function CallToAction() {
   return (
-    <div className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+    <div className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       {/* First Frame - CTA Content */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left p-40 px-12 relative min-h-[250px] flex items-center" style={{
@@ -10,7 +10,7 @@ export default function CallToAction() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f7f7f3'
+          backgroundColor: '#f6f6f4'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -27,7 +27,7 @@ export default function CallToAction() {
             <div>
               {/* Content */}
               <div className="text-left">
-                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#000000' }}>Run Schlep-Engine in your stack.</h2>
+                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#000000' }}>Save up to 48% on AI API costs automatically.</h2>
                 <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300 max-w-2xl">
                   From routing intelligence to multi-tenant control, every Schlep-Engine component is built for reliability, transparency, and scale.
                 </p>
