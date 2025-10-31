@@ -27,14 +27,14 @@ export default function CallToAction() {
             <div>
               {/* Content */}
               <div className="text-left">
-                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#114dcd' }}>Run Schlep-Engine in your stack.</h2>
+                <h2 className="text-xl tracking-tight md:text-2xl mb-4 font-inter" style={{ color: '#000000' }}>Run Schlep-Engine in your stack.</h2>
                 <p className="text-base mb-8 opacity-90 text-gray-700 dark:text-gray-300 max-w-2xl">
                   From routing intelligence to multi-tenant control, every Schlep-Engine component is built for reliability, transparency, and scale.
                 </p>
                 <a
                   href="/dashboard"
                   className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                  style={{ backgroundColor: '#1f53d0' }}
+                  style={{ backgroundColor: '#000000' }}
                 >
                   Start Optimizing
                 </a>

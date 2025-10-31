@@ -38,6 +38,9 @@ module.exports = {
         'inconsolata': ['Inconsolata', 'monospace'],
         'ibm-plex-mono': ['IBM Plex Mono', 'monospace'],
         'sf-mono': ['SF Mono', 'monospace'],
+        'pixel': ['VT323', 'monospace'],
+        'clean-pixel': ['Roboto Mono', 'monospace'],
+        'dot-mincho': ['VT323', 'monospace'],
         'inter': ['Inter', 'sans-serif'],
       },
       fontSize: {
