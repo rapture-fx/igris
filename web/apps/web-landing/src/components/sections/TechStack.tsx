@@ -49,7 +49,7 @@ const safetyFeatures = [
 
 export default function TechStack() {
   return (
-    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
+    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative p-40 px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
