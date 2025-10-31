@@ -33,7 +33,7 @@ export default function Observability() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f2f1ed'
+          backgroundColor: '#f6f6f4'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -66,13 +66,13 @@ export default function Observability() {
                   key={feature.name}
                   className="rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
                   style={{
-                    backgroundColor: '#f7f7f3',
+                    backgroundColor: '#f6f6f4',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
                     minHeight: '260px'
                   }}
                 >
                   <div className="flex-1 flex items-center justify-center relative" style={{
-                    backgroundColor: '#f7f7f3',
+                    backgroundColor: '#f6f6f4',
                     backgroundImage: `repeating-linear-gradient(
                       45deg,
                       transparent,

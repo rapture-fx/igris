@@ -56,7 +56,7 @@ export default function TechStack() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f7f7f3'
+          backgroundColor: '#f6f6f4'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -106,7 +106,7 @@ export default function TechStack() {
 
           {/* Card with icon inside */}
           <div key={step.name} className="flex-1 min-w-0">
-          <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f7f7f3', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+          <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f6f6f4', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
           <div className="flex items-center gap-3">
           <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 mx-auto">
               <step.icon className="h-4 w-4 text-black" aria-hidden="true" />
