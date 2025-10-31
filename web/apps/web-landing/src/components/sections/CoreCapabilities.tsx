@@ -24,12 +24,12 @@ export default function CoreCapabilities() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative p-40" style={{
+        <div className="relative p-40 px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f2f1ed'
+          backgroundColor: '#f7f7f3'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -43,7 +43,7 @@ export default function CoreCapabilities() {
           </div>
 
           {/* Content Container */}
-          <div className="max-w-[1300px] mx-auto">
+          <div className="w-full px-0">
             {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
           <div className="absolute top-0 bottom-0 left-1/2 hidden lg:block" style={{
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -56,7 +56,7 @@ export default function CoreCapabilities() {
               {/* Left Column - Vertical Text Stack */}
               <div className="lg:col-span-1">
               {capabilities.map((capability, index) => (
-                <div key={capability.name} className="mb-6">
+                <div key={capability.name} className="mb-6 pr-4">
                   <h3 className="text-base font-medium text-gray-900 dark:text-white mb-2 font-inter">
                     {capability.name}
                   </h3>
@@ -69,11 +69,11 @@ export default function CoreCapabilities() {
             </div>
 
               {/* Right Column - Section Title */}
-              <div className="text-left lg:col-span-1">
+              <div className="text-left lg:col-span-1 pl-12 flex flex-col justify-end h-full">
                 <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                   Built for Intelligent, Reliable AI Infrastructure
                 </h3>
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-0" style={{ marginBottom: '-90px' }}>
                   Schlep-Engine combines adaptive routing, quota-aware control, and real-time validation to keep your AI workloads efficient and predictable — 
                   even at scale.
                 </p>

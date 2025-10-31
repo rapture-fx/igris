@@ -17,15 +17,23 @@ export default function HomePage() {
       <Header />
       <main style={{ backgroundColor: '#f6f6f4', paddingTop: '70px' }}>
         <Hero />
+        <div style={{ paddingTop: '5px' }}>
         <CoreCapabilities />
+        </div>
+        <div style={{ paddingTop: '5px' }}>
         <TechStack />
+        </div>
         
+        <div style={{ paddingTop: '5px' }}>
         <Observability />
+        </div>
+        <div style={{ paddingTop: '5px' }}>
         <MultiTenancy />
+        </div>
         
-        
-        
+        <div style={{ paddingTop: '5px' }}>
         <CallToAction />
+        </div>
       </main>
       <Footer />
     </div>
