@@ -33,7 +33,7 @@ export default function MultiTenancy() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f7f7f3'
+          backgroundColor: '#f6f6f4'
         }}>
           <div className="absolute -top-4 -left-4 w-8 h-8">
             <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>

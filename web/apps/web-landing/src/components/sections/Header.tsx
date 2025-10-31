@@ -30,7 +30,7 @@ export default function Header() {
   }, []);
 
   return (
-    <header className={`fixed top-0 left-0 w-full z-50 py-4 dark:bg-gray-900 font-inter ${scrolled ? 'scrolled' : ''}`} style={{ backgroundColor: '#f7f7f3' }}>
+    <header className={`fixed top-0 left-0 w-full z-50 py-4 dark:bg-gray-900 font-inter ${scrolled ? 'scrolled' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="flex items-center">
           <div className="flex items-center">

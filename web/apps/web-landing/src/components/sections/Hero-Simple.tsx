@@ -8,7 +8,6 @@ export default function Hero() {
   return (
     <section className="py-0 sm:py-0 lg:py-1 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ 
       backgroundColor: '#f6f6f4',
-      
     }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative pt-8 px-12 pb-40" style={{
@@ -29,39 +28,38 @@ export default function Hero() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
           </div>
 
-          
-
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto pt-8 px-16">
-            <div className="text-left">
-              <div className="pt-8 mb-8">
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-normal font-inter" style={{ color: '#111111', lineHeight: '1.2' }}>
-                    The Routing Engine and Control Plane for AI Inference
+            <div className="pt-8 mb-8">
+              <div className="flex justify-between items-start">
+                <div className="text-left">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium font-inter" style={{ color: '#111111', lineHeight: '1.2' }}>
+                    The routing engine and
                   </h1>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-normal font-inter" style={{ color: '#111111', lineHeight: '1.2', marginTop: '0.5rem' }}>
-                    
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium font-inter" style={{ color: '#111111', lineHeight: '1.2', marginTop: '0.5rem' }}>
+                    control plane for AI inference
                   </h1>
                 </div>
-
-                <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
+                <p className="text-sm md:text-base text-gray-700 dark:text-gray-200 max-w-md leading-relaxed font-inter text-left">
                   Schlep-engine routes AI inference across multiple models and providers to balance cost, latency, and reliability using your own API keys.
                 </p>
-
-                <div className="flex justify-start gap-4 mb-4">
-                  <Link
-                    href="/auth/register"
-                    style={{ backgroundColor: '#000000' }}
-                    className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
-                  >
-                    Get Started
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Link>
               </div>
-              
-              {/* Hero content area - displays background */}
-              <div style={{ backgroundColor: 'transparent', minHeight: '350px', maxHeight: '800px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                </div>
+            </div>
+
+            <div className="flex justify-start gap-4 mb-4">
+              <Link
+                href="/auth/register"
+                style={{ backgroundColor: '#000000' }}
+                className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+              >
+                Get Started
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Link>
+            </div>
+            
+            {/* Hero content area - displays background */}
+            <div style={{ backgroundColor: 'transparent', minHeight: '350px', maxHeight: '800px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
               </div>
             </div>
           </div>
