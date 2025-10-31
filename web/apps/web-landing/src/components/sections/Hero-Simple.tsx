@@ -11,12 +11,12 @@ export default function Hero() {
       
     }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative pt-8 px-16 pb-40" style={{
+        <div className="relative pt-8 px-12 pb-40" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f2f1ed'
+          backgroundColor: '#f7f7f3'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -35,16 +35,16 @@ export default function Hero() {
           <div className="max-w-[1300px] mx-auto pt-8 px-16">
             <div className="text-left">
               <div className="pt-8 mb-8">
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-normal font-inter" style={{ color: '#000000', lineHeight: '1.2' }}>
-                    The Routing Engine and Control Plane
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-normal font-inter" style={{ color: '#111111', lineHeight: '1.2' }}>
+                    The Routing Engine and Control Plane for AI Inference
                   </h1>
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-normal font-inter" style={{ color: '#000000', lineHeight: '1.2', marginTop: '0.5rem' }}>
-                    for Multi-Model AI Inference.
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-normal font-inter" style={{ color: '#111111', lineHeight: '1.2', marginTop: '0.5rem' }}>
+                    
                   </h1>
                 </div>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  Save up to 48% on AI API costs automatically. Schlep-engine routes requests across OpenAI, Anthropic, and other providers to balance cost, latency, and reliability using your own API keys.
+                  Schlep-engine routes AI inference across multiple models and providers to balance cost, latency, and reliability using your own API keys. <span style={{ color: '#114dcd' }}>Save up to 48% on AI API costs automatically.</span>
                 </p>
 
                 <div className="flex justify-start gap-4 mb-4">
