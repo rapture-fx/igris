@@ -6,12 +6,12 @@ import { ChevronRight } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ 
+    <section className="py-0 sm:py-0 lg:py-1 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ 
       backgroundColor: '#f7f7f3',
       
     }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative pt-8 px-40 pb-40" style={{
+        <div className="relative pt-8 px-16 pb-40" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -32,46 +32,37 @@ export default function Hero() {
           
 
           {/* Content Container */}
-          <div className="max-w-[1300px] mx-auto pt-8 relative z-20">
-        {/* Content Container */}
-            <div className="max-w-[1300px] mx-auto pt-8">
-              <div className="text-left pt-8 pl-0">
-            <div className="mt-0 mx-auto relative">
-              <div className="w-full max-w-full overflow-hidden">
-                <h1
-                  style={{ color: '#1f53d0' }}
-                  className="text-2xl md:text-3xl font-normal text-gray-900 dark:text-white mb-8 leading-[1.5] font-inter"
-                >
-                  The Routing Engine and Control Plane
-                  <br />
-                  for Multi-Model AI Inference.
-                </h1>
+          <div className="max-w-[1300px] mx-auto pt-8 px-16">
+            <div className="text-left">
+              <div className="pt-8 mb-8">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-normal font-inter" style={{ color: '#000000', lineHeight: '1.2' }}>
+                    The Routing Engine and Control Plane
+                  </h1>
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-normal font-inter" style={{ color: '#000000', lineHeight: '1.2', marginTop: '0.5rem' }}>
+                    for Multi-Model AI Inference.
+                  </h1>
+                </div>
 
                 <p className="text-base md:text-lg text-gray-700 dark:text-gray-200 mb-12 max-w-3xl leading-relaxed font-inter">
-                  Save up to 48% on your AI API costs — automatically. Schlep-Engine routes your requests across OpenAI, Anthropic, and others, optimizing for cost, latency, and reliability — all using your own API keys.
+                  Save up to 48% on AI API costs automatically. Schlep-engine routes requests across OpenAI, Anthropic, and other providers to balance cost, latency, and reliability using your own API keys.
                 </p>
 
                 <div className="flex justify-start gap-4 mb-4">
                   <Link
                     href="/auth/register"
-                    style={{ backgroundColor: '#1f53d0' }}
+                    style={{ backgroundColor: '#000000' }}
                     className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
                   >
                     Get Started
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Link>
-                </div>
-                
-                
-
-                {/* Hero content area - displays background */}
-                <div style={{ backgroundColor: 'transparent', minHeight: '350px', maxHeight: '800px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                  </div>
+              </div>
+              
+              {/* Hero content area - displays background */}
+              <div style={{ backgroundColor: 'transparent', minHeight: '350px', maxHeight: '800px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
                 </div>
               </div>
-            </div>
-          </div>
             </div>
           </div>
         </div>

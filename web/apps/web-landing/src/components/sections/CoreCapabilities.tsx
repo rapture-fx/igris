@@ -44,21 +44,16 @@ export default function CoreCapabilities() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-              {/* Left Column - Section Title */}
-              <div className="text-left lg:col-span-1">
-                <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Features</h2>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
-                  Built for Intelligent, Reliable AI Infrastructure
-                </h3>
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
-                  Schlep-Engine combines adaptive routing, quota-aware control, and real-time validation to keep your AI workloads efficient and predictable — 
-                  even at scale.
-                </p>
-              </div>
+            {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
+          <div className="absolute top-0 bottom-0 left-1/2 hidden lg:block" style={{
+          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          transform: 'translateX(-50%)'
+          }}></div>
 
-              {/* Right Column - Vertical Text Stack */}
+          {/* Two-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+              
+              {/* Left Column - Vertical Text Stack */}
               <div className="lg:col-span-1">
               {capabilities.map((capability, index) => (
                 <div key={capability.name} className="mb-6">
@@ -72,6 +67,17 @@ export default function CoreCapabilities() {
                 </div>
               ))}
             </div>
+
+              {/* Right Column - Section Title */}
+              <div className="text-left lg:col-span-1">
+                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                  Built for Intelligent, Reliable AI Infrastructure
+                </h3>
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
+                  Schlep-Engine combines adaptive routing, quota-aware control, and real-time validation to keep your AI workloads efficient and predictable — 
+                  even at scale.
+                </p>
+              </div>
             </div>
           </div>
         </div>

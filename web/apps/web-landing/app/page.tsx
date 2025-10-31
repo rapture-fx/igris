@@ -15,7 +15,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       <Header />
-      <main style={{ backgroundColor: '#f6f6f4', paddingTop: '80px' }}>
+      <main style={{ backgroundColor: '#f6f6f4', paddingTop: '70px' }}>
         <Hero />
         <CoreCapabilities />
         <TechStack />

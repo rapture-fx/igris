@@ -50,8 +50,8 @@ export default function Observability() {
           <div className="max-w-[1300px] mx-auto">
             {/* Section Title */}
             <div className="text-left mb-12">
-              <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter mb-4">Observability</h2>
-              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#114dcd' }}>
+              
+              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                 Full Visibility Across Cost, Performance, and Reliability
               </h3>
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
