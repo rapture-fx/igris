@@ -137,39 +137,39 @@ export default function CoreCapabilities() {
             }}
           >
             <div className="max-w-5xl mx-auto h-full flex flex-col justify-center">
-              <h4 className="text-3xl tracking-tight md:text-4xl font-inter mb-8 text-center" style={{ color: '#000000' }}>Builtin safety mechanisms.</h4>
+              <h4 className="text-3xl tracking-tight md:text-4xl font-inter mb-8 text-center" style={{ color: '#000000' }}>Reliability and Fail-Safe Architecture</h4>
               
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 mb-8 font-inter text-center max-w-3xl mx-auto">
-                Deploy optimizations without risk. Phased rollout with automatic guardrails. Shadow mode testing validates changes before production impact. Failures never affect user requests.
+                Deploy optimizations safely with automatic guardrails. Schlep-Engine isolates failures, validates routing before rollout, and continuously monitors provider health to ensure every request succeeds.
               </p>
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:grid-cols-2 xl:gap-6 xxl:grid-cols-4 xxl:gap-4">
-                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Shadow Mode Validation</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Go router operates normally while Rust optimizer runs in parallel (non-blocking). Decisions compared and logged. Zero impact on user requests.
-                  </p>
+              <div className="space-y-6">
+                {/* Top wide card - Blank */}
+                <div className="rounded-3xl p-24 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
                 </div>
 
-                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
-                  </p>
-                </div>
+                {/* Bottom row with 3 cards */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                      P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
+                    </p>
+                  </div>
 
-                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Rust Fallback Protection</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.
-                  </p>
-                </div>
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Rust Fallback Protection</h5>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                      FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.
+                    </p>
+                  </div>
 
-                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
-                  </p>
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                      Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
