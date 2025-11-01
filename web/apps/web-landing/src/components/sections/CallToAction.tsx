@@ -24,7 +24,7 @@ export default function CallToAction() {
           {/* Content Container with Original Width */}
           <div className="max-w-[1300px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-2xl tracking-tight md:text-3xl mb-8 font-inter" style={{ color: '#000000' }}>Save up to 48% on AI API costs automatically.</h2>
+              <h2 className="text-3xl tracking-tight md:text-4xl mb-8 font-inter" style={{ color: '#000000' }}>Save up to 48% on AI API costs automatically.</h2>
               
               <div className="inline-block">
                 <a

@@ -101,7 +101,7 @@ export default function Features() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="text-section font-bold text-gray-900 mb-6 transition-colors duration-300 text-left"
+            className="text-2xl font-bold text-gray-900 mb-6 transition-colors duration-300 text-left"
           >
             Everything you need to prepare data for ML
           </motion.h2>

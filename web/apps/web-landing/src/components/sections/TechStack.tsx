@@ -82,7 +82,7 @@ export default function TechStack() {
           <div className="text-left">
 
                 
-          <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+          <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
             Intelligent Routing.<br/>Built-in cost protection.
           </h3>
 
@@ -128,7 +128,7 @@ export default function TechStack() {
               {/* Right Column - Safety Features */}
               <div className="text-left">
               
-              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
               Builtin safety mechanisms.<br />Deploy optimizations without risk.
               </h3>
 

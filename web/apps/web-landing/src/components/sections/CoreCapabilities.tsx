@@ -22,41 +22,40 @@ const capabilities = [
 
 export default function CoreCapabilities() {
   return (
-    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-8 px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
-        }}>
-          {/* Top left bleeding cross */}
-          <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
-          </div>
-          {/* Bottom right bleeding cross */}
-          <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
-          </div>
+    <>
+      <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="relative py-8 px-12" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+            backgroundColor: '#f6f6f4'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            </div>
 
-          {/* Content Container */}
-          <div className="w-full px-0">
-            {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
-          <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          transform: 'translateX(-66.67%)'
-          }}></div>
+            {/* Content Container */}
+            <div className="w-full px-0">
+              {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
+            <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            transform: 'translateX(-66.67%)'
+            }}></div>
 
-          {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
+            {/* Two-column layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
               
               {/* Left Column - Vertical Text Stack */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
-                {/* Background SVG positioned absolutely */}
-                
                 <div className="flex gap-4 justify-center w-full max-w-xl mx-auto">
                     <div className="flex flex-col gap-4">
                       {capabilities.slice(0, 2).map((capability, index) => (
@@ -86,8 +85,8 @@ export default function CoreCapabilities() {
               </div>
 
               {/* Right Column - Section Title */}
-              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end" style={{ minHeight: '600px' }}>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end" style={{ minHeight: '750px' }}>
+                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Built for Intelligent, Reliable AI Infrastructure
                 </h3>
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
@@ -100,7 +99,7 @@ export default function CoreCapabilities() {
       </div>
     </section>
 
-    {/* New Section with Placeholder */}
+    {/* New Section - Full Width Placeholder */}
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-8 px-12" style={{
@@ -108,7 +107,8 @@ export default function CoreCapabilities() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
+          backgroundColor: '#f6f6f4',
+          minHeight: '700px'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -121,137 +121,62 @@ export default function CoreCapabilities() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
           </div>
 
-          {/* Content Container */}
-          <div className="w-full px-0">
-            {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
-          <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          transform: 'translateX(-66.67%)'
-          }}></div>
-
-          {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '400px' }}>
+          {/* Full Width Placeholder */}
+          <div 
+            className="absolute inset-12 p-8"
+            style={{
+              border: '1px solid #d1d5db',
+              borderRadius: '16px',
+              backgroundColor: '#f6f6f4',
               
-              {/* Left Column - Placeholder */}
-              <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div 
-                  className="absolute left-16 right-16 top-12 bottom-2 pointer-events-none max-w-[1200px] mx-auto"
-                  style={{
-                    borderTop: '1px solid #d1d5db',
-                    borderLeft: '1px solid #d1d5db', 
-                    borderRight: '1px solid #d1d5db',
-                    borderTopLeftRadius: '16px',
-                    borderTopRightRadius: '16px',
-                    backgroundColor: '#f6f6f4',
-                    boxShadow: '0 -3px 6px -1px rgba(0, 0, 0, 0.12), -2px 0 3px -1px rgba(0, 0, 0, 0.08), 2px 0 3px -1px rgba(0, 0, 0, 0.08)',
-                    zIndex: 5
-                  }}
-                >
-                  {/* SVG inside placeholder */}
-                  <div 
-                    className="absolute inset-0 p-4"
-                    style={{ 
-                      backgroundImage: 'url("/HRLN.svg")',
-                      backgroundPosition: 'bottom center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '50%',
-                      opacity: 0.6,
-                      zIndex: 6
-                    }}
-                  />
-                </div>
-              </div>
+              backgroundImage: `
+                repeating-linear-gradient(0deg, transparent, transparent 9px, rgba(209, 213, 219, 0.3) 9px, rgba(209, 213, 219, 0.3) 10px),
+                repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(209, 213, 219, 0.3) 9px, rgba(209, 213, 219, 0.3) 10px)
+              `,
+              backgroundSize: '10px 10px'
+            }}
+          >
+            <div className="max-w-5xl mx-auto h-full flex flex-col justify-center">
+              <h4 className="text-3xl tracking-tight md:text-4xl font-inter mb-8 text-center" style={{ color: '#000000' }}>Builtin safety mechanisms.</h4>
+              
+              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 mb-8 font-inter text-center max-w-3xl mx-auto">
+                Deploy optimizations without risk. Phased rollout with automatic guardrails. Shadow mode testing validates changes before production impact. Failures never affect user requests.
+              </p>
 
-              {/* Right Column - Section Title */}
-              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end" style={{ minHeight: '400px' }}>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
-                  Infrastructure That Scales With Your Ambition
-                </h3>
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
-                  Built to handle enterprise workloads while maintaining simplicity. Focus on your models, we'll handle the orchestration.
-                </p>
+              <div className="grid grid-cols-1 lg:grid-cols-2 lg:gap-8 xl:grid-cols-2 xl:gap-6 xxl:grid-cols-4 xxl:gap-4">
+                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Shadow Mode Validation</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    Go router operates normally while Rust optimizer runs in parallel (non-blocking). Decisions compared and logged. Zero impact on user requests.
+                  </p>
+                </div>
+
+                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
+                  </p>
+                </div>
+
+                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Rust Fallback Protection</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.
+                  </p>
+                </div>
+
+                <div className="backdrop-blur-xl bg-white/40 dark:bg-gray-900/40 rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300">
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
     </section>
-
-    {/* New Section with Placeholder */}
-    <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-8 px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
-        }}>
-          {/* Top left bleeding cross */}
-          <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
-          </div>
-          {/* Bottom right bleeding cross */}
-          <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
-          </div>
-
-          {/* Content Container */}
-          <div className="w-full px-0">
-            {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
-          <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          transform: 'translateX(-66.67%)'
-          }}></div>
-
-          {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '400px' }}>
-              
-              {/* Left Column - Placeholder */}
-              <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div 
-                  className="absolute left-16 right-16 top-12 bottom-2 pointer-events-none max-w-[1200px] mx-auto"
-                  style={{
-                    borderTop: '1px solid #d1d5db',
-                    borderLeft: '1px solid #d1d5db', 
-                    borderRight: '1px solid #d1d5db',
-                    borderTopLeftRadius: '16px',
-                    borderTopRightRadius: '16px',
-                    backgroundColor: '#f6f6f4',
-                    boxShadow: '0 -3px 6px -1px rgba(0, 0, 0, 0.12), -2px 0 3px -1px rgba(0, 0, 0, 0.08), 2px 0 3px -1px rgba(0, 0, 0, 0.08)',
-                    zIndex: 5
-                  }}
-                >
-                  {/* SVG inside placeholder */}
-                  <div 
-                    className="absolute inset-0 p-4"
-                    style={{ 
-                      backgroundImage: 'url("/HRLN.svg")',
-                      backgroundPosition: 'bottom center',
-                      backgroundRepeat: 'no-repeat',
-                      backgroundSize: '50%',
-                      opacity: 0.6,
-                      zIndex: 6
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Right Column - Section Title */}
-              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end" style={{ minHeight: '400px' }}>
-                <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
-                  Infrastructure That Scales With Your Ambition
-                </h3>
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
-                  Built to handle enterprise workloads while maintaining simplicity. Focus on your models, we'll handle the orchestration.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+    </>
   )
 }

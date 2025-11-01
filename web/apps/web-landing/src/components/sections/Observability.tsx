@@ -51,7 +51,7 @@ export default function Observability() {
             {/* Section Title */}
             <div className="text-left mb-12">
               
-              <h3 className="text-xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Full Visibility Across Cost, Performance, and Reliability
               </h3>
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
