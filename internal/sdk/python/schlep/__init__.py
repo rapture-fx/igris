@@ -19,7 +19,7 @@ Example usage:
     print(response)
 """
 
-__version__ = "0.1.0"
+__version__ = "1.0.0-rc1"
 __author__ = "Schlep-engine"
 __license__ = "MIT"
 

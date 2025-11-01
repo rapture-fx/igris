@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "schlep-cli"
-version = "0.1.0"
+version = "1.0.0-rc1"
 description = "Official Schlep-engine CLI for onboarding, key management, and inference testing"
 readme = "README.md"
 license = {text = "MIT"}
