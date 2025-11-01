@@ -86,6 +86,94 @@ console.log(response.choices[0].message.content);
 
 ---
 
+### Go SDK ✅
+
+**Status:** Production Ready (v1.0.0-rc1)
+**Module:** `github.com/schlep-engine/sdk-go`
+**Package:** `schlep`
+
+Official Go SDK for Schlep-engine with idiomatic Go patterns and minimal dependencies.
+
+**Installation:**
+```bash
+go get github.com/schlep-engine/sdk-go
+```
+
+**Quick Example:**
+```go
+import "github.com/schlep-engine/sdk-go/schlep"
+
+client := schlep.NewClient(&schlep.Config{
+    BaseURL: "http://localhost:8081",
+})
+
+ctx := context.Background()
+response, err := client.Infer(ctx, &schlep.InferRequest{
+    Model: "gpt-4",
+    Messages: []schlep.Message{
+        {Role: "user", Content: "Hello!"},
+    },
+})
+fmt.Println(response.Choices[0].Message.Content)
+```
+
+**Features:**
+- ✅ Idiomatic Go with context.Context support
+- ✅ Minimal dependencies (backoff only)
+- ✅ Full type safety with structs
+- ✅ Automatic retry logic with exponential backoff
+- ✅ Comprehensive error handling
+- ✅ GoDoc documentation
+- ✅ Environment variable support
+
+**Documentation:**
+- [Go Quickstart](/docs/api/go_quickstart.md)
+- [Go API Reference](/docs/api/go_reference.md)
+- [Go SDK README](/internal/sdk/go/README.md)
+- [GoDoc](https://pkg.go.dev/github.com/schlep-engine/sdk-go)
+
+---
+
+### JavaScript/TypeScript SDK ✅
+
+**Status:** Production Ready (v1.0.0-rc1)
+**Package:** `schlep`
+**Registry:** npm
+
+Official JavaScript/TypeScript SDK with full type definitions and ESM/CJS support.
+
+**Installation:**
+```bash
+npm install schlep
+```
+
+**Quick Example:**
+```typescript
+import { Schlep } from 'schlep';
+
+const client = new Schlep({ baseUrl: 'http://localhost:8081' });
+const response = await client.infer({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+console.log(response.choices[0].message.content);
+```
+
+**Features:**
+- ✅ Full TypeScript support with type definitions
+- ✅ ESM and CommonJS exports
+- ✅ Minimal dependencies (node-fetch only)
+- ✅ Works with Node.js, Next.js, Express, and more
+- ✅ Comprehensive error handling
+- ✅ Full API coverage
+
+**Documentation:**
+- [JavaScript Quickstart](/docs/api/javascript_quickstart.md)
+- [JavaScript API Reference](/docs/api/javascript_reference.md)
+- [JavaScript SDK README](/internal/sdk/javascript/README.md)
+
+---
+
 ## SDK Under Development
 
 The following SDKs are planned for future release:
