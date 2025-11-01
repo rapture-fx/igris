@@ -76,7 +76,7 @@ export default function Hero() {
             borderTopLeftRadius: '16px',
             borderTopRightRadius: '16px',
             backgroundColor: '#f6f6f4',
-            boxShadow: '0 -3px 6px -1px rgba(0, 0, 0, 0.12), -2px 0 3px -1px rgba(0, 0, 0, 0.08), 2px 0 3px -1px rgba(0, 0, 0, 0.08)',
+            
             zIndex: 5
           }}
         >

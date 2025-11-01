@@ -352,7 +352,7 @@ export default function Pricing() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-12" style={{ backgroundColor: '#f7f7f3' }}>
               {/* Left side - Title */}
               <div className="lg:col-span-2 px-6 py-8 text-left flex items-center">
-                <h2 className="text-2xl md:text-3xl font-normal" style={{ color: '#1f53d0' }}>
+                <h2 className="text-3xl md:text-4xl font-normal" style={{ color: '#1f53d0' }}>
                   Compare the features
                 </h2>
               </div>
