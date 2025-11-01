@@ -174,8 +174,7 @@ export default function Hero() {
     <div
       className="relative overflow-visible dark:bg-gray-900 pt-16"
       style={{ 
-        backgroundColor: '#f7f7f3',
-        
+        backgroundColor: '#f7f7f3'
       }}
     >
       <div className="relative z-20 mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
@@ -576,6 +575,8 @@ export default function Hero() {
           </div>
         </div>
       </div>
+      
+      
     </div>
   );
 }

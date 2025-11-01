@@ -15,7 +15,8 @@ export default function Hero() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f7f7f3'
+          backgroundColor: 'transparent',
+          zIndex: 10
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -63,6 +64,34 @@ export default function Hero() {
               </div>
             </div>
           </div>
+        </div>
+        
+        {/* HERO lines decorative background with placeholder - INSIDE existing frame */}
+        <div 
+          className="absolute left-24 right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto"
+          style={{
+            borderTop: '1px solid #d1d5db',
+            borderLeft: '1px solid #d1d5db', 
+            borderRight: '1px solid #d1d5db',
+            borderTopLeftRadius: '16px',
+            borderTopRightRadius: '16px',
+            backgroundColor: '#f6f6f4',
+            boxShadow: '0 -3px 6px -1px rgba(0, 0, 0, 0.12), -2px 0 3px -1px rgba(0, 0, 0, 0.08), 2px 0 3px -1px rgba(0, 0, 0, 0.08)',
+            zIndex: 5
+          }}
+        >
+          {/* SVG inside placeholder */}
+          <div 
+            className="absolute inset-0 p-4"
+            style={{ 
+              backgroundImage: 'url("/HRLN.svg")',
+              backgroundPosition: 'bottom center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: '50%',
+              opacity: 0.6,
+              zIndex: 6
+            }}
+          />
         </div>
       </div>
     </section>
