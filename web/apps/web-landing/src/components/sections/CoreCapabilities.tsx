@@ -85,7 +85,7 @@ export default function CoreCapabilities() {
               </div>
 
               {/* Right Column - Section Title */}
-              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end" style={{ minHeight: '750px' }}>
+              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end pb-64" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Built for Intelligent, Reliable AI Infrastructure
                 </h3>
@@ -145,26 +145,26 @@ export default function CoreCapabilities() {
 
               <div className="space-y-6">
                 {/* Top wide card - Blank */}
-                <div className="rounded-3xl p-24 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-24 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
                 </div>
 
                 {/* Bottom row with 3 cards */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
                     <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
                       P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
                     </p>
                   </div>
 
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
                     <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Rust Fallback Protection</h5>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
                       FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.
                     </p>
                   </div>
 
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-lg hover:shadow-xl transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
                     <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
                     <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
                       Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.

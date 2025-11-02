@@ -3,23 +3,23 @@ import { Activity, BarChart3, Eye, DollarSign } from 'lucide-react'
 
 const features = [
   {
-    name: 'Prometheus Metrics',
-    description: 'Real-time metrics for all operations. Request counts, latency histograms, error rates, and throughput. Grafana-ready.',
+    name: 'Real-Time Metrics',
+    description: 'Track request volume, latency, and cost efficiency as they happen. Understand how your workloads perform across providers in real time.',
     hasCustomIcon: true,
   },
   {
-    name: 'Distributed Tracing',
-    description: 'Trace ID propagation across all requests. Track inference flow from gateway to provider with complete visibility.',
+    name: 'Traceable Requests',
+    description: 'Follow every inference from input to response. Visualize routing paths and understand how traffic flows across models and regions.',
     hasCustomIcon: true,
   },
   {
-    name: 'Cost Tracking',
-    description: 'Per-request cost calculation and aggregation. Real-time budget monitoring with alerts. Complete cost visibility by tenant.',
+    name: 'Cost Insights',
+    description: 'See exactly where your AI spend goes. Break down costs by provider, model, or tenant to optimize usage and prevent waste.',
     hasCustomIcon: true,
   },
   {
     name: 'Performance Monitoring',
-    description: 'Track provider performance metrics. P50, P95, P99 latencies. Agreement rates for shadow mode. SLO breach detection.',
+    description: 'Measure provider reliability, error rates, and consistency over time to ensure your workloads remain predictable and resilient.',
     hasCustomIcon: true,
   },
 ]
@@ -55,70 +55,24 @@ export default function Observability() {
                 Full Visibility Across Cost, Performance, and Reliability
               </h3>
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
-                Monitor every request, trace every inference, and keep full visibility across performance and cost.
+                Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability — all in one view.
               </p>
             </div>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {features.map((feature) => (
-                <div
-                  key={feature.name}
-                  className="rounded-lg border border-gray-200 dark:border-gray-700 flex flex-col overflow-hidden"
-                  style={{
-                    backgroundColor: '#f6f6f4',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    minHeight: '260px'
-                  }}
-                >
-                  <div className="flex-1 flex items-center justify-center relative" style={{
-                    backgroundColor: '#f6f6f4',
-                    backgroundImage: `repeating-linear-gradient(
-                      45deg,
-                      transparent,
-                      transparent 2px,
-                      rgba(0,0,0,0.02) 2px,
-                      rgba(0,0,0,0.02) 4px
-                    )`
-                  }}>
-                    {feature.hasCustomIcon && feature.name === 'Prometheus Metrics' ? (
-                      <img
-                        src="/metrics.svg"
-                        alt="Prometheus Metrics"
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[28rem] h-[28rem] object-contain"
-                      />
-                    ) : feature.hasCustomIcon && feature.name === 'Distributed Tracing' ? (
-                      <img
-                        src="/Distribute.svg"
-                        alt="Distributed Tracing"
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                    ) : feature.hasCustomIcon && feature.name === 'Cost Tracking' ? (
-                      <img
-                        src="/costtrackerdia.svg"
-                        alt="Cost Tracking"
-                        className="absolute inset-0 w-full h-full object-cover"
-                      />
-                    ) : feature.hasCustomIcon && feature.name === 'Performance Monitoring' ? (
-                      <img
-                        src="/observe.svg"
-                        alt="Performance Monitoring"
-                        className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[32rem] h-[32rem] object-contain"
-                      />
-                    ) : (
-                      <feature.icon className="h-16 w-16 text-black" aria-hidden="true" />
-                    )}
-                  </div>
-                  
-                  {/* Title and Description */}
-                  <div className="p-6">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">
-                      {feature.name}
-                    </h3>
-                    <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
-                      {feature.description}
-                    </p>
-                  </div>
+            {/* Features Horizontal Stack */}
+            <div className="flex flex-col lg:flex-row gap-12 border-t border-b border-gray-200 dark:border-gray-700 py-24">
+              {features.map((feature, index) => (
+                <div key={feature.name} className="flex-1 text-left relative">
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">
+                    {feature.name}
+                  </h3>
+                  <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
+                    {feature.description}
+                  </p>
+                  {/* Add vertical line between items except last one */}
+                  {index < features.length - 1 && (
+                    <div className="hidden lg:block absolute -top-24 bottom-0 right-0 w-px bg-gray-200 dark:bg-gray-700" style={{ right: '-24px' }}></div>
+                  )}
                 </div>
               ))}
             </div>
