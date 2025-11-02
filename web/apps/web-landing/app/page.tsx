@@ -4,6 +4,7 @@ import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import TechStack from '../src/components/sections/TechStack'
+import BenchmarkResults from '../src/components/sections/BenchmarkResults'
 
 
 
@@ -22,6 +23,9 @@ export default function HomePage() {
         </div>
         <div style={{ paddingTop: '5px' }}>
         <TechStack />
+        </div>
+        <div style={{ paddingTop: '5px' }}>
+        <BenchmarkResults />
         </div>
         
         <div style={{ paddingTop: '5px' }}>

@@ -28,6 +28,7 @@ const steps = [
 
 export default function TechStack() {
   return (
+    <>
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative p-80 px-12" style={{
@@ -50,58 +51,31 @@ export default function TechStack() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-stretch">
-              {/* Left Column - Cards Stack */}
-              <div className="text-left">
-          {/* Steps Cards */}
-          <div className="space-y-8 max-w-lg relative">
-          {steps.map((step, index) => (
-          <div key={step.name} className="flex items-start gap-3 relative">
-          {/* Git branch style line and dots on the left */}
-          {index < steps.length - 1 && (
-            <div className="absolute left-2.5 top-6 w-px h-24 bg-[#299a93]"></div>
-          )}
-
-          {/* Dot on the left side */}
-          <div className="flex h-6 w-6 items-center justify-center flex-shrink-0 relative z-10">
-          <div className="h-2 w-2 rounded-full" style={{ backgroundColor: '#299a93' }}></div>
-          </div>
-
-          {/* Card with icon inside */}
-          <div key={step.name} className="flex-1 min-w-0">
-          <div className="p-3 rounded-lg border border-gray-200 dark:border-gray-700" style={{ backgroundColor: '#f6f6f4', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
-          <div className="flex items-center gap-3">
-          <div className="flex h-8 w-8 items-center justify-center flex-shrink-0 mx-auto">
-              <step.icon className="h-4 w-4 text-black" aria-hidden="true" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-center">
+              {/* Left Column - SVG Diagram */}
+              <div className="lg:col-span-7 flex items-center justify-center">
+                <img 
+                  src="/okdiagar.svg" 
+                  alt="OK Diagram" 
+                  className="w-full h-full max-h-[600px] object-contain"
+                />
               </div>
-                <div className="flex-1 min-w-0">
-                    <h3 className="text-xs font-semibold text-gray-900 dark:text-white mb-1 font-mono break-words">
-                        {step.name}
-                        </h3>
-                          <p className="text-xs text-gray-700 dark:text-gray-300 leading-tight font-mono break-words">{step.description}</p>
-                            </div>
-                      </div>
-                    </div>
-                </div>
-            </div>
-          ))}
-          </div>
-          </div>
 
               {/* Right Column - Title and Description */}
-              <div className="text-left">
-          <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-            Intelligent Routing.<br/>Built-in cost protection.
-          </h3>
+              <div className="lg:col-span-5 text-left">
+                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                  How Schlep-engine Works
+                </h3>
 
-          <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
-          Schlep-engine automatically optimizes AI inference requests across providers with built-in budget tracking and safety controls. Adaptive learning improves performance while preventing runaway costs.
-          </p>
+                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
+                  Schlep-Engine routes, monitors, and optimizes AI inference across providers through a unified control plane. Each layer is designed for performance, cost efficiency, and reliability at scale.
+                </p>
               </div>
-              </div>
-              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
+    </>
   )
 }

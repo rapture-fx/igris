@@ -48,12 +48,11 @@ export default function MultiTenancy() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
               {/* Left Column - Features */}
               <div className="text-left lg:col-span-1">
-                <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-4 font-inter" style={{ color: '#000000' }}>
+                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Secure by design.<br/>Scalable by default.
                 </h3>
                   <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8">
-                    Complete tenant isolation with per-tenant controls.<br />
-                    Production architecture designed for scale.
+                    Tenant isolation, key encryption, and enterprise authentication built into every request. Schlep-Engine is production-ready security infrastructure, not an afterthought.
                   </p>
                   <ul className="space-y-4">
                     {features.map((feature, index) => (
