@@ -95,7 +95,7 @@ export default function BenchmarkResults() {
                   </h3>
                   
                   <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
-                    Schlep-Engine benchmarks were performed under real OpenAI and Anthropic API billing with customer-owned keys. The results confirm measurable cost reductions, faster responses, and fault-tolerant reliability under production conditions.
+                    Benchmarks using OpenAI and Anthropic APIs confirm measurable cost savings, improved latency, and fault-tolerant reliability in production.
                   </p>
                 </div>
 
@@ -103,7 +103,7 @@ export default function BenchmarkResults() {
                 <div className="mb-12 opacity-0 animate-fadeIn space-y-6" style={{ animationDelay: '0ms' }}>
                   {metricHighlights.map((metric, index) => (
                     <div key={index} className={`flex flex-col ${metric.title === 'Cost Savings' || metric.title === 'Latency' || metric.title === 'Reliability' ? 'mt-2' : ''}`}>
-                      <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-1">{metric.title}</h4>
+                      <h4 className="text-base font-normal text-gray-900 dark:text-white mb-1">{metric.title}</h4>
                       {metric.title === 'Cost Savings' && (
                         <p className="text-3xl text-gray-900 dark:text-white mb-2">40–70% average</p>
                       )}
@@ -126,9 +126,9 @@ export default function BenchmarkResults() {
 
               {/* Right Column - with Cost Comparison Table and Cost Ratio Visualization */}
               <div className="lg:col-span-2 flex flex-col items-center justify-center">
-                {/* cost comparison table */}
+                {/* Cost Comparison Table */}
                 <div className="mb-8 opacity-0 animate-fadeIn" style={{ animationDelay: '400ms' }}>
-                  <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-300/60 dark:border-gray-600/60 p-8 shadow-md">
+                  <div className="bg-f6f6f4/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-300/60 dark:border-gray-600/60 p-8 shadow-sm" style={{ backgroundColor: '#f6f6f4' }}>
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
@@ -142,13 +142,13 @@ export default function BenchmarkResults() {
                           {comparisonData.map((item, index) => (
                             <tr
                               key={index}
-                              className={`border-b border-gray-200 dark:border-gray-700 ${item.isHighlighted ? 'bg-green-50/50 dark:bg-green-900/10' : ''}`}
+                              className="border-b border-gray-200 dark:border-gray-700"
                             >
                               <td className="py-4 pr-4">
                                 <span className="font-medium text-gray-900 dark:text-white">{item.scenario}</span>
                               </td>
                               <td className="text-right py-4 px-4">
-                                <span className={`text-lg font-semibold ${item.isHighlighted ? 'text-green-600 dark:text-green-500' : 'text-gray-900 dark:text-white'}`}>
+                                <span className={`text-lg font-semibold text-gray-900 dark:text-white`}>
                                   {item.cost}
                                 </span>
                               </td>
@@ -162,7 +162,7 @@ export default function BenchmarkResults() {
                     </div>
 
                     {/* Caption */}
-                    <div className="mt-6 text-center">
+                    <div className="mt-6 text-left">
                       <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
                         Benchmarks conducted under live API billing with OpenAI GPT-4 and Claude-3 Haiku traffic.
                       </p>
@@ -175,7 +175,7 @@ export default function BenchmarkResults() {
 
                 {/* Cost Ratio Visualization */}
                 <div className="mb-12 opacity-0 animate-fadeIn w-full" style={{ animationDelay: '600ms' }}>
-                  <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-300/60 dark:border-gray-600/60 p-8 shadow-md">
+                  <div className="bg-f6f6f4/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-300/60 dark:border-gray-600/60 p-8 shadow-sm" style={{ backgroundColor: '#f6f6f4' }}>
                     <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-6">Cost Ratio Visualization</h4>
                     <div className="space-y-4">
                       {comparisonData.map((item, index) => (
