@@ -56,9 +56,9 @@ export default function BenchmarkResults() {
           animation: fadeIn 0.8s ease-out forwards;
         }
       `}</style>
-      <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', padding: '1px 0' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative p-60 px-12" style={{
+        <div className="relative px-12 py-20" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -85,7 +85,7 @@ export default function BenchmarkResults() {
             }}></div>
 
             {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" style={{ minHeight: '500px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column */}
               <div className="lg:col-span-1 text-left flex flex-col justify-center pr-8">
                 {/* Section Header */}
@@ -124,80 +124,41 @@ export default function BenchmarkResults() {
                 </div>
               </div>
 
-              {/* Right Column - with Cost Comparison Table and Cost Ratio Visualization */}
-              <div className="lg:col-span-2 flex flex-col items-center justify-center">
-                {/* Cost Comparison Table */}
-                <div className="mb-8 opacity-0 animate-fadeIn" style={{ animationDelay: '400ms' }}>
-                  <div className="bg-f6f6f4/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-300/60 dark:border-gray-600/60 p-8 shadow-sm" style={{ backgroundColor: '#f6f6f4' }}>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
-                        <thead>
-                          <tr className="border-b border-gray-300 dark:border-gray-600">
-                            <th className="text-left py-3 pr-4 font-medium text-gray-900 dark:text-white text-sm">Scenario</th>
-                            <th className="text-right py-3 px-4 font-medium text-gray-900 dark:text-white text-sm">Cost per 1K Requests</th>
-                            <th className="text-left py-3 pl-4 font-medium text-gray-900 dark:text-white text-sm">Description</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {comparisonData.map((item, index) => (
-                            <tr
-                              key={index}
-                              className="border-b border-gray-200 dark:border-gray-700"
-                            >
-                              <td className="py-4 pr-4">
-                                <span className="font-medium text-gray-900 dark:text-white">{item.scenario}</span>
-                              </td>
-                              <td className="text-right py-4 px-4">
-                                <span className={`text-lg font-semibold text-gray-900 dark:text-white`}>
-                                  {item.cost}
-                                </span>
-                              </td>
-                              <td className="py-4 pl-4">
-                                <span className="text-sm text-gray-600 dark:text-gray-400">{item.description}</span>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Caption */}
-                    <div className="mt-6 text-left">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-3">
-                        Benchmarks conducted under live API billing with OpenAI GPT-4 and Claude-3 Haiku traffic.
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Typical workloads save 40–70%, with up to 97% for compatible models. Results verified using customer-owned API keys (BYOK).
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cost Ratio Visualization */}
-                <div className="mb-12 opacity-0 animate-fadeIn w-full" style={{ animationDelay: '600ms' }}>
-                  <div className="bg-f6f6f4/50 dark:bg-gray-900/50 backdrop-blur-sm rounded-2xl border border-gray-300/60 dark:border-gray-600/60 p-8 shadow-sm" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-6">Cost Ratio Visualization</h4>
-                    <div className="space-y-4">
+              {/* Right Column - Combined Benchmark Visualization */}
+              <div className="lg:col-span-2 flex items-center justify-center">
+                <div className="w-full max-w-2xl opacity-0 animate-fadeIn" style={{ animationDelay: '400ms' }}>
+                  <div className="bg-[#f6f6f4] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 shadow-lg">
+                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+                      Cost Comparison Analysis
+                    </h3>
+                    <div className="space-y-6">
                       {comparisonData.map((item, index) => (
-                        <div key={index}>
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-sm font-medium text-gray-900 dark:text-white">{item.scenario}</span>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">{item.cost}</span>
+                        <div key={index} className="border-b border-gray-100 dark:border-gray-700 last:border-b-0 pb-6 last:pb-0">
+                          <div className="flex justify-between items-center mb-2">
+                            <h4 className={`text-lg font-medium ${item.isHighlighted ? 'text-green-600 dark:text-green-400 font-bold' : 'text-gray-900 dark:text-white'}`}>
+                              {item.scenario}
+                            </h4>
+                            <div className="text-right">
+                              <span className={`text-2xl font-bold ${item.isHighlighted ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'} mr-2`}>
+                                {item.cost}
+                              </span>
+                              <span className="text-sm text-gray-500 dark:text-gray-400">
+                                ({item.percentage}%)
+                              </span>
+                            </div>
                           </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                            <div
-                              className={`h-full rounded-full transition-all duration-1000 ${item.isHighlighted ? 'bg-green-500' : 'bg-gray-400 dark:bg-gray-500'}`}
-                              style={{ width: `${item.percentage}%` }}
-                            />
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            {item.description}
+                          </p>
+                          <div className="flex items-center">
+                            <p className="text-2xl font-mono text-gray-400 dark:text-gray-500" style={{ letterSpacing: '0.2em' }}>
+                              {Array.from({ length: 10 }, (_, i) => (i < Math.round(item.percentage / 10) ? '⋮' : '.')).join('')}
+                            </p>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="mt-4 text-center">
-                      <p className="text-xs text-green-600 dark:text-green-500 font-medium">
-                        ↑ 96.9% verified savings
-                      </p>
-                    </div>
+
                   </div>
                 </div>
               </div>

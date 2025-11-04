@@ -67,23 +67,37 @@ export default function Hero() {
         </div>
         
         {/* HERO lines decorative background with placeholder - INSIDE existing frame */}
-        <div 
+        <div
           className="absolute left-24 right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto"
           style={{
             borderTop: '1px solid #d1d5db',
-            borderLeft: '1px solid #d1d5db', 
+            borderLeft: '1px solid #d1d5db',
             borderRight: '1px solid #d1d5db',
             borderTopLeftRadius: '16px',
             borderTopRightRadius: '16px',
             backgroundColor: '#f6f6f4',
-            
+
             zIndex: 5
           }}
         >
-          {/* SVG inside placeholder */}
-          <div 
+          {/* Schlep Engine 14x11cm (47).svg behind HRLN.svg */}
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: 'url("/Schlep Engine 14x11cm (47).svg")',
+              backgroundPosition: 'center center',
+              backgroundRepeat: 'no-repeat',
+              backgroundSize: 'cover',
+              opacity: 0.8,
+              borderRadius: '16px',
+              zIndex: 5
+            }}
+          />
+
+          {/* HRLN.svg in front */}
+          <div
             className="absolute inset-0 p-4"
-            style={{ 
+            style={{
               backgroundImage: 'url("/HRLN.svg")',
               backgroundPosition: 'bottom center',
               backgroundRepeat: 'no-repeat',
