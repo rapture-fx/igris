@@ -100,25 +100,30 @@ export default function BenchmarkResults() {
                 </div>
 
                 {/* Metric Highlights */}
-                <div className="mb-12 opacity-0 animate-fadeIn space-y-6" style={{ animationDelay: '0ms' }}>
+                <div className="mb-12 opacity-0 animate-fadeIn space-y-8" style={{ animationDelay: '0ms' }}>
                   {metricHighlights.map((metric, index) => (
-                    <div key={index} className={`flex flex-col ${metric.title === 'Cost Savings' || metric.title === 'Latency' || metric.title === 'Reliability' ? 'mt-2' : ''}`}>
-                      <h4 className="text-base font-normal text-gray-900 dark:text-white mb-1">{metric.title}</h4>
+                    <div key={index} className="flex flex-col">
                       {metric.title === 'Cost Savings' && (
-                        <p className="text-3xl text-gray-900 dark:text-white mb-2">40–70% average</p>
+                        <>
+                          <h4 className="text-base font-normal text-gray-900 dark:text-white mb-2">Cost Savings</h4>
+                          <p className="text-3xl text-gray-900 dark:text-white mb-1">40–70% average</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">up to 97% for compatible workloads</p>
+                        </>
                       )}
                       {metric.title === 'Latency' && (
-                        <p className="text-3xl text-gray-900 dark:text-white mb-2">19.3% faster</p>
+                        <>
+                          <h4 className="text-base font-normal text-gray-900 dark:text-white mb-2">Latency</h4>
+                          <p className="text-3xl text-gray-900 dark:text-white mb-1">19.3% faster</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">average response (1,800ms → 1,452ms)</p>
+                        </>
                       )}
                       {metric.title === 'Reliability' && (
-                        <p className="text-3xl text-gray-900 dark:text-white mb-2">99.9%+ success rate observed</p>
+                        <>
+                          <h4 className="text-base font-normal text-gray-900 dark:text-white mb-2">Reliability</h4>
+                          <p className="text-3xl text-gray-900 dark:text-white mb-1">99.9% success rate</p>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">observed in live benchmarks with zero rate-limit errors</p>
+                        </>
                       )}
-                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                        {metric.title === 'Cost Savings' ? 'up to 97% for compatible workloads' : 
-                         metric.title === 'Latency' ? 'average response (1,800ms → 1,452ms)' :
-                         metric.title === 'Reliability' ? 'with zero rate-limit errors' :
-                         metric.value}
-                      </p>
                     </div>
                   ))}
                 </div>
@@ -126,39 +131,65 @@ export default function BenchmarkResults() {
 
               {/* Right Column - Combined Benchmark Visualization */}
               <div className="lg:col-span-2 flex items-center justify-center">
-                <div className="w-full max-w-2xl opacity-0 animate-fadeIn" style={{ animationDelay: '400ms' }}>
-                  <div className="bg-[#f6f6f4] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 shadow-lg">
-                    <h3 className="text-2xl font-semibold text-gray-900 dark:text-white mb-6 text-center">
+                <div className="w-full max-w-4xl opacity-0 animate-fadeIn" style={{ animationDelay: '400ms' }}>
+                  <div className="bg-[#f6f6f4] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-12">
+                    <h3 className="text-xl font-normal text-gray-900 dark:text-white mb-2 font-inter">
                       Cost Comparison Analysis
                     </h3>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 font-inter">
+                      Measured across 1,000 live API requests with real OpenAI and Anthropic keys (BYOK).
+                    </p>
+
+                    {/* Line Graph */}
+                    <div className="mb-12">
+                      <svg width="100%" height="200" viewBox="0 0 600 200" preserveAspectRatio="none" className="w-full">
+                        {/* Grid lines */}
+                        <line x1="0" y1="50" x2="600" y2="50" stroke="currentColor" strokeWidth="0.5" className="text-gray-300" opacity="0.6" />
+                        <line x1="0" y1="100" x2="600" y2="100" stroke="currentColor" strokeWidth="0.5" className="text-gray-300" opacity="0.6" />
+                        <line x1="0" y1="150" x2="600" y2="150" stroke="currentColor" strokeWidth="0.5" className="text-gray-300" opacity="0.6" />
+
+                        {/* Line path connecting the three points */}
+                        <path
+                          d="M 50 20 L 300 90 L 550 194"
+                          stroke="currentColor"
+                          strokeWidth="1"
+                          fill="none"
+                          className="text-gray-900 dark:text-white"
+                        />
+
+                        {/* Data points */}
+                        <circle cx="50" cy="20" r="2.5" fill="currentColor" className="text-gray-900 dark:text-white" />
+                        <circle cx="300" cy="90" r="2.5" fill="currentColor" className="text-gray-900 dark:text-white" />
+                        <circle cx="550" cy="194" r="2.5" fill="currentColor" className="text-gray-900 dark:text-white" />
+                      </svg>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-inter italic max-w-full whitespace-normal break-words">
+                        Cost reduction validated in production tests. Results vary by workload and provider mix.
+                      </p>
+                    </div>
+
+                    {/* Data labels */}
                     <div className="space-y-6">
                       {comparisonData.map((item, index) => (
-                        <div key={index} className="border-b border-gray-100 dark:border-gray-700 last:border-b-0 pb-6 last:pb-0">
-                          <div className="flex justify-between items-center mb-2">
-                            <h4 className={`text-lg font-medium ${item.isHighlighted ? 'text-green-600 dark:text-green-400 font-bold' : 'text-gray-900 dark:text-white'}`}>
+                        <div key={index} className="border-b border-gray-200 dark:border-gray-700 last:border-b-0 pb-6 last:pb-0">
+                          <div className="flex justify-between items-baseline mb-1">
+                            <h4 className="text-base font-normal text-gray-900 dark:text-white font-inter">
                               {item.scenario}
                             </h4>
-                            <div className="text-right">
-                              <span className={`text-2xl font-bold ${item.isHighlighted ? 'text-green-600 dark:text-green-400' : 'text-gray-900 dark:text-white'} mr-2`}>
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-lg font-normal text-gray-900 dark:text-white font-inter">
                                 {item.cost}
                               </span>
-                              <span className="text-sm text-gray-500 dark:text-gray-400">
-                                ({item.percentage}%)
+                              <span className="text-sm text-gray-500 dark:text-gray-400 font-inter">
+                                {item.percentage}%
                               </span>
                             </div>
                           </div>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">
                             {item.description}
                           </p>
-                          <div className="flex items-center">
-                            <p className="text-2xl font-mono text-gray-400 dark:text-gray-500" style={{ letterSpacing: '0.2em' }}>
-                              {Array.from({ length: 10 }, (_, i) => (i < Math.round(item.percentage / 10) ? '⋮' : '.')).join('')}
-                            </p>
-                          </div>
                         </div>
                       ))}
                     </div>
-
                   </div>
                 </div>
               </div>

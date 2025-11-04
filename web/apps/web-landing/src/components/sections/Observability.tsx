@@ -28,56 +28,49 @@ export default function Observability() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative p-40 px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+        <div className="relative py-16 px-12" style={{
+          borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
           backgroundColor: '#f6f6f4'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
+            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
           </div>
           {/* Bottom right bleeding cross */}
           <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
+            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
           </div>
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
             {/* Section Title */}
-            <div className="text-left mb-12">
-              
-              <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+            <div className="text-left mb-16">
+              <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
                 Full Visibility Across Cost, Performance, and Reliability
               </h3>
-              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter max-w-3xl">
+              <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter max-w-3xl">
                 Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability — all in one view.
               </p>
             </div>
 
-            {/* Features Horizontal Stack */}
-            <div className="flex flex-col lg:flex-row gap-12 border-t border-b border-gray-200 dark:border-gray-700 py-24">
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {features.map((feature, index) => (
-                <div key={feature.name} className="flex-1 text-left relative">
-                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 font-mono">
+                <div key={feature.name} className="text-left border-l border-gray-200 dark:border-gray-700 pl-6">
+                  <h3 className="text-base font-normal text-gray-900 dark:text-white mb-3 font-inter">
                     {feature.name}
                   </h3>
-                  <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-mono">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
                     {feature.description}
                   </p>
-                  {/* Add vertical line between items except last one */}
-                  {index < features.length - 1 && (
-                    <div className="hidden lg:block absolute -top-24 bottom-0 right-0 w-px bg-gray-200 dark:bg-gray-700" style={{ right: '-24px' }}></div>
-                  )}
                 </div>
               ))}
             </div>
-
-            
           </div>
         </div>
       </div>
