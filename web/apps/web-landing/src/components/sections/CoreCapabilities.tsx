@@ -157,11 +157,23 @@ export default function CoreCapabilities() {
                   </p>
                 </div>
 
-                {/* Blank card */}
-                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{
+                {/* Blank card with arch.svg */}
+                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden" style={{
                   backgroundColor: '#f6f6f4',
                   height: '200px'
                 }}>
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundImage: 'url(/arch.svg)',
+                    backgroundSize: '75%',
+                    backgroundPosition: 'left center',
+                    backgroundRepeat: 'no-repeat',
+                    opacity: 0.6
+                  }}></div>
                 </div>
 
                 <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
