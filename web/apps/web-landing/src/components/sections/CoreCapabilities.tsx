@@ -26,28 +26,28 @@ export default function CoreCapabilities() {
       <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="relative py-8 px-12" style={{
-            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
+            borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
+            borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
+            borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
             backgroundColor: '#f6f6f4'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
-              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
-              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
             </div>
             {/* Bottom right bleeding cross */}
             <div className="absolute -bottom-4 -right-4 w-8 h-8">
-              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
-              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
             </div>
 
             {/* Content Container */}
             <div className="w-full px-0">
               {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
             <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
             transform: 'translateX(-66.67%)'
             }}></div>
 
@@ -103,37 +103,42 @@ export default function CoreCapabilities() {
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-8 px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
           backgroundColor: '#f6f6f4',
           minHeight: '700px'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
+            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
           </div>
           {/* Bottom right bleeding cross */}
           <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
+            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
           </div>
 
           {/* Full Width Placeholder */}
           <div 
             className="absolute inset-12 p-8"
             style={{
-              border: '1px solid #d1d5db',
+              borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
+              borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
+              borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
+              borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
               borderRadius: '16px',
               backgroundColor: '#f6f6f4',
+              boxShadow: 'none',
               
               backgroundImage: `
-                repeating-linear-gradient(0deg, transparent, transparent 9px, rgba(209, 213, 219, 0.3) 9px, rgba(209, 213, 219, 0.3) 10px),
-                repeating-linear-gradient(90deg, transparent, transparent 9px, rgba(209, 213, 219, 0.3) 9px, rgba(209, 213, 219, 0.3) 10px)
+                repeating-linear-gradient(0deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px),
+                repeating-linear-gradient(90deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px)
               `,
-              backgroundSize: '10px 10px'
+              backgroundSize: '15px 15px',
+              backgroundPosition: '5px 5px'
             }}
           >
             <div className="max-w-5xl mx-auto h-full flex flex-col justify-center">
@@ -143,33 +148,34 @@ export default function CoreCapabilities() {
                 Deploy optimizations safely with automatic guardrails. Schlep-Engine isolates failures, validates routing before rollout, and continuously monitors provider health to ensure every request succeeds.
               </p>
 
-              <div className="space-y-6">
-                {/* Top wide card - Blank */}
-                <div className="rounded-3xl p-24 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+              {/* 2x2 Grid Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
+                  </p>
                 </div>
 
-                {/* Bottom row with 3 cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                      P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
-                    </p>
-                  </div>
+                {/* Blank card */}
+                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{
+                  backgroundColor: '#f6f6f4',
+                  height: '200px'
+                }}>
+                </div>
 
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Rust Fallback Protection</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                      FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.
-                    </p>
-                  </div>
+                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
+                  </p>
+                </div>
 
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                      Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
-                    </p>
-                  </div>
+                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Rust Fallback Protection</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.
+                  </p>
                 </div>
               </div>
             </div>
