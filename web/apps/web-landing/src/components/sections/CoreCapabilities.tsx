@@ -168,11 +168,11 @@ export default function CoreCapabilities() {
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    backgroundImage: 'url(/arch.svg)',
-                    backgroundSize: '75%',
+                    backgroundImage: 'url(/archi.svg)',
+                    backgroundSize: '95%',
                     backgroundPosition: 'left center',
                     backgroundRepeat: 'no-repeat',
-                    opacity: 0.6
+                    opacity: 0.3
                   }}></div>
                 </div>
 

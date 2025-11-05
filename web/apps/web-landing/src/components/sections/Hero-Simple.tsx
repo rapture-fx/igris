@@ -89,7 +89,8 @@ export default function Hero() {
               backgroundRepeat: 'no-repeat',
               backgroundSize: 'cover',
               opacity: 0.8,
-              borderRadius: '16px',
+              borderTopLeftRadius: '16px',
+              borderTopRightRadius: '16px',
               zIndex: 5
             }}
           />
