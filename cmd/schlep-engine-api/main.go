@@ -137,6 +137,27 @@ func main() {
 			}
 
 			log.Println("[Phase 2] ✅ Multi-tenancy initialized successfully")
+
+			// Initialize Provider Health Monitor (if enabled)
+			enableProviderHealthMonitor := os.Getenv("ENABLE_PROVIDER_HEALTH_MONITOR") != "false" // Default: enabled
+			if enableProviderHealthMonitor {
+				log.Println("[ProviderHealthMonitor] Initializing provider health monitor...")
+
+				// Initialize key vault for health monitor
+				keyVault, err := security.NewKeyVault(db.DB, vaultMasterKey)
+				if err != nil {
+					log.Printf("[ProviderHealthMonitor] ⚠️  Failed to initialize key vault: %v", err)
+				} else {
+					// Import scheduler package
+					providerHealthMonitor := api.NewProviderHealthMonitor(db.DB, keyVault, nil)
+					providerHealthMonitor.Start()
+
+					log.Println("[ProviderHealthMonitor] ✅ Provider health monitor started")
+
+					// Ensure monitor is stopped on shutdown
+					defer providerHealthMonitor.Stop()
+				}
+			}
 		} else {
 			log.Println("[Warning] Database not available - multi-tenancy features disabled")
 		}

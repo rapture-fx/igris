@@ -302,6 +302,15 @@ func SetupMultiTenancy(app *fiber.App, db *sql.DB, jwtSecret, vaultMasterKey str
 	RegisterTenancyRoutes(app, config)
 	RegisterAuthRoutes(app, jwtManager, db)
 
+	// Register provider registry routes
+	providerConfig := &ProviderRegistryRouteConfig{
+		DB:         db,
+		KeyVault:   keyVault,
+		TenantAuth: tenantAuth,
+		APIKeyAuth: apiKeyAuth,
+	}
+	RegisterProviderRegistryRoutes(app, providerConfig)
+
 	log.Println("[Setup] ✓ Phase 14 multi-tenancy initialization complete")
 	return nil
 }
