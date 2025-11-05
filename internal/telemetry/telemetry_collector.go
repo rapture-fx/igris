@@ -6,26 +6,110 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/schlep-engine/schlep-engine/internal/adapters"
 	"github.com/schlep-engine/schlep-engine/internal/logging"
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/routing"
 )
 
 // TelemetryCollector collects and stores routing telemetry
 type TelemetryCollector struct {
-	db     *sql.DB
-	logger *log.Logger
+	db            *sql.DB
+	logger        *log.Logger
+	telemetryQueue chan *RoutingTelemetry
+	workerWg      sync.WaitGroup
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
-// NewTelemetryCollector creates a new telemetry collector
+// NewTelemetryCollector creates a new telemetry collector with async worker pool
 func NewTelemetryCollector(db *sql.DB) *TelemetryCollector {
-	return &TelemetryCollector{
-		db:     db,
-		logger: log.Default(),
+	ctx, cancel := context.WithCancel(context.Background())
+
+	tc := &TelemetryCollector{
+		db:            db,
+		logger:        log.Default(),
+		telemetryQueue: make(chan *RoutingTelemetry, 10000), // 10,000 item buffer
+		ctx:           ctx,
+		cancel:        cancel,
 	}
+
+	// Start 10 worker goroutines for async processing
+	for i := 0; i < 10; i++ {
+		tc.workerWg.Add(1)
+		go tc.telemetryWorker(i)
+	}
+
+	tc.logger.Printf("[TelemetryCollector] Started 10 async workers with 10,000 item buffer")
+
+	return tc
+}
+
+// telemetryWorker processes telemetry records from the queue
+func (tc *TelemetryCollector) telemetryWorker(id int) {
+	defer tc.workerWg.Done()
+
+	for {
+		select {
+		case <-tc.ctx.Done():
+			tc.logger.Printf("[TelemetryCollector] Worker %d shutting down", id)
+			return
+		case telemetry := <-tc.telemetryQueue:
+			// Skip if database is not available
+			if tc.db == nil {
+				continue
+			}
+
+			// Record telemetry with timeout
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			if err := tc.recordTelemetrySync(ctx, telemetry); err != nil {
+				tc.logger.Printf("[TelemetryCollector] Worker %d failed to record telemetry: %v", id, logging.SanitizeError(err))
+				metrics.TelemetryErrors.Inc()
+			} else {
+				metrics.TelemetryRecorded.Inc()
+			}
+			cancel()
+		}
+	}
+}
+
+// Stop gracefully stops the telemetry collector and flushes the queue
+func (tc *TelemetryCollector) Stop() {
+	tc.logger.Println("[TelemetryCollector] Stopping telemetry collector...")
+
+	// Stop accepting new telemetry
+	tc.cancel()
+
+	// Wait for queue to drain with timeout
+	done := make(chan struct{})
+	go func() {
+		// Process remaining items in queue
+		remaining := len(tc.telemetryQueue)
+		if remaining > 0 {
+			tc.logger.Printf("[TelemetryCollector] Flushing %d remaining telemetry records...", remaining)
+		}
+
+		// Wait for workers to finish
+		tc.workerWg.Wait()
+		close(done)
+	}()
+
+	// Wait up to 30 seconds for flush
+	select {
+	case <-done:
+		tc.logger.Println("[TelemetryCollector] ✅ Telemetry collector stopped cleanly")
+	case <-time.After(30 * time.Second):
+		dropped := len(tc.telemetryQueue)
+		tc.logger.Printf("[TelemetryCollector] ⚠️  Shutdown timeout - %d records may be lost", dropped)
+		metrics.TelemetryDropped.Add(float64(dropped))
+	}
+
+	close(tc.telemetryQueue)
 }
 
 // RoutingTelemetry represents telemetry data for a routed request
@@ -46,8 +130,24 @@ type RoutingTelemetry struct {
 	SelectionReason string
 }
 
-// RecordTelemetry records routing telemetry to the database
+// RecordTelemetry queues routing telemetry for async recording
+// This method is non-blocking and returns immediately
 func (tc *TelemetryCollector) RecordTelemetry(ctx context.Context, telemetry *RoutingTelemetry) error {
+	select {
+	case tc.telemetryQueue <- telemetry:
+		// Successfully queued
+		return nil
+	default:
+		// Queue is full - drop telemetry and increment metric
+		metrics.TelemetryDropped.Inc()
+		tc.logger.Printf("[TelemetryCollector] ⚠️  Telemetry queue full - dropping record for tenant %s", telemetry.TenantID)
+		return fmt.Errorf("telemetry queue full - record dropped")
+	}
+}
+
+// recordTelemetrySync synchronously records telemetry to the database
+// This is called by worker goroutines
+func (tc *TelemetryCollector) recordTelemetrySync(ctx context.Context, telemetry *RoutingTelemetry) error {
 	// Use the stored procedure for efficient insertion and health update
 	query := `
 		SELECT record_routing_telemetry($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
@@ -72,7 +172,6 @@ func (tc *TelemetryCollector) RecordTelemetry(ctx context.Context, telemetry *Ro
 	).Scan(&telemetryID)
 
 	if err != nil {
-		tc.logger.Printf("[TelemetryCollector] Failed to record telemetry: %v", logging.SanitizeError(err))
 		return fmt.Errorf("failed to record telemetry: %w", err)
 	}
 

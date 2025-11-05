@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/schlep-engine/schlep-engine/internal/circuitbreaker"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/repository"
 )
@@ -32,15 +33,23 @@ type ProviderCandidate struct {
 
 // ProviderSelector handles intelligent provider selection
 type ProviderSelector struct {
-	repo   repository.ProviderRegistryRepository
-	logger *log.Logger
+	repo            repository.ProviderRegistryRepository
+	logger          *log.Logger
+	circuitBreakers *circuitbreaker.ProviderCircuitBreakers
 }
 
 // NewProviderSelector creates a new provider selector
 func NewProviderSelector(repo repository.ProviderRegistryRepository) *ProviderSelector {
+	// Initialize circuit breakers with 3 failures threshold and 2 minute recovery
+	cbConfig := circuitbreaker.Config{
+		FailureThreshold: 3,
+		RecoveryTimeout:  2 * 60 * 1000 * 1000 * 1000, // 2 minutes in nanoseconds
+	}
+
 	return &ProviderSelector{
-		repo:   repo,
-		logger: log.Default(),
+		repo:            repo,
+		logger:          log.Default(),
+		circuitBreakers: circuitbreaker.NewProviderCircuitBreakers(cbConfig),
 	}
 }
 
@@ -166,6 +175,14 @@ func (s *ProviderSelector) filterProviders(providers []*models.ProviderRegistry,
 
 		// Skip if provider is disabled or invalid
 		if provider.Status == models.StatusDisabled || provider.Status == models.StatusInvalid {
+			continue
+		}
+
+		// Check circuit breaker - skip if circuit is open
+		if !s.circuitBreakers.IsProviderAvailable(provider.ID) {
+			state := s.circuitBreakers.GetState(provider.ID)
+			s.logger.Printf("[ProviderSelector] Skipping provider '%s': circuit breaker is %s",
+				provider.Name, state.String())
 			continue
 		}
 
@@ -358,4 +375,24 @@ func (s *ProviderSelector) GetProviderStats(ctx context.Context, tenantID string
 		"invalid_providers":  invalidCount,
 		"avg_latency_ms":     avgLatency,
 	}, nil
+}
+
+// RecordSuccess records a successful request for circuit breaker tracking
+func (s *ProviderSelector) RecordSuccess(providerID string) {
+	s.circuitBreakers.RecordSuccess(providerID)
+	s.logger.Printf("[ProviderSelector] Recorded success for provider %s (state: %s)",
+		providerID, s.circuitBreakers.GetState(providerID).String())
+}
+
+// RecordFailure records a failed request for circuit breaker tracking
+func (s *ProviderSelector) RecordFailure(providerID string) {
+	s.circuitBreakers.RecordFailure(providerID)
+	state := s.circuitBreakers.GetState(providerID)
+	s.logger.Printf("[ProviderSelector] Recorded failure for provider %s (state: %s)",
+		providerID, state.String())
+}
+
+// GetCircuitBreakerStats returns circuit breaker statistics for all providers
+func (s *ProviderSelector) GetCircuitBreakerStats() map[string]map[string]interface{} {
+	return s.circuitBreakers.GetStats()
 }

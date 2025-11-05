@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/schlep-engine/schlep-engine/internal/adapters"
 	"github.com/schlep-engine/schlep-engine/internal/logging"
-	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/repository"
 	"github.com/schlep-engine/schlep-engine/internal/routing"
@@ -160,7 +159,7 @@ func (h *ChatRouterHandler) ChatCompletions(c *fiber.Ctx) error {
 			}); err != nil {
 				h.logger.Printf("[ChatRouter] WARN: Failed to record telemetry for failed provider '%s' (trace: %s): %v",
 					provider.Name, traceID, logging.SanitizeError(err))
-				metrics.TelemetryErrors.Inc()
+				// Metrics are now tracked by async workers
 			}
 
 			continue
@@ -185,16 +184,16 @@ func (h *ChatRouterHandler) ChatCompletions(c *fiber.Ctx) error {
 			// Log error but don't fail the request - telemetry is non-critical
 			h.logger.Printf("[ChatRouter] WARN: Failed to record telemetry for provider '%s' (trace: %s): %v",
 				provider.Name, traceID, logging.SanitizeError(err))
-			metrics.TelemetryErrors.Inc()
-			// Continue processing - telemetry failure shouldn't break routing
-		} else {
-			metrics.TelemetryRecorded.Inc()
+			// Metrics are now tracked by async workers
 		}
 
 		// Check if successful
 		if result.Success && result.Response != nil {
 			h.logger.Printf("[ChatRouter] Success with provider '%s' (latency=%dms, tokens=%d)",
 				provider.Name, result.LatencyMs, result.Response.Usage.TotalTokens)
+
+			// Record success for circuit breaker
+			h.selector.RecordSuccess(provider.ID)
 
 			// Add routing headers
 			c.Set("X-Schlep-Routed-By", provider.Name)
@@ -209,6 +208,9 @@ func (h *ChatRouterHandler) ChatCompletions(c *fiber.Ctx) error {
 		// Request failed, log and continue to next provider
 		h.logger.Printf("[ChatRouter] Provider '%s' failed: %v", provider.Name, result.Error)
 		lastError = result.Error
+
+		// Record failure for circuit breaker
+		h.selector.RecordFailure(provider.ID)
 
 		// Add provider to exclusion list for next attempt
 		criteria.ExcludeProviders = append(criteria.ExcludeProviders, provider.Name)
@@ -267,9 +269,13 @@ func (h *ChatRouterHandler) GetRoutingStats(c *fiber.Ctx) error {
 		providerStats = map[string]interface{}{}
 	}
 
+	// Get circuit breaker stats
+	circuitBreakerStats := h.selector.GetCircuitBreakerStats()
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"usage":     usage,
-		"providers": providerStats,
+		"usage":            usage,
+		"providers":        providerStats,
+		"circuit_breakers": circuitBreakerStats,
 	})
 }
 
