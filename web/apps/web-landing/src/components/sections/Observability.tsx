@@ -28,7 +28,7 @@ export default function Observability() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-16 px-12" style={{
+        <div className="relative p-96 px-12" style={{
           borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
           borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
           borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
@@ -49,23 +49,21 @@ export default function Observability() {
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
             {/* Section Title */}
-            <div className="text-left mb-16">
+            <div className="text-center mb-16">
               <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
                 Full Visibility Across Cost, Performance, and Reliability
               </h3>
-              <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter max-w-3xl">
+              <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
                 Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability — all in one view.
               </p>
             </div>
 
             {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 max-w-4xl mx-auto">
               {features.map((feature, index) => (
-                <div key={feature.name} className="text-left border-l border-gray-200 dark:border-gray-700 pl-6">
-                  <h3 className="text-base font-normal text-gray-900 dark:text-white mb-3 font-inter">
-                    {feature.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                <div key={feature.name} className="rounded-3xl p-6 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f5f4f2', height: '200px' }}>
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">{feature.name}</h5>
+                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
                     {feature.description}
                   </p>
                 </div>

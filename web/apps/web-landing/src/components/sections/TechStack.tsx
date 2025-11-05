@@ -51,13 +51,13 @@ export default function TechStack() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-center">
               {/* Left Column - SVG Diagram */}
-              <div className="lg:col-span-7 flex items-center justify-center">
+              <div className="lg:col-span-7 flex items-center justify-center pl-8">
                 <img 
                   src="/okdiagar.svg" 
                   alt="OK Diagram" 
-                  className="w-full h-full max-h-[600px] object-contain"
+                  className="w-full h-full max-h-[700px] object-contain"
                 />
               </div>
 

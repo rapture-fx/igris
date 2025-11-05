@@ -184,9 +184,9 @@ export default function CoreCapabilities() {
                 </div>
 
                 <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Rust Fallback Protection</h5>
+                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Resilient Fallback System</h5>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    FFI failures caught at boundary. No panic propagation. Automatic fallback to Go router ensures requests always succeed.
+                    Automatically detects and recovers from provider or runtime errors to ensure uninterrupted API responses under load.
                   </p>
                 </div>
               </div>
