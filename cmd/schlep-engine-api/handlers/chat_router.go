@@ -11,6 +11,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/schlep-engine/schlep-engine/internal/adapters"
+	"github.com/schlep-engine/schlep-engine/internal/logging"
+	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/repository"
 	"github.com/schlep-engine/schlep-engine/internal/routing"
@@ -145,7 +147,7 @@ func (h *ChatRouterHandler) ChatCompletions(c *fiber.Ctx) error {
 			lastError = fmt.Errorf("API key not found for provider '%s'", provider.Name)
 
 			// Record telemetry for this failure
-			_ = h.telemetry.RecordTelemetry(ctx, &telemetry.RoutingTelemetry{
+			if err := h.telemetry.RecordTelemetry(ctx, &telemetry.RoutingTelemetry{
 				TenantID:        tenantCtx.TenantID,
 				TraceID:         traceID,
 				ProviderID:      &provider.ID,
@@ -155,7 +157,11 @@ func (h *ChatRouterHandler) ChatCompletions(c *fiber.Ctx) error {
 				Success:         false,
 				FallbackCount:   fallbackCount,
 				SelectionReason: string(selectionReason),
-			})
+			}); err != nil {
+				h.logger.Printf("[ChatRouter] WARN: Failed to record telemetry for failed provider '%s' (trace: %s): %v",
+					provider.Name, traceID, logging.SanitizeError(err))
+				metrics.TelemetryErrors.Inc()
+			}
 
 			continue
 		}
@@ -165,8 +171,8 @@ func (h *ChatRouterHandler) ChatCompletions(c *fiber.Ctx) error {
 		// Send request to provider
 		result := h.adapter.SendChatCompletion(ctx, provider, apiKey, &req.ChatCompletionRequest)
 
-		// Record telemetry
-		_ = h.telemetry.RecordFromAdapterResult(
+		// Record telemetry with proper error handling
+		if err := h.telemetry.RecordFromAdapterResult(
 			ctx,
 			tenantCtx.TenantID,
 			traceID,
@@ -175,7 +181,15 @@ func (h *ChatRouterHandler) ChatCompletions(c *fiber.Ctx) error {
 			result,
 			fallbackCount,
 			selectionReason,
-		)
+		); err != nil {
+			// Log error but don't fail the request - telemetry is non-critical
+			h.logger.Printf("[ChatRouter] WARN: Failed to record telemetry for provider '%s' (trace: %s): %v",
+				provider.Name, traceID, logging.SanitizeError(err))
+			metrics.TelemetryErrors.Inc()
+			// Continue processing - telemetry failure shouldn't break routing
+		} else {
+			metrics.TelemetryRecorded.Inc()
+		}
 
 		// Check if successful
 		if result.Success && result.Response != nil {

@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -39,13 +40,29 @@ func NewRateLimiter(rate int, window time.Duration) *RateLimiter {
 // RateLimitMiddleware creates a rate limiting middleware
 func (rl *RateLimiter) RateLimitMiddleware() fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// Use IP address as key (could also use user_id from JWT)
-		key := c.IP()
+		// Use tenant ID as key (from tenant context), fallback to IP
+		key := c.IP() // Default to IP
+
+		// Try to get tenant ID from context for tenant-scoped rate limiting
+		if tenantCtx := GetTenantContext(c); tenantCtx != nil {
+			key = tenantCtx.TenantID
+		}
 
 		if !rl.allow(key) {
+			// Calculate retry-after time (window remaining)
+			retryAfter := int(rl.window.Seconds())
+
+			c.Set("Retry-After", fmt.Sprintf("%d", retryAfter))
+			c.Set("X-RateLimit-Limit", fmt.Sprintf("%d", rl.rate))
+			c.Set("X-RateLimit-Remaining", "0")
+
 			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
-				"error":   "Rate limit exceeded",
-				"message": "Too many requests, please try again later",
+				"error": fiber.Map{
+					"message": "Rate limit exceeded. Please try again later.",
+					"type":    "rate_limit_error",
+					"code":    "RATE_LIMIT_EXCEEDED",
+				},
+				"retry_after_seconds": retryAfter,
 			})
 		}
 
