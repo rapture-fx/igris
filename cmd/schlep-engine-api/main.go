@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 	"os"
+	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -37,12 +39,41 @@ func main() {
 		log.Println("[Tracing] OpenTelemetry tracing disabled (set TRACING_ENABLED=true to enable)")
 	}
 
-	// Initialize Fiber app
+	// Configure request limits from environment or use secure defaults
+	bodyLimitMB := 1 // Default: 1MB
+	if envLimit := os.Getenv("BODY_LIMIT_MB"); envLimit != "" {
+		if parsed, err := strconv.Atoi(envLimit); err == nil && parsed > 0 {
+			bodyLimitMB = parsed
+		}
+	}
+
+	readTimeoutSec := 30 // Default: 30s
+	if envTimeout := os.Getenv("READ_TIMEOUT_SEC"); envTimeout != "" {
+		if parsed, err := strconv.Atoi(envTimeout); err == nil && parsed > 0 {
+			readTimeoutSec = parsed
+		}
+	}
+
+	writeTimeoutSec := 30 // Default: 30s
+	if envTimeout := os.Getenv("WRITE_TIMEOUT_SEC"); envTimeout != "" {
+		if parsed, err := strconv.Atoi(envTimeout); err == nil && parsed > 0 {
+			writeTimeoutSec = parsed
+		}
+	}
+
+	// Initialize Fiber app with security limits
 	app := fiber.New(fiber.Config{
 		AppName:      "Schlep-Engine API",
 		ServerHeader: "Schlep-Engine",
 		ErrorHandler: customErrorHandler,
+		// Security limits
+		BodyLimit:    bodyLimitMB * 1024 * 1024,         // Convert MB to bytes
+		ReadTimeout:  time.Second * time.Duration(readTimeoutSec),
+		WriteTimeout: time.Second * time.Duration(writeTimeoutSec),
 	})
+
+	log.Printf("[Security] Request limits configured: body=%dMB, read_timeout=%ds, write_timeout=%ds",
+		bodyLimitMB, readTimeoutSec, writeTimeoutSec)
 
 	// Initialize metrics middleware and routes
 	api.InitializeMetricsMiddleware(app)
@@ -258,7 +289,7 @@ func customErrorHandler(c *fiber.Ctx, err error) error {
 		code = e.Code
 	}
 
-	// Log error with trace ID
+	// Log full error internally with trace ID and sanitization
 	ctx := c.Context()
 	logging.LogError(ctx, err, "request_error", map[string]interface{}{
 		"path":   c.Path(),
@@ -266,10 +297,51 @@ func customErrorHandler(c *fiber.Ctx, err error) error {
 		"status": code,
 	})
 
+	// Return sanitized error to client (NEVER include stack traces, provider names, DB errors, etc.)
+	var message string
+	var errorType string
+
+	switch code {
+	case fiber.StatusBadRequest:
+		message = "Invalid request. Please check your input and try again."
+		errorType = "invalid_request_error"
+	case fiber.StatusUnauthorized:
+		message = "Authentication required. Please provide valid credentials."
+		errorType = "authentication_error"
+	case fiber.StatusForbidden:
+		message = "Access denied. You do not have permission to access this resource."
+		errorType = "authorization_error"
+	case fiber.StatusNotFound:
+		message = "Resource not found."
+		errorType = "not_found_error"
+	case fiber.StatusTooManyRequests:
+		message = "Rate limit exceeded. Please try again later."
+		errorType = "rate_limit_error"
+	case fiber.StatusRequestEntityTooLarge:
+		message = "Request payload too large. Maximum size is 1MB."
+		errorType = "payload_too_large_error"
+	case fiber.StatusServiceUnavailable:
+		message = "Service temporarily unavailable. Please try again later."
+		errorType = "service_unavailable"
+	case fiber.StatusGatewayTimeout:
+		message = "Request timeout. Please try again."
+		errorType = "timeout_error"
+	default:
+		// For all other errors (including 500), return generic message
+		// NEVER expose internal details like:
+		// - Stack traces
+		// - Provider names or IDs
+		// - Database errors
+		// - File paths
+		// - Configuration details
+		message = "An internal error occurred. Please try again later."
+		errorType = "internal_error"
+	}
+
 	return c.Status(code).JSON(fiber.Map{
 		"error": fiber.Map{
-			"message": err.Error(),
-			"type":    "api_error",
+			"message": message,
+			"type":    errorType,
 			"code":    code,
 		},
 		"trace_id": logging.GetTraceID(ctx),

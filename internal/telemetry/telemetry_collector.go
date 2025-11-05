@@ -9,6 +9,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/schlep-engine/schlep-engine/internal/adapters"
+	"github.com/schlep-engine/schlep-engine/internal/logging"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/routing"
 )
@@ -71,12 +72,16 @@ func (tc *TelemetryCollector) RecordTelemetry(ctx context.Context, telemetry *Ro
 	).Scan(&telemetryID)
 
 	if err != nil {
-		tc.logger.Printf("[TelemetryCollector] Failed to record telemetry: %v", err)
+		tc.logger.Printf("[TelemetryCollector] Failed to record telemetry: %v", logging.SanitizeError(err))
 		return fmt.Errorf("failed to record telemetry: %w", err)
 	}
 
-	tc.logger.Printf("[TelemetryCollector] Recorded telemetry: id=%s, provider=%s, latency=%dms, success=%v",
-		telemetryID, telemetry.ProviderName, telemetry.LatencyMs, telemetry.Success)
+	providerID := "none"
+	if telemetry.ProviderID != nil {
+		providerID = logging.MaskProviderID(*telemetry.ProviderID)
+	}
+	tc.logger.Printf("[TelemetryCollector] Recorded telemetry: id=%s, provider=%s, provider_id=%s, latency=%dms, success=%v",
+		telemetryID, telemetry.ProviderName, providerID, telemetry.LatencyMs, telemetry.Success)
 
 	return nil
 }

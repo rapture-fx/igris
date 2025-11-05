@@ -2,9 +2,12 @@
 package middleware
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/schlep-engine/schlep-engine/internal/security"
@@ -16,6 +19,11 @@ type TenantAuth struct {
 	db         *sql.DB
 	logger     *log.Logger
 	enabled    bool
+	// Worker pool for async operations
+	loginQueue chan string
+	workerWg   sync.WaitGroup
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 // TenantContextKey is the key used to store tenant info in Fiber context
@@ -33,11 +41,75 @@ type TenantContext struct {
 func NewTenantAuth(jwtManager *security.JWTManager, db *sql.DB) *TenantAuth {
 	enabled := jwtManager != nil
 
-	return &TenantAuth{
+	ctx, cancel := context.WithCancel(context.Background())
+
+	ta := &TenantAuth{
 		jwtManager: jwtManager,
 		db:         db,
 		logger:     log.Default(),
 		enabled:    enabled,
+		loginQueue: make(chan string, 1000), // Buffered channel for 1000 pending updates
+		ctx:        ctx,
+		cancel:     cancel,
+	}
+
+	// Start worker pool (5 workers for async login updates)
+	numWorkers := 5
+	for i := 0; i < numWorkers; i++ {
+		ta.workerWg.Add(1)
+		go ta.loginWorker(i)
+	}
+
+	log.Printf("[TenantAuth] Started %d workers for async login updates", numWorkers)
+
+	return ta
+}
+
+// loginWorker processes login updates from the queue
+func (ta *TenantAuth) loginWorker(id int) {
+	defer ta.workerWg.Done()
+
+	for {
+		select {
+		case <-ta.ctx.Done():
+			ta.logger.Printf("[TenantAuth] Worker %d shutting down", id)
+			return
+		case tenantID := <-ta.loginQueue:
+			// Create context with timeout for database operation
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+			if err := ta.updateLastLoginWithContext(ctx, tenantID); err != nil {
+				ta.logger.Printf("[TenantAuth] Worker %d failed to update last login for tenant %s: %v",
+					id, tenantID, err)
+			}
+
+			cancel()
+		}
+	}
+}
+
+// Stop gracefully shuts down the worker pool
+func (ta *TenantAuth) Stop() {
+	ta.logger.Println("[TenantAuth] Stopping authentication worker pool...")
+
+	// Signal all workers to stop
+	ta.cancel()
+
+	// Close the queue (no more updates accepted)
+	close(ta.loginQueue)
+
+	// Wait for all workers to finish with timeout
+	done := make(chan struct{})
+	go func() {
+		ta.workerWg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		ta.logger.Println("[TenantAuth] All workers stopped gracefully")
+	case <-time.After(10 * time.Second):
+		ta.logger.Println("[TenantAuth] Timeout waiting for workers, forcing shutdown")
 	}
 }
 
@@ -98,8 +170,14 @@ func (ta *TenantAuth) Authenticate() fiber.Handler {
 			})
 		}
 
-		// Update tenant last login (async, non-blocking)
-		go ta.updateLastLogin(claims.TenantID)
+		// Update tenant last login (async, non-blocking via worker pool)
+		select {
+		case ta.loginQueue <- claims.TenantID:
+			// Successfully queued
+		default:
+			// Queue full, log warning but don't block request
+			ta.logger.Printf("[TenantAuth] Login queue full, dropping update for tenant %s", claims.TenantID)
+		}
 
 		// Create tenant context
 		tenantCtx := &TenantContext{
@@ -201,19 +279,17 @@ func (ta *TenantAuth) getTenantStatus(tenantID string) (string, error) {
 	return status, nil
 }
 
-// updateLastLogin updates the tenant's last login timestamp
-func (ta *TenantAuth) updateLastLogin(tenantID string) {
+// updateLastLoginWithContext updates the tenant's last login timestamp with context
+func (ta *TenantAuth) updateLastLoginWithContext(ctx context.Context, tenantID string) error {
 	if ta.db == nil {
-		return
+		return nil
 	}
 
-	_, err := ta.db.Exec(`
+	_, err := ta.db.ExecContext(ctx, `
 		SELECT update_tenant_last_login($1)
 	`, tenantID)
 
-	if err != nil {
-		ta.logger.Printf("[TenantAuth] Failed to update last login for %s: %v", tenantID, err)
-	}
+	return err
 }
 
 // hasRole checks if a role exists in the roles slice
@@ -251,17 +327,86 @@ func (ta *TenantAuth) RequireTenant() fiber.Handler {
 
 // APIKeyAuth provides API key authentication (alternative to JWT)
 type APIKeyAuth struct {
-	db      *sql.DB
-	logger  *log.Logger
-	enabled bool
+	db         *sql.DB
+	logger     *log.Logger
+	enabled    bool
+	// Worker pool for async operations
+	loginQueue chan string
+	workerWg   sync.WaitGroup
+	ctx        context.Context
+	cancel     context.CancelFunc
 }
 
 // NewAPIKeyAuth creates a new API key authentication middleware
 func NewAPIKeyAuth(db *sql.DB) *APIKeyAuth {
-	return &APIKeyAuth{
-		db:      db,
-		logger:  log.Default(),
-		enabled: db != nil,
+	ctx, cancel := context.WithCancel(context.Background())
+
+	aka := &APIKeyAuth{
+		db:         db,
+		logger:     log.Default(),
+		enabled:    db != nil,
+		loginQueue: make(chan string, 1000), // Buffered channel
+		ctx:        ctx,
+		cancel:     cancel,
+	}
+
+	// Start worker pool (5 workers)
+	numWorkers := 5
+	for i := 0; i < numWorkers; i++ {
+		aka.workerWg.Add(1)
+		go aka.loginWorker(i)
+	}
+
+	log.Printf("[APIKeyAuth] Started %d workers for async login updates", numWorkers)
+
+	return aka
+}
+
+// loginWorker processes login updates from the queue
+func (aka *APIKeyAuth) loginWorker(id int) {
+	defer aka.workerWg.Done()
+
+	for {
+		select {
+		case <-aka.ctx.Done():
+			aka.logger.Printf("[APIKeyAuth] Worker %d shutting down", id)
+			return
+		case tenantID := <-aka.loginQueue:
+			// Create context with timeout for database operation
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+			if err := aka.updateLastLoginWithContext(ctx, tenantID); err != nil {
+				aka.logger.Printf("[APIKeyAuth] Worker %d failed to update last login for tenant %s: %v",
+					id, tenantID, err)
+			}
+
+			cancel()
+		}
+	}
+}
+
+// Stop gracefully shuts down the worker pool
+func (aka *APIKeyAuth) Stop() {
+	aka.logger.Println("[APIKeyAuth] Stopping authentication worker pool...")
+
+	// Signal all workers to stop
+	aka.cancel()
+
+	// Close the queue
+	close(aka.loginQueue)
+
+	// Wait for all workers to finish with timeout
+	done := make(chan struct{})
+	go func() {
+		aka.workerWg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		aka.logger.Println("[APIKeyAuth] All workers stopped gracefully")
+	case <-time.After(10 * time.Second):
+		aka.logger.Println("[APIKeyAuth] Timeout waiting for workers, forcing shutdown")
 	}
 }
 
@@ -322,8 +467,14 @@ func (aka *APIKeyAuth) Authenticate() fiber.Handler {
 			})
 		}
 
-		// Update last login
-		go aka.updateLastLogin(tenantID)
+		// Update last login (async, non-blocking via worker pool)
+		select {
+		case aka.loginQueue <- tenantID:
+			// Successfully queued
+		default:
+			// Queue full, log warning but don't block request
+			aka.logger.Printf("[APIKeyAuth] Login queue full, dropping update for tenant %s", tenantID)
+		}
 
 		// Create tenant context
 		tenantCtx := &TenantContext{
@@ -338,18 +489,16 @@ func (aka *APIKeyAuth) Authenticate() fiber.Handler {
 	}
 }
 
-func (aka *APIKeyAuth) updateLastLogin(tenantID string) {
+func (aka *APIKeyAuth) updateLastLoginWithContext(ctx context.Context, tenantID string) error {
 	if aka.db == nil {
-		return
+		return nil
 	}
 
-	_, err := aka.db.Exec(`
+	_, err := aka.db.ExecContext(ctx, `
 		SELECT update_tenant_last_login($1)
 	`, tenantID)
 
-	if err != nil {
-		aka.logger.Printf("[APIKeyAuth] Failed to update last login for %s: %v", tenantID, err)
-	}
+	return err
 }
 
 // BypassAuth creates a middleware that bypasses authentication for specific paths

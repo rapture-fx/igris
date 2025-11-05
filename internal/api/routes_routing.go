@@ -4,6 +4,9 @@ package api
 import (
 	"database/sql"
 	"log"
+	"os"
+	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/schlep-engine/schlep-engine/cmd/schlep-engine-api/handlers"
@@ -25,15 +28,29 @@ func RegisterRoutingRoutes(app *fiber.App, config *RoutingRouteConfig) {
 	// Create chat router handler
 	chatRouter := handlers.NewChatRouterHandler(config.DB, config.KeyVault)
 
+	// Configure rate limiting (default: 100 requests/minute per tenant)
+	rateLimitPerMin := 100
+	if envLimit := os.Getenv("RATE_LIMIT_PER_MINUTE"); envLimit != "" {
+		if parsed, err := strconv.Atoi(envLimit); err == nil && parsed > 0 {
+			rateLimitPerMin = parsed
+		}
+	}
+	rateLimiter := middleware.NewRateLimiter(rateLimitPerMin, time.Minute)
+	log.Printf("[Routes] Rate limiting configured: %d requests/minute per tenant", rateLimitPerMin)
+
 	// API v1 group
 	v1 := app.Group("/v1")
 
 	// ========================================================================
-	// CHAT COMPLETIONS ROUTING (Require tenant authentication)
+	// CHAT COMPLETIONS ROUTING (Require tenant authentication + rate limiting)
 	// ========================================================================
 
-	// Main routing endpoint (OpenAI-compatible)
-	v1.Post("/chat/completions", config.TenantAuth.Authenticate(), chatRouter.ChatCompletions)
+	// Main routing endpoint (OpenAI-compatible) with rate limiting
+	v1.Post("/chat/completions",
+		config.TenantAuth.Authenticate(),
+		rateLimiter.RateLimitMiddleware(),
+		chatRouter.ChatCompletions,
+	)
 
 	log.Println("[Routes] ✓ Registered chat completions routing endpoint")
 	log.Println("[Routes]   - POST /v1/chat/completions (Intelligent multi-provider routing)")

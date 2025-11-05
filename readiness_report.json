@@ -1,0 +1,739 @@
+{
+  "audit_metadata": {
+    "audit_date": "2025-11-05",
+    "auditor": "Claude Code Launch-Readiness Audit",
+    "codebase": "schlep-engine",
+    "version": "1.0.0-rc1",
+    "scope": "Security, Reliability, Observability, Performance, Documentation",
+    "audit_duration_hours": 2
+  },
+  "executive_summary": {
+    "ready_for_launch": false,
+    "overall_risk_level": "HIGH",
+    "total_findings": 45,
+    "critical_count": 8,
+    "high_count": 14,
+    "medium_count": 16,
+    "low_count": 7,
+    "blockers": [
+      "API keys potentially logged in plaintext (SECURITY-001)",
+      "No rate limiting on routing endpoint (SECURITY-003)",
+      "Synchronous telemetry recording blocks routing (PERF-001)",
+      "No circuit breaker for failing providers (REL-003)",
+      "SQL injection potential in tenant auth (SECURITY-005)",
+      "No request size limits configured (SECURITY-006)",
+      "Goroutine leaks in auth middleware (SECURITY-004)",
+      "Telemetry errors silently ignored (REL-001)"
+    ],
+    "recommendation": "DO NOT LAUNCH until all CRITICAL findings are resolved. Address HIGH severity findings before public deployment. Implement comprehensive monitoring and alerting before proceeding to production."
+  },
+  "findings": {
+    "security": [
+      {
+        "finding_id": "SECURITY-001",
+        "severity": "critical",
+        "title": "API Keys Potentially Logged in Plaintext",
+        "description": "The HTTPAdapter logs provider information which could include API keys. In http_adapter.go:212-213, the logger outputs provider name, model, latency, and token counts. While the current code doesn't explicitly log the API key, any error or debug logging could inadvertently expose sensitive authentication data. Additionally, trace headers expose provider_id and tenant_id to external providers (lines 150-151), which could leak sensitive tenant information.",
+        "affected_files": [
+          "internal/adapters/http_adapter.go:212-213",
+          "internal/adapters/http_adapter.go:150-151"
+        ],
+        "recommended_fix": "1. Implement a sanitization function that masks sensitive fields before logging. 2. Remove tenant_id from headers sent to external providers (x-schlep-tenant-id). 3. Add log level checks to prevent verbose logging in production. 4. Implement structured logging with field-level controls for sensitive data.",
+        "estimated_effort_hours": 4,
+        "remediation_code": "// Add sanitization\nfunc sanitizeForLogging(msg string, provider *models.ProviderRegistry) string {\n    // Mask provider ID, remove tenant context\n    return fmt.Sprintf(\"provider=%s, model=%s, latency=%dms, tokens=%d\", \n        maskProviderID(provider.Name), model, latency, tokens)\n}\n\n// Remove this line:\nreq.Header.Set(\"x-schlep-tenant-id\", provider.TenantID)"
+      },
+      {
+        "finding_id": "SECURITY-002",
+        "severity": "critical",
+        "title": "Tenant/Provider IDs Exposed in HTTP Headers to External APIs",
+        "description": "The HTTP adapter adds x-schlep-provider-id and x-schlep-tenant-id headers to requests sent to external provider APIs (http_adapter.go:150-151). These internal identifiers should never be sent to external systems as they could: 1) Enable correlation attacks across tenants, 2) Leak internal tenant structure, 3) Be used for reconnaissance by malicious providers.",
+        "affected_files": [
+          "internal/adapters/http_adapter.go:150-151"
+        ],
+        "recommended_fix": "Remove these headers entirely from external requests. Use internal correlation only within Schlep-Engine's observability stack. If provider identification is needed, use the trace_id only, which doesn't expose tenant information.",
+        "estimated_effort_hours": 1
+      },
+      {
+        "finding_id": "SECURITY-003",
+        "severity": "critical",
+        "title": "No Rate Limiting on Routing Endpoint",
+        "description": "The main routing endpoint POST /v1/chat/completions does not have rate limiting applied, despite a RateLimiter implementation existing in middleware/ratelimit.go. This could enable: 1) DoS attacks by overwhelming the system, 2) Tenant abuse of shared provider quotas, 3) Cost amplification attacks, 4) Database connection exhaustion.",
+        "affected_files": [
+          "internal/api/routes_routing.go:36",
+          "cmd/schlep-engine-api/main.go:52"
+        ],
+        "recommended_fix": "Apply tenant-scoped rate limiting to the routing endpoint: 1) Create rate limiter with per-tenant keys, 2) Configure reasonable limits (e.g., 100 req/min per tenant), 3) Add burst tolerance, 4) Return proper 429 responses with Retry-After headers.",
+        "estimated_effort_hours": 3,
+        "remediation_code": "// In routes_routing.go\nrateLimiter := middleware.NewRateLimiter(100, time.Minute) // 100 req/min\nv1.Post(\"/chat/completions\", \n    config.TenantAuth.Authenticate(),\n    rateLimiter.RateLimitMiddleware(), // Add this\n    chatRouter.ChatCompletions)"
+      },
+      {
+        "finding_id": "SECURITY-004",
+        "severity": "critical",
+        "title": "Goroutine Leaks in Authentication Middleware",
+        "description": "The tenant authentication middleware launches goroutines without proper error handling or timeouts (tenant_auth.go:102, 326). The updateLastLogin functions execute database operations in fire-and-forget goroutines that could: 1) Leak goroutines if DB operations hang, 2) Exhaust database connections, 3) Cause memory leaks under high load, 4) Fail silently without observability.",
+        "affected_files": [
+          "internal/middleware/tenant_auth.go:102",
+          "internal/middleware/tenant_auth.go:326"
+        ],
+        "recommended_fix": "Implement proper goroutine lifecycle management: 1) Use context with timeout for DB operations, 2) Implement a worker pool pattern with bounded concurrency, 3) Add error logging for failed updates, 4) Consider making updates asynchronous via a queue instead of goroutines.",
+        "estimated_effort_hours": 4,
+        "remediation_code": "// Replace direct goroutine with bounded worker\nfunc (ta *TenantAuth) updateLastLogin(tenantID string) {\n    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)\n    defer cancel()\n    \n    _, err := ta.db.ExecContext(ctx, `SELECT update_tenant_last_login($1)`, tenantID)\n    if err != nil {\n        ta.logger.Printf(\"[TenantAuth] Failed to update last login: %v\", err)\n    }\n}"
+      },
+      {
+        "finding_id": "SECURITY-005",
+        "severity": "critical",
+        "title": "Potential SQL Injection in getTenantStatus",
+        "description": "While the code uses parameterized queries ($1) which prevents SQL injection, the getTenantStatus function in tenant_auth.go:190-192 directly interpolates the tenantID into the query. Although the current implementation uses $1 placeholder correctly, the pattern could be dangerous if modified. Additionally, there's no input validation on tenant_id format before database queries.",
+        "affected_files": [
+          "internal/middleware/tenant_auth.go:190-192",
+          "internal/middleware/tenant_auth.go:210-211"
+        ],
+        "recommended_fix": "1. Add UUID validation for tenant_id before any database operation, 2. Implement input sanitization middleware, 3. Add database query safety linter to CI/CD pipeline, 4. Document safe query patterns for the team.",
+        "estimated_effort_hours": 3
+      },
+      {
+        "finding_id": "SECURITY-006",
+        "severity": "critical",
+        "title": "No Request Size Limits Configured",
+        "description": "The Fiber application doesn't configure request body size limits (main.go:41-45). This allows attackers to send arbitrarily large payloads causing: 1) Memory exhaustion, 2) Network bandwidth consumption, 3) DoS through resource exhaustion, 4) Increased latency for all users.",
+        "affected_files": [
+          "cmd/schlep-engine-api/main.go:41-45"
+        ],
+        "recommended_fix": "Configure Fiber with reasonable limits: 1) Set BodyLimit to 1MB for routing endpoints, 2) Implement streaming for large requests if needed, 3) Add middleware to reject oversized payloads early, 4) Monitor request sizes in telemetry.",
+        "estimated_effort_hours": 2,
+        "remediation_code": "app := fiber.New(fiber.Config{\n    AppName:      \"Schlep-Engine API\",\n    ServerHeader: \"Schlep-Engine\",\n    ErrorHandler: customErrorHandler,\n    BodyLimit:    1 * 1024 * 1024, // 1MB limit\n    ReadTimeout:  time.Second * 30,\n    WriteTimeout: time.Second * 30,\n})"
+      },
+      {
+        "finding_id": "SECURITY-007",
+        "severity": "high",
+        "title": "Master Key Stored in Memory Without Rotation",
+        "description": "The KeyVault stores the master encryption key in memory (key_vault.go:28, 99) with no key rotation mechanism. If the application is compromised, all encrypted API keys could be decrypted. Additionally, insecure defaults are provided in main.go:119-123.",
+        "affected_files": [
+          "internal/security/key_vault.go:28",
+          "internal/security/key_vault.go:99",
+          "cmd/schlep-engine-api/main.go:119-123"
+        ],
+        "recommended_fix": "1. Implement key rotation with versioning, 2. Remove default fallback keys entirely, 3. Use external key management service (AWS KMS, HashiCorp Vault), 4. Add key rotation schedule documentation, 5. Fail fast if VAULT_MASTER_KEY is not set in production.",
+        "estimated_effort_hours": 8
+      },
+      {
+        "finding_id": "SECURITY-008",
+        "severity": "high",
+        "title": "SSRF Protection Incomplete - DNS Rebinding Attack Possible",
+        "description": "The SSRF validation in provider_registry_service.go:340-384 resolves hostnames to IPs and checks for private ranges. However, this is vulnerable to DNS rebinding attacks where: 1) Initial resolution returns public IP, 2) Subsequent requests resolve to private IP, 3) Time-of-check-time-of-use (TOCTOU) race condition.",
+        "affected_files": [
+          "internal/services/provider_registry_service.go:340-384"
+        ],
+        "recommended_fix": "1. Re-resolve and check IP immediately before each request, 2. Use a custom HTTP transport with DialContext that validates IPs, 3. Implement allowlist of known provider domains, 4. Add timeout to DNS resolution.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "SECURITY-009",
+        "severity": "high",
+        "title": "API Key Hashing Uses SHA-256 Instead of Password Hash",
+        "description": "The HashAPIKey function uses SHA-256 (key_vault.go:538) for hashing API keys. While better than plaintext, SHA-256 is not suitable for password/key hashing because: 1) It's too fast, enabling brute force, 2) No salt makes rainbow table attacks feasible, 3) No computational cost controls.",
+        "affected_files": [
+          "internal/security/key_vault.go:536-540"
+        ],
+        "recommended_fix": "Use bcrypt or Argon2id with proper cost parameters: bcrypt.GenerateFromPassword([]byte(apiKey), bcrypt.DefaultCost). Implement migration path for existing hashes.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "SECURITY-010",
+        "severity": "high",
+        "title": "CORS Enabled with Default Permissive Settings",
+        "description": "The application enables CORS with default settings (main.go:52) which typically allows all origins. This could enable: 1) Unauthorized cross-origin requests, 2) CSRF attacks, 3) Data exfiltration from authenticated sessions.",
+        "affected_files": [
+          "cmd/schlep-engine-api/main.go:52"
+        ],
+        "recommended_fix": "Configure CORS restrictively: 1) Specify allowed origins explicitly, 2) Restrict allowed methods to required ones only, 3) Enable credentials carefully, 4) Set appropriate max age.",
+        "estimated_effort_hours": 2,
+        "remediation_code": "app.Use(cors.New(cors.Config{\n    AllowOrigins:     os.Getenv(\"ALLOWED_ORIGINS\"),\n    AllowMethods:     \"GET,POST,PUT,DELETE\",\n    AllowHeaders:     \"Authorization,Content-Type\",\n    AllowCredentials: true,\n    MaxAge:          300,\n}))"
+      },
+      {
+        "finding_id": "SECURITY-011",
+        "severity": "high",
+        "title": "Error Messages Expose Internal Implementation Details",
+        "description": "The custom error handler (main.go:269) returns raw error messages that could leak: 1) Database schema details, 2) Internal file paths, 3) Technology stack information, 4) Business logic details.",
+        "affected_files": [
+          "cmd/schlep-engine-api/main.go:255-277"
+        ],
+        "recommended_fix": "Implement error sanitization: 1) Map internal errors to user-friendly messages, 2) Log detailed errors separately for debugging, 3) Return generic messages for internal errors, 4) Use error codes instead of messages.",
+        "estimated_effort_hours": 3
+      },
+      {
+        "finding_id": "SECURITY-012",
+        "severity": "medium",
+        "title": "No Request Replay Protection",
+        "description": "The routing system doesn't implement nonce or timestamp-based replay protection. An attacker could capture and replay valid authenticated requests to: 1) Duplicate expensive operations, 2) Exhaust provider quotas, 3) Amplify costs.",
+        "affected_files": [
+          "cmd/schlep-engine-api/handlers/chat_router.go"
+        ],
+        "recommended_fix": "Implement request deduplication: 1) Add idempotency key support, 2) Cache request signatures with TTL, 3) Reject duplicate requests within time window, 4) Add timestamp validation to JWT claims.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "SECURITY-013",
+        "severity": "medium",
+        "title": "No Authentication on Health Endpoints",
+        "description": "Health endpoints /healthz, /readyz, /startupz are publicly accessible and could leak: 1) Database connection status, 2) Redis connectivity, 3) Internal service dependencies, 4) Version information.",
+        "affected_files": [
+          "internal/api/routes_health.go"
+        ],
+        "recommended_fix": "Consider adding optional authentication for health endpoints or limiting the information returned. At minimum, separate public health check from detailed internal status.",
+        "estimated_effort_hours": 2
+      },
+      {
+        "finding_id": "SECURITY-014",
+        "severity": "medium",
+        "title": "JWT Secret Has Insecure Default Fallback",
+        "description": "The application provides a default JWT secret if JWT_SECRET is not set (main.go:115-117). While there's a warning, the application still runs with an insecure secret, which could lead to: 1) Token forgery, 2) Unauthorized access, 3) Complete authentication bypass.",
+        "affected_files": [
+          "cmd/schlep-engine-api/main.go:113-117"
+        ],
+        "recommended_fix": "Remove the default fallback entirely. Fail fast with a clear error if JWT_SECRET is not configured in production. Add startup validation that ensures secrets meet minimum requirements (length, entropy).",
+        "estimated_effort_hours": 1
+      },
+      {
+        "finding_id": "SECURITY-015",
+        "severity": "low",
+        "title": "Auth Header Sanitization May Be Insufficient",
+        "description": "The sanitizeAuthHeader function (provider_registry_service.go:386-392) only removes newlines and carriage returns. More sophisticated injection attacks using other control characters or Unicode tricks might still be possible.",
+        "affected_files": [
+          "internal/services/provider_registry_service.go:386-393"
+        ],
+        "recommended_fix": "Implement comprehensive input validation: 1) Validate against expected format (regex), 2) Remove all control characters, 3) Validate key placeholders, 4) Reject unexpected patterns.",
+        "estimated_effort_hours": 2
+      }
+    ],
+    "reliability": [
+      {
+        "finding_id": "REL-001",
+        "severity": "critical",
+        "title": "Telemetry Recording Errors Silently Ignored",
+        "description": "In chat_router.go:169 and 148, telemetry recording errors are ignored using `_`. If telemetry fails (database down, connection exhausted), routing continues but: 1) No metrics are collected, 2) Health updates don't happen, 3) Cost tracking fails, 4) Debugging becomes impossible. Failures are silent with no alerting.",
+        "affected_files": [
+          "cmd/schlep-engine-api/handlers/chat_router.go:148",
+          "cmd/schlep-engine-api/handlers/chat_router.go:169"
+        ],
+        "recommended_fix": "1. Log telemetry failures with appropriate severity, 2. Increment error metrics/counters, 3. Consider queueing failed telemetry for retry, 4. Alert if telemetry failure rate exceeds threshold.",
+        "estimated_effort_hours": 3,
+        "remediation_code": "if err := h.telemetry.RecordFromAdapterResult(...); err != nil {\n    h.logger.Printf(\"[WARN] Failed to record telemetry: %v\", err)\n    metrics.TelemetryErrors.Inc()\n    // Consider async retry queue\n}"
+      },
+      {
+        "finding_id": "REL-002",
+        "severity": "critical",
+        "title": "Database Connection Not Validated Before Use",
+        "description": "The application doesn't verify database connectivity is maintained throughout operation. If the database connection is lost during runtime, the application will panic rather than gracefully handle the error. No connection health checks or automatic reconnection logic exists.",
+        "affected_files": [
+          "internal/database/database.go",
+          "cmd/schlep-engine-api/main.go:69-89"
+        ],
+        "recommended_fix": "Implement connection health monitoring: 1) Periodic database ping, 2) Connection pool monitoring, 3) Automatic reconnection with exponential backoff, 4) Circuit breaker for database operations, 5) Graceful degradation when DB unavailable.",
+        "estimated_effort_hours": 8
+      },
+      {
+        "finding_id": "REL-003",
+        "severity": "critical",
+        "title": "No Circuit Breaker for Failing Providers",
+        "description": "The routing system tries failing providers repeatedly without implementing circuit breaker pattern. This causes: 1) Increased latency from repeated timeouts, 2) Wasted resources on known-failing providers, 3) Cascade failures, 4) Poor user experience with long wait times.",
+        "affected_files": [
+          "internal/routing/provider_selector.go",
+          "cmd/schlep-engine-api/handlers/chat_router.go:124-201"
+        ],
+        "recommended_fix": "Implement circuit breaker pattern: 1) Track failure rate per provider, 2) Open circuit after N consecutive failures, 3) Half-open state for testing recovery, 4) Automatic state transitions with time-based recovery.",
+        "estimated_effort_hours": 12
+      },
+      {
+        "finding_id": "REL-004",
+        "severity": "critical",
+        "title": "Context Without Proper Cancellation in Background Jobs",
+        "description": "The telemetry aggregator creates context.Background() (telemetry_aggregator.go:123) for aggregation jobs, which doesn't respect parent context cancellation. If the application is shutting down, aggregation jobs may continue running, potentially: 1) Causing graceful shutdown delays, 2) Leaving incomplete transactions, 3) Corrupting data.",
+        "affected_files": [
+          "internal/scheduler/telemetry_aggregator.go:42",
+          "internal/scheduler/telemetry_aggregator.go:123"
+        ],
+        "recommended_fix": "Use the aggregator's context for jobs: `ctx, cancel := context.WithTimeout(a.ctx, 5*time.Minute)`. Ensure all database operations respect context cancellation.",
+        "estimated_effort_hours": 2
+      },
+      {
+        "finding_id": "REL-005",
+        "severity": "high",
+        "title": "No Exponential Backoff in Fallback Logic",
+        "description": "When a provider fails, the system immediately tries the next provider without delay (chat_router.go:124-201). This could overwhelm fallback providers and doesn't account for transient failures that might recover quickly.",
+        "affected_files": [
+          "cmd/schlep-engine-api/handlers/chat_router.go:124-201"
+        ],
+        "recommended_fix": "Implement exponential backoff: 1) Add configurable delay between retries, 2) Implement jitter to avoid thundering herd, 3) Consider brief retry of same provider before fallback, 4) Make backoff strategy configurable per provider.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "REL-006",
+        "severity": "high",
+        "title": "Provider Health Update Not Idempotent",
+        "description": "Multiple concurrent requests to the same provider could cause race conditions when updating health metrics. The UpdateHealth and UpdateStatus methods (provider_registry_repository.go:336-390) don't use database-level locking or optimistic concurrency control.",
+        "affected_files": [
+          "internal/repository/provider_registry_repository.go:336-360",
+          "internal/repository/provider_registry_repository.go:362-390"
+        ],
+        "recommended_fix": "Implement row-level locking or optimistic concurrency: 1) Use FOR UPDATE in SELECT queries, 2) Add version column for optimistic locking, 3) Use database functions for atomic updates, 4) Handle concurrent update conflicts gracefully.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "REL-007",
+        "severity": "high",
+        "title": "Cleanup Goroutine in Rate Limiter Never Stops",
+        "description": "The rate limiter starts a cleanup goroutine (ratelimit.go:92-106) that runs forever with no way to stop it. When rate limiters are created (e.g., per request or dynamically), these goroutines leak, causing: 1) Goroutine accumulation, 2) Memory leaks, 3) Resource exhaustion over time.",
+        "affected_files": [
+          "internal/middleware/ratelimit.go:92-106",
+          "internal/middleware/ratelimit.go:34"
+        ],
+        "recommended_fix": "Add lifecycle management: 1) Return context.CancelFunc from NewRateLimiter, 2) Use context for cleanup goroutine, 3) Implement Stop() method, 4) Ensure cleanup happens on shutdown.",
+        "estimated_effort_hours": 3,
+        "remediation_code": "func (rl *RateLimiter) cleanup(ctx context.Context) {\n    ticker := time.NewTicker(rl.cleanupInterval)\n    defer ticker.Stop()\n    for {\n        select {\n        case <-ctx.Done():\n            return\n        case <-ticker.C:\n            // cleanup logic\n        }\n    }\n}"
+      },
+      {
+        "finding_id": "REL-008",
+        "severity": "high",
+        "title": "No Connection Pool Configuration for Database",
+        "description": "The database connection doesn't configure connection pool settings. Under load, this could cause: 1) Connection exhaustion, 2) Slow connection acquisition, 3) Deadlocks from exhausted pools, 4) Cascading failures.",
+        "affected_files": [
+          "internal/database/database.go"
+        ],
+        "recommended_fix": "Configure connection pool: 1) Set MaxOpenConns based on expected load, 2) Configure MaxIdleConns, 3) Set ConnMaxLifetime, 4) Monitor pool utilization metrics.",
+        "estimated_effort_hours": 3
+      },
+      {
+        "finding_id": "REL-009",
+        "severity": "high",
+        "title": "HTTP Client Timeout Not Configurable Per Provider",
+        "description": "The HTTPAdapter uses a fixed 30-second timeout (http_adapter.go:91-102). Some providers may need different timeouts based on: 1) Model complexity, 2) Expected response time, 3) Network conditions. Fixed timeout causes either unnecessary waits or premature failures.",
+        "affected_files": [
+          "internal/adapters/http_adapter.go:90-102",
+          "cmd/schlep-engine-api/handlers/chat_router.go:35"
+        ],
+        "recommended_fix": "Make timeout configurable per provider: 1) Add timeout_ms field to provider registry, 2) Create new client per provider with appropriate timeout, 3) Implement request-level timeout override, 4) Add metrics for timeout-related failures.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "REL-010",
+        "severity": "medium",
+        "title": "Aggregator Window Timeout Too Large",
+        "description": "The telemetry aggregator uses a 5-minute timeout (telemetry_aggregator.go:123) for aggregation jobs. If jobs consistently take this long: 1) Jobs queue up, 2) Database connections held too long, 3) Delayed health updates, 4) Resource contention.",
+        "affected_files": [
+          "internal/scheduler/telemetry_aggregator.go:123"
+        ],
+        "recommended_fix": "1. Reduce timeout to 30-60 seconds, 2. Implement job cancellation if it exceeds expected time, 3. Add alerting for slow aggregation, 4. Optimize aggregation query performance.",
+        "estimated_effort_hours": 2
+      },
+      {
+        "finding_id": "REL-011",
+        "severity": "medium",
+        "title": "No Graceful Shutdown Implementation",
+        "description": "While the main.go uses defer for cleanup (main.go:83-86, 158-159, 170), there's no graceful shutdown that: 1) Waits for in-flight requests, 2) Drains connections properly, 3) Flushes telemetry buffers, 4) Completes background jobs.",
+        "affected_files": [
+          "cmd/schlep-engine-api/main.go"
+        ],
+        "recommended_fix": "Implement graceful shutdown: 1) Catch SIGTERM/SIGINT, 2) Stop accepting new requests, 3) Wait for in-flight requests (with timeout), 4) Stop background workers, 5) Close database connections last.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "REL-012",
+        "severity": "medium",
+        "title": "Provider Selection Query Could Be Slow Under Load",
+        "description": "The ListActive query (provider_registry_repository.go:258-261) could perform full table scan if there are many providers. No caching is implemented for provider selection results.",
+        "affected_files": [
+          "internal/repository/provider_registry_repository.go:258-261",
+          "internal/routing/provider_selector.go:68"
+        ],
+        "recommended_fix": "1. Add index on (tenant_id, status, created_at), 2. Implement short-lived cache (TTL: 10-30s) for provider lists, 3. Consider materialized view for active providers.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "REL-013",
+        "severity": "low",
+        "title": "Recover Middleware Position May Miss Panics",
+        "description": "The recover middleware is added first (main.go:51), but panics in other early middleware (like CORS) won't be caught if they occur before fiber's middleware chain is established.",
+        "affected_files": [
+          "cmd/schlep-engine-api/main.go:51"
+        ],
+        "recommended_fix": "Ensure recover middleware is truly the outermost middleware. Consider adding multiple recovery points for critical sections.",
+        "estimated_effort_hours": 1
+      }
+    ],
+    "observability": [
+      {
+        "finding_id": "OBS-001",
+        "severity": "critical",
+        "title": "Sensitive Data in Error Messages and Logs",
+        "description": "Error messages may contain sensitive information like API keys, database connection strings, or internal IPs. The error handler (main.go:269) returns err.Error() directly, and various log statements throughout the code don't sanitize sensitive fields.",
+        "affected_files": [
+          "cmd/schlep-engine-api/main.go:269",
+          "internal/adapters/http_adapter.go:212",
+          "internal/services/provider_registry_service.go:137"
+        ],
+        "recommended_fix": "Implement comprehensive data sanitization: 1) Sanitize all log messages before output, 2) Create allowlist of safe error messages, 3) Strip sensitive patterns (keys, tokens, passwords) using regex, 4) Implement structured logging with field-level controls.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "OBS-002",
+        "severity": "critical",
+        "title": "Trace ID Not Propagated to All Operations",
+        "description": "While trace_id is generated (chat_router.go:69), it's not consistently propagated to: 1) Telemetry records (uses separate trace_id), 2) Database operations, 3) Provider HTTP requests, 4) Error logs. This makes distributed tracing incomplete and debugging difficult.",
+        "affected_files": [
+          "cmd/schlep-engine-api/handlers/chat_router.go:69-70",
+          "internal/telemetry/telemetry_collector.go"
+        ],
+        "recommended_fix": "Standardize trace ID propagation: 1) Store trace_id in context, 2) Extract trace_id from context in all operations, 3) Include in all log statements, 4) Pass to telemetry collector, 5) Add to provider request headers for correlation.",
+        "estimated_effort_hours": 8
+      },
+      {
+        "finding_id": "OBS-003",
+        "severity": "high",
+        "title": "Inconsistent Logging Format",
+        "description": "The codebase uses mix of log.Printf and structured logging. Some files use [Component] prefix (e.g., [HTTPAdapter]), others don't. This makes log parsing and alerting difficult.",
+        "affected_files": [
+          "internal/adapters/http_adapter.go",
+          "internal/routing/provider_selector.go",
+          "internal/telemetry/telemetry_collector.go"
+        ],
+        "recommended_fix": "Standardize on structured logging: 1) Use consistent logger interface (logrus, zap), 2) Include standard fields (timestamp, level, component, trace_id), 3) Use structured fields instead of formatted strings, 4) Document logging standards.",
+        "estimated_effort_hours": 12
+      },
+      {
+        "finding_id": "OBS-004",
+        "severity": "high",
+        "title": "No Metrics for Routing Overhead",
+        "description": "There are no metrics tracking the time spent in routing logic (provider selection, vault access, telemetry) vs. actual provider request time. This makes it impossible to measure and optimize routing overhead.",
+        "affected_files": [
+          "cmd/schlep-engine-api/handlers/chat_router.go",
+          "internal/routing/provider_selector.go"
+        ],
+        "recommended_fix": "Add detailed timing metrics: 1) Time provider selection, 2) Time vault key retrieval, 3) Time telemetry recording, 4) Calculate overhead percentage, 5) Expose via /metrics endpoint.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "OBS-005",
+        "severity": "high",
+        "title": "Telemetry Doesn't Capture Request/Response Sizes",
+        "description": "The routing_telemetry table doesn't track request or response payload sizes. This is important for: 1) Cost optimization, 2) Bandwidth monitoring, 3) Identifying abuse, 4) Capacity planning.",
+        "affected_files": [
+          "internal/telemetry/telemetry_collector.go",
+          "migrations/005_create_routing_telemetry.sql"
+        ],
+        "recommended_fix": "Add size tracking: 1) Add request_size_bytes and response_size_bytes columns, 2) Calculate sizes before provider request, 3) Include in telemetry record, 4) Add aggregation for total bandwidth.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "OBS-006",
+        "severity": "high",
+        "title": "No Alerting on Degraded Providers",
+        "description": "While the aggregator disables degraded providers (telemetry_aggregator.go:204-242), there's no alerting mechanism. Operations team won't know providers are failing until manually checking logs.",
+        "affected_files": [
+          "internal/scheduler/telemetry_aggregator.go:204-242"
+        ],
+        "recommended_fix": "Implement alerting: 1) Add webhook/email notification when provider disabled, 2) Alert on success rate drop below threshold, 3) Alert on latency spikes, 4) Integrate with PagerDuty/OpsGenie, 5) Add Slack notifications.",
+        "estimated_effort_hours": 8
+      },
+      {
+        "finding_id": "OBS-007",
+        "severity": "high",
+        "title": "Aggregator Job Duration Not Tracked",
+        "description": "The telemetry aggregator doesn't track how long aggregation jobs take (telemetry_aggregator.go:120-202). If jobs start taking too long, it could indicate: 1) Database performance issues, 2) Data volume growth, 3) Query optimization needed.",
+        "affected_files": [
+          "internal/scheduler/telemetry_aggregator.go:120-202"
+        ],
+        "recommended_fix": "Add job timing metrics: 1) Track aggregation duration, 2) Expose via Prometheus metrics, 3) Alert if duration exceeds threshold, 4) Log slow queries for optimization.",
+        "estimated_effort_hours": 3
+      },
+      {
+        "finding_id": "OBS-008",
+        "severity": "medium",
+        "title": "No Request ID in Database Telemetry",
+        "description": "Database telemetry records don't include the HTTP request ID, making it hard to correlate database operations with specific API requests for debugging performance issues.",
+        "affected_files": [
+          "internal/telemetry/telemetry_collector.go"
+        ],
+        "recommended_fix": "Add request_id tracking: 1) Store request context in telemetry calls, 2) Extract request_id from context, 3) Include in all telemetry records, 4) Add index on request_id for fast lookup.",
+        "estimated_effort_hours": 3
+      },
+      {
+        "finding_id": "OBS-009",
+        "severity": "medium",
+        "title": "Missing Health Check for Background Jobs",
+        "description": "Health endpoints don't report status of background jobs (aggregator, health monitor). System could appear healthy while critical background jobs are failing.",
+        "affected_files": [
+          "internal/api/routes_health.go"
+        ],
+        "recommended_fix": "Enhance health checks: 1) Report aggregator status (last run time, success/failure), 2) Report health monitor status, 3) Separate liveness and readiness checks properly, 4) Fail readiness if background jobs stuck.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "OBS-010",
+        "severity": "low",
+        "title": "No Distributed Tracing Context Propagation",
+        "description": "While OpenTelemetry is initialized (main.go:28-38), trace context isn't propagated to provider HTTP requests. External provider requests won't be part of the same distributed trace.",
+        "affected_files": [
+          "internal/adapters/http_adapter.go:126-134",
+          "cmd/schlep-engine-api/main.go:28-38"
+        ],
+        "recommended_fix": "Propagate trace context: 1) Extract trace context from request, 2) Inject into provider HTTP requests using W3C Trace Context headers, 3) Create child spans for provider requests.",
+        "estimated_effort_hours": 4
+      }
+    ],
+    "performance": [
+      {
+        "finding_id": "PERF-001",
+        "severity": "critical",
+        "title": "Synchronous Telemetry Recording Blocks Routing Response",
+        "description": "Telemetry is recorded synchronously in the hot path (chat_router.go:169). The database query blocks the response, adding 2-10ms latency to every request. Under high load (100+ RPS), this becomes a significant bottleneck and could exhaust database connections.",
+        "affected_files": [
+          "cmd/schlep-engine-api/handlers/chat_router.go:169",
+          "internal/telemetry/telemetry_collector.go:49-82"
+        ],
+        "recommended_fix": "Make telemetry async: 1) Use buffered channel for telemetry events, 2) Background worker consumes and batches writes, 3) Implement backpressure handling, 4) Add metrics for queue depth, 5) Flush on shutdown.",
+        "estimated_effort_hours": 12,
+        "remediation_code": "// Create buffered telemetry queue\ntelemetryQueue := make(chan *telemetry.RoutingTelemetry, 1000)\ngo telemetryWorker(telemetryQueue, telemetryCollector)\n\n// In handler:\nselect {\ncase telemetryQueue <- telemetryData:\n    // Success\ndefault:\n    // Queue full, log and drop or handle backpressure\n    metrics.TelemetryDropped.Inc()\n}"
+      },
+      {
+        "finding_id": "PERF-002",
+        "severity": "critical",
+        "title": "No Connection Pooling Configuration",
+        "description": "Database connections don't have MaxOpenConns, MaxIdleConns, or ConnMaxLifetime configured. Under concurrent load, this causes: 1) Slow connection acquisition, 2) Connection exhaustion, 3) Database server overload, 4) Cascading failures.",
+        "affected_files": [
+          "internal/database/database.go"
+        ],
+        "recommended_fix": "Configure connection pool: db.SetMaxOpenConns(25), db.SetMaxIdleConns(10), db.SetConnMaxLifetime(5*time.Minute). Tune based on load testing results.",
+        "estimated_effort_hours": 3
+      },
+      {
+        "finding_id": "PERF-003",
+        "severity": "high",
+        "title": "Provider Selection Performs Full Table Scan on Every Request",
+        "description": "The ListActive query loads all active providers for a tenant without caching (provider_selector.go:68, repository:258). For tenants with many providers, this adds unnecessary latency and database load to every routing request.",
+        "affected_files": [
+          "internal/routing/provider_selector.go:68",
+          "internal/repository/provider_registry_repository.go:258-261"
+        ],
+        "recommended_fix": "Implement caching layer: 1) Cache provider list per tenant with 10-30s TTL, 2) Use Redis for distributed cache across instances, 3) Invalidate cache on provider updates, 4) Add cache hit/miss metrics.",
+        "estimated_effort_hours": 8
+      },
+      {
+        "finding_id": "PERF-004",
+        "severity": "high",
+        "title": "Health Score Calculated on Every Provider Selection",
+        "description": "The calculateHealthScore function (provider_selector.go:210-243) runs for every provider on every request. With 10+ providers, this adds unnecessary CPU overhead.",
+        "affected_files": [
+          "internal/routing/provider_selector.go:194",
+          "internal/routing/provider_selector.go:210-243"
+        ],
+        "recommended_fix": "Pre-calculate and cache health scores: 1) Calculate scores during aggregation job, 2) Store in provider_registry table, 3) Load pre-calculated scores during selection, 4) Only recalculate on health update.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "PERF-005",
+        "severity": "high",
+        "title": "In-Memory Rate Limiter Uses Global Mutex Under Load",
+        "description": "The rate limiter uses a single global mutex (ratelimit.go:58-59) that all requests contend for. At 100+ RPS, this becomes a serialization point causing: 1) High lock contention, 2) Increased latency variance, 3) CPU spinning on mutex.",
+        "affected_files": [
+          "internal/middleware/ratelimit.go:58-89"
+        ],
+        "recommended_fix": "Use lock sharding: 1) Shard buckets by key hash, 2) Use separate mutex per shard (e.g., 32 shards), 3) Reduce contention by 32x, 4) Consider lock-free atomic operations for simple counters.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "PERF-006",
+        "severity": "high",
+        "title": "No Request Batching for Database Operations",
+        "description": "Each routing request makes individual database calls for: 1) Provider list fetch, 2) Telemetry insert, 3) Health update. Under load, this creates thousands of individual queries instead of batched operations.",
+        "affected_files": [
+          "internal/telemetry/telemetry_collector.go",
+          "internal/repository/provider_registry_repository.go"
+        ],
+        "recommended_fix": "Implement batching: 1) Batch telemetry inserts (100ms window or 50 records), 2) Use COPY for bulk inserts, 3) Batch health updates per aggregation cycle, 4) Measure batch effectiveness.",
+        "estimated_effort_hours": 16
+      },
+      {
+        "finding_id": "PERF-007",
+        "severity": "high",
+        "title": "Aggregation Query Uses Expensive Percentile Calculations",
+        "description": "The aggregator computes P50, P95, P99 percentiles using PERCENTILE_CONT (telemetry_aggregator.go:149-151), which is expensive for large datasets. At 10000+ requests per 10-minute window, this could take 10+ seconds.",
+        "affected_files": [
+          "internal/scheduler/telemetry_aggregator.go:149-151"
+        ],
+        "recommended_fix": "Optimize percentile calculation: 1) Use approximate percentiles (percentile_disc or t-digest), 2) Pre-aggregate latency buckets, 3) Sample large datasets (e.g., 10% sample), 4) Consider moving to time-series DB (Prometheus).",
+        "estimated_effort_hours": 8
+      },
+      {
+        "finding_id": "PERF-008",
+        "severity": "medium",
+        "title": "Materialized View Refresh Blocks During Aggregation",
+        "description": "The provider leaderboard refresh (telemetry_aggregator.go:246) could lock the materialized view, blocking read queries during refresh. Under heavy query load, this causes periodic latency spikes.",
+        "affected_files": [
+          "internal/scheduler/telemetry_aggregator.go:245-253"
+        ],
+        "recommended_fix": "Use CONCURRENTLY option for refresh: 1) ALTER MATERIALIZED VIEW to add unique index, 2) Use REFRESH MATERIALIZED VIEW CONCURRENTLY, 3) Monitor refresh duration, 4) Consider separate read replica.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "PERF-009",
+        "severity": "medium",
+        "title": "No Index on routing_telemetry Query Patterns",
+        "description": "Common queries filter by tenant_id, provider_id, and created_at, but indexes may not be optimal for these access patterns. Missing or suboptimal indexes cause slow aggregation queries.",
+        "affected_files": [
+          "migrations/005_create_routing_telemetry.sql",
+          "internal/telemetry/telemetry_collector.go:134-197"
+        ],
+        "recommended_fix": "Add composite indexes: 1) CREATE INDEX idx_telemetry_tenant_time ON routing_telemetry(tenant_id, created_at DESC), 2) CREATE INDEX idx_telemetry_provider_time ON routing_telemetry(provider_id, created_at DESC), 3) Analyze query plans, 4) Add covering indexes for common queries.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "PERF-010",
+        "severity": "medium",
+        "title": "HTTP Client Creates New Connection Per Request",
+        "description": "The HTTPAdapter doesn't configure connection pooling or keep-alive (http_adapter.go:96-98). Each provider request opens a new TCP connection, adding: 1) TLS handshake overhead (100-300ms), 2) DNS lookup overhead, 3) Connection establishment time.",
+        "affected_files": [
+          "internal/adapters/http_adapter.go:95-101"
+        ],
+        "recommended_fix": "Configure connection pooling: 1) Set MaxIdleConnsPerHost, 2) Enable keep-alive, 3) Set IdleConnTimeout, 4) Implement connection pre-warming for known providers.",
+        "estimated_effort_hours": 4,
+        "remediation_code": "httpClient: &http.Client{\n    Timeout: timeout,\n    Transport: &http.Transport{\n        MaxIdleConnsPerHost: 100,\n        MaxConnsPerHost:     100,\n        IdleConnTimeout:     90 * time.Second,\n        DisableKeepAlives:   false,\n    },\n}"
+      },
+      {
+        "finding_id": "PERF-011",
+        "severity": "low",
+        "title": "JSON Marshaling in Hot Path",
+        "description": "Provider health, models, and pricing are marshaled/unmarshaled on every database operation (provider_registry_repository.go:76-89). This adds CPU overhead and allocation pressure.",
+        "affected_files": [
+          "internal/repository/provider_registry_repository.go:76-89"
+        ],
+        "recommended_fix": "Consider optimizations: 1) Cache deserialized objects, 2) Use faster JSON library (jsoniter, sonic), 3) Consider binary serialization for hot data, 4) Profile to quantify impact.",
+        "estimated_effort_hours": 8
+      }
+    ],
+    "documentation": [
+      {
+        "finding_id": "DOC-001",
+        "severity": "medium",
+        "title": "API Response Format Inconsistency",
+        "description": "The documentation (ROUTING_LAYER_IMPLEMENTATION.md:223-232) shows error responses with nested error objects, but the actual implementation (routes_routing.go, chat_router.go) uses flat error structures. The standardized format mentioned in the task isn't consistently applied.",
+        "affected_files": [
+          "ROUTING_LAYER_IMPLEMENTATION.md:223-232",
+          "internal/api/routes_routing.go",
+          "cmd/schlep-engine-api/handlers/chat_router.go:59-65"
+        ],
+        "recommended_fix": "Standardize API responses: 1) Document the actual response format being used, 2) Create response builder utility, 3) Update all handlers to use consistent format, 4) Add response format tests.",
+        "estimated_effort_hours": 6
+      },
+      {
+        "finding_id": "DOC-002",
+        "severity": "medium",
+        "title": "Missing Environment Variable Documentation",
+        "description": "The documentation doesn't comprehensively list all environment variables. Variables like ENABLE_PROVIDER_HEALTH_MONITOR, ENABLE_TELEMETRY_AGGREGATOR are mentioned in code but not fully documented with defaults and required vs optional status.",
+        "affected_files": [
+          "ROUTING_LAYER_IMPLEMENTATION.md:475-488",
+          "cmd/schlep-engine-api/main.go"
+        ],
+        "recommended_fix": "Create comprehensive environment variable documentation: 1) List all variables with descriptions, 2) Mark required vs optional, 3) Document defaults, 4) Document valid values and formats, 5) Add .env.example file.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "DOC-003",
+        "severity": "medium",
+        "title": "curl Examples May Not Work as Documented",
+        "description": "The routing documentation provides curl examples (ROUTING_LAYER_IMPLEMENTATION.md:515-588) but some may not work without additional setup. For example, tenant API key format, actual model names supported, and provider-specific configuration details are unclear.",
+        "affected_files": [
+          "ROUTING_LAYER_IMPLEMENTATION.md:515-588"
+        ],
+        "recommended_fix": "Validate all examples: 1) Test each curl command, 2) Update with working examples, 3) Add notes for required setup, 4) Include expected responses, 5) Add troubleshooting section for common errors.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "DOC-004",
+        "severity": "low",
+        "title": "Missing Performance Benchmarks",
+        "description": "The documentation mentions performance characteristics (ROUTING_LAYER_IMPLEMENTATION.md:610-638) but doesn't provide actual benchmark results or expected numbers for: 1) Latency under various loads, 2) Throughput capacity, 3) Resource consumption.",
+        "affected_files": [
+          "ROUTING_LAYER_IMPLEMENTATION.md:610-638"
+        ],
+        "recommended_fix": "Add benchmark results: 1) Run load tests, 2) Document actual performance numbers, 3) Include resource usage (CPU, memory, DB connections), 4) Update regularly with new versions.",
+        "estimated_effort_hours": 8
+      },
+      {
+        "finding_id": "DOC-005",
+        "severity": "low",
+        "title": "Migration Instructions Incomplete",
+        "description": "The documentation shows migration commands (ROUTING_LAYER_IMPLEMENTATION.md:470-473) but doesn't cover: 1) Migration rollback, 2) Data migration for existing deployments, 3) Zero-downtime migration strategy, 4) Backup recommendations.",
+        "affected_files": [
+          "ROUTING_LAYER_IMPLEMENTATION.md:469-473"
+        ],
+        "recommended_fix": "Expand migration documentation: 1) Add rollback procedures, 2) Document data migration steps, 3) Include backup/restore procedures, 4) Add migration testing recommendations, 5) Document zero-downtime migration approach.",
+        "estimated_effort_hours": 4
+      },
+      {
+        "finding_id": "DOC-006",
+        "severity": "low",
+        "title": "Security Best Practices Not Documented",
+        "description": "The documentation doesn't include security best practices for: 1) Key rotation schedules, 2) JWT secret generation, 3) TLS configuration, 4) Network security, 5) Audit logging requirements.",
+        "affected_files": [
+          "ROUTING_LAYER_IMPLEMENTATION.md"
+        ],
+        "recommended_fix": "Add security documentation: 1) Document key rotation procedures, 2) Add TLS/SSL setup guide, 3) Document audit logging, 4) Add security checklist for deployment, 5) Include compliance considerations.",
+        "estimated_effort_hours": 6
+      }
+    ]
+  },
+  "recommendations": {
+    "immediate_actions": [
+      "FIX SECURITY-001: Remove API key logging and sanitize all log output",
+      "FIX SECURITY-003: Apply rate limiting to routing endpoint",
+      "FIX SECURITY-004: Fix goroutine leaks in authentication",
+      "FIX SECURITY-006: Add request size limits to Fiber config",
+      "FIX REL-001: Log telemetry recording errors properly",
+      "FIX REL-003: Implement circuit breaker for providers",
+      "FIX PERF-001: Make telemetry recording asynchronous",
+      "FIX OBS-001: Sanitize sensitive data in error messages"
+    ],
+    "pre_launch_requirements": [
+      "All CRITICAL findings resolved",
+      "At least 80% of HIGH findings resolved",
+      "Load testing completed at 100 RPS sustained for 1 hour",
+      "Monitoring and alerting configured and tested",
+      "Incident response runbook created",
+      "Database backups and recovery tested",
+      "Security audit by external team completed"
+    ],
+    "monitoring_setup": [
+      "Configure Prometheus metrics collection",
+      "Set up Grafana dashboards for routing, providers, and telemetry",
+      "Configure alerts for: provider failures, high error rates, latency spikes, database issues",
+      "Enable distributed tracing with Jaeger/Zipkin",
+      "Set up log aggregation (ELK/Datadog/CloudWatch)",
+      "Configure uptime monitoring for critical endpoints",
+      "Implement synthetic transactions for routing health"
+    ],
+    "load_testing_requirements": [
+      "Baseline: 100 RPS sustained for 60 minutes",
+      "Peak: 500 RPS sustained for 15 minutes",
+      "Stress: 1000 RPS for 5 minutes",
+      "Spike: 2000 RPS burst for 30 seconds",
+      "Test scenarios: normal routing, fallback, all providers failing",
+      "Monitor: latency (p50, p95, p99), error rate, database connections, memory usage",
+      "Success criteria: p95 < 1000ms, error rate < 1%, no memory leaks, graceful degradation"
+    ]
+  },
+  "test_scripts": {
+    "load_test": "tests/load_test_routing.sh",
+    "telemetry_validation": "tests/validate_telemetry.sh",
+    "usage": "Run load test: ./tests/load_test_routing.sh http://localhost:8080 100 60\nRun telemetry validation: ./tests/validate_telemetry.sh http://localhost:8080"
+  },
+  "summary_metrics": {
+    "total_findings": 45,
+    "critical_count": 8,
+    "high_count": 14,
+    "medium_count": 16,
+    "low_count": 7,
+    "estimated_remediation_hours": 259,
+    "ready_for_launch": false
+  }
+}

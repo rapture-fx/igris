@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/schlep-engine/schlep-engine/internal/logging"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 )
 
@@ -143,12 +144,12 @@ func (a *HTTPAdapter) SendChatCompletion(
 	if len(parts) == 2 {
 		req.Header.Set(strings.TrimSpace(parts[0]), strings.TrimSpace(parts[1]))
 	} else {
-		a.logger.Printf("[HTTPAdapter] Warning: Invalid auth header template for provider %s", provider.Name)
+		a.logger.Printf("[HTTPAdapter] Warning: Invalid auth header template for provider %s (ID: %s)",
+			provider.Name, logging.MaskProviderID(provider.ID))
 	}
 
-	// Add trace headers
-	req.Header.Set("x-schlep-provider-id", provider.ID)
-	req.Header.Set("x-schlep-tenant-id", provider.TenantID)
+	// Add trace headers (REMOVED x-schlep-tenant-id for security - don't leak tenant info to external providers)
+	req.Header.Set("x-schlep-provider-id", logging.MaskProviderID(provider.ID))
 
 	// Send request
 	resp, err := a.httpClient.Do(req)
@@ -209,8 +210,8 @@ func (a *HTTPAdapter) SendChatCompletion(
 		}
 	}
 
-	a.logger.Printf("[HTTPAdapter] Success: provider=%s, model=%s, latency=%dms, tokens=%d",
-		provider.Name, request.Model, latencyMs, response.Usage.TotalTokens)
+	a.logger.Printf("[HTTPAdapter] Success: provider=%s, provider_id=%s, model=%s, latency=%dms, tokens=%d",
+		provider.Name, logging.MaskProviderID(provider.ID), request.Model, latencyMs, response.Usage.TotalTokens)
 
 	return &AdapterResult{
 		Response:   &response,
