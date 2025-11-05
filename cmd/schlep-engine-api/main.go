@@ -156,6 +156,19 @@ func main() {
 
 					// Ensure monitor is stopped on shutdown
 					defer providerHealthMonitor.Stop()
+
+					// Initialize Telemetry Aggregator (if enabled)
+					enableTelemetryAggregator := os.Getenv("ENABLE_TELEMETRY_AGGREGATOR") != "false" // Default: enabled
+					if enableTelemetryAggregator {
+						log.Println("[TelemetryAggregator] Initializing telemetry aggregator...")
+						telemetryAggregator := api.NewTelemetryAggregator(db.DB, nil)
+						telemetryAggregator.Start()
+
+						log.Println("[TelemetryAggregator] ✅ Telemetry aggregator started")
+
+						// Ensure aggregator is stopped on shutdown
+						defer telemetryAggregator.Stop()
+					}
 				}
 			}
 		} else {
