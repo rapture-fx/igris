@@ -48,6 +48,9 @@ export default function Header() {
           </nav>
 
           <div className="hidden md:flex items-center space-x-3">
+            <Link href="/pricing" style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }} className="text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter">
+              Pricing
+            </Link>
             <Link href="/auth" style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }} className="text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter">
               Docs
             </Link>

@@ -153,15 +153,15 @@ export default function BenchmarkResults() {
                         <path
                           d="M 50 20 L 300 90 L 550 194"
                           stroke="currentColor"
-                          strokeWidth="1"
+                          strokeWidth="0.5"
                           fill="none"
                           className="text-gray-900 dark:text-white"
                         />
 
                         {/* Data points */}
-                        <circle cx="50" cy="20" r="2.5" fill="currentColor" className="text-gray-900 dark:text-white" />
-                        <circle cx="300" cy="90" r="2.5" fill="currentColor" className="text-gray-900 dark:text-white" />
-                        <circle cx="550" cy="194" r="2.5" fill="currentColor" className="text-gray-900 dark:text-white" />
+                        <circle cx="50" cy="20" r="1.5" fill="currentColor" className="text-gray-900 dark:text-white" />
+                        <circle cx="300" cy="90" r="1.5" fill="currentColor" className="text-gray-900 dark:text-white" />
+                        <circle cx="550" cy="194" r="1.5" fill="currentColor" className="text-gray-900 dark:text-white" />
                       </svg>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 font-inter italic max-w-full whitespace-normal break-words">
                         Cost reduction validated in production tests. Results vary by workload and provider mix.
