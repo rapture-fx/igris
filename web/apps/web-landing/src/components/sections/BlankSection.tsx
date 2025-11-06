@@ -4,13 +4,13 @@ const providers = [
   'OpenAI',
   'Anthropic',
   'xAI',
-  'Google Gemini',
+  'Gemini',
   'Kimi',
-  'Qween',
+  'Qwen',
   'Mistral',
-  'Deepseek',
-  'z.ai',
-  'Llama'
+  'DeepSeek',
+  'Zhipu AI',
+  'Meta'
 ]
 
 export default function BlankSection() {
@@ -39,19 +39,19 @@ export default function BlankSection() {
           <div className="max-w-[1300px] mx-auto">
             {/* Section Title */}
             <div className="text-center mb-8">
-              <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-xl tracking-tight md:text-2xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
                 Verified Providers :
               </h3>
             </div>
 
-            {/* Logo Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-5xl mx-auto">
+            {/* Logo Row */}
+            <div className="flex flex-wrap justify-center items-center gap-4 max-w-full mx-auto">
               {providers.map((provider) => (
                 <div
                   key={provider}
-                  className="flex items-center justify-center p-6 rounded-lg border border-gray-300/60 bg-white/50 hover:bg-white/80 transition-all duration-300"
+                  className="flex flex-shrink-0 items-center justify-center w-36 h-16 px-6 py-4 rounded-lg border border-gray-300/60 bg-[#f6f6f4]/50 hover:bg-[#f6f6f4]/80 transition-all duration-300"
                 >
-                  <span className="text-sm font-medium text-gray-700 font-inter text-center">
+                  <span className="text-sm font-medium text-gray-700 font-inter text-center whitespace-nowrap">
                     {provider}
                   </span>
                 </div>

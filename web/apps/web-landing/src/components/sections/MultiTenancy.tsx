@@ -44,29 +44,45 @@ export default function MultiTenancy() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
           </div>
 
-          <div className="max-w-[1300px] mx-auto">
-            {/* Section Title */}
-            <div className="text-left mb-16">
-              <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
-                Secure by design. Scalable by default.
-              </h3>
-              <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter max-w-3xl">
-                Tenant isolation, key encryption, and enterprise authentication built into every request. Schlep-Engine is production-ready security infrastructure, not an afterthought.
-              </p>
-            </div>
+          {/* Content Container */}
+          <div className="w-full px-0">
+            {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
+            <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
+              borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
+              transform: 'translateX(-66.67%)'
+            }}></div>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {features.map((feature, index) => (
-                <div key={feature.name} className="text-left border-l border-gray-200 dark:border-gray-700 pl-6">
-                  <h3 className="text-base font-normal text-gray-900 dark:text-white mb-3 font-inter">
-                    {feature.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                    {feature.description}
-                  </p>
+            {/* Two-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '500px' }}>
+
+              {/* Left Column - Image */}
+              <div className="lg:col-span-2 relative flex items-center justify-start pl-8">
+                <img src="/Schlep Engine 14x11cm (54).svg" alt="Multi-Tenancy" className="w-full h-full object-contain opacity-40" />
+              </div>
+
+              {/* Right Column - Section Title and Features */}
+              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-center" style={{ minHeight: '500px' }}>
+                <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+                  Secure by default. Built to scale.
+                </h3>
+                <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter mb-12">
+                  Tenant data stays isolated. Keys stay encrypted. Every call authenticated — automatically.
+                </p>
+
+                {/* Features Grid */}
+                <div className="flex flex-col gap-8">
+                  {features.map((feature, index) => (
+                    <div key={feature.name} className="text-left">
+                      <h3 className="text-base font-normal text-gray-900 dark:text-white mb-3 font-inter">
+                        {feature.name}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                        {feature.description}
+                      </p>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
