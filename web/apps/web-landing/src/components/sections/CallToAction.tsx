@@ -24,7 +24,7 @@ export default function CallToAction() {
           {/* Content Container with Original Width */}
           <div className="max-w-[1300px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-3xl tracking-tight md:text-4xl mb-8 font-inter" style={{ color: '#000000' }}>Save up to 48% on AI API costs, automatically.</h2>
+              <h2 className="text-4xl tracking-tight md:text-5xl mb-8 font-inter" style={{ color: '#000000' }}>Try Schlep-engine</h2>
               
               <div className="inline-block">
                 <a
@@ -32,7 +32,7 @@ export default function CallToAction() {
                   className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
                   style={{ backgroundColor: '#000000' }}
                 >
-                  Start Optimizing
+                  Get Early Access
                 </a>
               </div>
             </div>
