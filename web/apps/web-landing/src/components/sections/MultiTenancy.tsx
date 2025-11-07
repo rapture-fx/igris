@@ -29,10 +29,10 @@ export default function MultiTenancy() {
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-16 px-12" style={{
-          borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
-          borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
-          borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
-          borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4'
         }}>
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -48,19 +48,19 @@ export default function MultiTenancy() {
           <div className="w-full px-0">
             {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
             <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-              borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
+              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
               transform: 'translateX(-66.67%)'
             }}></div>
 
             {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '500px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
 
               {/* Left Column - Image */}
               <div className="lg:col-span-2 relative flex items-center justify-start pl-8">
               </div>
 
               {/* Right Column - Section Title and Features */}
-              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-center" style={{ minHeight: '500px' }}>
+              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
                   Secure by default. Built to scale.
                 </h3>

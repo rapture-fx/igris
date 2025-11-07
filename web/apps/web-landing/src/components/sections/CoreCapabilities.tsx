@@ -26,10 +26,10 @@ export default function CoreCapabilities() {
       <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
           <div className="relative py-8 px-12" style={{
-            borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
-            borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
-            borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
-            borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
             backgroundColor: '#f6f6f4'
           }}>
             {/* Top left bleeding cross */}
@@ -47,7 +47,7 @@ export default function CoreCapabilities() {
             <div className="w-full px-0">
               {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
             <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-            borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             transform: 'translateX(-66.67%)'
             }}></div>
 
@@ -103,12 +103,12 @@ export default function CoreCapabilities() {
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-8 px-12" style={{
-          borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
-          borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
-          borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
-          borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
+          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4',
-          minHeight: '700px'
+          minHeight: '750px'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -122,13 +122,13 @@ export default function CoreCapabilities() {
           </div>
 
           {/* Full Width Placeholder */}
-          <div 
+          <div
             className="absolute inset-12 p-8"
             style={{
-              borderTop: '0.3px solid rgba(156, 163, 175, 0.2)',
-              borderBottom: '0.3px solid rgba(156, 163, 175, 0.2)',
-              borderLeft: '0.3px solid rgba(156, 163, 175, 0.2)',
-              borderRight: '0.3px solid rgba(156, 163, 175, 0.2)',
+              borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+              borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
               borderRadius: '16px',
               backgroundColor: '#f6f6f4',
               boxShadow: 'none',

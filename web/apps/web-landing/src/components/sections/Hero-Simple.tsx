@@ -6,10 +6,15 @@ import { ChevronRight } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <section className="py-0 sm:py-0 lg:py-1 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
+    <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* Main Content Box with Border */}
-        <div className="relative pt-8 px-12 pb-40 border border-gray-400/30 bg-transparent z-10">
+        <div className="relative pt-8 px-12 pb-40 bg-transparent z-10" style={{
+          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+        }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
             <div className="absolute top-3.5 left-0 w-8 border-t-[0.5px] border-[#1a1e21]"></div>
