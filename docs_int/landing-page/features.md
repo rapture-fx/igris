@@ -228,6 +228,19 @@ PROVIDER_MODE=hybrid
 
 ---
 
+### 7. Enterprise-Grade Multi-Tenancy
+
+**What it does:**
+Multi-tenant isolation, end-to-end encryption, and automated authentication — all built in.
+
+**Key Benefits:**
+- **Per-Tenant Budgets**
+  Define usage caps per tenant with automatic enforcement. Prevent overspending without manual monitoring.
+- **Secure Key Storage**
+  AES-256 vault encryption ensures API keys are never stored in plaintext. Each tenant’s keys are isolated and independently secured.
+
+---
+
 ## Comparison Table
 
 | Feature | Schlep-Engine | Direct API Calls | Other Gateways |

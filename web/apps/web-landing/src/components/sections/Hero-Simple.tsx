@@ -6,27 +6,19 @@ import { ChevronRight } from 'lucide-react'
 
 export default function Hero() {
   return (
-    <section className="py-0 sm:py-0 lg:py-1 dark:bg-gray-900 text-gray-900 dark:text-white relative overflow-visible" style={{ 
-      backgroundColor: '#f6f6f4',
-    }}>
+    <section className="py-0 sm:py-0 lg:py-1 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative pt-8 px-12 pb-40" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: 'transparent',
-          zIndex: 10
-        }}>
+        {/* Main Content Box with Border */}
+        <div className="relative pt-8 px-12 pb-40 border border-gray-400/30 bg-transparent z-10">
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute top-3.5 left-0 w-8 border-t-[0.5px] border-[#1a1e21]"></div>
+            <div className="absolute top-0 left-3.5 h-8 border-l-[0.5px] border-[#1a1e21]"></div>
           </div>
           {/* Bottom right bleeding cross */}
           <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.5px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
+            <div className="absolute bottom-3.5 right-0 w-8 border-b-[0.5px] border-[#1a1e21]"></div>
+            <div className="absolute bottom-0 right-3.5 h-8 border-r-[0.5px] border-[#1a1e21]"></div>
           </div>
 
           {/* Content Container */}
@@ -34,14 +26,14 @@ export default function Hero() {
             <div className="pt-8 mb-8">
               <div className="flex justify-between items-start">
                 <div className="text-left">
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium font-inter" style={{ color: '#111111', lineHeight: '1.2' }}>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
                     The routing engine and
                   </h1>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium font-inter" style={{ color: '#111111', lineHeight: '1.2', marginTop: '0.5rem' }}>
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2] mt-2">
                     control plane for AI inference
                   </h1>
                 </div>
-                <p className="text-sm md:text-base text-gray-700 dark:text-gray-200 max-w-md leading-relaxed font-inter text-left">
+                <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left">
                   Schlep-engine routes AI inference across multiple models and providers to balance cost, latency, and reliability using your own API keys.
                 </p>
               </div>
@@ -50,63 +42,49 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-4">
               <Link
                 href="/auth/register"
-                style={{ backgroundColor: '#000000' }}
-                className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
+                className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
               >
                 Get Early Access
                 <ChevronRight className="ml-2 h-4 w-4" />
               </Link>
             </div>
-            
-            {/* Hero content area - displays background */}
-            <div style={{ backgroundColor: 'transparent', minHeight: '350px', maxHeight: '800px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-              </div>
+
+            {/* Hero content area - spacing for background */}
+            <div className="bg-transparent min-h-[350px] max-h-[800px]">
+              <div className="flex items-center justify-center h-full"></div>
             </div>
           </div>
         </div>
-        
-        {/* HERO lines decorative background with placeholder - INSIDE existing frame */}
-        <div
-          className="absolute left-24 right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto"
-          style={{
-            borderTop: '1px solid #d1d5db',
-            borderLeft: '1px solid #d1d5db',
-            borderRight: '1px solid #d1d5db',
-            borderTopLeftRadius: '16px',
-            borderTopRightRadius: '16px',
-            backgroundColor: '#f6f6f4',
 
-            zIndex: 5
-          }}
-        >
-          {/* Schlep Engine 14x11cm (47).svg behind HRLN.svg */}
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: 'url("/Schlep Engine 14x11cm (47).svg")',
-              backgroundPosition: 'center center',
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: 'cover',
-              opacity: 0.8,
-              borderTopLeftRadius: '16px',
-              borderTopRightRadius: '16px',
-              zIndex: 5
-            }}
-          />
+        {/* HERO diagram background - positioned below main box */}
+        <div className="absolute left-24 right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto z-[5]">
+          <div className="relative h-full border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
+            {/* Schlep Engine diagram SVG behind */}
+            <div
+              className="absolute inset-0 rounded-t-2xl"
+              style={{
+                backgroundImage: 'url("/Schlep Engine 14x11cm (47).svg")',
+                backgroundPosition: 'center center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: 'cover',
+                opacity: 0.8,
+                zIndex: 5
+              }}
+            />
 
-          {/* HRLN.svg in front */}
-          <div
-            className="absolute inset-0 p-4"
-            style={{
-              backgroundImage: 'url("/HRLN.svg")',
-              backgroundPosition: 'bottom center',
-              backgroundRepeat: 'no-repeat',
-              backgroundSize: '50%',
-              opacity: 0.6,
-              zIndex: 6
-            }}
-          />
+            {/* HRLN.svg logo in front */}
+            <div
+              className="absolute inset-0 p-4"
+              style={{
+                backgroundImage: 'url("/HRLN.svg")',
+                backgroundPosition: 'bottom center',
+                backgroundRepeat: 'no-repeat',
+                backgroundSize: '50%',
+                opacity: 0.6,
+                zIndex: 6
+              }}
+            />
+          </div>
         </div>
       </div>
     </section>
