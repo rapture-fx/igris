@@ -4,22 +4,22 @@ import { DollarSign, Shield, Database, KeyRound } from 'lucide-react';
 const features = [
   {
     name: 'Per-Tenant Budgets',
-    description: 'Set individual spending limits for each tenant. Automatic enforcement prevents any tenant from exceeding their allocated budget.',
+    description: 'Define usage caps per tenant with automatic enforcement. Prevent overspending without manual monitoring.',
     icon: DollarSign,
   },
   {
     name: 'Secure Key Storage',
-    description: 'Vault-encrypted API key storage with AES-256 encryption. Keys never stored in plaintext and isolated per tenant.',
+    description: 'AES-256 vault encryption ensures API keys are never stored in plaintext. Each tenant’s keys are isolated and independently secured.',
     icon: KeyRound,
   },
   {
-    name: 'Complete Data Isolation',
-    description: 'Tenant data, policies, and usage logs are completely isolated. No cross-tenant data leakage with database-level separation.',
+    name: 'Data Isolation',
+    description: 'Every tenant’s data, logs, and policies are physically and logically separated at the database level. No cross-tenant access. Ever.',
     icon: Database,
   },
   {
     name: 'JWT Authentication',
-    description: 'Enterprise-grade authentication with JSON Web Tokens. Secure tenant context across all API calls.',
+    description: 'Robust, standards-based authentication with JSON Web Tokens. Every request validated within its tenant context for consistent, enterprise-grade security.',
     icon: Shield,
   },
 ];
@@ -66,7 +66,7 @@ export default function MultiTenancy() {
                   Secure by default. Built to scale.
                 </h3>
                 <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter mb-12">
-                  Tenant data stays isolated. Keys stay encrypted. Every call authenticated — automatically.
+                  Multi-tenant isolation, end-to-end encryption, and automated authentication — all built in.
                 </p>
 
                 {/* Features Grid */}

@@ -54,9 +54,9 @@ export default function TechStack() {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-center">
               {/* Left Column - SVG Diagram */}
               <div className="lg:col-span-7 flex items-center justify-center pl-8">
-                <img 
-                  src="/okdiagar.svg" 
-                  alt="OK Diagram" 
+                <img
+                  src="/okdiagar.svg"
+                  alt="OK Diagram"
                   className="w-full h-full max-h-[700px] object-contain"
                 />
               </div>
