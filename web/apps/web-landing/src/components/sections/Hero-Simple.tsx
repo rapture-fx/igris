@@ -42,7 +42,7 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-4">
               <Link
                 href="/auth/register"
-                className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-black transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
               >
                 Get Early Access
                 <ChevronRight className="ml-2 h-4 w-4" />
