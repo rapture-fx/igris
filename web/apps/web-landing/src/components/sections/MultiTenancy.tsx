@@ -57,7 +57,6 @@ export default function MultiTenancy() {
 
               {/* Left Column - Image */}
               <div className="lg:col-span-2 relative flex items-center justify-start pl-8">
-                <img src="/Schlep Engine 14x11cm (54).svg" alt="Multi-Tenancy" className="w-full h-full object-contain opacity-40" />
               </div>
 
               {/* Right Column - Section Title and Features */}

@@ -37,7 +37,7 @@ export default function BlankSection() {
               {providers.map((provider) => (
                 <div
                   key={provider}
-                  className="flex items-center justify-center w-36 h-16 px-6 py-4 rounded-lg border border-gray-300/60 bg-[#f6f6f4]/50 hover:bg-white/80 transition-all duration-300"
+                  className="flex items-center justify-center w-36 h-16 px-6 py-4 rounded-lg border border-gray-300/60 bg-[#f6f6f4]/50 transition-all duration-300"
                 >
                   <span className="text-sm font-medium text-gray-700 text-center whitespace-nowrap">
                     {provider}
