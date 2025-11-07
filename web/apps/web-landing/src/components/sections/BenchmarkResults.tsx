@@ -56,7 +56,7 @@ export default function BenchmarkResults() {
           animation: fadeIn 0.8s ease-out forwards;
         }
       `}</style>
-      <section className="dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4', padding: '1px 0' }}>
+      <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-12 py-32" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -64,7 +64,7 @@ export default function BenchmarkResults() {
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
           backgroundColor: '#f6f6f4',
-          minHeight: '800px'
+          minHeight: '750px'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
