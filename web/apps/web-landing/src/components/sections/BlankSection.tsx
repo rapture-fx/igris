@@ -57,6 +57,13 @@ export default function BlankSection() {
                 </div>
               ))}
             </div>
+
+            {/* Provider Verification Note */}
+            <div className="text-center mt-8">
+              <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
+                Provider verification as of the latest version of schlep-engine. Support expanding via Open BYOK Registry.
+              </p>
+            </div>
           </div>
         </div>
       </div>
