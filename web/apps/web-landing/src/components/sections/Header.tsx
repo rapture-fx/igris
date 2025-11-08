@@ -38,10 +38,10 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image
-                src="/Schlep Engine 14x11cm (33).png"
+                src="/Schlep Engine 14x11cm (34).png"
                 alt="Schlep Engine"
-                width={60}
-                height={60}
+                width={30}
+                height={30}
               />
             </Link>
           </div>

@@ -158,22 +158,16 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Blank card with arch.svg */}
-                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden" style={{
+                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex items-center justify-start" style={{
                   backgroundColor: '#f6f6f4',
                   height: '200px'
                 }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    backgroundImage: 'url(/archi.svg)',
-                    backgroundSize: '95%',
-                    backgroundPosition: 'left center',
-                    backgroundRepeat: 'no-repeat',
-                    opacity: 0.3
-                  }}></div>
+                  <img
+                    src="/Schlep Engine 14x11cm (35).png"
+                    alt="Reliability Architecture"
+                    className="w-full h-full object-cover"
+                    style={{ opacity: 0.3, objectPosition: 'top' }}
+                  />
                 </div>
 
                 <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>

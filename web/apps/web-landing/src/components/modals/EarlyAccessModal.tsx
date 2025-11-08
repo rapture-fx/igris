@@ -2,11 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, Send } from 'lucide-react';
+import CustomSelect from '../forms/CustomSelect';
 
 interface EarlyAccessModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const planOptions = [
+  { value: '', label: 'Select a plan' },
+  { value: 'developer', label: 'Developer - $99/month' },
+  { value: 'founders', label: 'Founders\' Plan - $299/month' },
+  { value: 'pro', label: 'Pro - $499/month' },
+  { value: 'enterprise', label: 'Enterprise - Custom' },
+];
 
 export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalProps) {
   const [formData, setFormData] = useState({
@@ -172,7 +181,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
 
                   <form onSubmit={handleSubmit} className="space-y-5" noValidate>
                   <div>
-                    <label htmlFor="name" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="name" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
                       Full Name *
                     </label>
                     <input
@@ -182,13 +191,13 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter ${validationErrors.name ? 'border-red-500' : ''}`}
+                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none ${validationErrors.name ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="email" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
                       Email Address *
                     </label>
                     <input
@@ -198,13 +207,13 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter ${validationErrors.email ? 'border-red-500' : ''}`}
+                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none ${validationErrors.email ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="company" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="company" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
                       Company *
                     </label>
                     <input
@@ -214,41 +223,30 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.company}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter ${validationErrors.company ? 'border-red-500' : ''}`}
+                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none ${validationErrors.company ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="planInterest" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="planInterest" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
                       Plan Interest *
                     </label>
-                  <div className="relative">
-                    <select
-                      id="planInterest"
-                      name="planInterest"
-                      required
-                      value={formData.planInterest}
-                      onChange={handleChange}
-                      className={`w-full pl-4 pr-10 py-3 rounded-lg border transition-all duration-200 font-inter appearance-none ${validationErrors.planInterest ? 'border-red-500' : ''}`}
-                      style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
-                    >
-                      <option value="">Select a plan</option>
-                      <option value="developer">Developer - $99/month</option>
-                      <option value="founders">Founders' Plan - $299/month</option>
-                      <option value="pro">Pro - $499/month</option>
-                      <option value="enterprise">Enterprise - Custom</option>
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </div>
-                  </div>
+                  <CustomSelect
+                    id="planInterest"
+                    name="planInterest"
+                    value={formData.planInterest}
+                    onChange={handleChange}
+                    options={planOptions}
+                    className="w-full"
+                    style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
+                    validationError={validationErrors.planInterest}
+                    required
+                  />
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="message" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
                       Message (Optional)
                     </label>
                     <textarea
@@ -257,7 +255,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       rows={3}
                       value={formData.message}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter"
+                      className="w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none"
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
@@ -286,7 +284,6 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       </>
                     ) : (
                       <>
-                        <Send className="w-4 h-4 mr-2" />
                         Submit Request
                       </>
                     )}
@@ -306,6 +303,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                   src="/Schlep Engine 14x11cm (47).svg"
                   alt="Schlep Engine Diagram"
                   className="w-full h-full object-cover rotate-90 scale-150"
+                  style={{ opacity: 0.5 }}
                 />
               </div>
             </div>

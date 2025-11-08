@@ -17,7 +17,7 @@ const pricingTiers = [
       "Email support",
       "Community access"
     ],
-    cta: "Start Free Trial",
+    cta: "Start Develop",
     highlighted: false
   },
   {
@@ -33,7 +33,7 @@ const pricingTiers = [
       "Custom integrations",
       "Dedicated Slack channel"
     ],
-    cta: "Start Free Trial",
+    cta: "Get started",
     highlighted: true,
     badge: ""
   },
@@ -50,7 +50,7 @@ const pricingTiers = [
       "Custom SLA guarantees",
       "Dedicated solutions engineer"
     ],
-    cta: "Start Free Trial",
+    cta: "Start Growth",
     highlighted: false
   },
   {
@@ -66,7 +66,7 @@ const pricingTiers = [
       "Dedicated infrastructure",
       "Custom contract terms"
     ],
-    cta: "Contact Sales",
+    cta: "Scale Up",
     highlighted: false
   }
 ];
@@ -134,7 +134,7 @@ export default function Pricing() {
                   <ul className="space-y-3 mb-8">
                     {tier.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start">
-                        <Check className="h-5 w-5 mr-3 flex-shrink-0 mt-0.5" style={{ color: '#000000' }} />
+                        <Check className="h-4 w-4 mr-3 flex-shrink-0 mt-0.5" style={{ color: '#000000' }} />
                         <span className="text-sm text-gray-700 font-inter">{feature}</span>
                       </li>
                     ))}
