@@ -65,9 +65,14 @@ export default function Footer() {
               </h3>
               <ul className="space-y-3">
                 <li>
-                  <Link href="/docs" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                  <a
+                    href="https://docs.schlep-engine.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  >
                     Documentation
-                  </Link>
+                  </a>
                 </li>
                 <li>
                   <Link href="/guides" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
@@ -110,7 +115,7 @@ export default function Footer() {
             <div className="flex flex-col items-start md:items-end">
               <div className="flex items-center">
                 <Image
-                  src="/Docs Schlep-engne.svg"
+                  src="/Schlep Engine 14x11cm (32).png"
                   alt="Schlep-engine"
                   width={30}
                   height={30}

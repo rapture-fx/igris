@@ -6,12 +6,14 @@ import Image from 'next/image';
 import { Menu, X, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useTheme } from "next-themes";
+import { useModal } from '../../contexts/ModalContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
   const { theme } = useTheme();
+  const { openEarlyAccessModal } = useModal();
 
   // Scroll effect
   useEffect(() => {
@@ -36,30 +38,46 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image
-                src="/Docs Schlep-engne.svg"
+                src="/Schlep Engine 14x11cm (33).png"
                 alt="Schlep Engine"
-                width={40}
-                height={40}
+                width={60}
+                height={60}
               />
             </Link>
           </div>
 
-          <nav className="hidden md:flex justify-center flex-grow space-x-8 mr-auto">
-          </nav>
+          <div className="hidden md:flex flex-grow"></div>
 
-          <div className="hidden md:flex items-center space-x-3">
-
-            <Link href="/auth" style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }} className="text-white px-6 py-2.5 rounded-lg hover:bg-blue-700 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter">
-              Docs
+          <div className="hidden md:flex items-center space-x-6">
+            <Link
+              href="/pricing"
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+            >
+              Pricing
             </Link>
-            <Link href="https://github.com/schlep-engine"
+            <Link
+              href="https://docs.schlep-engine.com/"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ backgroundColor: '#ffffff' }}
-              className="text-black px-6 py-2.5 rounded-lg hover:bg-gray-100 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+            >
+              Docs
+            </Link>
+            <Link
+              href="https://github.com/Schlep-engine/docs"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
             >
               GitHub
             </Link>
+            <button
+              onClick={openEarlyAccessModal}
+              className="text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
+              style={{ backgroundColor: '#000000' }}
+            >
+              Sign Up
+            </button>
           </div>
 
           <div className="md:hidden flex items-center space-x-2">
@@ -76,6 +94,49 @@ export default function Header() {
             </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
+            <nav className="flex flex-col space-y-4 mt-4">
+              <Link
+                href="/pricing"
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Pricing
+              </Link>
+              <Link
+                href="https://docs.schlep-engine.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Docs
+              </Link>
+              <Link
+                href="https://github.com/Schlep-engine/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                GitHub
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  openEarlyAccessModal();
+                }}
+                className="text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm shadow-md font-inter w-full"
+                style={{ backgroundColor: '#000000' }}
+              >
+                Sign Up
+              </button>
+            </nav>
+          </div>
+        )}
       </div>
     </header>
   );

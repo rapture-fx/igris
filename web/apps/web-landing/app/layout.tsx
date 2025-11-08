@@ -1,4 +1,5 @@
 import './globals.css'
+import { Providers } from '../src/components/providers/Providers'
 
 export const metadata = {
   metadataBase: new URL('https://schlep.engine'),
@@ -29,7 +30,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Providers>
+          {children}
+        </Providers>
+      </body>
     </html>
   )
 }

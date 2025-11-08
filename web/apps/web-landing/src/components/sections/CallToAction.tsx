@@ -1,6 +1,9 @@
+'use client';
 
+import { useModal } from '../../contexts/ModalContext';
 
 export default function CallToAction() {
+  const { openEarlyAccessModal } = useModal();
   return (
     <div className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       {/* First Frame - CTA Content */}
@@ -27,13 +30,13 @@ export default function CallToAction() {
               <h2 className="text-4xl tracking-tight md:text-5xl mb-8 font-inter" style={{ color: '#000000' }}>Try Schlep-engine</h2>
               
               <div className="inline-block">
-                <a
-                  href="/dashboard"
+                <button
+                  onClick={openEarlyAccessModal}
                   className="inline-flex items-center justify-center text-white px-5 py-2.5 rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
                   style={{ backgroundColor: '#000000' }}
                 >
                   Get Early Access
-                </a>
+                </button>
               </div>
             </div>
           </div>
