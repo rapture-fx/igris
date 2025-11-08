@@ -115,10 +115,10 @@ export default function Footer() {
             <div className="flex flex-col items-start md:items-end">
               <div className="flex items-center">
                 <Image
-                  src="/Schlep Engine 14x11cm (32).png"
+                  src="/Schlep Engine 14x11cm (34).png"
                   alt="Schlep-engine"
-                  width={30}
-                  height={30}
+                  width={20}
+                  height={20}
                 />
               </div>
             </div>
