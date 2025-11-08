@@ -1,0 +1,317 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { X, Send } from 'lucide-react';
+
+interface EarlyAccessModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    company: '',
+    planInterest: '',
+    message: ''
+  });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({
+    name: false,
+    email: false,
+    company: false,
+    planInterest: false
+  });
+
+  // Close modal on ESC key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'hidden';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    if (validationErrors[name as keyof typeof validationErrors]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: false
+      }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const errors = {
+      name: !formData.name.trim(),
+      email: !formData.email.trim(),
+      company: !formData.company.trim(),
+      planInterest: !formData.planInterest,
+    };
+
+    setValidationErrors(errors);
+
+    const hasErrors = Object.values(errors).some(Boolean);
+
+    if (hasErrors) {
+      setError('Please fill in all required fields.');
+      return;
+    }
+
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/early-access', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          timestamp: new Date().toISOString()
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Submission failed');
+      }
+
+      setIsSubmitted(true);
+      setFormData({
+        name: '',
+        email: '',
+        company: '',
+        planInterest: '',
+        message: ''
+      });
+    } catch (err) {
+      setError('Failed to submit form. Please try again later.');
+      console.error('Form submission error:', err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setIsSubmitted(false);
+    setError('');
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        onClick={handleClose}
+      />
+
+      {/* Modal */}
+      <div className="flex min-h-full items-center justify-center p-4">
+        <div
+          className="relative w-full max-w-6xl rounded-3xl shadow-2xl"
+          style={{ backgroundColor: '#f6f6f4' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Close button - Outside modal */}
+          <button
+            onClick={handleClose}
+            className="absolute top-0 right-[-48px] text-gray-700 hover:text-gray-900 transition-colors z-10 bg-transparent"
+          >
+            <X className="w-8 h-8" />
+          </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[600px] rounded-3xl overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
+            {/* Left Column - Form */}
+            <div className={`p-8 md:p-12 rounded-l-3xl ${isSubmitted ? 'flex items-center justify-center' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
+              {isSubmitted ? (
+                <div className="text-center py-8">
+                  <div className="mb-6">
+                  </div>
+                  <h3 className="text-2xl mb-4 font-inter" style={{ color: '#000000' }}>
+                    Thanks for joining early access!
+                  </h3>
+                  <p className="text-gray-600 mb-6 font-inter max-w-sm mx-auto">
+                    We've received your information and will be in touch soon with next steps.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="mb-8">
+                    <h2 className="text-2xl font-inter mb-3" style={{ color: '#000000' }}>
+                      Get Early Access
+                    </h2>
+                    <p className="text-gray-600 font-inter">
+                      Join the waitlist and be among the first to experience Schlep-engine
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      name="name"
+                      required
+                      value={formData.name}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter ${validationErrors.name ? 'border-red-500' : ''}`}
+                      style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                      Email Address *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      name="email"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter ${validationErrors.email ? 'border-red-500' : ''}`}
+                      style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="company" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                      Company *
+                    </label>
+                    <input
+                      type="text"
+                      id="company"
+                      name="company"
+                      required
+                      value={formData.company}
+                      onChange={handleChange}
+                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter ${validationErrors.company ? 'border-red-500' : ''}`}
+                      style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor="planInterest" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                      Plan Interest *
+                    </label>
+                  <div className="relative">
+                    <select
+                      id="planInterest"
+                      name="planInterest"
+                      required
+                      value={formData.planInterest}
+                      onChange={handleChange}
+                      className={`w-full pl-4 pr-10 py-3 rounded-lg border transition-all duration-200 font-inter appearance-none ${validationErrors.planInterest ? 'border-red-500' : ''}`}
+                      style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
+                    >
+                      <option value="">Select a plan</option>
+                      <option value="developer">Developer - $99/month</option>
+                      <option value="founders">Founders' Plan - $299/month</option>
+                      <option value="pro">Pro - $499/month</option>
+                      <option value="enterprise">Enterprise - Custom</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                  </div>
+
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-semibold mb-2 font-inter" style={{ color: '#000000' }}>
+                      Message (Optional)
+                    </label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      rows={3}
+                      value={formData.message}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter"
+                      style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="p-4 rounded-lg" style={{ backgroundColor: '#FEE2E2' }}>
+                      <p className="text-sm font-inter" style={{ color: '#DC2626' }}>
+                        {error}
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="inline-flex items-center justify-center px-3 py-2 text-black rounded-lg transition-all duration-200 font-semibold text-sm border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: '#f6f6f4' }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Submit Request
+                      </>
+                    )}
+                  </button>
+                </form>
+              </>
+              )}
+            </div>
+
+            {/* Right Column - Blank with Placeholder */}
+            <div className="hidden md:flex items-center justify-center rounded-r-3xl p-4" style={{ backgroundColor: '#f6f6f4' }}>
+              <div
+                className="w-[100%] h-[100%] rounded-2xl border border-gray-300 shadow-sm flex items-center justify-center overflow-hidden"
+                style={{ backgroundColor: '#f6f6f4', boxShadow: '-5px 0 10px -2px rgba(0, 0, 0, 0.1)' }}
+              >
+                <img
+                  src="/Schlep Engine 14x11cm (47).svg"
+                  alt="Schlep Engine Diagram"
+                  className="w-full h-full object-cover rotate-90 scale-150"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
