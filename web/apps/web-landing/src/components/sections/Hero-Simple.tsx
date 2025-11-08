@@ -3,8 +3,10 @@
 import React from 'react'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { useModal } from '../../contexts/ModalContext'
 
 export default function Hero() {
+  const { openEarlyAccessModal } = useModal();
   return (
     <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
@@ -45,13 +47,13 @@ export default function Hero() {
             </div>
 
             <div className="flex justify-start gap-4 mb-4">
-              <Link
-                href="/auth/register"
-                className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:bg-black transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+              <button
+                onClick={openEarlyAccessModal}
+                className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
               >
                 Get Early Access
                 <ChevronRight className="ml-2 h-4 w-4" />
-              </Link>
+              </button>
             </div>
 
             {/* Hero content area - spacing for background */}
