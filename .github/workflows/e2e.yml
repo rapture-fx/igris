@@ -1,0 +1,311 @@
+name: E2E Integration Tests (Phase 3 & 4)
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'internal/**'
+      - 'tests/**'
+      - 'migrations/**'
+      - 'cmd/**'
+      - 'go.mod'
+      - 'go.sum'
+      - 'docker-compose.ci.yml'
+      - '.github/workflows/e2e.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      test_filter:
+        description: 'Test filter pattern (e.g., TestBandit*, TestSemantic*)'
+        required: false
+        default: ''
+
+env:
+  GO_VERSION: '1.21'
+  DATABASE_URL: 'postgres://schlep:schlep_ci_password@localhost:5433/schlep_test?sslmode=disable'
+  REDIS_URL: 'redis://localhost:6380/0'
+  API_BASE_URL: 'http://localhost:8081'
+  PROVIDER_SIMULATOR_URL: 'http://localhost:8080'
+
+jobs:
+  e2e-tests:
+    name: End-to-End Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+          cache-dependency-path: go.sum
+
+      - name: Start test infrastructure
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d postgres redis provider-simulator
+          echo "Waiting for services to be healthy..."
+          timeout 120 bash -c 'until docker-compose -f docker-compose.ci.yml ps | grep -q "healthy"; do sleep 2; done'
+
+      - name: Verify services are running
+        run: |
+          docker-compose -f docker-compose.ci.yml ps
+          echo "Testing PostgreSQL connection..."
+          docker-compose -f docker-compose.ci.yml exec -T postgres pg_isready -U schlep -d schlep_test
+          echo "Testing Redis connection..."
+          docker-compose -f docker-compose.ci.yml exec -T redis redis-cli ping
+
+      - name: Run database migrations
+        run: |
+          echo "Applying database migrations..."
+          export DATABASE_URL="${{ env.DATABASE_URL }}"
+
+          # Install postgresql-client for psql
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+
+          # Apply migrations in order
+          for migration_file in migrations/*.sql; do
+            if [ -f "$migration_file" ]; then
+              echo "Applying migration: $migration_file"
+              psql "$DATABASE_URL" -f "$migration_file" -v ON_ERROR_STOP=1
+            fi
+          done
+
+          echo "Migrations applied successfully!"
+
+      - name: Verify database schema
+        run: |
+          echo "Verifying Phase 3 & 4 tables exist..."
+          psql "$DATABASE_URL" -c "\dt" | grep -E "semantic_classifications|bandit_arms|feedback_events|policy_versions|sla_configurations|sla_violations|self_tuning_history"
+
+      - name: Install Go dependencies
+        run: |
+          go mod download
+          go mod verify
+
+      - name: Build test binaries
+        run: |
+          echo "Building API server..."
+          go build -o bin/schlep-engine-api ./cmd/schlep-engine-api
+
+          echo "Building test binaries..."
+          go test -c -o bin/e2e_tests ./tests/...
+
+      - name: Start API server in background
+        run: |
+          echo "Starting Schlep Engine API server..."
+          export DATABASE_URL="${{ env.DATABASE_URL }}"
+          export REDIS_URL="${{ env.REDIS_URL }}"
+          export PORT=8081
+          export LOG_LEVEL=debug
+          export PROVIDER_SIMULATOR_URL="${{ env.PROVIDER_SIMULATOR_URL }}"
+
+          ./bin/schlep-engine-api > logs/api_test.log 2>&1 &
+          API_PID=$!
+          echo "API_PID=$API_PID" >> $GITHUB_ENV
+
+          # Wait for API to be ready
+          timeout 60 bash -c 'until curl -sf http://localhost:8081/health > /dev/null; do sleep 2; done'
+          echo "API server is ready!"
+
+      - name: Run Phase 3 Semantic Routing E2E Tests
+        run: |
+          echo "Running Phase 3 semantic routing integration tests..."
+          go test -v -timeout 10m -tags=integration \
+            ./tests/phase3_semantic_e2e_test.go \
+            ./tests/e2e_bandit_scenarios.go \
+            ./tests/e2e_bandit_feedback_test.go \
+            -count=1 \
+            -run="${{ github.event.inputs.test_filter || 'TestPhase3|TestBandit|TestSemantic' }}"
+
+      - name: Run Phase 4 Governance E2E Tests
+        run: |
+          echo "Running Phase 4 adaptive governance integration tests..."
+          go test -v -timeout 10m -tags=integration \
+            ./tests/phase4_governance_e2e_test.go \
+            -count=1 \
+            -run="${{ github.event.inputs.test_filter || 'TestPhase4|TestSLA|TestPolicy|TestScheduler' }}"
+
+      - name: Run full integration test suite
+        if: github.event.inputs.test_filter == ''
+        run: |
+          echo "Running complete integration test suite..."
+          go test -v -timeout 15m -tags=integration \
+            ./tests/... \
+            -coverprofile=coverage.out \
+            -covermode=atomic \
+            -count=1
+
+      - name: Validate telemetry metrics
+        run: |
+          echo "Validating Phase 3 & 4 Prometheus metrics..."
+
+          # Check that all required metrics are exposed
+          METRICS=$(curl -s http://localhost:8081/metrics)
+
+          REQUIRED_METRICS=(
+            "schlep_semantic_classifications_total"
+            "schlep_semantic_classification_latency_ms"
+            "schlep_semantic_model_confidence"
+            "schlep_bandit_arm_selections_total"
+            "schlep_bandit_reward_updates_total"
+            "schlep_feedback_events_total"
+            "schlep_policy_reloads_total"
+            "schlep_sla_violations_total"
+            "schlep_bayesian_tuner_applied_total"
+          )
+
+          MISSING_METRICS=()
+          for metric in "${REQUIRED_METRICS[@]}"; do
+            if ! echo "$METRICS" | grep -q "^${metric}"; then
+              MISSING_METRICS+=("$metric")
+            fi
+          done
+
+          if [ ${#MISSING_METRICS[@]} -gt 0 ]; then
+            echo "ERROR: Missing required metrics:"
+            printf '%s\n' "${MISSING_METRICS[@]}"
+            exit 1
+          fi
+
+          echo "All required metrics are present!"
+
+      - name: Generate test report
+        if: always()
+        run: |
+          echo "Generating test report..."
+          go install github.com/jstemmer/go-junit-report/v2@latest
+          go test -v -tags=integration ./tests/... 2>&1 | go-junit-report -set-exit-code > test-report.xml || true
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            test-report.xml
+            coverage.out
+            logs/api_test.log
+
+      - name: Upload coverage to Codecov
+        if: github.event_name == 'pull_request'
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage.out
+          flags: integration
+          name: e2e-coverage
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          echo "=== API Server Logs ==="
+          cat logs/api_test.log || echo "No API logs found"
+
+          echo "=== Docker Compose Logs ==="
+          docker-compose -f docker-compose.ci.yml logs
+
+          echo "=== PostgreSQL Logs ==="
+          docker-compose -f docker-compose.ci.yml logs postgres
+
+          echo "=== Redis Logs ==="
+          docker-compose -f docker-compose.ci.yml logs redis
+
+      - name: Cleanup
+        if: always()
+        run: |
+          # Stop API server
+          if [ -n "$API_PID" ]; then
+            kill $API_PID || true
+          fi
+
+          # Stop Docker containers
+          docker-compose -f docker-compose.ci.yml down -v
+
+          echo "Cleanup complete!"
+
+  load-test:
+    name: Load Testing (Semantic Routing)
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Start test infrastructure
+        run: |
+          docker-compose -f docker-compose.ci.yml up -d
+          timeout 120 bash -c 'until docker-compose -f docker-compose.ci.yml ps | grep -q "healthy"; do sleep 2; done'
+
+      - name: Run load tests
+        run: |
+          echo "Running semantic routing load tests..."
+          bash tests/load_test_semantic_routing.sh
+
+      - name: Upload load test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results
+          path: |
+            tests/load_test_results.txt
+            tests/load_test_metrics.json
+
+      - name: Cleanup
+        if: always()
+        run: docker-compose -f docker-compose.ci.yml down -v
+
+  performance-regression:
+    name: Performance Regression Check
+    runs-on: ubuntu-latest
+    needs: e2e-tests
+    if: github.event_name == 'pull_request'
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Run benchmarks (current)
+        run: |
+          go test -bench=. -benchmem -run=^$ ./internal/semantic/... > bench-current.txt
+          go test -bench=. -benchmem -run=^$ ./internal/scheduler/... >> bench-current.txt
+
+      - name: Checkout base branch
+        run: git checkout ${{ github.base_ref }}
+
+      - name: Run benchmarks (base)
+        run: |
+          go test -bench=. -benchmem -run=^$ ./internal/semantic/... > bench-base.txt
+          go test -bench=. -benchmem -run=^$ ./internal/scheduler/... >> bench-base.txt
+
+      - name: Compare benchmarks
+        run: |
+          go install golang.org/x/perf/cmd/benchstat@latest
+          benchstat bench-base.txt bench-current.txt | tee benchmark-comparison.txt
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            bench-current.txt
+            bench-base.txt
+            benchmark-comparison.txt

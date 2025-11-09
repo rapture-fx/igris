@@ -1,0 +1,159 @@
+version: '3.8'
+
+services:
+  # PostgreSQL for integration tests
+  postgres:
+    image: postgres:15-alpine
+    container_name: schlep-ci-postgres
+    environment:
+      POSTGRES_DB: schlep_test
+      POSTGRES_USER: schlep
+      POSTGRES_PASSWORD: schlep_ci_password
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_ci_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U schlep -d schlep_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - schlep-ci-network
+
+  # Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: schlep-ci-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_ci_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - schlep-ci-network
+
+  # Mock LLM Provider Simulator for testing
+  provider-simulator:
+    image: alpine:latest
+    container_name: schlep-ci-provider-simulator
+    command: |
+      sh -c "
+        apk add --no-cache python3 py3-pip &&
+        pip3 install flask &&
+        cat > /app/simulator.py <<'EOF'
+      from flask import Flask, request, jsonify
+      import time
+      import random
+
+      app = Flask(__name__)
+
+      # Simulate different provider behaviors
+      PROVIDERS = {
+          'openai': {'latency_ms': 150, 'cost_per_1k': 0.002, 'success_rate': 0.98},
+          'anthropic': {'latency_ms': 120, 'cost_per_1k': 0.003, 'success_rate': 0.99},
+          'cohere': {'latency_ms': 200, 'cost_per_1k': 0.001, 'success_rate': 0.95},
+          'google': {'latency_ms': 180, 'cost_per_1k': 0.0015, 'success_rate': 0.97}
+      }
+
+      @app.route('/v1/chat/completions', methods=['POST'])
+      def chat_completions():
+          data = request.json
+          provider = request.headers.get('X-Provider', 'openai')
+
+          # Simulate provider characteristics
+          config = PROVIDERS.get(provider, PROVIDERS['openai'])
+          time.sleep(config['latency_ms'] / 1000.0)
+
+          # Simulate occasional failures
+          if random.random() > config['success_rate']:
+              return jsonify({'error': 'Provider temporarily unavailable'}), 503
+
+          return jsonify({
+              'id': f'chatcmpl-{random.randint(100000, 999999)}',
+              'object': 'chat.completion',
+              'created': int(time.time()),
+              'model': data.get('model', 'gpt-3.5-turbo'),
+              'choices': [{
+                  'index': 0,
+                  'message': {
+                      'role': 'assistant',
+                      'content': f'Mock response from {provider}'
+                  },
+                  'finish_reason': 'stop'
+              }],
+              'usage': {
+                  'prompt_tokens': 10,
+                  'completion_tokens': 20,
+                  'total_tokens': 30
+              }
+          })
+
+      @app.route('/health', methods=['GET'])
+      def health():
+          return jsonify({'status': 'healthy'})
+
+      if __name__ == '__main__':
+          app.run(host='0.0.0.0', port=8080, debug=True)
+      EOF
+        mkdir -p /app &&
+        python3 /app/simulator.py
+      "
+    ports:
+      - "8080:8080"
+    networks:
+      - schlep-ci-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Migration runner (runs once to set up schema)
+  migrator:
+    image: golang:1.21-alpine
+    container_name: schlep-ci-migrator
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DATABASE_URL: "postgres://schlep:schlep_ci_password@postgres:5432/schlep_test?sslmode=disable"
+    command: |
+      sh -c "
+        echo 'Waiting for PostgreSQL to be ready...' &&
+        until nc -z postgres 5432; do sleep 1; done &&
+        echo 'Running database migrations...' &&
+        if [ -f /app/scripts/run_migrations.sh ]; then
+          /app/scripts/run_migrations.sh
+        else
+          echo 'Migration script not found, applying migrations manually...'
+          apk add --no-cache postgresql-client &&
+          for sql_file in /app/migrations/*.sql; do
+            echo \"Applying \$sql_file...\"
+            psql \$DATABASE_URL -f \$sql_file || echo \"Failed to apply \$sql_file\"
+          done
+        fi &&
+        echo 'Migrations complete!'
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - schlep-ci-network
+
+volumes:
+  postgres_ci_data:
+    driver: local
+  redis_ci_data:
+    driver: local
+
+networks:
+  schlep-ci-network:
+    driver: bridge
