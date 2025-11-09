@@ -1,0 +1,478 @@
+# Schlep-Engine Phase 5 Staging Deployment
+# Hetzner CX31 VPS Configuration (8GB RAM, 2vCPU, 80GB SSD)
+# Designed for 48h canary validation and pilot launch
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database with optimized settings for 8GB RAM VPS
+  postgres:
+    image: postgres:15-alpine
+    container_name: schlep-postgres-staging
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-schlep_engine_staging}
+      POSTGRES_USER: ${POSTGRES_USER:-schlep_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # Performance tuning for CX31 (8GB RAM)
+      POSTGRES_SHARED_BUFFERS: 2GB
+      POSTGRES_EFFECTIVE_CACHE_SIZE: 6GB
+      POSTGRES_WORK_MEM: 32MB
+      POSTGRES_MAINTENANCE_WORK_MEM: 512MB
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/pgdata
+      - ./backups:/backups
+      - ../../apps/api/migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-schlep_user} -d ${POSTGRES_DB:-schlep_engine_staging}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - schlep-staging
+    deploy:
+      resources:
+        limits:
+          memory: 3G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Redis with persistence and optimized for caching
+  redis:
+    image: redis:7-alpine
+    container_name: schlep-redis-staging
+    restart: unless-stopped
+    command: >
+      redis-server
+      --appendonly yes
+      --requirepass ${REDIS_PASSWORD:-}
+      --maxmemory 1gb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--no-auth-warning", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    networks:
+      - schlep-staging
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Go Gateway API (main application)
+  api:
+    build:
+      context: ../../go_gateway
+      dockerfile: Dockerfile.staging
+      args:
+        - BUILD_ENV=staging
+    image: schlep-engine-api:staging-${VERSION:-latest}
+    container_name: schlep-api-staging
+    restart: unless-stopped
+    environment:
+      # Core Configuration
+      ENVIRONMENT: staging
+      PORT: 8080
+      VERSION: ${VERSION:-v1.0.0-staging}
+
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-schlep_engine_staging}
+      DB_USER: ${POSTGRES_USER:-schlep_user}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_SSL_MODE: disable
+      DB_MAX_CONNECTIONS: 50
+      DB_MAX_IDLE_CONNECTIONS: 10
+
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      REDIS_DB: 0
+      REDIS_POOL_SIZE: 20
+
+      # Feature Flags
+      FEATURE_FLAGS_CONFIG: /app/config/feature_flags.yml
+      FEATURE_FLAGS_REFRESH_INTERVAL: 60s
+
+      # Canary Deployment
+      CANARY_ENABLED: true
+      CANARY_PERCENTAGE: ${CANARY_PERCENTAGE:-10}
+      CANARY_STAGE: ${CANARY_STAGE:-initial}
+
+      # Provider Configuration
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+
+      # Monitoring
+      PROMETHEUS_ENABLED: true
+      PROMETHEUS_PORT: 9090
+      METRICS_PATH: /v1/metrics
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      LOG_FORMAT: json
+
+      # Security
+      JWT_SECRET: ${JWT_SECRET}
+      SECRET_KEY: ${SECRET_KEY}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://staging.schlep-engine.com}
+
+      # Rate Limiting
+      RATE_LIMIT_REQUESTS_PER_MINUTE: 100
+      RATE_LIMIT_BURST: 20
+
+    volumes:
+      - ./feature_flags.yml:/app/config/feature_flags.yml:ro
+      - api_logs:/app/logs
+      - ./data:/app/data
+
+    ports:
+      - "8080:8080"
+      - "9090:9090"  # Prometheus metrics
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+    networks:
+      - schlep-staging
+
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.75'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: schlep-prometheus-staging
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--storage.tsdb.retention.size=5GB'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ../../infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../infra/monitoring/prometheus/rules_phase3_4.yml:/etc/prometheus/rules/phase3_4.yml:ro
+      - ./prometheus/rules:/etc/prometheus/rules:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    networks:
+      - schlep-staging
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # AlertManager for alert handling
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: schlep-alertmanager-staging
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--cluster.listen-address=0.0.0.0:9094'
+    volumes:
+      - ../../infra/monitoring/alerting/alert-config.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "9093:9093"
+    networks:
+      - schlep-staging
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+        reservations:
+          memory: 64M
+          cpus: '0.1'
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: schlep-grafana-staging
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?GRAFANA_PASSWORD required}
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-https://staging.schlep-engine.com/grafana}
+      GF_SECURITY_ALLOW_EMBEDDING: true
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,grafana-worldmap-panel,grafana-clock-panel
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_ANALYTICS_REPORTING_ENABLED: false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../../infra/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3001:3000"
+    networks:
+      - schlep-staging
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Canary Validator (runs validation tests every 6h)
+  canary-validator:
+    build:
+      context: ../../infra/scripts
+      dockerfile: Dockerfile.validator
+    image: schlep-canary-validator:latest
+    container_name: schlep-canary-validator
+    restart: unless-stopped
+    environment:
+      API_URL: http://api:8080
+      PROMETHEUS_URL: http://prometheus:9090
+      VALIDATION_INTERVAL: ${VALIDATION_INTERVAL:-21600}  # 6 hours
+      CANARY_STAGE: ${CANARY_STAGE:-initial}
+      SLACK_WEBHOOK_URL: ${SLACK_WEBHOOK_URL:-}
+    volumes:
+      - ./canary_validation.sh:/app/canary_validation.sh:ro
+      - canary_logs:/app/logs
+    networks:
+      - schlep-staging
+    depends_on:
+      - api
+      - prometheus
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Web Landing Page (for pricing and early access)
+  web-landing:
+    build:
+      context: ../../apps/web-landing
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
+    image: schlep-web-landing:staging-${VERSION:-latest}
+    container_name: schlep-web-landing-staging
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: https://staging.schlep-engine.com
+      NEXT_PUBLIC_ENVIRONMENT: staging
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${STRIPE_PUBLISHABLE_KEY}
+      NEXT_PUBLIC_POLAR_PUBLISHABLE_KEY: ${POLAR_PUBLISHABLE_KEY}
+    ports:
+      - "3000:3000"
+    networks:
+      - schlep-staging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+    logging:
+      driver: json-file
+      options:
+        max-size: "5m"
+        max-file: "3"
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: schlep-nginx-staging
+    restart: unless-stopped
+    volumes:
+      - ../../infra/nginx/nginx.staging.conf:/etc/nginx/nginx.conf:ro
+      - ../../infra/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+      - nginx_logs:/var/log/nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - schlep-staging
+    depends_on:
+      - api
+      - web-landing
+      - grafana
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.25'
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot
+    container_name: schlep-certbot-staging
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    depends_on:
+      - nginx
+    command: >
+      sh -c "
+      certbot certonly --webroot -w /var/www/certbot
+      --email ${LETSENCRYPT_EMAIL}
+      --agree-tos --no-eff-email
+      -d staging.schlep-engine.com &&
+      while :; do
+        certbot renew --webroot -w /var/www/certbot
+        sleep 12h
+      done"
+    networks:
+      - schlep-staging
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/schlep-engine/data/postgres
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/schlep-engine/data/redis
+  prometheus_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /opt/schlep-engine/data/prometheus
+  alertmanager_data:
+    driver: local
+  grafana_data:
+    driver: local
+  api_logs:
+    driver: local
+  canary_logs:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  schlep-staging:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
