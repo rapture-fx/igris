@@ -682,3 +682,388 @@ func RecordPolicyRouteDecision(provider, strategy, preference string) {
 func RecordCostBasedFallback(provider string) {
 	schlepCostBasedFallbacksTotal.WithLabelValues(provider).Inc()
 }
+
+// Phase 3: Semantic Routing & Adaptive Learning Metrics
+
+var (
+	// Semantic classification metrics
+	schlepSemanticClassificationsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_semantic_classifications_total",
+			Help: "Total number of semantic classifications performed",
+		},
+		[]string{"class", "cache_hit"}, // cache_hit: true/false
+	)
+
+	schlepSemanticClassificationLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_semantic_classification_latency_ms",
+			Help:    "Semantic classification latency in milliseconds",
+			Buckets: []float64{1, 2, 5, 10, 15, 20, 30, 50, 100},
+		},
+		[]string{"class", "cache_hit"},
+	)
+
+	schlepSemanticClassificationConfidence = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_semantic_classification_confidence",
+			Help:    "Confidence score of semantic classifications (0-1)",
+			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0},
+		},
+		[]string{"class"},
+	)
+
+	// Bandit algorithm metrics
+	schlepBanditRewardUpdatesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_bandit_reward_updates_total",
+			Help: "Total number of bandit reward updates processed",
+		},
+		[]string{"provider", "class", "status"}, // status: success/error
+	)
+
+	schlepProviderRewardMean = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_provider_reward_mean",
+			Help: "Mean composite reward for each provider per semantic class (Thompson Sampling)",
+		},
+		[]string{"provider", "class"},
+	)
+
+	schlepProviderRewardAlpha = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_provider_reward_alpha",
+			Help: "Beta distribution alpha parameter (successes) for Thompson Sampling",
+		},
+		[]string{"provider", "class"},
+	)
+
+	schlepProviderRewardBeta = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_provider_reward_beta",
+			Help: "Beta distribution beta parameter (failures) for Thompson Sampling",
+		},
+		[]string{"provider", "class"},
+	)
+
+	// Feedback processing metrics
+	schlepFeedbackLatencyMs = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_feedback_latency_ms",
+			Help:    "Feedback event processing latency in milliseconds",
+			Buckets: []float64{1, 2, 5, 10, 15, 20, 30, 50, 100},
+		},
+		[]string{"provider", "class"},
+	)
+
+	schlepFeedbackEventsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_feedback_events_total",
+			Help: "Total number of feedback events received",
+		},
+		[]string{"provider", "class", "success"},
+	)
+
+	schlepFeedbackProcessedTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_feedback_processed_total",
+			Help: "Total number of feedback events processed asynchronously",
+		},
+		[]string{"status"}, // status: success/error
+	)
+
+	// Composite reward component metrics
+	schlepRewardComponentLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_reward_component_latency",
+			Help:    "Latency score component of composite reward (0-1, higher is better)",
+			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
+		},
+		[]string{"provider", "class"},
+	)
+
+	schlepRewardComponentCost = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_reward_component_cost",
+			Help:    "Cost efficiency component of composite reward (0-1, higher is better)",
+			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
+		},
+		[]string{"provider", "class"},
+	)
+
+	schlepRewardComponentSuccess = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_reward_component_success",
+			Help:    "Success rate component of composite reward (0-1)",
+			Buckets: []float64{0.0, 0.1, 0.5, 0.9, 0.95, 0.99, 1.0},
+		},
+		[]string{"provider", "class"},
+	)
+
+	// Weight tracking for adaptive learning
+	schlepCompositeRewardWeights = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_composite_reward_weights",
+			Help: "Current weights for composite reward calculation (α, β, γ)",
+		},
+		[]string{"component", "class"}, // component: latency/cost/success
+	)
+)
+
+// Phase 4: Adaptive Governance & SLA Metrics
+
+var (
+	// Policy routing metrics
+	schlepPolicyVersionActive = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_policy_version_active",
+			Help: "Currently active policy version per tenant (1=active, 0=inactive)",
+		},
+		[]string{"tenant_id", "version"},
+	)
+
+	schlepPolicyReloadTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_policy_reload_total",
+			Help: "Total number of policy hot reloads",
+		},
+		[]string{"tenant_id", "status"}, // status: success/error
+	)
+
+	schlepPolicyReloadLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_policy_reload_latency_seconds",
+			Help:    "Policy reload latency in seconds",
+			Buckets: []float64{0.1, 0.25, 0.5, 0.75, 1.0, 2.0, 5.0},
+		},
+		[]string{"tenant_id"},
+	)
+
+	// SLA tracking metrics
+	schlepSLAViolationsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_sla_violations_total",
+			Help: "Total number of SLA violations",
+		},
+		[]string{"tenant_id", "provider", "violation_type", "severity"}, // violation_type: uptime/latency_p95/latency_p99/cost/success_rate
+	)
+
+	schlepSLAComplianceStatus = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_sla_compliance_status",
+			Help: "Current SLA compliance status (1=compliant, 0.5=warning, 0=critical)",
+		},
+		[]string{"tenant_id"},
+	)
+
+	schlepProviderDegradedTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_provider_degraded_total",
+			Help: "Total number of times providers marked as degraded due to SLA violations",
+		},
+		[]string{"provider", "reason"},
+	)
+
+	schlepSLAMeasuredValue = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_sla_measured_value",
+			Help: "Current measured value for SLA metrics",
+		},
+		[]string{"tenant_id", "provider", "metric_type"}, // metric_type: uptime/latency_p95/latency_p99/cost/success_rate
+	)
+
+	schlepSLATargetValue = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_sla_target_value",
+			Help: "Target value for SLA metrics",
+		},
+		[]string{"tenant_id", "metric_type"},
+	)
+
+	// Audit log metrics
+	schlepAuditLogEntriesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_audit_log_entries_total",
+			Help: "Total number of audit log entries created",
+		},
+		[]string{"tenant_id", "policy_version"},
+	)
+
+	schlepAuditLogRetentionCleanup = promauto.NewCounter(
+		prometheus.CounterOpts{
+			Name: "schlep_audit_log_retention_cleanup_total",
+			Help: "Total number of audit log entries cleaned up due to retention policy",
+		},
+	)
+
+	// Self-tuning metrics
+	schlepSelfTuningOptimizationsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_self_tuning_optimizations_total",
+			Help: "Total number of self-tuning weight optimizations performed",
+		},
+		[]string{"class", "status"}, // status: applied/rejected
+	)
+
+	schlepSelfTuningPerformanceImprovement = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_self_tuning_performance_improvement",
+			Help:    "Expected performance improvement from self-tuning (percentage)",
+			Buckets: []float64{-10, -5, 0, 1, 2, 5, 10, 15, 20, 30, 50},
+		},
+		[]string{"class"},
+	)
+
+	schlepSelfTuningConfidence = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_self_tuning_confidence",
+			Help:    "Confidence score for self-tuning optimization (0-1)",
+			Buckets: []float64{0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1.0},
+		},
+		[]string{"class"},
+	)
+)
+
+// Phase 3: Semantic Routing & Adaptive Learning Functions
+
+// RecordSemanticClassification records a semantic classification event
+func RecordSemanticClassification(class string, latencyMs int64, confidence float64, cacheHit bool) {
+	cacheHitStr := "false"
+	if cacheHit {
+		cacheHitStr = "true"
+	}
+
+	schlepSemanticClassificationsTotal.WithLabelValues(class, cacheHitStr).Inc()
+	schlepSemanticClassificationLatency.WithLabelValues(class, cacheHitStr).Observe(float64(latencyMs))
+	schlepSemanticClassificationConfidence.WithLabelValues(class).Observe(confidence)
+}
+
+// RecordBanditRewardUpdate records a bandit reward update event
+func RecordBanditRewardUpdate(provider, class string, latencyMs int64, success bool) {
+	status := "success"
+	if !success {
+		status = "error"
+	}
+
+	schlepBanditRewardUpdatesTotal.WithLabelValues(provider, class, status).Inc()
+	schlepFeedbackLatencyMs.WithLabelValues(provider, class).Observe(float64(latencyMs))
+}
+
+// RecordProviderReward records Thompson Sampling parameters for a provider
+func RecordProviderReward(provider, class string, alpha, beta, compositeMean float64) {
+	schlepProviderRewardAlpha.WithLabelValues(provider, class).Set(alpha)
+	schlepProviderRewardBeta.WithLabelValues(provider, class).Set(beta)
+	schlepProviderRewardMean.WithLabelValues(provider, class).Set(compositeMean)
+}
+
+// RecordFeedbackEvent records a feedback event
+func RecordFeedbackEvent(provider, class string, success bool, processingLatencyMs int64) {
+	successStr := "false"
+	if success {
+		successStr = "true"
+	}
+
+	schlepFeedbackEventsTotal.WithLabelValues(provider, class, successStr).Inc()
+
+	if processingLatencyMs > 0 {
+		schlepFeedbackLatencyMs.WithLabelValues(provider, class).Observe(float64(processingLatencyMs))
+	}
+}
+
+// RecordFeedbackProcessed records completion of feedback processing
+func RecordFeedbackProcessed(success bool) {
+	status := "success"
+	if !success {
+		status = "error"
+	}
+	schlepFeedbackProcessedTotal.WithLabelValues(status).Inc()
+}
+
+// RecordCompositeRewardComponents records individual reward components
+func RecordCompositeRewardComponents(provider, class string, latencyScore, costEfficiency, successRate float64) {
+	schlepRewardComponentLatency.WithLabelValues(provider, class).Observe(latencyScore)
+	schlepRewardComponentCost.WithLabelValues(provider, class).Observe(costEfficiency)
+	schlepRewardComponentSuccess.WithLabelValues(provider, class).Observe(successRate)
+}
+
+// RecordCompositeRewardWeights records current weight configuration
+func RecordCompositeRewardWeights(class string, latencyWeight, costWeight, successWeight float64) {
+	schlepCompositeRewardWeights.WithLabelValues("latency", class).Set(latencyWeight)
+	schlepCompositeRewardWeights.WithLabelValues("cost", class).Set(costWeight)
+	schlepCompositeRewardWeights.WithLabelValues("success", class).Set(successWeight)
+}
+
+// Phase 4: Adaptive Governance Functions
+
+// RecordPolicyVersionActive marks a policy version as active
+func RecordPolicyVersionActive(tenantID, version string, active bool) {
+	value := 0.0
+	if active {
+		value = 1.0
+	}
+	schlepPolicyVersionActive.WithLabelValues(tenantID, version).Set(value)
+}
+
+// RecordPolicyReload records a policy hot reload event
+func RecordPolicyReload(tenantID string, latencySeconds float64, success bool) {
+	status := "success"
+	if !success {
+		status = "error"
+	}
+
+	schlepPolicyReloadTotal.WithLabelValues(tenantID, status).Inc()
+	schlepPolicyReloadLatency.WithLabelValues(tenantID).Observe(latencySeconds)
+}
+
+// RecordSLAViolation records an SLA violation
+func RecordSLAViolation(tenantID, provider, violationType, severity string) {
+	schlepSLAViolationsTotal.WithLabelValues(tenantID, provider, violationType, severity).Inc()
+}
+
+// RecordSLACompliance updates SLA compliance status
+func RecordSLACompliance(tenantID string, status string) {
+	// status: compliant=1.0, warning=0.5, critical=0.0
+	value := 0.0
+	switch status {
+	case "compliant":
+		value = 1.0
+	case "warning":
+		value = 0.5
+	case "critical":
+		value = 0.0
+	}
+	schlepSLAComplianceStatus.WithLabelValues(tenantID).Set(value)
+}
+
+// RecordProviderDegraded records when a provider is marked as degraded
+func RecordProviderDegraded(provider, reason string) {
+	schlepProviderDegradedTotal.WithLabelValues(provider, reason).Inc()
+}
+
+// RecordSLAMetrics records current SLA measurements vs targets
+func RecordSLAMetrics(tenantID, provider, metricType string, measuredValue, targetValue float64) {
+	schlepSLAMeasuredValue.WithLabelValues(tenantID, provider, metricType).Set(measuredValue)
+	schlepSLATargetValue.WithLabelValues(tenantID, metricType).Set(targetValue)
+}
+
+// RecordAuditLogEntry records creation of an audit log entry
+func RecordAuditLogEntry(tenantID, policyVersion string) {
+	schlepAuditLogEntriesTotal.WithLabelValues(tenantID, policyVersion).Inc()
+}
+
+// RecordAuditLogCleanup records cleanup of old audit entries
+func RecordAuditLogCleanup(count int) {
+	schlepAuditLogRetentionCleanup.Add(float64(count))
+}
+
+// RecordSelfTuningOptimization records a self-tuning optimization event
+func RecordSelfTuningOptimization(class string, performanceImprovement, confidence float64, applied bool) {
+	status := "rejected"
+	if applied {
+		status = "applied"
+	}
+
+	schlepSelfTuningOptimizationsTotal.WithLabelValues(class, status).Inc()
+	schlepSelfTuningPerformanceImprovement.WithLabelValues(class).Observe(performanceImprovement)
+	schlepSelfTuningConfidence.WithLabelValues(class).Observe(confidence)
+}
