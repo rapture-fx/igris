@@ -537,3 +537,148 @@ func RecordInferRequest(provider, model string, latencyMs int64, promptTokens, c
 func RecordInferLatency(provider, model string, latencyMs int64) {
 	inferRequestLatency.WithLabelValues(provider, model).Observe(float64(latencyMs))
 }
+
+// Phase 1: Cost forecasting and provider cost tracking metrics
+
+var (
+	// Cost forecasting metrics
+	schlepEstimatedCostUSDTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_estimated_cost_usd_total",
+			Help: "Total estimated cost in USD across all requests",
+		},
+		[]string{"provider", "model"},
+	)
+
+	schlepForecastRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_forecast_requests_total",
+			Help: "Total number of requests with cost forecast",
+		},
+		[]string{"provider", "model", "forecast_method"}, // forecast_method: pre_request, post_request
+	)
+
+	schlepProviderCostRatio = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "schlep_provider_cost_ratio",
+			Help: "Cost efficiency ratio per provider (lower is better)",
+		},
+		[]string{"provider", "model"},
+	)
+
+	schlepCostPerToken = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_cost_per_token",
+			Help:    "Cost per token distribution in USD",
+			Buckets: []float64{0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1},
+		},
+		[]string{"provider", "model", "token_type"}, // token_type: input, output, total
+	)
+
+	schlepRequestCostUSD = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_request_cost_usd",
+			Help:    "Per-request cost distribution in USD",
+			Buckets: []float64{0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1.0},
+		},
+		[]string{"provider", "model"},
+	)
+
+	schlepCostForecastAccuracy = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "schlep_cost_forecast_accuracy",
+			Help:    "Accuracy of cost forecasts (estimated vs actual)",
+			Buckets: []float64{0.5, 0.7, 0.8, 0.9, 0.95, 0.99, 1.0, 1.1, 1.2, 1.5},
+		},
+		[]string{"provider", "model"},
+	)
+)
+
+// RecordEstimatedCost records estimated cost for a request (before inference)
+func RecordEstimatedCost(provider, model string, estimatedCostUSD float64, inputTokens, outputTokens int) {
+	// Record total estimated cost
+	schlepEstimatedCostUSDTotal.WithLabelValues(provider, model).Add(estimatedCostUSD)
+
+	// Record forecast request
+	schlepForecastRequestsTotal.WithLabelValues(provider, model, "pre_request").Inc()
+
+	// Record cost distribution
+	schlepRequestCostUSD.WithLabelValues(provider, model).Observe(estimatedCostUSD)
+
+	// Record cost per token if tokens are provided
+	if inputTokens > 0 {
+		costPerInputToken := estimatedCostUSD / float64(inputTokens+outputTokens)
+		schlepCostPerToken.WithLabelValues(provider, model, "input").Observe(costPerInputToken)
+	}
+}
+
+// RecordActualCost records actual cost after inference completes
+func RecordActualCost(provider, model string, actualCostUSD, estimatedCostUSD float64, inputTokens, outputTokens int) {
+	// Record actual cost
+	schlepEstimatedCostUSDTotal.WithLabelValues(provider, model).Add(actualCostUSD)
+
+	// Record forecast request
+	schlepForecastRequestsTotal.WithLabelValues(provider, model, "post_request").Inc()
+
+	// Record cost distribution
+	schlepRequestCostUSD.WithLabelValues(provider, model).Observe(actualCostUSD)
+
+	// Record forecast accuracy
+	if estimatedCostUSD > 0 && actualCostUSD > 0 {
+		accuracy := actualCostUSD / estimatedCostUSD
+		schlepCostForecastAccuracy.WithLabelValues(provider, model).Observe(accuracy)
+	}
+
+	// Record cost per token
+	totalTokens := inputTokens + outputTokens
+	if totalTokens > 0 {
+		costPerToken := actualCostUSD / float64(totalTokens)
+		schlepCostPerToken.WithLabelValues(provider, model, "total").Observe(costPerToken)
+
+		if inputTokens > 0 {
+			costPerInputToken := (actualCostUSD * float64(inputTokens) / float64(totalTokens)) / float64(inputTokens)
+			schlepCostPerToken.WithLabelValues(provider, model, "input").Observe(costPerInputToken)
+		}
+
+		if outputTokens > 0 {
+			costPerOutputToken := (actualCostUSD * float64(outputTokens) / float64(totalTokens)) / float64(outputTokens)
+			schlepCostPerToken.WithLabelValues(provider, model, "output").Observe(costPerOutputToken)
+		}
+	}
+}
+
+// RecordProviderCostRatio records the cost efficiency ratio for a provider
+// Lower ratio = more cost efficient
+func RecordProviderCostRatio(provider, model string, costRatio float64) {
+	schlepProviderCostRatio.WithLabelValues(provider, model).Set(costRatio)
+}
+
+// Phase 2: Policy-based routing and fallback metrics
+
+var (
+	schlepPolicyRouteDecisionsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_policy_route_decisions_total",
+			Help: "Total number of policy-based routing decisions",
+		},
+		[]string{"provider", "strategy", "preference"}, // strategy: policy_based, default
+	)
+
+	schlepCostBasedFallbacksTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_cost_based_fallbacks_total",
+			Help: "Total number of cost-based provider fallbacks",
+		},
+		[]string{"provider"},
+	)
+)
+
+// RecordPolicyRouteDecision records a policy-based routing decision
+func RecordPolicyRouteDecision(provider, strategy, preference string) {
+	schlepPolicyRouteDecisionsTotal.WithLabelValues(provider, strategy, preference).Inc()
+}
+
+// RecordCostBasedFallback records when a provider is selected due to cost constraints
+func RecordCostBasedFallback(provider string) {
+	schlepCostBasedFallbacksTotal.WithLabelValues(provider).Inc()
+}

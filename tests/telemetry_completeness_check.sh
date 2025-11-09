@@ -33,6 +33,16 @@ REQUIRED_METRICS=(
     "schlep_circuit_breaker_state"
 )
 
+# Phase 1: Cost visibility metrics
+PHASE1_COST_METRICS=(
+    "schlep_estimated_cost_usd_total"
+    "schlep_forecast_requests_total"
+    "schlep_provider_cost_ratio"
+    "schlep_cost_per_token"
+    "schlep_request_cost_usd"
+    "schlep_cost_forecast_accuracy"
+)
+
 # Also check for standard metrics that should be present
 STANDARD_METRICS=(
     "http_requests_total"
@@ -77,6 +87,25 @@ done
 
 echo
 echo "Schlep metrics found: ${#PRESENT_SCHLEP_METRICS[@]}/${#REQUIRED_METRICS[@]}"
+
+# Check for Phase 1 cost metrics
+echo
+echo "[2.5/4] Checking Phase 1 cost metrics..."
+MISSING_COST_METRICS=()
+PRESENT_COST_METRICS=()
+
+for metric in "${PHASE1_COST_METRICS[@]}"; do
+    if echo "$METRICS_CONTENT" | grep -q "^${metric}"; then
+        echo "  ✓ $metric"
+        PRESENT_COST_METRICS+=("$metric")
+    else
+        echo "  ⚠ MISSING: $metric (Phase 1 feature)"
+        MISSING_COST_METRICS+=("$metric")
+    fi
+done
+
+echo
+echo "Phase 1 cost metrics found: ${#PRESENT_COST_METRICS[@]}/${#PHASE1_COST_METRICS[@]}"
 
 # Check for standard metrics
 echo
@@ -130,6 +159,11 @@ if [ ${#MISSING_STANDARD_METRICS[@]} -gt 0 ]; then
         STATUS_MESSAGE="Missing recommended standard metrics"
     fi
     RECOMMENDATIONS+=("Consider adding standard metrics: ${MISSING_STANDARD_METRICS[*]}")
+fi
+
+if [ ${#MISSING_COST_METRICS[@]} -gt 0 ]; then
+    RECOMMENDATIONS+=("Phase 1 cost metrics missing: ${MISSING_COST_METRICS[*]}")
+    RECOMMENDATIONS+=("Ensure CostForecastMiddleware is enabled in HTTP server")
 fi
 
 if [ "$TOTAL_METRICS" -lt 10 ]; then

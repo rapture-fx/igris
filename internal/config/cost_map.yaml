@@ -1,0 +1,150 @@
+# Schlep-Engine Provider Cost Map
+# Official provider pricing for token-based inference costs
+# All costs in USD per 1,000 tokens
+# Source: Provider official pricing pages (as of January 2025)
+#
+# Format:
+#   provider:model:
+#     input_per_1k: USD per 1K input tokens
+#     output_per_1k: USD per 1K output tokens
+#     per_1k: USD per 1K tokens (for unified pricing)
+
+providers:
+  # ============================================================================
+  # OpenAI Models
+  # ============================================================================
+
+  openai:
+    # GPT-4 Family
+    gpt-4:
+      input_per_1k: 0.03    # $0.03 per 1K input tokens
+      output_per_1k: 0.06   # $0.06 per 1K output tokens
+
+    gpt-4-turbo:
+      input_per_1k: 0.01    # $0.01 per 1K input tokens
+      output_per_1k: 0.03   # $0.03 per 1K output tokens
+
+    gpt-4-turbo-preview:
+      input_per_1k: 0.01
+      output_per_1k: 0.03
+
+    gpt-4-32k:
+      input_per_1k: 0.06
+      output_per_1k: 0.12
+
+    # GPT-3.5 Family
+    gpt-3.5-turbo:
+      input_per_1k: 0.0005  # $0.0005 per 1K input tokens
+      output_per_1k: 0.0015 # $0.0015 per 1K output tokens
+
+    gpt-3.5-turbo-16k:
+      input_per_1k: 0.001
+      output_per_1k: 0.002
+
+    gpt-3.5-turbo-instruct:
+      input_per_1k: 0.0015
+      output_per_1k: 0.002
+
+    # Default fallback for unknown OpenAI models
+    default:
+      per_1k: 0.002  # Conservative estimate based on GPT-3.5
+
+  # ============================================================================
+  # Anthropic Claude Models
+  # ============================================================================
+
+  anthropic:
+    # Claude 3 Opus
+    claude-3-opus-20240229:
+      input_per_1k: 0.015   # $15 per 1M = $0.015 per 1K
+      output_per_1k: 0.075  # $75 per 1M = $0.075 per 1K
+
+    claude-3-opus:
+      input_per_1k: 0.015
+      output_per_1k: 0.075
+
+    # Claude 3 Sonnet
+    claude-3-sonnet-20240229:
+      input_per_1k: 0.003   # $3 per 1M = $0.003 per 1K
+      output_per_1k: 0.015  # $15 per 1M = $0.015 per 1K
+
+    claude-3-sonnet:
+      input_per_1k: 0.003
+      output_per_1k: 0.015
+
+    claude-3-5-sonnet-20240620:
+      input_per_1k: 0.003
+      output_per_1k: 0.015
+
+    # Claude 3 Haiku
+    claude-3-haiku-20240307:
+      input_per_1k: 0.00025 # $0.25 per 1M = $0.00025 per 1K
+      output_per_1k: 0.00125 # $1.25 per 1M = $0.00125 per 1K
+
+    claude-3-haiku:
+      input_per_1k: 0.00025
+      output_per_1k: 0.00125
+
+    # Default fallback for unknown Anthropic models
+    default:
+      per_1k: 0.005  # Conservative estimate based on Claude Haiku
+
+  # ============================================================================
+  # Benchmark/Mock Providers (for testing)
+  # ============================================================================
+
+  benchmark-openai:
+    default:
+      per_1k: 0.002  # Simplified unified pricing for benchmarks
+
+  benchmark-anthropic:
+    default:
+      per_1k: 0.005  # Simplified unified pricing for benchmarks
+
+# ============================================================================
+# Configuration
+# ============================================================================
+
+config:
+  # Cost rounding precision (decimal places)
+  cost_precision: 6
+
+  # Whether to use fallback pricing for unknown models
+  enable_fallback: true
+
+  # Cost cap per request (USD) - for safety
+  max_cost_per_request: 1.0
+
+  # Token estimation method
+  # Options: "approximate" (4 chars per token), "tiktoken" (OpenAI tokenizer)
+  token_estimation_method: "approximate"
+
+  # Apply cost forecast to response headers
+  enable_forecast_header: true
+
+  # Header name for cost forecast
+  forecast_header_name: "X-Schlep-Est-Cost-USD"
+
+  # Whether to log cost estimates for telemetry
+  enable_cost_logging: true
+
+# ============================================================================
+# Notes
+# ============================================================================
+#
+# Update Frequency:
+#   - Provider pricing should be reviewed quarterly
+#   - Check official pricing pages for updates
+#   - OpenAI: https://openai.com/pricing
+#   - Anthropic: https://www.anthropic.com/pricing
+#
+# Token Calculation:
+#   - Input tokens: prompt + system messages + chat history
+#   - Output tokens: completion/response tokens
+#   - Some models charge differently for cached vs uncached tokens
+#
+# Cost Estimation Accuracy:
+#   - Pre-request: Estimated based on input tokens + predicted output
+#   - Post-request: Actual based on provider usage response
+#   - Accuracy improves with tiktoken vs character-based estimation
+#
