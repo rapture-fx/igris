@@ -1,0 +1,330 @@
+# Feature Flags Configuration for Schlep-Engine
+# Phase 5 - Operational Hardening and Pilot Launch
+
+# Global feature flag system configuration
+config:
+  version: "1.0.0"
+  environment: "${ENVIRONMENT:-staging}"
+  refresh_interval_seconds: 60
+  cache_enabled: true
+  audit_log_enabled: true
+
+# Feature Flags
+features:
+  # Semantic Routing (Phase 3)
+  semantic_routing:
+    enabled: true
+    description: "Intelligent LLM request routing using semantic embeddings"
+    rollout_strategy: "gradual"
+    rollout_percentage: 100  # Start at 100% for staging
+    dependencies: []
+    metadata:
+      phase: "3"
+      owner: "ml-team"
+      jira_ticket: "SCHLEP-301"
+    overrides:
+      - tenant_id: "*"  # All tenants in staging
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: true
+      metrics:
+        - "semantic_routing_accuracy"
+        - "semantic_routing_latency_ms"
+        - "semantic_routing_cache_hit_rate"
+
+  # Bayesian Hyperparameter Tuner (Phase 3)
+  bayesian_tuner:
+    enabled: true
+    description: "Adaptive ML model hyperparameter optimization using Bayesian optimization"
+    rollout_strategy: "gradual"
+    rollout_percentage: 100
+    dependencies: ["semantic_routing"]
+    metadata:
+      phase: "3"
+      owner: "ml-team"
+      jira_ticket: "SCHLEP-302"
+    config:
+      max_iterations: 50
+      acquisition_function: "expected_improvement"
+      exploration_weight: 0.3
+      confidence_threshold: 0.85
+    overrides:
+      - tenant_id: "*"
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: true
+      metrics:
+        - "bayesian_tuner_confidence"
+        - "bayesian_tuner_iterations_avg"
+        - "hyperparameter_improvement_delta"
+
+  # Adaptive Governance (Phase 4)
+  adaptive_governance:
+    enabled: true
+    description: "Dynamic SLA enforcement and cost budgeting with real-time adaptation"
+    rollout_strategy: "gradual"
+    rollout_percentage: 100
+    dependencies: ["bayesian_tuner"]
+    metadata:
+      phase: "4"
+      owner: "platform-team"
+      jira_ticket: "SCHLEP-401"
+    config:
+      sla_enforcement_strict: true
+      cost_budget_enforcement: true
+      auto_throttle_enabled: true
+      alert_on_violation: true
+    overrides:
+      - tenant_id: "*"
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: true
+      metrics:
+        - "sla_violations_total"
+        - "governance_decisions_total"
+        - "cost_budget_enforcement_actions"
+
+  # Multi-Armed Bandit Reward System (Phase 3)
+  mab_reward_system:
+    enabled: true
+    description: "Multi-armed bandit for provider selection optimization"
+    rollout_strategy: "canary"
+    rollout_percentage: 100
+    dependencies: []
+    metadata:
+      phase: "3"
+      owner: "ml-team"
+      jira_ticket: "SCHLEP-303"
+    config:
+      epsilon: 0.1  # 10% exploration
+      decay_rate: 0.99
+      min_epsilon: 0.01
+      reward_composition:
+        cost_weight: 0.4
+        latency_weight: 0.3
+        quality_weight: 0.3
+    overrides:
+      - tenant_id: "*"
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: true
+      metrics:
+        - "mab_exploration_rate"
+        - "mab_reward_avg"
+        - "mab_regret_cumulative"
+
+  # Real-time Observability Dashboard (Phase 4)
+  realtime_observability:
+    enabled: true
+    description: "Live telemetry dashboard with sub-second refresh"
+    rollout_strategy: "all"
+    rollout_percentage: 100
+    dependencies: []
+    metadata:
+      phase: "4"
+      owner: "platform-team"
+      jira_ticket: "SCHLEP-402"
+    config:
+      refresh_interval_ms: 500
+      websocket_enabled: true
+      historical_data_retention_hours: 72
+    overrides:
+      - tenant_id: "*"
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: false
+
+  # Cost-Aware Routing (Phase 3)
+  cost_aware_routing:
+    enabled: true
+    description: "Intelligent routing based on cost optimization"
+    rollout_strategy: "gradual"
+    rollout_percentage: 100
+    dependencies: ["semantic_routing", "mab_reward_system"]
+    metadata:
+      phase: "3"
+      owner: "ml-team"
+      jira_ticket: "SCHLEP-304"
+    config:
+      cost_threshold_usd: 0.05
+      fallback_to_cheapest: true
+      quality_floor: 0.7
+    overrides:
+      - tenant_id: "*"
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: true
+      metrics:
+        - "cost_aware_routing_savings_usd"
+        - "cost_aware_routing_quality_avg"
+
+  # Advanced Caching (Phase 4)
+  advanced_caching:
+    enabled: true
+    description: "Multi-layer caching with semantic similarity and TTL optimization"
+    rollout_strategy: "all"
+    rollout_percentage: 100
+    dependencies: []
+    metadata:
+      phase: "4"
+      owner: "platform-team"
+      jira_ticket: "SCHLEP-403"
+    config:
+      l1_cache_ttl_seconds: 300
+      l2_cache_ttl_seconds: 3600
+      semantic_similarity_threshold: 0.92
+      cache_compression_enabled: true
+    overrides:
+      - tenant_id: "*"
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: true
+      metrics:
+        - "cache_hit_rate_l1"
+        - "cache_hit_rate_l2"
+        - "cache_semantic_matches_total"
+
+  # Alert Noise Reduction (Phase 5)
+  alert_noise_reduction:
+    enabled: true
+    description: "ML-based alert filtering and anomaly detection"
+    rollout_strategy: "canary"
+    rollout_percentage: 100
+    dependencies: ["bayesian_tuner"]
+    metadata:
+      phase: "5"
+      owner: "platform-team"
+      jira_ticket: "SCHLEP-501"
+    config:
+      anomaly_detection_model: "isolation_forest"
+      alert_aggregation_window_seconds: 300
+      confidence_threshold: 0.85
+      suppress_duplicate_alerts: true
+    overrides:
+      - tenant_id: "*"
+        enabled: true
+    telemetry:
+      track_usage: true
+      track_performance: true
+      metrics:
+        - "alerts_suppressed_total"
+        - "alert_false_positive_rate"
+        - "alert_aggregation_ratio"
+
+# Canary Deployment Configuration
+canary:
+  enabled: true
+  strategy: "gradual_rollout"
+  stages:
+    - name: "initial"
+      percentage: 10
+      duration_hours: 24
+      success_criteria:
+        forecast_accuracy_drift: "<10%"
+        latency_p95_ms: "<1000"
+        error_rate: "<1%"
+        sla_violations_per_hour: "<2"
+    - name: "expand"
+      percentage: 50
+      duration_hours: 24
+      success_criteria:
+        forecast_accuracy_drift: "<8%"
+        latency_p95_ms: "<800"
+        error_rate: "<0.5%"
+        sla_violations_per_hour: "<1"
+    - name: "full"
+      percentage: 100
+      duration_hours: 48
+      success_criteria:
+        forecast_accuracy_drift: "<5%"
+        latency_p95_ms: "<500"
+        error_rate: "<0.1%"
+        sla_violations_per_hour: "<0.5"
+
+  rollback_triggers:
+    - metric: "forecast_accuracy_drift"
+      threshold: ">10%"
+      window_minutes: 30
+      action: "immediate_rollback"
+    - metric: "latency_p95_ms"
+      threshold: ">1000"
+      window_minutes: 15
+      action: "immediate_rollback"
+    - metric: "sla_violations_per_hour"
+      threshold: ">2"
+      window_minutes: 60
+      action: "immediate_rollback"
+    - metric: "error_rate"
+      threshold: ">1%"
+      window_minutes: 10
+      action: "immediate_rollback"
+
+# Tenant-specific overrides (for pilot launch)
+tenant_overrides:
+  # Founder's Plan - First 10 tenants
+  pilot_tenants:
+    - tenant_id: "pilot_001"
+      features:
+        all: true
+      priority: "high"
+      support_tier: "premium"
+    - tenant_id: "pilot_002"
+      features:
+        all: true
+      priority: "high"
+      support_tier: "premium"
+
+  # Beta testing tenants with gradual feature rollout
+  beta_tenants:
+    - tenant_id: "beta_001"
+      features:
+        semantic_routing: true
+        bayesian_tuner: false  # Gradual rollout
+        adaptive_governance: true
+      priority: "medium"
+
+# Feature flag API endpoints
+api:
+  base_url: "${API_URL:-http://localhost:8080}"
+  endpoints:
+    get_flags: "/v1/features"
+    get_flag: "/v1/features/{feature_id}"
+    update_flag: "/v1/features/{feature_id}"
+    tenant_flags: "/v1/tenants/{tenant_id}/features"
+
+  authentication:
+    required: true
+    method: "bearer_token"
+
+  rate_limits:
+    requests_per_minute: 60
+    burst: 10
+
+# Monitoring and telemetry
+monitoring:
+  enabled: true
+  metrics_endpoint: "/v1/metrics"
+  feature_usage_tracking: true
+  performance_tracking: true
+
+  alerting:
+    enabled: true
+    channels:
+      - type: "prometheus"
+        endpoint: "http://prometheus:9090"
+      - type: "webhook"
+        endpoint: "${ALERT_WEBHOOK_URL}"
+
+  dashboards:
+    grafana_enabled: true
+    custom_dashboards:
+      - "tenant_health"
+      - "feature_flag_usage"
+      - "canary_rollout_status"
