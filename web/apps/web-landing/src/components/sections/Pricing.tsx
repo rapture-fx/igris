@@ -7,7 +7,7 @@ import { useModal } from '../../contexts/ModalContext';
 const pricingTiers = [
   {
     name: "Developer",
-    price: "$99",
+    price: "$399",
     period: "month",
     description: "Perfect for individual developers and small projects",
     features: [
@@ -22,7 +22,7 @@ const pricingTiers = [
   },
   {
     name: "Founders'",
-    price: "$299",
+    price: "$499",
     period: "month",
     description: "Special limited-time offer for early adopters",
     features: [
@@ -39,7 +39,7 @@ const pricingTiers = [
   },
   {
     name: "Growth",
-    price: "$499",
+    price: "$999",
     period: "month",
     description: "For growing teams and production workloads",
     features: [
@@ -55,7 +55,7 @@ const pricingTiers = [
   },
   {
     name: "Scale",
-    price: "Custom",
+    price: "$2,499",
     period: "contact sales",
     description: "Tailored solutions for large-scale deployments",
     features: [
