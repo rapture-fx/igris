@@ -6,46 +6,45 @@ import { useModal } from '../../contexts/ModalContext';
 
 const pricingTiers = [
   {
-    name: "Developer",
-    price: "$399",
-    period: "month",
-    description: "Perfect for individual developers and small projects",
-    features: [
-      "100K requests/month",
-      "Basic multi-provider routing",
-      "Thompson Sampling optimization",
-      "Email support",
-      "Community access"
-    ],
-    cta: "Start Develop",
-    highlighted: false
-  },
-  {
-    name: "Founders'",
-    price: "$499",
+    name: "Develop",
+    price: "$99",
     period: "month",
     description: "Special limited-time offer for early adopters",
     features: [
       "500K requests/month",
       "Multi-tenancy with BYOK",
       "Advanced routing algorithms",
+      "Semantic routing with embeddings",
+      "Bayesian hyperparameter tuning",
+      "Adaptive governance & SLA enforcement",
+      "Cost-aware intelligent routing",
+      "Multi-layer caching (L1+L2)",
+      "Real-time observability dashboard",
+      "Alert noise reduction (60%+)",
       "Priority support",
       "Custom integrations",
       "Dedicated Slack channel"
     ],
     cta: "Get started",
-    highlighted: true,
+    highlighted: false,
     badge: ""
   },
   {
     name: "Growth",
-    price: "$999",
+    price: "$299",
     period: "month",
     description: "For growing teams and production workloads",
     features: [
       "2M requests/month",
       "Full multi-tenancy suite",
       "Advanced analytics dashboard",
+      "Full semantic routing suite",
+      "Advanced Bayesian tuning",
+      "Cost budget enforcement",
+      "Advanced governance policies",
+      "Custom alert configurations",
+      "Multi-tenant management",
+      "SSO & RBAC support",
       "24/7 priority support",
       "Custom SLA guarantees",
       "Dedicated solutions engineer"
@@ -55,13 +54,18 @@ const pricingTiers = [
   },
   {
     name: "Scale",
-    price: "$2,499",
-    period: "contact sales",
+    price: "$599",
+    period: "month",
     description: "Tailored solutions for large-scale deployments",
     features: [
       "Unlimited requests",
       "On-premise deployment option",
       "Custom provider integrations",
+      "Self-hosted deployment",
+      "Custom ML model integration",
+      "Advanced security controls",
+      "Audit logs & compliance",
+      "Multi-region support",
       "White-label support",
       "Dedicated infrastructure",
       "Custom contract terms"
@@ -82,15 +86,15 @@ export default function Pricing() {
             Pricing
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
-            All plans include a 14-day free trial.
+            All plans include a 14-day free trial. All plans include Thompson Sampling optimization, real-time analytics, and automatic failover.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch max-w-[84rem] mx-auto">
           {pricingTiers.map((tier, index) => (
             <div
               key={index}
-              className={`relative rounded-2xl transition-all duration-300 min-h-[500px] ${
+              className={`relative rounded-2xl transition-all duration-300 w-full ${
                 tier.highlighted
                   ? 'border-2'
                   : ''
@@ -109,8 +113,8 @@ export default function Pricing() {
                 </div>
               )}
 
-              <div className="p-8 flex flex-col justify-between h-full">
-                <div>
+              <div className="p-8 flex flex-col h-full">
+                <div className="flex-grow">
                   <h3 className="text-2xl mb-2 font-inter" style={{ color: '#000000' }}>
                     {tier.name}
                   </h3>
@@ -131,7 +135,7 @@ export default function Pricing() {
                     </div>
                   </div>
 
-                  <ul className="space-y-3 mb-8">
+                  <ul className="space-y-2.5">
                     {tier.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-start">
                         <Check className="h-4 w-4 mr-3 flex-shrink-0 mt-0.5" style={{ color: '#000000' }} />
@@ -142,7 +146,7 @@ export default function Pricing() {
                 </div>
                 <button
                   onClick={openEarlyAccessModal}
-                  className={`inline-flex items-center px-4 py-2 rounded-lg transition-all duration-200 font-semibold text-sm font-inter self-start ${
+                  className={`inline-flex items-center px-4 py-2 rounded-lg transition-all duration-200 font-semibold text-sm font-inter self-start mt-8 ${
                     tier.highlighted
                       ? 'text-white hover:opacity-90 border border-black'
                       : 'text-black hover:opacity-70 border border-gray-300'
@@ -159,51 +163,89 @@ export default function Pricing() {
         </div>
 
         <div className="mt-24">
-          <h3 className="text-3xl font-inter text-center mb-12" style={{ color: '#000000' }}>
+          <h3 className="text-3xl font-inter text-center mb-4" style={{ color: '#000000' }}>
             Feature Comparison
           </h3>
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead className="bg-[#f6f6f4] dark:bg-gray-800">
-                <tr>
-                  <th scope="col" className="py-3.5 px-6 text-left text-sm font-semibold text-gray-900 dark:text-white">
-                    Feature
-                  </th>
-                  {pricingTiers.map(tier => (
-                    <th key={tier.name} scope="col" className="py-3.5 px-6 text-center text-sm font-semibold text-gray-900 dark:text-white">
-                      {tier.name}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-[#f6f6f4] dark:bg-gray-900">
-                {([...new Set(pricingTiers.flatMap(tier => tier.features))]).map(feature => (
-                  <tr key={feature}>
-                    <td className="py-4 px-6 text-sm font-medium text-gray-900 dark:text-white">
-                      {feature}
-                    </td>
-                    {pricingTiers.map(tier => (
-                      <td key={tier.name} className="py-4 px-6 text-center">
-                        {tier.features.includes(feature) ? (
-                          <Check className="h-5 w-5 mx-auto" style={{ color: '#16A34A' }} />
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
+          <p className="text-center text-sm text-gray-600 mb-8 font-inter">
+            Compare features across all pricing tiers
+          </p>
+          <div className="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="inline-block min-w-full align-middle">
+              <div className="overflow-hidden border border-gray-200 rounded-lg">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                  <thead className="bg-[#f6f6f4] dark:bg-gray-800">
+                    <tr>
+                      <th scope="col" className="sticky left-0 z-10 bg-[#f6f6f4] py-3 px-4 text-left text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider">
+                        Feature
+                      </th>
+                      {pricingTiers.map(tier => (
+                        <th key={tier.name} scope="col" className="py-3 px-3 text-center text-xs font-semibold text-gray-900 dark:text-white uppercase tracking-wider whitespace-nowrap">
+                          {tier.name}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-700 bg-[#f6f6f4] dark:bg-gray-900">
+                    {([...new Set(pricingTiers.flatMap(tier => tier.features))]).map((feature, idx) => (
+                      <tr key={feature} className={idx % 2 === 0 ? 'bg-[#f6f6f4]' : 'bg-[#f6f6f4]'}>
+                        <td className="sticky left-0 z-10 py-3 px-4 text-xs text-gray-900 dark:text-white font-inter" style={{ backgroundColor: '#f6f6f4' }}>
+                          {feature}
+                        </td>
+                        {pricingTiers.map(tier => (
+                          <td key={tier.name} className="py-3 px-3 text-center">
+                            {tier.features.includes(feature) ? (
+                              <Check className="h-4 w-4 mx-auto" style={{ color: '#16A34A' }} />
+                            ) : (
+                              <span className="text-gray-400 text-xs">—</span>
+                            )}
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
 
-        <div className="mt-12 text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">
-            All plans include Thompson Sampling optimization, real-time analytics, and automatic failover.
-          </p>
+
+        <div className="mt-24">
+          <h3 className="text-3xl font-inter text-center mb-8" style={{ color: '#000000' }}>
+            Frequently Asked Questions
+          </h3>
+          <div className="max-w-3xl mx-auto space-y-6">
+            {/* FAQ Item 1 */}
+            <div>
+              <h4 className="text-xl font-inter mb-2" style={{ color: '#000000' }}>
+                What is Schlep Engine?
+              </h4>
+              <p className="text-gray-700 font-inter">
+                Schlep Engine is an advanced routing and optimization platform designed for modern microservices architectures. It helps you intelligently route requests, optimize resource utilization, and ensure high availability.
+              </p>
+            </div>
+            {/* FAQ Item 2 */}
+            <div>
+              <h4 className="text-xl font-inter mb-2" style={{ color: '#000000' }}>
+                How does the free trial work?
+              </h4>
+              <p className="text-gray-700 font-inter">
+                All plans include a 14-day free trial. You'll have full access to all features of your chosen plan during this period. No credit card is required to start the trial.
+              </p>
+            </div>
+            {/* FAQ Item 3 */}
+            <div>
+              <h4 className="text-xl font-inter mb-2" style={{ color: '#000000' }}>
+                Can I change my plan later?
+              </h4>
+              <p className="text-gray-700 font-inter">
+                Yes, you can upgrade or downgrade your plan at any time. Changes will be prorated and reflected in your next billing cycle.
+              </p>
+            </div>
+          </div>
         </div>
+
       </div>
     </section>
   );
