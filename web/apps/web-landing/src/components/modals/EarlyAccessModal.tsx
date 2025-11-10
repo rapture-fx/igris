@@ -11,10 +11,9 @@ interface EarlyAccessModalProps {
 
 const planOptions = [
   { value: '', label: 'Select a plan' },
-  { value: 'developer', label: 'Developer - $399/month' },
-  { value: 'founders', label: 'Founders\' - $499/month' },
-  { value: 'growth', label: 'Growth - $999/month' },
-  { value: 'scale', label: 'Scale - $2,499/month' },
+  { value: 'develop', label: 'Develop - $99/month' },
+  { value: 'growth', label: 'Growth - $299/month' },
+  { value: 'scale', label: 'Scale - $599/month' },
 ];
 
 export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalProps) {
