@@ -9,21 +9,21 @@ const pricingTiers = [
     name: "Develop",
     price: "$99",
     period: "month",
-    description: "Special limited-time offer for early adopters",
+    description: "Perfect for individual developers and small teams",
     features: [
       "500K requests/month",
-      "Multi-tenancy with BYOK",
-      "Advanced routing algorithms",
-      "Semantic routing with embeddings",
-      "Bayesian hyperparameter tuning",
-      "Adaptive governance & SLA enforcement",
-      "Cost-aware intelligent routing",
-      "Multi-layer caching (L1+L2)",
-      "Real-time observability dashboard",
-      "Alert noise reduction (60%+)",
+      "Up to 5 AI providers (BYOK)",
+      "Multi-tenancy with full isolation",
+      "Thompson Sampling optimization",
+      "ML-powered semantic routing",
+      "Bayesian adaptive learning",
+      "Cost forecasting & tracking",
+      "Redis-based caching (L1)",
+      "Real-time observability (150+ metrics)",
+      "RBAC + JWT/API Key auth",
+      "Circuit breaker & auto-failover",
       "Priority support",
-      "Custom integrations",
-      "Dedicated Slack channel"
+      "Custom integrations"
     ],
     cta: "Get started",
     highlighted: false,
@@ -36,15 +36,15 @@ const pricingTiers = [
     description: "For growing teams and production workloads",
     features: [
       "2M requests/month",
-      "Full multi-tenancy suite",
+      "Up to 10 AI providers (BYOK)",
       "Advanced analytics dashboard",
-      "Full semantic routing suite",
-      "Advanced Bayesian tuning",
-      "Cost budget enforcement",
-      "Advanced governance policies",
-      "Custom alert configurations",
-      "Multi-tenant management",
-      "SSO & RBAC support",
+      "SLA enforcement & monitoring",
+      "Policy versioning with hot reload",
+      "Adaptive governance engine",
+      "Audit logs & compliance tracking",
+      "Real-time cost optimization",
+      "Multi-tenant management (5 tenants)",
+      "RBAC with role-based policies",
       "24/7 priority support",
       "Custom SLA guarantees",
       "Dedicated solutions engineer"
@@ -56,17 +56,18 @@ const pricingTiers = [
     name: "Scale",
     price: "$599",
     period: "month",
-    description: "Tailored solutions for large-scale deployments",
+    description: "Enterprise-grade for large-scale deployments",
     features: [
-      "Unlimited requests",
-      "On-premise deployment option",
-      "Custom provider integrations",
-      "Self-hosted deployment",
-      "Custom ML model integration",
-      "Advanced security controls",
-      "Audit logs & compliance",
-      "Multi-region support",
-      "White-label support",
+      "Unlimited requests (1000 RPS sustained)",
+      "Up to 20 AI providers (BYOK)",
+      "On-premise deployment (Kubernetes)",
+      "Self-hosted deployment option",
+      "ONNX model framework integration",
+      "Advanced security & tenant isolation",
+      "Full audit logs & compliance",
+      "Kubernetes-native with Helm charts",
+      "Custom provider adapters",
+      "Multi-region infrastructure ready",
       "Dedicated infrastructure",
       "Custom contract terms"
     ],
@@ -212,36 +213,40 @@ export default function Pricing() {
 
 
         <div className="mt-24">
-          <h3 className="text-3xl font-inter text-center mb-8" style={{ color: '#000000' }}>
-            Frequently Asked Questions
-          </h3>
-          <div className="max-w-3xl mx-auto space-y-6">
-            {/* FAQ Item 1 */}
-            <div>
-              <h4 className="text-xl font-inter mb-2" style={{ color: '#000000' }}>
-                What is Schlep Engine?
-              </h4>
-              <p className="text-gray-700 font-inter">
-                Schlep Engine is an advanced routing and optimization platform designed for modern microservices architectures. It helps you intelligently route requests, optimize resource utilization, and ensure high availability.
-              </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            <div className="md:col-span-1">
+              <h3 className="text-3xl font-inter font-semibold" style={{ color: '#000000' }}>
+                Frequently Asked Questions
+              </h3>
             </div>
-            {/* FAQ Item 2 */}
-            <div>
-              <h4 className="text-xl font-inter mb-2" style={{ color: '#000000' }}>
-                How does the free trial work?
-              </h4>
-              <p className="text-gray-700 font-inter">
-                All plans include a 14-day free trial. You'll have full access to all features of your chosen plan during this period. No credit card is required to start the trial.
-              </p>
-            </div>
-            {/* FAQ Item 3 */}
-            <div>
-              <h4 className="text-xl font-inter mb-2" style={{ color: '#000000' }}>
-                Can I change my plan later?
-              </h4>
-              <p className="text-gray-700 font-inter">
-                Yes, you can upgrade or downgrade your plan at any time. Changes will be prorated and reflected in your next billing cycle.
-              </p>
+            <div className="md:col-span-2 space-y-8">
+              {/* FAQ Item 1 */}
+              <div>
+                <h4 className="text-xl font-inter font-semibold mb-2" style={{ color: '#000000' }}>
+                  What is Schlep Engine?
+                </h4>
+                <p className="text-gray-700 font-inter">
+                  Schlep Engine is an advanced routing and optimization platform designed for modern microservices architectures. It helps you intelligently route requests, optimize resource utilization, and ensure high availability.
+                </p>
+              </div>
+              {/* FAQ Item 2 */}
+              <div>
+                <h4 className="text-xl font-inter font-semibold mb-2" style={{ color: '#000000' }}>
+                  How does the free trial work?
+                </h4>
+                <p className="text-gray-700 font-inter">
+                  All plans include a 14-day free trial. You'll have full access to all features of your chosen plan during this period. No credit card is required to start the trial.
+                </p>
+              </div>
+              {/* FAQ Item 3 */}
+              <div>
+                <h4 className="text-xl font-inter font-semibold mb-2" style={{ color: '#000000' }}>
+                  Can I change my plan later?
+                </h4>
+                <p className="text-gray-700 font-inter">
+                  Yes, you can upgrade or downgrade your plan at any time. Changes will be prorated and reflected in your next billing cycle.
+                </p>
+              </div>
             </div>
           </div>
         </div>
