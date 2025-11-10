@@ -1,0 +1,419 @@
+# Schlep-Engine Tier Configuration
+# Generated: 2025-11-10
+# Phase: 5.1 - Provider Gating and Capability Validation
+# Purpose: Define tier-based limits and feature gates based on validated system capacity
+#
+# VALIDATION SOURCE: /reports/provider_capacity_validation.md
+# ACCURACY REPORT: /reports/REALITY_TIER_GATING_SUMMARY.md
+
+version: "1.0"
+last_updated: "2025-11-10T00:00:00Z"
+
+# Tier Definitions
+tiers:
+  # =============================================================================
+  # DEVELOPER TIER - Entry-level for individual developers and small teams
+  # =============================================================================
+  developer:
+    name: "Developer"
+    display_name: "Developer"
+    description: "Entry-level tier for individual developers and small teams"
+    price:
+      usd: 99
+      currency: "USD"
+      billing_period: "month"
+
+    # Request Limits
+    limits:
+      # Total requests per calendar month
+      max_requests_per_month: 500000  # ~0.2 RPS average
+
+      # Rate limiting (burst protection)
+      max_requests_per_second: 10     # Burst RPS limit
+      max_requests_per_minute: 300    # 5 RPS sustained
+
+      # Provider Management
+      max_providers: 5                # Validated stable limit
+      max_models_per_provider: 10
+      max_custom_providers: 3         # BYOK limit
+
+      # Tenant Configuration
+      max_tenants: 1                  # Single tenant
+      max_api_keys: 3                 # API key rotation
+
+      # Caching
+      cache_ttl_seconds: 3600         # 1 hour classification cache
+      max_cached_classifications: 10000
+
+      # SLA Targets (informational only, not enforced)
+      sla_uptime_percent: 99.0
+      sla_latency_p95_ms: 200
+      sla_latency_p99_ms: 500
+
+    # Feature Flags
+    features:
+      # Core Features
+      multi_tenancy: true
+      byok: true                      # Bring Your Own Key (provider registry)
+
+      # Routing & Optimization
+      thompson_sampling: true         # Bayesian multi-armed bandit
+      semantic_routing: true          # ONNX classifier with SimpleTokenizer
+      cost_aware_routing: true
+      automatic_failover: true
+      circuit_breaker: true
+
+      # Analytics & Observability
+      observability_metrics: true     # Full 150+ Prometheus metrics
+      cost_forecasting: true
+      real_time_analytics: true
+
+      # Caching
+      redis_caching: true             # L1 cache
+      l2_caching: false               # NOT IMPLEMENTED
+
+      # Authentication & Authorization
+      jwt_auth: true
+      api_key_auth: true
+      rbac: true                      # Role-based access control
+      sso: false                      # NOT IMPLEMENTED
+
+      # Governance & Compliance
+      sla_enforcement: false          # Growth+ only
+      policy_versioning: false        # Growth+ only
+      audit_logs: false               # Growth+ only
+      hot_reload_policies: false      # Growth+ only
+
+      # Advanced Features
+      custom_sla_targets: false
+      advanced_governance: false
+      on_premise_deployment: false
+      multi_region: false
+
+      # Support
+      priority_support: true
+      dedicated_slack_channel: true
+      custom_integrations: true
+
+    # Provider Whitelist (optional enforcement)
+    allowed_providers:
+      - "openai"
+      - "anthropic"
+      - "xai"
+      - "kimi"
+      - "qwen"
+      - "deepseek"
+      - "mistral"
+      - "llama"
+      - "google_gemini"
+      - "zai"
+
+    # Model Restrictions (optional)
+    allowed_model_types:
+      - "gpt-3.5-turbo"
+      - "gpt-4"
+      - "claude-3-haiku"
+      - "claude-3-sonnet"
+
+    # Cost Controls
+    cost_controls:
+      enforce_budget: false
+      monthly_budget_usd: 0           # No enforcement
+      budget_alert_threshold: 0.8     # 80% warning (informational)
+      cost_per_request_limit: 0       # No limit
+
+  # =============================================================================
+  # GROWTH TIER - For growing teams and production workloads
+  # =============================================================================
+  growth:
+    name: "Growth"
+    display_name: "Growth"
+    description: "For growing teams and production workloads"
+    price:
+      usd: 299
+      currency: "USD"
+      billing_period: "month"
+
+    # Request Limits
+    limits:
+      max_requests_per_month: 2000000 # ~0.8 RPS average
+      max_requests_per_second: 50     # Burst RPS limit
+      max_requests_per_minute: 1500   # 25 RPS sustained
+
+      # Provider Management
+      max_providers: 10               # Validated stable limit
+      max_models_per_provider: 20
+      max_custom_providers: 8         # Higher BYOK limit
+
+      # Tenant Configuration
+      max_tenants: 5                  # Multi-tenant support
+      max_api_keys: 10
+
+      # Caching
+      cache_ttl_seconds: 7200         # 2 hour cache
+      max_cached_classifications: 50000
+
+      # SLA Targets (enforced)
+      sla_uptime_percent: 99.5
+      sla_latency_p95_ms: 150
+      sla_latency_p99_ms: 300
+
+    # Feature Flags
+    features:
+      # All Developer features
+      multi_tenancy: true
+      byok: true
+      thompson_sampling: true
+      semantic_routing: true
+      cost_aware_routing: true
+      automatic_failover: true
+      circuit_breaker: true
+      observability_metrics: true
+      cost_forecasting: true
+      real_time_analytics: true
+      redis_caching: true
+      l2_caching: false               # NOT IMPLEMENTED
+      jwt_auth: true
+      api_key_auth: true
+      rbac: true
+      sso: false                      # NOT IMPLEMENTED (roadmap)
+
+      # Growth-specific features
+      sla_enforcement: true           # ✅ Fully implemented
+      policy_versioning: true         # ✅ DSL v2 + hot reload
+      audit_logs: true                # ✅ Policy + request audit trail
+      hot_reload_policies: true       # ✅ Zero-downtime updates
+      custom_sla_targets: true        # ✅ Per-tenant SLA config
+      advanced_governance: true       # ✅ Advanced policy engine
+
+      # Still Growth+ only
+      on_premise_deployment: false
+      multi_region: false
+
+      # Support
+      priority_support: true
+      dedicated_solutions_engineer: true
+      advanced_analytics_dashboard: true
+      custom_integrations: true
+
+    # No provider whitelist (unrestricted)
+    allowed_providers: []             # Empty = all allowed
+
+    # No model restrictions
+    allowed_model_types: []           # Empty = all allowed
+
+    # Cost Controls
+    cost_controls:
+      enforce_budget: false           # Forecasting only, no enforcement
+      monthly_budget_usd: 0
+      budget_alert_threshold: 0.8
+      budget_warning_enabled: true    # Email warnings (when alerting backend implemented)
+      cost_per_request_limit: 0
+
+  # =============================================================================
+  # SCALE TIER - Enterprise-grade with unlimited requests
+  # =============================================================================
+  scale:
+    name: "Scale"
+    display_name: "Scale"
+    description: "Enterprise-grade deployments with unlimited scale"
+    price:
+      usd: 599
+      currency: "USD"
+      billing_period: "month"
+
+    # Request Limits
+    limits:
+      max_requests_per_month: -1      # Unlimited (fair use policy)
+      max_requests_per_second: 1000   # Validated sustained RPS
+      max_requests_per_minute: 60000  # 1,000 RPS sustained
+
+      # Provider Management
+      max_providers: 20               # Production validated stable limit
+      max_models_per_provider: -1     # Unlimited
+      max_custom_providers: -1        # Unlimited BYOK
+
+      # Tenant Configuration
+      max_tenants: -1                 # Unlimited
+      max_api_keys: -1                # Unlimited
+
+      # Caching
+      cache_ttl_seconds: 14400        # 4 hour cache
+      max_cached_classifications: -1  # Unlimited
+
+      # SLA Targets (enforced, custom negotiable)
+      sla_uptime_percent: 99.9
+      sla_latency_p95_ms: 200
+      sla_latency_p99_ms: 500
+
+    # Feature Flags
+    features:
+      # All Growth features
+      multi_tenancy: true
+      byok: true
+      thompson_sampling: true
+      semantic_routing: true
+      cost_aware_routing: true
+      automatic_failover: true
+      circuit_breaker: true
+      observability_metrics: true
+      cost_forecasting: true
+      real_time_analytics: true
+      redis_caching: true
+      l2_caching: false               # NOT IMPLEMENTED
+      jwt_auth: true
+      api_key_auth: true
+      rbac: true
+      sso: false                      # NOT IMPLEMENTED (roadmap)
+      sla_enforcement: true
+      policy_versioning: true
+      audit_logs: true
+      hot_reload_policies: true
+      custom_sla_targets: true
+      advanced_governance: true
+
+      # Scale-specific features
+      on_premise_deployment: true     # ✅ Kubernetes/Helm charts
+      self_hosted: true               # ✅ Deployable
+      kubernetes_ready: true          # ✅ Full Helm chart
+      custom_provider_adapters: true  # ✅ BYOK with custom_adapter compatibility
+      onnx_model_framework: true      # ✅ Framework ready (needs model files)
+      advanced_security_controls: true # ✅ RBAC + isolation + audit
+      multi_region_ready: true        # ⚠️ Infrastructure exists, routing logic pending
+      white_label: false              # Unverified
+
+      # Support
+      priority_support: true
+      dedicated_solutions_engineer: true
+      dedicated_infrastructure: true
+      custom_contract_terms: true
+      advanced_analytics_dashboard: true
+      custom_integrations: true
+
+    # No restrictions
+    allowed_providers: []
+    allowed_model_types: []
+
+    # Cost Controls
+    cost_controls:
+      enforce_budget: false
+      monthly_budget_usd: 0
+      budget_alert_threshold: 0.9
+      budget_warning_enabled: true
+      cost_per_request_limit: 0
+
+# =============================================================================
+# GLOBAL CONFIGURATION
+# =============================================================================
+global:
+  # Default tier for new tenants
+  default_tier: "developer"
+
+  # Tier upgrade/downgrade rules
+  allow_self_service_upgrade: true
+  allow_self_service_downgrade: true
+  downgrade_grace_period_days: 30
+
+  # Rate Limiting Strategy
+  rate_limit_strategy: "sliding_window"  # or "token_bucket", "leaky_bucket"
+  rate_limit_redis_key_prefix: "schlep:ratelimit:"
+
+  # Cache Configuration
+  cache_strategy: "redis"               # L1 cache only
+  cache_key_prefix: "schlep:cache:"
+
+  # Provider Health Checks
+  provider_health_check_interval_seconds: 60
+  provider_degraded_threshold_failures: 3
+  provider_circuit_breaker_timeout_seconds: 30
+
+  # SLA Enforcement
+  sla_check_interval_seconds: 300       # 5 minutes
+  sla_violation_grace_period_seconds: 600 # 10 minutes before action
+
+  # Cost Tracking
+  cost_update_interval_seconds: 60
+  cost_forecast_enabled: true
+
+  # Observability
+  metrics_enabled: true
+  metrics_port: 9090
+  tracing_enabled: true
+  tracing_sample_rate: 0.1              # 10% sampling
+
+  # Security
+  enforce_https: true
+  enforce_tenant_isolation: true
+  api_key_rotation_recommended_days: 90
+  jwt_token_expiry_hours: 24
+
+# =============================================================================
+# FEATURE FLAGS (Global Toggles)
+# =============================================================================
+feature_flags:
+  # Core Features
+  enable_semantic_routing: true
+  enable_thompson_sampling: true
+  enable_cost_forecasting: true
+  enable_sla_enforcement: true
+  enable_policy_versioning: true
+
+  # Experimental Features
+  enable_onnx_classifier: false         # Requires model file provisioning
+  enable_shadow_mode: true              # Compare ONNX vs keyword classifier
+  enable_self_tuning: true              # Auto-optimize reward weights
+
+  # NOT IMPLEMENTED (Roadmap)
+  enable_sso: false
+  enable_l2_cache: false
+  enable_alerting_backend: false
+  enable_cost_budget_enforcement: false
+  enable_multi_region_routing: false
+
+# =============================================================================
+# PROVIDER CAPACITY THRESHOLDS
+# =============================================================================
+capacity:
+  # Degradation Thresholds (from provider_capacity_validation.md)
+  provider_latency_warning_ms: 200
+  provider_latency_critical_ms: 500
+
+  # Connection Pool Limits
+  redis_max_active_connections: 100
+  redis_min_idle_connections: 10
+
+  # Thompson Sampling Optimization
+  bandit_exploration_rate: 0.15         # 15% exploration
+  bandit_update_batch_size: 100
+  bandit_reward_alpha_init: 1.0
+  bandit_reward_beta_init: 1.0
+
+  # Semantic Routing
+  classification_confidence_threshold: 0.6
+  classification_cache_ttl_seconds: 3600
+
+  # Composite Reward Weights (default)
+  reward_weight_latency: 0.4
+  reward_weight_cost: 0.3
+  reward_weight_success: 0.3
+
+# =============================================================================
+# IMPLEMENTATION NOTES
+# =============================================================================
+#
+# To enforce tier gating, implement middleware that:
+# 1. Reads tenant_id from JWT/API key
+# 2. Queries tenants table for tier (requires adding 'tier' column)
+# 3. Loads tier config from this file
+# 4. Validates:
+#    - Request count against max_requests_per_month (using Redis counter)
+#    - Provider count against max_providers (query provider_registry)
+#    - Feature flags (e.g., reject SLA enforcement requests for Developer tier)
+# 5. Returns 429 Too Many Requests or 403 Forbidden as appropriate
+#
+# Database Migration Required:
+# ALTER TABLE tenants ADD COLUMN tier VARCHAR(50) DEFAULT 'developer';
+# ALTER TABLE tenants ADD COLUMN requests_this_month INTEGER DEFAULT 0;
+# ALTER TABLE tenants ADD COLUMN requests_reset_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
+#
+# =============================================================================
