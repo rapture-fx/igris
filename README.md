@@ -1,31 +1,41 @@
-# Schlep Engine - ML Inference Routing & Orchestration Platform
+# Schlep-engine - Routing engine and Control Plane for AI Inference
 
-> **Status:** v0.1.0-alpha (Early MVP - Active Development)
+> **Status:** v1.0.0
 
-**Schlep Engine** is an ML inference routing platform that uses **Thompson Sampling** (multi-armed bandit) to intelligently route requests across multiple AI providers (OpenAI, Anthropic). Built with a hybrid polyglot architecture (Go/Rust/Python), it provides safe phased rollouts, shadow mode testing, and comprehensive observability for production ML deployments.
+**Schlep Engine** is an intelligent AI request routing platform that uses **Thompson Sampling** (Bayesian multi-armed bandit) and **ML-powered semantic routing** to optimize requests across multiple AI providers.
 
-## Current Capabilities
+## Core Features
 
-### ✅ **Fully Implemented**
+### **Intelligent Routing**
+- **Thompson Sampling** - Bayesian multi-armed bandit with adaptive exploration (15% default)
+- **Semantic Routing** - ONNX-powered ML classification with HuggingFace tokenizer
+- **Cost-Aware Routing** - Automatic selection based on cost, latency, and success rate
+- **Circuit Breaker & Failover** - Automatic provider health monitoring and failover
 
-- **Thompson Sampling Multi-Armed Bandit** - Probabilistic routing using Beta distribution with exploration-exploitation tradeoff (Go + Rust FFI)
-- **Benchmark Mode** - Complete OpenAI/Anthropic simulation without API calls (realistic latency, token counting, cost calculation)
-- **Admin Control Panel** - Hot-reload optimizer settings without restart (`/admin/optimizer/*`)
-- **Shadow Mode Testing** - Non-invasive parallel Rust optimizer validation with zero user impact
-- **Phased Rollout** - Sample rate control from 1% to 100% traffic with instant revert
-- **SLO Breaker** - Automatic fallback on performance degradation with configurable thresholds
-- **Distributed Tracing** - Custom trace context with TraceID/SpanID + OpenTelemetry/Jaeger ready
-- **Cost Tracking** - Per-request cost breakdown by component (CPU, memory, GPU)
-- **Connection Pooling** - ML service pool with health checks, retries, and circuit breakers
-- **Prometheus Metrics** - Detailed observability (latency histograms, error rates, routing decisions)
-- **OpenAI-Compatible API** - Drop-in replacement for OpenAI endpoints
+### **Enterprise Authentication**
+- **SSO Support** - OAuth2 (Auth0, Okta, Google, Microsoft) + SAML 2.0
+- **Multi-Tenancy** - Full tenant isolation with BYOK (Bring Your Own Key)
+- **RBAC** - Role-based access control with JWT + API key authentication
+- **Tier-Based Gating** - Developer, Growth, and Scale tiers with enforced limits
 
-### ⚠️ **In Development**
+### **Cost Management**
+- **Real-Time Budget Enforcement** - Atomic PostgreSQL cost tracking with HTTP 402 blocking
+- **Cost Forecasting** - Predictive cost analytics per tenant
+- **Usage Analytics** - Detailed breakdowns by provider, model, and tenant
+- **Budget Alerts** - Email/Webhook notifications at 90% (soft) and 100% (hard) limits
 
-- **Real OpenAI/Anthropic Providers** - Infrastructure complete, API integration in progress
-- **GPU Acceleration** - Multi-GPU scheduler and runtime configured, CUDA operations pending
-- **Python ML Service as Provider** - gRPC service built, provider registration pending
-- **Full OpenTelemetry Integration** - Dependencies present, active span export pending
+### **Observability & Governance**
+- **150+ Prometheus Metrics** - Comprehensive monitoring with Grafana dashboards
+- **Distributed Tracing** - Full OpenTelemetry integration with trace correlation
+- **Audit Logs** - Complete policy and request audit trail
+- **SLA Enforcement** - Automated SLA monitoring with configurable targets
+- **Policy Engine** - DSL v2 with hot-reload and versioning
+
+### **Performance & Caching**
+- **L1 Redis Cache** - Distributed semantic classification cache
+- **L2 In-Memory Cache** - Process-local LRU cache (40%+ Redis hit reduction)
+- **Alert Queue** - Async email/webhook delivery with retries and DLQ
+- **Adaptive Learning** - Self-tuning reward weights based on performance
 
 ---
 
@@ -420,12 +430,13 @@ Benefits:
 
 ---
 
-## Development Phases
+## Development Status
 
-- **Phase 1-10:** Core architecture, polyglot integration, data processing
-- **Phase 11:** Thompson Sampling optimizer, benchmark providers, cost tracking ← **Current**
-- **Phase 12:** (Planned) Advanced SLO enforcer, autonomous agents
-- **Phase 13:** (Research) Cognitive layer, predictive optimization
+- ✅ **Phase 1-4:** Core architecture, polyglot integration, provider abstractions
+- ✅ **Phase 5.1:** Tier-based gating and provider capacity validation
+- ✅ **Phase 5.2:** Thompson Sampling with adaptive learning and semantic routing
+- ✅ **Phase 5.3:** SSO, L2 cache, alerts, HF tokenizer, budget enforcement ← **Current**
+- 🔜 **Phase 6:** Multi-region routing and advanced governance
 
 ---
 
@@ -534,29 +545,20 @@ kubectl apply -f infra/k8s/
 - **Liveness:** `GET /v1/health`
 - **Readiness:** `GET /v1/health` (checks downstream services)
 
----
 
 ## Roadmap
 
-### v0.2.0 (Q2 2025)
-- [ ] Complete real OpenAI/Anthropic provider integration
-- [ ] Wire Python ML service as inference provider
-- [ ] Implement actual GPU operations (CUDA)
-- [ ] Full OpenTelemetry span export
-- [ ] Streaming response support at scale
+### v1.1.0 (Q1 2026)
+- [ ] Multi-region routing with geo-aware selection
+- [ ] Advanced alert integrations (PagerDuty, OpsGenie)
+- [ ] Fine-grained RBAC with custom policies
+- [ ] Streaming response optimization
 
-### v0.3.0 (Q3 2025)
-- [ ] Advanced SLO enforcer with automatic scaling
-- [ ] Multi-region routing
-- [ ] Fine-tuning API endpoints
-- [ ] Embeddings API
+### v1.2.0 (Q2 2026)
+- [ ] Embeddings API support
 - [ ] Model versioning and A/B testing
-
-### v1.0.0 (Q4 2025)
-- [ ] Production-ready with SLA guarantees
-- [ ] 10,000+ RPS throughput (verified)
-- [ ] Autonomous optimization agents
-- [ ] Enterprise support
+- [ ] Advanced cost optimization algorithms
+- [ ] White-label deployment options
 
 ---
 

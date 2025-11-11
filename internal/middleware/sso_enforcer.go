@@ -9,7 +9,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/schlep-engine/internal/auth"
+	"github.com/schlep-engine/schlep-engine/internal/auth"
 )
 
 // SSOEnforcerConfig holds SSO enforcement configuration

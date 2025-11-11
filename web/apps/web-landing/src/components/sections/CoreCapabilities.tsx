@@ -4,7 +4,7 @@ import { Shield, Box } from 'lucide-react'
 const capabilities = [
   {
     name: 'Intelligent Routing Engine',
-    description: 'Schlep-Engine intelligently selects the best AI provider for every request using adaptive routing logic. It balances performance, reliability, and cost automatically — no manual configuration required.',
+    description: 'Schlep-engine intelligently selects the best AI provider for every request using adaptive routing logic. It balances performance, reliability, and cost automatically — no manual configuration required.',
   },
   {
     name: 'Multi-Tenant Budget Control',
@@ -145,7 +145,7 @@ export default function CoreCapabilities() {
               <h4 className="text-3xl tracking-tight md:text-4xl font-inter mb-8 text-center" style={{ color: '#000000' }}>Reliability and Fail-Safe Architecture</h4>
               
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 mb-8 font-inter text-center max-w-3xl mx-auto">
-                Deploy optimizations safely with automatic guardrails. Schlep-Engine isolates failures, validates routing before rollout, and continuously monitors provider health to ensure every request succeeds.
+                Deploy optimizations safely with automatic guardrails. Schlep-engine isolates failures, validates routing before rollout, and continuously monitors provider health to ensure every request succeeds.
               </p>
 
               {/* 2x2 Grid Layout */}

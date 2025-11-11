@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/schlep-engine/internal/alerts"
+	"github.com/schlep-engine/schlep-engine/internal/alerts"
 )
 
 // EmailProvider sends alerts via SMTP email

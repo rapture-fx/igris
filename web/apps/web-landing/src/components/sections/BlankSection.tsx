@@ -52,7 +52,7 @@ export default function BlankSection() {
             </div>
 
             <p className="text-sm text-gray-500 text-center">
-              Provider verification as of the latest version of schlep-engine. Support expanding via Open BYOK Registry.
+              Provider verification as of the latest version of Schlep-engine. Support expanding via Open BYOK Registry.
             </p>
           </div>
         </div>

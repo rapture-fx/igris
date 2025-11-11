@@ -39,7 +39,7 @@ export default function Header() {
             <Link href="/" className="flex items-center">
               <Image
                 src="/Schlep Engine 14x11cm (34).png"
-                alt="Schlep Engine"
+                alt="Schlep-engine"
                 width={30}
                 height={30}
               />

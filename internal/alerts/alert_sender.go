@@ -47,8 +47,8 @@ type Alert struct {
 	RunbookURL  string                 `json:"runbook_url,omitempty"`
 
 	// Delivery settings
-	Channels    []string `json:"channels"`     // slack, email, webhook
-	Recipients  []string `json:"recipients"`   // emails, webhook URLs, slack channels
+	Channels    []string `json:"channels"`     // email, webhook
+	Recipients  []string `json:"recipients"`   // emails, webhook URLs
 	Priority    int      `json:"priority"`     // 0-10, higher = more urgent
 	DedupeKey   string   `json:"dedupe_key"`   // For deduplication
 
