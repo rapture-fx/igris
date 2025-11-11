@@ -56,9 +56,9 @@ export default function TechStack() {
               {/* Left Column - SVG Diagram */}
               <div className="lg:col-span-7 flex items-center justify-center pl-8">
                 <img
-                  src="/okdiagar.svg"
-                  alt="OK Diagram"
-                  className="w-full h-full max-h-[700px] object-contain"
+                  src="/publicdiagram.svg"
+                  alt="How it Works Diagram"
+                  className="w-full h-full max-h-[700px] object-contain opacity-70"
                 />
               </div>
 
@@ -69,7 +69,7 @@ export default function TechStack() {
                 </h3>
 
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
-                  Schlep-Engine routes, monitors, and optimizes AI inference across providers through a unified control plane. Each layer is designed for performance, cost efficiency, and reliability at scale.
+                  One API endpoint, infinite AI possibilities. Our unified control plane intelligently routes between providers, monitors performance in real-time, and optimizes for cost and latency - so you get the best AI inference without the management overhead
                 </p>
               </div>
             </div>

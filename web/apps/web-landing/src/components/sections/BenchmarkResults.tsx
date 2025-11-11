@@ -14,7 +14,7 @@ const comparisonData = [
     percentage: 51
   },
   {
-    scenario: 'Schlep-Engine',
+    scenario: 'Schlep-engine',
     cost: '$0.066',
     description: 'Verified (Claude-3 Haiku live benchmark)',
     percentage: 3,

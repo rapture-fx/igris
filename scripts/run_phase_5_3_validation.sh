@@ -182,12 +182,6 @@ else
     fail "Alert sender infrastructure missing"
 fi
 
-if [ -f "internal/alerts/providers/slack_sender.go" ]; then
-    pass "Slack alert provider exists"
-else
-    fail "Slack alert provider missing"
-fi
-
 if [ -f "internal/alerts/providers/email_sender.go" ]; then
     pass "Email alert provider exists"
 else

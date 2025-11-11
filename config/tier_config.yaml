@@ -5,9 +5,10 @@
 #
 # VALIDATION SOURCE: /reports/provider_capacity_validation.md
 # ACCURACY REPORT: /reports/REALITY_TIER_GATING_SUMMARY.md
+# UPDATED: 2025-11-11 - Pricing aligned with landing page
 
 version: "1.0"
-last_updated: "2025-11-10T00:00:00Z"
+last_updated: "2025-11-11T00:00:00Z"
 
 # Tier Definitions
 tiers:
@@ -19,7 +20,7 @@ tiers:
     display_name: "Developer"
     description: "Entry-level tier for individual developers and small teams"
     price:
-      usd: 99
+      usd: 249
       currency: "USD"
       billing_period: "month"
 
@@ -130,7 +131,7 @@ tiers:
     display_name: "Growth"
     description: "For growing teams and production workloads"
     price:
-      usd: 299
+      usd: 799
       currency: "USD"
       billing_period: "month"
 
@@ -218,7 +219,7 @@ tiers:
     display_name: "Scale"
     description: "Enterprise-grade deployments with unlimited scale"
     price:
-      usd: 599
+      usd: 1899
       currency: "USD"
       billing_period: "month"
 
@@ -275,12 +276,12 @@ tiers:
       # Scale-specific features
       on_premise_deployment: true     # ✅ Kubernetes/Helm charts
       self_hosted: true               # ✅ Deployable
-      kubernetes_ready: true          # ✅ Full Helm chart
-      custom_provider_adapters: true  # ✅ BYOK with custom_adapter compatibility
+      kubernetes_ready: true          # ✅ Full Helm chart (infra/helm/schlep-engine)
+      custom_provider_adapters: true  # ✅ Generic Provider interface (internal/providers/provider_interface.go)
       onnx_model_framework: true      # ✅ Framework ready (needs model files)
-      advanced_security_controls: true # ✅ RBAC + isolation + audit
-      multi_region_ready: true        # ⚠️ Infrastructure exists, routing logic pending
-      white_label: false              # Unverified
+      advanced_security_controls: true # ✅ RBAC + isolation + audit (internal/safety/audit_logger.go)
+      multi_region_ready: false       # ❌ Routing logic not implemented
+      white_label: false              # ❌ Not implemented
 
       # Support
       priority_support: true
