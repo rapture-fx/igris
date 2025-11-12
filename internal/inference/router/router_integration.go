@@ -2,6 +2,7 @@ package router
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"math/rand"
@@ -9,17 +10,23 @@ import (
 	"time"
 
 	"github.com/schlep-engine/schlep-engine/internal/inference/optimizer/ffi"
+	"github.com/schlep-engine/schlep-engine/internal/inference/quality"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 )
 
 // InferenceRouter handles intelligent routing of inference requests
-// Now integrated with Rust Thompson Sampling optimizer
+// Now integrated with Rust Thompson Sampling optimizer and quality-aware routing
 type InferenceRouter struct {
 	registry *providers.ProviderRegistry
 
 	// Rust optimizer (primary routing engine)
 	optimizer *ffi.OptimizerHandle
+
+	// Quality routing components
+	qualityScorer  *quality.QualityScorer
+	rewardBuilder  *RewardPolicyBuilder
+	db             *sql.DB
 
 	// Routing state (Go fallback when optimizer unavailable)
 	providerStats   map[string]*ProviderStats
@@ -30,6 +37,7 @@ type InferenceRouter struct {
 	useRustOptimizer   bool
 	fallbackEnabled    bool
 	defaultProvider    string
+	enableQualityRouting bool
 }
 
 // ProviderStats tracks provider performance for routing decisions
@@ -45,14 +53,18 @@ type ProviderStats struct {
 }
 
 // NewInferenceRouter creates a new inference router
-func NewInferenceRouter(registry *providers.ProviderRegistry) *InferenceRouter {
+func NewInferenceRouter(registry *providers.ProviderRegistry, db *sql.DB) *InferenceRouter {
 	return &InferenceRouter{
-		registry:           registry,
-		providerStats:      make(map[string]*ProviderStats),
-		enableOptimization: true,
-		useRustOptimizer:   false, // Will be enabled after InitializeOptimizer is called
-		fallbackEnabled:    true,
-		defaultProvider:    "openai",
+		registry:             registry,
+		qualityScorer:        quality.NewQualityScorer(),
+		rewardBuilder:        NewRewardPolicyBuilder(),
+		db:                   db,
+		providerStats:        make(map[string]*ProviderStats),
+		enableOptimization:   true,
+		useRustOptimizer:     false, // Will be enabled after InitializeOptimizer is called
+		fallbackEnabled:      true,
+		defaultProvider:      "openai",
+		enableQualityRouting: true, // Enable quality routing by default
 	}
 }
 
@@ -66,23 +78,17 @@ func (r *InferenceRouter) InitializeOptimizer() error {
 
 	log.Printf("[Router] Initializing Rust optimizer with %d providers: %v", len(providerNames), providerNames)
 
-	// Create optimizer configuration
+	// Use default balanced preferences for initialization
+	defaultPrefs := models.GetDefaultPreferences("default")
+	rewardPolicy := r.rewardBuilder.BuildRewardPolicy(defaultPrefs, nil)
+
+	// Create optimizer configuration with balanced weights
 	config := ffi.OptimizerConfig{
 		Arms:             providerNames,
 		SuccessThreshold: 0.6,
 		InitialAlpha:     1.0,
 		InitialBeta:      1.0,
-		RewardPolicy: ffi.RewardPolicy{
-			LatencyWeight:   0.4,
-			SuccessWeight:   0.3,
-			CacheWeight:     0.0, // Not using cache yet
-			CostWeight:      0.15,
-			QualityWeight:   0.15,
-			TargetLatencyMs: 500.0,  // Target 500ms
-			MaxLatencyMs:    5000.0, // Max 5s
-			TargetCostUsd:   0.001,  // Target $0.001 per request
-			MaxCostUsd:      0.1,    // Max $0.10 per request
-		},
+		RewardPolicy:     rewardPolicy,
 	}
 
 	// Initialize Rust optimizer via FFI
@@ -94,7 +100,8 @@ func (r *InferenceRouter) InitializeOptimizer() error {
 	r.optimizer = optimizer
 	r.useRustOptimizer = true
 
-	log.Printf("[Router] ✅ Rust optimizer initialized successfully")
+	log.Printf("[Router] ✅ Rust optimizer initialized with balanced quality routing (Q:%.2f, L:%.2f, C:%.2f)",
+		rewardPolicy.QualityWeight, rewardPolicy.LatencyWeight, rewardPolicy.CostWeight)
 	return nil
 }
 
@@ -457,13 +464,32 @@ func (r *InferenceRouter) sendOptimizerFeedback(providerName string, latencyMs i
 		costUsd = resp.Metadata.CostUSD
 	}
 
+	// Calculate quality score if quality routing is enabled
+	var qualityScore *float64
+	if r.enableQualityRouting && req != nil && resp != nil {
+		// Classify the request
+		classification := quality.ClassifyRequest(req)
+
+		// Calculate quality score with timeout (max 20ms)
+		score, err := r.qualityScorer.ScoreWithTimeout(
+			ctx,
+			req,
+			resp,
+			classification,
+			20*time.Millisecond,
+		)
+		if err == nil && score > 0 {
+			qualityScore = &score
+		}
+	}
+
 	// Create metrics for reward calculation
 	metrics := ffi.RewardMetrics{
 		LatencyMs:    float64(latencyMs),
 		Success:      true, // If we got here, the request succeeded
-		CacheHit:     false,  // Not using cache yet
+		CacheHit:     false,
 		CostUsd:      costUsd,
-		QualityScore: nil, // Not measuring quality yet
+		QualityScore: qualityScore,
 	}
 
 	// Send metrics to Rust optimizer
@@ -474,8 +500,12 @@ func (r *InferenceRouter) sendOptimizerFeedback(providerName string, latencyMs i
 		return
 	}
 
-	log.Printf("[Router] 🦀 Sent optimizer feedback: provider=%s, latency=%dms, cost=$%.6f",
-		providerName, latencyMs, costUsd)
+	qualityLog := "nil"
+	if qualityScore != nil {
+		qualityLog = fmt.Sprintf("%.3f", *qualityScore)
+	}
+	log.Printf("[Router] 🦀 Sent optimizer feedback: provider=%s, latency=%dms, cost=$%.6f, quality=%s",
+		providerName, latencyMs, costUsd, qualityLog)
 }
 
 // sendFailureFeedback sends negative feedback to the Rust optimizer for failed requests

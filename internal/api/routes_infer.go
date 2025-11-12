@@ -6,14 +6,15 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/schlep-engine/schlep-engine/cmd/schlep-engine-api/handlers"
+	"github.com/schlep-engine/schlep-engine/internal/database"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
 )
 
 // RegisterInferRoutes registers /v1/infer and related endpoints
 // Phase 2: Now supports optional JWT authentication for multi-tenancy
-func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth) error {
-	// Initialize handler
-	inferHandler, err := handlers.NewInferHandler()
+func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth, db *database.DB) error {
+	// Initialize handler with database for quality routing
+	inferHandler, err := handlers.NewInferHandler(db)
 	if err != nil {
 		return err
 	}
@@ -73,9 +74,9 @@ func RegisterInferRoutes(app *fiber.App, tenantAuth *middleware.TenantAuth) erro
 }
 
 // RegisterV1Routes is a convenience function that registers all v1 routes
-func RegisterV1Routes(app *fiber.App, tenantAuth *middleware.TenantAuth) error {
+func RegisterV1Routes(app *fiber.App, tenantAuth *middleware.TenantAuth, db *database.DB) error {
 	// Register inference routes with optional tenant auth
-	if err := RegisterInferRoutes(app, tenantAuth); err != nil {
+	if err := RegisterInferRoutes(app, tenantAuth, db); err != nil {
 		return err
 	}
 

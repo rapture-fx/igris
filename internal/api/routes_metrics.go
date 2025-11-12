@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/adaptor/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/schlep-engine/schlep-engine/internal/database"
 	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/tracing"
@@ -122,8 +123,8 @@ func RegisterMetricsRoutes(app *fiber.App) error {
 }
 
 // RegisterAllRoutes registers all API routes including metrics and multi-tenancy
-// Phase 2: Now accepts optional tenant auth middleware for inference endpoints
-func RegisterAllRoutes(app *fiber.App, tenantAuth interface{}) error {
+// Phase 2: Now accepts optional tenant auth middleware and database for inference endpoints
+func RegisterAllRoutes(app *fiber.App, tenantAuth interface{}, db interface{}) error {
 	// Type assert tenant auth middleware (can be nil for backward compatibility)
 	var ta *middleware.TenantAuth
 	if tenantAuth != nil {
@@ -132,8 +133,16 @@ func RegisterAllRoutes(app *fiber.App, tenantAuth interface{}) error {
 		}
 	}
 
-	// Register inference routes with optional tenant auth
-	if err := RegisterInferRoutes(app, ta); err != nil {
+	// Type assert database (can be nil for backward compatibility)
+	var dbInstance *database.DB
+	if db != nil {
+		if dbVal, ok := db.(*database.DB); ok {
+			dbInstance = dbVal
+		}
+	}
+
+	// Register inference routes with optional tenant auth and database
+	if err := RegisterInferRoutes(app, ta, dbInstance); err != nil {
 		return err
 	}
 
