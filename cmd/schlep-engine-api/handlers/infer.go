@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"math/rand"
@@ -37,13 +38,13 @@ type InferHandler struct {
 }
 
 // NewInferHandler creates a new infer handler
-func NewInferHandler() (*InferHandler, error) {
+func NewInferHandler(db *database.DB) (*InferHandler, error) {
 	// Initialize metrics collector
 	metrics.InitMetricsCollector()
-	
+
 	// Initialize tracing
 	tracing.InitGlobalTracer("schlep-engine", 1.0) // 100% sampling for MVP
-	
+
 	// Initialize provider registry
 	registry := providers.NewProviderRegistry()
 
@@ -203,8 +204,12 @@ func NewInferHandler() (*InferHandler, error) {
 
 	log.Printf("[Handler] Registered providers: %v", registry.List())
 
-	// Create inference router
-	inferenceRouter := router.NewInferenceRouter(registry)
+	// Create inference router with database for quality routing
+	var dbInstance *sql.DB
+	if db != nil && db.IsEnabled() {
+		dbInstance = db.DB
+	}
+	inferenceRouter := router.NewInferenceRouter(registry, dbInstance)
 
 	// PHASE 1.2: Initialize Rust Thompson Sampling optimizer
 	log.Println("[Handler] Initializing Rust Thompson Sampling optimizer...")

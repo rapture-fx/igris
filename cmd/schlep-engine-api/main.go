@@ -223,8 +223,8 @@ func main() {
 	}
 
 	// Register all routes (including inference and metrics)
-	// Pass tenant auth middleware (nil if multi-tenancy disabled)
-	if err := api.RegisterAllRoutes(app, tenantAuth); err != nil {
+	// Pass tenant auth middleware and database (nil if disabled)
+	if err := api.RegisterAllRoutes(app, tenantAuth, db); err != nil {
 		log.Fatalf("Failed to register routes: %v", err)
 	}
 
