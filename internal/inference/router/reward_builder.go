@@ -74,16 +74,16 @@ func (b *RewardPolicyBuilder) adjustWeightsForSensitivity(
 	case "high":
 		// Increase quality weight by 20%, decrease cost weight
 		boost := 0.2
-		weights.QualityWeight += boost
-		weights.CostWeight -= boost * 0.5
-		weights.LatencyWeight -= boost * 0.3
+		weights.Quality += boost
+		weights.Cost -= boost * 0.5
+		weights.Latency -= boost * 0.3
 		weights.Success -= boost * 0.2
 	case "low":
 		// Decrease quality weight by 10%, increase cost weight
 		reduction := 0.1
-		weights.QualityWeight -= reduction
-		weights.CostWeight += reduction * 0.6
-		weights.LatencyWeight += reduction * 0.4
+		weights.Quality -= reduction
+		weights.Cost += reduction * 0.6
+		weights.Latency += reduction * 0.4
 	}
 
 	// Normalize weights to ensure they sum to ~1.0
