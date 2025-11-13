@@ -56,9 +56,9 @@ export default function TechStack() {
               {/* Left Column - SVG Diagram */}
               <div className="lg:col-span-7 flex items-center justify-center pl-8">
                 <img
-                  src="/Diagramhowitworks.svg"
+                  src="/V3diagram.svg"
                   alt="How it Works Diagram"
-                  className="w-full h-full max-h-[700px] object-contain opacity-90"
+                  className="w-full h-full max-h-[700px] object-contain opacity-80"
                 />
               </div>
 
