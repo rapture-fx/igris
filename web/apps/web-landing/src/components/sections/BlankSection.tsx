@@ -37,6 +37,10 @@ export default function BlankSection() {
             <h3 className="text-xl md:text-2xl font-normal text-center text-black">
               Verified Providers — BYOK Safe
             </h3>
+            <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter text-center max-w-3xl mx-auto">
+              Every connected provider is validated for uptime, latency, and output integrity before it joins your routing network.
+              With the Open BYOK registry, you can onboard new providers while Schlep-engine automatically performs continuous trust checks — keeping your stack clean and stable.
+            </p>
 
             <div className="flex flex-wrap justify-center items-center gap-4">
               {providers.map((provider) => (

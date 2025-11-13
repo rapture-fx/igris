@@ -3,20 +3,24 @@ import { Shield, Box } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Intelligent Routing Engine',
-    description: 'Schlep-engine intelligently selects the best AI provider for every request using adaptive routing logic. It balances performance, reliability, and cost automatically — no manual configuration required.',
+    name: 'Quality-Aware Routing',
+    description: 'Every request is analyzed by domain, complexity, and sensitivity — then routed to the provider proven to deliver the best outcome. Real-time scoring ensures optimal results every time.',
   },
   {
-    name: 'Multi-Tenant Budget Control',
-    description: 'Each tenant runs within defined cost and usage limits. Real-time enforcement protects workloads from cost overruns while keeping performance stable across customers.',
+    name: 'Adaptive Optimization Engine',
+    description: 'Balances quality, cost, and latency using dynamic weighting. Users can tune preferences via API, or let Schlep-engine learn the best trade-off automatically.',
   },
   {
-    name: 'Smart Quota Management',
-    description: 'Automatically manages token usage and rate limits across providers. Requests are adjusted on the fly to stay within quota, preventing interruptions and failed calls.',
+    name: 'Unified Control Plane',
+    description: 'Centralized cost, quota, and performance governance across all tenants and providers — with built-in failover and multi-tenant isolation.',
   },
   {
-    name: 'Shadow Mode Validation',
-    description: 'Validate routing decisions in real time without affecting live traffic. Shadow requests run safely in the background to improve accuracy and reliability before deployment.',
+    name: 'Shadow Mode Assurance',
+    description: 'New routing strategies are validated safely in the background before going live, continuously improving accuracy and stability.',
+  },
+  {
+    name: 'Secure BYOK Framework',
+    description: 'Bring your own API keys — Schlep-engine handles routing, security, and optimization, while you retain complete data and provider control.',
   },
 ]
 
@@ -56,41 +60,34 @@ export default function CoreCapabilities() {
               
               {/* Left Column - Vertical Text Stack */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div className="flex gap-4 justify-center w-full max-w-xl mx-auto">
-                    <div className="flex flex-col gap-4">
-                      {capabilities.slice(0, 2).map((capability, index) => (
-                        <div key={capability.name} className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-2xl p-6 border border-gray-300/60 dark:border-gray-600/60 shadow-md" style={{ padding: '24px 20px', width: '280px', height: '180px' }} >
-                          <h3 className="text-base font-medium text-gray-900 dark:text-white mb-2 font-inter">
-                            {capability.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                            {capability.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="flex flex-col gap-4">
-                      {capabilities.slice(2, 4).map((capability, index) => (
-                        <div key={capability.name} className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-2xl p-6 border border-gray-300/60 dark:border-gray-600/60 shadow-md" style={{ padding: '24px 20px', width: '280px', height: '180px' }} >
-                          <h3 className="text-base font-medium text-gray-900 dark:text-white mb-2 font-inter">
-                            {capability.name}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                            {capability.description}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
+                <div className="flex flex-col gap-4 justify-center w-full max-w-xl mx-auto">
+                    {capabilities.map((capability, index) => (
+                      <div
+                        key={capability.name}
+                        className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-xl p-4 border border-gray-300/60 dark:border-gray-600/60 shadow-sm"
+                        style={{
+                          padding: '20px 24px',
+                          width: '420px'
+                        }}
+                      >
+                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
+                          {capability.name}
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                          {capability.description}
+                        </p>
+                      </div>
+                    ))}
                   </div>
               </div>
 
               {/* Right Column - Section Title */}
               <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end pb-64" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                  Smarter routing. Fewer surprises.
+                  Smarter routing. Predictable performance.
                 </h3>
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
-                  From adaptive model selection to real-time quota control, Schlep-engine keeps your AI infrastructure efficient, predictable, and fail-safe — even under load.
+                  From adaptive quality-aware routing to real-time quota and cost control, Schlep-engine keeps your AI stack efficient, intelligent, and fail-safe — even at scale.
                 </p>
               </div>
             </div>
