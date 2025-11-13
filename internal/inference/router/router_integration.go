@@ -158,7 +158,7 @@ func (r *InferenceRouter) Route(ctx context.Context, req *models.InferRequest) (
 	resp.Metadata.LatencyMs = latency
 
 	// Step 6: Send feedback to Rust optimizer
-	r.sendOptimizerFeedback(providerName, latency, resp)
+	r.sendOptimizerFeedback(ctx, req, providerName, latency, resp)
 
 	return resp, nil
 }
@@ -362,7 +362,7 @@ func (r *InferenceRouter) attemptFallback(ctx context.Context, req *models.Infer
 		if err == nil {
 			r.recordSuccess(name, latency)
 			// Send success feedback for fallback provider
-			r.sendOptimizerFeedback(name, latency, resp)
+			r.sendOptimizerFeedback(ctx, req, name, latency, resp)
 			return resp, nil
 		}
 
@@ -452,7 +452,7 @@ func (r *InferenceRouter) RouteToProvider(ctx context.Context, req *models.Infer
 }
 
 // sendOptimizerFeedback sends reward feedback to the Rust optimizer
-func (r *InferenceRouter) sendOptimizerFeedback(providerName string, latencyMs int64, resp *models.InferResponse) {
+func (r *InferenceRouter) sendOptimizerFeedback(ctx context.Context, req *models.InferRequest, providerName string, latencyMs int64, resp *models.InferResponse) {
 	// Only send feedback if Rust optimizer is enabled
 	if !r.useRustOptimizer || r.optimizer == nil {
 		return
