@@ -87,10 +87,10 @@ export default function CoreCapabilities() {
               {/* Right Column - Section Title */}
               <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end pb-64" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                  Built for Intelligent, Reliable AI Infrastructure
+                  Smarter routing. Fewer surprises.
                 </h3>
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
-                  Schlep-engine combines adaptive routing, quota-aware control, and real-time validation to keep your AI workloads efficient and predictable — even at scale.
+                  From adaptive model selection to real-time quota control, Schlep-engine keeps your AI infrastructure efficient, predictable, and fail-safe — even under load.
                 </p>
               </div>
             </div>
@@ -142,10 +142,10 @@ export default function CoreCapabilities() {
             }}
           >
             <div className="max-w-5xl mx-auto h-full flex flex-col justify-center">
-              <h4 className="text-3xl tracking-tight md:text-4xl font-inter mb-8 text-center" style={{ color: '#000000' }}>Reliability and Fail-Safe Architecture</h4>
+              <h4 className="text-3xl tracking-tight md:text-4xl font-inter mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
               
               <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 mb-8 font-inter text-center max-w-3xl mx-auto">
-                Deploy optimizations safely with automatic guardrails. Schlep-engine isolates failures, validates routing before rollout, and continuously monitors provider health to ensure every request succeeds.
+                Every optimization passes automated guardrails before rollout. Schlep-engine isolates provider failures, validates routing in real time, and continuously monitors health so no request ever gets lost.
               </p>
 
               {/* 2x2 Grid Layout */}

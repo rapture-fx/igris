@@ -56,7 +56,7 @@ export default function TechStack() {
               {/* Left Column - SVG Diagram */}
               <div className="lg:col-span-7 flex items-center justify-center pl-8">
                 <img
-                  src="/V3diagram.svg"
+                  src="/Fixdiagramflow.svg"
                   alt="How it Works Diagram"
                   className="w-full h-full max-h-[700px] object-contain opacity-80"
                 />
@@ -65,11 +65,11 @@ export default function TechStack() {
               {/* Right Column - Title and Description */}
               <div className="lg:col-span-5 text-left">
                 <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                  How Schlep-engine Works
+                  How It Works
                 </h3>
 
                 <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
-                  One API endpoint, infinite AI possibilities. Our unified control plane intelligently routes between providers, monitors performance in real-time, and optimizes for cost and latency - so you get the best AI inference without the management overhead
+                  A single API endpoint powers adaptive routing across providers. The Schlep-engine control plane monitors latency, cost, and quality metrics in real time — ensuring every inference is sent to the optimal model without manual tuning.
                 </p>
               </div>
             </div>
