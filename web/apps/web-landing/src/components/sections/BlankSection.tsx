@@ -35,7 +35,7 @@ export default function BlankSection() {
 
           <div className="max-w-6xl mx-auto space-y-8">
             <h3 className="text-xl md:text-2xl font-normal text-center text-black">
-              Verified Providers
+              Verified Providers — BYOK Safe
             </h3>
 
             <div className="flex flex-wrap justify-center items-center gap-4">

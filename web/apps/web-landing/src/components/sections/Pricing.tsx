@@ -15,7 +15,11 @@ const pricingTiers = [
       "Smart routing with Thompson Sampling",
       "Real-time cost tracking & forecasting",
       "Redis caching for low latency",
-      "150+ observability metrics"
+      "150+ observability metrics",
+      "Quality-aware routing (Cost/Balanced/Quality modes)",
+      "Automatic request classification",
+      "Real-time quality scoring",
+      "Multi-factor optimization"
     ],
     cta: "Get started",
     highlighted: false,

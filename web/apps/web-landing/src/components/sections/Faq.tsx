@@ -6,7 +6,27 @@ import { ChevronDown } from 'lucide-react';
 const faqEntries = [
   {
     question: "How much can I save?",
-    answer: "Early customers typically save 30%+ monthly. Get your exact number - use our ROI calculator or book a free API log analysis to see your personalized savings estimate.",
+    answer: "Most companies save 25-40% while maintaining quality. Use our ROI calculator for your exact numbers.",
+    type: "text"
+  },
+  {
+    question: "How does quality-aware routing work?",
+    answer: "We automatically classify each request and route it to the best model for that specific task. Simple queries go to cost-effective models, complex tasks to premium models.",
+    type: "text"
+  },
+  {
+    question: "Will this reduce my AI quality?",
+    answer: "No - we maintain or improve quality by matching tasks to appropriate models. Most customers see 20-40% quality improvements.",
+    type: "text"
+  },
+  {
+    question: "How do I control cost vs quality?",
+    answer: "Choose from three modes: Cost (max savings), Balanced (recommended), or Quality (best outcomes).",
+    type: "text"
+  },
+  {
+    question: "What makes this different from cost optimization?",
+    answer: "Cost optimization finds the cheapest model. We find the best model for each task, which often saves money while improving quality.",
     type: "text"
   },
   {
