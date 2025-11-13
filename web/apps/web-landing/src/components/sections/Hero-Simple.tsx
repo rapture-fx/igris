@@ -34,14 +34,11 @@ export default function Hero() {
               <div className="flex justify-between items-start">
                 <div className="text-left">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
-                    The routing engine and
-                  </h1>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2] mt-2">
-                    control plane for AI inference
+                    AI Routing That Doesn't Compromise Quality
                   </h1>
                 </div>
                 <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left">
-                  Schlep-engine routes AI inference across multiple models and providers to balance cost, latency, and reliability using your own API keys.
+                  Intelligent routing that matches each task to the optimal model. Get 30% better outcomes while saving 25% on API costs.
                 </p>
               </div>
             </div>
