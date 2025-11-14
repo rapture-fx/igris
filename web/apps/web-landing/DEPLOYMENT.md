@@ -157,6 +157,23 @@ pnpm dev
 ### Issue: nodejs_compat warnings in local preview
 **Solution**: Already fixed in `wrangler.toml` with `compatibility_flags = ["nodejs_compat"]`
 
+## Common Issues & Fixes
+
+### Images Not Displaying
+**Issue**: Images with spaces in filenames don't load on Cloudflare Pages
+**Fix**: All image files have been renamed to remove spaces:
+- `Schlep Engine 14x11cm (34).png` → `schlep-logo-34.png`
+- `Schlep Engine 14x11cm (47).svg` → `schlep-logo-47.svg`
+- `Schlep Engine 14x11cm (54).svg` → `schlep-logo-54.svg`
+
+### Early Access Form Not Working
+**Issue**: Cloudflare Pages Functions not deployed
+**Fix**: The build process now automatically copies the `functions/` directory to `.vercel/output/static/_functions/` which is required for Cloudflare Pages Functions to work.
+
+The build command `pnpm pages:build` now:
+1. Builds the Next.js app with `@cloudflare/next-on-pages`
+2. Copies the `functions/` directory to the output
+
 ## Quick Commands Reference
 
 ```bash
@@ -165,7 +182,7 @@ pnpm dev                                    # Start Next.js dev server (localhos
 
 # Build
 pnpm build                                  # Standard Next.js build
-pnpm pages:build                            # Build for Cloudflare Pages
+pnpm pages:build                            # Build for Cloudflare Pages (includes function copy)
 
 # Preview/Staging
 pnpm wrangler pages dev .vercel/output/static  # Test Cloudflare environment locally

@@ -32,7 +32,7 @@ export default function Footer() {
             {/* Right side - Logo */}
             <div className="flex items-center">
               <Image
-                src="/Schlep Engine 14x11cm (34).png"
+                src="/schlep-logo-34.png"
                 alt="Schlep-engine"
                 width={20}
                 height={20}
