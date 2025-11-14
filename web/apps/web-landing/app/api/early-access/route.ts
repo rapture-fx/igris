@@ -24,9 +24,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Access Cloudflare D1 binding directly from process.env
-    // @ts-ignore - Cloudflare bindings available in edge runtime
-    const DB = process.env.DB as D1Database | undefined;
+    // Access Cloudflare D1 binding using getRequestContext
+    let DB: D1Database | undefined;
+    try {
+      const { getRequestContext } = require('@cloudflare/next-on-pages');
+      const { env } = getRequestContext();
+      DB = env.DB;
+    } catch (e) {
+      console.error('Failed to get request context:', e);
+    }
 
     // Store in Cloudflare D1 (if available)
     if (DB) {
