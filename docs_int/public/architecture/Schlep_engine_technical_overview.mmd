@@ -1,0 +1,210 @@
+%%{init: {'theme':'base', 'themeVariables': {'fontSize':'13px'}}}%%
+graph TD
+    Client[Client Application<br/>REST API, Streaming, SDK]
+
+    APIGateway[API Gateway<br/>Fiber HTTP Server<br/>POST /v1/infer]
+
+    subgraph Middleware[" Middleware Stack "]
+        MW1[Recovery & CORS]
+        MW2[Trace ID Generation]
+        MW3[Request Logger]
+        MW4[Tenant Auth Optional]
+    end
+
+    subgraph Safety[" Safety & Control Layer "]
+        SafetyController[Safety Controller<br/>Pre-Request Validation]
+        BudgetTracker[Budget Tracker<br/>Monthly Spend Limits]
+        TokenEnforcer[Token Enforcer<br/>Max Token Limits]
+        KeyValidator[Key Validator<br/>API Key Validation]
+        AuditLogger[Audit Logger<br/>Compliance Tracking]
+    end
+
+    subgraph Routing[" Intelligent Routing Engine "]
+        InferenceHandler[Inference Handler<br/>Request Processing]
+
+        subgraph RouterModes[" Routing Modes "]
+            GoRouter[Go Router<br/>Statistics-Based]
+            RustOptimizer[Rust Optimizer<br/>Thompson Sampling]
+            ShadowRunner[Shadow Runner<br/>Parallel Testing]
+        end
+
+        SLOBreaker[SLO Breaker<br/>Auto-Revert on Breach]
+        RuntimeConfig[Runtime Config<br/>Hot-Reload Mode Switch]
+    end
+
+    subgraph Providers[" Provider Layer "]
+        Registry[Provider Registry]
+        OpenAIProvider[OpenAI Provider<br/>GPT-4, GPT-3.5]
+        AnthropicProvider[Anthropic Provider<br/>Claude 3.5, Claude 3]
+        BenchmarkProviders[Benchmark Providers<br/>Testing Mode]
+    end
+
+    subgraph External[" External LLM APIs "]
+        OpenAI_API[OpenAI API]
+        Anthropic_API[Anthropic API]
+    end
+
+    subgraph DataLayer[" Data & Persistence "]
+        PostgreSQL[(PostgreSQL)]
+        PG1[Budgets Table]
+        PG2[Spending Log]
+        PG3[Policy Settings]
+
+        Redis[(Redis Cache)]
+        RedisCache[ML Predictions Cache]
+    end
+
+    subgraph Observability[" Observability & Monitoring "]
+        MetricsCollector[Metrics Collector<br/>In-Memory Aggregation]
+        Prometheus[Prometheus Metrics<br/>HTTP Endpoint]
+        Tracing[Distributed Tracing<br/>Trace ID Propagation]
+        CostTracker[Cost Tracker<br/>Per-Request Estimation]
+        AdminAPI[Admin API<br/>Runtime Configuration]
+    end
+
+    subgraph MultiTenancy[" Multi-Tenancy - Optional "]
+        TenantMgmt[Tenant Management]
+        VaultKeys[Vault Key Storage]
+        TenantPolicies[Per-Tenant Policies]
+    end
+
+    %% Main request flow
+    Client -->|HTTP Request| APIGateway
+    APIGateway --> Middleware
+    Middleware --> MW1
+    Middleware --> MW2
+    Middleware --> MW3
+    Middleware --> MW4
+
+    MW4 -.->|If Enabled| MultiTenancy
+
+    Middleware --> SafetyController
+
+    %% Safety layer
+    SafetyController --> BudgetTracker
+    SafetyController --> TokenEnforcer
+    SafetyController --> KeyValidator
+    SafetyController --> AuditLogger
+
+    %% Safety to routing
+    SafetyController --> InferenceHandler
+
+    %% Routing modes
+    InferenceHandler --> RouterModes
+    RouterModes --> GoRouter
+    RouterModes --> RustOptimizer
+    RouterModes --> ShadowRunner
+
+    %% SLO monitoring
+    RustOptimizer --> SLOBreaker
+    ShadowRunner --> SLOBreaker
+    SLOBreaker -.->|Auto-Revert| GoRouter
+
+    %% Runtime config
+    RuntimeConfig ==>|Switch Mode| RouterModes
+    AdminAPI ==>|Update| RuntimeConfig
+
+    %% Routing to providers
+    GoRouter --> Registry
+    RustOptimizer --> Registry
+    ShadowRunner --> Registry
+
+    Registry --> OpenAIProvider
+    Registry --> AnthropicProvider
+    Registry --> BenchmarkProviders
+
+    %% Providers to external APIs
+    OpenAIProvider -->|Real Mode| OpenAI_API
+    AnthropicProvider -->|Real Mode| Anthropic_API
+
+    %% Response flow
+    OpenAI_API -.->|Response| OpenAIProvider
+    Anthropic_API -.->|Response| AnthropicProvider
+
+    OpenAIProvider -.-> InferenceHandler
+    AnthropicProvider -.-> InferenceHandler
+    BenchmarkProviders -.-> InferenceHandler
+
+    InferenceHandler -.->|Response| Client
+
+    %% Feedback loop
+    InferenceHandler ==>|Performance Data| RustOptimizer
+    InferenceHandler ==>|Stats| MetricsCollector
+
+    %% Database connections
+    BudgetTracker --> PG1
+    AuditLogger --> PG2
+    TenantPolicies --> PG3
+
+    Registry --> RedisCache
+
+    %% Observability
+    InferenceHandler --> MetricsCollector
+    MetricsCollector --> Prometheus
+    MW2 --> Tracing
+    InferenceHandler --> CostTracker
+    CostTracker --> BudgetTracker
+
+    %% Styling - Client & Gateway
+    style Client fill:#D6EAF8,stroke:#1E88E5,stroke-width:3px
+    style APIGateway fill:#D6EAF8,stroke:#1E88E5,stroke-width:2px
+
+    %% Styling - Middleware
+    style Middleware fill:#E3F2FD,stroke:#1976D2,stroke-width:2px
+    style MW1 fill:#BBDEFB,stroke:#1565C0
+    style MW2 fill:#BBDEFB,stroke:#1565C0
+    style MW3 fill:#BBDEFB,stroke:#1565C0
+    style MW4 fill:#BBDEFB,stroke:#1565C0,stroke-dasharray: 5 5
+
+    %% Styling - Safety Layer
+    style Safety fill:#FFF3E0,stroke:#F57C00,stroke-width:2px
+    style SafetyController fill:#FFE0B2,stroke:#EF6C00,stroke-width:2px
+    style BudgetTracker fill:#FFCC80,stroke:#E65100
+    style TokenEnforcer fill:#FFCC80,stroke:#E65100
+    style KeyValidator fill:#FFCC80,stroke:#E65100
+    style AuditLogger fill:#FFCC80,stroke:#E65100
+
+    %% Styling - Routing Engine
+    style Routing fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px
+    style InferenceHandler fill:#E8DAEF,stroke:#7B1FA2,stroke-width:2px
+    style RouterModes fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px
+    style GoRouter fill:#E1BEE7,stroke:#6A1B9A
+    style RustOptimizer fill:#CE93D8,stroke:#6A1B9A,stroke-width:2px
+    style ShadowRunner fill:#E1BEE7,stroke:#6A1B9A
+    style SLOBreaker fill:#FFEB3B,stroke:#F57F17,stroke-width:2px
+    style RuntimeConfig fill:#FFF9C4,stroke:#F57F17
+
+    %% Styling - Providers
+    style Providers fill:#E8F5E9,stroke:#43A047,stroke-width:2px
+    style Registry fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px
+    style OpenAIProvider fill:#A5D6A7,stroke:#1B5E20
+    style AnthropicProvider fill:#A5D6A7,stroke:#1B5E20
+    style BenchmarkProviders fill:#A5D6A7,stroke:#1B5E20
+
+    %% Styling - External APIs
+    style External fill:#FFEBEE,stroke:#C62828,stroke-width:2px
+    style OpenAI_API fill:#FFCDD2,stroke:#C62828
+    style Anthropic_API fill:#FFCDD2,stroke:#C62828
+
+    %% Styling - Data Layer
+    style DataLayer fill:#FCE4EC,stroke:#C2185B,stroke-width:2px
+    style PostgreSQL fill:#F8BBD0,stroke:#AD1457,stroke-width:2px
+    style PG1 fill:#F48FB1,stroke:#880E4F
+    style PG2 fill:#F48FB1,stroke:#880E4F
+    style PG3 fill:#F48FB1,stroke:#880E4F
+    style Redis fill:#F8BBD0,stroke:#AD1457,stroke-width:2px
+    style RedisCache fill:#F48FB1,stroke:#880E4F
+
+    %% Styling - Observability
+    style Observability fill:#E0F2F1,stroke:#00897B,stroke-width:2px
+    style MetricsCollector fill:#B2DFDB,stroke:#00695C
+    style Prometheus fill:#B2DFDB,stroke:#00695C
+    style Tracing fill:#B2DFDB,stroke:#00695C
+    style CostTracker fill:#B2DFDB,stroke:#00695C
+    style AdminAPI fill:#80CBC4,stroke:#004D40,stroke-width:2px
+
+    %% Styling - Multi-Tenancy
+    style MultiTenancy fill:#E1F5FE,stroke:#0277BD,stroke-width:2px,stroke-dasharray: 5 5
+    style TenantMgmt fill:#B3E5FC,stroke:#01579B,stroke-dasharray: 5 5
+    style VaultKeys fill:#B3E5FC,stroke:#01579B,stroke-dasharray: 5 5
+    style TenantPolicies fill:#B3E5FC,stroke:#01579B,stroke-dasharray: 5 5
