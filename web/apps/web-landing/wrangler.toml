@@ -1,13 +1,23 @@
 name = "schlep-engine-landing"
 compatibility_date = "2024-09-01"
+# Enable Node.js compatibility for Next.js
+compatibility_flags = ["nodejs_compat"]
+
 # Output directory for @cloudflare/next-on-pages
 # Build with: pnpm pages:build
 # Deploy with: wrangler pages deploy .vercel/output/static
 pages_build_output_dir = ".vercel/output/static"
 
-# Cloudflare Pages Functions environment
+# Local development KV binding (creates test namespace automatically)
+[[kv_namespaces]]
+binding = "EARLY_ACCESS_KV"
+id = "preview_id"
+preview_id = "preview_id"
+
+# Production environment configuration
 [env.production]
-# Add KV namespace binding for early access submissions
-# kv_namespaces = [
-#   { binding = "EARLY_ACCESS_KV", id = "your-kv-namespace-id" }
-# ]
+# Production KV namespace - Update with your actual KV namespace ID
+# Create with: wrangler kv:namespace create "EARLY_ACCESS_KV" --preview false
+# [[env.production.kv_namespaces]]
+# binding = "EARLY_ACCESS_KV"
+# id = "your-production-kv-namespace-id"
