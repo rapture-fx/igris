@@ -86,7 +86,7 @@ export default function Observability() {
                   >
                     {feature.isBlank ? (
                       <div className="w-full h-full" style={{
-                        backgroundImage: 'url("/Schlep Engine 14x11cm (54).svg")',
+                        backgroundImage: 'url("/schlep-logo-54.svg")',
                         backgroundSize: 'cover',
                         backgroundPosition: 'center',
                         backgroundRepeat: 'no-repeat',

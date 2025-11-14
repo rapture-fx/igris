@@ -299,7 +299,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                 style={{ backgroundColor: '#f6f6f4', boxShadow: '-5px 0 10px -2px rgba(0, 0, 0, 0.1)' }}
               >
                 <img
-                  src="/Schlep Engine 14x11cm (47).svg"
+                  src="/schlep-logo-47.svg"
                   alt="Schlep Engine Diagram"
                   className="w-full h-full object-cover rotate-90 scale-150"
                   style={{ opacity: 0.5 }}

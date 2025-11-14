@@ -38,7 +38,7 @@ export default function Header() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image
-                src="/Schlep Engine 14x11cm (34).png"
+                src="/schlep-logo-34.png"
                 alt="Schlep-engine"
                 width={30}
                 height={30}

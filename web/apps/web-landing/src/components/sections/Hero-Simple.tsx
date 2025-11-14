@@ -70,7 +70,7 @@ export default function Hero() {
             <div
               className="absolute inset-0 rounded-t-2xl"
               style={{
-                backgroundImage: 'url("/Schlep Engine 14x11cm (47).svg")',
+                backgroundImage: 'url("/schlep-logo-47.svg")',
                 backgroundPosition: 'center center',
                 backgroundRepeat: 'no-repeat',
                 backgroundSize: 'cover',
