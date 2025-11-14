@@ -1,5 +1,7 @@
 // Next.js API Route for early access form submissions
 // Uses Edge Runtime for Cloudflare Pages compatibility
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
 export const runtime = 'edge';
 
 interface Env {
@@ -34,12 +36,19 @@ export async function POST(request: Request) {
       id: Date.now().toString()
     };
 
-    // Access Cloudflare KV through process.env in Edge Runtime
-    // @ts-ignore - Cloudflare bindings are available in Edge runtime
-    const env = process.env as unknown as Env;
+    // Access Cloudflare bindings using getRequestContext
+    // This only works in production (Cloudflare Pages), not in local dev
+    let env: Env | undefined;
+    try {
+      const context = getRequestContext();
+      env = context.env as Env;
+    } catch (e) {
+      // In local development, getRequestContext is not available
+      console.log('Running in local dev mode (no KV storage)');
+    }
 
     // Store in Cloudflare KV (if available)
-    if (env.EARLY_ACCESS_KV) {
+    if (env?.EARLY_ACCESS_KV) {
       const key = `submission:${submission.id}`;
       await env.EARLY_ACCESS_KV.put(key, JSON.stringify(submission));
 
@@ -49,6 +58,10 @@ export async function POST(request: Request) {
       const existingIndex = existingIndexStr ? JSON.parse(existingIndexStr) : [];
       existingIndex.push(submission.id);
       await env.EARLY_ACCESS_KV.put(indexKey, JSON.stringify(existingIndex));
+
+      console.log('Submission stored in KV:', submission.id);
+    } else {
+      console.log('KV not available - submission logged but not stored');
     }
 
     // Log to console (viewable in Cloudflare dashboard)
@@ -56,7 +69,9 @@ export async function POST(request: Request) {
       id: submission.id,
       email,
       company,
-      plan: planInterest
+      plan: planInterest,
+      name,
+      message: body.message || '(no message)'
     });
 
     return Response.json(
