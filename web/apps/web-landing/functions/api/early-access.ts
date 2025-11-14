@@ -1,8 +1,6 @@
 // Cloudflare Pages Function for early access form submissions
-// This replaces the Next.js API route when deployed to Cloudflare Pages
-
 interface Env {
-  EARLY_ACCESS_KV?: KVNamespace;
+  DB: D1Database;
 }
 
 export async function onRequestPost(context: { request: Request; env: Env }) {
@@ -27,42 +25,38 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       );
     }
 
-    const submission = {
-      ...body,
-      timestamp: new Date().toISOString(),
-      id: Date.now().toString()
-    };
+    // Insert into D1 database
+    try {
+      const result = await context.env.DB.prepare(
+        'INSERT INTO signups (name, email, company, plan_interest, message) VALUES (?, ?, ?, ?, ?)'
+      )
+        .bind(name, email, company, planInterest, body.message || null)
+        .run();
 
-    // Store in Cloudflare KV (if available)
-    if (context.env.EARLY_ACCESS_KV) {
-      const key = `submission:${submission.id}`;
-      await context.env.EARLY_ACCESS_KV.put(key, JSON.stringify(submission));
+      if (result.success) {
+        console.log('Submission stored in D1:', { email, company, plan: planInterest, name });
 
-      // Also add to index
-      const indexKey = 'submissions:index';
-      const existingIndex = await context.env.EARLY_ACCESS_KV.get(indexKey, 'json') || [];
-      existingIndex.push(submission.id);
-      await context.env.EARLY_ACCESS_KV.put(indexKey, JSON.stringify(existingIndex));
-    }
-
-    // Log to console (viewable in Cloudflare dashboard)
-    console.log('Early access submission:', {
-      id: submission.id,
-      email,
-      company,
-      plan: planInterest
-    });
-
-    return new Response(
-      JSON.stringify({
-        message: 'Submission successful',
-        id: submission.id
-      }),
-      {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
+        return new Response(
+          JSON.stringify({
+            message: 'Submission successful',
+            id: result.meta.last_row_id
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }
+        );
+      } else {
+        throw new Error('Database insertion failed');
       }
-    );
+    } catch (dbError: any) {
+      // Check for unique constraint violation (duplicate email)
+      if (dbError.message?.includes('UNIQUE constraint failed')) {
+        console.log('Duplicate email submission attempt:', email);
+        return new Response(
+          JSON.stringify({ error: 'This email has already been registered for early access' }),
+          { status: 409, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+      throw dbError;
+    }
   } catch (error) {
     console.error('Error processing early access submission:', error);
     return new Response(
