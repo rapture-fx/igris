@@ -131,7 +131,8 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - COMMENTED OUT: Next.js needs public/ folder committed
+# NOTE: If using Gatsby, add specific path like apps/gatsby-app/public
 
 # Storybook build outputs
 .out
@@ -391,7 +392,8 @@ dist
 
 # Gatsby files
 .cache/
-public
+# public - COMMENTED OUT: Next.js needs public/ folder committed
+# NOTE: If using Gatsby, add specific path like apps/gatsby-app/public
 
 # Storybook build outputs
 .out
