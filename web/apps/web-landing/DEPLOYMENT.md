@@ -46,11 +46,24 @@ pnpm wrangler pages dev .vercel/output/static --port 8788
 
 ### 1. Build Settings (in Cloudflare Dashboard)
 
+**Recommended Configuration:**
+
 ```
-Build command: pnpm pages:build
+Framework preset: Next.js
+Build command: npx @cloudflare/next-on-pages@1
 Build output directory: .vercel/output/static
-Root directory: web/apps/web-landing
+Root directory (advanced): web/apps/web-landing
 Node version: 18 or higher
+```
+
+**Important**: The root directory MUST be `web/apps/web-landing`, not just `web`, because the landing page is in the apps subdirectory of the monorepo.
+
+**Alternative (if building from monorepo root `web`):**
+```
+Framework preset: Next.js (static HTML export)
+Build command: cd apps/web-landing && pnpm install && pnpm pages:build
+Build output directory: apps/web-landing/.vercel/output/static
+Root directory (advanced): web
 ```
 
 ### 2. Environment Variables (Optional)
