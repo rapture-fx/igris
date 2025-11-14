@@ -82,7 +82,7 @@ export default function CoreCapabilities() {
               </div>
 
               {/* Right Column - Section Title */}
-              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-end pb-64" style={{ minHeight: '750px' }}>
+              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Smarter routing. Predictable performance.
                 </h3>
@@ -145,40 +145,31 @@ export default function CoreCapabilities() {
                 Every optimization passes automated guardrails before rollout. Schlep-engine isolates provider failures, validates routing in real time, and continuously monitors health so no request ever gets lost.
               </p>
 
-              {/* 2x2 Grid Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
+              {/* Asymmetric Grid Layout - 1 tall card on left, 2 stacked on right */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Left - Tall Card */}
+                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '416px' }}>
                   <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
                   <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
                     P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
                   </p>
                 </div>
 
-                {/* Blank card with arch.svg */}
-                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 relative overflow-hidden flex items-center justify-start" style={{
-                  backgroundColor: '#f6f6f4',
-                  height: '200px'
-                }}>
-                  <img
-                    src="/Schlep Engine 14x11cm (35).png"
-                    alt="Reliability Architecture"
-                    className="w-full h-full object-cover"
-                    style={{ opacity: 0.3, objectPosition: 'top' }}
-                  />
-                </div>
+                {/* Right - Two Stacked Cards */}
+                <div className="flex flex-col gap-4">
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
+                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                      Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
+                    </p>
+                  </div>
 
-                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
-                  </p>
-                </div>
-
-                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Resilient Fallback System</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Automatically detects and recovers from provider or runtime errors to ensure uninterrupted API responses under load.
-                  </p>
+                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
+                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Resilient Fallback System</h5>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                      Automatically detects and recovers from provider or runtime errors to ensure uninterrupted API responses under load.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

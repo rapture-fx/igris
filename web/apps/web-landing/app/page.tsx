@@ -7,7 +7,6 @@ import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import TechStack from '../src/components/sections/TechStack'
 import BlankSection from '../src/components/sections/BlankSection'
-import BenchmarkResults from '../src/components/sections/BenchmarkResults'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Observability from '../src/components/sections/Observability'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
@@ -25,7 +24,6 @@ export default function HomePage() {
           <CoreCapabilities />
           <TechStack />
           <BlankSection />
-          <BenchmarkResults />
           <Observability />
           <MultiTenancy />
           <CallToAction />
