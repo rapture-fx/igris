@@ -21,7 +21,7 @@ const faqEntries = [
   },
   {
     question: "How do I control the cost vs quality balance?",
-    answer: "Choose from three optimization modes: Cost (maximum savings), Balanced (recommended), or Quality (best outcomes). Fine-tune via API or dashboard.",
+    answer: "Choose from three optimization modes: Cost (maximum savings), Balanced (recommended), or Quality (best outcomes). Fine-tune via API with web console coming soon.",
     type: "text"
   },
   {
