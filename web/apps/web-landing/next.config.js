@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // Enable static HTML export for Cloudflare Pages
-  trailingSlash: true, // Recommended for static hosting
+  // Removed 'output: export' to enable server-side features (API routes, SSR)
+  // This is required for Cloudflare Pages Functions to work
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -9,7 +9,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true, // Required for static export
+    unoptimized: true, // Keep this for Cloudflare compatibility
     domains: ['images.unsplash.com', 'via.placeholder.com'],
   },
   /*eslint-disable */
