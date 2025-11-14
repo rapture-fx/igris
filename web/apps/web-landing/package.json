@@ -5,10 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "pages:build": "npx @cloudflare/next-on-pages && pnpm pages:copy-assets && pnpm pages:copy-functions",
-    "pages:copy-assets": "echo 'Public assets should be auto-copied by @cloudflare/next-on-pages'",
-    "pages:copy-functions": "mkdir -p .vercel/output/static/_functions && cp -r functions/. .vercel/output/static/_functions/",
-    "cloudflare:build": "next build && cp -r public/* .vercel/output/static/ && cp -r functions .vercel/output/static/_functions",
+    "pages:build": "npx @cloudflare/next-on-pages",
     "start": "next start -p 3000",
     "lint": "next lint"
   },
