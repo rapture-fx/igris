@@ -1,24 +1,32 @@
 export const runtime = 'edge';
 
-export async function GET() {
-  const debug = {
-    // @ts-ignore
-    processEnvDB: typeof process.env.DB,
-    // @ts-ignore
-    processEnvKeys: Object.keys(process.env).filter(k => k.includes('D')),
+export async function GET(request: Request) {
+  const debug: any = {
+    runtime: 'edge',
+    hasProcessEnv: typeof process !== 'undefined',
   };
 
   try {
+    // Try different ways to access bindings
     // @ts-ignore
-    const { getRequestContext } = await import('@cloudflare/next-on-pages');
-    const ctx = getRequestContext();
-    debug.hasContext = true;
+    debug.processEnvDB = typeof process.env?.DB;
+
+    // Try accessing from request
     // @ts-ignore
-    debug.envKeys = Object.keys(ctx.env || {});
-    // @ts-ignore
-    debug.hasDB = !!ctx.env?.DB;
+    debug.hasCloudflare = typeof request.cf !== 'undefined';
+
+    // Try getRequestContext
+    try {
+      const { getRequestContext } = require('@cloudflare/next-on-pages');
+      const ctx = getRequestContext();
+      debug.hasContext = true;
+      debug.hasEnv = !!ctx.env;
+      debug.hasDB = !!ctx.env?.DB;
+      debug.envKeys = ctx.env ? Object.keys(ctx.env) : [];
+    } catch (e: any) {
+      debug.contextError = e.message;
+    }
   } catch (e: any) {
-    debug.hasContext = false;
     debug.error = e.message;
   }
 
