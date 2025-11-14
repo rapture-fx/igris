@@ -58,16 +58,18 @@ export default function BlankSection() {
                 </p>
               </div>
 
-              {/* Right Column - Provider List */}
-              <div className="lg:col-span-2 relative flex items-center justify-start pl-8">
-                <ul className="space-y-3">
+              {/* Right Column - Provider Cards */}
+              <div className="lg:col-span-2 relative flex items-center justify-center pl-8">
+                <div className="grid grid-cols-5 gap-3 w-full max-w-3xl">
                   {providers.map((provider) => (
-                    <li key={provider} className="flex items-center text-base font-normal text-gray-800">
-                      <span className="w-2 h-2 bg-gray-800 rounded-full mr-3 flex-shrink-0"></span>
-                      {provider}
-                    </li>
+                    <div
+                      key={provider}
+                      className="bg-[#f6f6f4] border border-gray-200 rounded-lg px-4 py-3 text-center shadow-sm hover:shadow-md transition-shadow flex items-center justify-center"
+                    >
+                      <p className="text-sm font-medium text-gray-800">{provider}</p>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
             </div>
           </div>
