@@ -9,18 +9,7 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
 # D1 Database binding for early access signups
-# Create database with: wrangler d1 create schlep-signups
-# Run migrations with: wrangler d1 migrations apply schlep-signups
 [[d1_databases]]
 binding = "DB"
-database_name = "schlep-signups"
-database_id = "preview_id" # Replace with actual database ID after creation
-
-# Production environment configuration
-[env.production]
-# Production D1 database - Update with your actual D1 database ID
-# Create with: wrangler d1 create schlep-signups
-# [[env.production.d1_databases]]
-# binding = "DB"
-# database_name = "schlep-signups"
-# database_id = "your-production-database-id"
+database_name = "early_access"
+database_id = "8e942f0e-d4c0-45a7-b10a-605a83b5f4b6"
