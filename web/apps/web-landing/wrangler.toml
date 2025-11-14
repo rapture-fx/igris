@@ -8,16 +8,19 @@ compatibility_flags = ["nodejs_compat"]
 # Deploy with: wrangler pages deploy .vercel/output/static
 pages_build_output_dir = ".vercel/output/static"
 
-# Local development KV binding (creates test namespace automatically)
-[[kv_namespaces]]
-binding = "EARLY_ACCESS_KV"
-id = "preview_id"
-preview_id = "preview_id"
+# D1 Database binding for early access signups
+# Create database with: wrangler d1 create schlep-signups
+# Run migrations with: wrangler d1 migrations apply schlep-signups
+[[d1_databases]]
+binding = "DB"
+database_name = "schlep-signups"
+database_id = "preview_id" # Replace with actual database ID after creation
 
 # Production environment configuration
 [env.production]
-# Production KV namespace - Update with your actual KV namespace ID
-# Create with: wrangler kv:namespace create "EARLY_ACCESS_KV" --preview false
-# [[env.production.kv_namespaces]]
-# binding = "EARLY_ACCESS_KV"
-# id = "your-production-kv-namespace-id"
+# Production D1 database - Update with your actual D1 database ID
+# Create with: wrangler d1 create schlep-signups
+# [[env.production.d1_databases]]
+# binding = "DB"
+# database_name = "schlep-signups"
+# database_id = "your-production-database-id"

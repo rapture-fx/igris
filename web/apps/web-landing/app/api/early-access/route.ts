@@ -1,11 +1,11 @@
 // Next.js API Route for early access form submissions
-// Uses Edge Runtime for Cloudflare Pages compatibility
+// Uses Edge Runtime for Cloudflare Pages compatibility with D1 database
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const runtime = 'edge';
 
 interface Env {
-  EARLY_ACCESS_KV?: KVNamespace;
+  DB?: D1Database;
 }
 
 export async function POST(request: Request) {
@@ -30,12 +30,6 @@ export async function POST(request: Request) {
       );
     }
 
-    const submission = {
-      ...body,
-      timestamp: new Date().toISOString(),
-      id: Date.now().toString()
-    };
-
     // Access Cloudflare bindings using getRequestContext
     // This only works in production (Cloudflare Pages), not in local dev
     let env: Env | undefined;
@@ -44,43 +38,72 @@ export async function POST(request: Request) {
       env = context.env as Env;
     } catch (e) {
       // In local development, getRequestContext is not available
-      console.log('Running in local dev mode (no KV storage)');
+      console.log('Running in local dev mode (no D1 database)');
     }
 
-    // Store in Cloudflare KV (if available)
-    if (env?.EARLY_ACCESS_KV) {
-      const key = `submission:${submission.id}`;
-      await env.EARLY_ACCESS_KV.put(key, JSON.stringify(submission));
+    // Store in Cloudflare D1 (if available)
+    if (env?.DB) {
+      try {
+        // Insert into database
+        const result = await env.DB.prepare(
+          'INSERT INTO signups (name, email, company, plan_interest, message) VALUES (?, ?, ?, ?, ?)'
+        )
+          .bind(
+            name,
+            email,
+            company,
+            planInterest,
+            body.message || null
+          )
+          .run();
 
-      // Also add to index
-      const indexKey = 'submissions:index';
-      const existingIndexStr = await env.EARLY_ACCESS_KV.get(indexKey);
-      const existingIndex = existingIndexStr ? JSON.parse(existingIndexStr) : [];
-      existingIndex.push(submission.id);
-      await env.EARLY_ACCESS_KV.put(indexKey, JSON.stringify(existingIndex));
+        if (result.success) {
+          console.log('Submission stored in D1:', {
+            email,
+            company,
+            plan: planInterest,
+            name
+          });
 
-      console.log('Submission stored in KV:', submission.id);
+          return Response.json(
+            {
+              message: 'Submission successful',
+              id: result.meta.last_row_id
+            },
+            { status: 200 }
+          );
+        } else {
+          throw new Error('Database insertion failed');
+        }
+      } catch (dbError: any) {
+        // Check for unique constraint violation (duplicate email)
+        if (dbError.message?.includes('UNIQUE constraint failed')) {
+          console.log('Duplicate email submission attempt:', email);
+          return Response.json(
+            { error: 'This email has already been registered for early access' },
+            { status: 409 }
+          );
+        }
+        throw dbError;
+      }
     } else {
-      console.log('KV not available - submission logged but not stored');
+      // Fallback: Log to console when D1 is not available (local dev)
+      console.log('D1 not available - submission logged but not stored:', {
+        email,
+        company,
+        plan: planInterest,
+        name,
+        message: body.message || '(no message)'
+      });
+
+      return Response.json(
+        {
+          message: 'Submission successful (logged only - D1 not configured)',
+          id: Date.now()
+        },
+        { status: 200 }
+      );
     }
-
-    // Log to console (viewable in Cloudflare dashboard)
-    console.log('Early access submission:', {
-      id: submission.id,
-      email,
-      company,
-      plan: planInterest,
-      name,
-      message: body.message || '(no message)'
-    });
-
-    return Response.json(
-      {
-        message: 'Submission successful',
-        id: submission.id
-      },
-      { status: 200 }
-    );
   } catch (error) {
     console.error('Error processing early access submission:', error);
     return Response.json(
