@@ -34,12 +34,15 @@ export default function Observability() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-16 px-12" style={{
+        <div className="relative px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
+          backgroundColor: '#f6f6f4',
+          minHeight: '750px',
+          display: 'flex',
+          alignItems: 'center'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -53,19 +56,20 @@ export default function Observability() {
           </div>
 
           {/* Content Container */}
-          <div className="max-w-[1300px] mx-auto">
-            {/* Section Title */}
-            <div className="text-center mb-16">
-              <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
-                Full Visibility Across Cost, Performance, and Reliability
-              </h3>
-              <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
-                Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability — all in one view.
-              </p>
-            </div>
+          <div className="w-full">
+            <div className="max-w-[1300px] mx-auto">
+              {/* Section Title */}
+              <div className="text-center mb-12">
+                <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+                  Full Visibility Across Cost, Performance, and Reliability
+                </h3>
+                <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
+                  Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability — all in one view.
+                </p>
+              </div>
 
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-6 gap-6 max-w-4xl mx-auto">
+              {/* Features Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-6 max-w-4xl mx-auto">
               {features.map((feature, index) => {
                 let colSpan = 'md:col-span-2'; // default for second row cards
                 if (index === 0) {
@@ -99,6 +103,7 @@ export default function Observability() {
                   </div>
                 );
               })}
+            </div>
             </div>
           </div>
         </div>

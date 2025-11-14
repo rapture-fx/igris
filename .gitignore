@@ -47,6 +47,17 @@ venv.bak/
 ehthumbs.db
 Thumbs.db
 
+# Go compiled binaries (schlep-engine)
+schlep-api
+schlep-cli
+schlep-engine-api
+/cmd/*/schlep-*
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
 # Node.js
 node_modules/
 npm-debug.log*

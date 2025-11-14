@@ -5,68 +5,43 @@ import { ChevronDown } from 'lucide-react';
 
 const faqEntries = [
   {
-    question: "How much can I save?",
-    answer: "Most companies save 25-40% while maintaining quality. Use our ROI calculator for your exact numbers.",
+    question: "How much can I actually save?",
+    answer: "Most teams cut AI costs by 25–40% while maintaining or improving output quality. Our intelligent routing eliminates wasted spending on overqualified models for simple tasks.",
     type: "text"
   },
   {
     question: "How does quality-aware routing work?",
-    answer: "We automatically classify each request and route it to the best model for that specific task. Simple queries go to cost-effective models, complex tasks to premium models.",
+    answer: "Each request is automatically classified by domain (code, creative, analytical) and complexity. Schlep-engine then routes it to the optimal model for that specific task — not just the cheapest, but the one that delivers the best results.",
     type: "text"
   },
   {
-    question: "Will this reduce my AI quality?",
-    answer: "No - we maintain or improve quality by matching tasks to appropriate models. Most customers see 20-40% quality improvements.",
+    question: "Will routing to cheaper models hurt my AI quality?",
+    answer: "No — we only use cost-effective models for simple tasks where they perform well. Complex tasks automatically route to premium models. Most customers see 20–40% quality improvements overall.",
     type: "text"
   },
   {
-    question: "How do I control cost vs quality?",
-    answer: "Choose from three modes: Cost (max savings), Balanced (recommended), or Quality (best outcomes).",
+    question: "How do I control the cost vs quality balance?",
+    answer: "Choose from three optimization modes: Cost (maximum savings), Balanced (recommended), or Quality (best outcomes). Fine-tune via API or dashboard.",
     type: "text"
   },
   {
-    question: "What makes this different from cost optimization?",
-    answer: "Cost optimization finds the cheapest model. We find the best model for each task, which often saves money while improving quality.",
-    type: "text"
-  },
-  {
-    question: "What happens during outages?",
-    answer: "Automatic failover to backup providers maintains your service continuity. See it in action - we'll demonstrate live failover during your trial.",
-    type: "text"
-  },
-  {
-    question: "Engineering time savings?",
-    answer: "Our customers report recovering 10-20+ hours weekly on AI infrastructure management. Verify for yourself - we'll connect you with similar companies to hear their experience.",
-    type: "text"
-  },
-  {
-    question: "Is this really just changing one URL?",
+    question: "Is integration really this simple?",
     type: "code",
-    answerText: "Yes. Change your API base URL and you're routing intelligently in minutes.",
+    answerText: "Yes. Change one URL and you're routing intelligently in minutes.",
     codeExample: {
       old: "https://api.openai.com/v1",
       new: "https://api.schlep-engine.com/v1"
     },
-    answerFooter: "No code changes, no SDK updates, no migration headaches."
+    answerFooter: "No SDK changes, no migration scripts, no lock-in."
   },
   {
-    question: "What's the catch? Where's the hidden cost?",
-    answer: "No hidden costs. Flat monthly pricing regardless of which providers you use. We don't markup API calls - you keep all your provider discounts and pay them directly.",
+    question: "How is this different from cost optimization?",
+    answer: "Cost optimization finds the cheapest model. We find the best model for each task. The savings come from eliminating waste, not downgrading quality.",
     type: "text"
   },
   {
-    question: "How do you prove the ROI?",
-    answer: "We provide real-time savings dashboards and detailed analytics. You can track exactly how much you're saving compared to your previous setup.",
-    type: "text"
-  },
-  {
-    question: "What if I'm locked into one provider?",
-    answer: "We make provider diversification risk-free. Test new providers with zero commitment - route a small percentage of traffic to compare performance and cost.",
-    type: "text"
-  },
-  {
-    question: "How does caching reduce my costs?",
-    answer: "Our multi-layer caching can significantly reduce redundant API calls. Cache performance depends on your request patterns and can be monitored in real-time.",
+    question: "What about my existing provider discounts?",
+    answer: "You keep 100% of your negotiated rates, startup credits, and usage discounts. We never mark up API calls — just a flat monthly fee.",
     type: "text"
   }
 ];

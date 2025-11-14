@@ -21,7 +21,8 @@ export default function BlankSection() {
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+          minHeight: '750px'
         }}>
           {/* Decorative Corner Accents */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -33,31 +34,42 @@ export default function BlankSection() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
           </div>
 
-          <div className="max-w-6xl mx-auto space-y-8">
-            <h3 className="text-xl md:text-2xl font-normal text-center text-black">
-              Verified Providers — BYOK Safe
-            </h3>
-            <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter text-center max-w-3xl mx-auto">
-              Every connected provider is validated for uptime, latency, and output integrity before it joins your routing network.
-              With the Open BYOK registry, you can onboard new providers while Schlep-engine automatically performs continuous trust checks — keeping your stack clean and stable.
-            </p>
+          {/* Content Container */}
+          <div className="w-full px-0">
+            {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
+            <div className="absolute top-0 bottom-0 left-1/3 hidden lg:block" style={{
+              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+              transform: 'translateX(-33.33%)'
+            }}></div>
 
-            <div className="flex flex-wrap justify-center items-center gap-4">
-              {providers.map((provider) => (
-                <div
-                  key={provider}
-                  className="flex items-center justify-center w-36 h-16 px-6 py-4 rounded-lg border border-gray-300/60 bg-[#f6f6f4]/50 transition-all duration-300"
-                >
-                  <span className="text-sm font-medium text-gray-700 text-center whitespace-nowrap">
-                    {provider}
-                  </span>
-                </div>
-              ))}
+            {/* Two-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
+
+              {/* Left Column - Text Content */}
+              <div className="text-left lg:col-span-1 pr-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
+                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                  Verified Providers — BYOK Safe
+                </h3>
+                <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter mb-4">
+                  Every connected provider is validated for uptime, latency, and output integrity before it joins your routing network.
+                </p>
+                <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter">
+                  With the Open BYOK registry, you can onboard new providers while Schlep-engine automatically performs continuous trust checks — keeping your stack clean and stable.
+                </p>
+              </div>
+
+              {/* Right Column - Provider List */}
+              <div className="lg:col-span-2 relative flex items-center justify-start pl-8">
+                <ul className="space-y-3">
+                  {providers.map((provider) => (
+                    <li key={provider} className="flex items-center text-base font-normal text-gray-800">
+                      <span className="w-2 h-2 bg-gray-800 rounded-full mr-3 flex-shrink-0"></span>
+                      {provider}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
-
-            <p className="text-sm text-gray-500 text-center">
-              Provider verification as of the latest version of Schlep-engine. Support expanding via Open BYOK Registry.
-            </p>
           </div>
         </div>
       </div>
