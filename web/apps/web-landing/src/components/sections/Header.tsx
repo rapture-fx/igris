@@ -55,22 +55,6 @@ export default function Header() {
             >
               Pricing
             </Link>
-            <Link
-              href="https://docs.schlep-engine.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
-            >
-              Docs
-            </Link>
-            <Link
-              href="https://github.com/Schlep-engine/docs"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
-            >
-              GitHub
-            </Link>
             <button
               onClick={openEarlyAccessModal}
               className="text-white px-6 py-2.5 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
@@ -105,24 +89,6 @@ export default function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Pricing
-              </Link>
-              <Link
-                href="https://docs.schlep-engine.com/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Docs
-              </Link>
-              <Link
-                href="https://github.com/Schlep-engine/docs"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                GitHub
               </Link>
               <button
                 onClick={() => {
