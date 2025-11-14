@@ -1,3 +1,13 @@
 name = "schlep-engine-landing"
 compatibility_date = "2024-09-01"
+# Output directory for @cloudflare/next-on-pages
+# Build with: pnpm pages:build
+# Deploy with: wrangler pages deploy .vercel/output/static
 pages_build_output_dir = ".vercel/output/static"
+
+# Cloudflare Pages Functions environment
+[env.production]
+# Add KV namespace binding for early access submissions
+# kv_namespaces = [
+#   { binding = "EARLY_ACCESS_KV", id = "your-kv-namespace-id" }
+# ]
