@@ -1,5 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export', // Enable static HTML export for Cloudflare Pages
+  trailingSlash: true, // Recommended for static hosting
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -7,6 +9,7 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    unoptimized: true, // Required for static export
     domains: ['images.unsplash.com', 'via.placeholder.com'],
   },
   /*eslint-disable */
