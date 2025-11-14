@@ -1,12 +1,6 @@
 // Next.js API Route for early access form submissions
 // Uses Edge Runtime for Cloudflare Pages compatibility with D1 database
-import { getRequestContext } from '@cloudflare/next-on-pages';
-
 export const runtime = 'edge';
-
-interface Env {
-  DB?: D1Database;
-}
 
 export async function POST(request: Request) {
   try {
@@ -30,22 +24,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // Access Cloudflare bindings using getRequestContext
-    // This only works in production (Cloudflare Pages), not in local dev
-    let env: Env | undefined;
-    try {
-      const context = getRequestContext();
-      env = context.env as Env;
-    } catch (e) {
-      // In local development, getRequestContext is not available
-      console.log('Running in local dev mode (no D1 database)');
-    }
+    // Access Cloudflare D1 binding directly from process.env
+    // @ts-ignore - Cloudflare bindings available in edge runtime
+    const DB = process.env.DB as D1Database | undefined;
 
     // Store in Cloudflare D1 (if available)
-    if (env?.DB) {
+    if (DB) {
       try {
         // Insert into database
-        const result = await env.DB.prepare(
+        const result = await DB.prepare(
           'INSERT INTO signups (name, email, company, plan_interest, message) VALUES (?, ?, ?, ?, ?)'
         )
           .bind(
