@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:build": "npx @cloudflare/next-on-pages && mkdir -p .vercel/output/static/_functions && cp -r functions/* .vercel/output/static/_functions/",
     "start": "next start -p 3000",
     "lint": "next lint"
   },
