@@ -1,9 +1,5 @@
 // Cloudflare Pages Function for early access form submissions
-interface Env {
-  DB: D1Database;
-}
-
-export async function onRequestPost(context: { request: Request; env: Env }) {
+export async function onRequestPost(context) {
   try {
     const body = await context.request.json();
 
@@ -22,6 +18,15 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       return new Response(
         JSON.stringify({ error: 'Invalid email address' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if DB binding exists
+    if (!context.env.DB) {
+      console.error('D1 database binding not found. Please configure DB binding in Cloudflare Pages dashboard.');
+      return new Response(
+        JSON.stringify({ error: 'Database configuration error - binding not found' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -46,9 +51,9 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       } else {
         throw new Error('Database insertion failed');
       }
-    } catch (dbError: any) {
+    } catch (dbError) {
       // Check for unique constraint violation (duplicate email)
-      if (dbError.message?.includes('UNIQUE constraint failed')) {
+      if (dbError.message && dbError.message.includes('UNIQUE constraint failed')) {
         console.log('Duplicate email submission attempt:', email);
         return new Response(
           JSON.stringify({ error: 'This email has already been registered for early access' }),
@@ -60,7 +65,10 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
   } catch (error) {
     console.error('Error processing early access submission:', error);
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({
+        error: 'Internal server error',
+        details: error.message
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
