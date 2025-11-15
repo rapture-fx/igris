@@ -1,7 +1,10 @@
-// Cloudflare Pages Function for early access form submissions
-export async function onRequestPost(context) {
+import { getRequestContext } from '@cloudflare/next-on-pages';
+
+export const runtime = 'edge';
+
+export async function POST(request: Request) {
   try {
-    const body = await context.request.json();
+    const body = await request.json();
 
     // Validate required fields
     const { name, email, company, planInterest } = body;
@@ -21,18 +24,24 @@ export async function onRequestPost(context) {
       );
     }
 
+    // Get Cloudflare bindings using getRequestContext
+    const { env } = getRequestContext();
+
     // Check if DB binding exists
-    if (!context.env.DB) {
-      console.error('D1 database binding not found. Please configure DB binding in Cloudflare Pages dashboard.');
+    if (!env.DB) {
+      console.error('D1 database binding not found');
       return new Response(
-        JSON.stringify({ error: 'Database configuration error - binding not found' }),
+        JSON.stringify({
+          error: 'Database configuration error',
+          details: 'D1 binding not found. Please configure DB binding in Cloudflare Pages.'
+        }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     // Insert into D1 database
     try {
-      const result = await context.env.DB.prepare(
+      const result = await env.DB.prepare(
         'INSERT INTO signups (name, email, company, plan_interest, message) VALUES (?, ?, ?, ?, ?)'
       )
         .bind(name, email, company, planInterest, body.message || null)
@@ -51,7 +60,7 @@ export async function onRequestPost(context) {
       } else {
         throw new Error('Database insertion failed');
       }
-    } catch (dbError) {
+    } catch (dbError: any) {
       // Check for unique constraint violation (duplicate email)
       if (dbError.message && dbError.message.includes('UNIQUE constraint failed')) {
         console.log('Duplicate email submission attempt:', email);
@@ -62,7 +71,7 @@ export async function onRequestPost(context) {
       }
       throw dbError;
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error processing early access submission:', error);
     return new Response(
       JSON.stringify({
