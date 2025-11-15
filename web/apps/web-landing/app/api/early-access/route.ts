@@ -26,6 +26,10 @@ export async function POST(request: Request) {
       );
     }
 
+    // Debug: Log what's available in process.env
+    console.log('process.env keys:', Object.keys(process.env));
+    console.log('Looking for DB in process.env:', typeof (process.env as any).DB);
+
     // Access D1 binding from process.env (Cloudflare edge runtime)
     const env = process.env as unknown as CloudflareEnv;
 
@@ -35,7 +39,8 @@ export async function POST(request: Request) {
       return new Response(
         JSON.stringify({
           error: 'Database configuration error',
-          details: 'D1 binding not found. Please configure DB binding in Cloudflare Pages Settings > Functions > D1 database bindings'
+          details: 'D1 binding not found. Available env keys: ' + Object.keys(process.env).join(', '),
+          dbType: typeof (process.env as any).DB
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
