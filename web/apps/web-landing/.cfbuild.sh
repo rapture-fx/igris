@@ -35,15 +35,6 @@ else
     echo "⚠️  Public directory not found at: $SCRIPT_DIR/public"
 fi
 
-echo "📦 Copying functions..."
-mkdir -p "$SCRIPT_DIR/.vercel/output/static/_functions"
-if [ -d "$SCRIPT_DIR/functions" ]; then
-    echo "✓ Found functions directory"
-    cp -r "$SCRIPT_DIR/functions/." "$SCRIPT_DIR/.vercel/output/static/_functions/" || echo "Warning: Could not copy functions"
-else
-    echo "⚠️  Functions directory not found at: $SCRIPT_DIR/functions"
-fi
-
 echo ""
 echo "✅ Build complete!"
 echo "📊 Final output contents:"
