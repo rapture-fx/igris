@@ -1,6 +1,8 @@
-import { getRequestContext } from '@cloudflare/next-on-pages';
-
 export const runtime = 'edge';
+
+interface CloudflareEnv {
+  DB: D1Database;
+}
 
 export async function POST(request: Request) {
   try {
@@ -24,16 +26,16 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get Cloudflare bindings using getRequestContext
-    const { env } = getRequestContext();
+    // Access D1 binding from process.env (Cloudflare edge runtime)
+    const env = process.env as unknown as CloudflareEnv;
 
     // Check if DB binding exists
     if (!env.DB) {
-      console.error('D1 database binding not found');
+      console.error('D1 database binding not found in process.env');
       return new Response(
         JSON.stringify({
           error: 'Database configuration error',
-          details: 'D1 binding not found. Please configure DB binding in Cloudflare Pages.'
+          details: 'D1 binding not found. Please configure DB binding in Cloudflare Pages Settings > Functions > D1 database bindings'
         }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
