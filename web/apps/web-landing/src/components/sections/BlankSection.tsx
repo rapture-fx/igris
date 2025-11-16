@@ -46,7 +46,7 @@ export default function BlankSection() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
 
               {/* Left Column - Text Content */}
-              <div className="text-left lg:col-span-1 pr-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
+              <div className="text-left lg:col-span-1 pr-0 md:pr-4 lg:pr-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Verified Providers — BYOK Safe
                 </h3>
@@ -59,14 +59,14 @@ export default function BlankSection() {
               </div>
 
               {/* Right Column - Provider Cards */}
-              <div className="lg:col-span-2 relative flex items-center justify-center pl-8">
-                <div className="grid grid-cols-5 gap-3 w-full max-w-3xl">
+              <div className="lg:col-span-2 relative flex items-center justify-center pl-0 md:pl-4 lg:pl-8">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 w-full max-w-3xl">
                   {providers.map((provider) => (
                     <div
                       key={provider}
-                      className="bg-[#f6f6f4] border border-gray-200 rounded-lg px-4 py-3 text-center shadow-sm hover:shadow-md transition-shadow flex items-center justify-center"
+                      className="bg-[#f6f6f4] border border-gray-200 rounded-lg px-2 py-3 md:px-4 text-center shadow-sm hover:shadow-md transition-shadow flex items-center justify-center min-h-[60px]"
                     >
-                      <p className="text-sm font-medium text-gray-800">{provider}</p>
+                      <p className="text-xs md:text-sm font-medium text-gray-800 break-words">{provider}</p>
                     </div>
                   ))}
                 </div>
