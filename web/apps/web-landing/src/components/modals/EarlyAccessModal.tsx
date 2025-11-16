@@ -145,10 +145,10 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
           style={{ backgroundColor: '#f6f6f4' }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close button - Outside modal */}
+          {/* Close button - Outside modal on desktop, inside on mobile */}
           <button
             onClick={handleClose}
-            className="absolute top-0 right-[-48px] text-gray-700 hover:text-gray-900 transition-colors z-10 bg-transparent"
+            className="absolute top-4 right-4 md:top-0 md:right-[-48px] text-gray-700 hover:text-gray-900 transition-colors z-10 bg-transparent"
           >
             <X className="w-8 h-8" />
           </button>
