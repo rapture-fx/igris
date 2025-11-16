@@ -27,13 +27,13 @@ export default function CallToAction() {
           {/* Content Container with Original Width */}
           <div className="max-w-[1300px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-3xl md:text-4xl lg:text-5xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Try Schlep-engine</h2>
+              <h2 className="text-2xl md:text-4xl lg:text-5xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Try Schlep-engine</h2>
 
               <div className="inline-block">
                 <button
                   onClick={openEarlyAccessModal}
-                  className="inline-flex items-center justify-center text-white px-6 py-3 rounded-xl hover:opacity-90 transition-all duration-200 font-medium text-base shadow-md hover:shadow-lg font-inter"
-                  style={{ backgroundColor: '#000000', minHeight: '44px', minWidth: '44px' }}
+                  className="inline-flex items-center justify-center text-white px-4 py-2 md:px-6 md:py-3 rounded-xl hover:opacity-90 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg font-inter"
+                  style={{ backgroundColor: '#000000', minHeight: '44px' }}
                 >
                   Get Early Access
                 </button>

@@ -144,7 +144,7 @@ export default function Pricing() {
                   </div>
                   <button
                     onClick={openEarlyAccessModal}
-                    className={`inline-flex items-center px-6 py-3 rounded-lg transition-all duration-200 font-semibold text-base font-inter self-start mt-8 ${
+                    className={`inline-flex items-center px-4 py-2 md:px-6 md:py-3 rounded-lg transition-all duration-200 font-semibold text-sm md:text-base font-inter self-start mt-8 ${
                       tier.highlighted
                         ? 'text-white hover:opacity-90 border border-black'
                         : 'text-black hover:opacity-70 border border-gray-300'

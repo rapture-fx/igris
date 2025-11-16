@@ -11,7 +11,7 @@ export default function Hero() {
     <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* Main Content Box with Border */}
-        <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-40 bg-transparent z-10" style={{
+        <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-8 md:pb-40 bg-transparent z-10" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -33,39 +33,65 @@ export default function Hero() {
             <div className="pt-8 mb-8">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2]">
+                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2]">
                     Your control plane
                   </h1>
-                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2] mt-2">
+                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2] mt-2">
                     for intelligent AI allocation.
                   </h1>
                 </div>
-                <p className="text-base md:text-lg text-gray-700 max-w-md leading-relaxed text-left">
+                <p className="text-sm md:text-lg text-gray-700 max-w-md leading-relaxed text-left">
                   Schlep-engine is a quality-aware routing engine that dynamically allocates inference requests across providers — optimizing for cost, latency, and output quality in real time.
                 </p>
               </div>
             </div>
 
-            <div className="flex justify-start gap-4 mb-4">
+            <div className="flex justify-start gap-4 mb-8">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-base shadow-md hover:shadow-lg"
-                style={{ minHeight: '44px', minWidth: '44px' }}
+                className="inline-flex items-center justify-center bg-black text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg"
+                style={{ minHeight: '44px' }}
               >
                 Get Early Access
-                <ChevronRight className="ml-2 h-5 w-5" />
+                <ChevronRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
               </button>
             </div>
 
-            {/* Hero content area - spacing for background */}
-            <div className="bg-transparent min-h-[350px] max-h-[800px]">
+            {/* Hero diagram - visible on mobile, hidden on larger screens */}
+            <div className="block md:hidden mb-8">
+              <div className="relative w-full h-64 border border-gray-300 rounded-2xl bg-[#f6f6f4] overflow-hidden">
+                <div
+                  className="absolute inset-0 rounded-2xl"
+                  style={{
+                    backgroundImage: 'url("/schlep-logo-47.svg")',
+                    backgroundPosition: 'center center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'cover',
+                    opacity: 0.8,
+                  }}
+                />
+                <div
+                  className="absolute inset-0 p-4"
+                  style={{
+                    backgroundImage: 'url("/HRLN.svg")',
+                    backgroundPosition: 'bottom center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: '50%',
+                    opacity: 0.6,
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Hero content area - spacing for background on desktop */}
+            <div className="bg-transparent hidden md:block min-h-[350px] max-h-[800px]">
               <div className="flex items-center justify-center h-full"></div>
             </div>
           </div>
         </div>
 
-        {/* HERO diagram background - positioned below main box */}
-        <div className="absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto z-[5]">
+        {/* HERO diagram background - positioned below main box (desktop only) */}
+        <div className="hidden md:block absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto z-[5]">
           <div className="relative h-full border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
             {/* Schlep Engine diagram SVG behind */}
             <div

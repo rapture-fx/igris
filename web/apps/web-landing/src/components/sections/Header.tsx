@@ -34,7 +34,7 @@ export default function Header() {
   return (
     <header className={`fixed top-0 left-0 w-full z-50 py-4 dark:bg-gray-900 font-inter ${scrolled ? 'scrolled' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Image
@@ -46,8 +46,6 @@ export default function Header() {
             </Link>
           </div>
 
-          <div className="hidden md:flex flex-grow"></div>
-
           <div className="hidden md:flex items-center space-x-6">
             <Link
               href="/pricing"
@@ -57,14 +55,14 @@ export default function Header() {
             </Link>
             <button
               onClick={openEarlyAccessModal}
-              className="text-white px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-base shadow-md hover:shadow-lg font-inter"
+              className="text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm md:text-base shadow-md hover:shadow-lg font-inter"
               style={{ backgroundColor: '#000000', minHeight: '44px' }}
             >
               Sign Up
             </button>
           </div>
 
-          <div className="md:hidden flex items-center space-x-2">
+          <div className="md:hidden flex items-center">
             <button
               type="button"
               className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-300"
@@ -95,7 +93,7 @@ export default function Header() {
                   setMobileMenuOpen(false);
                   openEarlyAccessModal();
                 }}
-                className="text-white px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-base shadow-md font-inter w-full"
+                className="text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm shadow-md font-inter w-full"
                 style={{ backgroundColor: '#000000', minHeight: '44px' }}
               >
                 Sign Up
