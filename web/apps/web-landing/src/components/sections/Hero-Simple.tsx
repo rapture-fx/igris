@@ -33,14 +33,14 @@ export default function Hero() {
             <div className="pt-8 mb-8">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2]">
                     Your control plane
                   </h1>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2] mt-2">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2] mt-2">
                     for intelligent AI allocation.
                   </h1>
                 </div>
-                <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left">
+                <p className="text-base md:text-lg text-gray-700 max-w-md leading-relaxed text-left">
                   Schlep-engine is a quality-aware routing engine that dynamically allocates inference requests across providers — optimizing for cost, latency, and output quality in real time.
                 </p>
               </div>
@@ -49,10 +49,11 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-4">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-5 py-2.5 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+                className="inline-flex items-center justify-center bg-black text-white px-6 py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-base shadow-md hover:shadow-lg"
+                style={{ minHeight: '44px', minWidth: '44px' }}
               >
                 Get Early Access
-                <ChevronRight className="ml-2 h-4 w-4" />
+                <ChevronRight className="ml-2 h-5 w-5" />
               </button>
             </div>
 

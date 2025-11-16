@@ -139,10 +139,10 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
+      <div className="flex min-h-full items-center justify-center p-4 md:p-6">
         <div
-          className="relative w-full max-w-6xl rounded-3xl shadow-2xl"
-          style={{ backgroundColor: '#f6f6f4' }}
+          className="relative w-full max-w-md md:max-w-4xl lg:max-w-6xl rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden"
+          style={{ backgroundColor: '#f6f6f4', maxHeight: '90vh' }}
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close button - Outside modal on desktop, inside on mobile */}
@@ -153,9 +153,9 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
             <X className="w-8 h-8" />
           </button>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[600px] rounded-3xl overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px] md:min-h-[600px] rounded-2xl md:rounded-3xl overflow-y-auto" style={{ backgroundColor: '#f6f6f4', maxHeight: '90vh' }}>
             {/* Left Column - Form */}
-            <div className={`p-8 md:p-12 rounded-l-3xl ${isSubmitted ? 'flex items-center justify-center' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
+            <div className={`p-6 md:p-10 lg:p-12 rounded-l-2xl md:rounded-l-3xl overflow-y-auto ${isSubmitted ? 'flex items-center justify-center' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
               {isSubmitted ? (
                 <div className="text-center py-8">
                   <div className="mb-6">
@@ -178,7 +178,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                     </p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+                  <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5" noValidate>
                   <div>
                     <label htmlFor="name" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
                       Full Name *
@@ -270,8 +270,8 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center justify-center px-3 py-2 text-black rounded-lg transition-all duration-200 font-semibold text-sm border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: '#f6f6f4' }}
+                    className="inline-flex items-center justify-center w-full px-6 py-3 text-black rounded-lg transition-all duration-200 font-semibold text-base border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: '#f6f6f4', minHeight: '44px' }}
                   >
                     {isSubmitting ? (
                       <>
