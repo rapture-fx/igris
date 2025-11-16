@@ -29,7 +29,7 @@ export default function CoreCapabilities() {
     <>
       <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
         <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-          <div className="relative py-8 px-12" style={{
+          <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
             borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -64,10 +64,9 @@ export default function CoreCapabilities() {
                     {capabilities.map((capability, index) => (
                       <div
                         key={capability.name}
-                        className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-xl p-4 border border-gray-300/60 dark:border-gray-600/60 shadow-sm"
+                        className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-xl p-4 border border-gray-300/60 dark:border-gray-600/60 shadow-sm w-full max-w-[420px]"
                         style={{
-                          padding: '20px 24px',
-                          width: '420px'
+                          padding: '20px 24px'
                         }}
                       >
                         <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
@@ -82,7 +81,7 @@ export default function CoreCapabilities() {
               </div>
 
               {/* Right Column - Section Title */}
-              <div className="text-left lg:col-span-1 pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
+              <div className="text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
                 <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Smarter routing. Predictable performance.
                 </h3>
@@ -99,7 +98,7 @@ export default function CoreCapabilities() {
     {/* New Section - Full Width Placeholder */}
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-8 px-12" style={{
+        <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -120,7 +119,7 @@ export default function CoreCapabilities() {
 
           {/* Full Width Placeholder */}
           <div
-            className="absolute inset-12 p-8"
+            className="absolute inset-4 md:inset-8 lg:inset-12 p-4 md:p-6 lg:p-8"
             style={{
               borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
               borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',

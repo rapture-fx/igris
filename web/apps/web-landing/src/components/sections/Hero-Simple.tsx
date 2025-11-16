@@ -11,7 +11,7 @@ export default function Hero() {
     <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* Main Content Box with Border */}
-        <div className="relative pt-8 px-12 pb-40 bg-transparent z-10" style={{
+        <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-40 bg-transparent z-10" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -29,9 +29,9 @@ export default function Hero() {
           </div>
 
           {/* Content Container */}
-          <div className="max-w-[1300px] mx-auto pt-8 px-16">
+          <div className="max-w-[1300px] mx-auto pt-8 px-0 md:px-8 lg:px-16">
             <div className="pt-8 mb-8">
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
                     Your control plane
@@ -64,7 +64,7 @@ export default function Hero() {
         </div>
 
         {/* HERO diagram background - positioned below main box */}
-        <div className="absolute left-24 right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto z-[5]">
+        <div className="absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto z-[5]">
           <div className="relative h-full border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
             {/* Schlep Engine diagram SVG behind */}
             <div

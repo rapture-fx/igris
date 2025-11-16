@@ -1,6 +1,12 @@
 import './globals.css'
 import { Providers } from '../src/components/providers/Providers'
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+}
+
 export const metadata = {
   metadataBase: new URL('https://schlep.engine'),
   title: 'Schlep-engine — The Routing Engine and Control Plane for AI Inference',

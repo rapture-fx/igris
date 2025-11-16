@@ -31,7 +31,7 @@ export default function TechStack() {
     <>
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative px-12 flex items-center" style={{
+        <div className="relative px-4 md:px-8 lg:px-12 flex items-center" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -52,9 +52,9 @@ export default function TechStack() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-24 items-center">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-24 items-center">
               {/* Left Column - SVG Diagram */}
-              <div className="lg:col-span-7 flex items-center justify-center pl-8">
+              <div className="lg:col-span-7 flex items-center justify-center pl-0 md:pl-4 lg:pl-8">
                 <img
                   src="/Simplifydiagram.svg"
                   alt="How it Works Diagram"
