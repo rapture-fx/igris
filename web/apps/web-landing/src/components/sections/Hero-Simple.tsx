@@ -59,9 +59,9 @@ export default function Hero() {
 
             {/* Hero diagram - visible on mobile, hidden on larger screens */}
             <div className="block md:hidden mb-8">
-              <div className="relative w-full aspect-square border border-gray-300 rounded-2xl bg-[#f6f6f4] overflow-hidden">
+              <div className="relative w-full h-[400px] border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
                 <div
-                  className="absolute inset-0 rounded-2xl"
+                  className="absolute inset-0 rounded-t-2xl"
                   style={{
                     backgroundImage: 'url("/schlep-logo-47.svg")',
                     backgroundPosition: 'center center',
@@ -71,7 +71,7 @@ export default function Hero() {
                   }}
                 />
                 <div
-                  className="absolute bottom-0 left-0 right-0 h-32"
+                  className="absolute inset-0 p-4"
                   style={{
                     backgroundImage: 'url("/HRLN.svg")',
                     backgroundPosition: 'bottom center',

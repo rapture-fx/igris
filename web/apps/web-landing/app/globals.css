@@ -7,3 +7,21 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html,
+  body {
+    background-color: #f6f6f4;
+    overscroll-behavior: none;
+  }
+
+  /* Ensure consistent background on mobile overscroll */
+  html {
+    background: #f6f6f4;
+  }
+
+  body {
+    background: #f6f6f4;
+    min-height: 100vh;
+  }
+}
