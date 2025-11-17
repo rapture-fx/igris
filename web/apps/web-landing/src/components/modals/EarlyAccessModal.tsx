@@ -131,31 +131,32 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
+        className="fixed inset-0 bg-black bg-opacity-60 transition-opacity"
         onClick={handleClose}
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4 md:p-6">
+      <div className="flex min-h-full items-center justify-center p-2 md:p-6">
         <div
-          className="relative w-full max-w-md md:max-w-4xl lg:max-w-6xl rounded-2xl md:rounded-3xl shadow-2xl overflow-hidden"
-          style={{ backgroundColor: '#f6f6f4', maxHeight: '90vh' }}
+          className="relative w-full max-w-sm md:max-w-4xl lg:max-w-6xl rounded-xl md:rounded-3xl shadow-2xl overflow-hidden z-[10000]"
+          style={{ backgroundColor: '#f6f6f4', maxHeight: '85vh' }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Close button - Outside modal on desktop, inside on mobile */}
+          {/* Close button - Inside modal on mobile, outside on desktop */}
           <button
             onClick={handleClose}
-            className="absolute top-4 right-4 md:top-0 md:right-[-48px] text-gray-700 hover:text-gray-900 transition-colors z-10 bg-transparent"
+            className="absolute top-2 right-2 md:top-0 md:right-[-48px] text-gray-700 hover:text-gray-900 transition-colors z-[10001] bg-transparent p-1"
+            style={{ minHeight: '44px', minWidth: '44px' }}
           >
-            <X className="w-8 h-8" />
+            <X className="w-6 h-6 md:w-8 md:h-8" />
           </button>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[400px] md:min-h-[600px] rounded-2xl md:rounded-3xl overflow-y-auto" style={{ backgroundColor: '#f6f6f4', maxHeight: '90vh' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 min-h-[300px] md:min-h-[600px] rounded-xl md:rounded-3xl overflow-y-auto" style={{ backgroundColor: '#f6f6f4', maxHeight: '85vh' }}>
             {/* Left Column - Form */}
-            <div className={`p-6 md:p-10 lg:p-12 rounded-l-2xl md:rounded-l-3xl overflow-y-auto ${isSubmitted ? 'flex items-center justify-center' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
+            <div className={`p-4 md:p-10 lg:p-12 rounded-l-xl md:rounded-l-3xl overflow-y-auto ${isSubmitted ? 'flex items-center justify-center' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
               {isSubmitted ? (
                 <div className="text-center py-8">
                   <div className="mb-6">
@@ -169,16 +170,16 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                 </div>
               ) : (
                 <>
-                  <div className="mb-8">
-                    <h2 className="text-2xl font-inter mb-3" style={{ color: '#000000' }}>
+                  <div className="mb-4 md:mb-8">
+                    <h2 className="text-xl md:text-2xl font-inter mb-2 md:mb-3" style={{ color: '#000000' }}>
                       Get Early Access
                     </h2>
-                    <p className="text-gray-600 font-inter">
+                    <p className="text-sm md:text-base text-gray-600 font-inter">
                       Join the waitlist and be among the first to experience Schlep-engine
                     </p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5" noValidate>
+                  <form onSubmit={handleSubmit} className="space-y-3 md:space-y-5" noValidate>
                   <div>
                     <label htmlFor="name" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
                       Full Name *
@@ -270,7 +271,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center justify-center w-full px-4 py-2 md:px-6 md:py-3 text-black rounded-lg transition-all duration-200 font-semibold text-sm md:text-base border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center justify-center w-full px-4 py-2.5 md:px-6 md:py-3 text-black rounded-lg transition-all duration-200 font-semibold text-sm md:text-base border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ backgroundColor: '#f6f6f4', minHeight: '44px' }}
                   >
                     {isSubmitting ? (
