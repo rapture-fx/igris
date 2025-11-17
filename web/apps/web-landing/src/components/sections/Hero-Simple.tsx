@@ -59,7 +59,7 @@ export default function Hero() {
 
             {/* Hero diagram - visible on mobile, hidden on larger screens */}
             <div className="block md:hidden">
-              <div className="relative w-full h-[400px] border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
+              <div className="relative w-full h-[280px] border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
                 <div
                   className="absolute inset-0 rounded-t-2xl"
                   style={{
