@@ -64,7 +64,7 @@ export default function TechStack() {
 
               {/* Right Column - Title and Description */}
               <div className="lg:col-span-5 text-left">
-                <h3 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-3xl lg:text-4xl font-inter mb-4" style={{ color: '#000000' }}>
                   How It Works
                 </h3>
 
