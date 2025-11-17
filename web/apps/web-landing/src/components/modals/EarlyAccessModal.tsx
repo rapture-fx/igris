@@ -139,9 +139,9 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-2 md:p-6">
+      <div className="flex min-h-full items-center justify-center p-3 md:p-6">
         <div
-          className="relative w-full max-w-sm md:max-w-4xl lg:max-w-6xl rounded-xl md:rounded-3xl shadow-2xl overflow-hidden z-[10000]"
+          className="relative w-full max-w-[90%] md:max-w-4xl lg:max-w-6xl rounded-xl md:rounded-3xl shadow-2xl overflow-hidden z-[10000]"
           style={{ backgroundColor: '#f6f6f4', maxHeight: '85vh' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -156,7 +156,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
 
           <div className="grid grid-cols-1 md:grid-cols-2 min-h-[300px] md:min-h-[600px] rounded-xl md:rounded-3xl overflow-y-auto" style={{ backgroundColor: '#f6f6f4', maxHeight: '85vh' }}>
             {/* Left Column - Form */}
-            <div className={`p-4 md:p-10 lg:p-12 rounded-l-xl md:rounded-l-3xl overflow-y-auto ${isSubmitted ? 'flex items-center justify-center' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
+            <div className={`p-3 md:p-10 lg:p-12 rounded-l-xl md:rounded-l-3xl overflow-y-auto ${isSubmitted ? 'flex items-center justify-center' : ''}`} style={{ backgroundColor: '#f6f6f4' }}>
               {isSubmitted ? (
                 <div className="text-center py-8">
                   <div className="mb-6">
@@ -170,18 +170,18 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                 </div>
               ) : (
                 <>
-                  <div className="mb-4 md:mb-8">
-                    <h2 className="text-xl md:text-2xl font-inter mb-2 md:mb-3" style={{ color: '#000000' }}>
+                  <div className="mb-3 md:mb-8">
+                    <h2 className="text-lg md:text-2xl font-inter mb-1.5 md:mb-3" style={{ color: '#000000' }}>
                       Get Early Access
                     </h2>
-                    <p className="text-sm md:text-base text-gray-600 font-inter">
+                    <p className="text-xs md:text-base text-gray-600 font-inter">
                       Join the waitlist and be among the first to experience Schlep-engine
                     </p>
                   </div>
 
-                  <form onSubmit={handleSubmit} className="space-y-3 md:space-y-5" noValidate>
+                  <form onSubmit={handleSubmit} className="space-y-2 md:space-y-5" noValidate>
                   <div>
-                    <label htmlFor="name" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="name" className="block text-xs md:text-sm mb-1 md:mb-2 font-inter" style={{ color: '#000000' }}>
                       Full Name *
                     </label>
                     <input
@@ -191,13 +191,13 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none ${validationErrors.name ? 'border-red-500' : ''}`}
+                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm ${validationErrors.name ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="email" className="block text-xs md:text-sm mb-1 md:mb-2 font-inter" style={{ color: '#000000' }}>
                       Email Address *
                     </label>
                     <input
@@ -207,13 +207,13 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none ${validationErrors.email ? 'border-red-500' : ''}`}
+                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm ${validationErrors.email ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="company" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="company" className="block text-xs md:text-sm mb-1 md:mb-2 font-inter" style={{ color: '#000000' }}>
                       Company *
                     </label>
                     <input
@@ -223,13 +223,13 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.company}
                       onChange={handleChange}
-                      className={`w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none ${validationErrors.company ? 'border-red-500' : ''}`}
+                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm ${validationErrors.company ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="planInterest" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="planInterest" className="block text-xs md:text-sm mb-1 md:mb-2 font-inter" style={{ color: '#000000' }}>
                       Plan Interest *
                     </label>
                   <CustomSelect
@@ -246,16 +246,16 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block text-sm mb-2 font-inter" style={{ color: '#000000' }}>
+                    <label htmlFor="message" className="block text-xs md:text-sm mb-1 md:mb-2 font-inter" style={{ color: '#000000' }}>
                       Message (Optional)
                     </label>
                     <textarea
                       id="message"
                       name="message"
-                      rows={3}
+                      rows={2}
                       value={formData.message}
                       onChange={handleChange}
-                      className="w-full px-4 py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none"
+                      className="w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm"
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
@@ -271,8 +271,8 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="inline-flex items-center justify-center w-full px-4 py-2.5 md:px-6 md:py-3 text-black rounded-lg transition-all duration-200 font-semibold text-sm md:text-base border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: '#f6f6f4', minHeight: '44px' }}
+                    className="inline-flex items-center justify-center w-full px-3 py-2 md:px-6 md:py-3 text-black rounded-lg transition-all duration-200 font-semibold text-xs md:text-base border border-gray-300 hover:opacity-70 font-inter disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: '#f6f6f4', minHeight: '40px' }}
                   >
                     {isSubmitting ? (
                       <>
