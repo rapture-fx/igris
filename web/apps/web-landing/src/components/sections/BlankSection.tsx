@@ -17,12 +17,11 @@ export default function BlankSection() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 bg-[#f6f6f4] text-gray-900">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative bg-[#f6f6f4] px-8 md:px-12 py-16" style={{
+        <div className="relative bg-[#f6f6f4] px-4 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          minHeight: '750px'
+          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
         }}>
           {/* Decorative Corner Accents */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -43,10 +42,10 @@ export default function BlankSection() {
             }}></div>
 
             {/* Two-column layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:min-h-[750px]">
 
               {/* Left Column - Text Content */}
-              <div className="text-left lg:col-span-1 pr-0 md:pr-4 lg:pr-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
+              <div className="text-left lg:col-span-1 pr-0 md:pr-4 lg:pr-8 flex flex-col justify-center lg:min-h-[750px]">
                 <h3 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
                   Verified Providers — BYOK Safe
                 </h3>
