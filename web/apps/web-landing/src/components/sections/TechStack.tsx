@@ -53,17 +53,8 @@ export default function TechStack() {
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-24 items-center">
-              {/* Left Column - SVG Diagram */}
-              <div className="lg:col-span-7 flex items-center justify-center pl-0 md:pl-4 lg:pl-8">
-                <img
-                  src="/Simplifydiagram.svg"
-                  alt="How it Works Diagram"
-                  className="w-full max-h-[600px] object-contain opacity-70"
-                />
-              </div>
-
-              {/* Right Column - Title and Description */}
-              <div className="lg:col-span-5 text-left">
+              {/* Right Column - Title and Description (shows first on mobile) */}
+              <div className="lg:col-span-5 text-left order-1 lg:order-2">
                 <h3 className="text-2xl md:text-3xl lg:text-4xl font-inter mb-4" style={{ color: '#000000' }}>
                   How It Works
                 </h3>
@@ -71,6 +62,15 @@ export default function TechStack() {
                 <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
                   A single API endpoint powers adaptive routing across providers. The Schlep-engine control plane monitors latency, cost, and quality metrics in real time — ensuring every inference is sent to the optimal model without manual tuning.
                 </p>
+              </div>
+
+              {/* Left Column - SVG Diagram (shows second on mobile) */}
+              <div className="lg:col-span-7 flex items-center justify-center pl-0 md:pl-4 lg:pl-8 order-2 lg:order-1">
+                <img
+                  src="/Simplifydiagram.svg"
+                  alt="How it Works Diagram"
+                  className="w-4/5 md:w-full max-h-[300px] md:max-h-[600px] object-contain opacity-70"
+                />
               </div>
             </div>
           </div>
