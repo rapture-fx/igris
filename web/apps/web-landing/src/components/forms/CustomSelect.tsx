@@ -59,7 +59,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       <button
         type="button"
         id={id}
-        className={`w-full pl-4 pr-10 py-3 rounded-lg border transition-all duration-200 font-inter text-left focus:outline-none ${className} ${validationError ? 'border-red-500' : ''}`}
+        className={`w-full px-3 py-2 md:pl-4 md:pr-10 md:py-3 pr-8 rounded-lg border transition-all duration-200 font-inter text-left focus:outline-none text-sm ${className} ${validationError ? 'border-red-500' : ''}`}
         style={style}
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="listbox"
@@ -69,12 +69,12 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         {displayValue}
       </button>
       <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-        <ChevronDown className="w-5 h-5 text-gray-400" />
+        <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-gray-400" />
       </div>
 
       {isOpen && (
         <ul
-          className="absolute z-10 w-full mt-1 rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto"
+          className="absolute z-10 w-full mt-1 rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto text-sm"
           style={{ backgroundColor: style?.backgroundColor || '#f6f6f4' }}
           role="listbox"
           aria-labelledby={`${id}-label`}
@@ -82,7 +82,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
           {options.map((option) => (
             <li
               key={option.value}
-              className={`text-gray-900 cursor-default select-none relative py-2 pl-4 pr-9 ${
+              className={`text-gray-900 cursor-default select-none relative py-2 pl-3 pr-8 md:py-2 md:pl-4 md:pr-9 ${
                 option.value === value ? 'bg-gray-100' : 'hover:bg-gray-50'
               }`}
               onClick={() => handleSelect(option.value)}
