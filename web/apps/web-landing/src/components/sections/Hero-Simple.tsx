@@ -33,10 +33,10 @@ export default function Hero() {
             <div className="pt-8 mb-8">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2]">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
                     Your control plane
                   </h1>
-                  <h1 className="text-2xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2] mt-2">
+                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2] mt-2">
                     for intelligent AI allocation.
                   </h1>
                 </div>
@@ -49,11 +49,11 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-8">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-5 md:py-2.5 rounded-md md:rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg"
+                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md md:rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-sm shadow-sm md:shadow-md hover:shadow-lg"
                 style={{ minHeight: '36px' }}
               >
                 Get Early Access
-                <ChevronRight className="ml-1 h-3 w-3 md:ml-2 md:h-5 md:w-5" />
+                <ChevronRight className="ml-1 h-3 w-3 md:ml-2 md:h-4 md:w-4" />
               </button>
             </div>
 
