@@ -71,12 +71,12 @@ export default function Hero() {
                   }}
                 />
                 <div
-                  className="absolute inset-0"
+                  className="absolute inset-0 p-2"
                   style={{
                     backgroundImage: 'url("/HRLN.svg")',
-                    backgroundPosition: '50% 20%',
+                    backgroundPosition: 'bottom center',
                     backgroundRepeat: 'no-repeat',
-                    backgroundSize: '65%',
+                    backgroundSize: '60%',
                     opacity: 0.7,
                   }}
                 />
