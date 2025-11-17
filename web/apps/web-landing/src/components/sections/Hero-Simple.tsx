@@ -59,7 +59,7 @@ export default function Hero() {
 
             {/* Hero diagram - visible on mobile, hidden on larger screens */}
             <div className="block md:hidden">
-              <div className="relative w-full h-[160px] border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
+              <div className="relative w-full h-[140px] border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
                 <div
                   className="absolute inset-0 rounded-t-2xl"
                   style={{
@@ -74,9 +74,9 @@ export default function Hero() {
                   className="absolute inset-0"
                   style={{
                     backgroundImage: 'url("/HRLN.svg")',
-                    backgroundPosition: 'center center',
+                    backgroundPosition: 'top center',
                     backgroundRepeat: 'no-repeat',
-                    backgroundSize: '70%',
+                    backgroundSize: '65%',
                     opacity: 0.7,
                   }}
                 />

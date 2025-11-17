@@ -161,10 +161,10 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                 <div className="text-center py-8">
                   <div className="mb-6">
                   </div>
-                  <h3 className="text-2xl mb-4 font-inter" style={{ color: '#000000' }}>
+                  <h3 className="text-lg md:text-2xl mb-3 md:mb-4 font-inter" style={{ color: '#000000' }}>
                     Thanks for joining early access!
                   </h3>
-                  <p className="text-gray-600 mb-6 font-inter max-w-sm mx-auto">
+                  <p className="text-sm md:text-base text-gray-600 mb-6 font-inter max-w-sm mx-auto">
                     We've received your information and will be in touch soon with next steps.
                   </p>
                 </div>
