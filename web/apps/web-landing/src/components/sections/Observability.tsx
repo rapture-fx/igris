@@ -60,10 +60,10 @@ export default function Observability() {
             <div className="max-w-[1300px] mx-auto">
               {/* Section Title */}
               <div className="text-center mb-12">
-                <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
                   Full Visibility Across Cost, Performance, and Reliability
                 </h3>
-                <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
+                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
                   Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability — all in one view.
                 </p>
               </div>

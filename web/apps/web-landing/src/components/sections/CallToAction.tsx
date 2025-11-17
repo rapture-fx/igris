@@ -32,8 +32,8 @@ export default function CallToAction() {
               <div className="inline-block">
                 <button
                   onClick={openEarlyAccessModal}
-                  className="inline-flex items-center justify-center text-white px-4 py-2 md:px-6 md:py-3 rounded-xl hover:opacity-90 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg font-inter"
-                  style={{ backgroundColor: '#000000', minHeight: '44px' }}
+                  className="inline-flex items-center justify-center text-white px-3 py-1.5 md:px-6 md:py-3 rounded-md md:rounded-xl hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg font-inter"
+                  style={{ backgroundColor: '#000000', minHeight: '36px' }}
                 >
                   Get Early Access
                 </button>

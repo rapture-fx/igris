@@ -82,10 +82,10 @@ export default function CoreCapabilities() {
 
               {/* Right Column - Section Title */}
               <div className="text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
                   Smarter routing. Predictable performance.
                 </h3>
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
+                <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
                   From adaptive quality-aware routing to real-time quota and cost control, Schlep-engine keeps your AI stack efficient, intelligent, and fail-safe — even at scale.
                 </p>
               </div>

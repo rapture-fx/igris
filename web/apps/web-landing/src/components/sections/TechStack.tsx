@@ -64,11 +64,11 @@ export default function TechStack() {
 
               {/* Right Column - Title and Description */}
               <div className="lg:col-span-5 text-left">
-                <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
                   How It Works
                 </h3>
 
-                <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
+                <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
                   A single API endpoint powers adaptive routing across providers. The Schlep-engine control plane monitors latency, cost, and quality metrics in real time — ensuring every inference is sent to the optimal model without manual tuning.
                 </p>
               </div>

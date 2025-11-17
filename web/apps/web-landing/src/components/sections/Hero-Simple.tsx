@@ -49,24 +49,24 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-8">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-6 md:py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-base shadow-md hover:shadow-lg"
-                style={{ minHeight: '40px' }}
+                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-6 md:py-3 rounded-md md:rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg"
+                style={{ minHeight: '36px' }}
               >
                 Get Early Access
-                <ChevronRight className="ml-1.5 h-3 w-3 md:ml-2 md:h-5 md:w-5" />
+                <ChevronRight className="ml-1 h-3 w-3 md:ml-2 md:h-5 md:w-5" />
               </button>
             </div>
 
             {/* Hero diagram - visible on mobile, hidden on larger screens */}
             <div className="block md:hidden mb-8">
-              <div className="relative w-full h-80 border border-gray-300 rounded-2xl bg-[#f6f6f4] overflow-hidden">
+              <div className="relative w-full aspect-square border border-gray-300 rounded-2xl bg-[#f6f6f4] overflow-hidden">
                 <div
                   className="absolute inset-0 rounded-2xl"
                   style={{
                     backgroundImage: 'url("/schlep-logo-47.svg")',
                     backgroundPosition: 'center center',
                     backgroundRepeat: 'no-repeat',
-                    backgroundSize: 'contain',
+                    backgroundSize: 'cover',
                     opacity: 0.8,
                   }}
                 />

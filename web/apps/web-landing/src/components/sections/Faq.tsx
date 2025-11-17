@@ -75,7 +75,7 @@ export default function Faq() {
           </div>
 
           <div className="text-center mb-8 md:mb-12 lg:mb-16">
-            <h2 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
               Questions and answers
             </h2>
           </div>
