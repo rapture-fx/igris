@@ -55,7 +55,7 @@ export default function Header() {
             </Link>
             <button
               onClick={openEarlyAccessModal}
-              className="text-white px-4 py-2 md:px-5 md:py-2 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm md:text-base shadow-md hover:shadow-lg font-inter"
+              className="text-white px-3 py-1 md:px-4 md:py-1 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm shadow-md hover:shadow-lg font-inter"
               style={{ backgroundColor: '#000000' }}
             >
               Sign Up
@@ -93,8 +93,8 @@ export default function Header() {
                   setMobileMenuOpen(false);
                   openEarlyAccessModal();
                 }}
-                className="text-white px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm shadow-md font-inter w-full"
-                style={{ backgroundColor: '#000000', minHeight: '44px' }}
+                className="text-white px-3 py-1 rounded-lg hover:opacity-90 transition-all duration-200 font-semibold text-sm shadow-md font-inter w-full"
+                style={{ backgroundColor: '#000000' }}
               >
                 Sign Up
               </button>
