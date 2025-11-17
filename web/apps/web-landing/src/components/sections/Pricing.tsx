@@ -83,10 +83,10 @@ export default function Pricing() {
           </div>
 
           <div className="text-center mb-16">
-            <h2 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
               Pricing
             </h2>
-            <p className="text-lg text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
+            <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
               All plans include a 14-day free trial.
             </p>
           </div>

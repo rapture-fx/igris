@@ -61,10 +61,10 @@ export default function MultiTenancy() {
 
               {/* Right Column - Section Title and Features */}
               <div className="text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-4xl lg:text-5xl font-inter mb-4" style={{ color: '#000000' }}>
                   Secure by default. Built to scale.
                 </h3>
-                <p className="text-base leading-7 text-gray-600 dark:text-gray-400 font-inter mb-12">
+                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-12">
                   Multi-tenant isolation, end-to-end encryption, and automated authentication are built in from day one — so your workloads stay protected as you scale.
                 </p>
 
