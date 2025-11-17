@@ -56,7 +56,7 @@ export default function Faq() {
   return (
     <section id="faq" className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900" style={{ backgroundColor: '#f6f6f4' }}>
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative py-16 px-12" style={{
+        <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -74,7 +74,7 @@ export default function Faq() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
           </div>
 
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 md:mb-12 lg:mb-16">
             <h2 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
               Questions and answers
             </h2>
@@ -92,9 +92,9 @@ export default function Faq() {
             >
               <button
                 onClick={() => toggleFaq(index)}
-                className="w-full text-left px-6 py-5 flex items-center justify-between hover:opacity-80 transition-opacity"
+                className="w-full text-left px-4 md:px-6 py-4 md:py-5 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
               >
-                <span className="text-lg font-normal font-inter pr-8" style={{ color: '#000000' }}>
+                <span className="text-base md:text-lg font-normal font-inter flex-1" style={{ color: '#000000' }}>
                   {faq.question}
                 </span>
                 <ChevronDown
@@ -111,27 +111,27 @@ export default function Faq() {
                   openIndex === index ? 'max-h-[500px]' : 'max-h-0'
                 }`}
               >
-                <div className="px-6 pb-5 pt-0">
+                <div className="px-4 md:px-6 pb-4 md:pb-5 pt-0">
                   {faq.type === 'text' ? (
-                    <p className="text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                    <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
                       {faq.answer}
                     </p>
                   ) : faq.type === 'code' ? (
                     <div className="space-y-3">
-                      <p className="text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                      <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
                         {faq.answerText}
                       </p>
-                      <div className="rounded-lg p-4 font-mono text-sm" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
+                      <div className="rounded-lg p-3 md:p-4 font-mono text-xs md:text-sm overflow-x-auto" style={{ backgroundColor: 'rgba(0, 0, 0, 0.03)' }}>
                         <div className="mb-2">
                           <span className="text-gray-500"># Old</span>
-                          <div className="text-gray-900 mt-1">{faq.codeExample.old}</div>
+                          <div className="text-gray-900 mt-1 break-all">{faq.codeExample.old}</div>
                         </div>
                         <div>
                           <span className="text-gray-500"># New</span>
-                          <div className="text-gray-900 mt-1">{faq.codeExample.new}</div>
+                          <div className="text-gray-900 mt-1 break-all">{faq.codeExample.new}</div>
                         </div>
                       </div>
-                      <p className="text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
+                      <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter leading-relaxed">
                         {faq.answerFooter}
                       </p>
                     </div>
