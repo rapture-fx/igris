@@ -74,7 +74,7 @@ export default function Hero() {
                   className="absolute inset-0"
                   style={{
                     backgroundImage: 'url("/HRLN.svg")',
-                    backgroundPosition: 'top center',
+                    backgroundPosition: '50% 20%',
                     backgroundRepeat: 'no-repeat',
                     backgroundSize: '65%',
                     opacity: 0.7,

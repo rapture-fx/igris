@@ -59,7 +59,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       <button
         type="button"
         id={id}
-        className={`w-full px-3 py-2 md:pl-4 md:pr-10 md:py-3 pr-8 rounded-lg border transition-all duration-200 font-inter text-left focus:outline-none text-sm ${className} ${validationError ? 'border-red-500' : ''}`}
+        className={`w-full px-3 py-2 md:pl-4 md:pr-10 md:py-3 pr-8 rounded-lg border transition-all duration-200 font-inter text-left focus:outline-none text-xs md:text-sm ${className} ${validationError ? 'border-red-500' : ''}`}
         style={style}
         onClick={() => setIsOpen(!isOpen)}
         aria-haspopup="listbox"
@@ -74,7 +74,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
       {isOpen && (
         <ul
-          className="absolute z-10 w-full mt-1 rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto text-sm"
+          className="absolute z-10 w-full mt-1 rounded-md shadow-lg max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none overflow-auto text-xs md:text-sm"
           style={{ backgroundColor: style?.backgroundColor || '#f6f6f4' }}
           role="listbox"
           aria-labelledby={`${id}-label`}
