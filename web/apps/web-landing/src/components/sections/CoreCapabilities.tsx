@@ -57,7 +57,7 @@ export default function CoreCapabilities() {
 
             {/* Title Section - Shows first on mobile, last on desktop */}
             <div className="text-left mb-6 lg:mb-0 lg:hidden">
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Smarter routing. Predictable performance.
               </h3>
               <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
@@ -92,7 +92,7 @@ export default function CoreCapabilities() {
 
               {/* Right Column - Section Title (Desktop only) */}
               <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-2xl md:text-3xl lg:text-4xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Smarter routing. Predictable performance.
                 </h3>
                 <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
@@ -147,7 +147,7 @@ export default function CoreCapabilities() {
             }}
           >
             <div className="max-w-5xl mx-auto">
-              <h4 className="text-2xl md:text-3xl lg:text-4xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
+              <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
 
               <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
                 Every optimization passes automated guardrails before rollout. Schlep-engine isolates provider failures, validates routing in real time, and continuously monitors health so no request ever gets lost.
