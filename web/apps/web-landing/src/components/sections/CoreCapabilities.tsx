@@ -103,8 +103,7 @@ export default function CoreCapabilities() {
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4',
-          minHeight: '750px'
+          backgroundColor: '#f6f6f4'
         }}>
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -119,7 +118,7 @@ export default function CoreCapabilities() {
 
           {/* Full Width Placeholder */}
           <div
-            className="absolute inset-4 md:inset-8 lg:inset-12 p-4 md:p-6 lg:p-8"
+            className="relative p-4 md:p-6 lg:p-8 my-4 md:my-8 lg:my-12"
             style={{
               borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
               borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -128,7 +127,7 @@ export default function CoreCapabilities() {
               borderRadius: '16px',
               backgroundColor: '#f6f6f4',
               boxShadow: 'none',
-              
+
               backgroundImage: `
                 repeating-linear-gradient(0deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px),
                 repeating-linear-gradient(90deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px)
@@ -137,35 +136,35 @@ export default function CoreCapabilities() {
               backgroundPosition: '5px 5px'
             }}
           >
-            <div className="max-w-5xl mx-auto h-full flex flex-col justify-center">
-              <h4 className="text-3xl tracking-tight md:text-4xl font-inter mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
-              
-              <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 mb-8 font-inter text-center max-w-3xl mx-auto">
+            <div className="max-w-5xl mx-auto">
+              <h4 className="text-2xl md:text-3xl lg:text-4xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
+
+              <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
                 Every optimization passes automated guardrails before rollout. Schlep-engine isolates provider failures, validates routing in real time, and continuously monitors health so no request ever gets lost.
               </p>
 
               {/* Asymmetric Grid Layout - 1 tall card on left, 2 stacked on right */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Left - Tall Card */}
-                <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '416px' }}>
-                  <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Automatic SLO Guardrails</h5>
-                  <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    P95 latency >10%, cost >5%, or error rate >0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 lg:h-[416px]" style={{ backgroundColor: '#f6f6f4' }}>
+                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Automatic SLO Guardrails</h5>
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    P95 latency &gt;10%, cost &gt;5%, or error rate &gt;0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
                   </p>
                 </div>
 
                 {/* Right - Two Stacked Cards */}
                 <div className="flex flex-col gap-4">
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
-                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Provider Health Checks</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 lg:h-[200px]" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Provider Health Checks</h5>
+                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
                       Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
                     </p>
                   </div>
 
-                  <div className="rounded-3xl p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4', height: '200px' }}>
-                    <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">Resilient Fallback System</h5>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 lg:h-[200px]" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Fallback System</h5>
+                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
                       Automatically detects and recovers from provider or runtime errors to ensure uninterrupted API responses under load.
                     </p>
                   </div>

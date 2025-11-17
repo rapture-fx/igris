@@ -49,35 +49,35 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-8">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-4 py-2 md:px-6 md:py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-sm md:text-base shadow-md hover:shadow-lg"
-                style={{ minHeight: '44px' }}
+                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-6 md:py-3 rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-base shadow-md hover:shadow-lg"
+                style={{ minHeight: '40px' }}
               >
                 Get Early Access
-                <ChevronRight className="ml-2 h-4 w-4 md:h-5 md:w-5" />
+                <ChevronRight className="ml-1.5 h-3 w-3 md:ml-2 md:h-5 md:w-5" />
               </button>
             </div>
 
             {/* Hero diagram - visible on mobile, hidden on larger screens */}
             <div className="block md:hidden mb-8">
-              <div className="relative w-full h-64 border border-gray-300 rounded-2xl bg-[#f6f6f4] overflow-hidden">
+              <div className="relative w-full h-80 border border-gray-300 rounded-2xl bg-[#f6f6f4] overflow-hidden">
                 <div
                   className="absolute inset-0 rounded-2xl"
                   style={{
                     backgroundImage: 'url("/schlep-logo-47.svg")',
                     backgroundPosition: 'center center',
                     backgroundRepeat: 'no-repeat',
-                    backgroundSize: 'cover',
+                    backgroundSize: 'contain',
                     opacity: 0.8,
                   }}
                 />
                 <div
-                  className="absolute inset-0 p-4"
+                  className="absolute bottom-0 left-0 right-0 h-32"
                   style={{
                     backgroundImage: 'url("/HRLN.svg")',
                     backgroundPosition: 'bottom center',
                     backgroundRepeat: 'no-repeat',
-                    backgroundSize: '50%',
-                    opacity: 0.6,
+                    backgroundSize: '80%',
+                    opacity: 0.7,
                   }}
                 />
               </div>
