@@ -49,7 +49,7 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-8">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-6 md:py-3 rounded-md md:rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg"
+                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-5 md:py-2.5 rounded-md md:rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg"
                 style={{ minHeight: '36px' }}
               >
                 Get Early Access
