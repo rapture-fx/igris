@@ -161,10 +161,10 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                 <div className="text-center py-8">
                   <div className="mb-6">
                   </div>
-                  <h3 className="text-lg md:text-2xl mb-3 md:mb-4 font-inter" style={{ color: '#000000' }}>
+                  <h3 className="text-base md:text-2xl mb-2 md:mb-4 font-inter" style={{ color: '#000000' }}>
                     Thanks for joining early access!
                   </h3>
-                  <p className="text-sm md:text-base text-gray-600 mb-6 font-inter max-w-sm mx-auto">
+                  <p className="text-xs md:text-base text-gray-600 mb-6 font-inter max-w-sm mx-auto">
                     We've received your information and will be in touch soon with next steps.
                   </p>
                 </div>
@@ -191,7 +191,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.name}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm ${validationErrors.name ? 'border-red-500' : ''}`}
+                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-xs md:text-sm ${validationErrors.name ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
@@ -207,7 +207,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.email}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm ${validationErrors.email ? 'border-red-500' : ''}`}
+                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-xs md:text-sm ${validationErrors.email ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
@@ -223,7 +223,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       required
                       value={formData.company}
                       onChange={handleChange}
-                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm ${validationErrors.company ? 'border-red-500' : ''}`}
+                      className={`w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-xs md:text-sm ${validationErrors.company ? 'border-red-500' : ''}`}
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
@@ -255,7 +255,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                       rows={2}
                       value={formData.message}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-sm"
+                      className="w-full px-3 py-2 md:px-4 md:py-3 rounded-lg border transition-all duration-200 font-inter focus:outline-none text-xs md:text-sm"
                       style={{ borderColor: 'rgba(156, 163, 175, 0.3)', backgroundColor: '#f6f6f4' }}
                     />
                   </div>
