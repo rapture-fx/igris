@@ -496,3 +496,121 @@ func UpdateSystemInfo(version, goVersion string, rustEnabled bool) {
 func UpdateGoroutineCount(count int) {
 	GoroutinesActive.Set(float64(count))
 }
+
+// ==========================================
+// Cognitive Layer Metrics (v1.2.0)
+// ==========================================
+
+var (
+	// CognitiveProposalsGenerated tracks total proposals generated
+	CognitiveProposalsGenerated = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_cognitive_proposals_generated_total",
+			Help: "Total number of cognitive proposals generated",
+		},
+		[]string{"tenant_id"},
+	)
+
+	// CognitiveProposalsApproved tracks approved proposals
+	CognitiveProposalsApproved = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_cognitive_proposals_approved_total",
+			Help: "Total number of cognitive proposals approved",
+		},
+		[]string{"tenant_id"},
+	)
+
+	// CognitiveProposalsRejected tracks rejected proposals
+	CognitiveProposalsRejected = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_cognitive_proposals_rejected_total",
+			Help: "Total number of cognitive proposals rejected",
+		},
+		[]string{"tenant_id"},
+	)
+
+	// CognitiveProposalsApplied tracks applied proposals
+	CognitiveProposalsApplied = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "schlep_cognitive_proposals_applied_total",
+			Help: "Total number of cognitive proposals applied",
+		},
+		[]string{"tenant_id"},
+	)
+
+	// CognitiveConfidence tracks confidence distribution
+	CognitiveConfidenceHistogram = promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "schlep_cognitive_confidence_histogram",
+			Help:    "Distribution of cognitive proposal confidence scores",
+			Buckets: []float64{0.5, 0.6, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0},
+		},
+	)
+
+	// CognitiveRiskScore tracks risk score distribution
+	CognitiveRiskScore = promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "schlep_cognitive_risk_score_histogram",
+			Help:    "Distribution of cognitive proposal risk scores",
+			Buckets: []float64{0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
+		},
+	)
+
+	// CognitiveAnalysisDuration tracks analysis time
+	CognitiveAnalysisDuration = promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "schlep_cognitive_analysis_duration_seconds",
+			Help:    "Time taken for cognitive analysis in seconds",
+			Buckets: []float64{0.1, 0.5, 1, 2, 5, 10, 30, 60},
+		},
+	)
+
+	// CognitiveProjectedSavings tracks projected cost savings
+	CognitiveProjectedSavingsUSD = promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "schlep_cognitive_projected_savings_usd",
+			Help:    "Projected monthly cost savings in USD",
+			Buckets: []float64{10, 50, 100, 250, 500, 1000, 2500, 5000, 10000},
+		},
+	)
+
+	// CognitiveProjectedLatencyReduction tracks projected latency improvements
+	CognitiveProjectedLatencyReduction = promauto.NewHistogram(
+		prometheus.HistogramOpts{
+			Name:    "schlep_cognitive_projected_latency_reduction_pct",
+			Help:    "Projected P95 latency reduction percentage",
+			Buckets: []float64{5, 10, 15, 20, 25, 30, 40, 50},
+		},
+	)
+)
+
+// RecordCognitiveProposalGenerated records a generated proposal
+func RecordCognitiveProposalGenerated(tenantID string, confidence, riskScore float64, analysisDurationSeconds float64) {
+	CognitiveProposalsGenerated.WithLabelValues(tenantID).Inc()
+	CognitiveConfidenceHistogram.Observe(confidence)
+	CognitiveRiskScore.Observe(riskScore)
+	CognitiveAnalysisDuration.Observe(analysisDurationSeconds)
+}
+
+// RecordCognitiveProposalApproved records an approved proposal
+func RecordCognitiveProposalApproved(tenantID string) {
+	CognitiveProposalsApproved.WithLabelValues(tenantID).Inc()
+}
+
+// RecordCognitiveProposalRejected records a rejected proposal
+func RecordCognitiveProposalRejected(tenantID string) {
+	CognitiveProposalsRejected.WithLabelValues(tenantID).Inc()
+}
+
+// RecordCognitiveProposalApplied records an applied proposal with impact
+func RecordCognitiveProposalApplied(tenantID string, projectedSavingsUSD, projectedLatencyReductionPct float64) {
+	CognitiveProposalsApplied.WithLabelValues(tenantID).Inc()
+
+	if projectedSavingsUSD > 0 {
+		CognitiveProjectedSavingsUSD.Observe(projectedSavingsUSD)
+	}
+
+	if projectedLatencyReductionPct > 0 {
+		CognitiveProjectedLatencyReduction.Observe(projectedLatencyReductionPct)
+	}
+}

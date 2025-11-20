@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/schlep-engine/internal/slo"
+	"github.com/schlep-engine/schlep-engine/internal/slo"
 )
 
 // SLOHandler handles SLO Enforcer HTTP requests
