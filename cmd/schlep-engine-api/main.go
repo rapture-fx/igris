@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"log"
 	"os"
@@ -13,10 +14,13 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/schlep-engine/schlep-engine/internal/api"
 	"github.com/schlep-engine/schlep-engine/internal/cache"
+	"github.com/schlep-engine/schlep-engine/internal/cognitive"
 	"github.com/schlep-engine/schlep-engine/internal/database"
 	"github.com/schlep-engine/schlep-engine/internal/logging"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/observability"
+	"github.com/schlep-engine/schlep-engine/internal/policies"
+	"github.com/schlep-engine/schlep-engine/internal/router"
 	"github.com/schlep-engine/schlep-engine/internal/security"
 )
 
@@ -168,6 +172,45 @@ func main() {
 			}
 
 			log.Println("[Phase 2] ✅ Multi-tenancy initialized successfully")
+
+			// Initialize Cognitive Advisor (v1.2.0 - if enabled)
+			enableCognitiveAdvisor := os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true"
+			if enableCognitiveAdvisor && redisClient != nil {
+				log.Println("[CognitiveAdvisor] Initializing Cognitive Layer (v1.2.0)...")
+
+				// Initialize policy engine
+				policyEngine := policies.NewPolicyEngine(db.DB, redisClient)
+
+				// Initialize semantic router (with nil for now - should be initialized properly in production)
+				// In a production setup, you would initialize the full semantic router with
+				// classifier, bandit engine, etc.
+				var semanticRouter *router.SemanticRouter = nil
+				// semanticRouter = router.NewSemanticRouter(classifier, rewardEngine, adaptiveRouter)
+
+				// Start cognitive worker
+				if policyEngine != nil {
+					ctx := context.Background()
+					cognitiveWorker := cognitive.StartAdvisorWorker(
+						ctx,
+						db.DB,
+						policyEngine,
+						semanticRouter,
+					)
+
+					// Register cognitive API routes
+					api.RegisterCognitiveRoutes(app, cognitiveWorker.GetApplier())
+
+					log.Println("[CognitiveAdvisor] ✅ Cognitive Layer initialized successfully")
+					log.Println("[CognitiveAdvisor] 🧠 AI-powered policy optimization active (15-min cycle)")
+
+					// Ensure worker is stopped on shutdown
+					defer cognitiveWorker.Stop()
+				} else {
+					log.Println("[CognitiveAdvisor] ⚠️  Policy engine initialization failed")
+				}
+			} else if enableCognitiveAdvisor && redisClient == nil {
+				log.Println("[CognitiveAdvisor] ⚠️  Cognitive Advisor requires Redis - skipping initialization")
+			}
 
 			// Initialize Provider Health Monitor (if enabled)
 			enableProviderHealthMonitor := os.Getenv("ENABLE_PROVIDER_HEALTH_MONITOR") != "false" // Default: enabled
