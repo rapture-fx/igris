@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/schlep-engine/internal/security"
+	"github.com/schlep-engine/schlep-engine/internal/security"
 )
 
 // KeyVaultHandler handles BYOK key vault HTTP requests
