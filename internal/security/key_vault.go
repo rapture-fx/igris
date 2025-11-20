@@ -551,3 +551,219 @@ func GetAPIKeyPrefix(apiKey string) string {
 func (kv *KeyVault) IsEnabled() bool {
 	return kv.enabled
 }
+
+// RotateKey creates a new version of a key and deactivates the old one
+// This calls the rotate_tenant_key stored procedure
+func (kv *KeyVault) RotateKey(tenantID, provider, keyName, newPlainKey, rotatedBy string) (*EncryptedKey, error) {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+
+	// Encrypt the new key
+	encryptedKey, iv, tag, err := kv.encrypt(newPlainKey)
+	if err != nil {
+		return nil, fmt.Errorf("encryption failed: %w", err)
+	}
+
+	// Encode to base64
+	encryptedKeyB64 := base64.StdEncoding.EncodeToString(encryptedKey)
+	ivB64 := base64.StdEncoding.EncodeToString(iv)
+	tagB64 := base64.StdEncoding.EncodeToString(tag)
+
+	if kv.enabled {
+		// Use database rotation procedure
+		var newKeyID string
+		err := kv.db.QueryRow(`
+			SELECT rotate_tenant_key($1, $2, $3, $4, $5, $6, $7)
+		`, tenantID, provider, keyName, encryptedKeyB64, ivB64, tagB64, rotatedBy).Scan(&newKeyID)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to rotate key: %w", err)
+		}
+
+		kv.logger.Printf("[KeyVault] Rotated key: tenant=%s provider=%s name=%s", tenantID, provider, keyName)
+		return kv.getKeyByIDDB(newKeyID)
+	}
+
+	// In-memory rotation
+	mapKey := fmt.Sprintf("%s:%s:%s", tenantID, provider, keyName)
+	oldKey, exists := kv.inMemoryKeys[mapKey]
+	if !exists {
+		return nil, fmt.Errorf("no key found to rotate: tenant=%s provider=%s name=%s", tenantID, provider, keyName)
+	}
+
+	// Create new key with incremented version
+	newKey := &EncryptedKey{
+		ID:           uuid.New().String(),
+		TenantID:     tenantID,
+		Provider:     provider,
+		KeyName:      keyName,
+		EncryptedKey: encryptedKeyB64,
+		IV:           ivB64,
+		Tag:          tagB64,
+		KeyVersion:   oldKey.KeyVersion + 1,
+		IsActive:     true,
+		CreatedAt:    time.Now(),
+		CreatedBy:    rotatedBy,
+	}
+
+	// Deactivate old key
+	oldKey.IsActive = false
+
+	// Store new key
+	kv.inMemoryKeys[mapKey] = newKey
+
+	kv.logger.Printf("[KeyVault] Rotated key in memory: tenant=%s provider=%s (v%d → v%d)",
+		tenantID, provider, oldKey.KeyVersion, newKey.KeyVersion)
+
+	return newKey, nil
+}
+
+// ValidateKey validates a key with the provider's API
+// Returns (isValid, error). If error is nil, isValid indicates validation result.
+func (kv *KeyVault) ValidateKey(tenantID, provider string) (bool, error) {
+	kv.mu.RLock()
+	defer kv.mu.RUnlock()
+
+	// Get the active key
+	var encKey *EncryptedKey
+	var err error
+
+	if kv.enabled {
+		encKey, err = kv.getActiveKeyDB(tenantID, provider)
+	} else {
+		encKey, err = kv.getActiveKeyMemory(tenantID, provider)
+	}
+
+	if err != nil {
+		return false, fmt.Errorf("failed to retrieve key: %w", err)
+	}
+
+	// Decrypt the key
+	plainKey, err := kv.decryptKey(encKey)
+	if err != nil {
+		return false, fmt.Errorf("failed to decrypt key: %w", err)
+	}
+
+	// Validate with provider (simplified - would call actual provider API)
+	isValid, validationErr := kv.validateWithProvider(provider, plainKey)
+
+	// Update validation status in database
+	if kv.enabled {
+		var validationErrText sql.NullString
+		if validationErr != nil {
+			validationErrText = sql.NullString{String: validationErr.Error(), Valid: true}
+		}
+
+		_, err := kv.db.Exec(`
+			SELECT mark_key_validated($1, $2, $3)
+		`, encKey.ID, isValid, validationErrText)
+
+		if err != nil {
+			kv.logger.Printf("[KeyVault] Failed to update validation status: %v", err)
+		}
+	} else {
+		// Update in-memory
+		encKey.IsValid = &isValid
+		now := time.Now()
+		encKey.LastValidated = &now
+	}
+
+	kv.logger.Printf("[KeyVault] Validated key: tenant=%s provider=%s valid=%v",
+		tenantID, provider, isValid)
+
+	if validationErr != nil {
+		return false, validationErr
+	}
+
+	return isValid, nil
+}
+
+// validateWithProvider performs actual validation against provider API
+// This is a placeholder - real implementation would make API calls
+func (kv *KeyVault) validateWithProvider(provider, apiKey string) (bool, error) {
+	// TODO: Implement actual provider validation
+	// For now, basic checks:
+
+	switch provider {
+	case "openai":
+		// OpenAI keys start with "sk-"
+		if !strings.HasPrefix(apiKey, "sk-") {
+			return false, fmt.Errorf("invalid OpenAI key format (expected sk-* prefix)")
+		}
+		// In production: make test API call to OpenAI
+		// Example: GET https://api.openai.com/v1/models
+		return true, nil
+
+	case "anthropic":
+		// Anthropic keys start with "sk-ant-"
+		if !strings.HasPrefix(apiKey, "sk-ant-") {
+			return false, fmt.Errorf("invalid Anthropic key format (expected sk-ant-* prefix)")
+		}
+		// In production: make test API call to Anthropic
+		return true, nil
+
+	case "google", "cohere", "azure":
+		// Basic non-empty check for now
+		if len(apiKey) < 10 {
+			return false, fmt.Errorf("key appears to be too short")
+		}
+		return true, nil
+
+	case "benchmark":
+		// Benchmark mode doesn't require validation
+		return true, nil
+
+	default:
+		return false, fmt.Errorf("unknown provider: %s", provider)
+	}
+}
+
+// ExpireKey marks a key as expired and deactivates it
+func (kv *KeyVault) ExpireKey(tenantID, provider, keyName, expiredBy string) error {
+	kv.mu.Lock()
+	defer kv.mu.Unlock()
+
+	if kv.enabled {
+		// Get the active key ID first
+		var keyID string
+		err := kv.db.QueryRow(`
+			SELECT id FROM tenant_keys
+			WHERE tenant_id = $1 AND provider = $2 AND key_name = $3 AND is_active = TRUE
+			LIMIT 1
+		`, tenantID, provider, keyName).Scan(&keyID)
+
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("no active key found: tenant=%s provider=%s name=%s", tenantID, provider, keyName)
+		}
+		if err != nil {
+			return fmt.Errorf("failed to find key: %w", err)
+		}
+
+		// Call expire procedure
+		_, err = kv.db.Exec(`
+			SELECT expire_tenant_key($1, $2)
+		`, keyID, expiredBy)
+
+		if err != nil {
+			return fmt.Errorf("failed to expire key: %w", err)
+		}
+
+		kv.logger.Printf("[KeyVault] Expired key: tenant=%s provider=%s name=%s", tenantID, provider, keyName)
+		return nil
+	}
+
+	// In-memory expiration
+	mapKey := fmt.Sprintf("%s:%s:%s", tenantID, provider, keyName)
+	key, exists := kv.inMemoryKeys[mapKey]
+	if !exists {
+		return fmt.Errorf("no key found: tenant=%s provider=%s name=%s", tenantID, provider, keyName)
+	}
+
+	key.IsActive = false
+	now := time.Now()
+	// Note: EncryptedKey struct doesn't have ExpiresAt, would need to add it
+	// For now, just deactivate
+
+	kv.logger.Printf("[KeyVault] Expired key in memory: tenant=%s provider=%s name=%s", tenantID, provider, keyName)
+	return nil
+}
