@@ -1,0 +1,325 @@
+# Prometheus AlertManager Rules for Schlep-Engine
+# Critical alerts for API stability and customer application protection
+
+groups:
+  - name: schlep_engine_critical_alerts
+    interval: 30s
+    rules:
+      # API Availability Alerts
+      - alert: HighServerErrorRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[2m]))
+            /
+            sum(rate(http_requests_total[2m]))
+          ) * 100 > 1
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          component: api
+        annotations:
+          summary: "High 5xx error rate detected"
+          description: "Server error rate is {{ $value | humanizePercentage }} (threshold: 1%). Customer applications may be affected."
+          runbook_url: "https://docs.schlep-engine.com/runbooks/high-error-rate"
+          dashboard: "https://grafana.schlep-engine.com/d/api-health"
+
+      - alert: APICompleteOutage
+        expr: |
+          sum(rate(http_requests_total{status="200"}[1m])) == 0
+          and
+          sum(rate(http_requests_total[1m])) > 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          component: api
+          pagerduty: "yes"
+        annotations:
+          summary: "Complete API outage - no successful requests"
+          description: "API has not returned any 200 responses for 2 minutes. IMMEDIATE ACTION REQUIRED."
+          action: "1. Check API health endpoints 2. Review recent deployments 3. Initiate rollback if needed"
+
+      - alert: HighResponseLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_milliseconds_bucket[5m])) by (le)
+          ) > 5000
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          component: api
+        annotations:
+          summary: "High P95 response latency"
+          description: "P95 latency is {{ $value }}ms (threshold: 5000ms). Performance degradation detected."
+
+      # Provider Health Alerts
+      - alert: ProviderCircuitBreakerOpen
+        expr: |
+          circuit_breaker_state{state="open"} == 1
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          component: providers
+        annotations:
+          summary: "Circuit breaker open for {{ $labels.provider }}"
+          description: "Circuit breaker for {{ $labels.provider }} has been open for 5 minutes. Traffic is being routed to backup providers."
+
+      - alert: AllProvidersUnhealthy
+        expr: |
+          sum(provider_health_status{status="healthy"}) == 0
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          component: providers
+          pagerduty: "yes"
+        annotations:
+          summary: "All providers are unhealthy"
+          description: "No healthy providers available. API may fail to serve requests. IMMEDIATE ACTION REQUIRED."
+
+      - alert: ProviderHighErrorRate
+        expr: |
+          (
+            sum(rate(provider_requests_total{status="error"}[5m])) by (provider)
+            /
+            sum(rate(provider_requests_total[5m])) by (provider)
+          ) * 100 > 20
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          component: providers
+        annotations:
+          summary: "High error rate for {{ $labels.provider }}"
+          description: "Provider {{ $labels.provider }} error rate is {{ $value | humanizePercentage }} (threshold: 20%)"
+
+      # Resource Alerts
+      - alert: HighMemoryUsage
+        expr: |
+          (process_resident_memory_bytes / 1024 / 1024) > 2048
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          component: system
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is {{ $value }}MB (threshold: 2048MB). Possible memory leak."
+
+      - alert: MemoryGrowthAnomaly
+        expr: |
+          (
+            rate(process_resident_memory_bytes[10m])
+          ) > 10485760  # 10MB/10min = 1MB/min
+        for: 30m
+        labels:
+          severity: warning
+          team: platform
+          component: system
+        annotations:
+          summary: "Memory growth anomaly detected"
+          description: "Memory is growing at {{ $value | humanize }}B/s. Investigate for memory leaks."
+
+      # Database Alerts
+      - alert: DatabaseConnectionFailures
+        expr: |
+          rate(database_connection_errors_total[1m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+          team: platform
+          component: database
+        annotations:
+          summary: "High database connection failure rate"
+          description: "Database connection failures: {{ $value }}/min (threshold: 10/min)"
+
+      - alert: DatabaseHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(database_query_duration_seconds_bucket[5m])) by (le)
+          ) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          component: database
+        annotations:
+          summary: "High database query latency"
+          description: "P95 database query latency is {{ $value }}s (threshold: 1s)"
+
+      # Redis Cache Alerts
+      - alert: RedisCacheFailures
+        expr: |
+          rate(redis_errors_total[2m]) > 5
+        for: 3m
+        labels:
+          severity: warning
+          team: platform
+          component: cache
+        annotations:
+          summary: "High Redis error rate"
+          description: "Redis errors: {{ $value }}/s (threshold: 5/s)"
+
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            sum(rate(cache_hits_total[5m]))
+            /
+            sum(rate(cache_requests_total[5m]))
+          ) * 100 < 50
+        for: 10m
+        labels:
+          severity: info
+          team: platform
+          component: cache
+        annotations:
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value | humanizePercentage }} (threshold: 50%)"
+
+      # Budget & Safety Alerts
+      - alert: BudgetBreach
+        expr: |
+          budget_breach_total > 0
+        labels:
+          severity: warning
+          team: platform
+          component: safety
+        annotations:
+          summary: "Budget breach detected for tenant {{ $labels.tenant_id }}"
+          description: "Tenant {{ $labels.tenant_id }} has exceeded budget limit. Fallback to benchmark provider activated."
+
+      - alert: RapidCostIncrease
+        expr: |
+          (
+            rate(total_cost_usd[5m]) * 3600
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+          component: safety
+        annotations:
+          summary: "Rapid cost increase detected"
+          description: "Cost is increasing at ${{ $value }}/hour (threshold: $10/hour)"
+
+      # Throughput Alerts
+      - alert: LowThroughput
+        expr: |
+          sum(rate(http_requests_total[5m])) < 1
+        for: 10m
+        labels:
+          severity: info
+          team: platform
+          component: api
+        annotations:
+          summary: "Low API throughput"
+          description: "API throughput is {{ $value }} req/s. May indicate traffic issues or deployment problems."
+
+      - alert: ThroughputSpike
+        expr: |
+          sum(rate(http_requests_total[1m]))
+          >
+          (avg_over_time(sum(rate(http_requests_total[1m]))[10m:1m]) * 3)
+        for: 2m
+        labels:
+          severity: info
+          team: platform
+          component: api
+        annotations:
+          summary: "Traffic spike detected"
+          description: "Current throughput is 3x the 10-minute average. Monitor for abuse or legitimate traffic surge."
+
+      # Circuit Breaker Alerts
+      - alert: CircuitBreakerFlapping
+        expr: |
+          changes(circuit_breaker_state[10m]) > 5
+        labels:
+          severity: warning
+          team: platform
+          component: providers
+        annotations:
+          summary: "Circuit breaker flapping for {{ $labels.provider }}"
+          description: "Circuit breaker for {{ $labels.provider }} has changed state {{ $value }} times in 10 minutes. Investigate provider instability."
+
+  - name: schlep_engine_slo_alerts
+    interval: 1m
+    rules:
+      # SLO: 99.9% availability
+      - alert: SLOAvailabilityBreach
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"2.."}[30m]))
+            /
+            sum(rate(http_requests_total[30m]))
+          ) * 100 < 99.9
+        for: 5m
+        labels:
+          severity: critical
+          team: platform
+          component: slo
+          pagerduty: "yes"
+        annotations:
+          summary: "SLO breach: Availability below 99.9%"
+          description: "30-minute availability is {{ $value | humanizePercentage }} (SLO: 99.9%)"
+          action: "Investigate immediately. Customer SLA at risk."
+
+      # SLO: P95 latency < 2000ms
+      - alert: SLOLatencyBreach
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_milliseconds_bucket[30m])) by (le)
+          ) > 2000
+        for: 10m
+        labels:
+          severity: warning
+          team: platform
+          component: slo
+        annotations:
+          summary: "SLO breach: P95 latency above 2000ms"
+          description: "30-minute P95 latency is {{ $value }}ms (SLO: <2000ms)"
+
+  - name: schlep_engine_deployment_alerts
+    interval: 1m
+    rules:
+      - alert: RecentDeploymentErrorSpike
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) * 100 > 5
+          and
+          time() - deployment_timestamp_seconds < 600
+        labels:
+          severity: critical
+          team: platform
+          component: deployment
+          pagerduty: "yes"
+        annotations:
+          summary: "Error spike after recent deployment"
+          description: "5xx error rate is {{ $value | humanizePercentage }} within 10 minutes of deployment. Consider rollback."
+          action: "1. Check deployment logs 2. Review changes 3. Initiate rollback if errors persist"
+
+      - alert: PostDeploymentLatencyIncrease
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(http_request_duration_milliseconds_bucket[5m])) by (le)
+          )
+          >
+          (
+            histogram_quantile(0.95,
+              sum(rate(http_request_duration_milliseconds_bucket[5m] offset 15m)) by (le)
+            ) * 1.5
+          )
+          and
+          time() - deployment_timestamp_seconds < 600
+        labels:
+          severity: warning
+          team: platform
+          component: deployment
+        annotations:
+          summary: "Latency increased 50% after deployment"
+          description: "P95 latency increased from {{ $value }}ms. Review deployment performance impact."
