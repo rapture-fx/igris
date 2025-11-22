@@ -20,6 +20,7 @@ type SpeculativeRouter struct {
 	config          *config.SpeculativeConfig
 	adaptiveRouter  *AdaptiveRouter
 	providerRegistry *providers.ProviderRegistry
+	costAccounting  *CostAccounting
 	mu              sync.RWMutex
 }
 
@@ -30,9 +31,10 @@ func NewSpeculativeRouter(
 	providerRegistry *providers.ProviderRegistry,
 ) *SpeculativeRouter {
 	return &SpeculativeRouter{
-		config:          config,
-		adaptiveRouter:  adaptiveRouter,
+		config:           config,
+		adaptiveRouter:   adaptiveRouter,
 		providerRegistry: providerRegistry,
+		costAccounting:   NewCostAccounting(config),
 	}
 }
 
@@ -72,6 +74,15 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 	// Start OpenTelemetry span for the speculative race
 	ctx, span := observability.StartSpan(ctx, "speculative_race")
 	defer span.End()
+
+	// Extract tenant ID from context (TODO: implement proper tenant extraction)
+	tenantID := "default"
+
+	// Check if speculative mode is auto-disabled for this tenant
+	if disabled, reason := sr.costAccounting.ShouldDisableSpeculative(tenantID); disabled {
+		log.Printf("[SpeculativeRouter] Speculative mode auto-disabled for tenant %s: %s", tenantID, reason)
+		return nil, nil, nil, fmt.Errorf("speculative mode auto-disabled: %s", reason)
+	}
 
 	// Validate mode
 	if mode == config.SpeculativeModeOff {
@@ -173,7 +184,6 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 		winner.ProviderID, firstTokenLatency.Milliseconds(), winnerScore.CompositeScore)
 
 	// Record Prometheus metrics for all candidates
-	tenantID := "default" // TODO: Extract from context
 	for _, score := range scores {
 		result := "loser"
 		if score.ProviderID == winner.ProviderID {
@@ -518,6 +528,93 @@ func (sm *SpeculativeMetadata) GetFinalMetadata() *SpeculativeMetadata {
 		}
 	}
 	return sm
+}
+
+// RecordCosts records cost accounting after stream completion
+// This should be called by the handler after consuming all tokens
+func (sr *SpeculativeRouter) RecordCosts(
+	ctx context.Context,
+	metadata *SpeculativeMetadata,
+	candidates []*ProviderCandidate,
+	tenantID string,
+) error {
+	if metadata == nil {
+		return fmt.Errorf("metadata is nil")
+	}
+
+	// Get final metadata
+	finalMeta := metadata.GetFinalMetadata()
+
+	// Calculate cost per token (simplified - in production would use provider cost models)
+	costPerTokenUSD := map[string]float64{
+		"openai":     0.002,
+		"anthropic":  0.003,
+		"gemini":     0.001,
+		"deepseek":   0.0002,
+		"default":    0.002,
+	}
+
+	// Determine winner provider
+	winnerProviderID := finalMeta.FinalProvider
+	if winnerProviderID == "" {
+		winnerProviderID = metadata.WinnerProvider
+	}
+
+	// Calculate winner cost
+	winnerTokens := finalMeta.TotalTokens
+	if winnerTokens == 0 {
+		winnerTokens = 10 // Default if not tracked
+	}
+
+	winnerCostPer1k := costPerTokenUSD["default"]
+	if cost, exists := costPerTokenUSD[winnerProviderID]; exists {
+		winnerCostPer1k = cost
+	}
+	winnerCostUSD := float64(winnerTokens) * (winnerCostPer1k / 1000.0)
+
+	// Calculate waste from losing providers
+	losingProviders := CalculateWaste(candidates,
+		findCandidateByID(candidates, winnerProviderID),
+		costPerTokenUSD,
+	)
+
+	// Record costs in accounting system
+	err := sr.costAccounting.RecordSpeculativeRequest(
+		ctx,
+		tenantID,
+		winnerProviderID,
+		winnerTokens,
+		winnerCostUSD,
+		losingProviders,
+	)
+
+	if err != nil {
+		log.Printf("[SpeculativeRouter] Failed to record costs: %v", err)
+		return err
+	}
+
+	// Update metadata with cost info
+	var wastedCost float64
+	var wastedTokens int
+	for _, waste := range losingProviders {
+		wastedCost += waste.CostWastedUSD
+		wastedTokens += waste.TokensWasted
+	}
+
+	metadata.SpeculativeCostUSD = wastedCost
+	metadata.WastedTokens = wastedTokens
+
+	return nil
+}
+
+// Helper: find candidate by ID
+func findCandidateByID(candidates []*ProviderCandidate, providerID string) *ProviderCandidate {
+	for _, c := range candidates {
+		if c.ProviderID == providerID {
+			return c
+		}
+	}
+	return nil
 }
 
 // Helper functions
