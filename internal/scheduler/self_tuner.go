@@ -177,7 +177,7 @@ func (st *SelfTuner) optimizeClassWeights(ctx context.Context, class string) (*T
 	}
 
 	// Get current weights
-	oldWeights := st.rewardEngine.getWeights(class)
+	oldWeights := st.rewardEngine.GetWeights(class)
 
 	// Calculate correlation matrix
 	correlationMatrix := st.calculateCorrelationMatrix(data)
@@ -277,7 +277,7 @@ func (st *SelfTuner) pearsonCorrelation(x, y []float64) float64 {
 		return 0.0
 	}
 
-	n := float64(len(x))
+	_ = float64(len(x)) // n - unused for now
 
 	// Calculate means
 	meanX := st.mean(x)

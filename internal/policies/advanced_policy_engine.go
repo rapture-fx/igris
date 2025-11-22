@@ -18,28 +18,28 @@ import (
 )
 
 // PolicyEngine manages versioned routing policies with hot reload support
-type PolicyEngine struct {
+type AdvancedPolicyEngine struct {
 	db          *sql.DB
 	redis       *redis.Client
 	mu          sync.RWMutex
-	activePolicy map[string]*TenantPolicy // tenantID -> active policy
+	activePolicy map[string]*AdvancedTenantPolicy // tenantID -> active policy
 	cachePrefix  string
 }
 
-// TenantPolicy represents a tenant's routing policy
-type TenantPolicy struct {
+// AdvancedTenantPolicy represents a tenant's routing policy
+type AdvancedTenantPolicy struct {
 	ID              string
 	TenantID        string
 	Version         string
 	PolicyHash      string
-	Content         *PolicyContent
+	Content         *AdvancedPolicyContent
 	Status          string
 	ActivatedAt     time.Time
 	CreatedAt       time.Time
 }
 
-// PolicyContent represents the parsed YAML policy structure (DSL v2)
-type PolicyContent struct {
+// AdvancedPolicyContent represents the parsed YAML policy structure (DSL v2)
+type AdvancedPolicyContent struct {
 	Version     string                 `yaml:"version" json:"version"`
 	RetryChain  []string               `yaml:"retry_chain" json:"retry_chain"`
 	Weights     map[string]float64     `yaml:"weights" json:"weights"`
@@ -81,21 +81,21 @@ type PolicyVersion struct {
 }
 
 // NewPolicyEngine creates a new policy engine
-func NewPolicyEngine(db *sql.DB, redis *redis.Client) *PolicyEngine {
-	return &PolicyEngine{
+func NewAdvancedPolicyEngine(db *sql.DB, redis *redis.Client) *AdvancedPolicyEngine {
+	return &AdvancedPolicyEngine{
 		db:           db,
 		redis:        redis,
-		activePolicy: make(map[string]*TenantPolicy),
+		activePolicy: make(map[string]*AdvancedTenantPolicy),
 		cachePrefix:  "schlep:policy:v2:",
 	}
 }
 
 // LoadPolicy loads and activates a policy from YAML
-func (pe *PolicyEngine) LoadPolicy(ctx context.Context, tenantID, policyYAML, version, createdBy string) (*TenantPolicy, error) {
+func (pe *AdvancedPolicyEngine) LoadPolicy(ctx context.Context, tenantID, policyYAML, version, createdBy string) (*AdvancedTenantPolicy, error) {
 	startTime := time.Now()
 
 	// Parse YAML
-	var content PolicyContent
+	var content AdvancedPolicyContent
 	if err := yaml.Unmarshal([]byte(policyYAML), &content); err != nil {
 		observability.RecordPolicyReload(tenantID, 0, false)
 		return nil, fmt.Errorf("failed to parse policy YAML: %w", err)
@@ -142,7 +142,7 @@ func (pe *PolicyEngine) LoadPolicy(ctx context.Context, tenantID, policyYAML, ve
 		return nil, fmt.Errorf("failed to store policy: %w", err)
 	}
 
-	policy := &TenantPolicy{
+	policy := &AdvancedTenantPolicy{
 		ID:         policyID,
 		TenantID:   tenantID,
 		Version:    version,
@@ -166,7 +166,7 @@ func (pe *PolicyEngine) LoadPolicy(ctx context.Context, tenantID, policyYAML, ve
 }
 
 // ActivatePolicy activates a policy version for a tenant
-func (pe *PolicyEngine) ActivatePolicy(ctx context.Context, policyID string) error {
+func (pe *AdvancedPolicyEngine) ActivatePolicy(ctx context.Context, policyID string) error {
 	startTime := time.Now()
 
 	// Call database stored procedure to activate policy
@@ -209,7 +209,7 @@ func (pe *PolicyEngine) ActivatePolicy(ctx context.Context, policyID string) err
 }
 
 // GetActivePolicy retrieves the active policy for a tenant
-func (pe *PolicyEngine) GetActivePolicy(ctx context.Context, tenantID string) (*TenantPolicy, error) {
+func (pe *AdvancedPolicyEngine) GetActivePolicy(ctx context.Context, tenantID string) (*AdvancedTenantPolicy, error) {
 	// Check in-memory cache first
 	pe.mu.RLock()
 	policy, exists := pe.activePolicy[tenantID]
@@ -245,7 +245,7 @@ func (pe *PolicyEngine) GetActivePolicy(ctx context.Context, tenantID string) (*
 }
 
 // loadActivePolicy loads the active policy from the database
-func (pe *PolicyEngine) loadActivePolicy(ctx context.Context, tenantID string) (*TenantPolicy, error) {
+func (pe *AdvancedPolicyEngine) loadActivePolicy(ctx context.Context, tenantID string) (*AdvancedTenantPolicy, error) {
 	query := `
 		SELECT
 			id, tenant_id, version, policy_hash, policy_content::TEXT,
@@ -255,7 +255,7 @@ func (pe *PolicyEngine) loadActivePolicy(ctx context.Context, tenantID string) (
 		LIMIT 1
 	`
 
-	var policy TenantPolicy
+	var policy AdvancedTenantPolicy
 	var contentJSON string
 	var activatedAt sql.NullTime
 
@@ -282,7 +282,7 @@ func (pe *PolicyEngine) loadActivePolicy(ctx context.Context, tenantID string) (
 	}
 
 	// Parse policy content
-	var content PolicyContent
+	var content AdvancedPolicyContent
 	if err := json.Unmarshal([]byte(contentJSON), &content); err != nil {
 		return nil, fmt.Errorf("failed to parse policy content: %w", err)
 	}
@@ -293,7 +293,7 @@ func (pe *PolicyEngine) loadActivePolicy(ctx context.Context, tenantID string) (
 }
 
 // loadPolicyByID loads a policy by its ID
-func (pe *PolicyEngine) loadPolicyByID(ctx context.Context, policyID string) (*TenantPolicy, error) {
+func (pe *AdvancedPolicyEngine) loadPolicyByID(ctx context.Context, policyID string) (*AdvancedTenantPolicy, error) {
 	query := `
 		SELECT
 			id, tenant_id, version, policy_hash, policy_content::TEXT,
@@ -303,7 +303,7 @@ func (pe *PolicyEngine) loadPolicyByID(ctx context.Context, policyID string) (*T
 		LIMIT 1
 	`
 
-	var policy TenantPolicy
+	var policy AdvancedTenantPolicy
 	var contentJSON string
 	var activatedAt sql.NullTime
 
@@ -327,7 +327,7 @@ func (pe *PolicyEngine) loadPolicyByID(ctx context.Context, policyID string) (*T
 	}
 
 	// Parse policy content
-	var content PolicyContent
+	var content AdvancedPolicyContent
 	if err := json.Unmarshal([]byte(contentJSON), &content); err != nil {
 		return nil, fmt.Errorf("failed to parse policy content: %w", err)
 	}
@@ -338,7 +338,7 @@ func (pe *PolicyEngine) loadPolicyByID(ctx context.Context, policyID string) (*T
 }
 
 // cachePolicy stores a policy in Redis
-func (pe *PolicyEngine) cachePolicy(ctx context.Context, policy *TenantPolicy) error {
+func (pe *AdvancedPolicyEngine) cachePolicy(ctx context.Context, policy *AdvancedTenantPolicy) error {
 	key := pe.cachePrefix + policy.TenantID
 
 	data, err := json.Marshal(policy)
@@ -350,7 +350,7 @@ func (pe *PolicyEngine) cachePolicy(ctx context.Context, policy *TenantPolicy) e
 }
 
 // getCachedPolicy retrieves a policy from Redis
-func (pe *PolicyEngine) getCachedPolicy(ctx context.Context, tenantID string) (*TenantPolicy, error) {
+func (pe *AdvancedPolicyEngine) getCachedPolicy(ctx context.Context, tenantID string) (*AdvancedTenantPolicy, error) {
 	key := pe.cachePrefix + tenantID
 
 	data, err := pe.redis.Get(ctx, key).Bytes()
@@ -361,7 +361,7 @@ func (pe *PolicyEngine) getCachedPolicy(ctx context.Context, tenantID string) (*
 		return nil, err
 	}
 
-	var policy TenantPolicy
+	var policy AdvancedTenantPolicy
 	if err := json.Unmarshal(data, &policy); err != nil {
 		return nil, err
 	}
@@ -370,7 +370,7 @@ func (pe *PolicyEngine) getCachedPolicy(ctx context.Context, tenantID string) (*
 }
 
 // validatePolicy validates policy content
-func (pe *PolicyEngine) validatePolicy(content *PolicyContent) error {
+func (pe *AdvancedPolicyEngine) validatePolicy(content *AdvancedPolicyContent) error {
 	// Validate weights sum to 1.0 if provided
 	if len(content.Weights) > 0 {
 		sum := 0.0
@@ -420,13 +420,13 @@ func isValidTimeFormat(timeStr string) bool {
 }
 
 // hashPolicy generates a SHA-256 hash of the policy YAML
-func (pe *PolicyEngine) hashPolicy(policyYAML string) string {
+func (pe *AdvancedPolicyEngine) hashPolicy(policyYAML string) string {
 	hash := sha256.Sum256([]byte(policyYAML))
 	return hex.EncodeToString(hash[:])
 }
 
 // EvaluatePolicy evaluates a policy for a given routing context
-func (pe *PolicyEngine) EvaluatePolicy(ctx context.Context, tenantID string, context *RoutingContext) (*PolicyDecision, error) {
+func (pe *AdvancedPolicyEngine) EvaluatePolicy(ctx context.Context, tenantID string, context *RoutingContext) (*PolicyDecision, error) {
 	policy, err := pe.GetActivePolicy(ctx, tenantID)
 	if err != nil {
 		return nil, err
@@ -513,7 +513,7 @@ type PolicyDecision struct {
 }
 
 // InvalidateCache invalidates the policy cache for a tenant
-func (pe *PolicyEngine) InvalidateCache(ctx context.Context, tenantID string) error {
+func (pe *AdvancedPolicyEngine) InvalidateCache(ctx context.Context, tenantID string) error {
 	// Remove from in-memory cache
 	pe.mu.Lock()
 	delete(pe.activePolicy, tenantID)
@@ -525,7 +525,7 @@ func (pe *PolicyEngine) InvalidateCache(ctx context.Context, tenantID string) er
 }
 
 // ListVersions lists all policy versions for a tenant
-func (pe *PolicyEngine) ListVersions(ctx context.Context, tenantID string, limit int) ([]*PolicyVersion, error) {
+func (pe *AdvancedPolicyEngine) ListVersions(ctx context.Context, tenantID string, limit int) ([]*PolicyVersion, error) {
 	query := `
 		SELECT
 			id, tenant_id, version, policy_hash, status, is_active,

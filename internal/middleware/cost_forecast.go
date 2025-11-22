@@ -57,11 +57,8 @@ func (m *CostForecastMiddleware) Handler() fiber.Handler {
 		// Extract provider and model
 		provider := c.Locals("provider")
 		if provider == nil {
-			// Try to get from request or default to "openai"
-			provider = req.Provider
-			if provider == "" {
-				provider = "openai"
-			}
+			// Default to "openai" - provider field removed from request
+			provider = "openai"
 		}
 
 		model := req.Model

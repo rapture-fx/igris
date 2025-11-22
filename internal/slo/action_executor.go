@@ -2,7 +2,6 @@
 package slo
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"strings"
@@ -225,4 +224,14 @@ func (m *MockK8sScaler) ScaleDeployment(name string, replicas int) error {
 	}
 	log.Printf("[MOCK] Kubernetes scaling %s for %s by %d replicas", action, name, replicas)
 	return nil
+}
+
+// NewActionExecutor creates a new action executor with mock controllers (for development/testing)
+func NewActionExecutor(auditLogger *AuditLogger) ActionExecutor {
+	return NewDefaultActionExecutor(
+		&MockCircuitBreaker{},
+		&MockThompsonSampling{},
+		&MockK8sScaler{},
+		auditLogger,
+	)
 }

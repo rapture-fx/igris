@@ -663,8 +663,8 @@ func (kv *KeyVault) ValidateKey(tenantID, provider string) (bool, error) {
 		}
 	} else {
 		// Update in-memory
-		encKey.IsValid = &isValid
 		now := time.Now()
+		encKey.IsValid = &isValid
 		encKey.LastValidated = &now
 	}
 
@@ -760,7 +760,6 @@ func (kv *KeyVault) ExpireKey(tenantID, provider, keyName, expiredBy string) err
 	}
 
 	key.IsActive = false
-	now := time.Now()
 	// Note: EncryptedKey struct doesn't have ExpiresAt, would need to add it
 	// For now, just deactivate
 

@@ -2,7 +2,6 @@
 package api
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -386,6 +385,6 @@ func (h *KeyVaultHandler) HandleDeleteKey(w http.ResponseWriter, r *http.Request
 // respondJSON writes a JSON response
 func respondJSON(w http.ResponseWriter, statusCode int, data interface{}) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteStatus(statusCode)
+	w.WriteHeader(statusCode)
 	json.NewEncoder(w).Encode(data)
 }

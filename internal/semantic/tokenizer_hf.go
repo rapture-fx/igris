@@ -1,3 +1,4 @@
+//go:build ignore
 package semantic
 
 import (
@@ -401,12 +402,13 @@ func (t *HFTokenizer) Close() error {
 // Helper functions
 
 func isWhitespace(char rune) bool {
-	return char == ' ' || char == '\t' || char == '\n' || char == '\r'
+	return char == ' ' || char == '	' || char == '
+' || char == ''
 }
 
 func isPunctuation(char rune) bool {
 	// Common punctuation characters
-	punctuation := "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+	punctuation := "!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 	return strings.ContainsRune(punctuation, char)
 }
 

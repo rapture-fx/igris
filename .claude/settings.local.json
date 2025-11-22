@@ -24,7 +24,8 @@
       "Bash(mkdir:*)",
       "Bash(go test:*)",
       "Bash(lsof:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(/dev/null go build -o bin/schlep-engine-api ./cmd/schlep-engine-api)"
     ],
     "deny": [],
     "ask": []

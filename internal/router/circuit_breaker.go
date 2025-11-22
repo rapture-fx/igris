@@ -8,7 +8,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 )
 
@@ -502,17 +501,5 @@ func (cbm *CircuitBreakerManager) GetOrCreate(name string, config CircuitBreaker
 	return cb
 }
 
-// Prometheus metrics
-var (
-	circuitBreakerStateGauge = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "circuit_breaker_state",
-			Help: "Circuit breaker state (0=closed, 1=open, 2=half-open)",
-		},
-		[]string{"name", "state"},
-	)
-)
-
-func init() {
-	prometheus.MustRegister(circuitBreakerStateGauge)
-}
+// Prometheus metrics are defined in internal/observability package
+// to avoid duplicate registration conflicts

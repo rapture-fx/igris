@@ -89,7 +89,7 @@ func (re *RewardEngine) CalculateCompositeReward(
 	success bool,
 	semanticClass string,
 ) CompositeReward {
-	weights := re.getWeights(semanticClass)
+	weights := re.GetWeights(semanticClass)
 
 	// Calculate individual components (normalized 0-1)
 	latencyScore := re.normalizeLatency(float64(latencyMs))
@@ -255,7 +255,7 @@ func (re *RewardEngine) GetBanditArm(ctx context.Context, providerID, semanticCl
 				SemanticClass: semanticClass,
 				Alpha:         1.0,
 				Beta:          1.0,
-				Weights:       re.getWeights(semanticClass),
+				Weights:       re.GetWeights(semanticClass),
 			}, nil
 		}
 		return nil, fmt.Errorf("failed to get bandit arm: %w", err)
@@ -435,8 +435,8 @@ func (re *RewardEngine) SetWeights(semanticClass string, weights RewardWeights) 
 	return nil
 }
 
-// getWeights retrieves the weights for a semantic class
-func (re *RewardEngine) getWeights(semanticClass string) RewardWeights {
+// GetWeights retrieves the weights for a semantic class
+func (re *RewardEngine) GetWeights(semanticClass string) RewardWeights {
 	re.mu.RLock()
 	defer re.mu.RUnlock()
 
