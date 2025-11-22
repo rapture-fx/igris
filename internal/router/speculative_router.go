@@ -62,7 +62,7 @@ type SpeculativeResult struct {
 
 // RouteSpeculative performs speculative execution across multiple providers
 // It selects N providers using the AdaptiveRouter, races them in parallel,
-// and returns the fastest responding stream.
+// and returns the fastest responding stream with mid-stream fallback capability.
 func (sr *SpeculativeRouter) RouteSpeculative(
 	ctx context.Context,
 	req *models.InferRequest,
@@ -105,24 +105,31 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 		return nil, nil, nil, fmt.Errorf("race failed: %w", err)
 	}
 
-	// Step 4: Cancel all losing providers immediately
-	sr.cancelLosingCandidates(candidates, winner)
+	// Step 4: DO NOT cancel losing providers yet - keep them as fallbacks
+	// (They will be cancelled when stream merger stops or switches away)
+	log.Printf("[SpeculativeRouter] Keeping %d fallback providers alive for mid-stream switching",
+		len(candidates)-1)
 
-	// Step 5: Calculate metadata
+	// Step 5: Create stream merger for seamless delivery with fallback
+	merger := NewStreamMerger(ctx, winner, candidates)
+	mergedTokenChan, mergedErrChan := merger.Start()
+
+	// Step 6: Calculate initial metadata
 	firstTokenLatency := winner.FirstTokenAt.Sub(raceStart)
 	metadata := &SpeculativeMetadata{
 		ProvidersUsed:     getCandidateIDs(candidates),
 		WinnerProvider:    winner.ProviderID,
-		SwitchTokenNumber: 1, // In PR#1, we switch on first token
+		SwitchTokenNumber: 1, // Initial selection (not a mid-stream switch)
 		LatencySavedMs:    firstTokenLatency.Milliseconds(),
 		RaceStartTime:     raceStart,
 		FirstTokenTime:    winner.FirstTokenAt,
+		StreamMerger:      merger, // Store merger for later metadata retrieval
 	}
 
 	log.Printf("[SpeculativeRouter] Winner: %s (first token after %dms)", winner.ProviderID, firstTokenLatency.Milliseconds())
 
-	// Step 6: Return winner's stream channels and metadata
-	return winner.TokenChan, winner.ErrChan, metadata, nil
+	// Step 7: Return merged stream channels and metadata
+	return mergedTokenChan, mergedErrChan, metadata, nil
 }
 
 // selectCandidates uses the AdaptiveRouter to select N provider candidates
@@ -346,14 +353,35 @@ func (sr *SpeculativeRouter) cancelLosingCandidates(candidates []*ProviderCandid
 
 // SpeculativeMetadata contains metadata about the speculative execution
 type SpeculativeMetadata struct {
-	ProvidersUsed      []string  `json:"speculative_providers_used"`
-	WinnerProvider     string    `json:"winner_provider"`
-	SwitchTokenNumber  int       `json:"switch_token_number"`
-	LatencySavedMs     int64     `json:"latency_saved_ms"`
-	SpeculativeCostUSD float64   `json:"speculative_cost_usd,omitempty"`
-	WastedTokens       int       `json:"wasted_tokens,omitempty"`
-	RaceStartTime      time.Time `json:"race_start_time"`
-	FirstTokenTime     time.Time `json:"first_token_time"`
+	ProvidersUsed      []string         `json:"speculative_providers_used"`
+	WinnerProvider     string           `json:"winner_provider"`
+	SwitchTokenNumber  int              `json:"switch_token_number"`
+	LatencySavedMs     int64            `json:"latency_saved_ms"`
+	SpeculativeCostUSD float64          `json:"speculative_cost_usd,omitempty"`
+	WastedTokens       int              `json:"wasted_tokens,omitempty"`
+	RaceStartTime      time.Time        `json:"race_start_time"`
+	FirstTokenTime     time.Time        `json:"first_token_time"`
+
+	// PR#2: Stream merger metadata
+	StreamMerger       *StreamMerger    `json:"-"` // Internal, not serialized
+	MidStreamSwitch    bool             `json:"mid_stream_switch,omitempty"`
+	FinalProvider      string           `json:"final_provider,omitempty"`
+	TotalTokens        int              `json:"total_tokens,omitempty"`
+}
+
+// GetFinalMetadata retrieves complete metadata including stream merger stats
+// Call this after the stream has completed
+func (sm *SpeculativeMetadata) GetFinalMetadata() *SpeculativeMetadata {
+	if sm.StreamMerger != nil {
+		mergerMeta := sm.StreamMerger.GetMetadata()
+		sm.MidStreamSwitch = mergerMeta.SwitchOccurred
+		sm.FinalProvider = mergerMeta.FinalProvider
+		sm.TotalTokens = mergerMeta.TokensDelivered
+		if mergerMeta.SwitchOccurred {
+			sm.SwitchTokenNumber = mergerMeta.SwitchTokenNumber
+		}
+	}
+	return sm
 }
 
 // Helper functions
