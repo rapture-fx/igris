@@ -9,6 +9,7 @@ import (
 
 	"github.com/schlep-engine/schlep-engine/internal/config"
 	"github.com/schlep-engine/schlep-engine/internal/models"
+	"github.com/schlep-engine/schlep-engine/internal/observability"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
 )
 
@@ -68,6 +69,10 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 	req *models.InferRequest,
 	mode config.SpeculativeMode,
 ) (<-chan *models.StreamChunk, <-chan error, *SpeculativeMetadata, error) {
+	// Start OpenTelemetry span for the speculative race
+	ctx, span := observability.StartSpan(ctx, "speculative_race")
+	defer span.End()
+
 	// Validate mode
 	if mode == config.SpeculativeModeOff {
 		return nil, nil, nil, fmt.Errorf("speculative mode is disabled")
@@ -92,9 +97,18 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 
 	log.Printf("[SpeculativeRouter] Racing %d providers: %v", len(candidates), getCandidateIDs(candidates))
 
-	// Step 2: Launch all providers in parallel with cancellation contexts
-	for _, candidate := range candidates {
-		go sr.executeProvider(candidate, req)
+	// Step 2: Launch all providers in parallel with cancellation contexts and create child spans
+	for i, candidate := range candidates {
+		// Create child span for each provider
+		providerCtx, providerSpan := observability.StartSpan(candidate.Context, fmt.Sprintf("provider_%s_attempt", candidate.ProviderID))
+		observability.AddSpeculativeAttributes(providerCtx, string(mode), candidate.ProviderID, i+1)
+		candidate.Context = providerCtx
+
+		// Store span for later cleanup
+		go func(c *ProviderCandidate, span any) {
+			sr.executeProvider(c, req)
+			// Span will be ended when provider finishes or is cancelled
+		}(candidate, providerSpan)
 	}
 
 	// Step 3: Wait for early tokens from all providers (or timeout)
@@ -157,6 +171,49 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 
 	log.Printf("[SpeculativeRouter] Winner: %s (first token after %dms, composite score: %.3f)",
 		winner.ProviderID, firstTokenLatency.Milliseconds(), winnerScore.CompositeScore)
+
+	// Record Prometheus metrics for all candidates
+	tenantID := "default" // TODO: Extract from context
+	for _, score := range scores {
+		result := "loser"
+		if score.ProviderID == winner.ProviderID {
+			result = "winner"
+			observability.MarkSpanAsWinner(ctx, true)
+		}
+
+		// Record race latency
+		observability.RecordSpeculativeProviderRace(
+			score.ProviderID,
+			string(mode),
+			result,
+			score.FirstTokenLatency.Milliseconds(),
+		)
+
+		// Record quality scores
+		observability.RecordSpeculativeQualityScore(score.ProviderID, string(mode), "latency", score.LatencyScore)
+		observability.RecordSpeculativeQualityScore(score.ProviderID, string(mode), "quality", score.QualityScore)
+		observability.RecordSpeculativeQualityScore(score.ProviderID, string(mode), "cost", score.CostScore)
+		observability.RecordSpeculativeQualityScore(score.ProviderID, string(mode), "composite", score.CompositeScore)
+
+		// Add quality scores to trace
+		if score.ProviderID == winner.ProviderID {
+			observability.AddQualityScoreAttributes(ctx,
+				score.LatencyScore,
+				score.QualityScore,
+				score.CostScore,
+				score.CompositeScore,
+			)
+		}
+	}
+
+	// Record overall speculative request metrics
+	observability.RecordSpeculativeRequest(
+		string(mode),
+		winner.ProviderID,
+		tenantID,
+		firstTokenLatency.Milliseconds(),
+		len(candidates),
+	)
 
 	// Step 7: Return merged stream channels and metadata
 	return mergedTokenChan, mergedErrChan, metadata, nil

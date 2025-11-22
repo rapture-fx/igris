@@ -993,6 +993,168 @@ func RecordCompositeRewardWeights(class string, latencyWeight, costWeight, succe
 	schlepCompositeRewardWeights.WithLabelValues("success", class).Set(successWeight)
 }
 
+// Phase 5: Speculative Execution Metrics
+
+var (
+	// Speculative request metrics
+	speculativeRequestsTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "speculative_requests_total",
+			Help: "Total number of speculative execution requests",
+		},
+		[]string{"mode", "winner_provider", "tenant_id"},
+	)
+
+	speculativeLatencySaved = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "speculative_latency_saved_seconds",
+			Help:    "Latency saved by speculative execution in seconds",
+			Buckets: []float64{0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0},
+		},
+		[]string{"mode", "tenant_id"},
+	)
+
+	speculativeSwitchesTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "speculative_switches_total",
+			Help: "Total number of mid-stream provider switches",
+		},
+		[]string{"reason", "from_provider", "to_provider", "tenant_id"},
+	)
+
+	speculativeTokensWasted = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "speculative_tokens_wasted_total",
+			Help: "Total number of tokens wasted in speculative execution (from losing providers)",
+		},
+		[]string{"provider", "tenant_id"},
+	)
+
+	speculativeProviderRaceLatency = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "speculative_provider_race_latency_ms",
+			Help:    "Time to first token per provider in speculative race (milliseconds)",
+			Buckets: []float64{50, 100, 200, 500, 1000, 2000, 5000, 10000},
+		},
+		[]string{"provider", "mode", "result"}, // result: winner/loser
+	)
+
+	speculativeQualityScore = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "speculative_quality_score",
+			Help:    "Quality score of providers in speculative race (0-1)",
+			Buckets: []float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0},
+		},
+		[]string{"provider", "mode", "score_type"}, // score_type: latency/quality/cost/composite
+	)
+
+	speculativeCostWastedUSD = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "speculative_cost_wasted_usd_total",
+			Help: "Total cost wasted in USD from losing providers in speculative execution",
+		},
+		[]string{"provider", "tenant_id"},
+	)
+
+	speculativeProvidersRaced = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "speculative_providers_raced",
+			Help:    "Number of providers raced in speculative execution",
+			Buckets: []float64{2, 3, 4},
+		},
+		[]string{"mode", "tenant_id"},
+	)
+
+	speculativeRaceTimeoutTotal = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "speculative_race_timeout_total",
+			Help: "Total number of speculative races that timed out",
+		},
+		[]string{"mode", "tenant_id"},
+	)
+
+	speculativeFallbackBufferSize = promauto.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "speculative_fallback_buffer_size",
+			Help: "Current size of fallback provider token buffers",
+		},
+		[]string{"provider", "tenant_id"},
+	)
+
+	speculativeStreamDuration = promauto.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "speculative_stream_duration_seconds",
+			Help:    "Total duration of speculative streams including any mid-stream switches",
+			Buckets: []float64{1, 5, 10, 30, 60, 120, 300},
+		},
+		[]string{"mode", "final_provider", "switched", "tenant_id"}, // switched: true/false
+	)
+
+	speculativeCandidateFailures = promauto.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "speculative_candidate_failures_total",
+			Help: "Total number of provider failures during speculative races",
+		},
+		[]string{"provider", "failure_reason", "tenant_id"},
+	)
+)
+
+// RecordSpeculativeRequest records a speculative execution request
+func RecordSpeculativeRequest(mode, winnerProvider, tenantID string, latencySavedMs int64, providersRaced int) {
+	speculativeRequestsTotal.WithLabelValues(mode, winnerProvider, tenantID).Inc()
+	speculativeLatencySaved.WithLabelValues(mode, tenantID).Observe(float64(latencySavedMs) / 1000.0)
+	speculativeProvidersRaced.WithLabelValues(mode, tenantID).Observe(float64(providersRaced))
+}
+
+// RecordSpeculativeSwitch records a mid-stream provider switch
+func RecordSpeculativeSwitch(reason, fromProvider, toProvider, tenantID string) {
+	speculativeSwitchesTotal.WithLabelValues(reason, fromProvider, toProvider, tenantID).Inc()
+}
+
+// RecordSpeculativeTokensWasted records wasted tokens from losing providers
+func RecordSpeculativeTokensWasted(provider, tenantID string, tokensWasted int) {
+	speculativeTokensWasted.WithLabelValues(provider, tenantID).Add(float64(tokensWasted))
+}
+
+// RecordSpeculativeProviderRace records provider race metrics
+func RecordSpeculativeProviderRace(provider, mode, result string, firstTokenLatencyMs int64) {
+	speculativeProviderRaceLatency.WithLabelValues(provider, mode, result).Observe(float64(firstTokenLatencyMs))
+}
+
+// RecordSpeculativeQualityScore records quality scores from speculative race
+func RecordSpeculativeQualityScore(provider, mode, scoreType string, score float64) {
+	speculativeQualityScore.WithLabelValues(provider, mode, scoreType).Observe(score)
+}
+
+// RecordSpeculativeCostWasted records cost wasted from losing providers
+func RecordSpeculativeCostWasted(provider, tenantID string, costWastedUSD float64) {
+	speculativeCostWastedUSD.WithLabelValues(provider, tenantID).Add(costWastedUSD)
+}
+
+// RecordSpeculativeRaceTimeout records when a race times out
+func RecordSpeculativeRaceTimeout(mode, tenantID string) {
+	speculativeRaceTimeoutTotal.WithLabelValues(mode, tenantID).Inc()
+}
+
+// RecordSpeculativeFallbackBuffer records fallback buffer size
+func RecordSpeculativeFallbackBuffer(provider, tenantID string, bufferSize int) {
+	speculativeFallbackBufferSize.WithLabelValues(provider, tenantID).Set(float64(bufferSize))
+}
+
+// RecordSpeculativeStreamDuration records total stream duration
+func RecordSpeculativeStreamDuration(mode, finalProvider, tenantID string, switched bool, durationMs int64) {
+	switchedStr := "false"
+	if switched {
+		switchedStr = "true"
+	}
+	speculativeStreamDuration.WithLabelValues(mode, finalProvider, switchedStr, tenantID).Observe(float64(durationMs) / 1000.0)
+}
+
+// RecordSpeculativeCandidateFailure records a provider failure during race
+func RecordSpeculativeCandidateFailure(provider, failureReason, tenantID string) {
+	speculativeCandidateFailures.WithLabelValues(provider, failureReason, tenantID).Inc()
+}
+
 // Phase 4: Adaptive Governance Functions
 
 // RecordPolicyVersionActive marks a policy version as active

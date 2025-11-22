@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/schlep-engine/schlep-engine/internal/models"
+	"github.com/schlep-engine/schlep-engine/internal/observability"
 )
 
 // StreamMerger handles seamless token delivery from a winning provider with
@@ -181,6 +182,15 @@ func (sm *StreamMerger) attemptFallback() bool {
 	log.Printf("[StreamMerger] Switching from %s to %s at token %d (fallback has %d buffered tokens)",
 		oldProvider, bestFallback.ProviderID, sm.switchTokenNumber, maxTokens)
 
+	// Record mid-stream switch metrics
+	tenantID := "default" // TODO: Extract from context
+	observability.RecordSpeculativeSwitch("provider_failure", oldProvider, bestFallback.ProviderID, tenantID)
+
+	// Add switch metadata to trace
+	if ctx := sm.ctx; ctx != nil {
+		observability.AddSwitchMetadata(ctx, true, sm.switchTokenNumber, oldProvider, bestFallback.ProviderID)
+	}
+
 	return true
 }
 
@@ -225,6 +235,10 @@ func (sm *StreamMerger) bufferCandidate(candidate *ProviderCandidate) {
 			sm.candidateBuffers[candidateID] = append(sm.candidateBuffers[candidateID], chunk)
 			bufferSize := len(sm.candidateBuffers[candidateID])
 			sm.bufferMu.Unlock()
+
+			// Record buffer size metrics
+			tenantID := "default" // TODO: Extract from context
+			observability.RecordSpeculativeFallbackBuffer(candidateID, tenantID, bufferSize)
 
 			// Log buffer growth periodically
 			if bufferSize%10 == 0 {
