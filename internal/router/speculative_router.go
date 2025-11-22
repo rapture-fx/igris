@@ -97,12 +97,36 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 		go sr.executeProvider(candidate, req)
 	}
 
-	// Step 3: Wait for first token from any provider (or timeout)
-	winner, err := sr.waitForFirstToken(candidates, sr.config.FirstTokenTimeout)
+	// Step 3: Wait for early tokens from all providers (or timeout)
+	readyCandidates, err := sr.waitForEarlyTokens(candidates, sr.config.FirstTokenTimeout, mode)
 	if err != nil {
 		// Cancel all providers on failure
 		sr.cancelAllCandidates(candidates)
 		return nil, nil, nil, fmt.Errorf("race failed: %w", err)
+	}
+
+	// Step 3b: Use quality scorer to select the best provider
+	qualityScorer := NewQualityScorer(sr.config, mode)
+	scores := qualityScorer.ScoreCandidates(readyCandidates)
+	winnerScore := qualityScorer.SelectWinner(scores)
+
+	if winnerScore == nil {
+		sr.cancelAllCandidates(candidates)
+		return nil, nil, nil, fmt.Errorf("no winner selected from candidates")
+	}
+
+	// Find the winner candidate
+	var winner *ProviderCandidate
+	for _, candidate := range readyCandidates {
+		if candidate.ProviderID == winnerScore.ProviderID {
+			winner = candidate
+			break
+		}
+	}
+
+	if winner == nil {
+		sr.cancelAllCandidates(candidates)
+		return nil, nil, nil, fmt.Errorf("winner candidate not found: %s", winnerScore.ProviderID)
 	}
 
 	// Step 4: DO NOT cancel losing providers yet - keep them as fallbacks
@@ -114,7 +138,7 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 	merger := NewStreamMerger(ctx, winner, candidates)
 	mergedTokenChan, mergedErrChan := merger.Start()
 
-	// Step 6: Calculate initial metadata
+	// Step 6: Calculate initial metadata with quality scoring results
 	firstTokenLatency := winner.FirstTokenAt.Sub(raceStart)
 	metadata := &SpeculativeMetadata{
 		ProvidersUsed:     getCandidateIDs(candidates),
@@ -124,9 +148,15 @@ func (sr *SpeculativeRouter) RouteSpeculative(
 		RaceStartTime:     raceStart,
 		FirstTokenTime:    winner.FirstTokenAt,
 		StreamMerger:      merger, // Store merger for later metadata retrieval
+
+		// Quality scoring metadata
+		QualityScore:      winnerScore.QualityScore,
+		CompositeScore:    winnerScore.CompositeScore,
+		SelectionCriteria: string(mode),
 	}
 
-	log.Printf("[SpeculativeRouter] Winner: %s (first token after %dms)", winner.ProviderID, firstTokenLatency.Milliseconds())
+	log.Printf("[SpeculativeRouter] Winner: %s (first token after %dms, composite score: %.3f)",
+		winner.ProviderID, firstTokenLatency.Milliseconds(), winnerScore.CompositeScore)
 
 	// Step 7: Return merged stream channels and metadata
 	return mergedTokenChan, mergedErrChan, metadata, nil
@@ -234,6 +264,50 @@ func (sr *SpeculativeRouter) executeProvider(candidate *ProviderCandidate, req *
 			return
 		}
 	}
+}
+
+// waitForEarlyTokens waits for early tokens from candidates for quality evaluation
+func (sr *SpeculativeRouter) waitForEarlyTokens(
+	candidates []*ProviderCandidate,
+	timeout time.Duration,
+	mode config.SpeculativeMode,
+) ([]*ProviderCandidate, error) {
+	// In latency mode, select winner on first token
+	if mode == config.SpeculativeModeLatency {
+		winner, err := sr.waitForFirstToken(candidates, timeout)
+		if err != nil {
+			return nil, err
+		}
+		return []*ProviderCandidate{winner}, nil
+	}
+
+	// For other modes, wait for early tokens from multiple providers
+	earlyTokenTimeout := timeout + (200 * time.Millisecond) // Extra time for quality eval
+	timer := time.NewTimer(earlyTokenTimeout)
+	defer timer.Stop()
+
+	readyCandidates := make([]*ProviderCandidate, 0, len(candidates))
+
+	// Wait for candidates to produce at least 1 token
+	<-time.After(timeout)
+
+	// Check which candidates have tokens
+	for _, candidate := range candidates {
+		candidate.mu.Lock()
+		if candidate.TokenCount > 0 {
+			readyCandidates = append(readyCandidates, candidate)
+		}
+		candidate.mu.Unlock()
+	}
+
+	if len(readyCandidates) == 0 {
+		return nil, fmt.Errorf("no providers produced tokens within timeout")
+	}
+
+	log.Printf("[SpeculativeRouter] %d/%d candidates ready for quality evaluation",
+		len(readyCandidates), len(candidates))
+
+	return readyCandidates, nil
 }
 
 // waitForFirstToken waits for the first token from any candidate or timeout
@@ -367,6 +441,11 @@ type SpeculativeMetadata struct {
 	MidStreamSwitch    bool             `json:"mid_stream_switch,omitempty"`
 	FinalProvider      string           `json:"final_provider,omitempty"`
 	TotalTokens        int              `json:"total_tokens,omitempty"`
+
+	// PR#3: Quality scoring metadata
+	QualityScore       float64          `json:"quality_score,omitempty"`
+	CompositeScore     float64          `json:"composite_score,omitempty"`
+	SelectionCriteria  string           `json:"selection_criteria,omitempty"` // latency|quality|cost|balanced
 }
 
 // GetFinalMetadata retrieves complete metadata including stream merger stats
