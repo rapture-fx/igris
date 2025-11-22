@@ -20,6 +20,7 @@ import (
 	"github.com/schlep-engine/schlep-engine/internal/logging"
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/observability"
+	"github.com/schlep-engine/schlep-engine/internal/orchestration"
 	"github.com/schlep-engine/schlep-engine/internal/policies"
 	"github.com/schlep-engine/schlep-engine/internal/router"
 	"github.com/schlep-engine/schlep-engine/internal/security"
@@ -285,6 +286,25 @@ func main() {
 		}
 	}
 
+	// Initialize Orchestration Layer (Simatic) - gRPC server for distributed routing
+	var orchestrationServer *orchestration.Server
+	enableOrchestration := os.Getenv("ENABLE_ORCHESTRATION") != "false" // Default: enabled
+	if enableOrchestration {
+		grpcPort := os.Getenv("GRPC_PORT")
+		if grpcPort == "" {
+			grpcPort = "50051"
+		}
+
+		orchestrationServer = orchestration.NewServer(grpcPort)
+		if err := orchestrationServer.Start(); err != nil {
+			log.Printf("[Orchestration] ⚠️  Failed to start gRPC server: %v", err)
+		} else {
+			log.Println("[Orchestration] ✅ Simatic Layer initialized successfully")
+			log.Printf("[Orchestration] 🌐 gRPC server listening on port %s", grpcPort)
+			defer orchestrationServer.Stop()
+		}
+	}
+
 	// Phase 3: Initialize health checker with database and Redis
 	version := "1.0.0-rc1"
 	var dbInstance *sql.DB
@@ -338,6 +358,15 @@ func main() {
 			endpoints["slo_audit"] = "/admin/slo/audit"
 		}
 
+		// Add orchestration endpoints if enabled
+		if enableOrchestration && orchestrationServer != nil {
+			grpcPort := os.Getenv("GRPC_PORT")
+			if grpcPort == "" {
+				grpcPort = "50051"
+			}
+			endpoints["grpc"] = "grpc://localhost:" + grpcPort
+		}
+
 		return c.JSON(fiber.Map{
 			"service": "schlep-engine",
 			"version": version,
@@ -348,6 +377,7 @@ func main() {
 				"persistence":        dbEnabled,
 				"cognitive_advisor":  enableCognitiveAdvisor,
 				"slo_enforcer":       enableSLOEnforcer,
+				"simatic_layer":      enableOrchestration,
 			},
 			"endpoints": endpoints,
 		})
