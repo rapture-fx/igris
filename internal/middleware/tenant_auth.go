@@ -31,10 +31,18 @@ const TenantContextKey = "tenant"
 
 // TenantContext holds tenant information extracted from JWT
 type TenantContext struct {
-	TenantID   string
-	TenantName string
-	Roles      []string
-	IsAdmin    bool
+	TenantID          string
+	TenantName        string
+	Roles             []string
+	IsAdmin           bool
+	SpeculativeConfig *TenantSpeculativeConfig // Per-tenant speculative execution config
+}
+
+// TenantSpeculativeConfig holds per-tenant speculative execution configuration
+type TenantSpeculativeConfig struct {
+	Enabled      bool    `json:"enabled"`
+	Mode         string  `json:"mode"` // "off", "latency", "quality", "cost", "balanced"
+	MaxProviders int     `json:"max_providers"`
 }
 
 // NewTenantAuth creates a new tenant authentication middleware
