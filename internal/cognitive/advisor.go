@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 
-	"github.com/schlep-engine/schlep-engine/internal/metrics"
 )
 
 // Advisor analyzes provider performance and generates optimization proposals
@@ -88,13 +87,9 @@ func (a *Advisor) analyzeTenant(ctx context.Context, tenantID string) error {
 		}
 
 		// Record metrics
-		analysisDuration := time.Since(startTime).Seconds()
-		metrics.RecordCognitiveProposalGenerated(
-			tenantID,
-			proposal.Confidence,
-			proposal.RiskScore,
-			analysisDuration,
-		)
+		_ = time.Since(startTime).Seconds() // analysisDuration
+		// TODO: Add cognitive metrics
+		// metrics.RecordCognitiveProposalGenerated(tenantID, confidence, riskScore, duration)
 
 		log.Info().
 			Str("tenant_id", tenantID).

@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/gofiber/adaptor/v2"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -22,6 +23,7 @@ import (
 	"github.com/schlep-engine/schlep-engine/internal/policies"
 	"github.com/schlep-engine/schlep-engine/internal/router"
 	"github.com/schlep-engine/schlep-engine/internal/security"
+	"github.com/schlep-engine/schlep-engine/internal/slo"
 )
 
 func main() {
@@ -175,41 +177,74 @@ func main() {
 
 			// Initialize Cognitive Advisor (v1.2.0 - if enabled)
 			enableCognitiveAdvisor := os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true"
-			if enableCognitiveAdvisor && redisClient != nil {
+			if enableCognitiveAdvisor {
 				log.Println("[CognitiveAdvisor] Initializing Cognitive Layer (v1.2.0)...")
 
-				// Initialize policy engine
-				policyEngine := policies.NewPolicyEngine(db.DB, redisClient)
+				// Initialize Advanced Policy Engine for cognitive layer
+				advancedPolicyEngine := policies.NewAdvancedPolicyEngine(db.DB, redisClient)
 
-				// Initialize semantic router (with nil for now - should be initialized properly in production)
-				// In a production setup, you would initialize the full semantic router with
-				// classifier, bandit engine, etc.
-				var semanticRouter *router.SemanticRouter = nil
-				// semanticRouter = router.NewSemanticRouter(classifier, rewardEngine, adaptiveRouter)
+				// Initialize semantic router (required for cognitive layer)
+				// Note: Semantic router may be disabled - cognitive will work with nil
+				var semanticRouter *router.SemanticRouter
+				// TODO: Initialize semantic router when ONNX issues are fixed
 
-				// Start cognitive worker
-				if policyEngine != nil {
-					ctx := context.Background()
-					cognitiveWorker := cognitive.StartAdvisorWorker(
-						ctx,
-						db.DB,
-						policyEngine,
-						semanticRouter,
-					)
+				// Initialize cognitive worker (creates advisor and applier internally)
+				worker := cognitive.NewWorker(db.DB, advancedPolicyEngine, semanticRouter)
 
-					// Register cognitive API routes
-					api.RegisterCognitiveRoutes(app, cognitiveWorker.GetApplier())
+				// Start cognitive worker (runs every 15 minutes)
+				ctx := context.Background()
+				worker.Start(ctx)
 
-					log.Println("[CognitiveAdvisor] ✅ Cognitive Layer initialized successfully")
-					log.Println("[CognitiveAdvisor] 🧠 AI-powered policy optimization active (15-min cycle)")
+				// Register cognitive admin routes (use worker's applier)
+				api.RegisterCognitiveRoutes(app, worker.GetApplier())
 
-					// Ensure worker is stopped on shutdown
-					defer cognitiveWorker.Stop()
-				} else {
-					log.Println("[CognitiveAdvisor] ⚠️  Policy engine initialization failed")
+				log.Println("[CognitiveAdvisor] ✅ Cognitive Layer initialized successfully")
+				log.Println("[CognitiveAdvisor] 🧠 AI-powered optimization running every 15 minutes")
+				log.Println("[CognitiveAdvisor] 📊 Admin API available at /admin/cognitive/*")
+
+				// Ensure worker is stopped on shutdown
+				defer worker.Stop()
+			}
+
+			// Initialize SLO Enforcer (v1.2.0 - if enabled)
+			enableSLOEnforcer := os.Getenv("ENABLE_SLO_ENFORCER") == "true"
+			if enableSLOEnforcer {
+				log.Println("[SLOEnforcer] Initializing SLO Enforcer (v1.2.0)...")
+
+				// Get SLO enforcer version
+				sloVersion := slo.GetVersion()
+				log.Printf("[SLOEnforcer] Using SLO enforcer library version: %s", sloVersion)
+
+				// Initialize audit logger
+				auditLogger := slo.NewAuditLogger(db.DB)
+
+				// Initialize Prometheus scraper
+				metricsURL := os.Getenv("SLO_METRICS_URL")
+				if metricsURL == "" {
+					metricsURL = "http://localhost:8080/metrics"
 				}
-			} else if enableCognitiveAdvisor && redisClient == nil {
-				log.Println("[CognitiveAdvisor] ⚠️  Cognitive Advisor requires Redis - skipping initialization")
+				promScraper := slo.NewPrometheusScraper(metricsURL)
+
+				// Initialize action executor
+				actionExecutor := slo.NewActionExecutor(auditLogger)
+
+				// Start Prometheus scraper in background
+				ctx := context.Background()
+				go promScraper.Start(ctx, actionExecutor)
+
+				// Register SLO admin routes
+				sloHandler := api.NewSLOHandler(auditLogger, promScraper)
+				app.Get("/admin/slo/status", adaptor.HTTPHandlerFunc(sloHandler.HandleGetStatus))
+				app.Get("/admin/slo/audit", adaptor.HTTPHandlerFunc(sloHandler.HandleGetAuditEvents))
+				app.Post("/admin/slo/evaluate", adaptor.HTTPHandlerFunc(sloHandler.HandleEvaluate))
+				app.Get("/admin/slo/metrics", adaptor.HTTPHandlerFunc(sloHandler.HandleGetMetrics))
+
+				log.Println("[SLOEnforcer] ✅ SLO Enforcer initialized successfully")
+				log.Printf("[SLOEnforcer] 🔍 Monitoring /metrics endpoint (20s interval)")
+				log.Println("[SLOEnforcer] 📊 Admin API available at /admin/slo/*")
+
+				// Ensure scraper is stopped on shutdown
+				defer promScraper.Stop()
 			}
 
 			// Initialize Provider Health Monitor (if enabled)
@@ -290,14 +325,29 @@ func main() {
 			endpoints["auth"] = "/v1/auth/login"
 		}
 
+		// Add cognitive advisor endpoints if enabled
+		enableCognitiveAdvisor := os.Getenv("ENABLE_COGNITIVE_ADVISOR") == "true"
+		if enableCognitiveAdvisor {
+			endpoints["cognitive"] = "/admin/cognitive/proposals"
+		}
+
+		// Add SLO enforcer endpoints if enabled
+		enableSLOEnforcer := os.Getenv("ENABLE_SLO_ENFORCER") == "true"
+		if enableSLOEnforcer {
+			endpoints["slo_status"] = "/admin/slo/status"
+			endpoints["slo_audit"] = "/admin/slo/audit"
+		}
+
 		return c.JSON(fiber.Map{
 			"service": "schlep-engine",
 			"version": version,
 			"status":  "running",
 			"features": fiber.Map{
-				"multi_tenancy": enableMultiTenancy,
-				"redis":         useRedis,
-				"persistence":   dbEnabled,
+				"multi_tenancy":      enableMultiTenancy,
+				"redis":              useRedis,
+				"persistence":        dbEnabled,
+				"cognitive_advisor":  enableCognitiveAdvisor,
+				"slo_enforcer":       enableSLOEnforcer,
 			},
 			"endpoints": endpoints,
 		})

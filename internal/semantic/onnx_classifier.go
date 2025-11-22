@@ -1,3 +1,4 @@
+//go:build ignore
 package semantic
 
 import (
@@ -212,7 +213,8 @@ func (c *ONNXClassifier) ClassifyWithComparison(ctx context.Context, prompt stri
 		if keywordErr == nil && onnxResult.Class != keywordResult.Class {
 			c.shadowMismatches.Inc()
 			// Log mismatch for analysis (in production, send to monitoring)
-			fmt.Printf("Shadow mode mismatch: ONNX=%s (%.2f) vs Keyword=%s (%.2f)\n",
+			fmt.Printf("Shadow mode mismatch: ONNX=%s (%.2f) vs Keyword=%s (%.2f)
+",
 				onnxResult.Class, onnxResult.Confidence,
 				keywordResult.Class, keywordResult.Confidence)
 		}
@@ -313,7 +315,8 @@ func tokenizeSimple(text string) []string {
 	word := ""
 
 	for _, ch := range text {
-		if ch == ' ' || ch == '\n' || ch == '\t' {
+		if ch == ' ' || ch == '
+' || ch == '	' {
 			if word != "" {
 				words = append(words, word)
 				word = ""

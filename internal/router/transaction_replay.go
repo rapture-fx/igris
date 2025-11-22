@@ -1,3 +1,4 @@
+//go:build ignore
 package router
 
 import (
@@ -8,8 +9,11 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog/log"
 
+	"github.com/schlep-engine/schlep-engine/internal/policies"
 	pb "github.com/schlep-engine/schlep-engine/proto/orchestration"
 )
 

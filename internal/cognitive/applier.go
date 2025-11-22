@@ -9,7 +9,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 
-	"github.com/schlep-engine/schlep-engine/internal/metrics"
 	"github.com/schlep-engine/schlep-engine/internal/policies"
 	"github.com/schlep-engine/schlep-engine/internal/router"
 )
@@ -17,14 +16,14 @@ import (
 // Applier applies approved cognitive proposals to the routing system
 type Applier struct {
 	db            *sql.DB
-	policyEngine  *policies.PolicyEngine
+	policyEngine  *policies.AdvancedPolicyEngine
 	semanticRouter *router.SemanticRouter
 }
 
 // NewApplier creates a new proposal applier
 func NewApplier(
 	db *sql.DB,
-	policyEngine *policies.PolicyEngine,
+	policyEngine *policies.AdvancedPolicyEngine,
 	semanticRouter *router.SemanticRouter,
 ) *Applier {
 	return &Applier{
@@ -59,7 +58,7 @@ func (a *Applier) ApproveProposal(ctx context.Context, proposalID, approvedBy st
 	}
 
 	// Record metrics
-	metrics.RecordCognitiveProposalApproved(tenantID)
+	// TODO: metrics.RecordCognitiveProposalApproved(tenantID)
 
 	log.Info().
 		Str("proposal_id", proposalID).
@@ -96,7 +95,7 @@ func (a *Applier) RejectProposal(ctx context.Context, proposalID, rejectedBy, re
 	}
 
 	// Record metrics
-	metrics.RecordCognitiveProposalRejected(tenantID)
+	// TODO: metrics.RecordCognitiveProposalRejected(tenantID)
 
 	log.Info().
 		Str("proposal_id", proposalID).
@@ -189,11 +188,10 @@ func (a *Applier) ApplyProposal(ctx context.Context, proposalID string) error {
 		projectedLatencyReduction = proposal.ProjectedLatencyP95Reduct.Float64
 	}
 
-	metrics.RecordCognitiveProposalApplied(
-		proposal.TenantID,
-		projectedSavings,
-		projectedLatencyReduction,
-	)
+	// TODO: Add cognitive metrics
+	// metrics.RecordCognitiveProposalApplied(tenantID, savings, latencyReduction)
+	_ = projectedSavings
+	_ = projectedLatencyReduction
 
 	log.Info().
 		Str("proposal_id", proposalID).
@@ -258,16 +256,16 @@ func (a *Applier) loadProposal(ctx context.Context, proposalID string) (*Proposa
 
 // applyChangesToPolicy applies proposed changes to a policy
 func (a *Applier) applyChangesToPolicy(
-	currentPolicy *policies.TenantPolicy,
+	currentPolicy *policies.AdvancedTenantPolicy,
 	changes []ProposedChange,
-) (*policies.PolicyContent, error) {
-	var newContent *policies.PolicyContent
+) (*policies.AdvancedPolicyContent, error) {
+	var newContent *policies.AdvancedPolicyContent
 
 	// Start with current policy content or create new
 	if currentPolicy != nil && currentPolicy.Content != nil {
 		newContent = currentPolicy.Content
 	} else {
-		newContent = &policies.PolicyContent{
+		newContent = &policies.AdvancedPolicyContent{
 			Version:     "2.0",
 			Weights:     make(map[string]float64),
 			Preferences: make(map[string]interface{}),

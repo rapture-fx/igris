@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/schlep-engine/schlep-engine/internal/config"
 )
 

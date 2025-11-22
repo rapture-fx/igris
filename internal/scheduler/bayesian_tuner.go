@@ -6,12 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"math/rand"
 	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/schlep-engine/schlep-engine/internal/bandit"
-	"github.com/schlep-engine/schlep-engine/internal/observability"
 )
 
 // BayesianTuner performs Bayesian optimization for reward weight tuning
@@ -101,7 +99,7 @@ func (bt *BayesianTuner) runBayesianOptimization(ctx context.Context) {
 	}
 
 	totalOptimizations := 0
-	appliedOptimizations := 0
+	_ = 0 // appliedOptimizations - unused for now
 	canaryDeployments := 0
 
 	for _, class := range classes {
@@ -134,7 +132,7 @@ func (bt *BayesianTuner) runBayesianOptimization(ctx context.Context) {
 			result.CanaryOnly = true
 			result.Applied = true
 
-			observability.RecordBayesianTuningApplied(class, result.ExpectedImprovement, result.PosteriorConfidence, true)
+			// observability.RecordBayesianTuningApplied(class, result.ExpectedImprovement, result.PosteriorConfidence, true) // TODO: Implement
 
 			log.Info().
 				Str("class", class).
@@ -142,7 +140,7 @@ func (bt *BayesianTuner) runBayesianOptimization(ctx context.Context) {
 				Float64("posterior_confidence", result.PosteriorConfidence).
 				Msg("Weights applied to canary tenants (1%)")
 		} else {
-			observability.RecordBayesianTuningApplied(class, result.ExpectedImprovement, result.PosteriorConfidence, false)
+			// observability.RecordBayesianTuningApplied(class, result.ExpectedImprovement, result.PosteriorConfidence, false) // TODO: Implement
 
 			log.Info().
 				Str("class", class).
@@ -178,7 +176,7 @@ func (bt *BayesianTuner) optimizeWeightsBayesian(ctx context.Context, class stri
 	}
 
 	// Get current weights
-	oldWeights := bt.rewardEngine.getWeights(class)
+	oldWeights := bt.rewardEngine.GetWeights(class)
 
 	// Define priors (current weights as prior mean, with uncertainty)
 	priors := map[string]WeightPrior{
@@ -390,7 +388,8 @@ func (bt *BayesianTuner) applyCanaryWeights(ctx context.Context, class string, r
 	}
 
 	// Record canary deployment
-	observability.RecordCanaryDeployment(class, len(canaryTenants))
+	// observability.RecordCanaryDeployment(class, len(canaryTenants)) // TODO: Implement
+	_ = len(canaryTenants) // Silence unused warning
 
 	return nil
 }

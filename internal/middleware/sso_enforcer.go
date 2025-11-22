@@ -159,7 +159,7 @@ func (e *SSOEnforcer) HandleSSOCallback() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Parse callback parameters
 		code := c.Query("code")
-		state := c.Query("state")
+		_ = c.Query("state") // state - validate later if needed
 		samlResponse := c.FormValue("SAMLResponse") // For SAML POST binding
 
 		if code == "" && samlResponse == "" {

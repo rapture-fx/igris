@@ -23,7 +23,7 @@ type Worker struct {
 // NewWorker creates a new cognitive worker
 func NewWorker(
 	db *sql.DB,
-	policyEngine *policies.PolicyEngine,
+	policyEngine *policies.AdvancedPolicyEngine,
 	semanticRouter *router.SemanticRouter,
 ) *Worker {
 	advisor := NewAdvisor(db)
@@ -128,7 +128,7 @@ func (w *Worker) GetApplier() *Applier {
 func StartAdvisorWorker(
 	ctx context.Context,
 	db *sql.DB,
-	policyEngine *policies.PolicyEngine,
+	policyEngine *policies.AdvancedPolicyEngine,
 	semanticRouter *router.SemanticRouter,
 ) *Worker {
 	worker := NewWorker(db, policyEngine, semanticRouter)
