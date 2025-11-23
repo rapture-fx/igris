@@ -33,6 +33,7 @@ type InferRequest struct {
 	EnableCaching   bool               `json:"enable_caching,omitempty"`   // Enable response caching
 	CacheTTL        int                `json:"cache_ttl,omitempty"`        // Cache TTL in seconds
 	PreferredRegion string             `json:"preferred_region,omitempty"` // Preferred edge region
+	SpeculativeMode string             `json:"speculative_mode,omitempty"` // Speculative execution mode: "latency", "balanced", "quality", "cost", or "" (disabled)
 	Metadata        map[string]string  `json:"metadata,omitempty"`         // Request metadata for tracking
 
 	// Provider-specific extensions
@@ -142,6 +143,7 @@ func (r *InferRequest) Clone() *InferRequest {
 		EnableCaching:    r.EnableCaching,
 		CacheTTL:         r.CacheTTL,
 		PreferredRegion:  r.PreferredRegion,
+		SpeculativeMode:  r.SpeculativeMode,
 	}
 
 	// Deep copy messages
