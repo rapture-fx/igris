@@ -17,6 +17,7 @@ type Config struct {
 	RateLimit       RateLimitConfig
 	Security        SecurityConfig
 	Persistence     PersistenceConfig // Phase 2: External state persistence
+	Speculative     SpeculativeConfig // Speculative execution configuration
 }
 
 // ServerConfig holds server configuration
@@ -96,6 +97,41 @@ type PersistenceConfig struct {
 	UseDistributedLock bool   // Enable distributed locking for multi-instance setups
 }
 
+// SpeculativeMode defines the optimization strategy for speculative execution
+type SpeculativeMode string
+
+const (
+	SpeculativeModeOff      SpeculativeMode = "off"      // Disabled
+	SpeculativeModeLatency  SpeculativeMode = "latency"  // Optimize for lowest first-token latency
+	SpeculativeModeQuality  SpeculativeMode = "quality"  // Optimize for best early-token quality
+	SpeculativeModeCost     SpeculativeMode = "cost"     // Optimize for lowest cost with acceptable latency
+	SpeculativeModeBalanced SpeculativeMode = "balanced" // Balanced optimization across all criteria
+)
+
+// SpeculativeConfig holds configuration for speculative execution
+type SpeculativeConfig struct {
+	// Global feature flag
+	Enabled bool `json:"enabled"`
+
+	// Default mode for tenants (can be overridden per-tenant)
+	DefaultMode SpeculativeMode `json:"default_mode"`
+
+	// Maximum number of providers to race in parallel (2-4)
+	MaxProviders int `json:"max_providers"`
+
+	// Timeout for first token arrival (after this, select fastest responder)
+	FirstTokenTimeout time.Duration `json:"first_token_timeout"`
+
+	// Number of early tokens to buffer for quality scoring (default: 5)
+	EarlyTokenCount int `json:"early_token_count"`
+
+	// Maximum acceptable cost multiplier (e.g., 1.5 = allow 50% waste)
+	CostMultiplier float64 `json:"cost_multiplier"`
+
+	// Auto-disable threshold: disable speculative mode if waste ratio exceeds this
+	WasteThreshold float64 `json:"waste_threshold"`
+}
+
 // LoadConfig loads configuration from environment variables
 func LoadConfig() *Config {
 	// Load persistence configuration
@@ -162,6 +198,15 @@ func LoadConfig() *Config {
 			PostgresURL:        postgresURL,
 			PostgresEnabled:    usePostgres && postgresURL != "",
 			UseDistributedLock: getEnvBool("USE_DISTRIBUTED_LOCK", false),
+		},
+		Speculative: SpeculativeConfig{
+			Enabled:           getEnvBool("ENABLE_SPECULATIVE", false),
+			DefaultMode:       SpeculativeMode(getEnv("SPECULATIVE_MODE", string(SpeculativeModeLatency))),
+			MaxProviders:      getEnvInt("SPECULATIVE_MAX_PROVIDERS", 3),
+			FirstTokenTimeout: getEnvDuration("SPECULATIVE_FIRST_TOKEN_TIMEOUT", 5*time.Second),
+			EarlyTokenCount:   getEnvInt("SPECULATIVE_EARLY_TOKEN_COUNT", 5),
+			CostMultiplier:    getEnvFloat("SPECULATIVE_COST_MULTIPLIER", 1.5),
+			WasteThreshold:    getEnvFloat("SPECULATIVE_WASTE_THRESHOLD", 0.3),
 		},
 	}
 }

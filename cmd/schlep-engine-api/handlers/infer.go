@@ -20,6 +20,7 @@ import (
 	"github.com/schlep-engine/schlep-engine/internal/middleware"
 	"github.com/schlep-engine/schlep-engine/internal/models"
 	"github.com/schlep-engine/schlep-engine/internal/providers"
+	specrouter "github.com/schlep-engine/schlep-engine/internal/router"
 	"github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
 	"github.com/schlep-engine/schlep-engine/internal/providers/openai"
 	"github.com/schlep-engine/schlep-engine/internal/safety"
@@ -29,6 +30,7 @@ import (
 // InferHandler handles /v1/infer requests
 type InferHandler struct {
 	router            *router.InferenceRouter
+	speculativeRouter *specrouter.SpeculativeRouter
 	shadowRunner      *shadow.ShadowRunner
 	sloBreaker        *optimizer.SLOBreaker
 	runtimeConfig     *config.RuntimeOptimizerConfig
@@ -220,6 +222,35 @@ func NewInferHandler(db *database.DB) (*InferHandler, error) {
 		log.Println("[Handler] 🦀 Rust optimizer initialized successfully")
 	}
 
+	// Initialize Speculative Router (PR #6)
+	// Check if speculative execution is enabled
+	var speculativeRouter *specrouter.SpeculativeRouter
+	if os.Getenv("ENABLE_SPECULATIVE") == "true" {
+		log.Println("[Handler] Initializing Speculative Router...")
+		specConfig := &config.SpeculativeConfig{
+			Enabled:           true,
+			DefaultMode:       config.SpeculativeModeLatency,
+			MaxProviders:      3,
+			FirstTokenTimeout: 5 * time.Second,
+			EarlyTokenCount:   5,
+			WasteThreshold:    0.30, // 30% waste threshold for auto-disable
+		}
+
+		// Create a minimal AdaptiveRouter (for speculative routing)
+		adaptiveRouter := &specrouter.AdaptiveRouter{
+			// Note: Using unexported fields requires constructor or reflection,
+			// but for streamlined integration we'll create an empty router
+			// as it's not actively used in speculative routing
+		}
+
+		speculativeRouter = specrouter.NewSpeculativeRouter(specConfig, adaptiveRouter, registry)
+		log.Println("[Handler] ✓ Speculative Router initialized")
+		log.Printf("[Handler]   Default mode: %s, Max providers: %d, Waste threshold: %.0f%%",
+			specConfig.DefaultMode, specConfig.MaxProviders, specConfig.WasteThreshold*100)
+	} else {
+		log.Println("[Handler] Speculative execution disabled (set ENABLE_SPECULATIVE=true to enable)")
+	}
+
 	// Initialize optimizer components
 	optConfig := config.LoadOptimizerConfig()
 	config.InitRuntimeConfig(optConfig)
@@ -307,6 +338,7 @@ func NewInferHandler(db *database.DB) (*InferHandler, error) {
 
 	return &InferHandler{
 		router:            inferenceRouter,
+		speculativeRouter: speculativeRouter,
 		shadowRunner:      shadowRunner,
 		sloBreaker:        sloBreaker,
 		runtimeConfig:     runtimeConfig,
@@ -650,8 +682,44 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 	c.Set("Transfer-Encoding", "chunked")
 	c.Set("X-Trace-ID", traceCtx.TraceID)
 
-	// Get streaming channels
-	chunkChan, errChan := h.router.RouteStream(traceContext, req)
+	// Check if speculative mode is enabled
+	var chunkChan <-chan *models.StreamChunk
+	var errChan <-chan error
+	var speculativeMetadata *specrouter.SpeculativeMetadata
+
+	if req.SpeculativeMode != "" && h.speculativeRouter != nil {
+		log.Printf("[Infer] Using speculative execution mode: %s", req.SpeculativeMode)
+
+		// Parse mode
+		var mode config.SpeculativeMode
+		switch req.SpeculativeMode {
+		case "latency":
+			mode = config.SpeculativeModeLatency
+		case "balanced":
+			mode = config.SpeculativeModeBalanced
+		case "quality":
+			mode = config.SpeculativeModeQuality
+		case "cost":
+			mode = config.SpeculativeModeCost
+		default:
+			log.Printf("[Infer] Unknown speculative mode '%s', falling back to latency", req.SpeculativeMode)
+			mode = config.SpeculativeModeLatency
+		}
+
+		// Route speculatively
+		tokenChan, errC, metadata, err := h.speculativeRouter.RouteSpeculative(traceContext, req, mode)
+		if err != nil {
+			log.Printf("[Infer] Speculative routing failed: %v, falling back to normal routing", err)
+			chunkChan, errChan = h.router.RouteStream(traceContext, req)
+		} else {
+			chunkChan = tokenChan
+			errChan = errC
+			speculativeMetadata = metadata
+		}
+	} else {
+		// Normal routing
+		chunkChan, errChan = h.router.RouteStream(traceContext, req)
+	}
 
 	// Initialize streaming metrics
 	var totalTokens int
@@ -721,6 +789,23 @@ func (h *InferHandler) handleStreamingInfer(c *fiber.Ctx, req *models.InferReque
 			ModelUsed:   req.Model,
 			RouteDecision: "simple_stream",
 		},
+	}
+
+	// If speculative execution was used, add metadata
+	if speculativeMetadata != nil {
+		finalMeta := speculativeMetadata.GetFinalMetadata()
+		response.Metadata.Provider = finalMeta.FinalProvider
+		response.Metadata.RouteDecision = "speculative_" + string(speculativeMetadata.SelectionCriteria)
+
+		// Add speculative metadata to tracing
+		tracing.AddAttribute(traceContext, "speculative.enabled", true)
+		tracing.AddAttribute(traceContext, "speculative.mode", string(speculativeMetadata.SelectionCriteria))
+		tracing.AddAttribute(traceContext, "speculative.winner", speculativeMetadata.WinnerProvider)
+		tracing.AddAttribute(traceContext, "speculative.providers_raced", len(speculativeMetadata.ProvidersUsed))
+		tracing.AddAttribute(traceContext, "speculative.latency_saved_ms", speculativeMetadata.LatencySavedMs)
+
+		log.Printf("[Infer] Speculative execution completed: winner=%s, latency_saved=%dms, providers=%v",
+			speculativeMetadata.WinnerProvider, speculativeMetadata.LatencySavedMs, speculativeMetadata.ProvidersUsed)
 	}
 
 	// Record streaming completion metrics
