@@ -437,6 +437,15 @@ func (h *InferHandler) HandleInfer(c *fiber.Ctx) error {
 		safety.RecordBudgetFallback(time.Now().Format("2006-01"), traceID)
 	}
 
+	// Handle council mode (non-streaming only)
+	if req.CouncilMode {
+		if req.Stream {
+			log.Printf("[Infer] Council mode does not support streaming, disabling stream")
+			req.Stream = false
+		}
+		return h.handleCouncilInfer(c, &req)
+	}
+
 	// Handle streaming requests
 	if req.Stream {
 		return h.handleStreamingInfer(c, &req)
@@ -658,6 +667,139 @@ func parseActionToProvider(actionID string) string {
 // GetShadowRunner returns the shadow runner instance (for Admin API access)
 func (h *InferHandler) GetShadowRunner() *shadow.ShadowRunner {
 	return h.shadowRunner
+}
+
+// handleCouncilInfer handles council mode inference requests
+func (h *InferHandler) handleCouncilInfer(c *fiber.Ctx, req *models.InferRequest) error {
+	startTime := time.Now()
+
+	// Start trace for council inference
+	ctx := c.UserContext()
+	traceContext, traceCtx := tracing.StartSpan(ctx, "council_mode_infer")
+	defer tracing.FinishSpan(traceContext, traceCtx, nil)
+
+	// Check if speculative router is available (required for council mode)
+	if h.speculativeRouter == nil {
+		log.Printf("[Infer] Council mode requested but speculative router not initialized")
+		latencyMs := time.Since(startTime).Milliseconds()
+		metrics.RecordInferError(c, "error", "council_not_available", latencyMs, "speculative router not enabled")
+
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": map[string]interface{}{
+				"message": "Council mode not available. Enable ENABLE_SPECULATIVE=true",
+				"type":    "invalid_request_error",
+			},
+		})
+	}
+
+	log.Printf("[Infer] Starting council mode inference for model: %s", req.Model)
+	tracing.AddAttribute(traceContext, "council.enabled", true)
+
+	// Execute council routing
+	resp, councilMetadata, err := h.speculativeRouter.RouteCouncil(traceContext, req)
+
+	latencyMs := time.Since(startTime).Milliseconds()
+
+	if err != nil {
+		log.Printf("[Infer] Council mode failed: %v, falling back to adaptive routing", err)
+
+		// Fallback to normal routing on error
+		resp, err = h.router.Route(c.Context(), req)
+		if err != nil {
+			log.Printf("[Infer] Fallback routing also failed: %v", err)
+
+			provider, _ := req.GetProvider()
+			if provider == "" {
+				provider = "unknown"
+			}
+
+			tracer := tracing.GetGlobalTracer()
+			tracer.AddError(traceContext, err)
+			tracer.TraceInferenceResponse(traceContext, latencyMs, 0, 0, 0, 0, false)
+
+			metrics.RecordInferMetrics(c, provider, req.Model, latencyMs, 0, 0, 0, 0, false, err.Error())
+
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": map[string]interface{}{
+					"message": err.Error(),
+					"type":    "api_error",
+				},
+			})
+		}
+
+		// Fallback succeeded
+		councilMetadata = nil
+	}
+
+	// Extract metrics from response
+	provider := resp.Metadata.Provider
+	if councilMetadata != nil {
+		provider = councilMetadata.ChairmanProvider
+	}
+	model := resp.Model
+	promptTokens := resp.Usage.PromptTokens
+	completionTokens := resp.Usage.CompletionTokens
+	totalTokens := resp.Usage.TotalTokens
+
+	// Calculate cost
+	costUSD := calculateCost(provider, model, promptTokens, completionTokens)
+	if councilMetadata != nil {
+		// Add council overhead cost
+		councilMetadata.CouncilCostUSD = costUSD
+		costUSD = costUSD * float64(councilMetadata.ResponseCount+1) // Rough estimate
+	}
+
+	// Add council metadata to trace
+	if councilMetadata != nil {
+		tracing.AddAttribute(traceContext, "council.members", fmt.Sprintf("%v", councilMetadata.ProvidersUsed))
+		tracing.AddAttribute(traceContext, "council.chairman", councilMetadata.ChairmanProvider)
+		tracing.AddAttribute(traceContext, "council.total_latency_ms", councilMetadata.TotalLatencyMs)
+		tracing.AddAttribute(traceContext, "council.winner", councilMetadata.WinnerProvider)
+		tracing.AddAttribute(traceContext, "council.response_count", councilMetadata.ResponseCount)
+	}
+
+	// Add response attributes to trace
+	tracing.TraceInferenceResponse(traceContext, latencyMs, promptTokens, completionTokens, totalTokens, costUSD, true)
+
+	// Store provider and model in context for middleware
+	c.Locals("provider", provider)
+	c.Locals("model", model)
+
+	// Record successful request metrics
+	metrics.RecordInferMetrics(c, provider, model, latencyMs, promptTokens, completionTokens, totalTokens, costUSD, true, "")
+
+	// Record cost in budget tracker
+	tenantID := middleware.GetTenantIDFromContext(c)
+	requestID := c.Get("X-Request-ID")
+	traceID := tracing.GetTraceID(traceContext)
+
+	if err := h.safetyController.PostRequestRecordForTenant(provider, model, costUSD, tenantID, requestID, traceID); err != nil {
+		log.Printf("[Infer] WARNING: Failed to record cost for tenant %s: %v", tenantID, err)
+	}
+	safety.RecordCost(provider, model, costUSD)
+	safety.RecordSafetyCheck(true, false, float64(latencyMs))
+
+	// Log performance metrics
+	councilSummary := ""
+	if councilMetadata != nil {
+		councilSummary = fmt.Sprintf(", council_members=%d, winner=%s",
+			councilMetadata.ResponseCount, councilMetadata.WinnerProvider)
+	}
+
+	log.Printf("[Infer] Council Success: provider=%s, model=%s, latency=%dms, tokens=%d, cost=$%.6f%s",
+		provider, model, latencyMs, totalTokens, costUSD, councilSummary)
+
+	// Return response with trace ID and council metadata
+	c.Set("Content-Type", "application/json")
+	c.Set("X-Trace-ID", traceID)
+
+	// Add council metadata to response if available
+	if councilMetadata != nil && resp.Metadata != nil {
+		resp.Metadata.RouteDecision = fmt.Sprintf("council_mode (members=%d, winner=%s)",
+			councilMetadata.ResponseCount, councilMetadata.WinnerProvider)
+	}
+
+	return c.JSON(resp)
 }
 
 // handleStreamingInfer handles streaming inference requests
