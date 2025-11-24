@@ -22,6 +22,14 @@ const capabilities = [
     name: 'Secure BYOK Framework',
     description: 'Bring your own API keys — Schlep-engine handles routing, security, and optimization, while you retain complete data and provider control.',
   },
+  {
+    name: 'Token-Level Speculative Execution',
+    description: 'Race multiple providers in parallel and deliver tokens from the fastest responder. Achieve 60% lower time-to-first-token with automatic mid-stream fallback if the winner fails — zero dropped streams.',
+  },
+  {
+    name: 'Cognitive Advisor Layer',
+    description: 'LLM-powered intelligent routing decisions that analyze request context, provider performance history, and quality requirements to recommend optimal routing strategies — continuously learning from outcomes.',
+  },
 ]
 
 export default function CoreCapabilities() {
@@ -157,9 +165,9 @@ export default function CoreCapabilities() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Left - Tall Card */}
                 <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 lg:h-[416px]" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Automatic SLO Guardrails</h5>
+                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer with Circuit Breaker</h5>
                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    P95 latency &gt;10%, cost &gt;5%, or error rate &gt;0.5% triggers automatic revert to Go router. Manual re-enable required after investigation.
+                    Real-time circuit breaker monitors P95 latency, cost, and error rates against SLO thresholds. Automatically reverts to safe fallback when latency &gt;10%, cost &gt;5%, or errors &gt;0.5%. Includes cool-down periods, manual override controls, and comprehensive breach logging for production safety.
                   </p>
                 </div>
 
