@@ -130,6 +130,9 @@ type SpeculativeConfig struct {
 
 	// Auto-disable threshold: disable speculative mode if waste ratio exceeds this
 	WasteThreshold float64 `json:"waste_threshold"`
+
+	// Council mode configuration
+	ChairmanProvider string `json:"chairman_provider"` // Chairman model for council mode (default: "grok-4" or first available)
 }
 
 // LoadConfig loads configuration from environment variables
@@ -207,6 +210,7 @@ func LoadConfig() *Config {
 			EarlyTokenCount:   getEnvInt("SPECULATIVE_EARLY_TOKEN_COUNT", 5),
 			CostMultiplier:    getEnvFloat("SPECULATIVE_COST_MULTIPLIER", 1.5),
 			WasteThreshold:    getEnvFloat("SPECULATIVE_WASTE_THRESHOLD", 0.3),
+			ChairmanProvider:  getEnv("COUNCIL_CHAIRMAN_PROVIDER", "gpt-4"), // Default to gpt-4 for chairman
 		},
 	}
 }
