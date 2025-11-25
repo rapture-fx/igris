@@ -3,25 +3,61 @@
 import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 
-const faqEntries = [
+interface FaqEntry {
+  question: string;
+  answer?: string;
+  type: 'text' | 'code';
+  cta?: {
+    text: string;
+    href: string;
+  };
+  answerText?: string;
+  codeExample?: {
+    old: string;
+    new: string;
+  };
+  answerFooter?: string;
+}
+
+const faqEntries: FaqEntry[] = [
   {
-    question: "How much can I actually save?",
-    answer: "Most teams cut AI costs by 25–40% while maintaining or improving output quality. Our intelligent routing eliminates wasted spending on overqualified models for simple tasks.",
+    question: "How does intelligent quality routing work?",
+    answer: "Schlep Engine automatically selects the best model for every request by analyzing performance, context, and historical outcomes. It optimizes for accuracy, speed, or cost based on your priorities with continuous learning built in, ensuring each request gets routed to the most appropriate model.",
     type: "text"
   },
   {
-    question: "How does quality-aware routing work?",
-    answer: "Each request is automatically classified by domain (code, creative, analytical) and complexity. Schlep-engine then routes it to the optimal model for that specific task, not just the cheapest, but the one that delivers the best results.",
+    question: "What is adaptive optimization and how does it maintain quality?",
+    answer: "Our real-time quality scoring detects performance shifts across providers and dynamically adjusts routing to maintain your targets. This ensures consistent output quality and predictable latency without requiring manual tuning or constant monitoring.",
     type: "text"
   },
   {
-    question: "Will routing to cheaper models hurt my AI quality?",
-    answer: "No, we only use cost-effective models for simple tasks where they perform well. Complex tasks automatically route to premium models. Most customers see 20–40% quality improvements overall.",
+    question: "How do I manage multiple providers in one place?",
+    answer: "Schlep Engine provides one unified dashboard and API for cost governance, quotas, provider usage, and performance management. Multi-tenant isolation and automated failover ensure continuity even under provider outages, giving you complete control from a single interface.",
     type: "text"
   },
   {
-    question: "How do I control the cost vs quality balance?",
-    answer: "Choose from three optimization modes: Cost (maximum savings), Balanced (recommended), or Quality (best outcomes). Fine-tune via API with web console coming soon.",
+    question: "How can I test new routing strategies without risking production?",
+    answer: "Shadow Mode lets you test new routing strategies in parallel with production traffic without impacting end users. Automatic rollback on SLO violations ensures zero-downtime deployments while enabling continuous improvement and safe experimentation.",
+    type: "text"
+  },
+  {
+    question: "Do I need to share my API keys with Schlep Engine?",
+    answer: "No. With our Bring Your Own Key (BYOK) architecture, you retain full control over your provider keys. We handle routing and optimization while you keep complete ownership of all credentials, data security, and access control.",
+    type: "text"
+  },
+  {
+    question: "How does parallel execution improve response times?",
+    answer: "Parallel execution boosts responsiveness by running multiple providers simultaneously and streaming from the fastest result. Built-in fallback mechanisms prevent interruptions and ensure no dropped tokens, giving you faster responses without sacrificing reliability.",
+    type: "text"
+  },
+  {
+    question: "What is Council Mode and when should I use it?",
+    answer: "Council Mode upgrades accuracy for complex queries by running multiple models simultaneously and synthesizing the best answer. It's ideal for high-stakes workflows in medical, legal, financial, and other mission-critical decision-making scenarios where accuracy is paramount.",
+    type: "text"
+  },
+  {
+    question: "How does Schlep Engine learn and improve over time?",
+    answer: "Our Cognitive Advisor is a built-in intelligence layer that monitors intent patterns, detects degradation, predicts optimal routing strategies, and recommends configuration updates. All recommendations are safely validated in shadow mode before being applied to production.",
     type: "text"
   },
   {
@@ -33,16 +69,6 @@ const faqEntries = [
       new: "https://api.schlep-engine.com/v1"
     },
     answerFooter: "No SDK changes, no migration scripts, no lock-in."
-  },
-  {
-    question: "How is this different from cost optimization?",
-    answer: "Cost optimization finds the cheapest model. We find the best model for each task. The savings come from eliminating waste, not downgrading quality.",
-    type: "text"
-  },
-  {
-    question: "What about my existing provider discounts?",
-    answer: "You keep 100% of your negotiated rates, startup credits, and usage discounts. We never mark up API calls, just a flat monthly fee.",
-    type: "text"
   }
 ];
 
