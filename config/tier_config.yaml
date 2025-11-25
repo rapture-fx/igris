@@ -1,17 +1,85 @@
 # Schlep-Engine Tier Configuration
-# Generated: 2025-11-10
-# Phase: 5.1 - Provider Gating and Capability Validation
-# Purpose: Define tier-based limits and feature gates based on validated system capacity
+# Generated: 2025-11-25
+# Phase: v1.3.0 - Polar.sh Billing Integration + Updated Pricing
+# Purpose: Define tier-based limits and feature gates for Polar.sh subscription model
 #
-# VALIDATION SOURCE: /reports/provider_capacity_validation.md
-# ACCURACY REPORT: /reports/REALITY_TIER_GATING_SUMMARY.md
-# UPDATED: 2025-11-11 - Pricing aligned with landing page
+# PRICING UPDATE: Develop $249→$99, Growth $799→$499, Scale $1899→$1499
+# TRIAL ADDED: 14-day free trial, 50k reqs, full features, card-required
+# BILLING: Polar.sh (no Stripe), flat monthly pricing, 20% annual discount
 
-version: "1.0"
-last_updated: "2025-11-11T00:00:00Z"
+version: "1.3"
+last_updated: "2025-11-25T00:00:00Z"
 
 # Tier Definitions
 tiers:
+  # =============================================================================
+  # TRIAL TIER - 14-day free trial with full features
+  # =============================================================================
+  trial:
+    name: "Trial"
+    display_name: "14-Day Free Trial"
+    description: "Evaluate all features with 50k requests over 14 days"
+    price:
+      usd: 0
+      currency: "USD"
+      billing_period: "14_days"
+
+    # Request Limits
+    limits:
+      max_requests_per_month: 50000       # Total for 14-day period
+      max_requests_per_second: 10
+      max_requests_per_minute: 300
+
+      # Provider Management
+      max_providers: 3
+      max_models_per_provider: 10
+      max_custom_providers: 1
+
+      # Tenant Configuration
+      max_tenants: 1
+      max_api_keys: 1
+
+      # Caching
+      cache_ttl_seconds: 3600
+      max_cached_classifications: 10000
+
+    # Feature Flags (ALL FEATURES UNLOCKED FOR TRIAL)
+    features:
+      multi_tenancy: true
+      byok: true
+      thompson_sampling: true
+      semantic_routing: true
+      cost_aware_routing: true
+      automatic_failover: true
+      circuit_breaker: true
+      observability_metrics: true
+      cost_forecasting: true
+      real_time_analytics: true
+      redis_caching: true
+      l2_caching: false
+      jwt_auth: true
+      api_key_auth: true
+      rbac: false
+      sso: false
+      sla_enforcement: false
+      policy_versioning: false
+      audit_logs: false
+      hot_reload_policies: false
+      custom_sla_targets: false
+      advanced_governance: false
+      on_premise_deployment: false
+      multi_region: false
+      # Trial-specific unlocks
+      speculative_execution: true         # ✅ Trial gets speculative
+      council_mode: true                  # ✅ Trial gets council
+      cognitive_advisor: true             # ✅ Trial gets cognitive
+
+    cost_controls:
+      enforce_budget: false
+      monthly_budget_usd: 0
+      budget_alert_threshold: 1.0
+      cost_per_request_limit: 0
+
   # =============================================================================
   # DEVELOPER TIER - Entry-level for individual developers and small teams
   # =============================================================================
@@ -20,7 +88,7 @@ tiers:
     display_name: "Developer"
     description: "Entry-level tier for individual developers and small teams"
     price:
-      usd: 249
+      usd: 99                             # UPDATED: $249 → $99
       currency: "USD"
       billing_period: "month"
 
@@ -131,7 +199,7 @@ tiers:
     display_name: "Growth"
     description: "For growing teams and production workloads"
     price:
-      usd: 799
+      usd: 499                            # UPDATED: $799 → $499
       currency: "USD"
       billing_period: "month"
 
@@ -219,7 +287,7 @@ tiers:
     display_name: "Scale"
     description: "Enterprise-grade deployments with unlimited scale"
     price:
-      usd: 1899
+      usd: 1499                           # UPDATED: $1,899 → $1,499
       currency: "USD"
       billing_period: "month"
 
