@@ -88,7 +88,8 @@ export default function CoreCapabilities() {
                         key={capability.name}
                         className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-xl p-4 border border-gray-300/60 dark:border-gray-600/60 shadow-sm"
                         style={{
-                          padding: '20px 24px'
+                          padding: '20px 24px',
+                          minHeight: '145px'
                         }}
                       >
                         <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
