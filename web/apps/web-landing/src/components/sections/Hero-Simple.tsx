@@ -34,14 +34,14 @@ export default function Hero() {
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
-                    Your control plane
+                    Your unified control plane
                   </h1>
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2] mt-2">
-                    for intelligent AI allocation.
+                    for smarter, optimized AI model allocation.
                   </h1>
                 </div>
                 <p className="text-sm md:text-lg text-gray-700 max-w-md leading-relaxed text-left">
-                  Schlep-engine is a quality-aware routing engine that dynamically allocates inference requests across providers — optimizing for cost, latency, and output quality in real time.
+                  Schlep-engine is a quality-aware routing engine that dynamically allocates inference requests across providers, optimizing for cost, latency, and output quality in real time.
                 </p>
               </div>
             </div>
@@ -70,16 +70,6 @@ export default function Hero() {
                     opacity: 0.8,
                   }}
                 />
-                <div
-                  className="absolute inset-0 p-2"
-                  style={{
-                    backgroundImage: 'url("/HRLN.svg")',
-                    backgroundPosition: 'bottom center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: '60%',
-                    opacity: 0.7,
-                  }}
-                />
               </div>
             </div>
 
@@ -93,7 +83,7 @@ export default function Hero() {
         {/* HERO diagram background - positioned below main box (desktop only) */}
         <div className="hidden md:block absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto z-[5]">
           <div className="relative h-full border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
-            {/* Schlep Engine diagram SVG behind */}
+            {/* Schlep Engine diagram SVG */}
             <div
               className="absolute inset-0 rounded-t-2xl"
               style={{
@@ -103,19 +93,6 @@ export default function Hero() {
                 backgroundSize: 'cover',
                 opacity: 0.8,
                 zIndex: 5
-              }}
-            />
-
-            {/* HRLN.svg logo in front */}
-            <div
-              className="absolute inset-0 p-4"
-              style={{
-                backgroundImage: 'url("/HRLN.svg")',
-                backgroundPosition: 'bottom center',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: '50%',
-                opacity: 0.6,
-                zIndex: 6
               }}
             />
           </div>

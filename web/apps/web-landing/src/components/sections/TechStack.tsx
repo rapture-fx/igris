@@ -59,7 +59,7 @@ export default function TechStack() {
                 </h3>
 
                 <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter mb-8 max-w-lg">
-                  A single API endpoint powers adaptive routing across providers. The Schlep-engine control plane monitors latency, cost, and quality metrics in real time — ensuring every inference is sent to the optimal model without manual tuning.
+                  A single API endpoint powers adaptive routing across providers. The Schlep-engine control plane monitors latency, cost, and quality metrics in real time, ensuring every inference is sent to the optimal model without manual tuning.
                 </p>
               </div>
 

@@ -13,7 +13,7 @@ const features = [
   },
   {
     name: 'Data to Model Pipeline',
-    description: 'From messy CSVs to trained models. Automate processing and training through API calls—no complex pipeline setup required.',
+    description: 'From messy CSVs to trained models. Automate processing and training through API calls, no complex pipeline setup required.',
   },
 ]
 
@@ -51,7 +51,7 @@ export default function BuiltForEngineers() {
                   <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
                 </p>
                 <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-                  Most ML projects stall on infrastructure.<br /> Schlep-engine removes that bottleneck with simple APIs <br /> that take you from messy data to working models—fast.
+                  Most ML projects stall on infrastructure.<br /> Schlep-engine removes that bottleneck with simple APIs <br /> that take you from messy data to working models fast.
                 </p>
               </div>
 

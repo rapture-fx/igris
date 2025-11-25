@@ -64,7 +64,7 @@ export default function Observability() {
                   Full Visibility Across Cost, Performance, and Reliability
                 </h3>
                 <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
-                  Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability — all in one view.
+                  Monitor every request, trace every inference, and maintain full visibility into cost, latency, and provider reliability all in one view.
                 </p>
               </div>
 
