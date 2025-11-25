@@ -30,7 +30,7 @@ export default function Hero() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto pt-8 px-0 md:px-8 lg:px-16">
-            <div className="pt-8 mb-8">
+            <div className="pt-8 mb-6">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
@@ -46,7 +46,7 @@ export default function Hero() {
               </div>
             </div>
 
-            <div className="flex justify-start gap-4 mb-8">
+            <div className="flex justify-start gap-4 mb-6">
               <button
                 onClick={openEarlyAccessModal}
                 className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-4 md:py-2 rounded-md md:rounded-lg hover:opacity-90 transition-all duration-200 font-medium text-xs md:text-sm shadow-sm md:shadow-md hover:shadow-lg"
@@ -74,7 +74,7 @@ export default function Hero() {
             </div>
 
             {/* Hero content area - spacing for background on desktop */}
-            <div className="bg-transparent hidden md:block min-h-[600px]">
+            <div className="bg-transparent hidden md:block min-h-[500px]">
               <div className="flex items-center justify-center h-full"></div>
             </div>
           </div>
