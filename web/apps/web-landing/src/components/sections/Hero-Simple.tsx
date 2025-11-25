@@ -11,7 +11,7 @@ export default function Hero() {
     <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* Main Content Box with Border */}
-        <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-8 md:pb-40 bg-transparent z-10" style={{
+        <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-8 md:pb-20 bg-transparent z-10" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -59,14 +59,14 @@ export default function Hero() {
 
             {/* Hero diagram - visible on mobile, hidden on larger screens */}
             <div className="block md:hidden">
-              <div className="relative w-full h-[140px] border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
+              <div className="relative w-full h-[400px] border border-gray-300 rounded-2xl bg-[#f6f6f4]">
                 <div
-                  className="absolute inset-0 rounded-t-2xl"
+                  className="absolute inset-0 rounded-2xl"
                   style={{
                     backgroundImage: 'url("/schlep-logo-47.svg")',
                     backgroundPosition: 'center center',
                     backgroundRepeat: 'no-repeat',
-                    backgroundSize: '100%',
+                    backgroundSize: 'cover',
                     opacity: 0.8,
                   }}
                 />
@@ -74,18 +74,18 @@ export default function Hero() {
             </div>
 
             {/* Hero content area - spacing for background on desktop */}
-            <div className="bg-transparent hidden md:block min-h-[350px] max-h-[800px]">
+            <div className="bg-transparent hidden md:block min-h-[600px]">
               <div className="flex items-center justify-center h-full"></div>
             </div>
           </div>
         </div>
 
         {/* HERO diagram background - positioned below main box (desktop only) */}
-        <div className="hidden md:block absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 top-96 bottom-2 pointer-events-none max-w-[1200px] mx-auto z-[5]">
-          <div className="relative h-full border-t border-l border-r border-gray-300 rounded-t-2xl bg-[#f6f6f4] overflow-hidden">
+        <div className="hidden md:block absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 bottom-8 pointer-events-none max-w-[1200px] mx-auto z-[5] h-[500px]">
+          <div className="relative w-full h-full border border-gray-300 rounded-2xl bg-[#f6f6f4]">
             {/* Schlep Engine diagram SVG */}
             <div
-              className="absolute inset-0 rounded-t-2xl"
+              className="absolute inset-0 rounded-2xl"
               style={{
                 backgroundImage: 'url("/schlep-logo-47.svg")',
                 backgroundPosition: 'center center',
