@@ -7,32 +7,33 @@ import { useModal } from '../../contexts/ModalContext';
 const pricingTiers = [
   {
     name: "Develop",
-    price: "$249",
+    price: "$99",
     period: "month",
     features: [
       "500K requests/month",
       "Up to 5 AI providers (BYOK)",
-      "Smart routing with Thompson Sampling",
+      "Thompson Sampling routing",
+      "Quality-aware routing (Cost/Balanced/Quality)",
+      "Circuit breaker & automatic failover",
       "Real-time cost tracking & forecasting",
       "Redis caching for low latency",
       "150+ observability metrics",
-      "Quality-aware routing (Cost/Balanced/Quality modes)",
-      "Automatic request classification",
-      "Real-time quality scoring",
-      "Multi-factor optimization"
+      "Automatic request classification"
     ],
-    cta: "Get started",
-    highlighted: false,
-    badge: ""
+    cta: "Get Started",
+    highlighted: false
   },
   {
     name: "Growth",
-    price: "$799",
+    price: "$499",
     period: "month",
     features: [
       "Everything in Develop +",
       "2M requests/month & 10 providers",
-      "SLA enforcement & monitoring",
+      "Speculative execution (-60% TTFT)",
+      "Council mode (quality +15-20%)",
+      "Cognitive advisor (auto-tune routing)",
+      "Basic SLO enforcement & monitoring",
       "Policy versioning with hot reload",
       "Audit logs & compliance tracking",
       "Multi-tenant support (up to 5 tenants)"
@@ -42,21 +43,23 @@ const pricingTiers = [
   },
   {
     name: "Scale",
-    price: "$1,899",
+    price: "$1,499",
     period: "month",
     features: [
       "Everything in Growth +",
       "Unlimited requests (1000 RPS sustained)",
       "Up to 20 providers",
+      "Advanced SLO enforcement & auto-remediation",
+      "Budget enforcement & alerts",
       "Self-hosted Kubernetes deployment",
       "Custom provider adapter support",
-      "Advanced audit logging & security"
+      "Advanced audit logging & security",
+      "Unlimited multi-tenancy"
     ],
     cta: "Scale Up",
     highlighted: false
   }
 ];
-
 
 export default function Pricing() {
   const { openEarlyAccessModal } = useModal();
@@ -95,25 +98,12 @@ export default function Pricing() {
             {pricingTiers.map((tier, index) => (
               <div
                 key={index}
-                className={`relative rounded-2xl transition-all duration-300 w-full min-h-[500px] ${
-                  tier.highlighted
-                    ? 'border-2'
-                    : ''
-                }`}
+                className="relative rounded-2xl transition-all duration-300 w-full min-h-[500px]"
                 style={{
-                  backgroundColor: tier.highlighted ? '#f6f6f4' : '#f6f6f4',
-                  borderColor: tier.highlighted ? 'rgba(156, 163, 175, 0.3)' : 'rgba(156, 163, 175, 0.3)',
-                  border: tier.highlighted ? '1px solid rgba(156, 163, 175, 0.3)' : '1px solid rgba(156, 163, 175, 0.3)'
+                  backgroundColor: '#f6f6f4',
+                  border: '1px solid rgba(156, 163, 175, 0.3)'
                 }}
               >
-                {tier.badge && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="inline-block px-4 py-1 text-xs font-semibold text-white rounded-full font-inter" style={{ backgroundColor: '#1f53d0' }}>
-                      {tier.badge}
-                    </span>
-                  </div>
-                )}
-
                 <div className="p-8 flex flex-col h-full">
                   <div className="flex-grow">
                     <h3 className="text-2xl mb-2 font-inter" style={{ color: '#000000' }}>
@@ -144,14 +134,8 @@ export default function Pricing() {
                   </div>
                   <button
                     onClick={openEarlyAccessModal}
-                    className={`inline-flex items-center px-4 py-2 md:px-5 md:py-2 rounded-lg transition-all duration-200 font-semibold text-sm md:text-base font-inter self-start mt-8 ${
-                      tier.highlighted
-                        ? 'text-white hover:opacity-90 border border-black'
-                        : 'text-black hover:opacity-70 border border-gray-300'
-                    }`}
-                    style={{
-                      backgroundColor: tier.highlighted ? '#000000' : '#f6f6f4'
-                    }}
+                    className="inline-flex items-center px-4 py-2 md:px-5 md:py-2 rounded-lg transition-all duration-200 font-semibold text-sm md:text-base font-inter self-start mt-8 text-black hover:opacity-70 border border-gray-300"
+                    style={{ backgroundColor: '#f6f6f4' }}
                   >
                     {tier.cta}
                   </button>
