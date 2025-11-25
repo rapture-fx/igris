@@ -3,32 +3,36 @@ import { Shield, Box } from 'lucide-react'
 
 const capabilities = [
   {
-    name: 'Quality-Aware Routing',
-    description: 'Every request is analyzed by domain, complexity, and sensitivity — then routed to the provider proven to deliver the best outcome. Real-time scoring ensures optimal results every time.',
+    name: 'Intelligent Quality Routing',
+    description: 'Automatically selects the best model for every request by analyzing performance, context, and historical outcomes. Optimizes for accuracy, speed, or cost based on your priorities with continuous learning built in.',
   },
   {
     name: 'Adaptive Optimization Engine',
-    description: 'Balances quality, cost, and latency using dynamic weighting. Users can tune preferences via API, or let Schlep-engine learn the best trade-off automatically.',
+    description: 'Real-time quality scoring detects performance shifts across providers and dynamically adjusts routing to maintain your targets. Ensures consistent output quality and predictable latency without manual tuning.',
   },
   {
     name: 'Unified Control Plane',
-    description: 'Centralized cost, quota, and performance governance across all tenants and providers — with built-in failover and multi-tenant isolation.',
+    description: 'One dashboard and API for cost governance, quotas, provider usage, and performance management. Multi-tenant isolation and automated failover ensure continuity even under provider outages.',
   },
   {
-    name: 'Shadow Mode Assurance',
-    description: 'New routing strategies are validated safely in the background before going live, continuously improving accuracy and stability.',
+    name: 'Zero-Risk Rollouts (Shadow Mode)',
+    description: 'Test new routing strategies in parallel with production traffic without impacting end users. Automatically rolls back unsafe behaviors to maintain SLOs and operational stability.',
   },
   {
-    name: 'Secure BYOK Framework',
-    description: 'Bring your own API keys — Schlep-engine handles routing, security, and optimization, while you retain complete data and provider control.',
+    name: 'Secure BYOK Architecture',
+    description: 'Bring your own provider keys with full data, security, and access control retained on your side. We handle routing and optimization; you keep ownership of all credentials and traffic.',
   },
   {
-    name: 'Token-Level Speculative Execution',
-    description: 'Race multiple providers in parallel and deliver tokens from the fastest responder. Achieve 60% lower time-to-first-token with automatic mid-stream fallback if the winner fails — zero dropped streams.',
+    name: 'Parallel Execution for Speed',
+    description: 'Boost responsiveness by running multiple providers in parallel and streaming from the fastest result. Built-in fallback prevents interruptions and ensures no dropped tokens ever.',
   },
   {
-    name: 'Cognitive Advisor Layer',
-    description: 'LLM-powered intelligent routing decisions that analyze request context, provider performance history, and quality requirements to recommend optimal routing strategies — continuously learning from outcomes.',
+    name: 'Ensemble Intelligence (Council Mode)',
+    description: 'Upgrade accuracy for complex queries by running multiple models at once and synthesizing the best answer. Ideal for medical, legal, financial, and mission-critical decision workflows.',
+  },
+  {
+    name: 'Cognitive Advisor',
+    description: 'A built-in intelligence layer that monitors intent patterns, detects degradation, predicts optimal routing strategies, and recommends configuration updates, all safely validated in shadow mode.',
   },
 ]
 
@@ -69,20 +73,20 @@ export default function CoreCapabilities() {
                 Smarter routing. Predictable performance.
               </h3>
               <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                From adaptive quality-aware routing to real-time quota and cost control, Schlep-engine keeps your AI stack efficient, intelligent, and fail-safe — even at scale.
+                Schlep-engine delivers adaptive, quality-aware routing with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
               </p>
             </div>
 
             {/* Two-column layout */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
 
-              {/* Left Column - Vertical Text Stack */}
+              {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div className="flex flex-col gap-4 justify-center w-full max-w-xl mx-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                     {capabilities.map((capability, index) => (
                       <div
                         key={capability.name}
-                        className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-xl p-4 border border-gray-300/60 dark:border-gray-600/60 shadow-sm w-full max-w-[420px]"
+                        className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-xl p-4 border border-gray-300/60 dark:border-gray-600/60 shadow-sm"
                         style={{
                           padding: '20px 24px'
                         }}
@@ -104,7 +108,7 @@ export default function CoreCapabilities() {
                   Smarter routing. Predictable performance.
                 </h3>
                 <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                  From adaptive quality-aware routing to real-time quota and cost control, Schlep-engine keeps your AI stack efficient, intelligent, and fail-safe — even at scale.
+                  Schlep-engine delivers adaptive, quality-aware routing with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
                 </p>
               </div>
             </div>

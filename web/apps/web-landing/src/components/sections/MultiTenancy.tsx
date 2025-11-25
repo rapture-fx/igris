@@ -65,7 +65,7 @@ export default function MultiTenancy() {
                   Secure by default. Built to scale.
                 </h3>
                 <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-12">
-                  Multi-tenant isolation, end-to-end encryption, and automated authentication are built in from day one — so your workloads stay protected as you scale.
+                  Multi-tenant isolation, end-to-end encryption, and automated authentication are built in from day one so your workloads stay protected as you scale.
                 </p>
 
                 {/* Features Grid */}

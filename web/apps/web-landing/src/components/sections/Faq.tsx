@@ -11,12 +11,12 @@ const faqEntries = [
   },
   {
     question: "How does quality-aware routing work?",
-    answer: "Each request is automatically classified by domain (code, creative, analytical) and complexity. Schlep-engine then routes it to the optimal model for that specific task — not just the cheapest, but the one that delivers the best results.",
+    answer: "Each request is automatically classified by domain (code, creative, analytical) and complexity. Schlep-engine then routes it to the optimal model for that specific task, not just the cheapest, but the one that delivers the best results.",
     type: "text"
   },
   {
     question: "Will routing to cheaper models hurt my AI quality?",
-    answer: "No — we only use cost-effective models for simple tasks where they perform well. Complex tasks automatically route to premium models. Most customers see 20–40% quality improvements overall.",
+    answer: "No, we only use cost-effective models for simple tasks where they perform well. Complex tasks automatically route to premium models. Most customers see 20–40% quality improvements overall.",
     type: "text"
   },
   {
@@ -41,7 +41,7 @@ const faqEntries = [
   },
   {
     question: "What about my existing provider discounts?",
-    answer: "You keep 100% of your negotiated rates, startup credits, and usage discounts. We never mark up API calls — just a flat monthly fee.",
+    answer: "You keep 100% of your negotiated rates, startup credits, and usage discounts. We never mark up API calls, just a flat monthly fee.",
     type: "text"
   }
 ];
