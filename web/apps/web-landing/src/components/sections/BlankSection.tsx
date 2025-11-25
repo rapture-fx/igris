@@ -15,7 +15,7 @@ const providers = [
 
 export default function BlankSection() {
   return (
-    <section className="py-2 sm:py-3 lg:py-4 bg-[#f6f6f4] text-gray-900">
+    <section className="py-2 bg-[#f6f6f4] text-gray-900">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         <div className="relative bg-[#f6f6f4] px-4 md:px-8 lg:px-12 py-8 md:py-12 lg:py-16" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
