@@ -48,6 +48,18 @@ export default function Header() {
 
           <div className="hidden md:flex items-center space-x-6">
             <Link
+              href="/docs"
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+            >
+              Docs
+            </Link>
+            <Link
+              href="/blog"
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+            >
+              Blog
+            </Link>
+            <Link
               href="/pricing"
               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
             >
@@ -81,6 +93,20 @@ export default function Header() {
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 border-t border-gray-200">
             <nav className="flex flex-col space-y-4 mt-4">
+              <Link
+                href="/docs"
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Docs
+              </Link>
+              <Link
+                href="/blog"
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Blog
+              </Link>
               <Link
                 href="/pricing"
                 className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
