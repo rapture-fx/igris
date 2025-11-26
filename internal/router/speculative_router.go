@@ -532,6 +532,7 @@ func (sm *SpeculativeMetadata) GetFinalMetadata() *SpeculativeMetadata {
 
 // RecordCosts records cost accounting after stream completion
 // This should be called by the handler after consuming all tokens
+// P0-1 FIX: Now bills per-provider based on ACTUALLY DELIVERED tokens, not just final provider
 func (sr *SpeculativeRouter) RecordCosts(
 	ctx context.Context,
 	metadata *SpeculativeMetadata,
@@ -542,8 +543,9 @@ func (sr *SpeculativeRouter) RecordCosts(
 		return fmt.Errorf("metadata is nil")
 	}
 
-	// Get final metadata
+	// Get final metadata with per-provider token counts
 	finalMeta := metadata.GetFinalMetadata()
+	mergerMeta := finalMeta.StreamMerger.GetMetadata()
 
 	// Calculate cost per token (simplified - in production would use provider cost models)
 	costPerTokenUSD := map[string]float64{
@@ -554,38 +556,97 @@ func (sr *SpeculativeRouter) RecordCosts(
 		"default":    0.002,
 	}
 
-	// Determine winner provider
-	winnerProviderID := finalMeta.FinalProvider
-	if winnerProviderID == "" {
-		winnerProviderID = metadata.WinnerProvider
+	// P0-1 FIX: Calculate costs PER PROVIDER based on delivered tokens from metadata
+	// NOT just billing the final provider for all tokens
+	var totalDeliveredCost float64
+	var totalDeliveredTokens int
+	providerDeliveredCosts := make(map[string]*ProviderDeliveredCost)
+
+	if len(mergerMeta.ProviderTokenCounts) > 0 {
+		// Use accurate per-provider counts from StreamMerger
+		for providerID, tokensDelivered := range mergerMeta.ProviderTokenCounts {
+			costPer1k := costPerTokenUSD["default"]
+			if cost, exists := costPerTokenUSD[providerID]; exists {
+				costPer1k = cost
+			}
+			deliveredCost := float64(tokensDelivered) * (costPer1k / 1000.0)
+
+			providerDeliveredCosts[providerID] = &ProviderDeliveredCost{
+				ProviderID:       providerID,
+				TokensDelivered:  tokensDelivered,
+				CostDeliveredUSD: deliveredCost,
+			}
+
+			totalDeliveredCost += deliveredCost
+			totalDeliveredTokens += tokensDelivered
+		}
+	} else {
+		// Fallback: bill final provider for all tokens (backwards compat)
+		winnerProviderID := finalMeta.FinalProvider
+		if winnerProviderID == "" {
+			winnerProviderID = metadata.WinnerProvider
+		}
+		winnerTokens := finalMeta.TotalTokens
+		if winnerTokens == 0 {
+			winnerTokens = 10 // Default if not tracked
+		}
+
+		costPer1k := costPerTokenUSD["default"]
+		if cost, exists := costPerTokenUSD[winnerProviderID]; exists {
+			costPer1k = cost
+		}
+		deliveredCost := float64(winnerTokens) * (costPer1k / 1000.0)
+
+		providerDeliveredCosts[winnerProviderID] = &ProviderDeliveredCost{
+			ProviderID:       winnerProviderID,
+			TokensDelivered:  winnerTokens,
+			CostDeliveredUSD: deliveredCost,
+		}
+		totalDeliveredCost = deliveredCost
+		totalDeliveredTokens = winnerTokens
 	}
 
-	// Calculate winner cost
-	winnerTokens := finalMeta.TotalTokens
-	if winnerTokens == 0 {
-		winnerTokens = 10 // Default if not tracked
+	// Calculate waste from ALL providers (including those that delivered some tokens)
+	// Waste = tokens generated but NOT delivered to client
+	wasteByProvider := make(map[string]*ProviderWasteStats)
+	for _, candidate := range candidates {
+		candidate.mu.Lock()
+		tokensGenerated := candidate.TokenCount
+		candidate.mu.Unlock()
+
+		// Tokens delivered from this provider
+		tokensDelivered := 0
+		if deliveredCost, exists := providerDeliveredCosts[candidate.ProviderID]; exists {
+			tokensDelivered = deliveredCost.TokensDelivered
+		}
+
+		// Waste = generated - delivered
+		tokensWasted := tokensGenerated - tokensDelivered
+		if tokensWasted < 0 {
+			tokensWasted = 0 // Safety check
+		}
+
+		if tokensWasted > 0 {
+			costPer1k := costPerTokenUSD["default"]
+			if cost, exists := costPerTokenUSD[candidate.ProviderID]; exists {
+				costPer1k = cost
+			}
+			costWasted := float64(tokensWasted) * (costPer1k / 1000.0)
+
+			wasteByProvider[candidate.ProviderID] = &ProviderWasteStats{
+				ProviderID:    candidate.ProviderID,
+				TokensWasted:  tokensWasted,
+				CostWastedUSD: costWasted,
+			}
+		}
 	}
 
-	winnerCostPer1k := costPerTokenUSD["default"]
-	if cost, exists := costPerTokenUSD[winnerProviderID]; exists {
-		winnerCostPer1k = cost
-	}
-	winnerCostUSD := float64(winnerTokens) * (winnerCostPer1k / 1000.0)
-
-	// Calculate waste from losing providers
-	losingProviders := CalculateWaste(candidates,
-		findCandidateByID(candidates, winnerProviderID),
-		costPerTokenUSD,
-	)
-
-	// Record costs in accounting system
-	err := sr.costAccounting.RecordSpeculativeRequest(
+	// Record costs in accounting system with per-provider delivered costs
+	err := sr.costAccounting.RecordSpeculativeRequestWithProviderBreakdown(
 		ctx,
 		tenantID,
-		winnerProviderID,
-		winnerTokens,
-		winnerCostUSD,
-		losingProviders,
+		providerDeliveredCosts,
+		wasteByProvider,
 	)
 
 	if err != nil {
@@ -596,13 +657,16 @@ func (sr *SpeculativeRouter) RecordCosts(
 	// Update metadata with cost info
 	var wastedCost float64
 	var wastedTokens int
-	for _, waste := range losingProviders {
+	for _, waste := range wasteByProvider {
 		wastedCost += waste.CostWastedUSD
 		wastedTokens += waste.TokensWasted
 	}
 
 	metadata.SpeculativeCostUSD = wastedCost
 	metadata.WastedTokens = wastedTokens
+
+	log.Printf("[SpeculativeRouter] Cost breakdown: delivered=%d tokens ($%.4f), wasted=%d tokens ($%.4f)",
+		totalDeliveredTokens, totalDeliveredCost, wastedTokens, wastedCost)
 
 	return nil
 }

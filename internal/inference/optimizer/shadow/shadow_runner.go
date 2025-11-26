@@ -33,6 +33,7 @@ type ShadowConfig struct {
 }
 
 // ShadowRunner executes Rust optimizer decisions in parallel with Go
+// P0-6 FIX: Added semaphore to prevent memory leak from unlimited parallel executions
 type ShadowRunner struct {
 	mode       ShadowMode
 	sampleRate float64
@@ -41,6 +42,7 @@ type ShadowRunner struct {
 	metrics    *MetricsRecorder
 	mu         sync.RWMutex
 	rand       *rand.Rand
+	semaphore  chan struct{} // P0-6: Limit parallel shadow executions to prevent OOM
 }
 
 // DecisionRequest represents a decision request
@@ -87,12 +89,17 @@ func NewShadowRunner(config ShadowConfig) (*ShadowRunner, error) {
 	metrics := NewMetricsRecorder()
 	metrics.UpdateSamplingRate(config.SampleRate)
 
+	// P0-6 FIX: Create semaphore to limit parallel shadow executions to 100
+	// This prevents memory leak when running at 10k+ RPS with 10% sampling
+	maxParallelShadows := 100
+
 	runner := &ShadowRunner{
 		mode:       config.Mode,
 		sampleRate: config.SampleRate,
 		logger:     logger,
 		metrics:    metrics,
 		rand:       rand.New(rand.NewSource(time.Now().UnixNano())),
+		semaphore:  make(chan struct{}, maxParallelShadows), // P0-6: Bounded concurrency
 	}
 
 	// Initialize Rust optimizer if needed
@@ -121,6 +128,7 @@ func (r *ShadowRunner) ShouldSample() bool {
 }
 
 // RunShadowComparison runs a shadow comparison between Go and Rust decisions
+// P0-6 FIX: Added semaphore check and timeout to prevent memory leak
 func (r *ShadowRunner) RunShadowComparison(
 	ctx context.Context,
 	req DecisionRequest,
@@ -130,12 +138,27 @@ func (r *ShadowRunner) RunShadowComparison(
 		return nil
 	}
 
+	// P0-6 FIX: Try to acquire semaphore slot, skip if at capacity
+	select {
+	case r.semaphore <- struct{}{}:
+		defer func() { <-r.semaphore }()
+	default:
+		// At capacity, skip this shadow comparison to prevent memory leak
+		r.metrics.RecordError("shadow_capacity_reached")
+		return fmt.Errorf("shadow capacity reached, skipping comparison")
+	}
+
+	// P0-6 FIX: Add 10s timeout to prevent runaway shadow executions
+	shadowCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
 	r.metrics.RecordRequest()
 
 	// Run Rust decision in parallel
 	startTime := time.Now()
 
-	rustDecision, err := r.getRustDecision(ctx, req)
+	// P0-6 FIX: Use shadowCtx with timeout instead of original ctx
+	rustDecision, err := r.getRustDecision(shadowCtx, req)
 	if err != nil {
 		r.metrics.RecordError("rust_decision_failed")
 		return fmt.Errorf("failed to get Rust decision: %w", err)
