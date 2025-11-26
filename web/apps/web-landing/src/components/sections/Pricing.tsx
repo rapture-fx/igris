@@ -11,6 +11,7 @@ const pricingTiers = [
     period: "month",
     features: [
       "500K requests/month",
+      "Overage: $0.25 per 1,000 requests after 500k",
       "Up to 5 AI providers (BYOK)",
       "Thompson Sampling routing",
       "Quality-aware routing (Cost/Balanced/Quality)",
@@ -18,8 +19,7 @@ const pricingTiers = [
       "Real-time cost tracking & forecasting",
       "Redis caching for low latency",
       "150+ observability metrics",
-      "Automatic request classification",
-      "Overage: $0.25 per 1,000 requests after 500k"
+      "Automatic request classification"
     ],
     cta: "Get Started",
     highlighted: false
@@ -31,14 +31,14 @@ const pricingTiers = [
     features: [
       "Everything in Develop +",
       "2M requests/month & 10 providers",
+      "Overage: $0.20 per 1,000 requests after 2M",
       "Speculative execution (-60% TTFT)",
       "Council mode (quality +15-20%)",
       "Cognitive advisor (auto-tune routing)",
       "Basic SLO enforcement & monitoring",
       "Policy versioning with hot reload",
       "Audit logs & compliance tracking",
-      "Multi-tenant support (up to 5 tenants)",
-      "Overage: $0.20 per 1,000 requests after 2M"
+      "Multi-tenant support (up to 5 tenants)"
     ],
     cta: "Start Growth",
     highlighted: false
@@ -56,8 +56,7 @@ const pricingTiers = [
       "Self-hosted Kubernetes deployment",
       "Custom provider adapter support",
       "Advanced audit logging & security",
-      "Unlimited multi-tenancy",
-      "No overage charges — unlimited requests"
+      "Unlimited multi-tenancy"
     ],
     cta: "Scale Up",
     highlighted: false
