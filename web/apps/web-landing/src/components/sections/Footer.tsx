@@ -12,20 +12,20 @@ export default function Footer() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
             {/* Left side - Legal links and contact */}
             <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
-              <Link href="/privacy" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
-                Privacy Policy
-              </Link>
               <Link href="/terms" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 Terms of Service
+              </Link>
+              <Link href="/privacy" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
+                Privacy Policy
               </Link>
               <Link href="/cookies" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors">
                 Cookie Policy
               </Link>
               <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                support@schlep-engine-com
+                support@schlep-engine.com
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                © 2024 Schlep-engine.
+                © 2025 Schlep-engine.
               </p>
             </div>
 
