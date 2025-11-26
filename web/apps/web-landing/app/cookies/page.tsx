@@ -1,6 +1,6 @@
 'use client';
 
-import { Metadata } from 'next';
+import Head from 'next/head';
 import Header from '../../src/components/sections/Header';
 import Footer from '../../src/components/sections/Footer';
 import EarlyAccessModal from '../../src/components/modals/EarlyAccessModal';
@@ -11,6 +11,10 @@ export default function CookiesPage() {
 
   return (
     <>
+      <Head>
+        <title>Schlep Engine Cookie Policy</title>
+        <meta name="description" content="Our minimal cookie usage — only necessary and anonymous analytics." />
+      </Head>
       <div className="min-h-screen bg-[#f6f6f4]">
         <Header />
         <main className="pt-[70px]">
@@ -18,30 +22,15 @@ export default function CookiesPage() {
             <article className="prose prose-lg dark:prose-invert max-w-none">
               <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Cookie Policy</h1>
               <p className="text-gray-600 dark:text-gray-400 mb-8">
-                <strong>Last updated: November 24, 2025</strong>
+                <strong>Last updated: November 26, 2025</strong>
               </p>
 
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                We use only strictly necessary cookies and anonymous analytics.
-              </p>
-
-              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Cookies We Use</h2>
-              <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-6 space-y-2">
-                <li>Authentication cookies (session management)</li>
-                <li>Preference cookies (dark mode, language)</li>
-                <li>Analytics via Plausible (privacy-first, no personal data)</li>
-              </ul>
-
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                We do not use tracking, advertising, or third-party cookies.
-              </p>
-
-              <p className="text-gray-700 dark:text-gray-300 mb-6">
-                You can disable cookies in your browser settings, though some features may not work.
+                We use only strictly necessary cookies and privacy-preserving analytics (Plausible). No tracking, advertising, or third-party cookies.
               </p>
 
               <p className="text-gray-700 dark:text-gray-300 mt-8">
-                Contact: <a href="mailto:support@schlep-engine.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@schlep-engine.com</a>
+                Contact: support@schlep-engine.com
               </p>
             </article>
           </div>
