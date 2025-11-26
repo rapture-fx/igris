@@ -82,16 +82,43 @@ export default function CoreCapabilities() {
 
               {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
-                    {capabilities.map((capability, index) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full">
+                    {capabilities.map((capability, index) => {
+                      const hasRightBorder = index % 2 === 0;
+                      const hasBottomBorder = index < capabilities.length - 2;
+
+                      return (
                       <div
                         key={capability.name}
-                        className="backdrop-blur-md bg-f6f6f4/80 dark:bg-gray-900/80 rounded-xl p-4 border border-gray-300/60 dark:border-gray-600/60 shadow-sm"
+                        className="p-4 relative"
                         style={{
                           padding: '20px 24px',
                           minHeight: '145px'
                         }}
                       >
+                        {/* Double dashed right border */}
+                        {hasRightBorder && (
+                          <>
+                            <div className="absolute top-0 bottom-0 right-[2px]" style={{
+                              borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
+                            }}></div>
+                            <div className="absolute top-0 bottom-0 right-[-2px]" style={{
+                              borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
+                            }}></div>
+                          </>
+                        )}
+
+                        {/* Double dashed bottom border */}
+                        {hasBottomBorder && (
+                          <>
+                            <div className="absolute left-0 right-0 bottom-[2px]" style={{
+                              borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
+                            }}></div>
+                            <div className="absolute left-0 right-0 bottom-[-2px]" style={{
+                              borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
+                            }}></div>
+                          </>
+                        )}
                         <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
                           {capability.name}
                         </h3>
@@ -99,7 +126,8 @@ export default function CoreCapabilities() {
                           {capability.description}
                         </p>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
               </div>
 
