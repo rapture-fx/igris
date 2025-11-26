@@ -188,9 +188,9 @@ export default function CoreCapabilities() {
             }}
           >
             <div className="max-w-5xl mx-auto">
-              <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
+              <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8" style={{ color: '#000000' }}>Fail-safe by design.</h4>
 
-              <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
+              <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter">
                 Every optimization passes automated guardrails before rollout. Schlep-engine isolates provider failures, validates routing in real time, and continuously monitors health so no request ever gets lost.
               </p>
 
