@@ -97,9 +97,10 @@ type TierPolicy struct {
 
 // PriceInfo contains pricing details
 type PriceInfo struct {
-	USD           float64 `yaml:"usd"`
-	Currency      string  `yaml:"currency"`
-	BillingPeriod string  `yaml:"billing_period"`
+	USD              float64 `yaml:"usd"`
+	Currency         string  `yaml:"currency"`
+	BillingPeriod    string  `yaml:"billing_period"`
+	OverageRatePer1k float64 `yaml:"overage_rate_per_1k"` // Cost per 1,000 requests after limit
 }
 
 // TierLimits defines usage limits for a tier
@@ -398,6 +399,51 @@ func (te *TierEnforcer) enforceRequestLimits(c *fiber.Ctx, tenantID, tier string
 		}
 	}
 
+	// OVERAGE LOGIC: Calculate overage cost and handle notifications/upgrades
+	if limitPercent >= 100.0 {
+		overageCost := te.calculateOverageCost(currentCount, policy)
+
+		// Send 100% overage notification (once)
+		if limitPercent >= 100.0 && limitPercent < 105.0 {
+			if !te.hasOverageNotificationBeenSent(tenantID) {
+				te.sendOverageNotification(tenantID, tier, currentCount, policy.Limits.MaxRequestsPerMonth, overageCost)
+				te.markOverageNotificationSent(tenantID)
+			}
+		}
+
+		// Send 120% overage notification with auto-upgrade suggestion
+		if limitPercent >= 120.0 {
+			nextTier, nextTierPrice, hasNext := te.getNextTier(tier)
+			if hasNext {
+				// Check if auto-upgrade would save money
+				if overageCost > nextTierPrice {
+					// Trigger auto-upgrade
+					te.logger.Printf("[TierEnforcer] Auto-upgrade condition met: overage=$%.2f > next_tier=$%.2f",
+						overageCost, nextTierPrice)
+
+					if !te.hasAutoUpgradeBeenTriggered(tenantID) {
+						if err := te.triggerAutoUpgrade(tenantID, tier, nextTier, overageCost, nextTierPrice); err != nil {
+							te.logger.Printf("[TierEnforcer] Auto-upgrade failed: %v", err)
+						} else {
+							te.markAutoUpgradeTriggered(tenantID)
+						}
+					}
+				} else {
+					// Send high overage notification without auto-upgrade
+					if !te.hasHighOverageNotificationBeenSent(tenantID) {
+						te.sendOverageHighNotification(tenantID, tier, currentCount, policy.Limits.MaxRequestsPerMonth,
+							overageCost, nextTierPrice, nextTier)
+						te.markHighOverageNotificationSent(tenantID)
+					}
+				}
+			}
+		}
+
+		// Add overage info to response headers
+		c.Set("X-Overage-Cost", fmt.Sprintf("$%.2f", overageCost))
+		c.Set("X-Overage-Requests", fmt.Sprintf("%d", currentCount-int64(policy.Limits.MaxRequestsPerMonth)))
+	}
+
 	return nil
 }
 
@@ -642,11 +688,206 @@ func (te *TierEnforcer) markHardLimitReached(tenantID string) {
 	`, tenantID)
 }
 
+// hasOverageNotificationBeenSent checks if 100% overage notification was sent
+func (te *TierEnforcer) hasOverageNotificationBeenSent(tenantID string) bool {
+	var sent bool
+	err := te.db.QueryRow(`
+		SELECT overage_notification_sent FROM tenants WHERE id = $1
+	`, tenantID).Scan(&sent)
+
+	if err != nil {
+		return false
+	}
+
+	return sent
+}
+
+// markOverageNotificationSent marks that 100% overage notification was sent
+func (te *TierEnforcer) markOverageNotificationSent(tenantID string) {
+	te.db.Exec(`
+		UPDATE tenants SET overage_notification_sent = true WHERE id = $1
+	`, tenantID)
+}
+
+// hasHighOverageNotificationBeenSent checks if 120% overage notification was sent
+func (te *TierEnforcer) hasHighOverageNotificationBeenSent(tenantID string) bool {
+	var sent bool
+	err := te.db.QueryRow(`
+		SELECT high_overage_notification_sent FROM tenants WHERE id = $1
+	`, tenantID).Scan(&sent)
+
+	if err != nil {
+		return false
+	}
+
+	return sent
+}
+
+// markHighOverageNotificationSent marks that 120% overage notification was sent
+func (te *TierEnforcer) markHighOverageNotificationSent(tenantID string) {
+	te.db.Exec(`
+		UPDATE tenants SET high_overage_notification_sent = true WHERE id = $1
+	`, tenantID)
+}
+
+// hasAutoUpgradeBeenTriggered checks if auto-upgrade was triggered
+func (te *TierEnforcer) hasAutoUpgradeBeenTriggered(tenantID string) bool {
+	var triggered bool
+	err := te.db.QueryRow(`
+		SELECT auto_upgrade_triggered FROM tenants WHERE id = $1
+	`, tenantID).Scan(&triggered)
+
+	if err != nil {
+		return false
+	}
+
+	return triggered
+}
+
+// markAutoUpgradeTriggered marks that auto-upgrade was triggered
+func (te *TierEnforcer) markAutoUpgradeTriggered(tenantID string) {
+	te.db.Exec(`
+		UPDATE tenants SET auto_upgrade_triggered = true, auto_upgrade_triggered_at = CURRENT_TIMESTAMP WHERE id = $1
+	`, tenantID)
+}
+
 // sendSoftLimitWarning sends warning notification (placeholder for future alerting)
 func (te *TierEnforcer) sendSoftLimitWarning(tenantID, tier string, current int64, limit int) {
-	te.logger.Printf("[TierEnforcer] Soft limit warning: tenant=%s tier=%s usage=%d/%d (80%% threshold)",
+	te.logger.Printf("[TierEnforcer] 80%% Usage Warning: tenant=%s tier=%s usage=%d/%d",
 		tenantID, tier, current, limit)
-	// TODO: Integrate with alerting backend (email, Slack, webhook)
+
+	// TODO: Send email using AlertQueue
+	// Email Template: "80% Usage Warning"
+	// Subject: "You've used 80% of your monthly request limit"
+	// Body:
+	//   Hi there,
+	//
+	//   You've used 80% of your monthly request limit on your {tier} plan.
+	//
+	//   Current usage: {current:,} / {limit:,} requests
+	//   Remaining: {limit-current:,} requests
+	//   Resets: {next_month}
+	//
+	//   What happens if I exceed my limit?
+	//   - Develop: $0.25 per 1,000 requests
+	//   - Growth: $0.20 per 1,000 requests
+	//
+	//   We'll notify you when you reach 100% and suggest an upgrade if it saves you money.
+	//
+	//   View your usage: {dashboard_url}
+}
+
+// calculateOverageCost calculates the overage cost for current usage
+func (te *TierEnforcer) calculateOverageCost(currentCount int64, policy TierPolicy) float64 {
+	// No overage if unlimited or under limit
+	if policy.Limits.MaxRequestsPerMonth == -1 || currentCount <= int64(policy.Limits.MaxRequestsPerMonth) {
+		return 0
+	}
+
+	// Calculate overage requests
+	overageRequests := currentCount - int64(policy.Limits.MaxRequestsPerMonth)
+
+	// Calculate cost: (overage_requests / 1000) * rate_per_1k
+	overageCost := (float64(overageRequests) / 1000.0) * policy.Price.OverageRatePer1k
+
+	return overageCost
+}
+
+// getNextTier returns the next tier up from current tier (for auto-upgrade logic)
+func (te *TierEnforcer) getNextTier(currentTier string) (string, float64, bool) {
+	tierOrder := []string{"developer", "growth", "scale"}
+
+	for i, tier := range tierOrder {
+		if tier == currentTier && i < len(tierOrder)-1 {
+			nextTierName := tierOrder[i+1]
+			nextPolicy, exists := te.getTierPolicy(nextTierName)
+			if exists {
+				return nextTierName, nextPolicy.Price.USD, true
+			}
+		}
+	}
+
+	return "", 0, false
+}
+
+// sendOverageNotification sends notification when user enters overage (100%)
+func (te *TierEnforcer) sendOverageNotification(tenantID, tier string, current int64, limit int, overageCost float64) {
+	te.logger.Printf("[TierEnforcer] 100%% Overage Started: tenant=%s tier=%s usage=%d/%d overage_cost=$%.2f",
+		tenantID, tier, current, limit, overageCost)
+
+	// TODO: Send email using AlertQueue
+	// Email Template: "You've exceeded your request limit"
+	// Subject: "Overage charges started on your {tier} plan"
+	// Body:
+	//   Hi there,
+	//
+	//   You've exceeded your monthly request limit and overage charges have started.
+	//
+	//   Plan: {tier}
+	//   Monthly limit: {limit:,} requests
+	//   Current usage: {current:,} requests
+	//   Overage: {current-limit:,} requests
+	//   Current overage cost: ${overageCost:.2f}
+	//
+	//   Overage rate: ${rate} per 1,000 requests
+	//
+	//   Don't worry - we'll suggest an upgrade if it would save you money!
+	//
+	//   View your usage: {dashboard_url}
+}
+
+// sendOverageHighNotification sends notification at 120% usage with auto-upgrade suggestion
+func (te *TierEnforcer) sendOverageHighNotification(tenantID, tier string, current int64, limit int, overageCost, nextTierPrice float64, nextTierName string) {
+	te.logger.Printf("[TierEnforcer] 120%% High Overage: tenant=%s tier=%s usage=%d/%d overage=$%.2f next_tier=%s ($%.2f)",
+		tenantID, tier, current, limit, overageCost, nextTierName, nextTierPrice)
+
+	// TODO: Send email using AlertQueue
+	// Email Template: "Consider upgrading to save money"
+	// Subject: "You could save ${savings:.2f} by upgrading to {next_tier}"
+	// Body:
+	//   Hi there,
+	//
+	//   Your usage has grown significantly this month!
+	//
+	//   Current plan: {tier} (${tier_price}/month)
+	//   Current overage: ${overageCost:.2f}
+	//   Total cost this month: ${tier_price + overageCost:.2f}
+	//
+	//   Upgrading to {next_tier} would cost ${next_tier_price}/month
+	//   and give you {next_tier_limit:,} requests with no overage.
+	//
+	//   You'd save: ${(tier_price + overageCost) - next_tier_price:.2f}
+	//
+	//   Upgrade now: {upgrade_url}
+	//   View usage: {dashboard_url}
+}
+
+// triggerAutoUpgrade triggers automatic tier upgrade via Polar webhook
+func (te *TierEnforcer) triggerAutoUpgrade(tenantID, currentTier, nextTier string, overageCost, nextTierPrice float64) error {
+	te.logger.Printf("[TierEnforcer] Auto-Upgrade Triggered: tenant=%s %s→%s overage=$%.2f next_tier_price=$%.2f",
+		tenantID, currentTier, nextTier, overageCost, nextTierPrice)
+
+	// TODO: Implement Polar API integration
+	// Steps:
+	// 1. Get tenant's Polar subscription ID from database
+	// 2. Call Polar API: POST https://api.polar.sh/v1/subscriptions/{subscription_id}/upgrade
+	//    Body: { "product_id": "{next_tier_product_id}" }
+	// 3. Update local database: UPDATE tenants SET tier = $1 WHERE id = $2
+	// 4. Send confirmation email:
+	//    Subject: "Your plan has been upgraded to {next_tier}"
+	//    Body:
+	//      Great news! We've automatically upgraded your plan to {next_tier}
+	//      because it will save you money this month.
+	//
+	//      Old plan: {current_tier} (${current_price}/month + ${overage_cost} overage)
+	//      New plan: {next_tier} (${next_tier_price}/month, no overage)
+	//      Monthly savings: ${savings:.2f}
+	//
+	//      Your new limits: {next_tier_limits}
+	//
+	//      View your updated plan: {dashboard_url}
+
+	return nil
 }
 
 // ============================================================================
@@ -788,6 +1029,9 @@ func (te *TierEnforcer) ResetMonthlyCounters(ctx context.Context) (int, error) {
 				requests_this_month = 0,
 				soft_limit_warning_sent = false,
 				hard_limit_reached_at = NULL,
+				overage_notification_sent = false,
+				high_overage_notification_sent = false,
+				auto_upgrade_triggered = false,
 				requests_reset_at = DATE_TRUNC('month', CURRENT_TIMESTAMP) + INTERVAL '1 month'
 			WHERE id = $1
 		`, tenantID)
