@@ -23,6 +23,7 @@ tiers:
       usd: 0
       currency: "USD"
       billing_period: "14_days"
+      overage_rate_per_1k: 0
 
     # Request Limits
     limits:
@@ -91,6 +92,7 @@ tiers:
       usd: 99                             # UPDATED: $249 → $99
       currency: "USD"
       billing_period: "month"
+      overage_rate_per_1k: 0.25           # $0.25 per 1,000 requests after 500k
 
     # Request Limits
     limits:
@@ -202,6 +204,7 @@ tiers:
       usd: 499                            # UPDATED: $799 → $499
       currency: "USD"
       billing_period: "month"
+      overage_rate_per_1k: 0.20           # $0.20 per 1,000 requests after 2M
 
     # Request Limits
     limits:
@@ -290,6 +293,7 @@ tiers:
       usd: 1499                           # UPDATED: $1,899 → $1,499
       currency: "USD"
       billing_period: "month"
+      overage_rate_per_1k: 0              # No overage - unlimited requests
 
     # Request Limits
     limits:

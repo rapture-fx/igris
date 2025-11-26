@@ -18,7 +18,8 @@ const pricingTiers = [
       "Real-time cost tracking & forecasting",
       "Redis caching for low latency",
       "150+ observability metrics",
-      "Automatic request classification"
+      "Automatic request classification",
+      "Overage: $0.25 per 1,000 requests after 500k"
     ],
     cta: "Get Started",
     highlighted: false
@@ -36,7 +37,8 @@ const pricingTiers = [
       "Basic SLO enforcement & monitoring",
       "Policy versioning with hot reload",
       "Audit logs & compliance tracking",
-      "Multi-tenant support (up to 5 tenants)"
+      "Multi-tenant support (up to 5 tenants)",
+      "Overage: $0.20 per 1,000 requests after 2M"
     ],
     cta: "Start Growth",
     highlighted: false
@@ -54,7 +56,8 @@ const pricingTiers = [
       "Self-hosted Kubernetes deployment",
       "Custom provider adapter support",
       "Advanced audit logging & security",
-      "Unlimited multi-tenancy"
+      "Unlimited multi-tenancy",
+      "No overage charges — unlimited requests"
     ],
     cta: "Scale Up",
     highlighted: false

@@ -31,6 +31,7 @@ const (
 	AlertTypePerformance AlertType = "performance"
 	AlertTypeSystem      AlertType = "system"
 	AlertTypeSecurity    AlertType = "security"
+	AlertTypeUsage       AlertType = "usage" // Usage notifications (80%, 100%, 120%)
 )
 
 // Alert represents an alert to be sent
