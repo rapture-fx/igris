@@ -404,3 +404,110 @@ func (ca *CostAccounting) RecordProviderFailure(tenantID, providerID string) {
 
 	tracker.ProviderCosts[providerID].FailedCount++
 }
+
+// P0-1 FIX: New method to record costs with per-provider breakdown
+// This replaces RecordSpeculativeRequest for accurate per-provider billing
+type ProviderDeliveredCost struct {
+	ProviderID       string
+	TokensDelivered  int
+	CostDeliveredUSD float64
+}
+
+func (ca *CostAccounting) RecordSpeculativeRequestWithProviderBreakdown(
+	ctx context.Context,
+	tenantID string,
+	deliveredByProvider map[string]*ProviderDeliveredCost,
+	wasteByProvider map[string]*ProviderWasteStats,
+) error {
+	ca.mu.Lock()
+	tracker, exists := ca.tenantCosts[tenantID]
+	if !exists {
+		tracker = &TenantCostTracker{
+			TenantID:       tenantID,
+			ProviderCosts:  make(map[string]*ProviderCostStats),
+			LastResetTime:  time.Now(),
+		}
+		ca.tenantCosts[tenantID] = tracker
+	}
+	ca.mu.Unlock()
+
+	tracker.mu.Lock()
+	defer tracker.mu.Unlock()
+
+	// Track total delivered costs and tokens
+	var totalDeliveredCost float64
+	var totalDeliveredTokens int
+
+	// Record costs for each provider that DELIVERED tokens
+	for _, delivered := range deliveredByProvider {
+		totalDeliveredCost += delivered.CostDeliveredUSD
+		totalDeliveredTokens += delivered.TokensDelivered
+
+		// Update provider stats
+		if _, exists := tracker.ProviderCosts[delivered.ProviderID]; !exists {
+			tracker.ProviderCosts[delivered.ProviderID] = &ProviderCostStats{
+				ProviderID: delivered.ProviderID,
+			}
+		}
+		providerStats := tracker.ProviderCosts[delivered.ProviderID]
+		providerStats.WonCount++
+		providerStats.WinnerTokens += int64(delivered.TokensDelivered)
+		providerStats.WinnerCostUSD += delivered.CostDeliveredUSD
+	}
+
+	// Record waste for each provider
+	var totalWastedCost float64
+	var totalWastedTokens int
+
+	for _, waste := range wasteByProvider {
+		totalWastedCost += waste.CostWastedUSD
+		totalWastedTokens += waste.TokensWasted
+
+		// Update provider stats
+		if _, exists := tracker.ProviderCosts[waste.ProviderID]; !exists {
+			tracker.ProviderCosts[waste.ProviderID] = &ProviderCostStats{
+				ProviderID: waste.ProviderID,
+			}
+		}
+		providerStats := tracker.ProviderCosts[waste.ProviderID]
+
+		// Only increment LostCount if this provider delivered ZERO tokens
+		if _, delivered := deliveredByProvider[waste.ProviderID]; !delivered {
+			providerStats.LostCount++
+		}
+
+		providerStats.WastedTokens += int64(waste.TokensWasted)
+		providerStats.WastedCostUSD += waste.CostWastedUSD
+
+		// Record Prometheus metrics
+		observability.RecordSpeculativeTokensWasted(waste.ProviderID, tenantID, waste.TokensWasted)
+		observability.RecordSpeculativeCostWasted(waste.ProviderID, tenantID, waste.CostWastedUSD)
+	}
+
+	// Update tenant totals
+	tracker.WinnerCostUSD += totalDeliveredCost
+	tracker.WinnerTokens += totalDeliveredTokens
+	tracker.WastedCostUSD += totalWastedCost
+	tracker.WastedTokens += totalWastedTokens
+	tracker.TotalCostUSD += totalDeliveredCost + totalWastedCost
+	tracker.TotalTokens += totalDeliveredTokens + totalWastedTokens
+	tracker.RequestCount++
+
+	// Calculate waste ratio
+	if tracker.TotalCostUSD > 0 {
+		tracker.WasteRatio = tracker.WastedCostUSD / tracker.TotalCostUSD
+	}
+
+	// Update global stats
+	ca.mu.Lock()
+	ca.totalWastedTokens += int64(totalWastedTokens)
+	ca.totalWastedCostUSD += totalWastedCost
+	ca.totalRequestsProcessed++
+	ca.mu.Unlock()
+
+	log.Printf("[CostAccounting] Tenant %s: delivered=$%.4f (%d tokens from %d providers), wasted=$%.4f (%d tokens), waste_ratio=%.2f%%",
+		tenantID, totalDeliveredCost, totalDeliveredTokens, len(deliveredByProvider),
+		totalWastedCost, totalWastedTokens, tracker.WasteRatio*100)
+
+	return nil
+}

@@ -6,23 +6,25 @@ import (
 	"math"
 	"math/rand"
 	"sync"
+	"sync/atomic" // P0-7: Added for atomic operations
 	"time"
 
 	"github.com/rs/zerolog/log"
 )
 
 // CircuitBreakerState represents the current state of a circuit breaker
-type CircuitBreakerState int
+// P0-7 FIX: Changed to int32 for atomic operations
+type CircuitBreakerState int32
 
 const (
 	// StateClosed - Circuit is closed, requests flow through
-	StateClosed CircuitBreakerState = iota
+	StateClosed CircuitBreakerState = 0
 
 	// StateOpen - Circuit is open, requests are rejected
-	StateOpen
+	StateOpen CircuitBreakerState = 1
 
 	// StateHalfOpen - Circuit is testing if backend has recovered
-	StateHalfOpen
+	StateHalfOpen CircuitBreakerState = 2
 )
 
 func (s CircuitBreakerState) String() string {
@@ -39,10 +41,11 @@ func (s CircuitBreakerState) String() string {
 }
 
 // AdaptiveCircuitBreaker implements adaptive thresholds based on rolling metrics
+// P0-7 FIX: Use atomic int32 for state to prevent race conditions
 type AdaptiveCircuitBreaker struct {
 	config CircuitBreakerConfig
-	state CircuitBreakerState
-	stateMu sync.RWMutex
+	state int32 // P0-7: atomic int32 instead of CircuitBreakerState with mutex
+	stateMu sync.RWMutex // P0-7: Still used for other state fields
 	metrics *RollingMetrics
 	lastStateChange time.Time
 	openedAt time.Time
@@ -131,7 +134,7 @@ type MetricsBucket struct {
 func NewAdaptiveCircuitBreaker(config CircuitBreakerConfig) *AdaptiveCircuitBreaker {
 	cb := &AdaptiveCircuitBreaker{
 		config:          config,
-		state:           StateClosed,
+		state:           int32(StateClosed), // P0-7: Initialize as int32
 		lastStateChange: time.Now(),
 		metrics:         NewRollingMetrics(config),
 		adaptiveThreshold: AdaptiveThreshold{
@@ -166,10 +169,9 @@ func (cb *AdaptiveCircuitBreaker) Execute(ctx context.Context, fn func() error) 
 }
 
 // beforeRequest checks if request should be allowed
+// P0-7 FIX: Use atomic load to read state without lock
 func (cb *AdaptiveCircuitBreaker) beforeRequest() error {
-	cb.stateMu.RLock()
-	state := cb.state
-	cb.stateMu.RUnlock()
+	state := CircuitBreakerState(atomic.LoadInt32(&cb.state))
 
 	switch state {
 	case StateClosed:
@@ -212,12 +214,17 @@ func (cb *AdaptiveCircuitBreaker) beforeRequest() error {
 }
 
 // afterRequest records the result of a request
+// P0-7 FIX: Move metrics recording OUTSIDE lock to reduce contention
 func (cb *AdaptiveCircuitBreaker) afterRequest(err error, latencyMs int64) {
 	cb.inflightMu.Lock()
 	cb.inflightRequests--
 	cb.inflightMu.Unlock()
 
+	// P0-7 FIX: Record metrics BEFORE acquiring lock to reduce contention
 	cb.metrics.Record(err, latencyMs)
+
+	// P0-7 FIX: Use atomic load to check current state
+	currentState := CircuitBreakerState(atomic.LoadInt32(&cb.state))
 
 	cb.stateMu.Lock()
 	defer cb.stateMu.Unlock()
@@ -226,16 +233,16 @@ func (cb *AdaptiveCircuitBreaker) afterRequest(err error, latencyMs int64) {
 		cb.consecutiveFailures++
 		cb.consecutiveSuccesses = 0
 
-		if cb.state == StateClosed && cb.shouldOpenCircuit() {
+		if currentState == StateClosed && cb.shouldOpenCircuit() {
 			cb.transitionToLocked(StateOpen)
-		} else if cb.state == StateHalfOpen {
+		} else if currentState == StateHalfOpen {
 			cb.transitionToLocked(StateOpen)
 		}
 	} else {
 		cb.consecutiveSuccesses++
 		cb.consecutiveFailures = 0
 
-		if cb.state == StateHalfOpen && cb.consecutiveSuccesses >= cb.config.SuccessThreshold {
+		if currentState == StateHalfOpen && cb.consecutiveSuccesses >= cb.config.SuccessThreshold {
 			cb.transitionToLocked(StateClosed)
 		}
 	}
@@ -273,14 +280,25 @@ func (cb *AdaptiveCircuitBreaker) transitionTo(newState CircuitBreakerState) {
 }
 
 // transitionToLocked transitions to a new state (must be called with lock held)
+// P0-7 FIX: Use atomic CAS to prevent race conditions and flapping
 func (cb *AdaptiveCircuitBreaker) transitionToLocked(newState CircuitBreakerState) {
-	oldState := cb.state
+	oldState := CircuitBreakerState(atomic.LoadInt32(&cb.state))
 
 	if oldState == newState {
 		return
 	}
 
-	cb.state = newState
+	// P0-7 FIX: Use Compare-And-Swap to atomically transition state
+	// This prevents race conditions where multiple goroutines try to change state simultaneously
+	if !atomic.CompareAndSwapInt32(&cb.state, int32(oldState), int32(newState)) {
+		// Another goroutine changed the state, abort this transition
+		log.Info().
+			Str("circuit_breaker", cb.config.Name).
+			Str("attempted_transition", oldState.String()+" -> "+newState.String()).
+			Msg("Circuit breaker state transition aborted (race detected)")
+		return
+	}
+
 	cb.lastStateChange = time.Now()
 
 	switch newState {
@@ -328,10 +346,9 @@ func (cb *AdaptiveCircuitBreaker) calculateBackoff() time.Duration {
 }
 
 // GetState returns current circuit breaker state
+// P0-7 FIX: Use atomic load instead of lock
 func (cb *AdaptiveCircuitBreaker) GetState() CircuitBreakerState {
-	cb.stateMu.RLock()
-	defer cb.stateMu.RUnlock()
-	return cb.state
+	return CircuitBreakerState(atomic.LoadInt32(&cb.state))
 }
 
 // monitorMetrics updates adaptive thresholds periodically

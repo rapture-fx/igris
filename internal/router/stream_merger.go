@@ -35,6 +35,12 @@ type StreamMerger struct {
 	// Buffered tokens from candidates (for fallback)
 	candidateBuffers map[string][]*models.StreamChunk
 	bufferMu         sync.Mutex
+
+	// P0-1 FIX: Per-provider delivered token tracking for accurate billing
+	deliveredTokens  map[string]bool      // token hash -> already delivered (deduplication)
+	tokenHashes      []string              // ordered list of delivered token hashes
+	providerTokenCount map[string]int      // providerID -> count of tokens delivered from this provider
+	hashMu           sync.Mutex
 }
 
 // NewStreamMerger creates a new stream merger for the given winner and fallback candidates
@@ -57,6 +63,10 @@ func NewStreamMerger(
 		ctx:                mergerCtx,
 		cancel:             cancel,
 		candidateBuffers:   make(map[string][]*models.StreamChunk),
+		// P0-1 FIX: Initialize deduplication structures
+		deliveredTokens:    make(map[string]bool),
+		tokenHashes:        make([]string, 0, 100),
+		providerTokenCount: make(map[string]int),
 	}
 }
 
@@ -94,8 +104,26 @@ func (sm *StreamMerger) mergeStream() {
 				return
 			}
 
-			// Deliver token to output
+			// P0-1 FIX: Check for token deduplication before delivery
+			tokenHash := sm.hashToken(chunk)
+
+			sm.hashMu.Lock()
+			if sm.deliveredTokens[tokenHash] {
+				// Duplicate token detected - skip delivery
+				sm.hashMu.Unlock()
+				log.Printf("[StreamMerger] Duplicate token detected (hash=%s), skipping delivery", tokenHash[:8])
+				continue
+			}
+
+			// Mark token as delivered
+			sm.deliveredTokens[tokenHash] = true
+			sm.tokenHashes = append(sm.tokenHashes, tokenHash)
+			sm.hashMu.Unlock()
+
+			// Track which provider delivered this token
 			sm.mu.Lock()
+			providerID := sm.currentProvider.ProviderID
+			sm.providerTokenCount[providerID]++
 			sm.tokensDelivered++
 			tokenNum := sm.tokensDelivered
 			sm.mu.Unlock()
@@ -292,6 +320,15 @@ func (sm *StreamMerger) GetMetadata() *StreamMergerMetadata {
 	}
 	sm.bufferMu.Unlock()
 
+	// P0-1 FIX: Add per-provider token counts for accurate cost attribution
+	sm.hashMu.Lock()
+	metadata.ProviderTokenCounts = make(map[string]int)
+	for providerID, count := range sm.providerTokenCount {
+		metadata.ProviderTokenCounts[providerID] = count
+	}
+	metadata.UniqueTokensDelivered = len(sm.deliveredTokens)
+	sm.hashMu.Unlock()
+
 	return metadata
 }
 
@@ -303,6 +340,29 @@ type StreamMergerMetadata struct {
 	InitialProvider      string         `json:"initial_provider"`
 	FinalProvider        string         `json:"final_provider"`
 	FallbackBufferSizes  map[string]int `json:"fallback_buffer_sizes"`
+	// P0-1 FIX: Per-provider token delivery counts for accurate billing
+	ProviderTokenCounts  map[string]int `json:"provider_token_counts"`
+	UniqueTokensDelivered int           `json:"unique_tokens_delivered"`
+}
+
+// hashToken creates a deterministic hash of a token chunk for deduplication
+// Uses content + index to ensure uniqueness
+func (sm *StreamMerger) hashToken(chunk *models.StreamChunk) string {
+	if chunk == nil || len(chunk.Choices) == 0 {
+		return ""
+	}
+
+	// Hash based on delta content + choice index
+	content := ""
+	for _, choice := range chunk.Choices {
+		if choice.Delta != nil {
+			content += choice.Delta.Content
+			content += fmt.Sprintf("|idx:%d", choice.Index)
+		}
+	}
+
+	// Simple hash using fmt.Sprintf for determinism
+	return fmt.Sprintf("%x", []byte(content))
 }
 
 // Stop gracefully stops the stream merger

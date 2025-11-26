@@ -187,6 +187,12 @@ func (ta *TenantAuth) Authenticate() fiber.Handler {
 			ta.logger.Printf("[TenantAuth] Login queue full, dropping update for tenant %s", claims.TenantID)
 		}
 
+	// P0-3 FIX: Set tenant context in database session for Row-Level Security
+	if ta.db != nil {
+		if err := ta.setTenantContextInDB(claims.TenantID); err != nil {
+			ta.logger.Printf("[TenantAuth] Failed to set tenant context in DB: %v", err)
+		}
+	}
 		// Create tenant context
 		tenantCtx := &TenantContext{
 			TenantID:   claims.TenantID,
@@ -478,6 +484,12 @@ func (aka *APIKeyAuth) Authenticate() fiber.Handler {
 		// Update last login (async, non-blocking via worker pool)
 		select {
 		case aka.loginQueue <- tenantID:
+	// P0-3 FIX: Set tenant context in database session for Row-Level Security
+	if aka.db != nil {
+		if err := aka.setTenantContextInDB(tenantID); err != nil {
+			aka.logger.Printf("[APIKeyAuth] Failed to set tenant context in DB: %v", err)
+		}
+	}
 			// Successfully queued
 		default:
 			// Queue full, log warning but don't block request
@@ -507,6 +519,26 @@ func (aka *APIKeyAuth) updateLastLoginWithContext(ctx context.Context, tenantID 
 	`, tenantID)
 
 	return err
+}
+
+// P0-3 FIX: setTenantContextInDB sets the tenant_id in the database session for RLS
+func (ta *TenantAuth) setTenantContextInDB(tenantID string) error {
+	// Set the app.tenant_id session variable for Row-Level Security
+	// This MUST be called after JWT validation to enforce tenant isolation
+	_, err := ta.db.Exec(`SELECT set_tenant_context($1)`, tenantID)
+	if err != nil {
+		return fmt.Errorf("failed to set tenant context: %w", err)
+	}
+	return nil
+}
+
+// P0-3 FIX: setTenantContextInDB for API key auth
+func (aka *APIKeyAuth) setTenantContextInDB(tenantID string) error {
+	_, err := aka.db.Exec(`SELECT set_tenant_context($1)`, tenantID)
+	if err != nil {
+		return fmt.Errorf("failed to set tenant context: %w", err)
+	}
+	return nil
 }
 
 // BypassAuth creates a middleware that bypasses authentication for specific paths

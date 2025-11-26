@@ -70,12 +70,13 @@ func NewConfig() *Config {
 		enablePersistence = false
 	}
 
+	// P0-5 FIX: Increase connection pool limits for high concurrency (50k RPS)
 	config := &Config{
 		DatabaseURL:        databaseURL,
-		MaxOpenConns:       getEnvInt("DB_MAX_OPEN_CONNS", 25),
-		MaxIdleConns:       getEnvInt("DB_MAX_IDLE_CONNS", 5),
-		ConnMaxLifetime:    time.Duration(getEnvInt("DB_CONN_MAX_LIFETIME", 15)) * time.Minute,
-		ConnMaxIdleTime:    time.Duration(getEnvInt("DB_CONN_MAX_IDLE_TIME", 5)) * time.Minute,
+		MaxOpenConns:       getEnvInt("DB_MAX_OPEN_CONNS", 500),         // P0-5: Was 25, now 500
+		MaxIdleConns:       getEnvInt("DB_MAX_IDLE_CONNS", 100),         // P0-5: Was 5, now 100
+		ConnMaxLifetime:    time.Duration(getEnvInt("DB_CONN_MAX_LIFETIME", 5)) * time.Minute,  // P0-5: Was 15min, now 5min
+		ConnMaxIdleTime:    time.Duration(getEnvInt("DB_CONN_MAX_IDLE_TIME", 30)) * time.Second, // P0-5: Was 5min, now 30sec
 		EnablePersistence:  enablePersistence,
 		FailFastOnError:    getEnvBool("DB_FAIL_FAST", false),
 		EnableQueryLogging: getEnvBool("DB_ENABLE_QUERY_LOGGING", false),

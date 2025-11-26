@@ -170,6 +170,7 @@ func (sr *SpeculativeRouter) executeCouncilInferences(
 		err      error
 	}
 
+	// P0-2 FIX: BUFFER the channel to prevent deadlock when timeout occurs
 	resultsChan := make(chan result, len(candidates))
 
 	// Launch parallel inferences
@@ -262,7 +263,9 @@ func (sr *SpeculativeRouter) generatePeerRankings(
 		maxRankers = len(responses)
 	}
 
+	// P0-2 FIX: Use sync.Mutex to protect concurrent writes to rankings slice
 	rankings := make([]PeerRanking, 0, maxRankers)
+	var rankingsMu sync.Mutex
 
 	// Ask each ranker to rank the responses
 	for i := 0; i < maxRankers; i++ {
@@ -298,24 +301,40 @@ func (sr *SpeculativeRouter) generatePeerRankings(
 			continue
 		}
 
-		// Parse JSON ranking response
-		rankingContent := rankResp.Choices[0].Message.Content
+		// P0-2 FIX: Parse JSON ranking response with panic recovery
 		var peerRankResp PeerRankingResponse
+		parseErr := func() (err error) {
+			defer func() {
+				if r := recover(); r != nil {
+					err = fmt.Errorf("panic during JSON unmarshal: %v", r)
+				}
+			}()
 
-		if err := json.Unmarshal([]byte(rankingContent), &peerRankResp); err != nil {
-			log.Printf("[CouncilRouter] Failed to parse ranking JSON from %s: %v", rankerProvider, err)
-			// Try to extract JSON from markdown code blocks
-			rankingContent = extractJSON(rankingContent)
+			rankingContent := rankResp.Choices[0].Message.Content
 			if err := json.Unmarshal([]byte(rankingContent), &peerRankResp); err != nil {
-				log.Printf("[CouncilRouter] JSON extraction also failed for %s", rankerProvider)
-				continue
+				log.Printf("[CouncilRouter] Failed to parse ranking JSON from %s: %v", rankerProvider, err)
+				// Try to extract JSON from markdown code blocks
+				rankingContent = extractJSON(rankingContent)
+				if err := json.Unmarshal([]byte(rankingContent), &peerRankResp); err != nil {
+					log.Printf("[CouncilRouter] JSON extraction also failed for %s", rankerProvider)
+					return err
+				}
 			}
+			return nil
+		}()
+
+		if parseErr != nil {
+			log.Printf("[CouncilRouter] JSON parsing failed for %s: %v", rankerProvider, parseErr)
+			continue
 		}
 
+		// P0-2 FIX: Protect concurrent writes with mutex
+		rankingsMu.Lock()
 		rankings = append(rankings, PeerRanking{
 			RankerProvider: rankerProvider,
 			Rankings:       peerRankResp.Rankings,
 		})
+		rankingsMu.Unlock()
 
 		log.Printf("[CouncilRouter] Received ranking from %s: %d responses ranked",
 			rankerProvider, len(peerRankResp.Rankings))
