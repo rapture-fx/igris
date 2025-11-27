@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
+	"github.com/schlep-engine/schlep-engine/internal/sdk/go/schlep/escapevector"
 )
 
 const (
@@ -33,6 +34,9 @@ const (
 // It provides methods to interact with the Schlep-engine API including
 // inference requests, model listing, and health checks.
 //
+// Features EscapeVector Mode - Thompson Sampling-powered resilience that
+// continues Bayesian optimization even during total control plane outages.
+//
 // Example usage:
 //
 //	client := schlep.NewClient(&schlep.Config{
@@ -47,10 +51,11 @@ const (
 //		},
 //	})
 type Client struct {
-	baseURL    string
-	apiKey     string
-	httpClient *http.Client
-	userAgent  string
+	baseURL      string
+	apiKey       string
+	httpClient   *http.Client
+	userAgent    string
+	escapeVector *escapevector.EscapeVectorMode
 }
 
 // Config holds configuration options for the Client.
@@ -112,11 +117,19 @@ func NewClient(cfg *Config) *Client {
 		}
 	}
 
+	// Initialize EscapeVector Mode for Thompson Sampling-powered resilience
+	escapeVectorMode, err := escapevector.NewEscapeVectorMode()
+	if err != nil {
+		// Log warning but continue - EscapeVector is optional resilience layer
+		fmt.Fprintf(os.Stderr, "Warning: Failed to initialize EscapeVector Mode: %v\n", err)
+	}
+
 	return &Client{
-		baseURL:    baseURL,
-		apiKey:     apiKey,
-		httpClient: httpClient,
-		userAgent:  fmt.Sprintf("schlep-go-sdk/%s", SDKVersion),
+		baseURL:      baseURL,
+		apiKey:       apiKey,
+		httpClient:   httpClient,
+		userAgent:    fmt.Sprintf("schlep-go-sdk/%s", SDKVersion),
+		escapeVector: escapeVectorMode,
 	}
 }
 
@@ -303,6 +316,10 @@ func (c *Client) parseResponse(resp *http.Response, v interface{}) error {
 // model's response. The request is automatically routed to the best available
 // provider based on the configured routing policies.
 //
+// EscapeVector Mode: If the control plane is unreachable (3 consecutive timeouts > 500ms),
+// the SDK automatically switches to local Thompson Sampling fallback using cached
+// Bayesian parameters. This ensures zero dropped tokens during outages.
+//
 // Example:
 //
 //	ctx := context.Background()
@@ -320,8 +337,48 @@ func (c *Client) parseResponse(resp *http.Response, v interface{}) error {
 //	}
 //	fmt.Println(response.Choices[0].Message.Content)
 func (c *Client) Infer(ctx context.Context, req *InferRequest) (*InferResponse, error) {
+	// Check if EscapeVector Mode should be used
+	if c.escapeVector != nil && c.escapeVector.ShouldUseEscapeVector() {
+		// Use local Thompson Sampling fallback
+		evReq := &escapevector.InferRequest{
+			Model:       req.Model,
+			Messages:    convertMessages(req.Messages),
+			MaxTokens:   req.MaxTokens,
+			Temperature: req.Temperature,
+			TopP:        req.TopP,
+		}
+		evResp, err := c.escapeVector.Infer(ctx, evReq)
+		if err != nil {
+			return nil, fmt.Errorf("EscapeVector Mode failed: %w", err)
+		}
+		return convertEscapeVectorResponse(evResp), nil
+	}
+
+	// Normal control plane request
+	startTime := time.Now()
 	resp, err := c.doRequest(ctx, "POST", "/v1/infer", req)
+	latency := time.Since(startTime)
+
+	// Record control plane health
+	if c.escapeVector != nil {
+		c.escapeVector.RecordControlPlaneRequest(latency, err)
+	}
+
 	if err != nil {
+		// If EscapeVector available, retry with fallback
+		if c.escapeVector != nil && c.escapeVector.ShouldUseEscapeVector() {
+			evReq := &escapevector.InferRequest{
+				Model:       req.Model,
+				Messages:    convertMessages(req.Messages),
+				MaxTokens:   req.MaxTokens,
+				Temperature: req.Temperature,
+				TopP:        req.TopP,
+			}
+			evResp, evErr := c.escapeVector.Infer(ctx, evReq)
+			if evErr == nil {
+				return convertEscapeVectorResponse(evResp), nil
+			}
+		}
 		return nil, err
 	}
 
@@ -331,6 +388,51 @@ func (c *Client) Infer(ctx context.Context, req *InferRequest) (*InferResponse, 
 	}
 
 	return &result, nil
+}
+
+// convertMessages converts SDK messages to EscapeVector messages
+func convertMessages(msgs []Message) []escapevector.Message {
+	evMsgs := make([]escapevector.Message, len(msgs))
+	for i, msg := range msgs {
+		evMsgs[i] = escapevector.Message{
+			Role:    msg.Role,
+			Content: msg.Content,
+		}
+	}
+	return evMsgs
+}
+
+// convertEscapeVectorResponse converts EscapeVector response to SDK response
+func convertEscapeVectorResponse(evResp *escapevector.InferResponse) *InferResponse {
+	choices := make([]Choice, len(evResp.Choices))
+	for i, evChoice := range evResp.Choices {
+		choices[i] = Choice{
+			Index: evChoice.Index,
+			Message: Message{
+				Role:    evChoice.Message.Role,
+				Content: evChoice.Message.Content,
+			},
+			FinishReason: evChoice.FinishReason,
+		}
+	}
+
+	var usage *Usage
+	if evResp.Usage != nil {
+		usage = &Usage{
+			PromptTokens:     evResp.Usage.PromptTokens,
+			CompletionTokens: evResp.Usage.CompletionTokens,
+			TotalTokens:      evResp.Usage.TotalTokens,
+		}
+	}
+
+	return &InferResponse{
+		ID:      evResp.ID,
+		Object:  evResp.Object,
+		Created: evResp.Created,
+		Model:   evResp.Model,
+		Choices: choices,
+		Usage:   usage,
+	}
 }
 
 // ListModels lists all available models.
