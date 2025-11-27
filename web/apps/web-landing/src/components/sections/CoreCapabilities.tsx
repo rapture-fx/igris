@@ -197,46 +197,46 @@ export default function CoreCapabilities() {
               {/* 2x2 Grid Layout */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Card 1: EscapeVector Mode */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Your AI keeps working even when we don't.
+                    Stay online even if we go completely offline.
                   </p>
                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Survive full control-plane outages with up to 72 hours of intelligent routing using secure cached policies. No fallback to round-robin. No degraded performance.
+                    Your SDK keeps intelligent routing alive for up to 72 hours using secure cached policies. Outages don't stop your AI.
                   </p>
                 </div>
 
                 {/* Card 2: Gold Code Override */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Instant, safe full bypass.
+                    Instant, safe, full bypass on command.
                   </p>
                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Flip one environment variable and route traffic directly without touching your infrastructure. Built for enterprise break-glass control.
+                    Set one environment variable to route traffic around our system. Enterprises get total control when needed.
                   </p>
                 </div>
 
                 {/* Card 3: SLO Enforcer */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Automatic protection against bad latency, cost drift, and error spikes.
+                    Your guardrails for latency, cost, and reliability.
                   </p>
                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    When thresholds are breached, we shift to safe fallback strategies to keep your workload stable.
+                    We track P95, cost drift, and error rates in real time. Traffic automatically shifts to safer strategies when thresholds are hit.
                   </p>
                 </div>
 
-                {/* Card 4: Provider Health & Failover */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Provider Health & Failover</h5>
+                {/* Card 4: Resilient Provider Health Checks */}
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
+                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Provider Health Checks</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Real-time provider monitoring with millisecond failover.
+                    Know exactly when a provider is failing.
                   </p>
                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    We validate every provider continuously and reroute instantly when degradation appears.
+                    We validate endpoints continuously and reroute instantly when performance drops, keeping output consistent.
                   </p>
                 </div>
               </div>
