@@ -194,31 +194,50 @@ export default function CoreCapabilities() {
                 Every optimization passes automated guardrails before rollout. Schlep-engine isolates provider failures, validates routing in real time, and continuously monitors health so no request ever gets lost.
               </p>
 
-              {/* Asymmetric Grid Layout - 1 tall card on left, 2 stacked on right */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {/* Left - Tall Card */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 lg:h-[416px]" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer with Circuit Breaker</h5>
+              {/* 2x2 Grid Layout */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Card 1: EscapeVector Mode */}
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
+                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    Your AI keeps working even when we don't.
+                  </p>
                   <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Real-time circuit breaker monitors P95 latency, cost, and error rates against SLO thresholds. Automatically reverts to safe fallback when latency &gt;10%, cost &gt;5%, or errors &gt;0.5%. Includes cool-down periods, manual override controls, and comprehensive breach logging for production safety.
+                    Survive full control-plane outages with up to 72 hours of intelligent routing using secure cached policies. No fallback to round-robin. No degraded performance.
                   </p>
                 </div>
 
-                {/* Right - Two Stacked Cards */}
-                <div className="flex flex-col gap-4">
-                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 lg:h-[200px]" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Provider Health Checks</h5>
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                      Continuous monitoring of provider endpoints. Request validation before routing. Health check and statistics endpoints for observability.
-                    </p>
-                  </div>
+                {/* Card 2: Gold Code Override */}
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
+                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    Instant, safe full bypass.
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    Flip one environment variable and route traffic directly without touching your infrastructure. Built for enterprise break-glass control.
+                  </p>
+                </div>
 
-                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 lg:h-[200px]" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Fallback System</h5>
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                      Automatically detects and recovers from provider or runtime errors to ensure uninterrupted API responses under load.
-                    </p>
-                  </div>
+                {/* Card 3: SLO Enforcer */}
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
+                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    Automatic protection against bad latency, cost drift, and error spikes.
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    When thresholds are breached, we shift to safe fallback strategies to keep your workload stable.
+                  </p>
+                </div>
+
+                {/* Card 4: Provider Health & Failover */}
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300" style={{ backgroundColor: '#f6f6f4' }}>
+                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Provider Health & Failover</h5>
+                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    Real-time provider monitoring with millisecond failover.
+                  </p>
+                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
+                    We validate every provider continuously and reroute instantly when degradation appears.
+                  </p>
                 </div>
               </div>
             </div>
