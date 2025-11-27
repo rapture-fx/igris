@@ -241,6 +241,19 @@ export default function TermsPage() {
                   This Agreement is the entire understanding between the parties and supersedes all prior agreements.
                 </p>
 
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-12 mb-4">Related Policy</h2>
+                <ul className="list-disc pl-6 text-gray-700 dark:text-gray-300 mb-6 space-y-2">
+                  <li>
+                    <a href="/terms/refund-policy" className="text-blue-600 dark:text-blue-400 hover:underline">Refund Policy</a>
+                  </li>
+                  <li>
+                    <a href="/terms/cancellation-policy" className="text-blue-600 dark:text-blue-400 hover:underline">Cancellation Policy</a>
+                  </li>
+                  <li>
+                    <a href="/dpa" className="text-blue-600 dark:text-blue-400 hover:underline">Data Processing Agreement (DPA)</a>
+                  </li>
+                </ul>
+
                 <p className="text-gray-700 dark:text-gray-300 mt-8">
                   Contact us at <a href="mailto:support@schlep-engine.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@schlep-engine.com</a>
                 </p>
