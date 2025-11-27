@@ -138,6 +138,9 @@ export class NetworkError extends SchlepError {
 /**
  * Main Schlep client class
  *
+ * Features EscapeVector Mode - Thompson Sampling-powered resilience that
+ * continues Bayesian optimization even during total control plane outages.
+ *
  * @example
  * ```typescript
  * import { Schlep } from 'schlep';
@@ -158,6 +161,7 @@ export class Schlep {
   private apiKey?: string;
   private timeout: number;
   private headers: Record<string, string>;
+  private escapeVectorPromise: Promise<any> | null = null;
 
   /**
    * Create a new Schlep client
@@ -177,6 +181,17 @@ export class Schlep {
     if (this.apiKey) {
       this.headers['Authorization'] = `Bearer ${this.apiKey}`;
     }
+
+    // Initialize EscapeVector Mode (async, non-blocking)
+    this.escapeVectorPromise = this.initEscapeVector().catch((err) => {
+      console.warn('EscapeVector Mode initialization failed:', err);
+      return null;
+    });
+  }
+
+  private async initEscapeVector(): Promise<any> {
+    const { EscapeVectorMode } = await import('./escapevector');
+    return await EscapeVectorMode.create(this.apiKey);
   }
 
   /**
