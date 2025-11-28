@@ -565,6 +565,10 @@ func (te *TierEnforcer) getRequiredFeature(path string) string {
 		"/v1/analytics":       "real_time_analytics",
 		"/v1/forecasting":     "cost_forecasting",
 		"/v1/semantic":        "semantic_routing",
+		// NOTE: EscapeVector Mode, Emergency Policy, and Gold Code Override
+		// are FREE for all tiers - no gating required
+		"/v1/emergency":       "",  // No gating - free for all
+		"/v1/escapevector":    "",  // No gating - free for all
 	}
 
 	for prefix, feature := range featureMap {
@@ -595,6 +599,20 @@ func (te *TierEnforcer) hasFeatureAccess(features FeatureFlags, featureName stri
 		return features.CostForecasting
 	case "semantic_routing":
 		return features.SemanticRouting
+	// ======================================================================
+	// RESILIENCE FEATURES - FREE FOR ALL TIERS
+	// ======================================================================
+	// EscapeVector Mode, Emergency Hotfix Blob, and Gold Code Override
+	// are fundamental resilience features that ship free on ALL tiers.
+	// No paywalls. No gating. These are table stakes.
+	case "escapevector_mode":
+		return true  // Free for all tiers
+	case "emergency_hotfix":
+		return true  // Free for all tiers
+	case "gold_code_override":
+		return true  // Free for all tiers
+	case "rust_wasm_fallback":
+		return true  // Free for all tiers
 	default:
 		return true // Unknown features are allowed by default
 	}
