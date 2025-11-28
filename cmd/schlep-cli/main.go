@@ -3,13 +3,17 @@ package main
 
 import (
 	"bytes"
+	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"time"
 
+	"github.com/schlep-ai/schlep-engine/internal/emergency"
 	"github.com/spf13/cobra"
 )
 
@@ -40,6 +44,7 @@ func init() {
 	rootCmd.AddCommand(policyCmd)
 	rootCmd.AddCommand(usageCmd)
 	rootCmd.AddCommand(authCmd)
+	rootCmd.AddCommand(emergencyCmd)
 }
 
 func main() {
@@ -382,6 +387,207 @@ var authLoginCmd = &cobra.Command{
 
 func init() {
 	authCmd.AddCommand(authLoginCmd)
+}
+
+// ============================================================================
+// EMERGENCY COMMANDS
+// ============================================================================
+
+var emergencyCmd = &cobra.Command{
+	Use:   "emergency",
+	Short: "Manage emergency policy hotfixes",
+	Long: `Push signed policy updates during prolonged control plane outages.
+
+These commands allow you to update routing policies from a phone during
+month-long outages using signed policy blobs served from static endpoints.`,
+}
+
+var emergencyPushCmd = &cobra.Command{
+	Use:   "push --file <policy.json> --private-key <key>",
+	Short: "Push emergency policy update",
+	Long: `Push a signed emergency policy update to the control plane.
+
+The policy will be signed with Ed25519 and can be served from static
+endpoints even when the main control plane is completely dead.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		file, _ := cmd.Flags().GetString("file")
+		privateKeyBase64, _ := cmd.Flags().GetString("private-key")
+		version, _ := cmd.Flags().GetUint64("version")
+		expiresHours, _ := cmd.Flags().GetInt("expires")
+		issuer, _ := cmd.Flags().GetString("issuer")
+		reason, _ := cmd.Flags().GetString("reason")
+		adminKey, _ := cmd.Flags().GetString("admin-key")
+
+		// Validate inputs
+		if file == "" {
+			fmt.Fprintf(os.Stderr, "Error: --file is required\n")
+			os.Exit(1)
+		}
+		if privateKeyBase64 == "" {
+			fmt.Fprintf(os.Stderr, "Error: --private-key is required\n")
+			os.Exit(1)
+		}
+		if adminKey == "" {
+			adminKey = os.Getenv("SCHLEP_EMERGENCY_ADMIN_KEY")
+			if adminKey == "" {
+				fmt.Fprintf(os.Stderr, "Error: --admin-key is required (or set SCHLEP_EMERGENCY_ADMIN_KEY)\n")
+				os.Exit(1)
+			}
+		}
+
+		// Read policy file
+		policyBytes, err := ioutil.ReadFile(file)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to read policy file: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Decode private key
+		privateKeyBytes, err := base64.StdEncoding.DecodeString(privateKeyBase64)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Invalid private key encoding: %v\n", err)
+			os.Exit(1)
+		}
+
+		if len(privateKeyBytes) != ed25519.PrivateKeySize {
+			fmt.Fprintf(os.Stderr, "Private key must be %d bytes, got %d\n", ed25519.PrivateKeySize, len(privateKeyBytes))
+			os.Exit(1)
+		}
+
+		privateKey := ed25519.PrivateKey(privateKeyBytes)
+
+		// Calculate expiration
+		expiresAt := time.Now().Add(time.Duration(expiresHours) * time.Hour).UnixMilli()
+
+		// Sign policy
+		policy, err := emergency.SignPolicy(
+			string(policyBytes),
+			privateKey,
+			version,
+			expiresAt,
+			issuer,
+			reason,
+		)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to sign policy: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Push to control plane
+		url := apiURL + "/v1/emergency/policy"
+		jsonData, err := json.Marshal(policy)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to marshal policy: %v\n", err)
+			os.Exit(1)
+		}
+
+		req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
+			os.Exit(1)
+		}
+
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Admin-Key", adminKey)
+
+		client := &http.Client{Timeout: 30 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to push policy: %v\n", err)
+			os.Exit(1)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Fprintf(os.Stderr, "Failed to push policy (HTTP %d): %s\n", resp.StatusCode, string(body))
+			os.Exit(1)
+		}
+
+		var result map[string]interface{}
+		json.NewDecoder(resp.Body).Decode(&result)
+
+		fmt.Println("✓ Emergency policy pushed successfully")
+		printJSON(result)
+		fmt.Printf("\nPolicy version: %d\n", policy.Version)
+		fmt.Printf("Expires at: %s\n", time.UnixMilli(policy.ExpiresAt).Format(time.RFC3339))
+	},
+}
+
+var emergencyGenerateKeysCmd = &cobra.Command{
+	Use:   "generate-keys",
+	Short: "Generate Ed25519 key pair for signing policies",
+	Run: func(cmd *cobra.Command, args []string) {
+		publicKeyBase64, privateKeyBase64, err := emergency.GenerateKeyPair()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to generate keys: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println("✓ Ed25519 key pair generated")
+		fmt.Println("\nPublic Key (share with control plane):")
+		fmt.Println(publicKeyBase64)
+		fmt.Println("\nPrivate Key (KEEP SECRET - use for signing):")
+		fmt.Println(privateKeyBase64)
+		fmt.Println("\n⚠️  IMPORTANT: Store the private key securely!")
+		fmt.Println("   Anyone with the private key can push emergency policies.")
+	},
+}
+
+var emergencyShowCmd = &cobra.Command{
+	Use:   "show",
+	Short: "Show current emergency policy",
+	Run: func(cmd *cobra.Command, args []string) {
+		url := apiURL + "/v1/emergency/policy"
+
+		req, err := http.NewRequest("GET", url, nil)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to create request: %v\n", err)
+			os.Exit(1)
+		}
+
+		client := &http.Client{Timeout: 10 * time.Second}
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to fetch policy: %v\n", err)
+			os.Exit(1)
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusNoContent {
+			fmt.Println("No emergency policy currently active")
+			return
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			body, _ := io.ReadAll(resp.Body)
+			fmt.Fprintf(os.Stderr, "Failed to fetch policy (HTTP %d): %s\n", resp.StatusCode, string(body))
+			os.Exit(1)
+		}
+
+		var policy emergency.EmergencyPolicy
+		if err := json.NewDecoder(resp.Body).Decode(&policy); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to parse policy: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Println("Current Emergency Policy:")
+		printJSON(policy)
+	},
+}
+
+func init() {
+	emergencyPushCmd.Flags().String("file", "", "Path to policy JSON file (required)")
+	emergencyPushCmd.Flags().String("private-key", "", "Ed25519 private key (base64) (required)")
+	emergencyPushCmd.Flags().Uint64("version", 1, "Policy version (must be higher than current)")
+	emergencyPushCmd.Flags().Int("expires", 168, "Expiration time in hours (default: 7 days)")
+	emergencyPushCmd.Flags().String("issuer", "admin", "Issuer name (for audit trail)")
+	emergencyPushCmd.Flags().String("reason", "", "Reason for emergency update (for audit trail)")
+	emergencyPushCmd.Flags().String("admin-key", "", "Admin key (or set SCHLEP_EMERGENCY_ADMIN_KEY)")
+
+	emergencyCmd.AddCommand(emergencyPushCmd)
+	emergencyCmd.AddCommand(emergencyGenerateKeysCmd)
+	emergencyCmd.AddCommand(emergencyShowCmd)
 }
 
 // ============================================================================
