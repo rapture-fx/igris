@@ -4,6 +4,7 @@ package middleware
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"log"
 	"strings"
 	"sync"
