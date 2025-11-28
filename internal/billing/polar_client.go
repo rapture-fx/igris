@@ -170,9 +170,9 @@ var (
 			CircuitBreaker:       true,
 			CostTracking:         true,
 			BYOK:                 true,
-			SpeculativeExecution: false,
-			CouncilMode:          false,
-			CognitiveAdvisor:     false,
+			SpeculativeExecution: false, // Growth+ only
+			CouncilMode:          false, // Growth+ only
+			CognitiveAdvisor:     false, // Growth+ only
 			SLOEnforcer:          "none",
 			AuditLogs:            false,
 			PolicyEngine:         false,
@@ -198,9 +198,9 @@ var (
 			CircuitBreaker:       true,
 			CostTracking:         true,
 			BYOK:                 true,
-			SpeculativeExecution: true,
-			CouncilMode:          true,
-			CognitiveAdvisor:     true,
+			SpeculativeExecution: true,  // ✅ Growth gets speculative
+			CouncilMode:          true,  // ✅ Growth gets council
+			CognitiveAdvisor:     true,  // ✅ Growth gets cognitive
 			SLOEnforcer:          "basic",
 			AuditLogs:            true,
 			PolicyEngine:         true,
@@ -226,9 +226,9 @@ var (
 			CircuitBreaker:       true,
 			CostTracking:         true,
 			BYOK:                 true,
-			SpeculativeExecution: true,
-			CouncilMode:          true,
-			CognitiveAdvisor:     true,
+			SpeculativeExecution: true,  // ✅ Inherited from Growth
+			CouncilMode:          true,  // ✅ Inherited from Growth
+			CognitiveAdvisor:     true,  // ✅ Inherited from Growth
 			SLOEnforcer:          "advanced",
 			AuditLogs:            true,
 			PolicyEngine:         true,

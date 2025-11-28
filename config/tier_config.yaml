@@ -155,7 +155,10 @@ tiers:
       audit_logs: false               # Growth+ only
       hot_reload_policies: false      # Growth+ only
 
-      # Advanced Features
+      # Advanced Features (Develop does NOT get these)
+      speculative_execution: false    # Growth+ only
+      council_mode: false             # Growth+ only
+      cognitive_advisor: false        # Growth+ only
       custom_sla_targets: false
       advanced_governance: false
       on_premise_deployment: false
@@ -250,7 +253,10 @@ tiers:
       rbac: true
       sso: false                      # NOT IMPLEMENTED (roadmap)
 
-      # Growth-specific features
+      # Growth-specific features (Superpowers)
+      speculative_execution: true     # ✅ Growth+ gets speculative (-60% TTFT)
+      council_mode: true              # ✅ Growth+ gets council (+15-20% quality)
+      cognitive_advisor: true         # ✅ Growth+ gets cognitive advisor
       sla_enforcement: true           # ✅ Fully implemented
       policy_versioning: true         # ✅ DSL v2 + hot reload
       audit_logs: true                # ✅ Policy + request audit trail
@@ -258,7 +264,7 @@ tiers:
       custom_sla_targets: true        # ✅ Per-tenant SLA config
       advanced_governance: true       # ✅ Advanced policy engine
 
-      # Still Growth+ only
+      # Scale-only features
       on_premise_deployment: false
       multi_region: false
 
@@ -274,12 +280,12 @@ tiers:
     # No model restrictions
     allowed_model_types: []           # Empty = all allowed
 
-    # Cost Controls
+    # Cost Controls (Growth: alerts only, no hard enforcement)
     cost_controls:
-      enforce_budget: false           # Forecasting only, no enforcement
+      enforce_budget: false           # ❌ No hard enforcement for Growth
       monthly_budget_usd: 0
       budget_alert_threshold: 0.8
-      budget_warning_enabled: true    # Email warnings (when alerting backend implemented)
+      budget_warning_enabled: true    # ✅ Email warnings only
       cost_per_request_limit: 0
 
   # =============================================================================
@@ -345,6 +351,11 @@ tiers:
       custom_sla_targets: true
       advanced_governance: true
 
+      # Growth features (inherited)
+      speculative_execution: true     # ✅ Inherited from Growth
+      council_mode: true              # ✅ Inherited from Growth
+      cognitive_advisor: true         # ✅ Inherited from Growth
+
       # Scale-specific features
       on_premise_deployment: true     # ✅ Kubernetes/Helm charts
       self_hosted: true               # ✅ Deployable
@@ -367,13 +378,14 @@ tiers:
     allowed_providers: []
     allowed_model_types: []
 
-    # Cost Controls
+    # Cost Controls (Scale: hard enforcement enabled)
     cost_controls:
-      enforce_budget: false
-      monthly_budget_usd: 0
-      budget_alert_threshold: 0.9
+      enforce_budget: true            # ✅ HARD CAP: Returns 429 at 100% budget
+      monthly_budget_usd: 0           # Must be set per tenant
+      budget_alert_threshold: 0.9     # 90% warning before hard cap
       budget_warning_enabled: true
       cost_per_request_limit: 0
+      emergency_override_enabled: true # ✅ X-Budget-Override header support
 
 # =============================================================================
 # GLOBAL CONFIGURATION
