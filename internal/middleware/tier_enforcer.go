@@ -220,6 +220,16 @@ func NewTierEnforcer(cfg TierEnforcerConfig) (*TierEnforcer, error) {
 	enforcer.logger.Printf("[TierEnforcer] Initialized with %d tiers (enabled: %v)",
 		len(enforcer.config.Tiers), enforcer.enabled)
 
+	// ========================================================================
+	// UNKILLABLE RESILIENCE SUITE - FREE FOREVER ON ALL TIERS
+	// ========================================================================
+	enforcer.logger.Printf("[TierEnforcer] ✅ Unkillable Resilience Suite: ENABLED FOR ALL TIERS")
+	enforcer.logger.Printf("[TierEnforcer]    • Gold Code Override (BYOK_BYPASS_CONTROL_PLANE)")
+	enforcer.logger.Printf("[TierEnforcer]    • EscapeVector Mode (TypeScript + Rust WASM)")
+	enforcer.logger.Printf("[TierEnforcer]    • Emergency Hotfix Blob fetching & application")
+	enforcer.logger.Printf("[TierEnforcer]    • 72-hour encrypted Bayesian cache")
+	enforcer.logger.Printf("[TierEnforcer]    Core survival is free forever. Superpowers cost money.")
+
 	return enforcer, nil
 }
 
