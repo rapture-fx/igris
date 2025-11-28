@@ -3,7 +3,7 @@
 # Phase: v1.3.0 - Polar.sh Billing Integration + Updated Pricing
 # Purpose: Define tier-based limits and feature gates for Polar.sh subscription model
 #
-# PRICING UPDATE: Develop $249→$99, Growth $799→$499, Scale $1899→$1499
+# PRICING UPDATE: Develop $99→$129, Growth $499→$749, Scale $1,499→$2,499
 # TRIAL ADDED: 14-day free trial, 50k reqs, full features, card-required
 # BILLING: Polar.sh (no Stripe), flat monthly pricing, 20% annual discount
 
@@ -89,7 +89,7 @@ tiers:
     display_name: "Developer"
     description: "Entry-level tier for individual developers and small teams"
     price:
-      usd: 99                             # UPDATED: $249 → $99
+      usd: 129                            # UPDATED: $249 → $99 → $129
       currency: "USD"
       billing_period: "month"
       overage_rate_per_1k: 0.25           # $0.25 per 1,000 requests after 500k
@@ -201,7 +201,7 @@ tiers:
     display_name: "Growth"
     description: "For growing teams and production workloads"
     price:
-      usd: 499                            # UPDATED: $799 → $499
+      usd: 749                            # UPDATED: $799 → $499 → $749
       currency: "USD"
       billing_period: "month"
       overage_rate_per_1k: 0.20           # $0.20 per 1,000 requests after 2M
@@ -290,7 +290,7 @@ tiers:
     display_name: "Scale"
     description: "Enterprise-grade deployments with unlimited scale"
     price:
-      usd: 1499                           # UPDATED: $1,899 → $1,499
+      usd: 2499                           # UPDATED: $1,899 → $1,499 → $2,499
       currency: "USD"
       billing_period: "month"
       overage_rate_per_1k: 0              # No overage - unlimited requests

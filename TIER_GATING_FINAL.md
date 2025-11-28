@@ -8,9 +8,9 @@ This document defines the **final, correct** tier gating logic for Schlep Engine
 
 ## **Pricing Tiers**
 
-- **Develop**: $99/mo
-- **Growth**: $499/mo
-- **Scale**: $1,499/mo
+- **Develop**: $129/mo
+- **Growth**: $749/mo
+- **Scale**: $2,499/mo
 
 ---
 
@@ -176,16 +176,16 @@ All tests **PASSING**:
 **"Core survival is free forever. Superpowers cost money."**
 
 ### **Unkillable Core (Free)**
-> "Your AI routing never dies. Gold Code Override, EscapeVector Mode, Emergency Hotfix Blobs, and 72-hour Bayesian caching work on every tier — even Develop at $99/mo. Because survival isn't a premium feature."
+> "Your AI routing never dies. Gold Code Override, EscapeVector Mode, Emergency Hotfix Blobs, and 72-hour Bayesian caching work on every tier — even Develop at $129/mo. Because survival isn't a premium feature."
 
 ### **Superpowers (Paid)**
-> "Want -60% TTFT with Speculative Execution? +15-20% quality with Council Mode? ML-powered auto-tuning with Cognitive Advisor? Upgrade to Growth ($499/mo) or Scale ($1,499/mo) for features that make you faster and smarter."
+> "Want -60% TTFT with Speculative Execution? +15-20% quality with Council Mode? ML-powered auto-tuning with Cognitive Advisor? Upgrade to Growth ($749/mo) or Scale ($2,499/mo) for features that make you faster and smarter."
 
 ---
 
 ## **Pricing Table**
 
-| Feature | Develop ($99/mo) | Growth ($499/mo) | Scale ($1,499/mo) |
+| Feature | Develop ($129/mo) | Growth ($749/mo) | Scale ($2,499/mo) |
 |---------|:----------------:|:----------------:|:-----------------:|
 | **UNKILLABLE CORE** |  |  |  |
 | Gold Code Override | ✅ | ✅ | ✅ |

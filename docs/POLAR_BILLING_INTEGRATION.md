@@ -33,8 +33,8 @@ This guide covers the complete Polar.sh billing integration for Schlep Engine AP
 
 **Key Features:**
 - 14-day free trial (card-required, 50k requests, full features)
-- 3 paid tiers: Develop ($99), Growth ($499), Scale ($1,499)
-- 20% annual discount (e.g., Develop annual = $950/year = $79/mo)
+- 3 paid tiers: Develop ($129), Growth ($749), Scale ($2,499)
+- 20% annual discount (e.g., Develop annual = $1,238/year = $103/mo)
 - Feature gating (speculative/council/cognitive locked to Growth+)
 - Request limit enforcement with soft warnings (80%) and hard blocks (100%)
 
@@ -45,9 +45,9 @@ This guide covers the complete Polar.sh billing integration for Schlep Engine AP
 | Tier | Monthly | Annual (20% off) | Requests/Mo | Providers | Key Features |
 |------|---------|------------------|-------------|-----------|--------------|
 | **Trial** | $0 (14 days) | - | 50k | 3 | Full features unlocked |
-| **Develop** | $99 | $950 ($79/mo) | 500k | 5 | Routing, failover, BYOK |
-| **Growth** | $499 | $4,790 ($399/mo) | 2M | 10 | + Speculative, council, cognitive |
-| **Scale** | $1,499 | $14,390 ($1,199/mo) | Unlimited | 20 | + Self-host, advanced SLO |
+| **Develop** | $129 | $1,238 ($103/mo) | 500k | 5 | Routing, failover, BYOK |
+| **Growth** | $749 | $7,189 ($599/mo) | 2M | 10 | + Speculative, council, cognitive |
+| **Scale** | $2,499 | $23,990 ($1,999/mo) | Unlimited | 20 | + Self-host, advanced SLO |
 | **Enterprise** | $5k+ custom | Custom | Unlimited | Unlimited | (Parked for now) |
 
 ### Pricing Changes from v1.2.1

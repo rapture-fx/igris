@@ -153,14 +153,14 @@ var (
 		},
 	}
 
-	// TierDevelop - $99/mo entry tier
+	// TierDevelop - $129/mo entry tier
 	TierDevelop = TierPlan{
 		ID:                  "develop",
 		Name:                "Develop",
 		MonthlyPriceID:      "price_develop_monthly", // Set in Polar dashboard
 		AnnualPriceID:       "price_develop_annual",
-		MonthlyPriceCents:   9900,    // $99.00
-		AnnualPriceCents:    95000,   // $950/year (save 20%)
+		MonthlyPriceCents:   12900,   // $129.00
+		AnnualPriceCents:    123800,  // $1,238/year (save 20%)
 		MaxRequestsPerMonth: 500000,
 		MaxProviders:        5,
 		MaxTenants:          1,
@@ -181,14 +181,14 @@ var (
 		},
 	}
 
-	// TierGrowth - $499/mo mid-tier
+	// TierGrowth - $749/mo mid-tier
 	TierGrowth = TierPlan{
 		ID:                  "growth",
 		Name:                "Growth",
 		MonthlyPriceID:      "price_growth_monthly",
 		AnnualPriceID:       "price_growth_annual",
-		MonthlyPriceCents:   49900,   // $499.00
-		AnnualPriceCents:    479000,  // $4,790/year (save 20%)
+		MonthlyPriceCents:   74900,   // $749.00
+		AnnualPriceCents:    718900,  // $7,189/year (save 20%)
 		MaxRequestsPerMonth: 2000000,
 		MaxProviders:        10,
 		MaxTenants:          5,
@@ -209,14 +209,14 @@ var (
 		},
 	}
 
-	// TierScale - $1,499/mo high-tier
+	// TierScale - $2,499/mo high-tier
 	TierScale = TierPlan{
 		ID:                  "scale",
 		Name:                "Scale",
 		MonthlyPriceID:      "price_scale_monthly",
 		AnnualPriceID:       "price_scale_annual",
-		MonthlyPriceCents:   149900,  // $1,499.00
-		AnnualPriceCents:    1439000, // $14,390/year (save 20%)
+		MonthlyPriceCents:   249900,  // $2,499.00
+		AnnualPriceCents:    2399000, // $23,990/year (save 20%)
 		MaxRequestsPerMonth: -1,      // Unlimited
 		MaxProviders:        20,
 		MaxTenants:          -1, // Unlimited

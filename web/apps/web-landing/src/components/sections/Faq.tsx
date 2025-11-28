@@ -21,54 +21,69 @@ interface FaqEntry {
 
 const faqEntries: FaqEntry[] = [
   {
-    question: "How does intelligent quality routing work?",
-    answer: "Schlep Engine automatically selects the best model for every request by analyzing performance, context, and historical outcomes. It optimizes for accuracy, speed, or cost based on your priorities with continuous learning built in, ensuring each request gets routed to the most appropriate model.",
+    question: "How does Schelp-engine choose the best model for every request?",
+    answer: "We use Bayesian Thompson Sampling with real-time quality scoring. Latency, accuracy, cost, and recent performance shifts all influence routing. The engine learns continuously and self-tunes without requiring manual adjustments.",
     type: "text"
   },
   {
-    question: "What is adaptive optimization and how does it maintain quality?",
-    answer: "Our real-time quality scoring detects performance shifts across providers and dynamically adjusts routing to maintain your targets. This ensures consistent output quality and predictable latency without requiring manual tuning or constant monitoring.",
+    question: "What happens if a provider slows down or starts hallucinating?",
+    answer: "Our adaptive optimizer detects degradation within seconds. Traffic is automatically reweighted toward healthier providers. If SLO thresholds are breached, the circuit breaker reverts to a safe configuration to protect quality.",
     type: "text"
   },
   {
-    question: "How do I manage multiple providers in one place?",
-    answer: "Schlep Engine provides one unified dashboard and API for cost governance, quotas, provider usage, and performance management. Multi-tenant isolation and automated failover ensure continuity even under provider outages, giving you complete control from a single interface.",
+    question: "How does Schelp-engine behave during an outage?",
+    answer: "EscapeVector Mode keeps full routing intelligence alive for 72 hours using cached Bayesian parameters. Even if our control plane is offline, your traffic continues normally with no fallback to round-robin or naive heuristics.",
     type: "text"
   },
   {
-    question: "How can I test new routing strategies without risking production?",
-    answer: "Shadow Mode lets you test new routing strategies in parallel with production traffic without impacting end users. Automatic rollback on SLO violations ensures zero-downtime deployments while enabling continuous improvement and safe experimentation.",
+    question: "Can I bypass Schelp-engine instantly?",
+    answer: "Yes. Gold Code Override gives you a one-variable, instant full bypass. Enterprises use this as part of their break-glass protocols for compliance and incident response.",
     type: "text"
   },
   {
-    question: "Do I need to share my API keys with Schlep Engine?",
-    answer: "No. With our Bring Your Own Key (BYOK) architecture, you retain full control over your provider keys. We handle routing and optimization while you keep complete ownership of all credentials, data security, and access control.",
+    question: "Do you store or manage my provider API keys?",
+    answer: "No. With BYOK, keys never leave your environment. You own authentication, data access, and rotation windows. Schelp-engine handles orchestration without ever touching your credentials.",
     type: "text"
   },
   {
-    question: "How does parallel execution improve response times?",
-    answer: "Parallel execution boosts responsiveness by running multiple providers simultaneously and streaming from the fastest result. Built-in fallback mechanisms prevent interruptions and ensure no dropped tokens, giving you faster responses without sacrificing reliability.",
+    question: "How do you keep traffic isolated across providers?",
+    answer: "Requests undergo provider-specific validation before routing. Each provider is sandboxed with strict quotas, error fencing, and health checks. Failures remain isolated and never cascade across models.",
     type: "text"
   },
   {
-    question: "What is Council Mode and when should I use it?",
-    answer: "Council Mode upgrades accuracy for complex queries by running multiple models simultaneously and synthesizing the best answer. It's ideal for high-stakes workflows in medical, legal, financial, and other mission-critical decision-making scenarios where accuracy is paramount.",
+    question: "Can I test routing changes safely before deploying them?",
+    answer: "Shadow Mode allows new routing strategies to run in parallel with production. All decisions are validated against real traffic with zero risk of user impact. Automatic rollback is triggered on any SLO violation.",
     type: "text"
   },
   {
-    question: "How does Schlep Engine learn and improve over time?",
-    answer: "Our Cognitive Advisor is a built-in intelligence layer that monitors intent patterns, detects degradation, predicts optimal routing strategies, and recommends configuration updates. All recommendations are safely validated in shadow mode before being applied to production.",
+    question: "What is Council Mode and why does it matter?",
+    answer: "Council Mode runs multiple models in parallel and synthesizes a consensus answer. It is ideal for high-stakes workflows where accuracy matters more than speed or cost.",
     type: "text"
   },
   {
-    question: "Is integration really this simple?",
+    question: "Is it easy to switch from OpenAI, Azure, Anthropic, or others?",
     type: "code",
-    answerText: "Yes. Change one URL and you're routing intelligently in minutes.",
+    answerText: "Yes. Replace your base URL and you're done.",
     codeExample: {
       old: "https://api.openai.com/v1",
-      new: "https://api.schlep-engine.com/v1"
+      new: "https://api.schelp-engine.com/v1"
     },
-    answerFooter: "No SDK changes, no migration scripts, no lock-in."
+    answerFooter: "No SDK rewrites, no migration scripts, no vendor lock-in. You can integrate in under five minutes."
+  },
+  {
+    question: "Will Schelp-engine increase my latency?",
+    answer: "No. In most cases, routing reduces mean latency by selecting the fastest healthy provider at the moment of execution. Parallel execution and partial streaming keep responses responsive under load.",
+    type: "text"
+  },
+  {
+    question: "How does Rust WASM improve frontend performance?",
+    answer: "EscapeVector runs as a compact Rust-compiled WASM module under 150 KB. It performs optimization 3–5x faster than TypeScript equivalents and brings full resilience to browser frameworks like Next.js or Remix.",
+    type: "text"
+  },
+  {
+    question: "How do you bill for usage beyond plan limits?",
+    answer: "Overages are billed in simple, transparent units per 1,000 requests. No token markup, no hidden multipliers.",
+    type: "text"
   }
 ];
 
