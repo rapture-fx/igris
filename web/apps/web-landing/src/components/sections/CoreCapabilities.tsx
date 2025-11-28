@@ -199,44 +199,32 @@ export default function CoreCapabilities() {
                 {/* Card 1: EscapeVector Mode */}
                 <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
-                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Stay online even if we go completely offline.
-                  </p>
-                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Your SDK keeps intelligent routing alive for up to 72 hours using secure cached policies. Outages don't stop your AI.
+                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    Stay online even if our control plane goes offline. Cached Bayesian routing keeps quality, performance, and resilience intact for 72 hours without interruption.
                   </p>
                 </div>
 
                 {/* Card 2: Gold Code Override */}
                 <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
-                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Instant, safe, full bypass on command.
-                  </p>
-                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    Set one environment variable to route traffic around our system. Enterprises get total control when needed.
+                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    One environment variable instantly bypasses the entire control plane. A required safety switch for enterprise security, audits, and regulated workloads.
                   </p>
                 </div>
 
                 {/* Card 3: SLO Enforcer */}
                 <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
-                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Your guardrails for latency, cost, and reliability.
-                  </p>
-                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    We track P95, cost drift, and error rates in real time. Traffic automatically shifts to safer strategies when thresholds are hit.
+                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    Automatic guardrails monitor latency, cost drift, and reliability. Traffic shifts to safer paths the moment thresholds are crossed.
                   </p>
                 </div>
 
                 {/* Card 4: Resilient Provider Health Checks */}
                 <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Provider Health Checks</h5>
-                  <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Know exactly when a provider is failing.
-                  </p>
-                  <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-relaxed font-inter">
-                    We validate endpoints continuously and reroute instantly when performance drops, keeping output consistent.
+                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                    Continuous endpoint validation ensures only healthy providers receive traffic. Failed calls are detected and rerouted in real time.
                   </p>
                 </div>
               </div>
