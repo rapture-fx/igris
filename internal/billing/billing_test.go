@@ -259,9 +259,9 @@ func TestMigrateLegacyTier(t *testing.T) {
 		oldPriceCents int
 		wantNewTier   string
 	}{
-		{"Old Develop $249 -> New Develop $99", "develop", 24900, "develop"},
-		{"Old Growth $799 -> New Growth $499", "growth", 79900, "growth"},
-		{"Old Scale $1,899 -> New Scale $1,499", "scale", 189900, "scale"},
+		{"Old Develop $99 -> New Develop $129", "develop", 9900, "develop"},
+		{"Old Growth $499 -> New Growth $749", "growth", 49900, "growth"},
+		{"Old Scale $1,499 -> New Scale $2,499", "scale", 149900, "scale"},
 		{"Unknown price -> Default to develop", "unknown", 12345, "develop"},
 	}
 
