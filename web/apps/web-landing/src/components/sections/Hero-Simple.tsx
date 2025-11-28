@@ -41,7 +41,7 @@ export default function Hero() {
                   </h1>
                 </div>
                 <p className="text-sm md:text-lg text-gray-700 max-w-md leading-relaxed text-left">
-                  Schlep-engine is a quality-aware routing engine that dynamically allocates inference requests across providers, optimizing for cost, latency, and output quality in real time.
+      
                 </p>
               </div>
             </div>

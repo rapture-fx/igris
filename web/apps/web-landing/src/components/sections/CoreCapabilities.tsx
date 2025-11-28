@@ -191,13 +191,13 @@ export default function CoreCapabilities() {
               <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
 
               <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
-                Every optimization passes automated guardrails before rollout. Schlep-engine isolates provider failures, validates routing in real time, and continuously monitors health so no request ever gets lost.
+                Schlep-engine enforces automated safeguards on every optimization, validates routing decisions in real time, and isolates provider failures before they impact production. Your requests stay reliable, predictable, and fully resilient.
               </p>
 
               {/* 2x2 Grid Layout */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Card 1: EscapeVector Mode */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
                     Stay online even if we go completely offline.
@@ -208,7 +208,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 2: Gold Code Override */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
                     Instant, safe, full bypass on command.
@@ -219,7 +219,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 3: SLO Enforcer */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
                     Your guardrails for latency, cost, and reliability.
@@ -230,7 +230,7 @@ export default function CoreCapabilities() {
                 </div>
 
                 {/* Card 4: Resilient Provider Health Checks */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[220px]" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                   <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Provider Health Checks</h5>
                   <p className="text-xs md:text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2 font-inter">
                     Know exactly when a provider is failing.
