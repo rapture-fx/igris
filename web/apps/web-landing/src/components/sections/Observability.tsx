@@ -85,13 +85,7 @@ export default function Observability() {
                     style={{ backgroundColor: '#f5f4f2', height: '200px' }}
                   >
                     {feature.isBlank ? (
-                      <div className="w-full h-full" style={{
-                        backgroundImage: 'url("/schlep-logo-54.svg")',
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        backgroundRepeat: 'no-repeat',
-                        opacity: 0.8
-                      }} />
+                      <div className="w-full h-full" />
                     ) : (
                       <>
                         <h5 className="text-base font-medium text-gray-900 dark:text-white mb-3 font-inter">{feature.name}</h5>
