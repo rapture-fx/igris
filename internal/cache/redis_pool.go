@@ -50,11 +50,12 @@ type RedisPoolConfig struct {
 }
 
 // DefaultRedisPoolConfig returns optimized pool configuration
+// Updated for Dragonfly: 5× pool size for 200k+ RPS headroom (was 8k RPS with Redis)
 func DefaultRedisPoolConfig(url string) *RedisPoolConfig {
 	return &RedisPoolConfig{
 		URL:              url,
-		MinIdleConns:     10,  // Keep 10 idle connections warm
-		MaxActiveConns:   100, // Allow up to 100 concurrent connections
+		MinIdleConns:     100, // Keep 100 idle connections warm (was 10)
+		MaxActiveConns:   500, // Allow up to 500 concurrent connections (was 100) - Dragonfly handles this easily
 		ConnMaxLifetime:  30 * time.Minute,
 		ConnMaxIdleTime:  10 * time.Minute,
 		DialTimeout:      5 * time.Second,
