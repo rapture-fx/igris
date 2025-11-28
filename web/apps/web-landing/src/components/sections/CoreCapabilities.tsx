@@ -137,7 +137,7 @@ export default function CoreCapabilities() {
                   Smarter routing. Predictable performance.
                 </h3>
                 <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                  Schlep-engine delivers adaptive, quality-aware routing with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
+                  Schlep-engine optimizes every request with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational even during provider instability. Below, you can see how the platform enforces safety on every optimization.
                 </p>
               </div>
             </div>
@@ -169,7 +169,7 @@ export default function CoreCapabilities() {
 
           {/* Full Width Placeholder */}
           <div
-            className="relative p-4 md:p-6 lg:p-8 my-4 md:my-8 lg:my-12"
+            className="relative p-4 md:p-6 lg:p-8"
             style={{
               borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
               borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -191,7 +191,7 @@ export default function CoreCapabilities() {
               <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
 
               <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
-                Schlep-engine enforces automated safeguards on every optimization, validates routing decisions in real time, and isolates provider failures before they impact production. Your requests stay reliable, predictable, and fully resilient.
+                Schlep-engine applies automated safeguards to every optimization, verifies routing behavior in real time, and isolates failing providers before they affect live traffic. Your workloads stay reliable, predictable, and resilient.
               </p>
 
               {/* 2x2 Grid Layout */}
