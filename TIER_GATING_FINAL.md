@@ -8,9 +8,9 @@ This document defines the **final, correct** tier gating logic for Schlep Engine
 
 ## **Pricing Tiers**
 
-- **Develop**: $129/mo
-- **Growth**: $749/mo
-- **Scale**: $2,499/mo
+- **Develop**: $129/month
+- **Growth**: $749/month
+- **Scale**: $2,499/month
 
 ---
 
@@ -67,17 +67,17 @@ These features require Growth or Scale tier:
 1. **Speculative Execution** (-60% TTFT)
    - Race multiple providers in parallel
    - Instant response from fastest provider
-   - **Status**: Growth+ (not yet implemented in gating)
+   - **Status**: Growth+ ✅ **IMPLEMENTED** (via `speculative_execution` flag)
 
 2. **Council Mode** (+15-20% quality)
    - Multi-model consensus voting
    - Ensemble decision making
-   - **Status**: Growth+ (not yet implemented in gating)
+   - **Status**: Growth+ ✅ **IMPLEMENTED** (via `council_mode` flag)
 
 3. **Cognitive Advisor** (auto-tune routing)
    - ML-powered policy recommendations
    - Automatic optimization
-   - **Status**: Growth+ (not yet implemented in gating)
+   - **Status**: Growth+ ✅ **IMPLEMENTED** (via `cognitive_advisor` flag)
 
 ### **Scale Tier ($1,499/mo) Only**
 
