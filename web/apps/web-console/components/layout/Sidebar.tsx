@@ -23,12 +23,12 @@ const navigation = [
     icon: BarChart3,
   },
   {
-    name: 'Vault Management',
-    href: '/dashboard/vault',
+    name: 'Providers & Keys',
+    href: '/dashboard/providers',
     icon: Key,
   },
   {
-    name: 'Policy Configuration',
+    name: 'Routing Policies',
     href: '/dashboard/policy',
     icon: Shield,
   },

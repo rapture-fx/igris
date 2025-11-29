@@ -17,7 +17,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <div className="md:pl-64">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="px-4 sm:px-6 lg:px-8 pb-8">
+        <main className="px-4 sm:px-6 lg:px-8 pt-16 pb-6 mt-0">
           {children}
         </main>
       </div>
