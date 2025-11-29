@@ -17,8 +17,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <div className="md:pl-64">
         <Navbar onMenuClick={() => setSidebarOpen(true)} />
-
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="px-4 sm:px-6 lg:px-8 pb-8">
           {children}
         </main>
       </div>
