@@ -124,7 +124,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-white">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
                         {tenant ? getInitials(tenant.name) : 'U'}
@@ -254,7 +254,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-white">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary">
                     <div>
                       <h3 className="font-medium text-gray-900 font-inter">Current Session</h3>
                       <p className="text-sm text-gray-600 mt-1">

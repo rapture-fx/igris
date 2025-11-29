@@ -119,7 +119,7 @@ export default function PolicyPage() {
 
             {/* Custom Mode (Coming Soon) */}
             <div
-              className="flex items-start gap-4 p-4 rounded-lg border border-border-light bg-gray-50 opacity-60 cursor-not-allowed"
+              className="flex items-start gap-4 p-4 rounded-lg border border-border-light bg-beige-secondary opacity-60 cursor-not-allowed"
             >
               <input
                 type="radio"
@@ -153,7 +153,7 @@ export default function PolicyPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Speculative Execution */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-gray-50">
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Label className="text-base font-medium text-gray-900">
@@ -177,7 +177,7 @@ export default function PolicyPage() {
             </div>
 
             {/* Council Mode */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-gray-50">
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Label className="text-base font-medium text-gray-900">
@@ -201,7 +201,7 @@ export default function PolicyPage() {
             </div>
 
             {/* Cognitive Advisor */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-gray-50">
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Label className="text-base font-medium text-gray-900">
