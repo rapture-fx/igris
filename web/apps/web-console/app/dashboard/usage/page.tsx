@@ -66,14 +66,14 @@ export default function UsagePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold font-inter" style={{ color: '#114dcd' }}>
               Usage & Analytics
             </h1>
-            <p className="text-gray-600 mt-2 font-inter">
+            <p className="text-gray-600 mt-1 font-inter">
               Detailed insights into your API usage
             </p>
           </div>
