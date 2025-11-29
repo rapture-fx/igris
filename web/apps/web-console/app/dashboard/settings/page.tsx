@@ -52,7 +52,7 @@ export default function SettingsPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 animate-spin text-schlep-blue" />
+          <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
         </div>
       </DashboardLayout>
     );
@@ -63,7 +63,7 @@ export default function SettingsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-inter">
+          <h1 className="text-xl font-medium text-gray-900 font-inter">
             Settings
           </h1>
           <p className="text-gray-600 mt-1 font-inter">
@@ -75,7 +75,7 @@ export default function SettingsPage() {
         <Card className="border-border-light shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-schlep-blue" />
+              <User className="h-5 w-5 text-gray-900" />
               Account Information
             </CardTitle>
             <CardDescription>
@@ -86,7 +86,7 @@ export default function SettingsPage() {
             <div className="space-y-6">
               {/* Tenant Avatar and Name */}
               <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-schlep-blue text-white font-bold text-xl">
+                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-900 text-white font-bold text-xl">
                   {tenant ? getInitials(tenant.name) : 'U'}
                 </div>
                 <div>
@@ -153,7 +153,7 @@ export default function SettingsPage() {
         <Card className="border-border-light shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <SettingsIcon className="h-5 w-5 text-schlep-blue" />
+              <SettingsIcon className="h-5 w-5 text-gray-900" />
               Operational Settings
             </CardTitle>
             <CardDescription>
@@ -199,7 +199,7 @@ export default function SettingsPage() {
         <Card className="border-border-light shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-schlep-blue" />
+              <Bell className="h-5 w-5 text-gray-900" />
               Notifications
             </CardTitle>
             <CardDescription>

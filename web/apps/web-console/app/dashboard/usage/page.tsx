@@ -58,7 +58,7 @@ export default function UsagePage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 animate-spin text-schlep-blue" />
+          <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
         </div>
       </DashboardLayout>
     );
@@ -70,7 +70,7 @@ export default function UsagePage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 font-inter">
+            <h1 className="text-xl font-medium text-gray-900 font-inter">
               Usage & Analytics
             </h1>
             <p className="text-gray-600 mt-1 font-inter">
@@ -78,11 +78,11 @@ export default function UsagePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExportCSV}>
+            <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
               <Download className="mr-2 h-4 w-4" />
               Export CSV
             </Button>
-            <Button variant="outline" onClick={handleExportJSON}>
+            <Button variant="outline" className="shadow-md" onClick={handleExportJSON}>
               <Download className="mr-2 h-4 w-4" />
               Export JSON
             </Button>
@@ -96,7 +96,7 @@ export default function UsagePage() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Requests
               </CardTitle>
-              <BarChart3 className="h-4 w-4 text-schlep-blue" />
+              <BarChart3 className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
@@ -113,7 +113,7 @@ export default function UsagePage() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Cost
               </CardTitle>
-              <DollarSign className="h-4 w-4 text-schlep-blue" />
+              <DollarSign className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
@@ -130,7 +130,7 @@ export default function UsagePage() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Avg Latency
               </CardTitle>
-              <Clock className="h-4 w-4 text-schlep-blue" />
+              <Clock className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
@@ -147,7 +147,7 @@ export default function UsagePage() {
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Tokens
               </CardTitle>
-              <Zap className="h-4 w-4 text-schlep-blue" />
+              <Zap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">

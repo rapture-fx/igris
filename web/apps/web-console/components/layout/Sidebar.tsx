@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, BarChart3, Key, Shield, Settings, X } from 'lucide-react';
+import { Home, TrendingUp, KeyRound, Network, Settings, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/helpers';
 
@@ -15,22 +15,22 @@ const navigation = [
   {
     name: 'Dashboard',
     href: '/dashboard',
-    icon: LayoutDashboard,
+    icon: Home,
   },
   {
     name: 'Usage & Analytics',
     href: '/dashboard/usage',
-    icon: BarChart3,
+    icon: TrendingUp,
   },
   {
     name: 'Providers & Keys',
     href: '/dashboard/providers',
-    icon: Key,
+    icon: KeyRound,
   },
   {
     name: 'Routing Policies',
     href: '/dashboard/policy',
-    icon: Shield,
+    icon: Network,
   },
   {
     name: 'Settings',
