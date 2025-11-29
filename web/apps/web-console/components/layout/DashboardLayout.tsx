@@ -12,12 +12,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-beige-primary">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="min-h-screen bg-beige-primary m-0 p-0 overflow-x-hidden">
+      <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
-      <div className="md:pl-64">
-        <Navbar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="px-4 sm:px-6 lg:px-8 pt-16 pb-6 mt-0">
+      <div className="flex m-0 p-0 pt-16">
+        <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+        <main className="flex-1 md:ml-64 px-4 sm:px-6 lg:px-8 py-6 overflow-x-hidden">
           {children}
         </main>
       </div>
