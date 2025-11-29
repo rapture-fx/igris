@@ -59,16 +59,32 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   USAGE: '/dashboard/usage',
   VAULT: '/dashboard/vault',
+  PROVIDERS: '/dashboard/providers',
   POLICY: '/dashboard/policy',
   SETTINGS: '/dashboard/settings',
 };
 
 export const PROVIDERS = [
-  { id: 'openai', name: 'OpenAI', logo: '/logos/openai.svg' },
-  { id: 'anthropic', name: 'Anthropic', logo: '/logos/anthropic.svg' },
-  { id: 'google', name: 'Google AI', logo: '/logos/google.svg' },
-  { id: 'cohere', name: 'Cohere', logo: '/logos/cohere.svg' },
-  { id: 'mistral', name: 'Mistral AI', logo: '/logos/mistral.svg' },
+  { id: 'openai', name: 'OpenAI' },
+  { id: 'anthropic', name: 'Anthropic' },
+  { id: 'google', name: 'Google Gemini' },
+  { id: 'xai', name: 'xAI (Grok)' },
+  { id: 'moonshot', name: 'Moonshot AI (Kimi)' },
+  { id: 'meta', name: 'Meta AI (Llama)' },
+  { id: 'aws-bedrock', name: 'AWS Bedrock' },
+  { id: 'azure-openai', name: 'Azure OpenAI' },
+  { id: 'mistral', name: 'Mistral AI' },
+  { id: 'cohere', name: 'Cohere' },
+  { id: 'perplexity', name: 'Perplexity' },
+  { id: 'groq', name: 'Groq' },
+  { id: 'fireworks', name: 'Fireworks AI' },
+  { id: 'together', name: 'Together AI' },
+  { id: 'cerebras', name: 'Cerebras' },
+  { id: 'deepseek', name: 'DeepSeek' },
+  { id: 'octoai', name: 'OctoAI' },
+  { id: 'replicate', name: 'Replicate' },
+  { id: 'lepton', name: 'Lepton AI' },
+  { id: 'hyperbolic', name: 'Hyperbolic' },
 ];
 
 export const CHART_COLORS = {

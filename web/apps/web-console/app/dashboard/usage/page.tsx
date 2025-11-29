@@ -66,7 +66,7 @@ export default function UsagePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-0">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>

@@ -60,7 +60,7 @@ export default function SettingsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 mt-0">
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold font-inter" style={{ color: '#114dcd' }}>
