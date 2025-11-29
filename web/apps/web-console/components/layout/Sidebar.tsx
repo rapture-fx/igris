@@ -73,7 +73,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium font-inter transition-colors',
                         isActive
-                          ? 'bg-white shadow-md text-gray-900 border border-border-light'
+                          ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light'
                           : 'text-gray-700 hover:bg-beige-secondary hover:text-gray-900'
                       )}
                       onClick={onClose}

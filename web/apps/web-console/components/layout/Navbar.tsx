@@ -47,13 +47,12 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                 <Menu className="h-5 w-5" />
               </Button>
 
-              <Link href="/dashboard" className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-schlep-blue text-white font-bold text-sm">
-                  S
-                </div>
-                <span className="font-inter font-semibold text-lg text-gray-900 hidden sm:inline">
-                  Schlep-engine
-                </span>
+              <Link href="/dashboard" className="flex items-center">
+                <img
+                  src="/schlep-logo-34.png"
+                  alt="Schlep Logo"
+                  className="h-10 w-auto"
+                />
               </Link>
             </div>
 
