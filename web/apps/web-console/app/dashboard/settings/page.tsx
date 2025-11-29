@@ -5,8 +5,10 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +32,10 @@ import {
   LogOut,
   Trash2,
   Loader2,
+  UserPlus,
+  Key,
+  Webhook,
+  Receipt,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -38,10 +44,11 @@ export default function SettingsPage() {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const [testMode, setTestMode] = useState(false);
-  const [benchmarkMode, setBenchmarkMode] = useState(false);
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [usageAlerts, setUsageAlerts] = useState(true);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [slackWebhook, setSlackWebhook] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
 
   const handleLogout = async () => {
     await logout();
@@ -71,225 +78,330 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        {/* Account Information */}
-        <Card className="border-border-light shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5 text-gray-900" />
-              Account Information
-            </CardTitle>
-            <CardDescription>
-              Your tenant account details
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              {/* Tenant Avatar and Name */}
-              <div className="flex items-center gap-4">
-                <div className="flex items-center justify-center w-16 h-16 rounded-full bg-gray-900 text-white font-bold text-xl">
-                  {tenant ? getInitials(tenant.name) : 'U'}
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900 font-inter">
-                    {tenant?.name}
-                  </h3>
-                  <p className="text-sm text-gray-600">{tenant?.email}</p>
-                </div>
-              </div>
+        {/* Tabs */}
+        <Tabs defaultValue="team">
+          <TabsList>
+            <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+          </TabsList>
 
-              {/* Account Details Grid */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="p-4 rounded-lg border border-border-light bg-beige-secondary">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Building2 className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-600">Tenant ID</span>
-                  </div>
-                  <p className="text-sm font-mono text-gray-900">{tenant?.id}</p>
+          {/* Team Tab */}
+          <TabsContent value="team" className="space-y-6">
+            {/* Invite Member */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <UserPlus className="h-5 w-5 text-gray-900" />
+                  Invite Team Member
+                </CardTitle>
+                <CardDescription>
+                  Add new members to your team
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-3">
+                  <Input
+                    type="email"
+                    placeholder="colleague@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button variant="outline" className="shadow-md">
+                    Send Invite
+                  </Button>
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-secondary">
-                  <div className="flex items-center gap-2 mb-2">
-                    <CreditCard className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-600">Plan</span>
+            {/* Team Members */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle>Team Members</CardTitle>
+                <CardDescription>Manage your team members and their roles</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-white">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
+                        {tenant ? getInitials(tenant.name) : 'U'}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 font-inter">{tenant?.name}</h3>
+                        <p className="text-sm text-gray-600">{tenant?.email}</p>
+                      </div>
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
+                      Owner
+                    </span>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">
-                    {tenant?.plan || 'Free'} Plan
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Billing Tab */}
+          <TabsContent value="billing" className="space-y-6">
+            {/* Current Plan */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-gray-900" />
+                  Current Plan
+                </CardTitle>
+                <CardDescription>
+                  Your subscription details
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-2xl font-bold text-gray-900 font-inter">
+                        {tenant?.plan || 'Free'} Plan
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
+                      </p>
+                    </div>
+                    <Button variant="outline" className="shadow-md">
+                      Upgrade Plan
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment Method */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle>Payment Method</CardTitle>
+                <CardDescription>Manage your payment methods</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-inter mb-4">
+                    No payment method added
+                  </p>
+                  <Button variant="outline" className="shadow-md">
+                    Add Payment Method
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Invoices */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-gray-900" />
+                  Invoices
+                </CardTitle>
+                <CardDescription>Download your billing history</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600 font-inter">
+                    No invoices yet
                   </p>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-secondary">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calendar className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-600">Created</span>
+          {/* Security Tab */}
+          <TabsContent value="security" className="space-y-6">
+            {/* Two-Factor Authentication */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-gray-900" />
+                  Two-Factor Authentication
+                </CardTitle>
+                <CardDescription>
+                  Add an extra layer of security to your account
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="twoFactor" className="text-base font-medium">
+                      Enable 2FA
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Require authentication code in addition to password
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-900">
-                    {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
-                  </p>
+                  <Switch
+                    id="twoFactor"
+                    checked={twoFactorEnabled}
+                    onCheckedChange={setTwoFactorEnabled}
+                  />
                 </div>
+              </CardContent>
+            </Card>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-secondary">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Shield className="h-4 w-4 text-gray-600" />
-                    <span className="text-sm font-medium text-gray-600">Status</span>
+            {/* Active Sessions */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle>Active Sessions</CardTitle>
+                <CardDescription>Manage your active login sessions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-white">
+                    <div>
+                      <h3 className="font-medium text-gray-900 font-inter">Current Session</h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        Started {formatDate(new Date().toISOString())}
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                      Active
+                    </span>
                   </div>
-                  <span
-                    className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      tenant?.status === 'active'
-                        ? 'bg-green-100 text-green-700'
-                        : tenant?.status === 'disabled'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-yellow-100 text-yellow-700'
-                    }`}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Danger Zone */}
+            <Card className="border-red-200 shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-700">
+                  <Shield className="h-5 w-5" />
+                  Danger Zone
+                </CardTitle>
+                <CardDescription>
+                  Irreversible and destructive actions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50">
+                  <div>
+                    <h3 className="font-medium text-red-900 font-inter">
+                      Sign Out All Sessions
+                    </h3>
+                    <p className="text-sm text-red-700 mt-1">
+                      Sign out from all devices and revoke all active sessions
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowLogoutDialog(true)}
                   >
-                    {tenant?.status}
-                  </span>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign Out All
+                  </Button>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Operational Settings */}
-        <Card className="border-border-light shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <SettingsIcon className="h-5 w-5 text-gray-900" />
-              Operational Settings
-            </CardTitle>
-            <CardDescription>
-              Configure operational modes and toggles
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
-              <div className="space-y-0.5">
-                <Label htmlFor="testMode" className="text-base font-medium">
-                  Test Mode
-                </Label>
-                <p className="text-sm text-gray-600">
-                  Use test credentials and sandbox environment
-                </p>
-              </div>
-              <Switch
-                id="testMode"
-                checked={testMode}
-                onCheckedChange={setTestMode}
-              />
-            </div>
+                <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50">
+                  <div>
+                    <h3 className="font-medium text-red-900 font-inter">
+                      Delete Account
+                    </h3>
+                    <p className="text-sm text-red-700 mt-1">
+                      Permanently delete your account and all associated data
+                    </p>
+                  </div>
+                  <Button
+                    variant="destructive"
+                    onClick={() => setShowDeleteDialog(true)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Account
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
-              <div className="space-y-0.5">
-                <Label htmlFor="benchmarkMode" className="text-base font-medium">
-                  Benchmark Mode
-                </Label>
-                <p className="text-sm text-gray-600">
-                  Enable detailed performance metrics collection
-                </p>
-              </div>
-              <Switch
-                id="benchmarkMode"
-                checked={benchmarkMode}
-                onCheckedChange={setBenchmarkMode}
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Notification Preferences */}
-        <Card className="border-border-light shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-gray-900" />
-              Notifications
-            </CardTitle>
-            <CardDescription>
-              Manage your notification preferences
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
-              <div className="space-y-0.5">
-                <Label htmlFor="emailNotifications" className="text-base font-medium">
+          {/* Notifications Tab */}
+          <TabsContent value="notifications" className="space-y-6">
+            {/* Email Notifications */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Bell className="h-5 w-5 text-gray-900" />
                   Email Notifications
-                </Label>
-                <p className="text-sm text-gray-600">
-                  Receive updates via email
-                </p>
-              </div>
-              <Switch
-                id="emailNotifications"
-                checked={emailNotifications}
-                onCheckedChange={setEmailNotifications}
-              />
-            </div>
+                </CardTitle>
+                <CardDescription>
+                  Manage your email notification preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="emailNotifications" className="text-base font-medium">
+                      Email Notifications
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Receive updates via email
+                    </p>
+                  </div>
+                  <Switch
+                    id="emailNotifications"
+                    checked={emailNotifications}
+                    onCheckedChange={setEmailNotifications}
+                  />
+                </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
-              <div className="space-y-0.5">
-                <Label htmlFor="usageAlerts" className="text-base font-medium">
-                  Usage Alerts
-                </Label>
-                <p className="text-sm text-gray-600">
-                  Get notified when approaching budget limits
-                </p>
-              </div>
-              <Switch
-                id="usageAlerts"
-                checked={usageAlerts}
-                onCheckedChange={setUsageAlerts}
-              />
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="usageAlerts" className="text-base font-medium">
+                      Usage Alerts
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      Get notified when approaching budget limits
+                    </p>
+                  </div>
+                  <Switch
+                    id="usageAlerts"
+                    checked={usageAlerts}
+                    onCheckedChange={setUsageAlerts}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Danger Zone */}
-        <Card className="border-red-200 shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
-              <Shield className="h-5 w-5" />
-              Danger Zone
-            </CardTitle>
-            <CardDescription>
-              Irreversible and destructive actions
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50">
-              <div>
-                <h3 className="font-medium text-red-900 font-inter">
-                  Sign Out All Sessions
-                </h3>
-                <p className="text-sm text-red-700 mt-1">
-                  Sign out from all devices and revoke all active sessions
-                </p>
-              </div>
-              <Button
-                variant="destructive"
-                onClick={() => setShowLogoutDialog(true)}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Sign Out All
-              </Button>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50">
-              <div>
-                <h3 className="font-medium text-red-900 font-inter">
-                  Delete Account
-                </h3>
-                <p className="text-sm text-red-700 mt-1">
-                  Permanently delete your account and all associated data
-                </p>
-              </div>
-              <Button
-                variant="destructive"
-                onClick={() => setShowDeleteDialog(true)}
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Account
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Slack Integration */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Webhook className="h-5 w-5 text-gray-900" />
+                  Slack Integration
+                </CardTitle>
+                <CardDescription>
+                  Receive notifications in Slack
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="slackWebhook">Webhook URL</Label>
+                    <Input
+                      id="slackWebhook"
+                      type="url"
+                      placeholder="https://hooks.slack.com/services/..."
+                      value={slackWebhook}
+                      onChange={(e) => setSlackWebhook(e.target.value)}
+                    />
+                    <p className="text-xs text-gray-600">
+                      Enter your Slack webhook URL to receive notifications
+                    </p>
+                  </div>
+                  <Button variant="outline" className="shadow-md">
+                    Save Webhook
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Logout Confirmation Dialog */}
