@@ -299,6 +299,46 @@ export default function UsagePage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Top Models Table */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle>Top 10 Models by Spend</CardTitle>
+                <CardDescription>Most expensive models this period</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border-light">
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Model Name</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600">Provider</th>
+                        <th className="text-right py-3 px-4 font-medium text-gray-600">Total Requests</th>
+                        <th className="text-right py-3 px-4 font-medium text-gray-600">Total Spend</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(usage?.top_models || []).map((model: any, index: number) => (
+                        <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                          <td className="py-3 px-4 font-medium text-gray-900">
+                            {model.model_name}
+                          </td>
+                          <td className="py-3 px-4 text-gray-900">
+                            {model.provider.charAt(0).toUpperCase() + model.provider.slice(1)}
+                          </td>
+                          <td className="text-right py-3 px-4 text-gray-900">
+                            {formatNumber(model.total_requests)}
+                          </td>
+                          <td className="text-right py-3 px-4 text-gray-900">
+                            {formatCurrency(model.total_spend)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>
