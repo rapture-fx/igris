@@ -73,11 +73,11 @@ export default function PolicyPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 mt-0">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold font-inter" style={{ color: '#114dcd' }}>
+            <h1 className="text-3xl font-bold text-gray-900 font-inter">
               Routing Policies
             </h1>
             <p className="text-gray-600 mt-1 font-inter">
@@ -115,6 +115,7 @@ export default function PolicyPage() {
                     setFormData({ ...formData, max_monthly_cost: parseFloat(e.target.value) })
                   }
                   placeholder="500.00"
+                  className="bg-beige-primary"
                 />
                 <p className="text-xs text-gray-600">
                   Requests will be rejected when this limit is reached
@@ -132,6 +133,7 @@ export default function PolicyPage() {
                     setFormData({ ...formData, max_tokens_per_request: parseInt(e.target.value) })
                   }
                   placeholder="4096"
+                  className="bg-beige-primary"
                 />
                 <p className="text-xs text-gray-600">
                   Maximum tokens allowed per inference request
@@ -161,6 +163,7 @@ export default function PolicyPage() {
                   setFormData({ ...formData, rate_limit_per_minute: parseInt(e.target.value) })
                 }
                 placeholder="60"
+                className="bg-beige-primary"
               />
               <p className="text-xs text-gray-600">
                 Maximum requests allowed per minute (0 = unlimited)
@@ -184,18 +187,13 @@ export default function PolicyPage() {
                   key={provider.id}
                   className="flex items-center justify-between p-3 rounded-lg border border-border-light hover:bg-beige-secondary transition-colors"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-schlep-blue/10 text-schlep-blue font-bold">
-                      {provider.name[0]}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900 font-inter">
-                        {provider.name}
-                      </h3>
-                      <p className="text-sm text-gray-600">
-                        {provider.id}
-                      </p>
-                    </div>
+                  <div>
+                    <h3 className="font-medium text-gray-900 font-inter">
+                      {provider.name}
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {provider.id}
+                    </p>
                   </div>
                   <Switch
                     checked={formData.allowed_providers.includes(provider.id)}
