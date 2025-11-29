@@ -68,7 +68,7 @@ export function Navbar({ onMenuClick }: NavbarProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-schlep-blue text-white font-semibold text-sm">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
                   {tenant ? getInitials(tenant.name) : 'U'}
                 </div>
 

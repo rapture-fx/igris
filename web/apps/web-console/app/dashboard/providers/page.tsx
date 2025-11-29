@@ -62,14 +62,14 @@ export default function ProvidersPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 font-inter">
+            <h1 className="text-xl font-medium text-gray-900 font-inter">
               Providers & Keys
             </h1>
             <p className="text-gray-600 mt-1 font-inter">
               Add your API keys for any model. One URL change and you're done.
             </p>
           </div>
-          <Button onClick={() => setShowAddDialog(true)}>
+          <Button variant="outline" className="shadow-md" onClick={() => setShowAddDialog(true)}>
             <Plus className="mr-2 h-4 w-4" />
             Add Provider
           </Button>
@@ -79,7 +79,7 @@ export default function ProvidersPage() {
         <Card className="border-border-light shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-schlep-blue" />
+              <Key className="h-5 w-5 text-gray-900" />
               Your Providers
             </CardTitle>
             <CardDescription>
@@ -89,7 +89,7 @@ export default function ProvidersPage() {
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center h-32">
-                <Loader2 className="h-8 w-8 animate-spin text-schlep-blue" />
+                <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
               </div>
             ) : providers && providers.length > 0 ? (
               <div className="overflow-x-auto">
@@ -126,7 +126,7 @@ export default function ProvidersPage() {
                         >
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-3">
-                              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-schlep-blue/10 text-schlep-blue font-bold">
+                              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-900 font-bold">
                                 {(providerInfo?.name || provider.provider)[0].toUpperCase()}
                               </div>
                               <div>
@@ -186,13 +186,9 @@ export default function ProvidersPage() {
                 <p className="text-gray-900 font-inter font-medium mb-2">
                   No providers added yet
                 </p>
-                <p className="text-gray-600 font-inter mb-4 text-sm">
+                <p className="text-gray-600 font-inter text-sm">
                   Add your first one to get started.
                 </p>
-                <Button onClick={() => setShowAddDialog(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Provider
-                </Button>
               </div>
             )}
           </CardContent>
@@ -215,7 +211,7 @@ export default function ProvidersPage() {
               </Label>
               <select
                 id="provider"
-                className="flex h-10 w-full rounded-lg border border-border-light bg-white px-3 py-2 text-sm font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-schlep-blue"
+                className="flex h-10 w-full rounded-lg border border-border-light bg-white px-3 py-2 text-sm font-inter focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900"
                 value={newProvider}
                 onChange={(e) => setNewProvider(e.target.value)}
               >
@@ -265,10 +261,12 @@ export default function ProvidersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+            <Button variant="outline" className="shadow-md" onClick={() => setShowAddDialog(false)}>
               Cancel
             </Button>
             <Button
+              variant="outline"
+              className="shadow-md"
               onClick={handleAddProvider}
               disabled={!newProvider || !newApiKey || addProviderMutation.isPending}
             >

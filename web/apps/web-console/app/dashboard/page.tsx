@@ -55,7 +55,7 @@ function MetricCard({
         <CardTitle className="text-sm font-medium text-gray-600">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-schlep-blue" />
+        <Icon className="h-4 w-4 text-gray-900" />
       </CardHeader>
       <CardContent>
         <div className="text-2xl font-bold text-gray-900">{value}</div>
@@ -79,7 +79,7 @@ export default function DashboardPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-schlep-blue"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
         </div>
       </DashboardLayout>
     );
@@ -90,7 +90,7 @@ export default function DashboardPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 font-inter">
+          <h1 className="text-xl font-medium text-gray-900 font-inter">
             Dashboard
           </h1>
           <p className="text-gray-600 mt-1 font-inter">
@@ -135,7 +135,7 @@ export default function DashboardPage() {
           <Card className="border-border-light shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-schlep-blue" />
+                <BarChart3 className="h-5 w-5 text-gray-900" />
                 Requests Over Time
               </CardTitle>
               <CardDescription>Last 24 hours</CardDescription>
@@ -163,7 +163,7 @@ export default function DashboardPage() {
           <Card className="border-border-light shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-schlep-blue" />
+                <DollarSign className="h-5 w-5 text-gray-900" />
                 Cost by Provider
               </CardTitle>
               <CardDescription>This month</CardDescription>
@@ -185,7 +185,7 @@ export default function DashboardPage() {
           <Card className="border-border-light shadow-md md:col-span-2">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-schlep-blue" />
+                <Clock className="h-5 w-5 text-gray-900" />
                 Latency Distribution
               </CardTitle>
               <CardDescription>Average response time over last 24 hours</CardDescription>

@@ -65,7 +65,7 @@ export default function PolicyPage() {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <Loader2 className="h-12 w-12 animate-spin text-schlep-blue" />
+          <Loader2 className="h-12 w-12 animate-spin text-gray-900" />
         </div>
       </DashboardLayout>
     );
@@ -77,14 +77,14 @@ export default function PolicyPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 font-inter">
+            <h1 className="text-xl font-medium text-gray-900 font-inter">
               Routing Policies
             </h1>
             <p className="text-gray-600 mt-1 font-inter">
               Manage your usage limits and safety policies
             </p>
           </div>
-          <Button onClick={() => setShowSaveDialog(true)}>
+          <Button variant="outline" className="shadow-md" onClick={() => setShowSaveDialog(true)}>
             <Save className="mr-2 h-4 w-4" />
             Save Changes
           </Button>
@@ -94,7 +94,7 @@ export default function PolicyPage() {
         <Card className="border-border-light shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-schlep-blue" />
+              <Shield className="h-5 w-5 text-gray-900" />
               Budget Limits
             </CardTitle>
             <CardDescription>
@@ -301,10 +301,10 @@ export default function PolicyPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+            <Button variant="outline" className="shadow-md" onClick={() => setShowSaveDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSave} disabled={updatePolicyMutation.isPending}>
+            <Button variant="outline" className="shadow-md" onClick={handleSave} disabled={updatePolicyMutation.isPending}>
               {updatePolicyMutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
