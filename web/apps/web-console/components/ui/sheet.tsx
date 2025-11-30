@@ -46,7 +46,7 @@ const SheetContent = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "fixed inset-y-0 right-0 z-50 h-full w-full border-l border-border-light bg-white shadow-lg sm:max-w-4xl",
+      "fixed inset-y-0 right-0 z-50 h-full w-full border-l border-border-light bg-beige-primary shadow-lg sm:max-w-4xl",
       "flex flex-col overflow-hidden",
       className
     )}
