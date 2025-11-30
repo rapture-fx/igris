@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ import {
   ChevronDown, ChevronUp, Copy, Share2, AlertCircle, CheckCircle,
   XCircle, Loader2, BarChart3, Zap, Tag, Code, Link2, Eye
 } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 
 // Types
@@ -315,6 +315,16 @@ export default function ObservabilityPage() {
   // Privacy-first: Full tracing is OPT-IN ONLY (default OFF)
   const [enableFullTracing, setEnableFullTracing] = useState(false);
 
+  // Real-time metrics state (updates every 5s)
+  const [realTimeMetrics, setRealTimeMetrics] = useState({
+    requestsPerSecond: 12.5,
+    p50Latency: 145,
+    p95Latency: 320,
+    costPerHour: 2.34,
+    activeProviders: 4,
+    requestsSparkline: Array.from({ length: 12 }, (_, i) => ({ value: 10 + Math.random() * 10 })),
+  });
+
   // Tier-based access control
   const tier = tenant?.plan || 'scale'; // Temporarily default to 'scale' for development
   const tierConfigs = {
@@ -330,6 +340,70 @@ export default function ObservabilityPage() {
     router.push('/dashboard/usage');
     return null;
   }
+
+  // Real-time metrics update every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRealTimeMetrics({
+        requestsPerSecond: 8 + Math.random() * 10,
+        p50Latency: 120 + Math.random() * 80,
+        p95Latency: 280 + Math.random() * 100,
+        costPerHour: 2 + Math.random() * 1.5,
+        activeProviders: 3 + Math.floor(Math.random() * 3),
+        requestsSparkline: Array.from({ length: 12 }, (_, i) => ({ value: 8 + Math.random() * 10 })),
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Mock data for Cost Insights
+  const costByProvider = [
+    { name: 'OpenAI', value: 1245.50, color: '#000000' },
+    { name: 'Anthropic', value: 892.30, color: '#1a1a1a' },
+    { name: 'Google', value: 567.80, color: '#333333' },
+    { name: 'xAI', value: 234.20, color: '#4d4d4d' },
+    { name: 'Cohere', value: 123.40, color: '#666666' },
+  ];
+
+  const costByModel = [
+    { model: 'gpt-4', cost: 845.20 },
+    { model: 'claude-3-opus', cost: 623.40 },
+    { model: 'gpt-4-turbo', cost: 512.30 },
+    { model: 'claude-3-sonnet', cost: 345.60 },
+    { model: 'gemini-pro', cost: 289.50 },
+    { model: 'gpt-3.5-turbo', cost: 187.20 },
+  ];
+
+  const topModelsBySpend = [
+    { model: 'gpt-4', provider: 'OpenAI', spend: 845.20, percentage: 27.5, requests: 12450 },
+    { model: 'claude-3-opus', provider: 'Anthropic', spend: 623.40, percentage: 20.3, requests: 8932 },
+    { model: 'gpt-4-turbo', provider: 'OpenAI', spend: 512.30, percentage: 16.7, requests: 15678 },
+    { model: 'claude-3-sonnet', provider: 'Anthropic', spend: 345.60, percentage: 11.2, requests: 23456 },
+    { model: 'gemini-pro', provider: 'Google', spend: 289.50, percentage: 9.4, requests: 18234 },
+    { model: 'gpt-3.5-turbo', provider: 'OpenAI', spend: 187.20, percentage: 6.1, requests: 34567 },
+    { model: 'grok-1', provider: 'xAI', spend: 156.80, percentage: 5.1, requests: 4532 },
+    { model: 'command', provider: 'Cohere', spend: 89.30, percentage: 2.9, requests: 2345 },
+    { model: 'llama-2-70b', provider: 'Together', spend: 45.60, percentage: 1.5, requests: 5678 },
+    { model: 'mixtral-8x7b', provider: 'Mistral', spend: 23.40, percentage: 0.8, requests: 1234 },
+  ];
+
+  // Mock data for Performance Monitoring
+  const providerReliability = [
+    { provider: 'Anthropic', successRate: 99.8, uptime: 99.95, avgLatency: 142 },
+    { provider: 'OpenAI', successRate: 99.2, uptime: 99.87, avgLatency: 168 },
+    { provider: 'Google', successRate: 98.9, uptime: 99.76, avgLatency: 195 },
+    { provider: 'xAI', successRate: 97.5, uptime: 98.92, avgLatency: 234 },
+    { provider: 'Cohere', successRate: 99.1, uptime: 99.34, avgLatency: 178 },
+  ];
+
+  const errorRateTrend = [
+    { time: '00:00', rate: 0.8 },
+    { time: '04:00', rate: 0.5 },
+    { time: '08:00', rate: 1.2 },
+    { time: '12:00', rate: 2.1 },
+    { time: '16:00', rate: 1.5 },
+    { time: '20:00', rate: 0.9 },
+  ];
 
   // Filtered traces
   const filteredTraces = useMemo(() => {
@@ -521,7 +595,7 @@ export default function ObservabilityPage() {
               Observability
             </h1>
             <p className="text-gray-700 mt-1 font-inter font-medium">
-              The greatest LLM observability experience ever built. Token timelines • Speculative waterfalls • Request chains • Share traces
+              Monitor and debug LLM requests in real-time
             </p>
           </div>
           <div className="flex gap-3">
@@ -543,6 +617,77 @@ export default function ObservabilityPage() {
             )}
           </div>
         </div>
+
+        {/* 1. REAL-TIME METRICS - Live updating every 5s */}
+        <Card className="border-border-light shadow-md bg-gradient-to-br from-beige-primary to-beige-secondary">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-gray-900 animate-pulse" />
+              Real-Time Metrics
+              <Badge className="bg-green-50 text-green-700 border-green-200 text-xs ml-2">LIVE</Badge>
+            </CardTitle>
+            <CardDescription>Updates every 5 seconds</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+              {/* Requests/Second */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-gray-600">Requests / Second</p>
+                <div className="flex items-end gap-3">
+                  <p className="text-3xl font-bold text-gray-900">{realTimeMetrics.requestsPerSecond.toFixed(1)}</p>
+                  <div className="flex-1 h-8">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={realTimeMetrics.requestsSparkline}>
+                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={1.5} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">Last 60 seconds</p>
+              </div>
+
+              {/* P50/P95 Latency */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-gray-600">P50 / P95 Latency</p>
+                <div className="space-y-1">
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-2xl font-bold text-gray-900">{realTimeMetrics.p50Latency.toFixed(0)}ms</p>
+                    <span className="text-xs text-gray-600">P50</span>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <p className="text-xl font-semibold text-gray-700">{realTimeMetrics.p95Latency.toFixed(0)}ms</p>
+                    <span className="text-xs text-gray-600">P95</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">Last 5 minutes</p>
+              </div>
+
+              {/* Cost/Hour */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-gray-600">Cost / Hour</p>
+                <div className="space-y-1">
+                  <p className="text-3xl font-bold text-gray-900">${realTimeMetrics.costPerHour.toFixed(2)}</p>
+                  <div className="flex items-center gap-2 text-xs text-gray-600">
+                    <span>Projected: ${(realTimeMetrics.costPerHour * 24).toFixed(2)}/day</span>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-600">Last hour</p>
+              </div>
+
+              {/* Active Providers */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-gray-600">Active Providers</p>
+                <p className="text-3xl font-bold text-gray-900">{realTimeMetrics.activeProviders}</p>
+                <div className="flex gap-1 mt-2">
+                  {['OpenAI', 'Anthropic', 'Google', 'xAI', 'Cohere'].slice(0, realTimeMetrics.activeProviders).map((provider, i) => (
+                    <Badge key={i} variant="outline" className="text-xs">{provider}</Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600">Currently responding</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Privacy-First Banner - Full Tracing Disabled */}
         {!enableFullTracing && (
@@ -1072,6 +1217,222 @@ export default function ObservabilityPage() {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* 3. COST INSIGHTS - Dedicated Section */}
+        <Card className="border-border-light shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="h-5 w-5 text-gray-900" />
+              Cost Insights
+            </CardTitle>
+            <CardDescription>Spending analysis for the last 30 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Pie Chart: Spend by Provider */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Provider</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={costByProvider}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={(entry) => `${entry.name}: $${entry.value.toFixed(0)}`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {costByProvider.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value: any) => `$${value.toFixed(2)}`} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Bar Chart: Spend by Model */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Model</h3>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={costByModel}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis dataKey="model" stroke="#6b7280" fontSize={11} angle={-45} textAnchor="end" height={80} />
+                    <YAxis stroke="#6b7280" fontSize={11} />
+                    <Tooltip formatter={(value: any) => `$${value.toFixed(2)}`} />
+                    <Bar dataKey="cost" fill="#000000" radius={[8, 8, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+
+            {/* Table: Top 10 Models by Spend */}
+            <div className="mt-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Top Models by Spend</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border-light bg-beige-secondary">
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">#</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Model</th>
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Spend</th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">% of Total</th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Requests</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topModelsBySpend.map((item, index) => (
+                      <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                        <td className="py-3 px-4 text-sm text-gray-600">{index + 1}</td>
+                        <td className="py-3 px-4 text-sm font-medium text-gray-900">{item.model}</td>
+                        <td className="py-3 px-4 text-sm text-gray-700">{item.provider}</td>
+                        <td className="text-right py-3 px-4 text-sm font-semibold text-gray-900">${item.spend.toFixed(2)}</td>
+                        <td className="text-right py-3 px-4 text-sm text-gray-700">{item.percentage.toFixed(1)}%</td>
+                        <td className="text-right py-3 px-4 text-sm text-gray-700">{formatNumber(item.requests)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Tenant Breakdown (Scale Only) */}
+            {tier === 'scale' && (
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-gray-900">Tenant Breakdown</h3>
+                  <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs">Scale Only</Badge>
+                </div>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="bg-beige-secondary border border-border-light rounded-lg p-4">
+                    <p className="text-xs text-gray-600 mb-1">Production</p>
+                    <p className="text-2xl font-bold text-gray-900">$1,854.30</p>
+                    <p className="text-xs text-gray-600 mt-1">60.3% of total</p>
+                  </div>
+                  <div className="bg-beige-secondary border border-border-light rounded-lg p-4">
+                    <p className="text-xs text-gray-600 mb-1">Staging</p>
+                    <p className="text-2xl font-bold text-gray-900">$892.40</p>
+                    <p className="text-xs text-gray-600 mt-1">29.0% of total</p>
+                  </div>
+                  <div className="bg-beige-secondary border border-border-light rounded-lg p-4">
+                    <p className="text-xs text-gray-600 mb-1">Development</p>
+                    <p className="text-2xl font-bold text-gray-900">$316.50</p>
+                    <p className="text-xs text-gray-600 mt-1">10.3% of total</p>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* 4. PERFORMANCE MONITORING - Dedicated Section */}
+        <Card className="border-border-light shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-gray-900" />
+              Performance Monitoring
+            </CardTitle>
+            <CardDescription>Provider reliability and performance metrics</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Error Rate Trend */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-medium text-gray-900">Error Rate Trend</h3>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-xs text-gray-600">Last 24h</p>
+                    <p className="text-lg font-semibold text-gray-900">1.2%</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs text-gray-600">7-day avg</p>
+                    <p className="text-lg font-semibold text-green-600">0.9%</p>
+                  </div>
+                </div>
+              </div>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={errorRateTrend}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis dataKey="time" stroke="#6b7280" fontSize={11} />
+                  <YAxis stroke="#6b7280" fontSize={11} />
+                  <Tooltip formatter={(value: any) => `${value}%`} />
+                  <Line type="monotone" dataKey="rate" stroke="#000000" strokeWidth={2} dot={{ fill: "#000000" }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Provider Reliability Table */}
+            <div>
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Provider Reliability Score</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border-light bg-beige-secondary">
+                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Success Rate (7d)</th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Uptime (30d)</th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Avg Latency</th>
+                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {providerReliability.map((provider, index) => (
+                      <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                        <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
+                        <td className="text-right py-3 px-4">
+                          <div className="flex items-center justify-end gap-2">
+                            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-green-600"
+                                style={{ width: `${provider.successRate}%` }}
+                              />
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900">{provider.successRate}%</span>
+                          </div>
+                        </td>
+                        <td className="text-right py-3 px-4 text-sm font-semibold text-gray-900">{provider.uptime}%</td>
+                        <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.avgLatency}ms</td>
+                        <td className="text-right py-3 px-4">
+                          <Badge className={cn(
+                            provider.successRate >= 99.5 ? "bg-green-50 text-green-700 border-green-200" :
+                            provider.successRate >= 98 ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
+                            "bg-red-50 text-red-700 border-red-200"
+                          )}>
+                            {provider.successRate >= 99.5 ? "Excellent" : provider.successRate >= 98 ? "Good" : "Fair"}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Latency Heatmap Placeholder */}
+            <div className="mt-6 pt-6 border-t border-border-light">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Latency Heatmap by Provider</h3>
+              <div className="grid grid-cols-5 gap-2">
+                {providerReliability.map((provider, i) => (
+                  <div key={i} className="bg-beige-secondary border border-border-light rounded-lg p-3 text-center">
+                    <p className="text-xs font-medium text-gray-900 mb-2">{provider.provider}</p>
+                    <div className={cn(
+                      "w-full h-16 rounded flex items-center justify-center text-white font-bold",
+                      provider.avgLatency < 150 ? "bg-green-600" :
+                      provider.avgLatency < 200 ? "bg-yellow-500" :
+                      "bg-red-500"
+                    )}>
+                      {provider.avgLatency}ms
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">Avg</p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>

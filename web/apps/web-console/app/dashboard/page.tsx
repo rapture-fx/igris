@@ -25,6 +25,10 @@ const providerCostData = [
   { provider: 'Anthropic', cost: 32.50 },
   { provider: 'Google', cost: 18.30 },
   { provider: 'Cohere', cost: 12.00 },
+  { provider: 'xAI', cost: 8.50 },
+  { provider: 'Mistral', cost: 6.20 },
+  { provider: 'Together', cost: 4.80 },
+  { provider: 'Replicate', cost: 3.10 },
 ];
 
 const latencyData = [
@@ -150,9 +154,9 @@ export default function DashboardPage() {
                   <Line
                     type="monotone"
                     dataKey="requests"
-                    stroke={CHART_COLORS.primary}
-                    strokeWidth={1}
-                    dot={{ fill: CHART_COLORS.primary }}
+                    stroke="#000000"
+                    strokeWidth={2}
+                    dot={{ fill: "#000000" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -170,12 +174,12 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={providerCostData}>
+                <BarChart data={providerCostData} barSize={20}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="provider" stroke="#6b7280" />
                   <YAxis stroke="#6b7280" />
                   <Tooltip />
-                  <Bar dataKey="cost" fill={CHART_COLORS.primary} radius={[8, 8, 0, 0]} />
+                  <Bar dataKey="cost" fill="#000000" radius={[8, 8, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -200,9 +204,9 @@ export default function DashboardPage() {
                   <Area
                     type="monotone"
                     dataKey="latency"
-                    stroke={CHART_COLORS.secondary}
-                    fill={CHART_COLORS.secondary}
-                    fillOpacity={0.3}
+                    stroke="#000000"
+                    fill="#000000"
+                    fillOpacity={0.1}
                   />
                 </AreaChart>
               </ResponsiveContainer>
