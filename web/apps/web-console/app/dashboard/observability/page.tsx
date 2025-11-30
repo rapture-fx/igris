@@ -16,104 +16,265 @@ import { formatCurrency, formatNumber, formatLatency, formatDateTime, downloadCS
 import {
   Activity, Download, Clock, Database, Filter, Search, X,
   ChevronDown, ChevronUp, Copy, Share2, AlertCircle, CheckCircle,
-  XCircle, Loader2, BarChart3, Zap
+  XCircle, Loader2, BarChart3, Zap, Tag, Code, Link2, Eye
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 
 // Types
+type RequestTag = 'expected' | 'bug' | 'reviewed' | 'spam' | 'golden' | null;
+
+interface RetryAttempt {
+  attempt_number: number;
+  start_time: number;
+  duration: number;
+  status: number;
+  error?: string;
+}
+
+interface SpeculativeTrace {
+  provider: string;
+  start: number;
+  duration: number;
+  status: 'winner' | 'fallback' | 'failed';
+  latency: number;
+}
+
+interface TimelineMarker {
+  name: string;
+  timestamp: number;
+  type: 'cache_read' | 'dns' | 'tls' | 'first_byte' | 'streaming_start' | 'streaming_end';
+}
+
+interface GenerationParams {
+  temperature?: number;
+  top_p?: number;
+  presence_penalty?: number;
+  frequency_penalty?: number;
+  stop_sequences?: string[];
+  max_tokens?: number;
+  logprobs?: boolean;
+  top_logprobs?: number;
+}
+
 interface RequestTrace {
   id: string;
   timestamp: string;
   model: string;
+  model_version?: string;
+  model_fingerprint?: string;
   provider: string;
   status: number;
   latency: number;
   cost: number;
+  cost_breakdown: {
+    input: number;
+    output: number;
+    overhead: number;
+  };
   tokens: {
     input: number;
     output: number;
     total: number;
   };
   user_id?: string;
+  session_id?: string;
+  client_ip?: string;
+  user_agent?: string;
   request_id: string;
+  parent_request_id?: string;
+  child_request_ids?: string[];
   headers?: Record<string, string>;
   request_body?: any;
   response_body?: any;
+  prompt?: string;
+  completion?: string;
+  generation_params?: GenerationParams;
   error?: {
     message: string;
     stack?: string;
+    provider_error?: string;
   };
-  token_timeline?: Array<{ token_index: number; timestamp: number }>;
-  trace_waterfall?: Array<{
-    provider: string;
-    start: number;
-    duration: number;
-    status: 'success' | 'failed' | 'winner';
-  }>;
+  token_timeline?: Array<{ token_index: number; timestamp: number; is_first?: boolean; is_last?: boolean }>;
+  speculative_traces?: SpeculativeTrace[];
+  retry_attempts?: RetryAttempt[];
   retry_count?: number;
+  tag?: RequestTag;
+  shared_url?: string;
+  curl_command?: string;
+  was_streamed: boolean;
+  used_speculative: boolean;
+  cache_hit?: boolean;
+  cache_savings?: number;
+  evaluation_score?: number;
+  human_feedback?: 'positive' | 'negative' | null;
+  timeline_markers?: TimelineMarker[];
 }
 
 // Mock data generator
 const generateMockTraces = (count: number): RequestTrace[] => {
   const providers = ['OpenAI', 'Anthropic', 'Google', 'xAI'];
   const models = ['gpt-4', 'gpt-4-turbo', 'claude-3-opus', 'claude-3-sonnet', 'gemini-pro', 'grok-1'];
-  const statuses = [200, 200, 200, 200, 429, 500];
+  const modelVersions = ['gpt-4-0613', 'gpt-4-turbo-2024-04-09', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'gemini-pro-1.5', 'grok-1-20240401'];
+  const statuses = [200, 200, 200, 200, 200, 429, 500];
+  const tags: RequestTag[] = [null, null, null, 'expected', 'bug', 'reviewed', 'golden'];
+  const samplePrompts = [
+    'Explain quantum computing in simple terms',
+    'Write a Python function to sort a list',
+    'What are the benefits of TypeScript over JavaScript?',
+    'Create a marketing email for a new product launch',
+    'Summarize the key points from this document',
+  ];
+  const sampleCompletions = [
+    'Quantum computing leverages quantum mechanics to process information in fundamentally different ways...',
+    'Here\'s a Python function that sorts a list:\n\ndef sort_list(items):\n    return sorted(items)',
+    'TypeScript offers several advantages: static typing, better IDE support, early error detection...',
+    'Subject: Introducing Our Revolutionary New Product\n\nDear valued customer,\n\nWe\'re excited to announce...',
+    'Key points:\n1. Market growth of 23%\n2. Customer satisfaction at all-time high\n3. New features...',
+  ];
 
   return Array.from({ length: count }, (_, i) => {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
     const provider = providers[Math.floor(Math.random() * providers.length)];
-    const model = models[Math.floor(Math.random() * models.length)];
+    const modelIndex = Math.floor(Math.random() * models.length);
+    const model = models[modelIndex];
+    const modelVersion = modelVersions[modelIndex];
     const latency = Math.floor(Math.random() * 800) + 100;
     const inputTokens = Math.floor(Math.random() * 2000) + 100;
     const outputTokens = Math.floor(Math.random() * 1500) + 50;
-    const cost = (inputTokens * 0.00001 + outputTokens * 0.00003);
+    const inputCost = inputTokens * 0.00001;
+    const outputCost = outputTokens * 0.00003;
+    const overheadCost = Math.random() * 0.001;
+    const totalCost = inputCost + outputCost + overheadCost;
+
+    const wasStreamed = status === 200 || status === 429 || Math.random() > 0.3;
+    const usedSpeculative = Math.random() > 0.7;
+    const wasRetried = status !== 200 && Math.random() > 0.5;
+    const tag = tags[Math.floor(Math.random() * tags.length)];
+    const cacheHit = Math.random() > 0.6;
+    const cacheSavings = cacheHit ? inputCost * 0.5 : 0;
+    const hasParent = i > 0 && Math.random() > 0.7;
+    const hasChildren = Math.random() > 0.8;
 
     const baseTime = Date.now() - (i * 60000);
+
+    // Generate token timeline for streaming requests
+    const tokenTimeline = wasStreamed ? Array.from({ length: Math.min(outputTokens, 50) }, (_, idx) => ({
+      token_index: idx,
+      timestamp: baseTime + (idx * (latency / 50)),
+      is_first: idx === 0,
+      is_last: idx === Math.min(outputTokens, 50) - 1,
+    })) : undefined;
+
+    // Generate speculative traces
+    const speculativeTraces = usedSpeculative ? [
+      { provider: 'OpenAI', start: 0, duration: latency * 1.2, status: 'failed' as const, latency: latency * 1.2 },
+      { provider: 'Anthropic', start: 0, duration: latency, status: 'winner' as const, latency },
+      { provider: 'Google', start: 0, duration: latency * 1.5, status: 'fallback' as const, latency: latency * 1.5 },
+    ] : undefined;
+
+    // Generate retry attempts
+    const retryAttempts = wasRetried ? [
+      { attempt_number: 1, start_time: baseTime, duration: latency * 0.3, status: 500, error: 'Connection timeout' },
+      { attempt_number: 2, start_time: baseTime + latency * 0.3, duration: latency * 0.4, status: 429, error: 'Rate limit exceeded' },
+      { attempt_number: 3, start_time: baseTime + latency * 0.7, duration: latency * 0.3, status: status, error: status !== 200 ? 'Final attempt failed' : undefined },
+    ] : undefined;
+
+    const promptIndex = Math.floor(Math.random() * samplePrompts.length);
+    const prompt = samplePrompts[promptIndex];
+    const completion = sampleCompletions[promptIndex];
+
+    const temperature = 0.3 + Math.random() * 0.7;
+    const generationParams: GenerationParams = {
+      temperature: parseFloat(temperature.toFixed(2)),
+      top_p: parseFloat((0.8 + Math.random() * 0.2).toFixed(2)),
+      presence_penalty: parseFloat((Math.random() * 0.5).toFixed(2)),
+      frequency_penalty: parseFloat((Math.random() * 0.5).toFixed(2)),
+      max_tokens: outputTokens,
+      logprobs: Math.random() > 0.5,
+      top_logprobs: Math.random() > 0.5 ? 5 : undefined,
+    };
+
+    const timelineMarkers: TimelineMarker[] = wasStreamed ? [
+      { name: 'Cache Read', timestamp: baseTime + 5, type: 'cache_read' },
+      { name: 'DNS Lookup', timestamp: baseTime + 12, type: 'dns' },
+      { name: 'TLS Handshake', timestamp: baseTime + 25, type: 'tls' },
+      { name: 'First Byte', timestamp: baseTime + 80, type: 'first_byte' },
+      { name: 'Streaming Start', timestamp: baseTime + 85, type: 'streaming_start' },
+      { name: 'Streaming End', timestamp: baseTime + latency, type: 'streaming_end' },
+    ] : [];
+
+    const curlCommand = `curl -X POST http://localhost:8081/v1/infer \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -d '${JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: outputTokens, temperature: generationParams.temperature }, null, 2)}'`;
 
     return {
       id: `trace_${i + 1}`,
       timestamp: new Date(baseTime).toISOString(),
       model,
+      model_version: modelVersion,
+      model_fingerprint: `fp_${Math.random().toString(36).substring(7)}`,
       provider,
       status,
       latency,
-      cost,
+      cost: totalCost,
+      cost_breakdown: {
+        input: inputCost,
+        output: outputCost,
+        overhead: overheadCost,
+      },
       tokens: {
         input: inputTokens,
         output: outputTokens,
         total: inputTokens + outputTokens,
       },
       user_id: `user_${Math.floor(Math.random() * 100)}`,
+      session_id: `session_${Math.floor(Math.random() * 50)}`,
+      client_ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
+      user_agent: ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'schlep-sdk/1.0', 'python-requests/2.31.0'][Math.floor(Math.random() * 3)],
       request_id: `req_${Date.now()}_${i}`,
+      parent_request_id: hasParent ? `req_${Date.now()}_${i - 1}` : undefined,
+      child_request_ids: hasChildren ? [`req_${Date.now()}_${i + 1}`, `req_${Date.now()}_${i + 2}`] : undefined,
       headers: {
         'content-type': 'application/json',
         'user-agent': 'schlep-sdk/1.0',
       },
       request_body: {
         model,
-        messages: [{ role: 'user', content: 'Sample request content' }],
+        messages: [{ role: 'user', content: prompt }],
         max_tokens: outputTokens,
+        ...generationParams,
       },
       response_body: status === 200 ? {
         id: `chatcmpl_${i}`,
-        choices: [{ message: { role: 'assistant', content: 'Sample response content' } }],
+        model: modelVersion,
+        system_fingerprint: `fp_${Math.random().toString(36).substring(7)}`,
+        choices: [{ message: { role: 'assistant', content: completion } }],
         usage: { prompt_tokens: inputTokens, completion_tokens: outputTokens },
       } : undefined,
+      prompt,
+      completion: status === 200 ? completion : undefined,
+      generation_params: generationParams,
       error: status !== 200 ? {
         message: status === 429 ? 'Rate limit exceeded' : 'Internal server error',
         stack: status === 500 ? 'Error: Internal server error\n  at handler (/api/infer.ts:123)' : undefined,
+        provider_error: status === 429 ? 'Provider returned 429: Too Many Requests' : 'Provider connection failed',
       } : undefined,
-      token_timeline: status === 200 ? Array.from({ length: Math.min(outputTokens, 50) }, (_, idx) => ({
-        token_index: idx,
-        timestamp: baseTime + (idx * (latency / 50)),
-      })) : undefined,
-      trace_waterfall: Math.random() > 0.7 ? [
-        { provider: 'OpenAI', start: 0, duration: latency * 1.2, status: 'failed' as const },
-        { provider: 'Anthropic', start: 0, duration: latency, status: 'winner' as const },
-        { provider: 'Google', start: 0, duration: latency * 1.5, status: 'success' as const },
-      ] : undefined,
-      retry_count: status !== 200 ? Math.floor(Math.random() * 3) : 0,
+      token_timeline: tokenTimeline,
+      speculative_traces: speculativeTraces,
+      retry_attempts: retryAttempts,
+      retry_count: retryAttempts?.length || 0,
+      tag,
+      shared_url: Math.random() > 0.8 ? `https://schlep.ai/traces/${i}?token=abc123` : undefined,
+      curl_command: curlCommand,
+      was_streamed: wasStreamed,
+      used_speculative: usedSpeculative,
+      cache_hit: cacheHit,
+      cache_savings: cacheSavings,
+      evaluation_score: status === 200 && Math.random() > 0.5 ? parseFloat((Math.random() * 5).toFixed(2)) : undefined,
+      human_feedback: status === 200 && Math.random() > 0.7 ? (Math.random() > 0.5 ? 'positive' : 'negative') : null,
+      timeline_markers: timelineMarkers,
     };
   });
 };
@@ -123,7 +284,7 @@ export default function ObservabilityPage() {
   const { data: tenant, isLoading: tenantLoading } = useTenant();
 
   // State
-  const [traces] = useState<RequestTrace[]>(() => generateMockTraces(150));
+  const [traces, setTraces] = useState<RequestTrace[]>(() => generateMockTraces(150));
   const [selectedTrace, setSelectedTrace] = useState<RequestTrace | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -133,6 +294,10 @@ export default function ObservabilityPage() {
     minLatency: '',
     minCost: '',
     timeRange: '24h',
+    hasError: false,
+    usedSpeculative: false,
+    wasRetried: false,
+    tag: '' as RequestTag | '',
   });
   const [expandedSections, setExpandedSections] = useState({
     headers: false,
@@ -140,14 +305,23 @@ export default function ObservabilityPage() {
     response: false,
     error: false,
   });
+  const [savedPresets, setSavedPresets] = useState<Array<{ name: string; filters: typeof filters }>>([
+    { name: 'Errors Only', filters: { ...filters, hasError: true, status: '' } },
+    { name: 'Cached Requests', filters: { ...filters } },
+    { name: 'High Latency', filters: { ...filters, minLatency: '500' } },
+  ]);
+  const [presetName, setPresetName] = useState('');
+
+  // Privacy-first: Full tracing is OPT-IN ONLY (default OFF)
+  const [enableFullTracing, setEnableFullTracing] = useState(false);
 
   // Tier-based access control
   const tier = tenant?.plan || 'scale'; // Temporarily default to 'scale' for development
   const tierConfigs = {
-    developer: { enabled: false, retention: 0, maxRequests: 0 },
-    growth: { enabled: true, retention: 7, maxRequests: 1000 },
-    scale: { enabled: true, retention: 90, maxRequests: 100000 },
-    trial: { enabled: true, retention: 14, maxRequests: 50000 },
+    developer: { enabled: false, retention: 0, maxRequests: 0, fullFeatures: false },
+    growth: { enabled: true, retention: 7, maxRequests: 1000, fullFeatures: false },
+    scale: { enabled: true, retention: 90, maxRequests: 100000, fullFeatures: true },
+    trial: { enabled: true, retention: 14, maxRequests: 50000, fullFeatures: true },
   };
   const tierConfig = tierConfigs[tier as keyof typeof tierConfigs] || tierConfigs.scale;
 
@@ -188,6 +362,18 @@ export default function ObservabilityPage() {
       // Cost filter
       if (filters.minCost && trace.cost < parseFloat(filters.minCost)) return false;
 
+      // Has error filter
+      if (filters.hasError && trace.status === 200) return false;
+
+      // Used speculative filter
+      if (filters.usedSpeculative && !trace.used_speculative) return false;
+
+      // Was retried filter
+      if (filters.wasRetried && !trace.retry_count) return false;
+
+      // Tag filter
+      if (filters.tag && trace.tag !== filters.tag) return false;
+
       // Time range filter
       const now = Date.now();
       const traceTime = new Date(trace.timestamp).getTime();
@@ -211,8 +397,10 @@ export default function ObservabilityPage() {
     const avgLatency = total > 0 ? filteredTraces.reduce((sum, t) => sum + t.latency, 0) / total : 0;
     const totalCost = filteredTraces.reduce((sum, t) => sum + t.cost, 0);
     const errorRate = total > 0 ? (filteredTraces.filter(t => t.status !== 200).length / total) * 100 : 0;
+    const speculativeCount = filteredTraces.filter(t => t.used_speculative).length;
+    const retriedCount = filteredTraces.filter(t => t.retry_count && t.retry_count > 0).length;
 
-    return { total, avgLatency, totalCost, errorRate };
+    return { total, avgLatency, totalCost, errorRate, speculativeCount, retriedCount };
   }, [filteredTraces]);
 
   // Export handlers
@@ -227,6 +415,9 @@ export default function ObservabilityPage() {
       tokens: trace.tokens.total,
       user_id: trace.user_id,
       request_id: trace.request_id,
+      tag: trace.tag || '',
+      used_speculative: trace.used_speculative,
+      retry_count: trace.retry_count || 0,
     }));
     downloadCSV(exportData, `observability-${Date.now()}`);
   };
@@ -239,18 +430,75 @@ export default function ObservabilityPage() {
     navigator.clipboard.writeText(text);
   };
 
+  const handleShareTrace = (trace: RequestTrace) => {
+    // Generate a shareable URL (7-day expiry)
+    const sharedUrl = `https://schlep.ai/traces/${trace.id}?token=${btoa(Date.now().toString())}`;
+    copyToClipboard(sharedUrl);
+    // Update trace with shared URL
+    setTraces(prev => prev.map(t => t.id === trace.id ? { ...t, shared_url: sharedUrl } : t));
+    alert('Trace URL copied to clipboard! Valid for 7 days.');
+  };
+
+  const handleTagTrace = (trace: RequestTrace, tag: RequestTag) => {
+    setTraces(prev => prev.map(t => t.id === trace.id ? { ...t, tag } : t));
+    if (selectedTrace?.id === trace.id) {
+      setSelectedTrace({ ...trace, tag });
+    }
+  };
+
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const handleSavePreset = () => {
+    if (!presetName.trim()) {
+      alert('Please enter a preset name');
+      return;
+    }
+    setSavedPresets(prev => [...prev, { name: presetName, filters: { ...filters } }]);
+    setPresetName('');
+    alert(`Preset "${presetName}" saved!`);
+  };
+
+  const handleLoadPreset = (preset: { name: string; filters: typeof filters }) => {
+    setFilters(preset.filters);
+  };
+
+  const handleDeletePreset = (presetName: string) => {
+    setSavedPresets(prev => prev.filter(p => p.name !== presetName));
+  };
+
+  const handleDeleteAllTraces = () => {
+    if (window.confirm('Are you sure you want to delete ALL traces? This action cannot be undone.')) {
+      setTraces([]);
+      setSelectedTrace(null);
+      alert('All traces have been permanently deleted.');
+    }
   };
 
   const getStatusBadge = (status: number) => {
     if (status === 200) {
       return <Badge className="bg-green-50 text-green-700 border-green-200">200 OK</Badge>;
     } else if (status === 429) {
-      return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200">429 Rate Limit</Badge>;
+      return <Badge style={{ backgroundColor: '#ffc2c2', color: '#991b1b', borderColor: '#ffc2c2' }}>429 Rate Limit</Badge>;
+    } else if (status === 500) {
+      return <Badge style={{ backgroundColor: '#ffc2c2', color: '#991b1b', borderColor: '#ffc2c2' }}>{status} Error</Badge>;
     } else {
       return <Badge className="bg-red-50 text-red-700 border-red-200">{status} Error</Badge>;
     }
+  };
+
+  const getTagBadge = (tag: RequestTag) => {
+    if (!tag) return null;
+    const config = {
+      expected: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Expected' },
+      bug: { bg: 'bg-red-50', text: 'text-red-700', label: 'Bug' },
+      reviewed: { bg: 'bg-green-50', text: 'text-green-700', label: 'Reviewed' },
+      golden: { bg: 'bg-yellow-50', text: 'text-yellow-700', label: 'Golden' },
+      spam: { bg: 'bg-gray-50', text: 'text-gray-700', label: 'Spam' },
+    };
+    const { bg, text, label } = config[tag];
+    return <Badge className={cn(bg, text, 'border')}>{label}</Badge>;
   };
 
   if (tenantLoading) {
@@ -269,27 +517,135 @@ export default function ObservabilityPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-medium text-gray-900 font-inter">
+            <h1 className="text-2xl font-semibold text-gray-900 font-inter">
               Observability
             </h1>
-            <p className="text-gray-600 mt-1 font-inter">
-              Engineering-grade traces, token timelines, and request analytics
+            <p className="text-gray-700 mt-1 font-inter font-medium">
+              The greatest LLM observability experience ever built. Token timelines • Speculative waterfalls • Request chains • Share traces
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-            <Button variant="outline" className="shadow-md" onClick={handleExportJSON}>
-              <Download className="h-4 w-4 mr-2" />
-              Export JSON
-            </Button>
+            {tierConfig.fullFeatures ? (
+              <>
+                <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
+                <Button variant="outline" className="shadow-md" onClick={handleExportJSON}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Export JSON
+                </Button>
+              </>
+            ) : (
+              <Badge className="bg-blue-50 text-blue-700 border-blue-200">
+                Growth Plan • Limited Features
+              </Badge>
+            )}
           </div>
         </div>
 
+        {/* Privacy-First Banner - Full Tracing Disabled */}
+        {!enableFullTracing && (
+          <Card className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-md">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-green-100 rounded-full p-3">
+                    <CheckCircle className="h-6 w-6 text-green-700" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      Privacy-First Mode Active
+                    </h3>
+                    <p className="text-sm text-gray-700 mt-1">
+                      We never store your prompts or completions unless you turn this on. Metadata-only mode (latency, cost, model, status) is always on — no prompts stored. Zero compliance risk.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    className="shadow-md"
+                    onClick={() => setEnableFullTracing(true)}
+                  >
+                    Enable Full Tracing
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Full Tracing Enabled - Warning Banner */}
+        {enableFullTracing && (
+          <Card className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50 shadow-md">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-yellow-100 rounded-full p-3">
+                    <AlertCircle className="h-6 w-6 text-yellow-700" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      Full Request Tracing Enabled
+                    </h3>
+                    <p className="text-sm text-gray-700 mt-1">
+                      Prompts, completions, and token streams are now being stored. Recommended only for debugging. All traces automatically deleted after 30 days.
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Button
+                    variant="outline"
+                    className="shadow-md text-red-600 border-red-300 hover:bg-red-50"
+                    onClick={handleDeleteAllTraces}
+                  >
+                    Delete All Traces
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="shadow-md"
+                    onClick={() => setEnableFullTracing(false)}
+                  >
+                    Disable Full Tracing
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Tier Upgrade Banner for Growth Users */}
+        {!tierConfig.fullFeatures && (
+          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-md">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="bg-blue-100 rounded-full p-3">
+                    <Zap className="h-6 w-6 text-blue-700" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900">
+                      Unlock the Full Observability Experience
+                    </h3>
+                    <p className="text-sm text-gray-700 mt-1">
+                      Upgrade to Scale for: Prompt/Completion split view • Generation parameters • Request chains • Timeline markers • Saved filter presets • 90-day retention • Unlimited exports
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                  onClick={() => router.push('/dashboard/settings?tab=billing')}
+                >
+                  Upgrade to Scale
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Metrics Grid */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
           <Card className="border-border-light shadow-md">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
@@ -341,8 +697,34 @@ export default function ObservabilityPage() {
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{metrics.errorRate.toFixed(1)}%</div>
               <p className="text-xs text-gray-600 mt-1">
-                {tier === 'scale' ? '90-day retention' : tier === 'growth' ? '7-day retention' : 'Limited'}
+                {tier === 'scale' ? '90-day' : tier === 'growth' ? '7-day' : 'Limited'}
               </p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border-light shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Speculative
+              </CardTitle>
+              <Zap className="h-4 w-4 text-gray-900" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{formatNumber(metrics.speculativeCount)}</div>
+              <p className="text-xs text-gray-600 mt-1">Used parallel</p>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border-light shadow-md">
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Retried
+              </CardTitle>
+              <Activity className="h-4 w-4 text-gray-900" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-gray-900">{formatNumber(metrics.retriedCount)}</div>
+              <p className="text-xs text-gray-600 mt-1">Had retries</p>
             </CardContent>
           </Card>
         </div>
@@ -393,13 +775,18 @@ export default function ObservabilityPage() {
                 <option value="500">500 Error</option>
               </Select>
 
-              {/* Latency */}
-              <Input
-                type="number"
-                placeholder="Min latency (ms)"
-                value={filters.minLatency}
-                onChange={(e) => setFilters(prev => ({ ...prev, minLatency: e.target.value }))}
-              />
+              {/* Tag */}
+              <Select
+                value={filters.tag}
+                onChange={(e) => setFilters(prev => ({ ...prev, tag: e.target.value as RequestTag | '' }))}
+              >
+                <option value="">All Tags</option>
+                <option value="expected">Expected</option>
+                <option value="bug">Bug</option>
+                <option value="reviewed">Reviewed</option>
+                <option value="golden">Golden</option>
+                <option value="spam">Spam</option>
+              </Select>
 
               {/* Time Range */}
               <Select
@@ -413,8 +800,36 @@ export default function ObservabilityPage() {
               </Select>
             </div>
 
+            {/* Advanced Filters */}
+            <div className="flex gap-3 mt-4 flex-wrap">
+              <Button
+                variant={filters.hasError ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilters(prev => ({ ...prev, hasError: !prev.hasError }))}
+              >
+                {filters.hasError && <CheckCircle className="h-3 w-3 mr-1" />}
+                Has Error
+              </Button>
+              <Button
+                variant={filters.usedSpeculative ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilters(prev => ({ ...prev, usedSpeculative: !prev.usedSpeculative }))}
+              >
+                {filters.usedSpeculative && <CheckCircle className="h-3 w-3 mr-1" />}
+                Used Speculative
+              </Button>
+              <Button
+                variant={filters.wasRetried ? "default" : "outline"}
+                size="sm"
+                onClick={() => setFilters(prev => ({ ...prev, wasRetried: !prev.wasRetried }))}
+              >
+                {filters.wasRetried && <CheckCircle className="h-3 w-3 mr-1" />}
+                Was Retried
+              </Button>
+            </div>
+
             {/* Active Filters */}
-            {(searchQuery || filters.provider || filters.status || filters.minLatency) && (
+            {(searchQuery || filters.provider || filters.status || filters.tag || filters.hasError || filters.usedSpeculative || filters.wasRetried) && (
               <div className="flex gap-2 mt-4 flex-wrap">
                 {searchQuery && (
                   <Badge variant="outline" className="gap-2">
@@ -434,6 +849,12 @@ export default function ObservabilityPage() {
                     <X className="h-3 w-3 cursor-pointer" onClick={() => setFilters(prev => ({ ...prev, status: '' }))} />
                   </Badge>
                 )}
+                {filters.tag && (
+                  <Badge variant="outline" className="gap-2">
+                    Tag: {filters.tag}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => setFilters(prev => ({ ...prev, tag: '' }))} />
+                  </Badge>
+                )}
                 <Button
                   variant="outline"
                   size="sm"
@@ -446,11 +867,51 @@ export default function ObservabilityPage() {
                       minLatency: '',
                       minCost: '',
                       timeRange: '24h',
+                      hasError: false,
+                      usedSpeculative: false,
+                      wasRetried: false,
+                      tag: '',
                     });
                   }}
                 >
                   Clear All
                 </Button>
+              </div>
+            )}
+
+            {/* Saved Filter Presets */}
+            {tierConfig.fullFeatures && (
+              <div className="mt-4 pt-4 border-t border-border-light">
+                <h4 className="text-xs font-medium text-gray-600 mb-3">Saved Filter Presets</h4>
+                <div className="flex gap-2 flex-wrap mb-3">
+                  {savedPresets.map((preset, idx) => (
+                    <div key={idx} className="flex items-center gap-2 bg-beige-secondary border border-border-light rounded px-3 py-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleLoadPreset(preset)}
+                        className="h-auto p-0 text-sm font-medium text-gray-900 hover:text-gray-700"
+                      >
+                        {preset.name}
+                      </Button>
+                      <X
+                        className="h-3 w-3 text-gray-600 cursor-pointer hover:text-gray-900"
+                        onClick={() => handleDeletePreset(preset.name)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="Preset name..."
+                    value={presetName}
+                    onChange={(e) => setPresetName(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Button variant="outline" size="sm" onClick={handleSavePreset}>
+                    Save Current Filters
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
@@ -471,10 +932,21 @@ export default function ObservabilityPage() {
           </CardHeader>
           <CardContent>
             {filteredTraces.length === 0 ? (
-              <div className="text-center py-12">
-                <Database className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No requests yet</h3>
-                <p className="text-gray-600">Make your first call to see detailed traces.</p>
+              <div className="text-center py-16">
+                <div className="bg-beige-secondary rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
+                  <Activity className="h-12 w-12 text-gray-900" />
+                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  No requests yet — make your first call to see the magic
+                </h3>
+                <p className="text-gray-600 max-w-md mx-auto">
+                  Every request shows: token timelines, cost breakdowns, speculative races, retry attempts, cache savings, and shareable traces.
+                </p>
+                <div className="mt-6">
+                  <code className="bg-beige-secondary text-gray-900 px-4 py-2 rounded text-sm font-mono">
+                    curl -X POST {'{your-endpoint}'}/v1/infer -H "Authorization: Bearer YOUR_KEY"
+                  </code>
+                </div>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -488,7 +960,10 @@ export default function ObservabilityPage() {
                       <th className="text-right py-3 px-4 font-medium text-gray-600">Latency</th>
                       <th className="text-right py-3 px-4 font-medium text-gray-600">Cost</th>
                       <th className="text-right py-3 px-4 font-medium text-gray-600">Tokens</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">User ID</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Cache</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">User</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Chain</th>
+                      <th className="text-left py-3 px-4 font-medium text-gray-600">Tags</th>
                       <th className="text-right py-3 px-4 font-medium text-gray-600">Actions</th>
                     </tr>
                   </thead>
@@ -503,13 +978,20 @@ export default function ObservabilityPage() {
                           {new Date(trace.timestamp).toLocaleTimeString()}
                         </td>
                         <td className="py-3 px-4 text-sm font-medium text-gray-900">
-                          {trace.model}
+                          <div className="flex flex-col">
+                            <span>{trace.model}</span>
+                            {trace.model_version && <span className="text-xs text-gray-600">{trace.model_version}</span>}
+                          </div>
                         </td>
                         <td className="py-3 px-4 text-sm text-gray-900">
                           {trace.provider}
                         </td>
                         <td className="py-3 px-4">
-                          {getStatusBadge(trace.status)}
+                          <div className="flex items-center gap-2">
+                            {getStatusBadge(trace.status)}
+                            {trace.used_speculative && <Badge variant="outline" className="text-xs">Spec</Badge>}
+                            {trace.retry_count && trace.retry_count > 0 && <Badge variant="outline" className="text-xs">{trace.retry_count}x</Badge>}
+                          </div>
                         </td>
                         <td className="text-right py-3 px-4 text-sm text-gray-900">
                           {formatLatency(trace.latency)}
@@ -520,20 +1002,60 @@ export default function ObservabilityPage() {
                         <td className="text-right py-3 px-4 text-sm text-gray-900">
                           {formatNumber(trace.tokens.total)}
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-600">
-                          {trace.user_id}
+                        <td className="py-3 px-4">
+                          {trace.cache_hit ? (
+                            <div className="flex flex-col">
+                              <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">HIT</Badge>
+                              {trace.cache_savings && trace.cache_savings > 0 && (
+                                <span className="text-xs text-green-600 mt-1">-{formatCurrency(trace.cache_savings)}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-xs text-gray-600">MISS</Badge>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-sm text-gray-900">
+                          {trace.user_id && (
+                            <div className="flex flex-col">
+                              <span className="text-xs">{trace.user_id}</span>
+                              {trace.session_id && <span className="text-xs text-gray-600">{trace.session_id}</span>}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {(trace.parent_request_id || trace.child_request_ids) && (
+                            <div className="flex items-center gap-1">
+                              {trace.parent_request_id && <Badge variant="outline" className="text-xs">↑ Parent</Badge>}
+                              {trace.child_request_ids && <Badge variant="outline" className="text-xs">↓ {trace.child_request_ids.length}</Badge>}
+                            </div>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {getTagBadge(trace.tag)}
                         </td>
                         <td className="text-right py-3 px-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedTrace(trace);
-                            }}
-                          >
-                            View
-                          </Button>
+                          <div className="flex gap-2 justify-end">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleShareTrace(trace);
+                              }}
+                            >
+                              <Share2 className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTrace(trace);
+                              }}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -545,7 +1067,7 @@ export default function ObservabilityPage() {
         </Card>
       </div>
 
-      {/* Request Detail Sheet */}
+      {/* Request Detail Sheet - CONTINUED IN NEXT PART */}
       <Sheet open={!!selectedTrace} onOpenChange={(open) => !open && setSelectedTrace(null)}>
         <SheetContent>
           <SheetHeader>
@@ -562,6 +1084,12 @@ export default function ObservabilityPage() {
                     <div>
                       <p className="text-xs text-gray-600">Model</p>
                       <p className="text-sm font-medium text-gray-900">{selectedTrace.model}</p>
+                      {selectedTrace.model_version && (
+                        <p className="text-xs text-gray-600 mt-1">{selectedTrace.model_version}</p>
+                      )}
+                      {selectedTrace.model_fingerprint && (
+                        <p className="text-xs font-mono text-gray-500">{selectedTrace.model_fingerprint}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-xs text-gray-600">Provider</p>
@@ -574,6 +1102,9 @@ export default function ObservabilityPage() {
                     <div>
                       <p className="text-xs text-gray-600">Cost</p>
                       <p className="text-sm font-medium text-gray-900">{formatCurrency(selectedTrace.cost)}</p>
+                      {selectedTrace.cache_hit && selectedTrace.cache_savings && selectedTrace.cache_savings > 0 && (
+                        <p className="text-xs text-green-600 mt-1">Saved: {formatCurrency(selectedTrace.cache_savings)}</p>
+                      )}
                     </div>
                     <div>
                       <p className="text-xs text-gray-600">Tokens</p>
@@ -583,136 +1114,470 @@ export default function ObservabilityPage() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-600">Status</p>
-                      <div className="mt-1">{getStatusBadge(selectedTrace.status)}</div>
+                      <div className="mt-1 flex items-center gap-2">
+                        {getStatusBadge(selectedTrace.status)}
+                        {selectedTrace.cache_hit && <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">CACHE HIT</Badge>}
+                      </div>
                     </div>
+                    {selectedTrace.user_id && (
+                      <div>
+                        <p className="text-xs text-gray-600">User ID</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedTrace.user_id}</p>
+                      </div>
+                    )}
+                    {selectedTrace.session_id && (
+                      <div>
+                        <p className="text-xs text-gray-600">Session ID</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedTrace.session_id}</p>
+                      </div>
+                    )}
+                    {selectedTrace.client_ip && (
+                      <div>
+                        <p className="text-xs text-gray-600">Client IP</p>
+                        <p className="text-sm font-mono text-gray-900">{selectedTrace.client_ip}</p>
+                      </div>
+                    )}
+                    {selectedTrace.user_agent && (
+                      <div className="col-span-2">
+                        <p className="text-xs text-gray-600">User Agent</p>
+                        <p className="text-xs font-mono text-gray-900">{selectedTrace.user_agent}</p>
+                      </div>
+                    )}
                     <div className="col-span-2">
                       <p className="text-xs text-gray-600">Request ID</p>
                       <div className="flex items-center gap-2 mt-1">
                         <p className="text-sm font-mono text-gray-900 truncate">{selectedTrace.request_id}</p>
                         <Copy
-                          className="h-4 w-4 text-gray-600 cursor-pointer hover:text-gray-900"
+                          className="h-4 w-4 text-gray-600 cursor-pointer hover:text-gray-900 flex-shrink-0"
                           onClick={() => copyToClipboard(selectedTrace.request_id)}
                         />
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Headers */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('headers')}
-                    className="flex items-center justify-between w-full text-sm font-medium text-gray-900 mb-2"
-                  >
-                    Request Headers
-                    {expandedSections.headers ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </button>
-                  {expandedSections.headers && selectedTrace.headers && (
-                    <pre className="bg-beige-secondary p-3 rounded-md text-xs overflow-x-auto">
-                      {JSON.stringify(selectedTrace.headers, null, 2)}
-                    </pre>
-                  )}
-                </div>
-
-                {/* Request Body */}
-                <div>
-                  <button
-                    onClick={() => toggleSection('request')}
-                    className="flex items-center justify-between w-full text-sm font-medium text-gray-900 mb-2"
-                  >
-                    Request Body
-                    {expandedSections.request ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </button>
-                  {expandedSections.request && selectedTrace.request_body && (
-                    <pre className="bg-beige-secondary p-3 rounded-md text-xs overflow-x-auto">
-                      {JSON.stringify(selectedTrace.request_body, null, 2)}
-                    </pre>
-                  )}
-                </div>
-
-                {/* Response Body */}
-                {selectedTrace.response_body && (
-                  <div>
-                    <button
-                      onClick={() => toggleSection('response')}
-                      className="flex items-center justify-between w-full text-sm font-medium text-gray-900 mb-2"
-                    >
-                      Response Body
-                      {expandedSections.response ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
-                    {expandedSections.response && (
-                      <pre className="bg-beige-secondary p-3 rounded-md text-xs overflow-x-auto">
-                        {JSON.stringify(selectedTrace.response_body, null, 2)}
-                      </pre>
+                    {selectedTrace.evaluation_score !== undefined && (
+                      <div>
+                        <p className="text-xs text-gray-600">Evaluation Score</p>
+                        <p className="text-sm font-medium text-gray-900">{selectedTrace.evaluation_score.toFixed(2)} / 5.0</p>
+                      </div>
+                    )}
+                    {selectedTrace.human_feedback && (
+                      <div>
+                        <p className="text-xs text-gray-600">Human Feedback</p>
+                        <Badge className={selectedTrace.human_feedback === 'positive' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}>
+                          {selectedTrace.human_feedback === 'positive' ? '👍 Positive' : '👎 Negative'}
+                        </Badge>
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
 
-                {/* Token Timeline (Scale tier only) */}
-                {tier === 'scale' && selectedTrace.token_timeline && selectedTrace.token_timeline.length > 0 && (
+                {/* Prompt & Completion Split View - ONLY when full tracing enabled */}
+                {enableFullTracing && selectedTrace.prompt && selectedTrace.completion && tierConfig.fullFeatures && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Token Streaming Timeline (ms)</h3>
-                    <ResponsiveContainer width="100%" height={220}>
-                      <LineChart data={selectedTrace.token_timeline} margin={{ top: 5, right: 10, left: 0, bottom: 20 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis
-                          dataKey="token_index"
-                          stroke="#6b7280"
-                          label={{ value: 'Token #', position: 'insideBottom', offset: -10 }}
-                          style={{ fontSize: '12px' }}
-                        />
-                        <YAxis
-                          stroke="#6b7280"
-                          width={45}
-                          style={{ fontSize: '12px' }}
-                        />
-                        <Tooltip />
-                        <Line
-                          type="monotone"
-                          dataKey="timestamp"
-                          stroke={CHART_COLORS.primary}
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Prompt & Completion</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-medium text-gray-600">PROMPT</p>
+                          <Copy
+                            className="h-3 w-3 text-gray-600 cursor-pointer hover:text-gray-900"
+                            onClick={() => copyToClipboard(selectedTrace.prompt || '')}
+                          />
+                        </div>
+                        <div className="bg-beige-secondary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
+                          <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.prompt}</pre>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-medium text-gray-600">COMPLETION</p>
+                          <Copy
+                            className="h-3 w-3 text-gray-600 cursor-pointer hover:text-gray-900"
+                            onClick={() => copyToClipboard(selectedTrace.completion || '')}
+                          />
+                        </div>
+                        <div className="bg-beige-secondary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
+                          <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.completion}</pre>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 
-                {/* Trace Waterfall (Scale tier only) */}
-                {tier === 'scale' && selectedTrace.trace_waterfall && selectedTrace.trace_waterfall.length > 0 && (
+                {/* Privacy Banner in Detail View when Full Tracing is OFF */}
+                {!enableFullTracing && (
+                  <div className="bg-green-50 border border-green-200 rounded-md p-4">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-700 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-green-900">Full tracing is disabled</p>
+                        <p className="text-xs text-green-700 mt-1">
+                          Enable full tracing in the banner above to see prompts, completions, and detailed traces. Metadata-only mode protects your privacy.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Generation Parameters - ONLY when full tracing enabled */}
+                {enableFullTracing && selectedTrace.generation_params && tierConfig.fullFeatures && (
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Trace Waterfall (Council Mode)</h3>
-                    <div className="space-y-3">
-                      {selectedTrace.trace_waterfall.map((trace, idx) => (
-                        <div key={idx} className="flex items-center gap-2 w-full">
-                          <span className="text-xs text-gray-600 w-20 flex-shrink-0">{trace.provider}</span>
-                          <div className="flex-1 relative h-8 bg-beige-secondary rounded min-w-0">
-                            <div
-                              className={`absolute h-full rounded ${
-                                trace.status === 'winner' ? 'bg-green-500' :
-                                trace.status === 'success' ? 'bg-blue-500' :
-                                'bg-red-500'
-                              }`}
-                              style={{
-                                left: `${(trace.start / selectedTrace.latency) * 100}%`,
-                                width: `${(trace.duration / selectedTrace.latency) * 100}%`,
-                              }}
-                            />
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Generation Parameters</h3>
+                    <div className="grid grid-cols-3 gap-4 bg-beige-secondary border border-border-light rounded-md p-4">
+                      {selectedTrace.generation_params.temperature !== undefined && (
+                        <div>
+                          <p className="text-xs text-gray-600">Temperature</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.temperature}</p>
+                        </div>
+                      )}
+                      {selectedTrace.generation_params.top_p !== undefined && (
+                        <div>
+                          <p className="text-xs text-gray-600">Top P</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.top_p}</p>
+                        </div>
+                      )}
+                      {selectedTrace.generation_params.presence_penalty !== undefined && (
+                        <div>
+                          <p className="text-xs text-gray-600">Presence Penalty</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.presence_penalty}</p>
+                        </div>
+                      )}
+                      {selectedTrace.generation_params.frequency_penalty !== undefined && (
+                        <div>
+                          <p className="text-xs text-gray-600">Frequency Penalty</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.frequency_penalty}</p>
+                        </div>
+                      )}
+                      {selectedTrace.generation_params.max_tokens !== undefined && (
+                        <div>
+                          <p className="text-xs text-gray-600">Max Tokens</p>
+                          <p className="text-sm font-medium text-gray-900">{selectedTrace.generation_params.max_tokens}</p>
+                        </div>
+                      )}
+                      {selectedTrace.generation_params.logprobs && (
+                        <div>
+                          <p className="text-xs text-gray-600">Logprobs</p>
+                          <p className="text-sm font-medium text-gray-900">Enabled</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Request Chain */}
+                {(selectedTrace.parent_request_id || selectedTrace.child_request_ids) && tierConfig.fullFeatures && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Request Chain</h3>
+                    <div className="bg-beige-secondary border border-border-light rounded-md p-4">
+                      <div className="flex items-center gap-3">
+                        {selectedTrace.parent_request_id && (
+                          <>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">Parent</Badge>
+                              <code className="text-xs font-mono text-gray-900">{selectedTrace.parent_request_id}</code>
+                            </div>
+                            <span className="text-gray-600">→</span>
+                          </>
+                        )}
+                        <div className="flex items-center gap-2">
+                          <Badge className="bg-blue-50 text-blue-700 text-xs">This</Badge>
+                          <code className="text-xs font-mono text-gray-900 font-bold">{selectedTrace.request_id}</code>
+                        </div>
+                        {selectedTrace.child_request_ids && selectedTrace.child_request_ids.length > 0 && (
+                          <>
+                            <span className="text-gray-600">→</span>
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="text-xs">Children ({selectedTrace.child_request_ids.length})</Badge>
+                              <div className="flex flex-col gap-1">
+                                {selectedTrace.child_request_ids.map((childId, idx) => (
+                                  <code key={idx} className="text-xs font-mono text-gray-900">{childId}</code>
+                                ))}
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Timeline Markers */}
+                {selectedTrace.timeline_markers && selectedTrace.timeline_markers.length > 0 && tierConfig.fullFeatures && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Timeline Markers</h3>
+                    <div className="space-y-2">
+                      {selectedTrace.timeline_markers.map((marker, idx) => (
+                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-medium text-gray-900">{marker.name}</span>
+                            <Badge variant="outline" className="text-xs">{marker.type.replace('_', ' ')}</Badge>
                           </div>
-                          <span className="text-xs text-gray-600 w-12 flex-shrink-0 text-right">{trace.duration.toFixed(0)}ms</span>
-                          <Badge className={cn(
-                            "flex-shrink-0 text-xs px-2",
-                            trace.status === 'winner' ? 'bg-green-50 text-green-700' :
-                            trace.status === 'success' ? 'bg-blue-50 text-blue-700' :
-                            'bg-red-50 text-red-700'
-                          )}>
-                            {trace.status}
-                          </Badge>
+                          <span className="text-xs text-gray-600">{new Date(marker.timestamp).toLocaleTimeString()}</span>
                         </div>
                       ))}
                     </div>
                   </div>
+                )}
+
+                {/* Token Timeline - ONLY when full tracing enabled */}
+                {enableFullTracing && selectedTrace.was_streamed && selectedTrace.token_timeline && selectedTrace.token_timeline.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Token Streaming Timeline (ms)</h3>
+                    <div className="w-full" style={{ height: '240px' }}>
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={selectedTrace.token_timeline} margin={{ top: 10, right: 20, left: 10, bottom: 25 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                          <XAxis
+                            dataKey="token_index"
+                            stroke="#6b7280"
+                            label={{ value: 'Token #', position: 'insideBottom', offset: -10 }}
+                            style={{ fontSize: '11px' }}
+                          />
+                          <YAxis
+                            stroke="#6b7280"
+                            width={50}
+                            style={{ fontSize: '11px' }}
+                          />
+                          <Tooltip />
+                          <Line
+                            type="monotone"
+                            dataKey="timestamp"
+                            stroke="#004aad"
+                            strokeWidth={1}
+                            dot={(props: any) => {
+                              const point = selectedTrace.token_timeline?.[props.index];
+                              if (point?.is_first || point?.is_last) {
+                                return <circle cx={props.cx} cy={props.cy} r={3} fill="#f59e0b" />;
+                              }
+                              return null;
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    {/* Cost Breakdown */}
+                    <div className="mt-4">
+                      <p className="text-xs text-gray-600 mb-3">Cost Breakdown</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                          <span className="text-xs font-medium text-gray-900">Input</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.input / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                            <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.input)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                          <span className="text-xs font-medium text-gray-900">Output</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.output / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                            <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.output)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                          <span className="text-xs font-medium text-gray-900">Overhead</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.overhead / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                            <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.overhead)}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Speculative Execution Waterfall */}
+                {tierConfig.fullFeatures && selectedTrace.speculative_traces && selectedTrace.speculative_traces.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Speculative Execution Waterfall</h3>
+                    <div className="space-y-3">
+                      {selectedTrace.speculative_traces.map((trace, idx) => {
+                        const getStripePattern = (status: string) => {
+                          if (status === 'winner') {
+                            return `repeating-linear-gradient(
+                              45deg,
+                              #d4d4d8,
+                              #d4d4d8 2px,
+                              #e4e4e7 2px,
+                              #e4e4e7 4px
+                            )`;
+                          } else if (status === 'fallback') {
+                            return `repeating-linear-gradient(
+                              45deg,
+                              #d4d4d8,
+                              #d4d4d8 2px,
+                              #e4e4e7 2px,
+                              #e4e4e7 4px
+                            )`;
+                          } else {
+                            return `repeating-linear-gradient(
+                              45deg,
+                              #d4d4d8,
+                              #d4d4d8 2px,
+                              #e4e4e7 2px,
+                              #e4e4e7 4px
+                            )`;
+                          }
+                        };
+
+                        return (
+                          <div key={idx} className="flex items-center gap-2 w-full">
+                            <span className="text-xs text-gray-600 w-20 flex-shrink-0">{trace.provider}</span>
+                            <div className="flex-1 relative h-5 bg-beige-secondary rounded min-w-0">
+                              <div
+                                className="absolute h-full rounded border border-gray-300"
+                                style={{
+                                  left: `${(trace.start / Math.max(...selectedTrace.speculative_traces!.map(t => t.latency))) * 100}%`,
+                                  width: `${(trace.latency / Math.max(...selectedTrace.speculative_traces!.map(t => t.latency))) * 100}%`,
+                                  background: getStripePattern(trace.status)
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-600 w-12 flex-shrink-0 text-right">{trace.latency.toFixed(0)}ms</span>
+                            <Badge
+                              className="flex-shrink-0 text-xs px-2"
+                              style={{
+                                backgroundColor: trace.status === 'winner' ? '#d1fae5' :
+                                  trace.status === 'fallback' ? '#dbeafe' :
+                                  '#ffc2c2',
+                                color: trace.status === 'winner' ? '#065f46' :
+                                  trace.status === 'fallback' ? '#1e3a8a' :
+                                  '#991b1b',
+                                borderColor: trace.status === 'winner' ? '#299a93' :
+                                  trace.status === 'fallback' ? '#004aad' :
+                                  '#ffc2c2'
+                              }}
+                            >
+                              {trace.status}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* Retry Timeline */}
+                {tierConfig.fullFeatures && selectedTrace.retry_attempts && selectedTrace.retry_attempts.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">Retry Timeline</h3>
+                    <div className="space-y-2">
+                      {selectedTrace.retry_attempts.map((attempt, idx) => (
+                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded">
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs font-medium text-gray-900">Try #{attempt.attempt_number}</span>
+                            <span className="text-xs text-gray-600">{attempt.duration.toFixed(0)}ms</span>
+                          </div>
+                          <span className="text-xs font-medium text-gray-900">{attempt.status}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Tag & Share Actions */}
+                <div className="space-y-3 pt-4 border-t border-border-light">
+                  <div className="flex gap-2">
+                    <Select
+                      value={selectedTrace.tag || ''}
+                      onChange={(e) => handleTagTrace(selectedTrace, e.target.value as RequestTag)}
+                      className="flex-1"
+                    >
+                      <option value="">Tag as...</option>
+                      <option value="expected">Expected</option>
+                      <option value="bug">Bug</option>
+                      <option value="reviewed">Reviewed</option>
+                      <option value="golden">Golden</option>
+                      <option value="spam">Spam</option>
+                    </Select>
+                  </div>
+
+                  {/* Human Feedback Buttons */}
+                  {selectedTrace.status === 200 && (
+                    <div>
+                      <p className="text-xs text-gray-600 mb-2">Human Feedback</p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={selectedTrace.human_feedback === 'positive' ? 'default' : 'outline'}
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
+                            setTraces(prev => prev.map(t => t.id === selectedTrace.id ? updatedTrace : t));
+                            setSelectedTrace(updatedTrace);
+                          }}
+                        >
+                          Positive
+                        </Button>
+                        <Button
+                          variant={selectedTrace.human_feedback === 'negative' ? 'default' : 'outline'}
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
+                            setTraces(prev => prev.map(t => t.id === selectedTrace.id ? updatedTrace : t));
+                            setSelectedTrace(updatedTrace);
+                          }}
+                        >
+                          Negative
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => copyToClipboard(selectedTrace.curl_command || '')}
+                  >
+                    <Code className="h-4 w-4 mr-2" />
+                    Copy curl
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleShareTrace(selectedTrace)}
+                  >
+                    <Link2 className="h-4 w-4 mr-2" />
+                    Share (7d)
+                  </Button>
+                </div>
+
+                {/* Request/Response JSONs - ONLY when full tracing enabled */}
+                {enableFullTracing && (
+                  <>
+                    <div>
+                      <button
+                        onClick={() => toggleSection('request')}
+                        className="flex items-center justify-between w-full text-sm font-medium text-gray-900 mb-2"
+                      >
+                        Request Body
+                        {expandedSections.request ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      </button>
+                      {expandedSections.request && selectedTrace.request_body && (
+                        <pre className="bg-beige-secondary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
+                          {JSON.stringify(selectedTrace.request_body, null, 2)}
+                        </pre>
+                      )}
+                    </div>
+
+                    {selectedTrace.response_body && (
+                      <div>
+                        <button
+                          onClick={() => toggleSection('response')}
+                          className="flex items-center justify-between w-full text-sm font-medium text-gray-900 mb-2"
+                        >
+                          Response Body
+                          {expandedSections.response ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        </button>
+                        {expandedSections.response && (
+                          <pre className="bg-beige-secondary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
+                            {JSON.stringify(selectedTrace.response_body, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* Error Details */}
@@ -729,10 +1594,13 @@ export default function ObservabilityPage() {
                       {expandedSections.error ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </button>
                     {expandedSections.error && (
-                      <div className="bg-red-50 border border-red-200 p-3 rounded-md">
-                        <p className="text-sm text-red-900 mb-2">{selectedTrace.error.message}</p>
+                      <div className="bg-red-50 border border-red-200 p-3 rounded-md space-y-2">
+                        <p className="text-sm text-red-900 font-medium">{selectedTrace.error.message}</p>
+                        {selectedTrace.error.provider_error && (
+                          <p className="text-xs text-red-800">Provider: {selectedTrace.error.provider_error}</p>
+                        )}
                         {selectedTrace.error.stack && (
-                          <pre className="text-xs text-red-800 overflow-x-auto">
+                          <pre className="text-xs text-red-800 overflow-x-auto bg-red-100 p-2 rounded">
                             {selectedTrace.error.stack}
                           </pre>
                         )}
@@ -740,38 +1608,6 @@ export default function ObservabilityPage() {
                     )}
                   </div>
                 )}
-
-                {/* Retry History */}
-                {selectedTrace.retry_count && selectedTrace.retry_count > 0 && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">Retry History</h3>
-                    <div className="bg-yellow-50 border border-yellow-200 p-3 rounded-md">
-                      <p className="text-sm text-yellow-900">
-                        This request was retried {selectedTrace.retry_count} time{selectedTrace.retry_count > 1 ? 's' : ''}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="flex gap-2 pt-4 border-t border-border-light">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => copyToClipboard(selectedTrace.request_id)}
-                  >
-                    <Copy className="h-4 w-4 mr-2" />
-                    Copy Request ID
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => copyToClipboard(JSON.stringify(selectedTrace, null, 2))}
-                  >
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Copy Full Trace
-                  </Button>
-                </div>
               </div>
             )}
           </SheetBody>
