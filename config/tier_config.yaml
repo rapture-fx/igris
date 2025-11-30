@@ -1,14 +1,16 @@
 # Schlep-Engine Tier Configuration
-# Generated: 2025-11-25
-# Phase: v1.3.0 - Polar.sh Billing Integration + Updated Pricing
+# Generated: 2025-11-30 (FINAL LAUNCH PRICING)
+# Phase: v2.0.0 - LAUNCH - Public Pricing, Observability, 14-Day Trial
 # Purpose: Define tier-based limits and feature gates for Polar.sh subscription model
 #
-# PRICING UPDATE: Develop $99→$129, Growth $499→$749, Scale $1,499→$2,499
-# TRIAL ADDED: 14-day free trial, 50k reqs, full features, card-required
-# BILLING: Polar.sh (no Stripe), flat monthly pricing, 20% annual discount
+# FINAL LAUNCH PRICING: Develop $149, Growth $899, Scale $2,999
+# NO YEARLY PRICING - Monthly only
+# NO ENTERPRISE TIER - Scale is the highest public tier
+# TRIAL: 14-day free trial with full tier access, no card required
+# BILLING: Polar.sh only
 
-version: "1.3"
-last_updated: "2025-11-25T00:00:00Z"
+version: "2.0"
+last_updated: "2025-11-30T00:00:00Z"
 
 # Tier Definitions
 tiers:
@@ -82,14 +84,14 @@ tiers:
       cost_per_request_limit: 0
 
   # =============================================================================
-  # DEVELOPER TIER - Entry-level for individual developers and small teams
+  # DEVELOP TIER - Entry-level for individual developers and small teams
   # =============================================================================
   developer:
-    name: "Developer"
-    display_name: "Developer"
+    name: "Develop"
+    display_name: "Develop"
     description: "Entry-level tier for individual developers and small teams"
     price:
-      usd: 129                            # UPDATED: $249 → $99 → $129
+      usd: 149                            # FINAL LAUNCH PRICE: $149/month
       currency: "USD"
       billing_period: "month"
       overage_rate_per_1k: 0.25           # $0.25 per 1,000 requests after 500k
@@ -204,7 +206,7 @@ tiers:
     display_name: "Growth"
     description: "For growing teams and production workloads"
     price:
-      usd: 749                            # UPDATED: $799 → $499 → $749
+      usd: 899                            # FINAL LAUNCH PRICE: $899/month
       currency: "USD"
       billing_period: "month"
       overage_rate_per_1k: 0.20           # $0.20 per 1,000 requests after 2M
@@ -289,14 +291,14 @@ tiers:
       cost_per_request_limit: 0
 
   # =============================================================================
-  # SCALE TIER - Enterprise-grade with unlimited requests
+  # SCALE TIER - Highest public tier with unlimited requests (NO ENTERPRISE)
   # =============================================================================
   scale:
     name: "Scale"
     display_name: "Scale"
-    description: "Enterprise-grade deployments with unlimited scale"
+    description: "Highest public tier - no custom/enterprise tiers above this"
     price:
-      usd: 2499                           # UPDATED: $1,899 → $1,499 → $2,499
+      usd: 2999                           # FINAL LAUNCH PRICE: $2,999/month
       currency: "USD"
       billing_period: "month"
       overage_rate_per_1k: 0              # No overage - unlimited requests

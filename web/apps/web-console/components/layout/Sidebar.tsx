@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, TrendingUp, KeyRound, Network, Settings, X } from 'lucide-react';
+import { Home, TrendingUp, KeyRound, Network, Settings, X, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/utils/helpers';
+import { useTenant } from '@/hooks/useTenant';
 
 interface SidebarProps {
   open?: boolean;
@@ -21,6 +22,12 @@ const navigation = [
     name: 'Usage & Analytics',
     href: '/dashboard/usage',
     icon: TrendingUp,
+  },
+  {
+    name: 'Observability',
+    href: '/dashboard/observability',
+    icon: Activity,
+    minTier: 'growth', // Hidden on developer tier
   },
   {
     name: 'Providers & Keys',
@@ -41,6 +48,16 @@ const navigation = [
 
 export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { data: tenant } = useTenant();
+  const tier = tenant?.plan || 'scale'; // Temporarily default to 'scale' for development
+
+  // Filter navigation based on tier
+  const visibleNavigation = navigation.filter(item => {
+    if (item.minTier === 'growth' && tier === 'developer') {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -64,7 +81,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 pt-8 pb-4">
             <ul className="space-y-1">
-              {navigation.map((item) => {
+              {visibleNavigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <li key={item.name}>

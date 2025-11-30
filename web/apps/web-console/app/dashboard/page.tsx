@@ -151,7 +151,7 @@ export default function DashboardPage() {
                     type="monotone"
                     dataKey="requests"
                     stroke={CHART_COLORS.primary}
-                    strokeWidth={2}
+                    strokeWidth={1}
                     dot={{ fill: CHART_COLORS.primary }}
                   />
                 </LineChart>

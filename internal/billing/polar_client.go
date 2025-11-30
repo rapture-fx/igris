@@ -153,14 +153,14 @@ var (
 		},
 	}
 
-	// TierDevelop - $129/mo entry tier
+	// TierDevelop - $149/mo entry tier (FINAL LAUNCH PRICING)
 	TierDevelop = TierPlan{
 		ID:                  "develop",
 		Name:                "Develop",
 		MonthlyPriceID:      "price_develop_monthly", // Set in Polar dashboard
-		AnnualPriceID:       "price_develop_annual",
-		MonthlyPriceCents:   12900,   // $129.00
-		AnnualPriceCents:    123800,  // $1,238/year (save 20%)
+		AnnualPriceID:       "",                      // NO YEARLY PRICING
+		MonthlyPriceCents:   14900,                   // $149.00
+		AnnualPriceCents:    0,                       // NO YEARLY PRICING
 		MaxRequestsPerMonth: 500000,
 		MaxProviders:        5,
 		MaxTenants:          1,
@@ -181,14 +181,14 @@ var (
 		},
 	}
 
-	// TierGrowth - $749/mo mid-tier
+	// TierGrowth - $899/mo mid-tier (FINAL LAUNCH PRICING)
 	TierGrowth = TierPlan{
 		ID:                  "growth",
 		Name:                "Growth",
 		MonthlyPriceID:      "price_growth_monthly",
-		AnnualPriceID:       "price_growth_annual",
-		MonthlyPriceCents:   74900,   // $749.00
-		AnnualPriceCents:    718900,  // $7,189/year (save 20%)
+		AnnualPriceID:       "",      // NO YEARLY PRICING
+		MonthlyPriceCents:   89900,   // $899.00
+		AnnualPriceCents:    0,       // NO YEARLY PRICING
 		MaxRequestsPerMonth: 2000000,
 		MaxProviders:        10,
 		MaxTenants:          5,
@@ -198,9 +198,9 @@ var (
 			CircuitBreaker:       true,
 			CostTracking:         true,
 			BYOK:                 true,
-			SpeculativeExecution: true,  // ✅ Growth gets speculative
-			CouncilMode:          true,  // ✅ Growth gets council
-			CognitiveAdvisor:     true,  // ✅ Growth gets cognitive
+			SpeculativeExecution: true, // ✅ Growth gets speculative
+			CouncilMode:          true, // ✅ Growth gets council
+			CognitiveAdvisor:     true, // ✅ Growth gets cognitive
 			SLOEnforcer:          "basic",
 			AuditLogs:            true,
 			PolicyEngine:         true,
@@ -209,14 +209,14 @@ var (
 		},
 	}
 
-	// TierScale - $2,499/mo high-tier
+	// TierScale - $2,999/mo high-tier (FINAL LAUNCH PRICING - PUBLIC, NO CUSTOM)
 	TierScale = TierPlan{
 		ID:                  "scale",
 		Name:                "Scale",
 		MonthlyPriceID:      "price_scale_monthly",
-		AnnualPriceID:       "price_scale_annual",
-		MonthlyPriceCents:   249900,  // $2,499.00
-		AnnualPriceCents:    2399000, // $23,990/year (save 20%)
+		AnnualPriceID:       "",      // NO YEARLY PRICING
+		MonthlyPriceCents:   299900,  // $2,999.00
+		AnnualPriceCents:    0,       // NO YEARLY PRICING
 		MaxRequestsPerMonth: -1,      // Unlimited
 		MaxProviders:        20,
 		MaxTenants:          -1, // Unlimited
@@ -226,9 +226,9 @@ var (
 			CircuitBreaker:       true,
 			CostTracking:         true,
 			BYOK:                 true,
-			SpeculativeExecution: true,  // ✅ Inherited from Growth
-			CouncilMode:          true,  // ✅ Inherited from Growth
-			CognitiveAdvisor:     true,  // ✅ Inherited from Growth
+			SpeculativeExecution: true, // ✅ Inherited from Growth
+			CouncilMode:          true, // ✅ Inherited from Growth
+			CognitiveAdvisor:     true, // ✅ Inherited from Growth
 			SLOEnforcer:          "advanced",
 			AuditLogs:            true,
 			PolicyEngine:         true,
@@ -236,37 +236,10 @@ var (
 			MultiTenancy:         -1, // Unlimited
 		},
 	}
-
-	// TierEnterprise - $5k+ custom (parked)
-	TierEnterprise = TierPlan{
-		ID:                  "enterprise",
-		Name:                "Enterprise",
-		MonthlyPriceID:      "price_enterprise_custom",
-		AnnualPriceID:       "",
-		MonthlyPriceCents:   500000, // $5,000 base
-		AnnualPriceCents:    0,
-		MaxRequestsPerMonth: -1,
-		MaxProviders:        -1,
-		MaxTenants:          -1,
-		Features: TierFeatures{
-			ThompsonSampling:     true,
-			QualityRouting:       true,
-			CircuitBreaker:       true,
-			CostTracking:         true,
-			BYOK:                 true,
-			SpeculativeExecution: true,
-			CouncilMode:          true,
-			CognitiveAdvisor:     true,
-			SLOEnforcer:          "advanced",
-			AuditLogs:            true,
-			PolicyEngine:         true,
-			SelfHost:             true,
-			MultiTenancy:         -1,
-		},
-	}
 )
 
 // GetTierByID returns tier plan by ID
+// NOTE: NO ENTERPRISE TIER - SCALE IS THE HIGHEST PUBLIC TIER
 func GetTierByID(tierID string) (*TierPlan, error) {
 	switch tierID {
 	case "trial":
@@ -277,8 +250,6 @@ func GetTierByID(tierID string) (*TierPlan, error) {
 		return &TierGrowth, nil
 	case "scale":
 		return &TierScale, nil
-	case "enterprise":
-		return &TierEnterprise, nil
 	default:
 		return nil, fmt.Errorf("unknown tier: %s", tierID)
 	}
@@ -286,10 +257,10 @@ func GetTierByID(tierID string) (*TierPlan, error) {
 
 // GetTierByPriceID returns tier plan by Polar price ID
 func GetTierByPriceID(priceID string) (*TierPlan, error) {
-	tiers := []*TierPlan{&TierDevelop, &TierGrowth, &TierScale, &TierEnterprise}
+	tiers := []*TierPlan{&TierDevelop, &TierGrowth, &TierScale}
 
 	for _, tier := range tiers {
-		if tier.MonthlyPriceID == priceID || tier.AnnualPriceID == priceID {
+		if tier.MonthlyPriceID == priceID {
 			return tier, nil
 		}
 	}
