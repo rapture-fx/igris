@@ -546,18 +546,18 @@ export default function ObservabilityPage() {
 
         {/* Privacy-First Banner - Full Tracing Disabled */}
         {!enableFullTracing && (
-          <Card className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-md">
+          <Card className="border-border-light shadow-md">
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="bg-green-100 rounded-full p-3">
-                    <CheckCircle className="h-6 w-6 text-green-700" />
+                  <div className="bg-beige-secondary rounded-full p-3">
+                    <CheckCircle className="h-6 w-6 text-gray-900" />
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-gray-900">
                       Privacy-First Mode Active
                     </h3>
-                    <p className="text-sm text-gray-700 mt-1">
+                    <p className="text-sm text-gray-600 mt-1">
                       We never store your prompts or completions unless you turn this on. Metadata-only mode (latency, cost, model, status) is always on — no prompts stored. Zero compliance risk.
                     </p>
                   </div>
@@ -578,18 +578,18 @@ export default function ObservabilityPage() {
 
         {/* Full Tracing Enabled - Warning Banner */}
         {enableFullTracing && (
-          <Card className="border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50 shadow-md">
+          <Card className="border-border-light shadow-md">
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="bg-yellow-100 rounded-full p-3">
-                    <AlertCircle className="h-6 w-6 text-yellow-700" />
+                  <div className="bg-beige-secondary rounded-full p-3">
+                    <AlertCircle className="h-6 w-6 text-gray-900" />
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-gray-900">
                       Full Request Tracing Enabled
                     </h3>
-                    <p className="text-sm text-gray-700 mt-1">
+                    <p className="text-sm text-gray-600 mt-1">
                       Prompts, completions, and token streams are now being stored. Recommended only for debugging. All traces automatically deleted after 30 days.
                     </p>
                   </div>
@@ -747,7 +747,7 @@ export default function ObservabilityPage() {
                     placeholder="Search requests..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
                   />
                 </div>
               </div>
@@ -756,6 +756,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.provider}
                 onChange={(e) => setFilters(prev => ({ ...prev, provider: e.target.value }))}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="">All Providers</option>
                 <option value="OpenAI">OpenAI</option>
@@ -768,6 +769,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.status}
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="">All Status</option>
                 <option value="200">200 OK</option>
@@ -779,6 +781,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.tag}
                 onChange={(e) => setFilters(prev => ({ ...prev, tag: e.target.value as RequestTag | '' }))}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="">All Tags</option>
                 <option value="expected">Expected</option>
@@ -792,6 +795,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.timeRange}
                 onChange={(e) => setFilters(prev => ({ ...prev, timeRange: e.target.value }))}
+                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="1h">Last Hour</option>
                 <option value="24h">Last 24h</option>
@@ -803,24 +807,27 @@ export default function ObservabilityPage() {
             {/* Advanced Filters */}
             <div className="flex gap-3 mt-4 flex-wrap">
               <Button
-                variant={filters.hasError ? "default" : "outline"}
+                variant="outline"
                 size="sm"
+                className={filters.hasError ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, hasError: !prev.hasError }))}
               >
                 {filters.hasError && <CheckCircle className="h-3 w-3 mr-1" />}
                 Has Error
               </Button>
               <Button
-                variant={filters.usedSpeculative ? "default" : "outline"}
+                variant="outline"
                 size="sm"
+                className={filters.usedSpeculative ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, usedSpeculative: !prev.usedSpeculative }))}
               >
                 {filters.usedSpeculative && <CheckCircle className="h-3 w-3 mr-1" />}
                 Used Speculative
               </Button>
               <Button
-                variant={filters.wasRetried ? "default" : "outline"}
+                variant="outline"
                 size="sm"
+                className={filters.wasRetried ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, wasRetried: !prev.wasRetried }))}
               >
                 {filters.wasRetried && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -906,7 +913,7 @@ export default function ObservabilityPage() {
                     placeholder="Preset name..."
                     value={presetName}
                     onChange={(e) => setPresetName(e.target.value)}
-                    className="flex-1"
+                    className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
                   />
                   <Button variant="outline" size="sm" onClick={handleSavePreset}>
                     Save Current Filters
@@ -930,9 +937,9 @@ export default function ObservabilityPage() {
               {tier === 'scale' && ' (Up to 100,000 requests)'}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             {filteredTraces.length === 0 ? (
-              <div className="text-center py-16">
+              <div className="text-center py-16 px-6">
                 <div className="bg-beige-secondary rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                   <Activity className="h-12 w-12 text-gray-900" />
                 </div>
@@ -950,24 +957,25 @@ export default function ObservabilityPage() {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border-light">
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Time</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Model</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Provider</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Status</th>
-                      <th className="text-right py-3 px-4 font-medium text-gray-600">Latency</th>
-                      <th className="text-right py-3 px-4 font-medium text-gray-600">Cost</th>
-                      <th className="text-right py-3 px-4 font-medium text-gray-600">Tokens</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Cache</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">User</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Chain</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-600">Tags</th>
-                      <th className="text-right py-3 px-4 font-medium text-gray-600">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <div className="max-h-[600px] overflow-y-auto scrollbar-hide">
+                  <table className="w-full">
+                    <thead className="sticky top-0 z-10" style={{ backgroundColor: '#f2f1ed' }}>
+                      <tr className="border-b border-border-light">
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Time</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Model</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Provider</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Status</th>
+                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Latency</th>
+                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cost</th>
+                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tokens</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cache</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>User</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Chain</th>
+                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tags</th>
+                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
                     {filteredTraces.map((trace) => (
                       <tr
                         key={trace.id}
@@ -1059,8 +1067,9 @@ export default function ObservabilityPage() {
                         </td>
                       </tr>
                     ))}
-                  </tbody>
-                </table>
+                    </tbody>
+                  </table>
+                </div>
               </div>
             )}
           </CardContent>
@@ -1077,6 +1086,21 @@ export default function ObservabilityPage() {
           <SheetBody>
             {selectedTrace && (
               <div className="space-y-6">
+                {/* Privacy Banner in Detail View when Full Tracing is OFF - Show First */}
+                {!enableFullTracing && (
+                  <div className="bg-beige-secondary border border-border-light rounded-md p-4">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-gray-900 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Full tracing is disabled</p>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Enable full tracing in the banner above to see prompts, completions, and detailed traces. Metadata-only mode protects your privacy.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Overview */}
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-3">Overview</h3>
@@ -1163,10 +1187,38 @@ export default function ObservabilityPage() {
                       <div>
                         <p className="text-xs text-gray-600">Human Feedback</p>
                         <Badge className={selectedTrace.human_feedback === 'positive' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}>
-                          {selectedTrace.human_feedback === 'positive' ? '👍 Positive' : '👎 Negative'}
+                          {selectedTrace.human_feedback === 'positive' ? 'Positive' : 'Negative'}
                         </Badge>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* Cost Breakdown - Always visible (metadata, not sensitive) */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-900 mb-3">Cost Breakdown</h3>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                      <span className="text-xs font-medium text-gray-900">Input</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.input / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                        <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.input)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                      <span className="text-xs font-medium text-gray-900">Output</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.output / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                        <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.output)}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                      <span className="text-xs font-medium text-gray-900">Overhead</span>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.overhead / selectedTrace.cost) * 100).toFixed(1)}%</span>
+                        <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.overhead)}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -1198,21 +1250,6 @@ export default function ObservabilityPage() {
                         <div className="bg-beige-secondary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
                           <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.completion}</pre>
                         </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Privacy Banner in Detail View when Full Tracing is OFF */}
-                {!enableFullTracing && (
-                  <div className="bg-green-50 border border-green-200 rounded-md p-4">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-green-700 flex-shrink-0" />
-                      <div>
-                        <p className="text-sm font-medium text-green-900">Full tracing is disabled</p>
-                        <p className="text-xs text-green-700 mt-1">
-                          Enable full tracing in the banner above to see prompts, completions, and detailed traces. Metadata-only mode protects your privacy.
-                        </p>
                       </div>
                     </div>
                   </div>
@@ -1354,34 +1391,6 @@ export default function ObservabilityPage() {
                         </LineChart>
                       </ResponsiveContainer>
                     </div>
-
-                    {/* Cost Breakdown */}
-                    <div className="mt-4">
-                      <p className="text-xs text-gray-600 mb-3">Cost Breakdown</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
-                          <span className="text-xs font-medium text-gray-900">Input</span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.input / selectedTrace.cost) * 100).toFixed(1)}%</span>
-                            <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.input)}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
-                          <span className="text-xs font-medium text-gray-900">Output</span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.output / selectedTrace.cost) * 100).toFixed(1)}%</span>
-                            <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.output)}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
-                          <span className="text-xs font-medium text-gray-900">Overhead</span>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.overhead / selectedTrace.cost) * 100).toFixed(1)}%</span>
-                            <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.overhead)}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 )}
 
@@ -1497,9 +1506,9 @@ export default function ObservabilityPage() {
                       <p className="text-xs text-gray-600 mb-2">Human Feedback</p>
                       <div className="flex gap-2">
                         <Button
-                          variant={selectedTrace.human_feedback === 'positive' ? 'default' : 'outline'}
+                          variant="outline"
                           size="sm"
-                          className="flex-1"
+                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-secondary shadow-md text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
                             setTraces(prev => prev.map(t => t.id === selectedTrace.id ? updatedTrace : t));
@@ -1509,9 +1518,9 @@ export default function ObservabilityPage() {
                           Positive
                         </Button>
                         <Button
-                          variant={selectedTrace.human_feedback === 'negative' ? 'default' : 'outline'}
+                          variant="outline"
                           size="sm"
-                          className="flex-1"
+                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-secondary shadow-md text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
                             setTraces(prev => prev.map(t => t.id === selectedTrace.id ? updatedTrace : t));
