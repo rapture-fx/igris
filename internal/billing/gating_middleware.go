@@ -260,12 +260,13 @@ func (gm *GatingMiddleware) getUpgradeURL(tenantID, tierID string) string {
 }
 
 // getRecommendedUpgrade recommends next tier for upgrade
+// NOTE: NO ENTERPRISE TIER - SCALE IS THE HIGHEST
 func (gm *GatingMiddleware) getRecommendedUpgrade(currentTier string) string {
 	upgradeMap := map[string]string{
 		"trial":   "develop",
 		"develop": "growth",
 		"growth":  "scale",
-		"scale":   "enterprise",
+		"scale":   "scale", // Scale is max tier
 	}
 
 	if next, ok := upgradeMap[currentTier]; ok {

@@ -633,18 +633,52 @@ func (te *TierEnforcer) hasFeatureAccess(features FeatureFlags, featureName stri
 // ============================================================================
 
 // getTenantTier retrieves tier from database
+// Respects trial status: if trial is active, uses trial_tier with full access
 func (te *TierEnforcer) getTenantTier(tenantID string) (string, error) {
 	var tier string
+	var trialActive bool
+	var trialEndsAt sql.NullTime
+
 	err := te.db.QueryRow(`
-		SELECT tier FROM tenants WHERE id = $1
-	`, tenantID).Scan(&tier)
+		SELECT
+			tier,
+			COALESCE(trial_active, false) as trial_active,
+			trial_ends_at
+		FROM tenants
+		WHERE id = $1
+	`, tenantID).Scan(&tier, &trialActive, &trialEndsAt)
 
 	if err == sql.ErrNoRows {
 		// Default to 'developer' tier for unknown tenants
 		return te.config.Global.DefaultTier, nil
 	}
 
-	return tier, err
+	if err != nil {
+		return "", err
+	}
+
+	// If trial is active and not expired, grant full tier access
+	if trialActive && trialEndsAt.Valid && time.Now().Before(trialEndsAt.Time) {
+		te.logger.Printf("[TierEnforcer] Trial active: tenant=%s tier=%s expires=%s",
+			tenantID, tier, trialEndsAt.Time.Format(time.RFC3339))
+		return tier, nil
+	}
+
+	// If trial expired, auto-downgrade to develop (this is a safety check)
+	if trialActive && trialEndsAt.Valid && time.Now().After(trialEndsAt.Time) {
+		te.logger.Printf("[TierEnforcer] Trial expired: tenant=%s, downgrading to develop", tenantID)
+
+		// Update database to mark trial as inactive
+		te.db.Exec(`
+			UPDATE tenants
+			SET trial_active = false, tier = 'develop', trial_expired_at = CURRENT_TIMESTAMP
+			WHERE id = $1
+		`, tenantID)
+
+		return "develop", nil
+	}
+
+	return tier, nil
 }
 
 // getTierPolicy retrieves tier policy from config

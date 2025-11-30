@@ -27,7 +27,7 @@ export default function PolicyPage() {
         {/* Routing Mode Selection */}
         <Card className="border-border-light shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-medium">
               <Shield className="h-5 w-5 text-gray-900" />
               Routing Strategy
             </CardTitle>
@@ -40,7 +40,7 @@ export default function PolicyPage() {
             <div
               className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'cost'
-                  ? 'border-gray-900 bg-beige-secondary shadow-md'
+                  ? 'bg-beige-secondary shadow-md border-border-light'
                   : 'border-border-light hover:bg-beige-secondary'
               }`}
               onClick={() => setSelectedPolicy('cost')}
@@ -67,7 +67,7 @@ export default function PolicyPage() {
             <div
               className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'balanced'
-                  ? 'border-gray-900 bg-beige-secondary shadow-md'
+                  ? 'bg-beige-secondary shadow-md border-border-light'
                   : 'border-border-light hover:bg-beige-secondary'
               }`}
               onClick={() => setSelectedPolicy('balanced')}
@@ -82,7 +82,7 @@ export default function PolicyPage() {
               />
               <div className="flex-1">
                 <Label className="text-base font-medium text-gray-900 cursor-pointer">
-                  Balanced <span className="text-xs text-gray-600">(default)</span>
+                  Balanced <span className="text-xs text-gray-600">(recommended)</span>
                 </Label>
                 <p className="text-sm text-gray-600 mt-1">
                   Optimal mix of cost efficiency and response quality
@@ -94,7 +94,7 @@ export default function PolicyPage() {
             <div
               className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'quality'
-                  ? 'border-gray-900 bg-beige-secondary shadow-md'
+                  ? 'bg-beige-secondary shadow-md border-border-light'
                   : 'border-border-light hover:bg-beige-secondary'
               }`}
               onClick={() => setSelectedPolicy('quality')}
@@ -143,12 +143,12 @@ export default function PolicyPage() {
         {/* Advanced Features */}
         <Card className="border-border-light shadow-md">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 font-medium">
               <Zap className="h-5 w-5 text-gray-900" />
               Advanced Features
             </CardTitle>
             <CardDescription>
-              Unlock premium capabilities (tier-gated)
+              Unlock premium capabilities
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">

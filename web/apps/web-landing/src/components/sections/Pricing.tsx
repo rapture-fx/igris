@@ -7,9 +7,10 @@ import { useModal } from '../../contexts/ModalContext';
 const pricingTiers = [
   {
     name: "Develop",
-    price: "$129",
+    price: "$149",
     period: "month",
     features: [
+      "Unkillable Core (EscapeVector, Gold Code, Hotfix, Rust WASM)",
       "500K requests/month",
       "Overage: $0.25 per 1,000 requests after 500k",
       "Up to 5 AI providers (BYOK)",
@@ -26,7 +27,7 @@ const pricingTiers = [
   },
   {
     name: "Growth",
-    price: "$749",
+    price: "$899",
     period: "month",
     features: [
       "Everything in Develop +",
@@ -35,6 +36,7 @@ const pricingTiers = [
       "Speculative execution (-60% TTFT)",
       "Council mode (quality +15-20%)",
       "Cognitive advisor (auto-tune routing)",
+      "Basic observability (1k requests, charts, CSV export)",
       "Basic SLO enforcement & monitoring",
       "Policy versioning with hot reload",
       "Audit logs & compliance tracking",
@@ -45,14 +47,15 @@ const pricingTiers = [
   },
   {
     name: "Scale",
-    price: "$2,499",
+    price: "$2,999",
     period: "month",
     features: [
       "Everything in Growth +",
       "Unlimited requests (1000 RPS sustained)",
       "Up to 20 providers",
+      "Full observability (traces, 90-day retention, alerts)",
       "Advanced SLO enforcement & auto-remediation",
-      "Budget enforcement & alerts",
+      "Hard budget caps & enforcement",
       "Self-hosted Kubernetes deployment",
       "Custom provider adapter support",
       "Advanced audit logging & security",
@@ -92,7 +95,7 @@ export default function Pricing() {
               Pricing
             </h2>
             <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
-              All plans include a 14-day free trial.
+              14-day free trial · Full tier access · No card required
             </p>
           </div>
 

@@ -160,17 +160,48 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 font-inter">
-                        {tenant?.plan || 'Free'} Plan
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-2xl font-bold text-gray-900 font-inter">
+                          {tenant?.plan || 'Develop'} Plan
+                        </h3>
+                        {tenant?.metadata?.trial_active && (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            Trial Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-900 font-medium mt-2">
+                        {tenant?.metadata?.trial_active ? (
+                          <>
+                            14-day {tenant?.plan || 'Develop'} trial · Ends in {tenant?.metadata?.trial_days_left || 'N/A'} days
+                          </>
+                        ) : (
+                          <>
+                            {tenant?.plan === 'Develop' && '$149/month'}
+                            {tenant?.plan === 'Growth' && '$899/month'}
+                            {tenant?.plan === 'Scale' && '$2,999/month'}
+                          </>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
                         Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                       </p>
                     </div>
                     <Button variant="outline" className="shadow-md">
-                      Upgrade Plan
+                      {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
                     </Button>
                   </div>
+
+                  {tenant?.metadata?.trial_active && (
+                    <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-sm text-blue-900 font-medium mb-2">
+                        Your trial includes full {tenant?.plan || 'Develop'} tier access
+                      </p>
+                      <p className="text-xs text-blue-800">
+                        After your trial ends, you'll be automatically downgraded to Develop tier unless you add a payment method.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
