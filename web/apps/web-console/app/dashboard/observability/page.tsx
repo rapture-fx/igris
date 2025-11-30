@@ -1401,29 +1401,30 @@ export default function ObservabilityPage() {
                     <div className="space-y-3">
                       {selectedTrace.speculative_traces.map((trace, idx) => {
                         const getStripePattern = (status: string) => {
+                          // Thinner, more compact stripes with beige/gray colors matching drawer blocks
                           if (status === 'winner') {
                             return `repeating-linear-gradient(
                               45deg,
-                              #d4d4d8,
-                              #d4d4d8 2px,
-                              #e4e4e7 2px,
-                              #e4e4e7 4px
+                              #e5e4e0,
+                              #e5e4e0 1px,
+                              #f2f1ed 1px,
+                              #f2f1ed 2px
                             )`;
                           } else if (status === 'fallback') {
                             return `repeating-linear-gradient(
                               45deg,
-                              #d4d4d8,
-                              #d4d4d8 2px,
-                              #e4e4e7 2px,
-                              #e4e4e7 4px
+                              #e5e4e0,
+                              #e5e4e0 1px,
+                              #f2f1ed 1px,
+                              #f2f1ed 2px
                             )`;
                           } else {
                             return `repeating-linear-gradient(
                               45deg,
-                              #d4d4d8,
-                              #d4d4d8 2px,
-                              #e4e4e7 2px,
-                              #e4e4e7 4px
+                              #e5e4e0,
+                              #e5e4e0 1px,
+                              #f2f1ed 1px,
+                              #f2f1ed 2px
                             )`;
                           }
                         };
@@ -1433,7 +1434,7 @@ export default function ObservabilityPage() {
                             <span className="text-xs text-gray-600 w-20 flex-shrink-0">{trace.provider}</span>
                             <div className="flex-1 relative h-5 bg-beige-secondary rounded min-w-0">
                               <div
-                                className="absolute h-full rounded border border-gray-300"
+                                className="absolute h-full rounded border border-border-light"
                                 style={{
                                   left: `${(trace.start / Math.max(...selectedTrace.speculative_traces!.map(t => t.latency))) * 100}%`,
                                   width: `${(trace.latency / Math.max(...selectedTrace.speculative_traces!.map(t => t.latency))) * 100}%`,
