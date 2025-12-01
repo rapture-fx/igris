@@ -34,6 +34,7 @@ interface RetryAttempt {
 
 interface SpeculativeTrace {
   provider: string;
+  model: string;
   start: number;
   duration: number;
   status: 'winner' | 'fallback' | 'failed';
@@ -420,23 +421,6 @@ export default function ObservabilityPage() {
     { model: 'mixtral-8x7b', provider: 'Mistral', spend: 23.40, percentage: 0.8, requests: 1234 },
   ];
 
-  // Mock data for Performance Monitoring
-  const providerReliability = [
-    { provider: 'Anthropic', successRate: 99.8, uptime: 99.95, avgLatency: 142 },
-    { provider: 'OpenAI', successRate: 99.2, uptime: 99.87, avgLatency: 168 },
-    { provider: 'Google', successRate: 98.9, uptime: 99.76, avgLatency: 195 },
-    { provider: 'xAI', successRate: 97.5, uptime: 98.92, avgLatency: 234 },
-    { provider: 'Cohere', successRate: 99.1, uptime: 99.34, avgLatency: 178 },
-  ];
-
-  const errorRateTrend = [
-    { time: '00:00', rate: 0.8 },
-    { time: '04:00', rate: 0.5 },
-    { time: '08:00', rate: 1.2 },
-    { time: '12:00', rate: 2.1 },
-    { time: '16:00', rate: 1.5 },
-    { time: '20:00', rate: 0.9 },
-  ];
 
   // CDF data for latency distribution by provider
   const latencyCDFByProvider = [
@@ -519,6 +503,22 @@ export default function ObservabilityPage() {
     }).slice(0, tierConfig.maxRequests);
   }, [traces, searchQuery, filters, tierConfig.maxRequests, selectedTenant, tier]);
 
+  // Helper function to determine if a request is a failed request
+  // Failed requests: HTTP 4xx (except 429), 5xx, timeout >30s, network error, invalid JSON
+  // 429 is NOT an error
+  const isFailedRequest = (trace: RequestTrace): boolean => {
+    // 429 is explicitly NOT an error
+    if (trace.status === 429) return false;
+
+    // 4xx errors (except 429) and 5xx errors are failures
+    if (trace.status >= 400) return true;
+
+    // Timeout >30s (30000ms)
+    if (trace.latency > 30000) return true;
+
+    return false;
+  };
+
   // Metrics
   const metrics = useMemo(() => {
     const total = filteredTraces.length;
@@ -530,6 +530,127 @@ export default function ObservabilityPage() {
 
     return { total, avgLatency, totalCost, errorRate, speculativeCount, retriedCount };
   }, [filteredTraces]);
+
+  // Error Rate Monitoring - 7-day rolling calculation
+  const errorRateMetrics = useMemo(() => {
+    const now = Date.now();
+    const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = now - (24 * 60 * 60 * 1000);
+    const twoDaysAgo = now - (48 * 60 * 60 * 1000);
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+
+    // 7-day rolling error rate
+    const sevenDayTraces = traces.filter(t => {
+      const traceTime = new Date(t.timestamp).getTime();
+      return traceTime >= sevenDaysAgo && traceTime <= now;
+    });
+    const sevenDayFailed = sevenDayTraces.filter(isFailedRequest).length;
+    const sevenDayTotal = sevenDayTraces.length;
+    const sevenDayErrorRate = sevenDayTotal > 0 ? (sevenDayFailed / sevenDayTotal) * 100 : 0;
+
+    // Last 24h error rate
+    const last24hTraces = traces.filter(t => {
+      const traceTime = new Date(t.timestamp).getTime();
+      return traceTime >= oneDayAgo && traceTime <= now;
+    });
+    const last24hFailed = last24hTraces.filter(isFailedRequest).length;
+    const last24hTotal = last24hTraces.length;
+    const last24hErrorRate = last24hTotal > 0 ? (last24hFailed / last24hTotal) * 100 : 0;
+
+    // Previous 24h error rate (24-48h ago)
+    const prev24hTraces = traces.filter(t => {
+      const traceTime = new Date(t.timestamp).getTime();
+      return traceTime >= twoDaysAgo && traceTime < oneDayAgo;
+    });
+    const prev24hFailed = prev24hTraces.filter(isFailedRequest).length;
+    const prev24hTotal = prev24hTraces.length;
+    const prev24hErrorRate = prev24hTotal > 0 ? (prev24hFailed / prev24hTotal) * 100 : 0;
+
+    // Trend calculation: delta between last 24h and previous 24h
+    const errorRateDelta = last24hErrorRate - prev24hErrorRate;
+    const trendDirection = errorRateDelta > 0.1 ? 'up' : errorRateDelta < -0.1 ? 'down' : 'flat';
+
+    // 30-day sparkline data (daily buckets)
+    const sparklineData: Array<{ day: string; rate: number }> = [];
+    for (let i = 29; i >= 0; i--) {
+      const dayStart = now - (i * 24 * 60 * 60 * 1000);
+      const dayEnd = dayStart + (24 * 60 * 60 * 1000);
+
+      const dayTraces = traces.filter(t => {
+        const traceTime = new Date(t.timestamp).getTime();
+        return traceTime >= dayStart && traceTime < dayEnd;
+      });
+
+      const dayFailed = dayTraces.filter(isFailedRequest).length;
+      const dayTotal = dayTraces.length;
+      const dayErrorRate = dayTotal > 0 ? (dayFailed / dayTotal) * 100 : 0;
+
+      sparklineData.push({
+        day: new Date(dayStart).toISOString().split('T')[0],
+        rate: parseFloat(dayErrorRate.toFixed(2))
+      });
+    }
+
+    return {
+      sevenDayErrorRate: parseFloat(sevenDayErrorRate.toFixed(2)),
+      last24hErrorRate: parseFloat(last24hErrorRate.toFixed(2)),
+      prev24hErrorRate: parseFloat(prev24hErrorRate.toFixed(2)),
+      errorRateDelta: parseFloat(errorRateDelta.toFixed(2)),
+      trendDirection,
+      sparklineData
+    };
+  }, [traces]);
+
+  // Provider Reliability Score - 7-day per provider
+  const providerReliabilityMetrics = useMemo(() => {
+    const now = Date.now();
+    const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+
+    // Get all traces from last 7 days
+    const sevenDayTraces = traces.filter(t => {
+      const traceTime = new Date(t.timestamp).getTime();
+      return traceTime >= sevenDaysAgo && traceTime <= now;
+    });
+
+    // Group by provider
+    const providerStats: Record<string, { total: number; successful: number; failed: number }> = {};
+
+    sevenDayTraces.forEach(trace => {
+      if (!providerStats[trace.provider]) {
+        providerStats[trace.provider] = { total: 0, successful: 0, failed: 0 };
+      }
+      providerStats[trace.provider].total++;
+
+      if (isFailedRequest(trace)) {
+        providerStats[trace.provider].failed++;
+      } else {
+        providerStats[trace.provider].successful++;
+      }
+    });
+
+    // Calculate reliability scores
+    const reliabilityScores = Object.entries(providerStats).map(([provider, stats]) => {
+      const reliabilityScore = stats.total > 0 ? (stats.successful / stats.total) * 100 : 0;
+
+      let badge: 'Excellent' | 'Good' | 'Fair' = 'Fair';
+      if (reliabilityScore >= 99.5) {
+        badge = 'Excellent';
+      } else if (reliabilityScore >= 98) {
+        badge = 'Good';
+      }
+
+      return {
+        provider,
+        reliabilityScore: parseFloat(reliabilityScore.toFixed(2)),
+        totalRequests: stats.total,
+        successfulRequests: stats.successful,
+        failedRequests: stats.failed,
+        badge
+      };
+    }).sort((a, b) => b.reliabilityScore - a.reliabilityScore);
+
+    return reliabilityScores;
+  }, [traces]);
 
   // Export handlers
   const handleExportCSV = () => {
@@ -1455,85 +1576,122 @@ export default function ObservabilityPage() {
             <CardDescription>Provider reliability and performance metrics</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Error Rate Trend */}
+            {/* Error Rate - Main Metric with 7-day rolling */}
             <div className="mb-6">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-medium text-gray-900">Error Rate Trend</h3>
-                <div className="flex items-center gap-4">
-                  <div className="text-right">
-                    <p className="text-xs text-gray-600">Last 24h</p>
-                    <p className="text-lg font-semibold text-gray-900">1.2%</p>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1">
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Error Rate (7-day rolling)</h3>
+                  <div className="flex items-center gap-3">
+                    <span className="text-4xl font-bold text-gray-900">{errorRateMetrics.sevenDayErrorRate}%</span>
+                    <div className="flex items-center gap-1">
+                      {errorRateMetrics.trendDirection === 'up' && (
+                        <>
+                          <ChevronUp className="h-5 w-5 text-red-600" />
+                          <span className="text-sm font-semibold text-red-600">+{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
+                        </>
+                      )}
+                      {errorRateMetrics.trendDirection === 'down' && (
+                        <>
+                          <ChevronDown className="h-5 w-5 text-green-600" />
+                          <span className="text-sm font-semibold text-green-600">-{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
+                        </>
+                      )}
+                      {errorRateMetrics.trendDirection === 'flat' && (
+                        <span className="text-sm font-semibold text-gray-600">~{errorRateMetrics.errorRateDelta.toFixed(2)}%</span>
+                      )}
+                      <span className="text-xs text-gray-600 ml-1">vs prev 24h</span>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-xs text-gray-600">7-day avg</p>
-                    <p className="text-lg font-semibold text-green-600">0.9%</p>
-                  </div>
+                  <p className="text-xs text-gray-600 mt-1">
+                    Failed requests: 4xx (except 429), 5xx, timeout &gt;30s
+                  </p>
                 </div>
               </div>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={errorRateTrend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="time" stroke="#6b7280" fontSize={11} />
-                  <YAxis stroke="#6b7280" fontSize={11} />
-                  <Tooltip
-                    formatter={(value: any) => `${value}%`}
-                    contentStyle={{
-                      backgroundColor: '#f2f1ed',
-                      border: '1px solid #e5e4e0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }}
-                  />
-                  <Line type="monotone" dataKey="rate" stroke="#000000" strokeWidth={2} dot={{ fill: "#000000" }} />
-                </LineChart>
-              </ResponsiveContainer>
+
+              {/* 30-day sparkline */}
+              <div className="mt-4">
+                <ResponsiveContainer width="100%" height={80}>
+                  <AreaChart data={errorRateMetrics.sparklineData}>
+                    <defs>
+                      <linearGradient id="errorRateGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#000000" stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor="#000000" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-beige-primary border border-border-light rounded-md p-2 shadow-md">
+                              <p className="text-xs text-gray-600">{payload[0].payload.day}</p>
+                              <p className="text-sm font-semibold text-gray-900">{payload[0].value}%</p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="rate"
+                      stroke="#000000"
+                      strokeWidth={1.5}
+                      fill="url(#errorRateGradient)"
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+                <p className="text-xs text-gray-600 mt-1">30-day trend</p>
+              </div>
             </div>
 
-            {/* Provider Reliability Table */}
-            <div>
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Provider Reliability Score</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border-light bg-beige-secondary">
-                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Success Rate (7d)</th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Uptime (30d)</th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Avg Latency</th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {providerReliability.map((provider, index) => (
-                      <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
-                        <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
-                        <td className="text-right py-3 px-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                              <div
-                                className="h-full bg-gray-900"
-                                style={{ width: `${provider.successRate}%` }}
-                              />
-                            </div>
-                            <span className="text-sm font-semibold text-gray-900">{provider.successRate}%</span>
-                          </div>
-                        </td>
-                        <td className="text-right py-3 px-4 text-sm font-semibold text-gray-900">{provider.uptime}%</td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.avgLatency}ms</td>
-                        <td className="text-right py-3 px-4">
-                          <Badge className={cn(
-                            provider.successRate >= 99.5 ? "bg-green-50 text-green-700 border-green-200" :
-                            provider.successRate >= 98 ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
-                            "bg-red-50 text-red-700 border-red-200"
-                          )}>
-                            {provider.successRate >= 99.5 ? "Excellent" : provider.successRate >= 98 ? "Good" : "Fair"}
-                          </Badge>
-                        </td>
+            {/* Provider Reliability Score */}
+            <div className="mt-6 pt-6 border-t border-border-light">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">Provider Reliability Score (7-day)</h3>
+              {providerReliabilityMetrics.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border-light bg-beige-secondary">
+                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
+                        <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Reliability Score</th>
+                        <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Status</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {providerReliabilityMetrics.map((provider, index) => (
+                        <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                          <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
+                          <td className="text-right py-3 px-4">
+                            <div className="flex items-center justify-end gap-2">
+                              <div className="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
+                                <div
+                                  className="h-full bg-gray-900 transition-all duration-300"
+                                  style={{ width: `${provider.reliabilityScore}%` }}
+                                />
+                              </div>
+                              <span className="text-sm font-semibold text-gray-900 min-w-[50px]">{provider.reliabilityScore}%</span>
+                            </div>
+                          </td>
+                          <td className="text-right py-3 px-4">
+                            <Badge className={cn(
+                              provider.badge === 'Excellent' ? "bg-green-50 text-green-700 border-green-200" :
+                              provider.badge === 'Good' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
+                              "bg-red-50 text-red-700 border-red-200"
+                            )}>
+                              {provider.badge}
+                            </Badge>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-600">
+                  <p className="text-sm">No provider data available for the last 7 days</p>
+                </div>
+              )}
             </div>
 
             {/* Latency Distribution by Provider */}
@@ -1905,7 +2063,6 @@ export default function ObservabilityPage() {
                     <div className="space-y-3">
                       {selectedTrace.speculative_traces.map((trace, idx) => {
                         const getStripePattern = (status: string) => {
-                          // Thinner, more compact stripes with beige/gray colors matching drawer blocks
                           if (status === 'winner') {
                             return `repeating-linear-gradient(
                               45deg,
@@ -1934,7 +2091,7 @@ export default function ObservabilityPage() {
                         };
 
                         return (
-                          <div key={idx} className="flex items-center gap-2 w-full">
+                          <div key={idx} className="flex items-center gap-2 w-full group relative">
                             <span className="text-xs text-gray-600 w-20 flex-shrink-0">{trace.provider}</span>
                             <div className="flex-1 relative h-5 bg-beige-secondary rounded min-w-0">
                               <div
@@ -1945,6 +2102,27 @@ export default function ObservabilityPage() {
                                   background: getStripePattern(trace.status)
                                 }}
                               />
+                              {/* Enhanced Tooltip */}
+                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-beige-primary border border-border-light rounded-lg shadow-lg z-50">
+                                <div className="space-y-1.5 text-xs">
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Provider:</span>
+                                    <span className="font-medium text-gray-900">{trace.provider}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Model:</span>
+                                    <span className="font-medium text-gray-900">{trace.model}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Latency:</span>
+                                    <span className="font-medium text-gray-900">{trace.latency.toFixed(0)}ms</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-gray-600">Status:</span>
+                                    <span className="font-medium text-gray-900">{trace.status}</span>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
                             <span className="text-xs text-gray-600 w-12 flex-shrink-0 text-right">{trace.latency.toFixed(0)}ms</span>
                             <Badge
