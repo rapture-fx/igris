@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, TrendingUp, KeyRound, Network, Settings, X, Activity, LogOut, User, CreditCard, ChevronRight } from 'lucide-react';
+import { Home, KeyRound, Network, Settings, X, Activity, LogOut, User, CreditCard, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn, getInitials } from '@/utils/helpers';
 import { useTenant } from '@/hooks/useTenant';
@@ -27,11 +27,6 @@ const navigation = [
     name: 'Dashboard',
     href: '/dashboard',
     icon: Home,
-  },
-  {
-    name: 'Usage & Analytics',
-    href: '/dashboard/usage',
-    icon: TrendingUp,
   },
   {
     name: 'Observability',

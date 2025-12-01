@@ -113,9 +113,30 @@ interface RequestTrace {
 
 // Mock data generator
 const generateMockTraces = (count: number): RequestTrace[] => {
-  const providers = ['OpenAI', 'Anthropic', 'Google', 'xAI'];
-  const models = ['gpt-4', 'gpt-4-turbo', 'claude-3-opus', 'claude-3-sonnet', 'gemini-pro', 'grok-1'];
-  const modelVersions = ['gpt-4-0613', 'gpt-4-turbo-2024-04-09', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'gemini-pro-1.5', 'grok-1-20240401'];
+  const providerModels = {
+    OpenAI: {
+      models: ['gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo', 'gpt-4o'],
+      versions: ['gpt-4-0613', 'gpt-4-turbo-2024-04-09', 'gpt-3.5-turbo-0125', 'gpt-4o-2024-05-13'],
+    },
+    Anthropic: {
+      models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku', 'claude-3.5-sonnet'],
+      versions: ['claude-3-opus-20240229', 'claude-3-sonnet-20240229', 'claude-3-haiku-20240307', 'claude-3-5-sonnet-20241022'],
+    },
+    Google: {
+      models: ['gemini-pro', 'gemini-ultra', 'gemini-1.5-pro', 'palm-2'],
+      versions: ['gemini-pro-1.5', 'gemini-ultra-1.0', 'gemini-1.5-pro-002', 'palm-2-chat-bison'],
+    },
+    xAI: {
+      models: ['grok-1', 'grok-2', 'grok-1.5'],
+      versions: ['grok-1-20240401', 'grok-2-20240815', 'grok-1.5-20240610'],
+    },
+    Cohere: {
+      models: ['command', 'command-light', 'command-r', 'command-r-plus'],
+      versions: ['command-2024-03', 'command-light-2024-03', 'command-r-08-2024', 'command-r-plus-08-2024'],
+    },
+  };
+
+  const providers = Object.keys(providerModels);
   const statuses = [200, 200, 200, 200, 200, 429, 500];
   const tags: RequestTag[] = [null, null, null, 'expected', 'bug', 'reviewed', 'golden'];
   const samplePrompts = [
@@ -135,10 +156,11 @@ const generateMockTraces = (count: number): RequestTrace[] => {
 
   return Array.from({ length: count }, (_, i) => {
     const status = statuses[Math.floor(Math.random() * statuses.length)];
-    const provider = providers[Math.floor(Math.random() * providers.length)];
-    const modelIndex = Math.floor(Math.random() * models.length);
-    const model = models[modelIndex];
-    const modelVersion = modelVersions[modelIndex];
+    const provider = providers[Math.floor(Math.random() * providers.length)] as keyof typeof providerModels;
+    const providerData = providerModels[provider];
+    const modelIndex = Math.floor(Math.random() * providerData.models.length);
+    const model = providerData.models[modelIndex];
+    const modelVersion = providerData.versions[modelIndex];
     const latency = Math.floor(Math.random() * 800) + 100;
     const inputTokens = Math.floor(Math.random() * 2000) + 100;
     const outputTokens = Math.floor(Math.random() * 1500) + 50;
@@ -314,6 +336,7 @@ export default function ObservabilityPage() {
 
   // Privacy-first: Full tracing is OPT-IN ONLY (default OFF)
   const [enableFullTracing, setEnableFullTracing] = useState(false);
+  const [showTracingInfo, setShowTracingInfo] = useState(false);
 
   // Real-time metrics state (updates every 5s)
   const [realTimeMetrics, setRealTimeMetrics] = useState({
@@ -612,7 +635,60 @@ export default function ObservabilityPage() {
             </p>
           </div>
           <div className="flex gap-3">
-            {tierConfig.fullFeatures ? (
+            {enableFullTracing ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <button
+                      className="p-1 hover:bg-beige-secondary rounded-md transition-colors"
+                      onMouseEnter={() => setShowTracingInfo(true)}
+                      onMouseLeave={() => setShowTracingInfo(false)}
+                      onClick={() => setShowTracingInfo(!showTracingInfo)}
+                    >
+                      <AlertCircle className="h-5 w-5 text-gray-600" />
+                    </button>
+                    {showTracingInfo && (
+                      <div className="absolute top-full left-0 mt-2 w-80 bg-beige-primary border border-border-light rounded-lg shadow-lg p-4 z-50">
+                        <div className="flex items-start gap-3">
+                          <AlertCircle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
+                          <div>
+                            <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                              Full Request Tracing Enabled
+                            </h4>
+                            <p className="text-xs text-gray-600">
+                              Prompts, completions, and token streams are now being stored. Recommended only for debugging. All traces automatically deleted after 30 days.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    className="shadow-md text-red-600 border-red-300 hover:bg-red-50"
+                    onClick={handleDeleteAllTraces}
+                  >
+                    Delete All Traces
+                  </Button>
+                </div>
+                <Button
+                  variant="outline"
+                  className="shadow-md"
+                  onClick={() => setEnableFullTracing(false)}
+                >
+                  Disable Full Tracing
+                </Button>
+              </>
+            ) : (
+              <Button
+                variant="outline"
+                className="shadow-md"
+                onClick={() => setEnableFullTracing(true)}
+              >
+                Enable Full Tracing
+              </Button>
+            )}
+            {tierConfig.fullFeatures && (
               <>
                 <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
                   <Download className="h-4 w-4 mr-2" />
@@ -623,7 +699,8 @@ export default function ObservabilityPage() {
                   Export JSON
                 </Button>
               </>
-            ) : (
+            )}
+            {!tierConfig.fullFeatures && (
               <Badge className="bg-blue-50 text-blue-700 border-blue-200">
                 Growth Plan • Limited Features
               </Badge>
@@ -701,77 +778,6 @@ export default function ObservabilityPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Privacy-First Banner - Full Tracing Disabled */}
-        {!enableFullTracing && (
-          <Card className="border-border-light shadow-md">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-beige-secondary rounded-full p-3">
-                    <CheckCircle className="h-6 w-6 text-gray-900" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-gray-900">
-                      Privacy-First Mode Active
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      We never store your prompts or completions unless you turn this on. Metadata-only mode (latency, cost, model, status) is always on — no prompts stored. Zero compliance risk.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    className="shadow-md"
-                    onClick={() => setEnableFullTracing(true)}
-                  >
-                    Enable Full Tracing
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Full Tracing Enabled - Warning Banner */}
-        {enableFullTracing && (
-          <Card className="border-border-light shadow-md">
-            <CardContent className="py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="bg-beige-secondary rounded-full p-3">
-                    <AlertCircle className="h-6 w-6 text-gray-900" />
-                  </div>
-                  <div>
-                    <h3 className="text-base font-semibold text-gray-900">
-                      Full Request Tracing Enabled
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Prompts, completions, and token streams are now being stored. Recommended only for debugging. All traces automatically deleted after 30 days.
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    className="shadow-md text-red-600 border-red-300 hover:bg-red-50"
-                    onClick={handleDeleteAllTraces}
-                  >
-                    Delete All Traces
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="shadow-md"
-                    onClick={() => setEnableFullTracing(false)}
-                  >
-                    Disable Full Tracing
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Tier Upgrade Banner for Growth Users */}
         {!tierConfig.fullFeatures && (
@@ -1263,7 +1269,15 @@ export default function ObservabilityPage() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(value: any) => `$${value.toFixed(2)}`} />
+                    <Tooltip
+                      formatter={(value: any) => `$${value.toFixed(2)}`}
+                      contentStyle={{
+                        backgroundColor: '#f2f1ed',
+                        border: '1px solid #e5e4e0',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -1276,7 +1290,15 @@ export default function ObservabilityPage() {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                     <XAxis dataKey="model" stroke="#6b7280" fontSize={11} angle={-45} textAnchor="end" height={80} />
                     <YAxis stroke="#6b7280" fontSize={11} />
-                    <Tooltip formatter={(value: any) => `$${value.toFixed(2)}`} />
+                    <Tooltip
+                      formatter={(value: any) => `$${value.toFixed(2)}`}
+                      contentStyle={{
+                        backgroundColor: '#f2f1ed',
+                        border: '1px solid #e5e4e0',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      }}
+                    />
                     <Bar dataKey="cost" fill="#000000" fillOpacity={0.6} radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -1373,7 +1395,15 @@ export default function ObservabilityPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="time" stroke="#6b7280" fontSize={11} />
                   <YAxis stroke="#6b7280" fontSize={11} />
-                  <Tooltip formatter={(value: any) => `${value}%`} />
+                  <Tooltip
+                    formatter={(value: any) => `${value}%`}
+                    contentStyle={{
+                      backgroundColor: '#f2f1ed',
+                      border: '1px solid #e5e4e0',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                    }}
+                  />
                   <Line type="monotone" dataKey="rate" stroke="#000000" strokeWidth={2} dot={{ fill: "#000000" }} />
                 </LineChart>
               </ResponsiveContainer>
@@ -1430,13 +1460,13 @@ export default function ObservabilityPage() {
             <div className="mt-6 pt-6 border-t border-border-light">
               <h3 className="text-sm font-medium text-gray-900 mb-4">Latency Distribution by Provider</h3>
               <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={latencyCDFByProvider}>
+                <LineChart data={latencyCDFByProvider} margin={{ bottom: 30 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis
                     dataKey="latency"
                     stroke="#6b7280"
                     fontSize={11}
-                    label={{ value: 'Latency (ms)', position: 'insideBottom', offset: -5 }}
+                    label={{ value: 'Latency (ms)', position: 'insideBottom', offset: -10 }}
                   />
                   <YAxis
                     stroke="#6b7280"
@@ -1447,8 +1477,14 @@ export default function ObservabilityPage() {
                   <Tooltip
                     formatter={(value: any) => `${value.toFixed(1)}%`}
                     labelFormatter={(label) => `${label}ms`}
+                    contentStyle={{
+                      backgroundColor: '#f2f1ed',
+                      border: '1px solid #e5e4e0',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                    }}
                   />
-                  <Legend />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
                   <Line type="monotone" dataKey="Anthropic" stroke="#000000" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="OpenAI" stroke="#1a1a1a" strokeWidth={2} dot={false} />
                   <Line type="monotone" dataKey="Google" stroke="#333333" strokeWidth={2} dot={false} />
