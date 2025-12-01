@@ -94,4 +94,13 @@
     border-bottom: 0.5px solid #1a1e21;
     border-right: 0.5px solid #1a1e21;
   }
+
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

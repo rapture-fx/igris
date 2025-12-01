@@ -1,10 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { Home, TrendingUp, KeyRound, Network, Settings, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Home, KeyRound, Network, Settings, X, Activity, LogOut, User, CreditCard, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/utils/helpers';
+import { cn, getInitials } from '@/utils/helpers';
+import { useTenant } from '@/hooks/useTenant';
+import { logout } from '@/lib/auth';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface SidebarProps {
   open?: boolean;
@@ -18,9 +29,10 @@ const navigation = [
     icon: Home,
   },
   {
-    name: 'Usage & Analytics',
-    href: '/dashboard/usage',
-    icon: TrendingUp,
+    name: 'Observability',
+    href: '/dashboard/observability',
+    icon: Activity,
+    minTier: 'growth', // Hidden on developer tier
   },
   {
     name: 'Providers & Keys',
@@ -41,6 +53,24 @@ const navigation = [
 
 export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: tenant } = useTenant();
+  const tier = tenant?.plan || 'scale'; // Temporarily default to 'scale' for development
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
+  };
+
+  // Filter navigation based on tier
+  const visibleNavigation = navigation.filter(item => {
+    if (item.minTier === 'growth' && tier === 'developer') {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -64,7 +94,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 pt-8 pb-4">
             <ul className="space-y-1">
-              {navigation.map((item) => {
+              {visibleNavigation.map((item) => {
                 const isActive = pathname === item.href;
                 return (
                   <li key={item.name}>
@@ -87,9 +117,10 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
             </ul>
           </nav>
 
-          {/* Footer */}
+          {/* Footer Section */}
           <div className="border-t border-border-light p-4 flex-shrink-0">
-            <div className="rounded-lg bg-beige-secondary p-3">
+            {/* Help Section */}
+            <div className="rounded-lg bg-beige-secondary p-3 mb-4">
               <p className="text-xs font-medium font-inter text-gray-900 mb-1">
                 Need help?
               </p>
@@ -100,9 +131,100 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 View Docs
               </Button>
             </div>
+
+            {/* Profile & Sign Out Section */}
+            <div className="relative">
+              {/* Profile Menu Dropdown */}
+              {showProfileMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setShowProfileMenu(false)}
+                  />
+                  <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        // Billing logic will be implemented later
+                      }}
+                    >
+                      <CreditCard className="h-5 w-5 text-gray-700" />
+                      <div>
+                        <p className="text-sm font-medium font-inter text-gray-900">Billing</p>
+                        <p className="text-xs text-gray-600 font-inter">Manage your subscription and billing</p>
+                      </div>
+                    </button>
+
+                    <button
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left border-t border-border-light mt-2 pt-4"
+                      onClick={() => {
+                        setShowProfileMenu(false);
+                        setShowLogoutDialog(true);
+                      }}
+                    >
+                      <LogOut className="h-5 w-5 text-gray-900" />
+                      <div>
+                        <p className="text-sm font-medium font-inter text-gray-900">Logout</p>
+                        <p className="text-xs text-gray-600 font-inter">Sign out of your account</p>
+                      </div>
+                    </button>
+                  </div>
+                </>
+              )}
+
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => setShowProfileMenu(true)}
+                  className="flex items-center gap-3 flex-1 hover:bg-beige-secondary rounded-lg p-2 transition-colors"
+                >
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
+                    {tenant ? getInitials(tenant.name) : 'U'}
+                  </div>
+                  <div className="flex flex-col items-start">
+                    <span className="text-sm font-medium font-inter text-gray-900">
+                      {tenant?.name || 'Profile'}
+                    </span>
+                    <span className="text-xs text-gray-600 font-inter">
+                      Profile
+                    </span>
+                  </div>
+                </button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  title="Collapse"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </aside>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to log out of your account?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
