@@ -36,6 +36,11 @@ import {
   Key,
   Webhook,
   Receipt,
+  Users,
+  Plus,
+  CheckCircle,
+  XCircle,
+  Edit,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -82,6 +87,7 @@ export default function SettingsPage() {
         <Tabs defaultValue="team">
           <TabsList>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="tenants">Clients & Tenants</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -137,6 +143,73 @@ export default function SettingsPage() {
                     <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
                       Owner
                     </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Tenants Tab */}
+          <TabsContent value="tenants" className="space-y-6">
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-gray-900" />
+                  Clients & Tenants
+                </CardTitle>
+                <CardDescription>
+                  Create isolated tenants for customers, environments, or teams
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-secondary border border-border-light">
+                    <div className="flex items-start gap-4">
+                      <Building2 className="h-8 w-8 text-gray-900 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 font-inter mb-2">
+                          Enterprise Multi-Tenancy
+                        </h3>
+                        <p className="text-sm text-gray-700 mb-4">
+                          Create isolated tenant environments with complete data separation, independent budgets, and dedicated observability.
+                        </p>
+                        <div className="grid gap-2 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>AES-256 encrypted key storage per tenant</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>Database-level data isolation (RLS)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>Independent budget caps & enforcement</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>Separate observability & audit logs</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="shadow-md"
+                          onClick={() => router.push('/dashboard/settings/tenants')}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Manage Tenants
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <p className="text-sm text-blue-900 font-medium mb-1">
+                      Available on Scale plan ($2,999/mo)
+                    </p>
+                    <p className="text-xs text-blue-800">
+                      Unlimited multi-tenancy with full data isolation, per-tenant budgets, and 90-day trace retention.
+                    </p>
                   </div>
                 </div>
               </CardContent>
