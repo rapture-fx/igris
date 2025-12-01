@@ -95,57 +95,56 @@ export default function DashboardPage() {
         {/* Header */}
         <div>
           <h1 className="text-xl font-medium text-gray-900 font-inter">
-            Dashboard
+            Welcome back
           </h1>
           <p className="text-gray-600 mt-1 font-inter">
-            Overview of your AI inference infrastructure
+            Overview of your AI infrastructure
           </p>
         </div>
 
-        {/* Metrics Cards */}
+        {/* Four Big Live Metrics with Trends & Mini Sparklines */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MetricCard
-            title="Monthly Spend"
-            value={formatCurrency(summary?.monthly_spend || 0)}
-            description="Current billing period"
-            icon={DollarSign}
+            title="Requests Today"
+            value={formatNumber(summary?.total_requests || 0)}
+            description="Last 24 hours"
+            icon={Activity}
             trend="+12.5%"
           />
           <MetricCard
-            title="Total Requests"
-            value={formatNumber(summary?.total_requests || 0)}
-            description="This month"
-            icon={Activity}
-            trend="+23.1%"
+            title="Spend This Month"
+            value={formatCurrency(summary?.monthly_spend || 0)}
+            description="Current billing period"
+            icon={DollarSign}
+            trend="+8.3%"
           />
           <MetricCard
             title="Avg Latency"
             value={formatLatency(summary?.avg_latency || 0)}
-            description="Response time"
+            description="P50 response time"
             icon={Zap}
             trend="-5.2%"
           />
           <MetricCard
-            title="Budget Utilization"
-            value={`${summary?.budget_utilization || 0}%`}
-            description="Of monthly budget"
+            title="Active Providers"
+            value={summary?.active_providers || '3'}
+            description="Currently configured"
             icon={TrendingUp}
           />
         </div>
 
-        {/* Charts */}
+        {/* Two Mini Charts: Requests/Cost last 7 days + Latency P95 last 24h */}
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Requests Over Time */}
           <Card className="border-border-light shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-gray-900" />
-                Requests Over Time
+                Requests & Cost
               </CardTitle>
-              <CardDescription>Last 24 hours</CardDescription>
+              <CardDescription>Last 7 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={requestsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="time" stroke="#6b7280" />
@@ -163,39 +162,16 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          {/* Cost by Provider */}
           <Card className="border-border-light shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-gray-900" />
-                Cost by Provider
-              </CardTitle>
-              <CardDescription>This month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={providerCostData} barSize={20}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="provider" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
-                  <Tooltip />
-                  <Bar dataKey="cost" fill="#000000" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Latency Distribution */}
-          <Card className="border-border-light shadow-md md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-900" />
-                Latency Distribution
+                Latency P95
               </CardTitle>
-              <CardDescription>Average response time over last 24 hours</CardDescription>
+              <CardDescription>Last 24 hours</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={latencyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="time" stroke="#6b7280" />
@@ -214,28 +190,50 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Activity Feed */}
+        {/* Top 5 Models by Spend */}
         <Card className="border-border-light shadow-md">
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest events and updates</CardDescription>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-gray-900" />
+              Top Models by Spend
+            </CardTitle>
+            <CardDescription>This month</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="space-y-3">
+              {providerCostData.slice(0, 5).map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-beige-secondary">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-900">{i + 1}.</span>
+                    <span className="text-sm text-gray-900">{item.provider}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">{formatCurrency(item.cost)}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Provider Reliability Table */}
+        <Card className="border-border-light shadow-md">
+          <CardHeader>
+            <CardTitle>Provider Reliability</CardTitle>
+            <CardDescription>Last 7 days uptime</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
               {[
-                { event: 'API key added for OpenAI', time: '2 minutes ago', status: 'success' },
-                { event: 'Policy updated: Max monthly cost set to $500', time: '1 hour ago', status: 'info' },
-                { event: 'High latency detected on Anthropic endpoint', time: '3 hours ago', status: 'warning' },
-                { event: 'Monthly usage report generated', time: '1 day ago', status: 'success' },
-              ].map((activity, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-beige-secondary">
-                  <div className={`w-2 h-2 rounded-full ${
-                    activity.status === 'success' ? 'bg-green-500' :
-                    activity.status === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-                  }`} />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.event}</p>
-                    <p className="text-xs text-gray-600">{activity.time}</p>
+                { provider: 'OpenAI', uptime: '99.8%', status: 'success' },
+                { provider: 'Anthropic', uptime: '99.9%', status: 'success' },
+                { provider: 'Google', uptime: '98.2%', status: 'warning' },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                  <span className="text-sm font-medium text-gray-900">{item.provider}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">{item.uptime}</span>
+                    <div className={`w-2 h-2 rounded-full ${
+                      item.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
+                    }`} />
                   </div>
                 </div>
               ))}

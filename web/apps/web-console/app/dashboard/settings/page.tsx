@@ -20,7 +20,7 @@ import {
 import { useTenant } from '@/hooks/useTenant';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { formatDate, getInitials } from '@/utils/helpers';
+import { formatDate, getInitials, formatCurrency } from '@/utils/helpers';
 import {
   Settings as SettingsIcon,
   User,
@@ -54,6 +54,13 @@ export default function SettingsPage() {
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
   const [slackWebhook, setSlackWebhook] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
+  const [globalBudget, setGlobalBudget] = useState('50000');
+  const [hardCapEnabled, setHardCapEnabled] = useState(false);
+
+  // Mock current usage
+  const currentSpend = 18427;
+  const budgetNumber = parseFloat(globalBudget) || 0;
+  const budgetPercentage = budgetNumber > 0 ? (currentSpend / budgetNumber) * 100 : 0;
 
   const handleLogout = async () => {
     await logout();
@@ -279,6 +286,83 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
+            {/* Global Monthly Budget */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-gray-900" />
+                  Global Monthly Budget
+                </CardTitle>
+                <CardDescription>
+                  Set a spending limit across all requests
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="globalBudget">
+                    Monthly Budget Limit (USD)
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
+                    <Input
+                      id="globalBudget"
+                      type="number"
+                      value={globalBudget}
+                      onChange={(e) => setGlobalBudget(e.target.value)}
+                      className="pl-7"
+                      placeholder="50000"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="hardCap" className="text-base font-medium">
+                      Hard cap — block all requests at 100%
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      When enabled, all requests will be blocked once the budget is exhausted
+                    </p>
+                  </div>
+                  <Switch
+                    id="hardCap"
+                    checked={hardCapEnabled}
+                    onCheckedChange={setHardCapEnabled}
+                  />
+                </div>
+
+                {/* Current Usage Bar */}
+                <div className="space-y-3 p-4 rounded-lg bg-beige-secondary border border-border-light">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-900">Current Month Usage</span>
+                    <span className="font-medium text-gray-900">
+                      {formatCurrency(currentSpend)} / {formatCurrency(budgetNumber)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${
+                        budgetPercentage >= 90
+                          ? 'bg-red-600'
+                          : budgetPercentage >= 70
+                          ? 'bg-yellow-500'
+                          : 'bg-green-600'
+                      }`}
+                      style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-600">
+                    <span>{budgetPercentage.toFixed(1)}% used</span>
+                    <span>{formatCurrency(budgetNumber - currentSpend)} remaining</span>
+                  </div>
+                </div>
+
+                <Button variant="outline" className="w-full shadow-md">
+                  Save Budget Settings
+                </Button>
+              </CardContent>
+            </Card>
+
             {/* Payment Method */}
             <Card className="border-border-light shadow-md">
               <CardHeader>
@@ -472,15 +556,15 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Slack Integration */}
+            {/* Integration */}
             <Card className="border-border-light shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Webhook className="h-5 w-5 text-gray-900" />
-                  Slack Integration
+                  Integration
                 </CardTitle>
                 <CardDescription>
-                  Receive notifications in Slack
+                  Receive notifications in your work chat
                 </CardDescription>
               </CardHeader>
               <CardContent>
