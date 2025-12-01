@@ -18,7 +18,7 @@ import {
   ChevronDown, ChevronUp, Copy, Share2, AlertCircle, CheckCircle,
   XCircle, Loader2, BarChart3, Zap, Tag, Code, Link2, Eye
 } from 'lucide-react';
-import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 
 // Types
@@ -403,6 +403,19 @@ export default function ObservabilityPage() {
     { time: '12:00', rate: 2.1 },
     { time: '16:00', rate: 1.5 },
     { time: '20:00', rate: 0.9 },
+  ];
+
+  // CDF data for latency distribution by provider
+  const latencyCDFByProvider = [
+    { latency: 0, Anthropic: 0, OpenAI: 0, Google: 0, xAI: 0, Cohere: 0 },
+    { latency: 50, Anthropic: 20, OpenAI: 15, Google: 10, xAI: 8, Cohere: 12 },
+    { latency: 100, Anthropic: 55, OpenAI: 45, Google: 35, xAI: 25, Cohere: 40 },
+    { latency: 150, Anthropic: 85, OpenAI: 75, Google: 65, xAI: 50, Cohere: 70 },
+    { latency: 200, Anthropic: 95, OpenAI: 90, Google: 85, xAI: 75, Cohere: 88 },
+    { latency: 250, Anthropic: 98, OpenAI: 96, Google: 93, xAI: 88, Cohere: 95 },
+    { latency: 300, Anthropic: 99.5, OpenAI: 98, Google: 97, xAI: 95, Cohere: 98 },
+    { latency: 350, Anthropic: 100, OpenAI: 99.5, Google: 99, xAI: 98, Cohere: 99.5 },
+    { latency: 400, Anthropic: 100, OpenAI: 100, Google: 100, xAI: 100, Cohere: 100 },
   ];
 
   // Filtered traces
@@ -1264,7 +1277,7 @@ export default function ObservabilityPage() {
                     <XAxis dataKey="model" stroke="#6b7280" fontSize={11} angle={-45} textAnchor="end" height={80} />
                     <YAxis stroke="#6b7280" fontSize={11} />
                     <Tooltip formatter={(value: any) => `$${value.toFixed(2)}`} />
-                    <Bar dataKey="cost" fill="#000000" radius={[8, 8, 0, 0]} />
+                    <Bar dataKey="cost" fill="#000000" fillOpacity={0.6} radius={[8, 8, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -1388,7 +1401,7 @@ export default function ObservabilityPage() {
                           <div className="flex items-center justify-end gap-2">
                             <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
                               <div
-                                className="h-full bg-green-600"
+                                className="h-full bg-gray-900"
                                 style={{ width: `${provider.successRate}%` }}
                               />
                             </div>
@@ -1413,24 +1426,38 @@ export default function ObservabilityPage() {
               </div>
             </div>
 
-            {/* Latency Heatmap Placeholder */}
+            {/* Latency Distribution by Provider */}
             <div className="mt-6 pt-6 border-t border-border-light">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Latency Heatmap by Provider</h3>
-              <div className="grid grid-cols-5 gap-2">
-                {providerReliability.map((provider, i) => (
-                  <div key={i} className="bg-beige-secondary border border-border-light rounded-lg p-3 text-center">
-                    <p className="text-xs font-medium text-gray-900 mb-2">{provider.provider}</p>
-                    <div className={cn(
-                      "w-full h-16 rounded flex items-center justify-center text-white font-bold",
-                      provider.avgLatency < 150 ? "bg-green-600" :
-                      provider.avgLatency < 200 ? "bg-yellow-500" :
-                      "bg-red-500"
-                    )}>
-                      {provider.avgLatency}ms
-                    </div>
-                    <p className="text-xs text-gray-600 mt-2">Avg</p>
-                  </div>
-                ))}
+              <h3 className="text-sm font-medium text-gray-900 mb-4">Latency Distribution by Provider</h3>
+              <ResponsiveContainer width="100%" height={350}>
+                <LineChart data={latencyCDFByProvider}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                  <XAxis
+                    dataKey="latency"
+                    stroke="#6b7280"
+                    fontSize={11}
+                    label={{ value: 'Latency (ms)', position: 'insideBottom', offset: -5 }}
+                  />
+                  <YAxis
+                    stroke="#6b7280"
+                    fontSize={11}
+                    domain={[0, 100]}
+                    label={{ value: '% of Requests', angle: -90, position: 'insideLeft' }}
+                  />
+                  <Tooltip
+                    formatter={(value: any) => `${value.toFixed(1)}%`}
+                    labelFormatter={(label) => `${label}ms`}
+                  />
+                  <Legend />
+                  <Line type="monotone" dataKey="Anthropic" stroke="#000000" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="OpenAI" stroke="#1a1a1a" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Google" stroke="#333333" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="xAI" stroke="#4d4d4d" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="Cohere" stroke="#666666" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+              <div className="mt-3 text-xs text-gray-600">
+                <p>Shows the percentage of requests that complete below each latency threshold for each provider. Steeper curves indicate more consistent, faster performance.</p>
               </div>
             </div>
           </CardContent>
