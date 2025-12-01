@@ -1824,7 +1824,7 @@ export default function ObservabilityPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Provider</h3>
                 {costInsightsMetrics.spendByProvider.length > 0 ? (
                   <>
-                    <ResponsiveContainer width="100%" height={280}>
+                    <ResponsiveContainer width="100%" height={320}>
                       <PieChart>
                         <Pie
                           data={costInsightsMetrics.spendByProvider}
@@ -1832,12 +1832,13 @@ export default function ObservabilityPage() {
                           nameKey="provider"
                           cx="50%"
                           cy="50%"
-                          outerRadius={90}
+                          outerRadius={110}
                           label={(entry) => `${entry.percentage}%`}
                         >
-                          {costInsightsMetrics.spendByProvider.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                          ))}
+                          {costInsightsMetrics.spendByProvider.map((entry, index) => {
+                            const gradientColors = ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999'];
+                            return <Cell key={`cell-${index}`} fill={gradientColors[index % gradientColors.length]} />;
+                          })}
                         </Pie>
                         <Tooltip
                           formatter={(value: any) => `$${value.toFixed(2)}`}
@@ -1852,15 +1853,17 @@ export default function ObservabilityPage() {
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="mt-4 space-y-2">
-                      {costInsightsMetrics.spendByProvider.map((provider, index) => (
-                        <div key={index} className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-3 h-3 rounded-full"
-                              style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-                            />
-                            <span className="text-gray-900 font-medium">{provider.provider}</span>
-                          </div>
+                      {costInsightsMetrics.spendByProvider.map((provider, index) => {
+                        const gradientColors = ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999'];
+                        return (
+                          <div key={index} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <div
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: gradientColors[index % gradientColors.length] }}
+                              />
+                              <span className="text-gray-900 font-medium">{provider.provider}</span>
+                            </div>
                           <div className="flex items-center gap-3">
                             <span className="text-gray-900 font-semibold">${provider.spend.toFixed(2)}</span>
                             <span className="text-gray-600">{provider.percentage}%</span>
@@ -1880,8 +1883,9 @@ export default function ObservabilityPage() {
                               </div>
                             )}
                           </div>
-                        </div>
-                      ))}
+                          </div>
+                        );
+                      })}
                     </div>
                   </>
                 ) : (
@@ -1896,7 +1900,7 @@ export default function ObservabilityPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Top 10 Models by Spend</h3>
                 {costInsightsMetrics.spendByModel.length > 0 ? (
                   <>
-                    <ResponsiveContainer width="100%" height={280}>
+                    <ResponsiveContainer width="100%" height={320}>
                       <BarChart data={costInsightsMetrics.spendByModel} layout="vertical" margin={{ left: 80 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis type="number" stroke="#6b7280" fontSize={11} />
@@ -1966,7 +1970,7 @@ export default function ObservabilityPage() {
                   <select
                     value={selectedTenant}
                     onChange={(e) => setSelectedTenant(e.target.value)}
-                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-beige-primary focus:outline-none focus:ring-2 focus:ring-gray-900"
                   >
                     <option value="all">All Tenants</option>
                     {mockTenants.map((tenant) => (
