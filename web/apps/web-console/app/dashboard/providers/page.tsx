@@ -79,7 +79,6 @@ export default function ProvidersPage() {
         <Card className="border-border-light shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Key className="h-5 w-5 text-gray-900" />
               Your Providers
             </CardTitle>
             <CardDescription>
@@ -182,7 +181,6 @@ export default function ProvidersPage() {
               </div>
             ) : (
               <div className="text-center py-12">
-                <Key className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <p className="text-gray-900 font-inter font-medium mb-2">
                   No providers added yet
                 </p>

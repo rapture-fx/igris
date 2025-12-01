@@ -36,6 +36,11 @@ import {
   Key,
   Webhook,
   Receipt,
+  Users,
+  Plus,
+  CheckCircle,
+  XCircle,
+  Edit,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -82,6 +87,7 @@ export default function SettingsPage() {
         <Tabs defaultValue="team">
           <TabsList>
             <TabsTrigger value="team">Team</TabsTrigger>
+            <TabsTrigger value="tenants">Clients & Tenants</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
@@ -143,6 +149,73 @@ export default function SettingsPage() {
             </Card>
           </TabsContent>
 
+          {/* Tenants Tab */}
+          <TabsContent value="tenants" className="space-y-6">
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-gray-900" />
+                  Clients & Tenants
+                </CardTitle>
+                <CardDescription>
+                  Create isolated tenants for customers, environments, or teams
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-secondary border border-border-light">
+                    <div className="flex items-start gap-4">
+                      <Building2 className="h-8 w-8 text-gray-900 flex-shrink-0" />
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 font-inter mb-2">
+                          Enterprise Multi-Tenancy
+                        </h3>
+                        <p className="text-sm text-gray-700 mb-4">
+                          Create isolated tenant environments with complete data separation, independent budgets, and dedicated observability.
+                        </p>
+                        <div className="grid gap-2 text-sm text-gray-600 mb-4">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>AES-256 encrypted key storage per tenant</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>Database-level data isolation (RLS)</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>Independent budget caps & enforcement</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span>Separate observability & audit logs</span>
+                          </div>
+                        </div>
+                        <Button
+                          variant="outline"
+                          className="shadow-md"
+                          onClick={() => router.push('/dashboard/settings/tenants')}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Manage Tenants
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
+                    <p className="text-sm text-blue-900 font-medium mb-1">
+                      Available on Scale plan ($2,999/mo)
+                    </p>
+                    <p className="text-xs text-blue-800">
+                      Unlimited multi-tenancy with full data isolation, per-tenant budgets, and 90-day trace retention.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-6">
             {/* Current Plan */}
@@ -160,17 +233,48 @@ export default function SettingsPage() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h3 className="text-2xl font-bold text-gray-900 font-inter">
-                        {tenant?.plan || 'Free'} Plan
-                      </h3>
-                      <p className="text-sm text-gray-600 mt-1">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-2xl font-bold text-gray-900 font-inter">
+                          {tenant?.plan || 'Develop'} Plan
+                        </h3>
+                        {tenant?.metadata?.trial_active && (
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                            Trial Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-900 font-medium mt-2">
+                        {tenant?.metadata?.trial_active ? (
+                          <>
+                            14-day {tenant?.plan || 'Develop'} trial · Ends in {tenant?.metadata?.trial_days_left || 'N/A'} days
+                          </>
+                        ) : (
+                          <>
+                            {tenant?.plan === 'Develop' && '$149/month'}
+                            {tenant?.plan === 'Growth' && '$899/month'}
+                            {tenant?.plan === 'Scale' && '$2,999/month'}
+                          </>
+                        )}
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
                         Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                       </p>
                     </div>
                     <Button variant="outline" className="shadow-md">
-                      Upgrade Plan
+                      {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
                     </Button>
                   </div>
+
+                  {tenant?.metadata?.trial_active && (
+                    <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-sm text-blue-900 font-medium mb-2">
+                        Your trial includes full {tenant?.plan || 'Develop'} tier access
+                      </p>
+                      <p className="text-xs text-blue-800">
+                        After your trial ends, you'll be automatically downgraded to Develop tier unless you add a payment method.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
