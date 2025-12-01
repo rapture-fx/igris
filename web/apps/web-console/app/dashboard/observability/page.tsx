@@ -390,50 +390,7 @@ export default function ObservabilityPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Mock data for Cost Insights
-  const costByProvider = [
-    { name: 'OpenAI', value: 1245.50, color: '#000000' },
-    { name: 'Anthropic', value: 892.30, color: '#1a1a1a' },
-    { name: 'Google', value: 567.80, color: '#333333' },
-    { name: 'xAI', value: 234.20, color: '#4d4d4d' },
-    { name: 'Cohere', value: 123.40, color: '#666666' },
-  ];
 
-  const costByModel = [
-    { model: 'gpt-4', cost: 845.20 },
-    { model: 'claude-3-opus', cost: 623.40 },
-    { model: 'gpt-4-turbo', cost: 512.30 },
-    { model: 'claude-3-sonnet', cost: 345.60 },
-    { model: 'gemini-pro', cost: 289.50 },
-    { model: 'gpt-3.5-turbo', cost: 187.20 },
-  ];
-
-  const topModelsBySpend = [
-    { model: 'gpt-4', provider: 'OpenAI', spend: 845.20, percentage: 27.5, requests: 12450 },
-    { model: 'claude-3-opus', provider: 'Anthropic', spend: 623.40, percentage: 20.3, requests: 8932 },
-    { model: 'gpt-4-turbo', provider: 'OpenAI', spend: 512.30, percentage: 16.7, requests: 15678 },
-    { model: 'claude-3-sonnet', provider: 'Anthropic', spend: 345.60, percentage: 11.2, requests: 23456 },
-    { model: 'gemini-pro', provider: 'Google', spend: 289.50, percentage: 9.4, requests: 18234 },
-    { model: 'gpt-3.5-turbo', provider: 'OpenAI', spend: 187.20, percentage: 6.1, requests: 34567 },
-    { model: 'grok-1', provider: 'xAI', spend: 156.80, percentage: 5.1, requests: 4532 },
-    { model: 'command', provider: 'Cohere', spend: 89.30, percentage: 2.9, requests: 2345 },
-    { model: 'llama-2-70b', provider: 'Together', spend: 45.60, percentage: 1.5, requests: 5678 },
-    { model: 'mixtral-8x7b', provider: 'Mistral', spend: 23.40, percentage: 0.8, requests: 1234 },
-  ];
-
-
-  // CDF data for latency distribution by provider
-  const latencyCDFByProvider = [
-    { latency: 0, Anthropic: 0, OpenAI: 0, Google: 0, xAI: 0, Cohere: 0 },
-    { latency: 50, Anthropic: 20, OpenAI: 15, Google: 10, xAI: 8, Cohere: 12 },
-    { latency: 100, Anthropic: 55, OpenAI: 45, Google: 35, xAI: 25, Cohere: 40 },
-    { latency: 150, Anthropic: 85, OpenAI: 75, Google: 65, xAI: 50, Cohere: 70 },
-    { latency: 200, Anthropic: 95, OpenAI: 90, Google: 85, xAI: 75, Cohere: 88 },
-    { latency: 250, Anthropic: 98, OpenAI: 96, Google: 93, xAI: 88, Cohere: 95 },
-    { latency: 300, Anthropic: 99.5, OpenAI: 98, Google: 97, xAI: 95, Cohere: 98 },
-    { latency: 350, Anthropic: 100, OpenAI: 99.5, Google: 99, xAI: 98, Cohere: 99.5 },
-    { latency: 400, Anthropic: 100, OpenAI: 100, Google: 100, xAI: 100, Cohere: 100 },
-  ];
 
   // Filtered traces
   const filteredTraces = useMemo(() => {
@@ -650,6 +607,162 @@ export default function ObservabilityPage() {
     }).sort((a, b) => b.reliabilityScore - a.reliabilityScore);
 
     return reliabilityScores;
+  }, [traces]);
+
+  // Latency CDF Metrics - Calculate percentiles per provider
+  const latencyCDFMetrics = useMemo(() => {
+    const now = Date.now();
+    const sevenDaysAgo = now - (7 * 24 * 60 * 60 * 1000);
+
+    // Get all traces from last 7 days
+    const sevenDayTraces = traces.filter(t => {
+      const traceTime = new Date(t.timestamp).getTime();
+      return traceTime >= sevenDaysAgo && traceTime <= now;
+    });
+
+    // Group by provider and collect latencies
+    const providerLatencies: Record<string, number[]> = {};
+
+    sevenDayTraces.forEach(trace => {
+      if (!providerLatencies[trace.provider]) {
+        providerLatencies[trace.provider] = [];
+      }
+      providerLatencies[trace.provider].push(trace.latency);
+    });
+
+    // Calculate percentiles for each provider
+    const calculatePercentile = (arr: number[], percentile: number): number => {
+      if (arr.length === 0) return 0;
+      const sorted = [...arr].sort((a, b) => a - b);
+      const index = Math.ceil((percentile / 100) * sorted.length) - 1;
+      return sorted[Math.max(0, index)];
+    };
+
+    const percentileData = Object.entries(providerLatencies).map(([provider, latencies]) => {
+      const p50 = calculatePercentile(latencies, 50);
+      const p75 = calculatePercentile(latencies, 75);
+      const p90 = calculatePercentile(latencies, 90);
+      const p95 = calculatePercentile(latencies, 95);
+      const p99 = calculatePercentile(latencies, 99);
+
+      return {
+        provider,
+        p50: Math.round(p50),
+        p75: Math.round(p75),
+        p90: Math.round(p90),
+        p95: Math.round(p95),
+        p99: Math.round(p99),
+        count: latencies.length
+      };
+    }).sort((a, b) => a.p95 - b.p95);
+
+    // Generate CDF data for chart
+    const cdfChartData: Array<Record<string, number>> = [];
+    const latencyThresholds = [0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900];
+
+    latencyThresholds.forEach(threshold => {
+      const dataPoint: Record<string, number> = { latency: threshold };
+
+      Object.entries(providerLatencies).forEach(([provider, latencies]) => {
+        const belowThreshold = latencies.filter(l => l <= threshold).length;
+        const percentage = latencies.length > 0 ? (belowThreshold / latencies.length) * 100 : 0;
+        dataPoint[provider] = parseFloat(percentage.toFixed(1));
+      });
+
+      cdfChartData.push(dataPoint);
+    });
+
+    return {
+      percentileData,
+      cdfChartData,
+      providers: Object.keys(providerLatencies)
+    };
+  }, [traces]);
+
+  // Cost Insights - 30-day calculations
+  const costInsightsMetrics = useMemo(() => {
+    const now = Date.now();
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = now - (60 * 24 * 60 * 60 * 1000);
+
+    // Last 30 days
+    const last30DayTraces = traces.filter(t => {
+      const traceTime = new Date(t.timestamp).getTime();
+      return traceTime >= thirtyDaysAgo && traceTime <= now;
+    });
+
+    // Previous 30 days (30-60 days ago)
+    const prev30DayTraces = traces.filter(t => {
+      const traceTime = new Date(t.timestamp).getTime();
+      return traceTime >= sixtyDaysAgo && traceTime < thirtyDaysAgo;
+    });
+
+    // Spend by provider (last 30 days)
+    const providerSpend: Record<string, number> = {};
+    const prevProviderSpend: Record<string, number> = {};
+
+    last30DayTraces.forEach(trace => {
+      providerSpend[trace.provider] = (providerSpend[trace.provider] || 0) + trace.cost;
+    });
+
+    prev30DayTraces.forEach(trace => {
+      prevProviderSpend[trace.provider] = (prevProviderSpend[trace.provider] || 0) + trace.cost;
+    });
+
+    const totalSpend = Object.values(providerSpend).reduce((sum, cost) => sum + cost, 0);
+    const prevTotalSpend = Object.values(prevProviderSpend).reduce((sum, cost) => sum + cost, 0);
+
+    const spendByProvider = Object.entries(providerSpend).map(([provider, spend]) => {
+      const percentage = totalSpend > 0 ? (spend / totalSpend) * 100 : 0;
+      const prevSpend = prevProviderSpend[provider] || 0;
+      const trend = prevSpend > 0 ? ((spend - prevSpend) / prevSpend) * 100 : 0;
+
+      return {
+        provider,
+        spend: parseFloat(spend.toFixed(2)),
+        percentage: parseFloat(percentage.toFixed(1)),
+        trend: parseFloat(trend.toFixed(1))
+      };
+    }).sort((a, b) => b.spend - a.spend);
+
+    // Spend by model (last 30 days, top 10)
+    const modelSpend: Record<string, { spend: number; provider: string; requests: number }> = {};
+    const prevModelSpend: Record<string, number> = {};
+
+    last30DayTraces.forEach(trace => {
+      if (!modelSpend[trace.model]) {
+        modelSpend[trace.model] = { spend: 0, provider: trace.provider, requests: 0 };
+      }
+      modelSpend[trace.model].spend += trace.cost;
+      modelSpend[trace.model].requests++;
+    });
+
+    prev30DayTraces.forEach(trace => {
+      prevModelSpend[trace.model] = (prevModelSpend[trace.model] || 0) + trace.cost;
+    });
+
+    const spendByModel = Object.entries(modelSpend).map(([model, data]) => {
+      const percentage = totalSpend > 0 ? (data.spend / totalSpend) * 100 : 0;
+      const prevSpend = prevModelSpend[model] || 0;
+      const trend = prevSpend > 0 ? ((data.spend - prevSpend) / prevSpend) * 100 : 0;
+
+      return {
+        model,
+        provider: data.provider,
+        spend: parseFloat(data.spend.toFixed(2)),
+        percentage: parseFloat(percentage.toFixed(1)),
+        requests: data.requests,
+        trend: parseFloat(trend.toFixed(1))
+      };
+    }).sort((a, b) => b.spend - a.spend).slice(0, 10);
+
+    return {
+      spendByProvider,
+      spendByModel,
+      totalSpend: parseFloat(totalSpend.toFixed(2)),
+      prevTotalSpend: parseFloat(prevTotalSpend.toFixed(2)),
+      totalTrend: prevTotalSpend > 0 ? parseFloat((((totalSpend - prevTotalSpend) / prevTotalSpend) * 100).toFixed(1)) : 0
+    };
   }, [traces]);
 
   // Export handlers
@@ -1440,133 +1553,7 @@ export default function ObservabilityPage() {
           </CardContent>
         </Card>
 
-        {/* 3. COST INSIGHTS - Dedicated Section */}
-        <Card className="border-border-light shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-gray-900" />
-              Cost Insights
-            </CardTitle>
-            <CardDescription>Spending analysis for the last 30 days</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-2">
-              {/* Pie Chart: Spend by Provider */}
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Provider</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={costByProvider}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(entry) => `${entry.name}: $${entry.value.toFixed(0)}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {costByProvider.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: any) => `$${value.toFixed(2)}`}
-                      contentStyle={{
-                        backgroundColor: '#f2f1ed',
-                        border: '1px solid #e5e4e0',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Bar Chart: Spend by Model */}
-              <div>
-                <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Model</h3>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={costByModel}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="model" stroke="#6b7280" fontSize={11} angle={-45} textAnchor="end" height={80} />
-                    <YAxis stroke="#6b7280" fontSize={11} />
-                    <Tooltip
-                      formatter={(value: any) => `$${value.toFixed(2)}`}
-                      contentStyle={{
-                        backgroundColor: '#f2f1ed',
-                        border: '1px solid #e5e4e0',
-                        borderRadius: '8px',
-                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                      }}
-                    />
-                    <Bar dataKey="cost" fill="#000000" fillOpacity={0.6} radius={[8, 8, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            {/* Table: Top 10 Models by Spend */}
-            <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">Top Models by Spend</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border-light bg-beige-secondary">
-                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">#</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Model</th>
-                      <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Spend</th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">% of Total</th>
-                      <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Requests</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {topModelsBySpend.map((item, index) => (
-                      <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
-                        <td className="py-3 px-4 text-sm text-gray-600">{index + 1}</td>
-                        <td className="py-3 px-4 text-sm font-medium text-gray-900">{item.model}</td>
-                        <td className="py-3 px-4 text-sm text-gray-700">{item.provider}</td>
-                        <td className="text-right py-3 px-4 text-sm font-semibold text-gray-900">${item.spend.toFixed(2)}</td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-700">{item.percentage.toFixed(1)}%</td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-700">{formatNumber(item.requests)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Tenant Breakdown (Scale Only) */}
-            {tier === 'scale' && (
-              <div className="mt-6 pt-6 border-t border-border-light">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-medium text-gray-900">Tenant Breakdown</h3>
-                  <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs">Scale Only</Badge>
-                </div>
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div className="bg-beige-secondary border border-border-light rounded-lg p-4">
-                    <p className="text-xs text-gray-600 mb-1">Production</p>
-                    <p className="text-2xl font-bold text-gray-900">$1,854.30</p>
-                    <p className="text-xs text-gray-600 mt-1">60.3% of total</p>
-                  </div>
-                  <div className="bg-beige-secondary border border-border-light rounded-lg p-4">
-                    <p className="text-xs text-gray-600 mb-1">Staging</p>
-                    <p className="text-2xl font-bold text-gray-900">$892.40</p>
-                    <p className="text-xs text-gray-600 mt-1">29.0% of total</p>
-                  </div>
-                  <div className="bg-beige-secondary border border-border-light rounded-lg p-4">
-                    <p className="text-xs text-gray-600 mb-1">Development</p>
-                    <p className="text-2xl font-bold text-gray-900">$316.50</p>
-                    <p className="text-xs text-gray-600 mt-1">10.3% of total</p>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 4. PERFORMANCE MONITORING - Dedicated Section */}
+        {/* 3. PERFORMANCE MONITORING - Dedicated Section */}
         <Card className="border-border-light shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -1694,46 +1681,341 @@ export default function ObservabilityPage() {
               )}
             </div>
 
-            {/* Latency Distribution by Provider */}
+            {/* Latency CDF - Percentiles Table + Interactive Chart */}
             <div className="mt-6 pt-6 border-t border-border-light">
-              <h3 className="text-sm font-medium text-gray-900 mb-4">Latency Distribution by Provider</h3>
-              <ResponsiveContainer width="100%" height={350}>
-                <LineChart data={latencyCDFByProvider} margin={{ bottom: 30 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis
-                    dataKey="latency"
-                    stroke="#6b7280"
-                    fontSize={11}
-                    label={{ value: 'Latency (ms)', position: 'insideBottom', offset: -10 }}
-                  />
-                  <YAxis
-                    stroke="#6b7280"
-                    fontSize={11}
-                    domain={[0, 100]}
-                    label={{ value: '% of Requests', angle: -90, position: 'insideLeft' }}
-                  />
-                  <Tooltip
-                    formatter={(value: any) => `${value.toFixed(1)}%`}
-                    labelFormatter={(label) => `${label}ms`}
-                    contentStyle={{
-                      backgroundColor: '#f2f1ed',
-                      border: '1px solid #e5e4e0',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
-                    }}
-                  />
-                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="Anthropic" stroke="#000000" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="OpenAI" stroke="#1a1a1a" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Google" stroke="#333333" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="xAI" stroke="#4d4d4d" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="Cohere" stroke="#666666" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-              <div className="mt-3 text-xs text-gray-600">
-                <p>Shows the percentage of requests that complete below each latency threshold for each provider. Steeper curves indicate more consistent, faster performance.</p>
+              <h3 className="text-sm font-medium text-gray-900 mb-4">Latency Distribution (CDF) - 7-day</h3>
+
+              {/* Percentiles Table */}
+              {latencyCDFMetrics.percentileData.length > 0 ? (
+                <>
+                  <div className="overflow-x-auto mb-6">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="border-b border-border-light bg-beige-secondary">
+                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
+                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P50</th>
+                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P75</th>
+                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P90</th>
+                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P95</th>
+                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P99</th>
+                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {latencyCDFMetrics.percentileData.map((provider, index) => (
+                          <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                            <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
+                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p50}ms</td>
+                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p75}ms</td>
+                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p90}ms</td>
+                            <td className="text-right py-3 px-4 text-sm font-semibold text-gray-900">{provider.p95}ms</td>
+                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p99}ms</td>
+                            <td className="text-right py-3 px-4">
+                              {index === 0 && (
+                                <Badge style={{ backgroundColor: '#e6f7f6', color: '#299a93', borderColor: '#299a93' }}>
+                                  Winner
+                                </Badge>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* CDF Chart */}
+                  <div className="mt-6">
+                    <ResponsiveContainer width="100%" height={350}>
+                      <LineChart data={latencyCDFMetrics.cdfChartData} margin={{ bottom: 30 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis
+                          dataKey="latency"
+                          stroke="#6b7280"
+                          fontSize={11}
+                          label={{ value: 'Latency (ms)', position: 'insideBottom', offset: -10 }}
+                        />
+                        <YAxis
+                          stroke="#6b7280"
+                          fontSize={11}
+                          domain={[0, 100]}
+                          label={{ value: '% of Requests', angle: -90, position: 'insideLeft' }}
+                        />
+                        <Tooltip
+                          formatter={(value: any) => `${value}%`}
+                          labelFormatter={(label) => `${label}ms`}
+                          contentStyle={{
+                            backgroundColor: '#f2f1ed',
+                            border: '1px solid #e5e4e0',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                          }}
+                        />
+                        <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                        {latencyCDFMetrics.providers.map((provider, idx) => {
+                          const colors = ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080'];
+                          return (
+                            <Line
+                              key={provider}
+                              type="monotone"
+                              dataKey={provider}
+                              stroke={colors[idx % colors.length]}
+                              strokeWidth={2}
+                              dot={false}
+                            />
+                          );
+                        })}
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <div className="mt-3 text-xs text-gray-600">
+                      <p>CDF shows the percentage of requests completing below each latency threshold. Steeper curves = faster, more consistent performance.</p>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-600">
+                  <p className="text-sm">No latency data available for the last 7 days</p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* 4. COST INSIGHTS - 3-Panel Layout */}
+        <Card className="border-border-light shadow-md">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-gray-900" />
+              Cost Insights
+            </CardTitle>
+            <CardDescription>30-day spend analysis across providers and models</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Total Spend Overview */}
+            <div className="mb-6 p-4 bg-beige-secondary rounded-lg border border-border-light">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs text-gray-600 mb-1">Total Spend (30 days)</p>
+                  <p className="text-3xl font-bold text-gray-900">${costInsightsMetrics.totalSpend.toFixed(2)}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {costInsightsMetrics.totalTrend > 0 ? (
+                    <>
+                      <ChevronUp className="h-5 w-5 text-red-600" />
+                      <span className="text-sm font-semibold text-red-600">+{costInsightsMetrics.totalTrend}%</span>
+                    </>
+                  ) : costInsightsMetrics.totalTrend < 0 ? (
+                    <>
+                      <ChevronDown className="h-5 w-5" style={{ color: '#299a93' }} />
+                      <span className="text-sm font-semibold" style={{ color: '#299a93' }}>
+                        {costInsightsMetrics.totalTrend}%
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-sm font-semibold text-gray-600">0%</span>
+                  )}
+                  <span className="text-xs text-gray-600">vs prev 30d</span>
+                </div>
               </div>
             </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Panel 1: Spend by Provider - Pie Chart */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Provider</h3>
+                {costInsightsMetrics.spendByProvider.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <PieChart>
+                        <Pie
+                          data={costInsightsMetrics.spendByProvider}
+                          dataKey="spend"
+                          nameKey="provider"
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={90}
+                          label={(entry) => `${entry.percentage}%`}
+                        >
+                          {costInsightsMetrics.spendByProvider.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value: any) => `$${value.toFixed(2)}`}
+                          contentStyle={{
+                            backgroundColor: '#f2f1ed',
+                            border: '1px solid #e5e4e0',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                          }}
+                        />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div className="mt-4 space-y-2">
+                      {costInsightsMetrics.spendByProvider.map((provider, index) => (
+                        <div key={index} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className="w-3 h-3 rounded-full"
+                              style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+                            />
+                            <span className="text-gray-900 font-medium">{provider.provider}</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-gray-900 font-semibold">${provider.spend.toFixed(2)}</span>
+                            <span className="text-gray-600">{provider.percentage}%</span>
+                            {provider.trend !== 0 && (
+                              <div className="flex items-center gap-1">
+                                {provider.trend > 0 ? (
+                                  <ChevronUp className="h-4 w-4 text-red-600" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" style={{ color: '#299a93' }} />
+                                )}
+                                <span
+                                  className="text-xs font-medium"
+                                  style={{ color: provider.trend > 0 ? '#dc2626' : '#299a93' }}
+                                >
+                                  {Math.abs(provider.trend)}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-600">
+                    <p className="text-sm">No spend data available</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Panel 2: Spend by Model - Horizontal Bar Chart */}
+              <div>
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Top 10 Models by Spend</h3>
+                {costInsightsMetrics.spendByModel.length > 0 ? (
+                  <>
+                    <ResponsiveContainer width="100%" height={280}>
+                      <BarChart data={costInsightsMetrics.spendByModel} layout="vertical" margin={{ left: 80 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis type="number" stroke="#6b7280" fontSize={11} />
+                        <YAxis
+                          type="category"
+                          dataKey="model"
+                          stroke="#6b7280"
+                          fontSize={11}
+                          width={70}
+                        />
+                        <Tooltip
+                          formatter={(value: any) => `$${value.toFixed(2)}`}
+                          contentStyle={{
+                            backgroundColor: '#f2f1ed',
+                            border: '1px solid #e5e4e0',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                          }}
+                        />
+                        <Bar dataKey="spend" fill="#000000" radius={[0, 4, 4, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                    <div className="mt-4 space-y-2">
+                      {costInsightsMetrics.spendByModel.slice(0, 5).map((model, index) => (
+                        <div key={index} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-600">{index + 1}.</span>
+                            <span className="text-gray-900 font-medium">{model.model}</span>
+                            <span className="text-gray-600">({model.provider})</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span className="text-gray-900 font-semibold">${model.spend.toFixed(2)}</span>
+                            <span className="text-gray-600">{model.percentage}%</span>
+                            {model.trend !== 0 && (
+                              <div className="flex items-center gap-1">
+                                {model.trend > 0 ? (
+                                  <ChevronUp className="h-3 w-3 text-red-600" />
+                                ) : (
+                                  <ChevronDown className="h-3 w-3" style={{ color: '#299a93' }} />
+                                )}
+                                <span
+                                  className="text-xs font-medium"
+                                  style={{ color: model.trend > 0 ? '#dc2626' : '#299a93' }}
+                                >
+                                  {Math.abs(model.trend)}%
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-gray-600">
+                    <p className="text-sm">No model spend data available</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Panel 3: Tenant Breakdown (Scale tier only) */}
+            {tier === 'scale' && (
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-medium text-gray-900">Spend by Tenant</h3>
+                  <select
+                    value={selectedTenant}
+                    onChange={(e) => setSelectedTenant(e.target.value)}
+                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
+                  >
+                    <option value="all">All Tenants</option>
+                    {mockTenants.map((tenant) => (
+                      <option key={tenant.id} value={tenant.id}>
+                        {tenant.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="bg-beige-secondary rounded-lg p-4 border border-border-light">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">Tenant Spend</p>
+                      <p className="text-xl font-bold text-gray-900">
+                        ${selectedTenant === 'all'
+                          ? costInsightsMetrics.totalSpend.toFixed(2)
+                          : (costInsightsMetrics.totalSpend * 0.35).toFixed(2)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">% of Total</p>
+                      <p className="text-xl font-bold text-gray-900">
+                        {selectedTenant === 'all' ? '100' : '35'}%
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-600 mb-1">Trend</p>
+                      <div className="flex items-center gap-1">
+                        {costInsightsMetrics.totalTrend > 0 ? (
+                          <>
+                            <ChevronUp className="h-5 w-5 text-red-600" />
+                            <span className="text-xl font-bold text-red-600">+{costInsightsMetrics.totalTrend}%</span>
+                          </>
+                        ) : costInsightsMetrics.totalTrend < 0 ? (
+                          <>
+                            <ChevronDown className="h-5 w-5" style={{ color: '#299a93' }} />
+                            <span className="text-xl font-bold" style={{ color: '#299a93' }}>
+                              {costInsightsMetrics.totalTrend}%
+                            </span>
+                          </>
+                        ) : (
+                          <span className="text-xl font-bold text-gray-600">0%</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
