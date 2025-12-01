@@ -309,6 +309,7 @@ export default function ObservabilityPage() {
   const [traces, setTraces] = useState<RequestTrace[]>(() => generateMockTraces(150));
   const [selectedTrace, setSelectedTrace] = useState<RequestTrace | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTenant, setSelectedTenant] = useState<string>('all');
   const [filters, setFilters] = useState({
     provider: '',
     model: '',
@@ -352,11 +353,20 @@ export default function ObservabilityPage() {
   const tier = tenant?.plan || 'scale'; // Temporarily default to 'scale' for development
   const tierConfigs = {
     developer: { enabled: false, retention: 0, maxRequests: 0, fullFeatures: false },
-    growth: { enabled: true, retention: 7, maxRequests: 1000, fullFeatures: false },
+    growth: { enabled: true, retention: 30, maxRequests: 1000, fullFeatures: false },
     scale: { enabled: true, retention: 90, maxRequests: 100000, fullFeatures: true },
     trial: { enabled: true, retention: 14, maxRequests: 50000, fullFeatures: true },
   };
   const tierConfig = tierConfigs[tier as keyof typeof tierConfigs] || tierConfigs.scale;
+
+  // Mock tenant list for Scale tier multi-tenant dropdown
+  const mockTenants = [
+    { id: 'all', name: 'All tenants' },
+    { id: 'tenant-1', name: 'Acme Corp' },
+    { id: 'tenant-2', name: 'TechStart Inc' },
+    { id: 'tenant-3', name: 'Global Systems' },
+    { id: 'tenant-4', name: 'Innovation Labs' },
+  ];
 
   // Redirect if tier doesn't have access
   if (!tenantLoading && !tierConfig.enabled) {
@@ -492,14 +502,22 @@ export default function ObservabilityPage() {
         '24h': 86400000,
         '7d': 604800000,
         '30d': 2592000000,
+        '90d': 7776000000,
       };
       const rangeMs = timeRanges[filters.timeRange as keyof typeof timeRanges] || 86400000;
 
       if (now - traceTime > rangeMs) return false;
 
+      // Tenant filter (Scale tier only) - In production, traces would have a tenant_id field
+      // For now, we'll use a mock implementation that simulates filtering
+      if (selectedTenant !== 'all' && tier === 'scale') {
+        // In a real implementation, this would check: trace.tenant_id !== selectedTenant
+        // For the mock, we'll just show all traces since they don't have tenant_id yet
+      }
+
       return true;
     }).slice(0, tierConfig.maxRequests);
-  }, [traces, searchQuery, filters, tierConfig.maxRequests]);
+  }, [traces, searchQuery, filters, tierConfig.maxRequests, selectedTenant, tier]);
 
   // Metrics
   const metrics = useMemo(() => {
@@ -625,86 +643,148 @@ export default function ObservabilityPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900 font-inter">
-              Observability
-            </h1>
-            <p className="text-gray-700 mt-1 font-inter font-medium">
-              Monitor and debug LLM requests in real-time
-            </p>
+        <div className="flex flex-col gap-4">
+          {/* Title Row */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900 font-inter">
+                Observability
+              </h1>
+              <p className="text-gray-700 mt-1 font-inter font-medium">
+                Monitor and debug LLM requests in real-time
+              </p>
+            </div>
           </div>
-          <div className="flex gap-3">
-            {enableFullTracing ? (
-              <>
-                <div className="flex items-center gap-2">
-                  <div className="relative">
-                    <button
-                      className="p-1 hover:bg-beige-secondary rounded-md transition-colors"
-                      onMouseEnter={() => setShowTracingInfo(true)}
-                      onMouseLeave={() => setShowTracingInfo(false)}
-                      onClick={() => setShowTracingInfo(!showTracingInfo)}
-                    >
-                      <AlertCircle className="h-5 w-5 text-gray-600" />
-                    </button>
-                    {showTracingInfo && (
-                      <div className="absolute top-full left-0 mt-2 w-80 bg-beige-primary border border-border-light rounded-lg shadow-lg p-4 z-50">
-                        <div className="flex items-start gap-3">
-                          <AlertCircle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
-                          <div>
-                            <h4 className="text-sm font-semibold text-gray-900 mb-1">
-                              Full Request Tracing Enabled
-                            </h4>
-                            <p className="text-xs text-gray-600">
-                              Prompts, completions, and token streams are now being stored. Recommended only for debugging. All traces automatically deleted after 30 days.
-                            </p>
+
+          {/* Controls Row */}
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Time Range Selector */}
+              <Select
+                value={filters.timeRange}
+                onChange={(e) => setFilters({ ...filters, timeRange: e.target.value })}
+                className="w-32"
+              >
+                <option value="1h">1 hour</option>
+                <option value="24h">24 hours</option>
+                <option value="7d">7 days</option>
+                <option value="30d">30 days</option>
+                <option value="90d">90 days</option>
+              </Select>
+
+              {/* Retention Badge */}
+              {tier === 'growth' ? (
+                <a
+                  href="/pricing"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer text-sm font-medium"
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>30 days</span>
+                  <span className="text-blue-600">·</span>
+                  <span className="text-blue-600">Upgrade to 90 days (Scale)</span>
+                </a>
+              ) : (
+                <Badge className="bg-green-50 text-green-700 border-green-200 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  <span>90 days retention</span>
+                </Badge>
+              )}
+
+              {/* Multi-Tenant Dropdown (Scale Only) */}
+              {tier === 'scale' ? (
+                <Select
+                  value={selectedTenant}
+                  onChange={(e) => setSelectedTenant(e.target.value)}
+                  className="w-48"
+                >
+                  {mockTenants.map((t) => (
+                    <option key={t.id} value={t.id}>{t.name}</option>
+                  ))}
+                </Select>
+              ) : (
+                <div className="relative group">
+                  <Select
+                    disabled
+                    className="w-48 cursor-not-allowed opacity-60"
+                  >
+                    <option>All tenants</option>
+                  </Select>
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-beige-primary border border-border-light rounded-lg shadow-lg p-3 z-50">
+                    <p className="text-xs text-gray-600">
+                      Multi-tenant view available on Scale plan
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 items-center flex-wrap">
+              {enableFullTracing ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="relative">
+                      <button
+                        className="p-1 hover:bg-beige-secondary rounded-md transition-colors"
+                        onMouseEnter={() => setShowTracingInfo(true)}
+                        onMouseLeave={() => setShowTracingInfo(false)}
+                        onClick={() => setShowTracingInfo(!showTracingInfo)}
+                      >
+                        <AlertCircle className="h-5 w-5 text-gray-600" />
+                      </button>
+                      {showTracingInfo && (
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-beige-primary border border-border-light rounded-lg shadow-lg p-4 z-50">
+                          <div className="flex items-start gap-3">
+                            <AlertCircle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900 mb-1">
+                                Full Request Tracing Enabled
+                              </h4>
+                              <p className="text-xs text-gray-600">
+                                Prompts, completions, and token streams are now being stored. Recommended only for debugging. All traces automatically deleted after {tierConfig.retention} days.
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="shadow-md text-red-600 border-red-300 hover:bg-red-50"
+                      onClick={handleDeleteAllTraces}
+                    >
+                      Delete All Traces
+                    </Button>
                   </div>
                   <Button
                     variant="outline"
-                    className="shadow-md text-red-600 border-red-300 hover:bg-red-50"
-                    onClick={handleDeleteAllTraces}
+                    className="shadow-md"
+                    onClick={() => setEnableFullTracing(false)}
                   >
-                    Delete All Traces
+                    Disable Full Tracing
                   </Button>
-                </div>
+                </>
+              ) : (
                 <Button
                   variant="outline"
                   className="shadow-md"
-                  onClick={() => setEnableFullTracing(false)}
+                  onClick={() => setEnableFullTracing(true)}
                 >
-                  Disable Full Tracing
+                  Enable Full Tracing
                 </Button>
-              </>
-            ) : (
-              <Button
-                variant="outline"
-                className="shadow-md"
-                onClick={() => setEnableFullTracing(true)}
-              >
-                Enable Full Tracing
-              </Button>
-            )}
-            {tierConfig.fullFeatures && (
-              <>
-                <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export CSV
-                </Button>
-                <Button variant="outline" className="shadow-md" onClick={handleExportJSON}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Export JSON
-                </Button>
-              </>
-            )}
-            {!tierConfig.fullFeatures && (
-              <Badge className="bg-blue-50 text-blue-700 border-blue-200">
-                Growth Plan • Limited Features
-              </Badge>
-            )}
+              )}
+              {tierConfig.fullFeatures && (
+                <>
+                  <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export CSV
+                  </Button>
+                  <Button variant="outline" className="shadow-md" onClick={handleExportJSON}>
+                    <Download className="h-4 w-4 mr-2" />
+                    Export JSON
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
