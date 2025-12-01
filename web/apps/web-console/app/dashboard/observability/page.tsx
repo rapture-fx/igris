@@ -906,24 +906,6 @@ export default function ObservabilityPage() {
                 <option value="90d">90 days</option>
               </Select>
 
-              {/* Retention Badge */}
-              {tier === 'growth' ? (
-                <a
-                  href="/pricing"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer text-sm font-medium"
-                >
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>30 days</span>
-                  <span className="text-blue-600">·</span>
-                  <span className="text-blue-600">Upgrade to 90 days (Scale)</span>
-                </a>
-              ) : (
-                <Badge className="bg-green-50 text-green-700 border-green-200 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm">
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  <span>90 days retention</span>
-                </Badge>
-              )}
-
               {/* Multi-Tenant Dropdown (Scale Only) */}
               {tier === 'scale' ? (
                 <Select
@@ -1026,9 +1008,8 @@ export default function ObservabilityPage() {
         <Card className="border-border-light shadow-md bg-gradient-to-br from-beige-primary to-beige-secondary">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-gray-900 animate-pulse" />
+              <Activity className="h-5 w-5 text-gray-900" />
               Real-Time Metrics
-              <Badge className="bg-green-50 text-green-700 border-green-200 text-xs ml-2">LIVE</Badge>
             </CardTitle>
             <CardDescription>Updates every 5 seconds</CardDescription>
           </CardHeader>
@@ -1970,7 +1951,7 @@ export default function ObservabilityPage() {
                   <select
                     value={selectedTenant}
                     onChange={(e) => setSelectedTenant(e.target.value)}
-                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-beige-primary focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-beige-primary focus:outline-none"
                   >
                     <option value="all">All Tenants</option>
                     {mockTenants.map((tenant) => (
