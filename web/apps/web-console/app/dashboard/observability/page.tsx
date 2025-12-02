@@ -343,14 +343,14 @@ export default function ObservabilityPage() {
   const [traceNotes, setTraceNotes] = useState<Record<string, Array<{ id: string; author: string; timestamp: string; content: string }>>>({});
   const [newNoteContent, setNewNoteContent] = useState('');
 
-  // Real-time metrics state (updates every 5s)
+  // Real-time metrics state
   const [realTimeMetrics, setRealTimeMetrics] = useState({
-    requestsPerSecond: 12.5,
-    p50Latency: 145,
-    p95Latency: 320,
-    costPerHour: 2.34,
-    activeProviders: 4,
-    requestsSparkline: Array.from({ length: 12 }, (_, i) => ({ value: 10 + Math.random() * 10 })),
+    requestsPerSecond: 0,
+    p50Latency: 0,
+    p95Latency: 0,
+    costPerHour: 0,
+    activeProviders: 0,
+    requestsSparkline: [],
   });
 
   // Tier-based access control
@@ -378,20 +378,39 @@ export default function ObservabilityPage() {
     return null;
   }
 
-  // Real-time metrics update every 5 seconds
+  // Fetch real-time metrics from backend
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeMetrics({
-        requestsPerSecond: 8 + Math.random() * 10,
-        p50Latency: 120 + Math.random() * 80,
-        p95Latency: 280 + Math.random() * 100,
-        costPerHour: 2 + Math.random() * 1.5,
-        activeProviders: 3 + Math.floor(Math.random() * 3),
-        requestsSparkline: Array.from({ length: 12 }, (_, i) => ({ value: 8 + Math.random() * 10 })),
-      });
-    }, 5000);
+    const fetchRealTimeMetrics = async () => {
+      if (!tenant?.tenant_id) return;
+
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const response = await fetch(`${apiUrl}/v1/metrics/realtime`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setRealTimeMetrics({
+            requestsPerSecond: data.requests_per_second || 0,
+            p50Latency: data.p50_latency || 0,
+            p95Latency: data.p95_latency || 0,
+            costPerHour: data.cost_per_hour || 0,
+            activeProviders: data.active_providers || 0,
+            requestsSparkline: data.sparkline || [],
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching real-time metrics:', error);
+      }
+    };
+
+    fetchRealTimeMetrics();
+    const interval = setInterval(fetchRealTimeMetrics, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [tenant?.tenant_id]);
 
   // Fetch traces from backend
   useEffect(() => {

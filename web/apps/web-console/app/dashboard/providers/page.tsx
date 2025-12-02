@@ -36,59 +36,10 @@ const mockTenants = [
   { id: 'tenant-3', name: 'Global Enterprises' },
 ];
 
-const mockProviders = [
-  {
-    id: 'mock-1',
-    provider: 'openai',
-    key_id: 'Production API Key',
-    masked_key: 'sk-proj-...kL9X',
-    status: 'active',
-    last_used: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2 hours ago
-    created_at: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'mock-2',
-    provider: 'anthropic',
-    key_id: 'Claude Production',
-    masked_key: 'sk-ant-...mN4P',
-    status: 'active',
-    last_used: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(), // 5 hours ago
-    created_at: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'mock-3',
-    provider: 'google',
-    key_id: 'Gemini Dev',
-    masked_key: 'AIza...qR7S',
-    status: 'active',
-    last_used: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // 1 day ago
-    created_at: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'mock-4',
-    provider: 'mistral',
-    key_id: '',
-    masked_key: 'mst-...tU8V',
-    status: 'active',
-    last_used: null,
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'mock-5',
-    provider: 'xai',
-    key_id: 'Grok Testing',
-    masked_key: 'xai-...wW2X',
-    status: 'inactive',
-    last_used: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days ago
-    created_at: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
-
 export default function ProvidersPage() {
   const { data: providers, isLoading } = useVaultKeys();
 
-  // Use mock data if no real providers or combine them
-  const displayProviders = providers && providers.length > 0 ? providers : mockProviders;
+  const displayProviders = providers || [];
   const { data: tenant } = useTenant();
   const addProviderMutation = useAddVaultKey();
   const deleteProviderMutation = useDeleteVaultKey();
