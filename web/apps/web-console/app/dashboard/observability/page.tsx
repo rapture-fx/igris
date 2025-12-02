@@ -307,7 +307,8 @@ export default function ObservabilityPage() {
   const { data: tenant, isLoading: tenantLoading } = useTenant();
 
   // State
-  const [traces, setTraces] = useState<RequestTrace[]>(() => generateMockTraces(150));
+  const [traces, setTraces] = useState<RequestTrace[]>([]);
+  const [isLoadingTraces, setIsLoadingTraces] = useState(true);
   const [selectedTrace, setSelectedTrace] = useState<RequestTrace | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenant, setSelectedTenant] = useState<string>('all');
@@ -392,7 +393,39 @@ export default function ObservabilityPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Fetch traces from backend
+  useEffect(() => {
+    const fetchTraces = async () => {
+      if (!tenant?.tenant_id) return;
 
+      setIsLoadingTraces(true);
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const response = await fetch(`${apiUrl}/v1/traces?limit=150`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch traces');
+
+        const data = await response.json();
+        setTraces(data.traces || []);
+      } catch (error) {
+        console.error('Error fetching traces:', error);
+        // Fallback to mock data on error
+        setTraces(generateMockTraces(150));
+      } finally {
+        setIsLoadingTraces(false);
+      }
+    };
+
+    fetchTraces();
+
+    // Refresh traces every 30 seconds
+    const interval = setInterval(fetchTraces, 30000);
+    return () => clearInterval(interval);
+  }, [tenant?.tenant_id]);
 
   // Filtered traces
   const filteredTraces = useMemo(() => {

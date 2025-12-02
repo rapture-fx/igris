@@ -29,6 +29,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	vaultHandler := handlers.NewVaultHandler(config.KeyVault, config.DB)
 	policyHandler := handlers.NewPolicyHandler(config.DB)
 	usageHandler := handlers.NewUsageHandler(config.DB)
+	tracesHandler := handlers.NewTracesHandler(config.DB)
 
 	// API v1 group
 	v1 := app.Group("/v1")
@@ -126,17 +127,31 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	log.Println("[Routes] ✓ Registered 2 audit log endpoints")
 
 	// ========================================================================
+	// TRACES ROUTES (Require tenant authentication)
+	// ========================================================================
+
+	traces := v1.Group("/traces")
+	traces.Use(config.TenantAuth.Authenticate())
+
+	// Trace access
+	traces.Get("/", tracesHandler.ListTraces)           // GET /v1/traces
+	traces.Get("/summary", tracesHandler.GetTraceSummary) // GET /v1/traces/summary
+
+	log.Println("[Routes] ✓ Registered 2 trace endpoints")
+
+	// ========================================================================
 	// SUMMARY
 	// ========================================================================
 
 	log.Println("[Routes] ═══════════════════════════════════════════════════════")
 	log.Println("[Routes] Phase 14 Multi-Tenancy Routes Registration Complete")
 	log.Println("[Routes] ═══════════════════════════════════════════════════════")
-	log.Println("[Routes] Total endpoints registered: 21")
+	log.Println("[Routes] Total endpoints registered: 23")
 	log.Println("[Routes]   - Tenant Management: 7 endpoints")
 	log.Println("[Routes]   - BYOK Vault: 6 endpoints")
 	log.Println("[Routes]   - Policy Management: 4 endpoints")
 	log.Println("[Routes]   - Usage & Audit: 4 endpoints")
+	log.Println("[Routes]   - Traces: 2 endpoints")
 	log.Println("[Routes] ═══════════════════════════════════════════════════════")
 }
 
