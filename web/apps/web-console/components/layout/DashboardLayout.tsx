@@ -26,7 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen bg-beige-primary m-0 p-0 overflow-x-hidden">
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
-      <div className="flex m-0 p-0 pt-16">
+      <div className="flex m-0 p-0 pt-12">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 md:ml-64 overflow-x-hidden">
