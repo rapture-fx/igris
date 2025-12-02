@@ -2,9 +2,11 @@
 
 export const dynamic = 'force-dynamic';
 
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUsageSummary } from '@/hooks/useUsage';
+import { useTenant } from '@/hooks/useTenant';
 import { formatCurrency, formatNumber, formatLatency } from '@/utils/helpers';
 import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -78,6 +80,43 @@ function MetricCard({
 
 export default function DashboardPage() {
   const { data: summary, isLoading } = useUsageSummary();
+  const { data: tenant } = useTenant();
+  const [providerUptime, setProviderUptime] = useState([
+    { provider: 'OpenAI', uptime: '99.8%', status: 'success' },
+    { provider: 'Anthropic', uptime: '99.9%', status: 'success' },
+    { provider: 'Google', uptime: '98.2%', status: 'warning' },
+  ]);
+
+  // Fetch real uptime from backend
+  useEffect(() => {
+    const fetchUptime = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const response = await fetch(`${apiUrl}/internal/metrics/uptime`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.providers) {
+            setProviderUptime(data.providers);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching uptime:', error);
+        // Keep fallback data on error
+      }
+    };
+
+    if (tenant?.tenant_id) {
+      fetchUptime();
+      // Refresh every 5 minutes
+      const interval = setInterval(fetchUptime, 5 * 60 * 1000);
+      return () => clearInterval(interval);
+    }
+  }, [tenant?.tenant_id]);
 
   if (isLoading) {
     return (
@@ -235,11 +274,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {[
-                  { provider: 'OpenAI', uptime: '99.8%', status: 'success' },
-                  { provider: 'Anthropic', uptime: '99.9%', status: 'success' },
-                  { provider: 'Google', uptime: '98.2%', status: 'warning' },
-                ].map((item, i) => (
+                {providerUptime.map((item, i) => (
                   <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border-light">
                     <span className="text-sm font-medium text-gray-900">{item.provider}</span>
                     <div className="flex items-center gap-2">
