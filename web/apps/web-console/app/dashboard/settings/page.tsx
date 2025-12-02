@@ -163,6 +163,32 @@ export default function SettingsPage() {
     }
   };
 
+  // Handle plan upgrade
+  const handlePlanUpgrade = async () => {
+    if (!confirm('Redirect to billing portal to change your plan?')) {
+      return;
+    }
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+      const response = await fetch(`${apiUrl}/v1/billing/portal`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to create billing portal session');
+
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error creating billing portal:', error);
+      alert('Failed to open billing portal. Please contact support.');
+    }
+  };
+
   const handleLogout = async () => {
     await logout();
     router.push('/auth/login');
@@ -368,7 +394,7 @@ export default function SettingsPage() {
                         Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                       </p>
                     </div>
-                    <Button variant="outline" className="shadow-md">
+                    <Button variant="outline" className="shadow-md" onClick={handlePlanUpgrade}>
                       {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
                     </Button>
                   </div>
