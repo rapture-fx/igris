@@ -157,6 +157,9 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 
 // RegisterAuthRoutes registers authentication endpoints (optional)
 func RegisterAuthRoutes(app *fiber.App, jwtManager *security.JWTManager, db *sql.DB) {
+	// Import auth package for TOTP
+	authManager := handlers.NewAuthHandler(db)
+
 	auth := app.Group("/v1/auth")
 
 	// Login endpoint (generates JWT from API key)
@@ -282,7 +285,17 @@ func RegisterAuthRoutes(app *fiber.App, jwtManager *security.JWTManager, db *sql
 		})
 	})
 
-	log.Println("[Routes] ✓ Registered 3 authentication endpoints (/v1/auth)")
+	// 2FA endpoints (require authentication)
+	twoFA := auth.Group("/2fa")
+	twoFA.Use(middleware.NewTenantAuth(jwtManager, db).Authenticate())
+
+	twoFA.Get("/status", authManager.Get2FAStatus)         // GET /v1/auth/2fa/status
+	twoFA.Post("/generate", authManager.Generate2FASecret) // POST /v1/auth/2fa/generate
+	twoFA.Post("/enable", authManager.Enable2FA)           // POST /v1/auth/2fa/enable
+	twoFA.Post("/disable", authManager.Disable2FA)         // POST /v1/auth/2fa/disable
+	twoFA.Post("/verify", authManager.Verify2FA)           // POST /v1/auth/2fa/verify
+
+	log.Println("[Routes] ✓ Registered 8 authentication endpoints (/v1/auth)")
 }
 
 // SetupMultiTenancy is a convenience function to set up all multi-tenancy routes
