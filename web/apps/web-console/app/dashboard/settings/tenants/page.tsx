@@ -248,10 +248,11 @@ export default function TenantsPage() {
                                       ? 'bg-red-600'
                                       : (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 >= 70
                                       ? 'bg-yellow-500'
-                                      : 'bg-green-600'
+                                      : ''
                                   }`}
                                   style={{
                                     width: `${Math.min((tenantItem.monthly_spend / tenantItem.budget_limit) * 100, 100)}%`,
+                                    backgroundColor: (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 < 70 ? '#299a93' : undefined
                                   }}
                                 />
                               </div>

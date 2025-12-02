@@ -346,9 +346,12 @@ export default function SettingsPage() {
                           ? 'bg-red-600'
                           : budgetPercentage >= 70
                           ? 'bg-yellow-500'
-                          : 'bg-green-600'
+                          : ''
                       }`}
-                      style={{ width: `${Math.min(budgetPercentage, 100)}%` }}
+                      style={{
+                        width: `${Math.min(budgetPercentage, 100)}%`,
+                        backgroundColor: budgetPercentage < 70 ? '#299a93' : undefined
+                      }}
                     />
                   </div>
                   <div className="flex items-center justify-between text-xs text-gray-600">
@@ -357,9 +360,11 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full shadow-md">
-                  Save Budget Settings
-                </Button>
+                <div className="flex justify-end">
+                  <Button variant="outline" className="shadow-md">
+                    Save Budget Settings
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
