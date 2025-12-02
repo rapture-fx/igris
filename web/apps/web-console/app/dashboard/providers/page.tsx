@@ -126,7 +126,6 @@ export default function ProvidersPage() {
     await addProviderMutation.mutateAsync({
       provider: newProvider,
       api_key: newApiKey,
-      name: newName,
     });
 
     setShowAddDialog(false);

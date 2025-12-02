@@ -318,7 +318,7 @@ export default function UsagePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(usage?.top_models || []).map((model: any, index: number) => (
+                      {((usage as any)?.top_models || []).map((model: any, index: number) => (
                         <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
                           <td className="py-3 px-4 font-medium text-gray-900">
                             {model.model_name}
