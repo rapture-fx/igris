@@ -68,38 +68,7 @@ export default function TenantsPage() {
   const [budgetAmount, setBudgetAmount] = useState('');
   const [tenantHardCap, setTenantHardCap] = useState(false);
 
-  // Mock data - in production, fetch from API
-  const [tenants, setTenants] = useState<Tenant[]>([
-    {
-      id: 'tenant-acme-corp',
-      name: 'Acme Corp',
-      description: 'Production environment',
-      created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'active',
-      monthly_spend: 1247.53,
-      budget_limit: 5000,
-      request_count: 125430,
-    },
-    {
-      id: 'tenant-techstart',
-      name: 'TechStart Inc',
-      description: 'Staging environment',
-      created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'active',
-      monthly_spend: 342.18,
-      budget_limit: 1000,
-      request_count: 34210,
-    },
-    {
-      id: 'tenant-global-sys',
-      name: 'Global Systems',
-      description: 'Development',
-      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'active',
-      monthly_spend: 89.42,
-      request_count: 8940,
-    },
-  ]);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
 
   const handleCreateTenant = async () => {
     if (!newTenantName.trim()) return;
