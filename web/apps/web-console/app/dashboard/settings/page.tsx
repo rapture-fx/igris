@@ -52,6 +52,7 @@ export default function SettingsPage() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [usageAlerts, setUsageAlerts] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [is2FALoading, setIs2FALoading] = useState(false);
   const [slackWebhook, setSlackWebhook] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [globalBudget, setGlobalBudget] = useState('50000');
@@ -61,6 +62,106 @@ export default function SettingsPage() {
   const currentSpend = 18427;
   const budgetNumber = parseFloat(globalBudget) || 0;
   const budgetPercentage = budgetNumber > 0 ? (currentSpend / budgetNumber) * 100 : 0;
+
+  // Fetch 2FA status on mount
+  useEffect(() => {
+    const fetch2FAStatus = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const response = await fetch(`${apiUrl}/v1/auth/2fa/status`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTwoFactorEnabled(data.enabled || false);
+        }
+      } catch (error) {
+        console.error('Error fetching 2FA status:', error);
+      }
+    };
+
+    if (tenant?.tenant_id) {
+      fetch2FAStatus();
+    }
+  }, [tenant?.tenant_id]);
+
+  // Handle 2FA toggle
+  const handle2FAToggle = async (enabled: boolean) => {
+    setIs2FALoading(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+
+      if (enabled) {
+        // Generate secret first
+        const generateResponse = await fetch(`${apiUrl}/v1/auth/2fa/generate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (!generateResponse.ok) throw new Error('Failed to generate 2FA secret');
+
+        const { secret, qr_code_url } = await generateResponse.json();
+
+        // Prompt user for verification code
+        const code = prompt('Enter the 6-digit code from your authenticator app:');
+        if (!code) {
+          setIs2FALoading(false);
+          return;
+        }
+
+        // Enable 2FA
+        const enableResponse = await fetch(`${apiUrl}/v1/auth/2fa/enable`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ secret, code }),
+        });
+
+        if (!enableResponse.ok) {
+          throw new Error('Invalid verification code');
+        }
+
+        setTwoFactorEnabled(true);
+        alert('2FA enabled successfully');
+      } else {
+        // Disable 2FA
+        const code = prompt('Enter your 6-digit 2FA code to disable:');
+        if (!code) {
+          setIs2FALoading(false);
+          return;
+        }
+
+        const response = await fetch(`${apiUrl}/v1/auth/2fa/disable`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Invalid 2FA code');
+        }
+
+        setTwoFactorEnabled(false);
+        alert('2FA disabled successfully');
+      }
+    } catch (error) {
+      console.error('Error toggling 2FA:', error);
+      alert('Failed to update 2FA: ' + (error as Error).message);
+      setTwoFactorEnabled(!enabled);
+    } finally {
+      setIs2FALoading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -433,7 +534,8 @@ export default function SettingsPage() {
                   <Switch
                     id="twoFactor"
                     checked={twoFactorEnabled}
-                    onCheckedChange={setTwoFactorEnabled}
+                    onCheckedChange={handle2FAToggle}
+                    disabled={is2FALoading}
                   />
                 </div>
               </CardContent>
