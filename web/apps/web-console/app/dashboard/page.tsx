@@ -12,36 +12,6 @@ import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock } from 'lucide-
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 
-// Mock data for charts (replace with real data from API)
-const requestsData = [
-  { time: '00:00', requests: 120 },
-  { time: '04:00', requests: 80 },
-  { time: '08:00', requests: 200 },
-  { time: '12:00', requests: 350 },
-  { time: '16:00', requests: 280 },
-  { time: '20:00', requests: 150 },
-];
-
-const providerCostData = [
-  { provider: 'OpenAI', cost: 45.20 },
-  { provider: 'Anthropic', cost: 32.50 },
-  { provider: 'Google', cost: 18.30 },
-  { provider: 'Cohere', cost: 12.00 },
-  { provider: 'xAI', cost: 8.50 },
-  { provider: 'Mistral', cost: 6.20 },
-  { provider: 'Together', cost: 4.80 },
-  { provider: 'Replicate', cost: 3.10 },
-];
-
-const latencyData = [
-  { time: '00:00', latency: 120 },
-  { time: '04:00', latency: 95 },
-  { time: '08:00', latency: 110 },
-  { time: '12:00', latency: 130 },
-  { time: '16:00', latency: 105 },
-  { time: '20:00', latency: 90 },
-];
-
 function MetricCard({
   title,
   value,
@@ -81,41 +51,60 @@ function MetricCard({
 export default function DashboardPage() {
   const { data: summary, isLoading } = useUsageSummary();
   const { data: tenant } = useTenant();
-  const [providerUptime, setProviderUptime] = useState([
-    { provider: 'OpenAI', uptime: '99.8%', status: 'success' },
-    { provider: 'Anthropic', uptime: '99.9%', status: 'success' },
-    { provider: 'Google', uptime: '98.2%', status: 'warning' },
-  ]);
 
-  // Fetch real uptime from backend
+  // Real data from APIs
+  const [providerUptime, setProviderUptime] = useState<Array<{provider: string, uptime: string, status: string}>>([]);
+  const [requestsData, setRequestsData] = useState<Array<{time: string, requests: number}>>([]);
+  const [latencyData, setLatencyData] = useState<Array<{time: string, latency: number}>>([]);
+  const [providerCostData, setProviderCostData] = useState<Array<{provider: string, cost: number}>>([]);
+
+  // Fetch dashboard metrics from backend
   useEffect(() => {
-    const fetchUptime = async () => {
+    const fetchMetrics = async () => {
+      if (!tenant?.tenant_id) return;
+
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
-        const response = await fetch(`${apiUrl}/internal/metrics/uptime`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-        });
+        const authHeaders = {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        };
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.providers) {
-            setProviderUptime(data.providers);
-          }
+        // Fetch uptime
+        const uptimeRes = await fetch(`${apiUrl}/internal/metrics/uptime`, { headers: authHeaders });
+        if (uptimeRes.ok) {
+          const data = await uptimeRes.json();
+          if (data.providers) setProviderUptime(data.providers);
+        }
+
+        // Fetch requests timeline
+        const requestsRes = await fetch(`${apiUrl}/v1/usage/requests-timeline`, { headers: authHeaders });
+        if (requestsRes.ok) {
+          const data = await requestsRes.json();
+          if (data.timeline) setRequestsData(data.timeline);
+        }
+
+        // Fetch latency data
+        const latencyRes = await fetch(`${apiUrl}/v1/usage/latency-timeline`, { headers: authHeaders });
+        if (latencyRes.ok) {
+          const data = await latencyRes.json();
+          if (data.timeline) setLatencyData(data.timeline);
+        }
+
+        // Fetch provider costs
+        const costsRes = await fetch(`${apiUrl}/v1/usage/provider-costs`, { headers: authHeaders });
+        if (costsRes.ok) {
+          const data = await costsRes.json();
+          if (data.providers) setProviderCostData(data.providers);
         }
       } catch (error) {
-        console.error('Error fetching uptime:', error);
-        // Keep fallback data on error
+        console.error('Error fetching dashboard metrics:', error);
       }
     };
 
-    if (tenant?.tenant_id) {
-      fetchUptime();
-      // Refresh every 5 minutes
-      const interval = setInterval(fetchUptime, 5 * 60 * 1000);
-      return () => clearInterval(interval);
-    }
+    fetchMetrics();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchMetrics, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, [tenant?.tenant_id]);
 
   if (isLoading) {
@@ -148,25 +137,25 @@ export default function DashboardPage() {
             value={formatNumber(summary?.total_requests || 0)}
             description="Last 24 hours"
             icon={Activity}
-            trend="+12.5%"
+            trend={summary?.requests_trend}
           />
           <MetricCard
             title="Spend This Month"
             value={formatCurrency(summary?.monthly_spend || 0)}
             description="Current billing period"
             icon={DollarSign}
-            trend="+8.3%"
+            trend={summary?.spend_trend}
           />
           <MetricCard
             title="Avg Latency"
             value={formatLatency(summary?.avg_latency || 0)}
             description="P50 response time"
             icon={Zap}
-            trend="-5.2%"
+            trend={summary?.latency_trend}
           />
           <MetricCard
             title="Active Providers"
-            value="3"
+            value={String(providerUptime.length || 0)}
             description="Currently configured"
             icon={TrendingUp}
           />

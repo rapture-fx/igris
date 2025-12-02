@@ -1445,20 +1445,42 @@ export default function ObservabilityPage() {
           </CardHeader>
           <CardContent className="p-0">
             {filteredTraces.length === 0 ? (
-              <div className="text-center py-16 px-6">
-                <div className="bg-beige-secondary rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <Activity className="h-12 w-12 text-gray-900" />
+              <div className="py-16 px-6">
+                <div className="max-w-md mx-auto">
+                  <p className="text-sm font-normal text-gray-500 mb-3">
+                    No requests yet, make your first one to unlock:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1.5 text-xs text-gray-500">
+                    <li>Token-by-token timeline</li>
+                    <li>Speculative execution waterfall</li>
+                    <li>Retry + cache savings</li>
+                    <li>Full cost breakdown</li>
+                    <li>Shareable, exportable traces</li>
+                  </ul>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No requests yet — make your first call to see the magic
-                </h3>
-                <p className="text-gray-600 max-w-md mx-auto">
-                  Every request shows: token timelines, cost breakdowns, speculative races, retry attempts, cache savings, and shareable traces.
-                </p>
-                <div className="mt-6">
-                  <code className="bg-beige-secondary text-gray-900 px-4 py-2 rounded text-sm font-mono">
-                    curl -X POST {'{your-endpoint}'}/v1/infer -H "Authorization: Bearer YOUR_KEY"
-                  </code>
+                <div className="mt-8 max-w-2xl mx-auto">
+                  <div className="relative group">
+                    <pre className="bg-beige-secondary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-md">
+{`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}]}'`}
+                    </pre>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}]}'`);
+                      }}
+                      className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 p-2 rounded transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
