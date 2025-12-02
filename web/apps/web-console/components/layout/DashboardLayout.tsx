@@ -29,7 +29,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       <div className="flex m-0 p-0 pt-12">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="flex-1 md:ml-64 overflow-x-hidden">
+        <main className="flex-1 md:ml-72 md:pl-2 md:pr-2 overflow-x-hidden">
           {/* Trial Banner */}
           {showTrialBanner && (
             <div className="bg-blue-600 text-white px-4 sm:px-6 lg:px-8 py-3">
