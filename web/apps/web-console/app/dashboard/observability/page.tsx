@@ -1023,7 +1023,7 @@ export default function ObservabilityPage() {
                   <div className="flex-1 h-8">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={realTimeMetrics.requestsSparkline}>
-                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={1.5} dot={false} />
+                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={1} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -1603,7 +1603,7 @@ export default function ObservabilityPage() {
                       type="monotone"
                       dataKey="rate"
                       stroke="#000000"
-                      strokeWidth={1.5}
+                      strokeWidth={1}
                       fill="url(#errorRateGradient)"
                       dot={false}
                     />
@@ -1634,7 +1634,7 @@ export default function ObservabilityPage() {
                             <div className="flex items-center justify-end gap-2">
                               <div className="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div
-                                  className="h-full bg-gray-900 transition-all duration-300"
+                                  className="h-full bg-gray-500 transition-all duration-300"
                                   style={{ width: `${provider.reliabilityScore}%` }}
                                 />
                               </div>
@@ -1740,8 +1740,9 @@ export default function ObservabilityPage() {
                               type="monotone"
                               dataKey={provider}
                               stroke={colors[idx % colors.length]}
-                              strokeWidth={2}
+                              strokeWidth={1}
                               dot={false}
+                              activeDot={{ r: 3 }}
                             />
                           );
                         })}

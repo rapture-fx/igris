@@ -149,13 +149,20 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="time" stroke="#6b7280" />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#f8f6f3',
+                      border: '1px solid #e5e1d8',
+                      borderRadius: '6px'
+                    }}
+                  />
                   <Line
                     type="monotone"
                     dataKey="requests"
                     stroke="#000000"
-                    strokeWidth={2}
-                    dot={{ fill: "#000000" }}
+                    strokeWidth={1}
+                    dot={false}
+                    activeDot={{ r: 3, fill: "#000000" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -176,7 +183,13 @@ export default function DashboardPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="time" stroke="#6b7280" />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#f8f6f3',
+                      border: '1px solid #e5e1d8',
+                      borderRadius: '6px'
+                    }}
+                  />
                   <Area
                     type="monotone"
                     dataKey="latency"
@@ -190,56 +203,57 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Top 5 Models by Spend */}
-        <Card className="border-border-light shadow-md">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-gray-900" />
-              Top Models by Spend
-            </CardTitle>
-            <CardDescription>This month</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {providerCostData.slice(0, 5).map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-beige-secondary">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm font-medium text-gray-900">{i + 1}.</span>
-                    <span className="text-sm text-gray-900">{item.provider}</span>
+        {/* Top 5 Models by Spend and Provider Reliability */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="border-border-light shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-gray-900" />
+                Top Models by Spend
+              </CardTitle>
+              <CardDescription>This month</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {providerCostData.slice(0, 5).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-beige-primary">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-900">{i + 1}.</span>
+                      <span className="text-sm text-gray-900">{item.provider}</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">{formatCurrency(item.cost)}</span>
                   </div>
-                  <span className="text-sm font-medium text-gray-900">{formatCurrency(item.cost)}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-        {/* Provider Reliability Table */}
-        <Card className="border-border-light shadow-md">
-          <CardHeader>
-            <CardTitle>Provider Reliability</CardTitle>
-            <CardDescription>Last 7 days uptime</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[
-                { provider: 'OpenAI', uptime: '99.8%', status: 'success' },
-                { provider: 'Anthropic', uptime: '99.9%', status: 'success' },
-                { provider: 'Google', uptime: '98.2%', status: 'warning' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border-light">
-                  <span className="text-sm font-medium text-gray-900">{item.provider}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">{item.uptime}</span>
-                    <div className={`w-2 h-2 rounded-full ${
-                      item.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
-                    }`} />
+          <Card className="border-border-light shadow-md">
+            <CardHeader>
+              <CardTitle>Provider Reliability</CardTitle>
+              <CardDescription>Last 7 days uptime</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {[
+                  { provider: 'OpenAI', uptime: '99.8%', status: 'success' },
+                  { provider: 'Anthropic', uptime: '99.9%', status: 'success' },
+                  { provider: 'Google', uptime: '98.2%', status: 'warning' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                    <span className="text-sm font-medium text-gray-900">{item.provider}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">{item.uptime}</span>
+                      <div className={`w-2 h-2 rounded-full ${
+                        item.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
+                      }`} />
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );

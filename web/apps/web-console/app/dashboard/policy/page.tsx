@@ -165,12 +165,7 @@ export default function PolicyPage() {
                   -60% time-to-first-token through parallel execution
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 text-gray-900 accent-gray-900 cursor-pointer"
-                />
-              </div>
+              <Switch />
             </div>
 
             {/* Council Mode */}
@@ -185,12 +180,7 @@ export default function PolicyPage() {
                   +15-20% answer quality through multi-model consensus
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 text-gray-900 accent-gray-900 cursor-pointer"
-                />
-              </div>
+              <Switch />
             </div>
 
             {/* Cognitive Advisor */}
@@ -205,12 +195,7 @@ export default function PolicyPage() {
                   Auto-tuning ML layer for continuous optimization
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded border-gray-300 text-gray-900 accent-gray-900 cursor-pointer"
-                />
-              </div>
+              <Switch />
             </div>
 
             {/* Advanced Routing Rules */}
@@ -218,7 +203,7 @@ export default function PolicyPage() {
               <div className="flex-1">
                 <div className="flex items-center gap-2">
                   <Label className="text-base font-medium text-gray-600 cursor-not-allowed">
-                    Advanced routing rules
+                    Advanced routing rules <span className="text-xs">(coming soon)</span>
                   </Label>
                 </div>
                 <p className="text-sm text-gray-500 mt-1">

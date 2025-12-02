@@ -212,7 +212,7 @@ export default function SettingsPage() {
 
                   <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                     <p className="text-sm text-blue-900 font-medium mb-1">
-                      Available on Scale plan ($2,999/mo)
+                      Available on Scale plan
                     </p>
                     <p className="text-xs text-blue-800">
                       Unlimited multi-tenancy with full data isolation, per-tenant budgets, and 90-day trace retention.
