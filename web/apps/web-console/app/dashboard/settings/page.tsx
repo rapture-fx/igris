@@ -91,13 +91,13 @@ export default function SettingsPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="team">
-          <TabsList>
+        <Tabs defaultValue="notifications">
+          <TabsList className="shadow-md border border-border-light mb-6">
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="tenants">Clients & Tenants</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
           {/* Team Tab */}
@@ -561,34 +561,125 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Integration */}
+            {/* Webhook Alerts */}
             <Card className="border-border-light shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Webhook className="h-5 w-5 text-gray-900" />
-                  Integration
+                  Webhook Alerts
                 </CardTitle>
                 <CardDescription>
-                  Receive notifications in your work chat
+                  Get real-time alerts via webhook when critical events occur
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="slackWebhook">Webhook URL</Label>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="webhookUrl">Webhook URL</Label>
+                  <div className="flex gap-2">
                     <Input
-                      id="slackWebhook"
+                      id="webhookUrl"
                       type="url"
                       placeholder="https://hooks.slack.com/services/..."
                       value={slackWebhook}
                       onChange={(e) => setSlackWebhook(e.target.value)}
+                      className="flex-1"
                     />
-                    <p className="text-xs text-gray-600">
-                      Enter your Slack webhook URL to receive notifications
-                    </p>
+                    <Button
+                      variant="outline"
+                      className="shadow-md"
+                      onClick={() => {
+                        if (slackWebhook) {
+                          alert('Test payload sent to webhook');
+                        }
+                      }}
+                    >
+                      Test
+                    </Button>
                   </div>
+                  <p className="text-xs text-gray-600">
+                    Supports Slack, Discord, Microsoft Teams, and custom webhooks
+                  </p>
+                </div>
+
+                {/* Alert Events */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Alert Events</Label>
+
+                  <div className="space-y-3 p-4 rounded-lg border border-border-light bg-beige-secondary">
+                    {/* Error Rate Alert */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="errorRateAlert" className="text-sm font-medium">
+                          Error rate threshold (%)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Alert when error rate exceeds threshold
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Input
+                          type="number"
+                          placeholder="10"
+                          defaultValue="10"
+                          className="w-20"
+                          min="1"
+                          max="100"
+                        />
+                        <Switch id="errorRateAlert" defaultChecked />
+                      </div>
+                    </div>
+
+                    {/* Budget Alert */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="budgetAlert" className="text-sm font-medium">
+                          Budget threshold (%)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Alert when budget usage exceeds threshold
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Input
+                          type="number"
+                          placeholder="80"
+                          defaultValue="80"
+                          className="w-20"
+                          min="1"
+                          max="100"
+                        />
+                        <Switch id="budgetAlert" defaultChecked />
+                      </div>
+                    </div>
+
+                    {/* Provider Downtime Alert */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="downtimeAlert" className="text-sm font-medium">
+                          Provider downtime (failures)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Alert when provider fails consecutively
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Input
+                          type="number"
+                          placeholder="5"
+                          defaultValue="5"
+                          className="w-20"
+                          min="1"
+                          max="50"
+                        />
+                        <Switch id="downtimeAlert" defaultChecked />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
                   <Button variant="outline" className="shadow-md">
-                    Save Webhook
+                    Save Alert Settings
                   </Button>
                 </div>
               </CardContent>

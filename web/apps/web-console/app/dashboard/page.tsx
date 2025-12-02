@@ -127,7 +127,7 @@ export default function DashboardPage() {
           />
           <MetricCard
             title="Active Providers"
-            value={summary?.active_providers || '3'}
+            value="3"
             description="Currently configured"
             icon={TrendingUp}
           />

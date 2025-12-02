@@ -191,9 +191,9 @@ const generateMockTraces = (count: number): RequestTrace[] => {
 
     // Generate speculative traces
     const speculativeTraces = usedSpeculative ? [
-      { provider: 'OpenAI', start: 0, duration: latency * 1.2, status: 'failed' as const, latency: latency * 1.2 },
-      { provider: 'Anthropic', start: 0, duration: latency, status: 'winner' as const, latency },
-      { provider: 'Google', start: 0, duration: latency * 1.5, status: 'fallback' as const, latency: latency * 1.5 },
+      { provider: 'OpenAI', model: 'gpt-4', start: 0, duration: latency * 1.2, status: 'failed' as const, latency: latency * 1.2 },
+      { provider: 'Anthropic', model: 'claude-3-sonnet', start: 0, duration: latency, status: 'winner' as const, latency },
+      { provider: 'Google', model: 'gemini-pro', start: 0, duration: latency * 1.5, status: 'fallback' as const, latency: latency * 1.5 },
     ] : undefined;
 
     // Generate retry attempts
@@ -339,6 +339,8 @@ export default function ObservabilityPage() {
   // Privacy-first: Full tracing is OPT-IN ONLY (default OFF)
   const [enableFullTracing, setEnableFullTracing] = useState(false);
   const [showTracingInfo, setShowTracingInfo] = useState(false);
+  const [traceNotes, setTraceNotes] = useState<Record<string, Array<{ id: string; author: string; timestamp: string; content: string }>>>({});
+  const [newNoteContent, setNewNoteContent] = useState('');
 
   // Real-time metrics state (updates every 5s)
   const [realTimeMetrics, setRealTimeMetrics] = useState({
@@ -850,7 +852,7 @@ export default function ObservabilityPage() {
     }
   };
 
-  const getTagBadge = (tag: RequestTag) => {
+  const getTagBadge = (tag: RequestTag | undefined) => {
     if (!tag) return null;
     const config = {
       expected: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Expected' },
@@ -881,9 +883,21 @@ export default function ObservabilityPage() {
           {/* Title Row */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900 font-inter">
-                Observability
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-semibold text-gray-900 font-inter">
+                  Observability
+                </h1>
+                {tier === 'growth' && (
+                  <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium">
+                    30 days retention
+                  </Badge>
+                )}
+                {tier === 'scale' && (
+                  <Badge className="bg-green-50 text-green-700 border-green-200 text-xs font-medium">
+                    90 days retention
+                  </Badge>
+                )}
+              </div>
               <p className="text-gray-700 mt-1 font-inter font-medium">
                 Monitor and debug LLM requests in real-time
               </p>
@@ -1238,7 +1252,7 @@ export default function ObservabilityPage() {
 
               {/* Tag */}
               <Select
-                value={filters.tag}
+                value={filters.tag || ''}
                 onChange={(e) => setFilters(prev => ({ ...prev, tag: e.target.value as RequestTag | '' }))}
                 className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
@@ -2315,7 +2329,7 @@ export default function ObservabilityPage() {
                               if (point?.is_first || point?.is_last) {
                                 return <circle cx={props.cx} cy={props.cy} r={3} fill="#f59e0b" />;
                               }
-                              return null;
+                              return <></>;
                             }}
                           />
                         </LineChart>
@@ -2568,6 +2582,123 @@ export default function ObservabilityPage() {
                     )}
                   </div>
                 )}
+
+                {/* Trace Notes/Annotations */}
+                <div className="border-t border-border-light pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-gray-900">Trace Notes</h3>
+                    <span className="text-xs text-gray-600">
+                      {traceNotes[selectedTrace.id]?.length || 0} notes
+                    </span>
+                  </div>
+
+                  {/* Add Note Input */}
+                  <div className="space-y-2 mb-4">
+                    <Input
+                      placeholder="Add a note to this trace..."
+                      value={newNoteContent}
+                      onChange={(e) => setNewNoteContent(e.target.value)}
+                      className="text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newNoteContent.trim()) {
+                          const newNote = {
+                            id: `note_${Date.now()}`,
+                            author: tenant?.name || 'You',
+                            timestamp: new Date().toISOString(),
+                            content: newNoteContent.trim(),
+                          };
+                          setTraceNotes(prev => ({
+                            ...prev,
+                            [selectedTrace.id]: [...(prev[selectedTrace.id] || []), newNote],
+                          }));
+                          setNewNoteContent('');
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        if (newNoteContent.trim()) {
+                          const newNote = {
+                            id: `note_${Date.now()}`,
+                            author: tenant?.name || 'You',
+                            timestamp: new Date().toISOString(),
+                            content: newNoteContent.trim(),
+                          };
+                          setTraceNotes(prev => ({
+                            ...prev,
+                            [selectedTrace.id]: [...(prev[selectedTrace.id] || []), newNote],
+                          }));
+                          setNewNoteContent('');
+                        }
+                      }}
+                      disabled={!newNoteContent.trim()}
+                    >
+                      Add Note
+                    </Button>
+                  </div>
+
+                  {/* Display Notes */}
+                  {traceNotes[selectedTrace.id] && traceNotes[selectedTrace.id].length > 0 && (
+                    <div className="space-y-3">
+                      {traceNotes[selectedTrace.id].slice(-5).reverse().map((note, idx) => (
+                        <div key={note.id} className="bg-beige-secondary border border-border-light rounded-md p-3">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white font-semibold text-xs">
+                                {note.author.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium text-gray-900">{note.author}</p>
+                                <p className="text-xs text-gray-600">{formatDateTime(note.timestamp)}</p>
+                              </div>
+                            </div>
+                            {tenant?.plan === 'Scale' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs text-gray-600"
+                                onClick={() => {
+                                  setTraceNotes(prev => ({
+                                    ...prev,
+                                    [selectedTrace.id]: prev[selectedTrace.id].filter(n => n.id !== note.id),
+                                  }));
+                                }}
+                              >
+                                Delete
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-900">{note.content}</p>
+                        </div>
+                      ))}
+                      {traceNotes[selectedTrace.id].length > 5 && (
+                        <p className="text-xs text-gray-600 text-center">
+                          Showing latest 5 of {traceNotes[selectedTrace.id].length} notes
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {(!traceNotes[selectedTrace.id] || traceNotes[selectedTrace.id].length === 0) && (
+                    <div className="text-center py-4">
+                      <p className="text-xs text-gray-600">No notes yet. Add the first one above.</p>
+                    </div>
+                  )}
+
+                  {tenant?.plan !== 'Scale' && (
+                    <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-sm text-blue-900 font-medium">
+                        @mentions available on Scale plan
+                      </p>
+                      <p className="text-xs text-blue-800 mt-1">
+                        Upgrade to mention team members in trace notes
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </SheetBody>
