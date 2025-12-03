@@ -1,0 +1,18 @@
+{
+  "name": "schlep-docs-automation",
+  "version": "1.0.0",
+  "description": "Automated documentation extraction and sync for Schlep Engine",
+  "scripts": {
+    "extract:metrics": "node extract-metrics.js",
+    "extract:config": "node extract-config.js",
+    "update": "node update-docs.js",
+    "sync": "npm run extract:metrics && npm run extract:config && npm run update"
+  },
+  "dependencies": {
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

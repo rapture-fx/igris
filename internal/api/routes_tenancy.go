@@ -29,6 +29,7 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	vaultHandler := handlers.NewVaultHandler(config.KeyVault, config.DB)
 	policyHandler := handlers.NewPolicyHandler(config.DB)
 	usageHandler := handlers.NewUsageHandler(config.DB)
+	tracesHandler := handlers.NewTracesHandler(config.DB)
 
 	// API v1 group
 	v1 := app.Group("/v1")
@@ -126,22 +127,39 @@ func RegisterTenancyRoutes(app *fiber.App, config *TenancyRouteConfig) {
 	log.Println("[Routes] ✓ Registered 2 audit log endpoints")
 
 	// ========================================================================
+	// TRACES ROUTES (Require tenant authentication)
+	// ========================================================================
+
+	traces := v1.Group("/traces")
+	traces.Use(config.TenantAuth.Authenticate())
+
+	// Trace access
+	traces.Get("/", tracesHandler.ListTraces)           // GET /v1/traces
+	traces.Get("/summary", tracesHandler.GetTraceSummary) // GET /v1/traces/summary
+
+	log.Println("[Routes] ✓ Registered 2 trace endpoints")
+
+	// ========================================================================
 	// SUMMARY
 	// ========================================================================
 
 	log.Println("[Routes] ═══════════════════════════════════════════════════════")
 	log.Println("[Routes] Phase 14 Multi-Tenancy Routes Registration Complete")
 	log.Println("[Routes] ═══════════════════════════════════════════════════════")
-	log.Println("[Routes] Total endpoints registered: 21")
+	log.Println("[Routes] Total endpoints registered: 23")
 	log.Println("[Routes]   - Tenant Management: 7 endpoints")
 	log.Println("[Routes]   - BYOK Vault: 6 endpoints")
 	log.Println("[Routes]   - Policy Management: 4 endpoints")
 	log.Println("[Routes]   - Usage & Audit: 4 endpoints")
+	log.Println("[Routes]   - Traces: 2 endpoints")
 	log.Println("[Routes] ═══════════════════════════════════════════════════════")
 }
 
 // RegisterAuthRoutes registers authentication endpoints (optional)
 func RegisterAuthRoutes(app *fiber.App, jwtManager *security.JWTManager, db *sql.DB) {
+	// Import auth package for TOTP
+	authManager := handlers.NewAuthHandler(db)
+
 	auth := app.Group("/v1/auth")
 
 	// Login endpoint (generates JWT from API key)
@@ -267,7 +285,17 @@ func RegisterAuthRoutes(app *fiber.App, jwtManager *security.JWTManager, db *sql
 		})
 	})
 
-	log.Println("[Routes] ✓ Registered 3 authentication endpoints (/v1/auth)")
+	// 2FA endpoints (require authentication)
+	twoFA := auth.Group("/2fa")
+	twoFA.Use(middleware.NewTenantAuth(jwtManager, db).Authenticate())
+
+	twoFA.Get("/status", authManager.Get2FAStatus)         // GET /v1/auth/2fa/status
+	twoFA.Post("/generate", authManager.Generate2FASecret) // POST /v1/auth/2fa/generate
+	twoFA.Post("/enable", authManager.Enable2FA)           // POST /v1/auth/2fa/enable
+	twoFA.Post("/disable", authManager.Disable2FA)         // POST /v1/auth/2fa/disable
+	twoFA.Post("/verify", authManager.Verify2FA)           // POST /v1/auth/2fa/verify
+
+	log.Println("[Routes] ✓ Registered 8 authentication endpoints (/v1/auth)")
 }
 
 // SetupMultiTenancy is a convenience function to set up all multi-tenancy routes

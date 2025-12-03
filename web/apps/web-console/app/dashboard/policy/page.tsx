@@ -6,7 +6,8 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Shield, Lock, Zap, Users, TrendingUp } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Shield, Lock, Zap, Users, TrendingUp, Settings } from 'lucide-react';
 
 export default function PolicyPage() {
   const [selectedPolicy, setSelectedPolicy] = useState<string>('balanced');
@@ -51,7 +52,7 @@ export default function PolicyPage() {
                 value="cost"
                 checked={selectedPolicy === 'cost'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-1"
+                className="mt-1 accent-gray-900"
               />
               <div className="flex-1">
                 <Label className="text-base font-medium text-gray-900 cursor-pointer">
@@ -78,7 +79,7 @@ export default function PolicyPage() {
                 value="balanced"
                 checked={selectedPolicy === 'balanced'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-1"
+                className="mt-1 accent-gray-900"
               />
               <div className="flex-1">
                 <Label className="text-base font-medium text-gray-900 cursor-pointer">
@@ -105,7 +106,7 @@ export default function PolicyPage() {
                 value="quality"
                 checked={selectedPolicy === 'quality'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-1"
+                className="mt-1 accent-gray-900"
               />
               <div className="flex-1">
                 <Label className="text-base font-medium text-gray-900 cursor-pointer">
@@ -159,21 +160,12 @@ export default function PolicyPage() {
                   <Label className="text-base font-medium text-gray-900">
                     Speculative Execution
                   </Label>
-                  <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded">
-                    Growth+
-                  </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
                   -60% time-to-first-token through parallel execution
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  disabled
-                  className="w-4 h-4 rounded border-gray-300 text-gray-400 cursor-not-allowed"
-                />
-              </div>
+              <Switch />
             </div>
 
             {/* Council Mode */}
@@ -183,21 +175,12 @@ export default function PolicyPage() {
                   <Label className="text-base font-medium text-gray-900">
                     Council Mode
                   </Label>
-                  <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded">
-                    Growth+
-                  </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
                   +15-20% answer quality through multi-model consensus
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  disabled
-                  className="w-4 h-4 rounded border-gray-300 text-gray-400 cursor-not-allowed"
-                />
-              </div>
+              <Switch />
             </div>
 
             {/* Cognitive Advisor */}
@@ -207,21 +190,27 @@ export default function PolicyPage() {
                   <Label className="text-base font-medium text-gray-900">
                     Cognitive Advisor
                   </Label>
-                  <span className="px-2 py-0.5 text-xs font-medium bg-gray-200 text-gray-700 rounded">
-                    Growth+
-                  </span>
                 </div>
                 <p className="text-sm text-gray-600 mt-1">
                   Auto-tuning ML layer for continuous optimization
                 </p>
               </div>
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  disabled
-                  className="w-4 h-4 rounded border-gray-300 text-gray-400 cursor-not-allowed"
-                />
+              <Switch />
+            </div>
+
+            {/* Advanced Routing Rules */}
+            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary opacity-60">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <Label className="text-base font-medium text-gray-600 cursor-not-allowed">
+                    Advanced routing rules <span className="text-xs">(coming soon)</span>
+                  </Label>
+                </div>
+                <p className="text-sm text-gray-500 mt-1">
+                  Custom routing logic and conditional forwarding
+                </p>
               </div>
+              <Switch disabled className="cursor-not-allowed" />
             </div>
           </CardContent>
         </Card>
