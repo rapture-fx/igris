@@ -1,0 +1,667 @@
+# Multi-Tenancy Guide
+
+Schlep Engine provides complete tenant isolation with BYOK (Bring Your Own Key), per-tenant configuration, and usage tracking.
+
+## Overview
+
+Multi-tenancy in Schlep Engine ensures:
+
+- **Complete Isolation**: Tenant data never mixes
+- **BYOK Support**: Each tenant uses their own provider API keys
+- **Per-Tenant Limits**: Request limits, rate limits, and budgets per tier
+- **Custom Configuration**: Tenant-specific routing policies and features
+- **Usage Tracking**: Detailed cost and performance metrics per tenant
+
+## Tenant Model
+
+### Tenant Schema
+
+```sql
+CREATE TABLE tenants (
+    tenant_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name VARCHAR(255) NOT NULL,
+    tier VARCHAR(50) NOT NULL CHECK (tier IN ('trial', 'developer', 'growth', 'scale')),
+    email VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    metadata JSONB,
+
+    -- Usage tracking
+    requests_this_month INTEGER DEFAULT 0,
+    requests_reset_at TIMESTAMP DEFAULT NOW(),
+
+    -- Budget
+    monthly_budget_usd DECIMAL(10,2),
+    budget_alert_threshold DECIMAL(3,2) DEFAULT 0.80,
+
+    -- Status
+    status VARCHAR(50) DEFAULT 'active',
+    suspended_at TIMESTAMP
+);
+```
+
+### Provider Registry Schema
+
+```sql
+CREATE TABLE provider_registry (
+    registry_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(tenant_id) ON DELETE CASCADE,
+    provider_id VARCHAR(100) NOT NULL,
+    api_key_encrypted TEXT NOT NULL,
+    config JSONB,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+
+    UNIQUE(tenant_id, provider_id)
+);
+```
+
+### API Keys Schema
+
+```sql
+CREATE TABLE api_keys (
+    key_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID REFERENCES tenants(tenant_id) ON DELETE CASCADE,
+    key_hash VARCHAR(64) NOT NULL,  -- SHA-256 hash
+    key_preview VARCHAR(20) NOT NULL,  -- First/last characters for display
+    name VARCHAR(255),
+    created_at TIMESTAMP DEFAULT NOW(),
+    last_used_at TIMESTAMP,
+    expires_at TIMESTAMP,
+
+    UNIQUE(key_hash)
+);
+```
+
+## Creating Tenants
+
+### API: Create Tenant
+
+```bash
+POST /v1/admin/tenants
+```
+
+**Request:**
+```json
+{
+  "name": "Acme Corp",
+  "tier": "growth",
+  "email": "admin@acme.com",
+  "metadata": {
+    "industry": "technology",
+    "company_size": "50-200",
+    "region": "us-west"
+  },
+  "monthly_budget_usd": 5000.00
+}
+```
+
+**Response:**
+```json
+{
+  "tenant_id": "tenant_abc123",
+  "name": "Acme Corp",
+  "tier": "growth",
+  "email": "admin@acme.com",
+  "created_at": "2025-11-30T12:00:00Z",
+  "api_keys": [
+    {
+      "key_id": "key_xyz789",
+      "key_preview": "sk-...xyz789",
+      "key_full": "sk-abc123xyz789...",  // Only returned once
+      "created_at": "2025-11-30T12:00:00Z"
+    }
+  ],
+  "limits": {
+    "max_requests_per_month": 2000000,
+    "max_requests_per_second": 50,
+    "max_providers": 10,
+    "max_tenants": 5,
+    "max_api_keys": 10
+  },
+  "features": {
+    "multi_tenancy": true,
+    "byok": true,
+    "thompson_sampling": true,
+    "speculative_execution": true,
+    "council_mode": true
+  }
+}
+```
+
+### Programmatic Creation
+
+<Tabs>
+<Tab label="Go">
+
+```go
+import "github.com/schlep-engine/schlep-engine/internal/database"
+
+tenant, err := db.CreateTenant(&database.Tenant{
+    Name:  "Acme Corp",
+    Tier:  "growth",
+    Email: "admin@acme.com",
+    Metadata: map[string]interface{}{
+        "industry": "technology",
+    },
+})
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+</Tab>
+
+<Tab label="SQL">
+
+```sql
+INSERT INTO tenants (name, tier, email, metadata)
+VALUES (
+    'Acme Corp',
+    'growth',
+    'admin@acme.com',
+    '{"industry": "technology"}'
+)
+RETURNING tenant_id;
+```
+
+</Tab>
+</Tabs>
+
+## BYOK (Bring Your Own Key)
+
+### Register Provider Key
+
+```bash
+POST /v1/tenants/{tenant_id}/providers/{provider_id}/keys
+```
+
+**Request:**
+```json
+{
+  "provider_id": "openai",
+  "api_key": "sk-...",
+  "config": {
+    "base_url": "https://api.openai.com/v1",
+    "timeout": 30,
+    "max_retries": 3
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "registry_id": "reg_abc123",
+  "tenant_id": "tenant_abc123",
+  "provider_id": "openai",
+  "created_at": "2025-11-30T12:00:00Z",
+  "status": "active"
+}
+```
+
+### List Tenant Providers
+
+```bash
+GET /v1/tenants/{tenant_id}/providers
+```
+
+**Response:**
+```json
+{
+  "providers": [
+    {
+      "registry_id": "reg_abc123",
+      "provider_id": "openai",
+      "models": ["gpt-4", "gpt-3.5-turbo"],
+      "status": "active",
+      "last_health_check": "2025-11-30T12:00:00Z"
+    },
+    {
+      "registry_id": "reg_def456",
+      "provider_id": "anthropic",
+      "models": ["claude-3-sonnet", "claude-3-opus"],
+      "status": "active"
+    }
+  ]
+}
+```
+
+### Remove Provider Key
+
+```bash
+DELETE /v1/tenants/{tenant_id}/providers/{provider_id}
+```
+
+## Tenant Isolation
+
+### Request Scoping
+
+All requests are automatically scoped to the tenant:
+
+```go
+// Extract tenant from API key
+func AuthMiddleware(c *fiber.Ctx) error {
+    apiKey := extractAPIKey(c)
+
+    // Query database for tenant
+    tenant, err := db.GetTenantByAPIKey(apiKey)
+    if err != nil {
+        return c.Status(401).JSON(fiber.Map{"error": "Invalid API key"})
+    }
+
+    // Attach tenant context
+    c.Locals("tenant_id", tenant.TenantID)
+    c.Locals("tenant_tier", tenant.Tier)
+
+    return c.Next()
+}
+```
+
+### Data Access Control
+
+All database queries are tenant-scoped:
+
+```go
+// Get tenant-specific providers
+func GetProviders(tenantID string) ([]Provider, error) {
+    var providers []Provider
+    err := db.Where("tenant_id = ?", tenantID).Find(&providers).Error
+    return providers, err
+}
+
+// Get tenant-specific requests
+func GetRequests(tenantID string, since time.Time) ([]Request, error) {
+    var requests []Request
+    err := db.Where("tenant_id = ? AND created_at >= ?", tenantID, since).
+        Find(&requests).Error
+    return requests, err
+}
+```
+
+### PostgreSQL Row-Level Security
+
+```sql
+-- Enable RLS on tenants table
+ALTER TABLE tenants ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Tenants can only see their own data
+CREATE POLICY tenant_isolation ON tenants
+    FOR ALL
+    USING (tenant_id = current_setting('app.tenant_id')::uuid);
+
+-- Set tenant context in session
+SET app.tenant_id = 'tenant_abc123';
+```
+
+## Tier-Based Limits
+
+### Limit Enforcement
+
+```go
+// Middleware: Enforce tier limits
+func TierGatingMiddleware(c *fiber.Ctx) error {
+    tenantID := c.Locals("tenant_id").(string)
+    tenantTier := c.Locals("tenant_tier").(string)
+
+    // Load tier config
+    tierConfig := config.GetTierConfig(tenantTier)
+
+    // Check request count
+    requestCount := getRequestCount(tenantID)
+    if requestCount >= tierConfig.Limits.MaxRequestsPerMonth {
+        return c.Status(429).JSON(fiber.Map{
+            "error": "Monthly request limit exceeded",
+            "limit": tierConfig.Limits.MaxRequestsPerMonth,
+            "current": requestCount,
+        })
+    }
+
+    // Check rate limit
+    if !checkRateLimit(tenantID, tierConfig.Limits.MaxRequestsPerSecond) {
+        return c.Status(429).JSON(fiber.Map{
+            "error": "Rate limit exceeded",
+            "limit": tierConfig.Limits.MaxRequestsPerSecond,
+        })
+    }
+
+    // Check feature access
+    if c.Params("feature") == "speculative" && !tierConfig.Features.SpeculativeExecution {
+        return c.Status(403).JSON(fiber.Map{
+            "error": "Speculative execution requires Growth tier or higher",
+        })
+    }
+
+    return c.Next()
+}
+```
+
+### Tier Comparison
+
+| Feature | Trial | Developer | Growth | Scale |
+|---------|-------|-----------|--------|-------|
+| **Requests/Month** | 50k | 500k | 2M | Unlimited |
+| **Requests/Second** | 10 | 10 | 50 | 1000 |
+| **Providers** | 3 | 5 | 10 | 20 |
+| **API Keys** | 1 | 3 | 10 | Unlimited |
+| **Thompson Sampling** | ✅ | ✅ | ✅ | ✅ |
+| **Speculative Execution** | ✅ | ❌ | ✅ | ✅ |
+| **Council Mode** | ✅ | ❌ | ✅ | ✅ |
+| **Budget Enforcement** | ❌ | ❌ | ❌ | ✅ |
+| **SLA Enforcement** | ❌ | ❌ | ✅ | ✅ |
+| **Audit Logs** | ❌ | ❌ | ✅ | ✅ |
+
+## Usage Tracking
+
+### Get Tenant Usage
+
+```bash
+GET /v1/tenants/{tenant_id}/usage?period=month
+```
+
+**Response:**
+```json
+{
+  "tenant_id": "tenant_abc123",
+  "period": "month",
+  "start_date": "2025-11-01T00:00:00Z",
+  "end_date": "2025-11-30T23:59:59Z",
+  "requests": {
+    "total": 1456789,
+    "successful": 1453211,
+    "failed": 3578,
+    "success_rate": 0.998,
+    "by_provider": {
+      "openai": 892345,
+      "anthropic": 564444
+    },
+    "by_model": {
+      "gpt-4": 456789,
+      "gpt-3.5-turbo": 435556,
+      "claude-3-sonnet": 564444
+    }
+  },
+  "cost": {
+    "total_usd": 2345.67,
+    "by_provider": {
+      "openai": 1234.56,
+      "anthropic": 1111.11
+    },
+    "budget_limit_usd": 5000.0,
+    "budget_used_percent": 46.91
+  },
+  "latency": {
+    "avg_ms": 287,
+    "p50_ms": 234,
+    "p95_ms": 456,
+    "p99_ms": 678
+  }
+}
+```
+
+### Cost Breakdown
+
+```bash
+GET /v1/tenants/{tenant_id}/costs/breakdown
+```
+
+**Response:**
+```json
+{
+  "tenant_id": "tenant_abc123",
+  "total_cost_usd": 2345.67,
+  "breakdown": {
+    "by_provider": {
+      "openai": {
+        "requests": 892345,
+        "cost_usd": 1234.56,
+        "avg_cost_per_request": 0.00138
+      },
+      "anthropic": {
+        "requests": 564444,
+        "cost_usd": 1111.11,
+        "avg_cost_per_request": 0.00197
+      }
+    },
+    "by_routing_policy": {
+      "thompson-sampling": 1456.78,
+      "speculative-execution": 678.90,
+      "council-mode": 209.99
+    }
+  },
+  "projections": {
+    "end_of_month_usd": 2891.45,
+    "trend": "increasing"
+  }
+}
+```
+
+## Budget Management
+
+### Set Budget
+
+```bash
+POST /v1/tenants/{tenant_id}/budget
+```
+
+**Request:**
+```json
+{
+  "monthly_budget_usd": 5000.00,
+  "alert_threshold": 0.90,
+  "hard_cap": true,
+  "notification_channels": ["email", "webhook"],
+  "webhook_url": "https://example.com/webhook"
+}
+```
+
+### Budget Alerts
+
+**Email Alert (90% threshold):**
+```
+Subject: Budget Alert - 90% of Monthly Limit Reached
+
+Your Schlep Engine account has used 90% of your monthly budget:
+
+Budget: $5,000.00
+Used: $4,500.00
+Remaining: $500.00
+
+View details: https://dashboard.schlep-engine.com/billing
+```
+
+**Webhook Alert:**
+```json
+{
+  "event": "budget_alert",
+  "tenant_id": "tenant_abc123",
+  "alert_level": "warning",
+  "threshold_percent": 90,
+  "budget_limit_usd": 5000.00,
+  "current_usage_usd": 4500.00,
+  "timestamp": "2025-11-30T12:00:00Z"
+}
+```
+
+### Budget Enforcement (Scale Tier)
+
+When hard cap is enabled:
+
+```
+Request → Check Budget
+              ↓
+        Budget Exceeded?
+              ↓
+        Yes: Return 402 Payment Required
+        No: Process Request
+```
+
+**402 Response:**
+```json
+{
+  "error": {
+    "type": "budget_limit_error",
+    "code": "monthly_budget_exceeded",
+    "message": "Monthly budget limit of $5,000.00 has been exceeded",
+    "current_usage_usd": 5123.45,
+    "budget_limit_usd": 5000.00,
+    "request_id": "req_abc123"
+  }
+}
+```
+
+## Tenant Management
+
+### Update Tenant Tier
+
+```bash
+PATCH /v1/admin/tenants/{tenant_id}/tier
+```
+
+**Request:**
+```json
+{
+  "tier": "scale",
+  "grace_period_days": 30
+}
+```
+
+**Response:**
+```json
+{
+  "tenant_id": "tenant_abc123",
+  "tier": "scale",
+  "tier_updated_at": "2025-11-30T12:00:00Z",
+  "old_tier": "growth",
+  "new_limits": {
+    "max_requests_per_month": -1,
+    "max_requests_per_second": 1000
+  },
+  "new_features": {
+    "on_premise_deployment": true,
+    "multi_region": false
+  }
+}
+```
+
+### Suspend Tenant
+
+```bash
+POST /v1/admin/tenants/{tenant_id}/suspend
+```
+
+**Request:**
+```json
+{
+  "reason": "Payment failure",
+  "notify": true
+}
+```
+
+### Resume Tenant
+
+```bash
+POST /v1/admin/tenants/{tenant_id}/resume
+```
+
+## API Key Management
+
+### Create API Key
+
+```bash
+POST /v1/tenants/{tenant_id}/api-keys
+```
+
+**Request:**
+```json
+{
+  "name": "Production Key",
+  "expires_in_days": 365
+}
+```
+
+**Response:**
+```json
+{
+  "key_id": "key_xyz789",
+  "key": "sk-abc123xyz789...",  // Only shown once
+  "key_preview": "sk-...xyz789",
+  "name": "Production Key",
+  "created_at": "2025-11-30T12:00:00Z",
+  "expires_at": "2026-11-30T12:00:00Z"
+}
+```
+
+### List API Keys
+
+```bash
+GET /v1/tenants/{tenant_id}/api-keys
+```
+
+**Response:**
+```json
+{
+  "api_keys": [
+    {
+      "key_id": "key_xyz789",
+      "key_preview": "sk-...xyz789",
+      "name": "Production Key",
+      "created_at": "2025-11-30T12:00:00Z",
+      "last_used_at": "2025-12-01T08:30:00Z",
+      "expires_at": "2026-11-30T12:00:00Z"
+    }
+  ]
+}
+```
+
+### Revoke API Key
+
+```bash
+DELETE /v1/tenants/{tenant_id}/api-keys/{key_id}
+```
+
+## Metrics Per Tenant
+
+Prometheus metrics are automatically labeled with `tenant_id`:
+
+```promql
+# Requests per tenant
+sum(rate(http_requests_total{tenant_id="tenant_abc123"}[5m]))
+
+# Cost per tenant
+sum(rate(cost_usd_total{tenant_id="tenant_abc123"}[1h]))
+
+# Latency per tenant
+histogram_quantile(0.95, inference_latency_seconds{tenant_id="tenant_abc123"})
+
+# Provider usage per tenant
+sum by (provider) (inference_requests_total{tenant_id="tenant_abc123"})
+```
+
+## Best Practices
+
+### Security
+1. **Never log API keys** in plaintext
+2. **Use SHA-256 hashing** for key storage
+3. **Enable key expiration** (recommended: 365 days)
+4. **Rotate keys regularly** (every 90 days)
+5. **Monitor key usage** for anomalies
+
+### Performance
+1. **Cache tenant configuration** (Redis, TTL: 300s)
+2. **Use connection pooling** per tenant
+3. **Batch request counting** (update every 60s)
+4. **Index tenant_id columns** for fast queries
+
+### Cost Control
+1. **Set budget alerts** at 80% and 90%
+2. **Review usage weekly** for trends
+3. **Enable hard caps** for production (Scale tier)
+4. **Monitor waste ratio** for speculative execution
+
+## Related Documentation
+
+- [Provider Keys](/docs/providers-keys) - BYOK configuration
+- [Pricing](/docs/pricing) - Tier limits and features
+- [API Reference](/docs/api-reference) - Complete API documentation
+- [Observability](/docs/observability) - Monitoring per tenant

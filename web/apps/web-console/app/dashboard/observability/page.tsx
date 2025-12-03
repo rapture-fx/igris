@@ -191,9 +191,9 @@ const generateMockTraces = (count: number): RequestTrace[] => {
 
     // Generate speculative traces
     const speculativeTraces = usedSpeculative ? [
-      { provider: 'OpenAI', start: 0, duration: latency * 1.2, status: 'failed' as const, latency: latency * 1.2 },
-      { provider: 'Anthropic', start: 0, duration: latency, status: 'winner' as const, latency },
-      { provider: 'Google', start: 0, duration: latency * 1.5, status: 'fallback' as const, latency: latency * 1.5 },
+      { provider: 'OpenAI', model: 'gpt-4', start: 0, duration: latency * 1.2, status: 'failed' as const, latency: latency * 1.2 },
+      { provider: 'Anthropic', model: 'claude-3-sonnet', start: 0, duration: latency, status: 'winner' as const, latency },
+      { provider: 'Google', model: 'gemini-pro', start: 0, duration: latency * 1.5, status: 'fallback' as const, latency: latency * 1.5 },
     ] : undefined;
 
     // Generate retry attempts
@@ -307,7 +307,8 @@ export default function ObservabilityPage() {
   const { data: tenant, isLoading: tenantLoading } = useTenant();
 
   // State
-  const [traces, setTraces] = useState<RequestTrace[]>(() => generateMockTraces(150));
+  const [traces, setTraces] = useState<RequestTrace[]>([]);
+  const [isLoadingTraces, setIsLoadingTraces] = useState(true);
   const [selectedTrace, setSelectedTrace] = useState<RequestTrace | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenant, setSelectedTenant] = useState<string>('all');
@@ -339,15 +340,17 @@ export default function ObservabilityPage() {
   // Privacy-first: Full tracing is OPT-IN ONLY (default OFF)
   const [enableFullTracing, setEnableFullTracing] = useState(false);
   const [showTracingInfo, setShowTracingInfo] = useState(false);
+  const [traceNotes, setTraceNotes] = useState<Record<string, Array<{ id: string; author: string; timestamp: string; content: string }>>>({});
+  const [newNoteContent, setNewNoteContent] = useState('');
 
-  // Real-time metrics state (updates every 5s)
+  // Real-time metrics state
   const [realTimeMetrics, setRealTimeMetrics] = useState({
-    requestsPerSecond: 12.5,
-    p50Latency: 145,
-    p95Latency: 320,
-    costPerHour: 2.34,
-    activeProviders: 4,
-    requestsSparkline: Array.from({ length: 12 }, (_, i) => ({ value: 10 + Math.random() * 10 })),
+    requestsPerSecond: 0,
+    p50Latency: 0,
+    p95Latency: 0,
+    costPerHour: 0,
+    activeProviders: 0,
+    requestsSparkline: [],
   });
 
   // Tier-based access control
@@ -375,22 +378,73 @@ export default function ObservabilityPage() {
     return null;
   }
 
-  // Real-time metrics update every 5 seconds
+  // Fetch real-time metrics from backend
   useEffect(() => {
-    const interval = setInterval(() => {
-      setRealTimeMetrics({
-        requestsPerSecond: 8 + Math.random() * 10,
-        p50Latency: 120 + Math.random() * 80,
-        p95Latency: 280 + Math.random() * 100,
-        costPerHour: 2 + Math.random() * 1.5,
-        activeProviders: 3 + Math.floor(Math.random() * 3),
-        requestsSparkline: Array.from({ length: 12 }, (_, i) => ({ value: 8 + Math.random() * 10 })),
-      });
-    }, 5000);
+    const fetchRealTimeMetrics = async () => {
+      if (!tenant?.tenant_id) return;
+
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const response = await fetch(`${apiUrl}/v1/metrics/realtime`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setRealTimeMetrics({
+            requestsPerSecond: data.requests_per_second || 0,
+            p50Latency: data.p50_latency || 0,
+            p95Latency: data.p95_latency || 0,
+            costPerHour: data.cost_per_hour || 0,
+            activeProviders: data.active_providers || 0,
+            requestsSparkline: data.sparkline || [],
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching real-time metrics:', error);
+      }
+    };
+
+    fetchRealTimeMetrics();
+    const interval = setInterval(fetchRealTimeMetrics, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [tenant?.tenant_id]);
 
+  // Fetch traces from backend
+  useEffect(() => {
+    const fetchTraces = async () => {
+      if (!tenant?.tenant_id) return;
 
+      setIsLoadingTraces(true);
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const response = await fetch(`${apiUrl}/v1/traces?limit=150`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (!response.ok) throw new Error('Failed to fetch traces');
+
+        const data = await response.json();
+        setTraces(data.traces || []);
+      } catch (error) {
+        console.error('Error fetching traces:', error);
+        // Fallback to mock data on error
+        setTraces(generateMockTraces(150));
+      } finally {
+        setIsLoadingTraces(false);
+      }
+    };
+
+    fetchTraces();
+
+    // Refresh traces every 30 seconds
+    const interval = setInterval(fetchTraces, 30000);
+    return () => clearInterval(interval);
+  }, [tenant?.tenant_id]);
 
   // Filtered traces
   const filteredTraces = useMemo(() => {
@@ -850,7 +904,7 @@ export default function ObservabilityPage() {
     }
   };
 
-  const getTagBadge = (tag: RequestTag) => {
+  const getTagBadge = (tag: RequestTag | undefined) => {
     if (!tag) return null;
     const config = {
       expected: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Expected' },
@@ -881,9 +935,21 @@ export default function ObservabilityPage() {
           {/* Title Row */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900 font-inter">
-                Observability
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-semibold text-gray-900 font-inter">
+                  Observability
+                </h1>
+                {tier === 'growth' && (
+                  <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium">
+                    30 days retention
+                  </Badge>
+                )}
+                {tier === 'scale' && (
+                  <Badge className="bg-green-50 text-green-700 border-green-200 text-xs font-medium">
+                    90 days retention
+                  </Badge>
+                )}
+              </div>
               <p className="text-gray-700 mt-1 font-inter font-medium">
                 Monitor and debug LLM requests in real-time
               </p>
@@ -905,24 +971,6 @@ export default function ObservabilityPage() {
                 <option value="30d">30 days</option>
                 <option value="90d">90 days</option>
               </Select>
-
-              {/* Retention Badge */}
-              {tier === 'growth' ? (
-                <a
-                  href="/pricing"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors cursor-pointer text-sm font-medium"
-                >
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>30 days</span>
-                  <span className="text-blue-600">·</span>
-                  <span className="text-blue-600">Upgrade to 90 days (Scale)</span>
-                </a>
-              ) : (
-                <Badge className="bg-green-50 text-green-700 border-green-200 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm">
-                  <CheckCircle className="h-3.5 w-3.5" />
-                  <span>90 days retention</span>
-                </Badge>
-              )}
 
               {/* Multi-Tenant Dropdown (Scale Only) */}
               {tier === 'scale' ? (
@@ -1026,9 +1074,8 @@ export default function ObservabilityPage() {
         <Card className="border-border-light shadow-md bg-gradient-to-br from-beige-primary to-beige-secondary">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-gray-900 animate-pulse" />
+              <Activity className="h-5 w-5 text-gray-900" />
               Real-Time Metrics
-              <Badge className="bg-green-50 text-green-700 border-green-200 text-xs ml-2">LIVE</Badge>
             </CardTitle>
             <CardDescription>Updates every 5 seconds</CardDescription>
           </CardHeader>
@@ -1042,7 +1089,7 @@ export default function ObservabilityPage() {
                   <div className="flex-1 h-8">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={realTimeMetrics.requestsSparkline}>
-                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={1.5} dot={false} />
+                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={1} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -1257,7 +1304,7 @@ export default function ObservabilityPage() {
 
               {/* Tag */}
               <Select
-                value={filters.tag}
+                value={filters.tag || ''}
                 onChange={(e) => setFilters(prev => ({ ...prev, tag: e.target.value as RequestTag | '' }))}
                 className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
@@ -1417,20 +1464,42 @@ export default function ObservabilityPage() {
           </CardHeader>
           <CardContent className="p-0">
             {filteredTraces.length === 0 ? (
-              <div className="text-center py-16 px-6">
-                <div className="bg-beige-secondary rounded-full p-6 w-24 h-24 mx-auto mb-6 flex items-center justify-center">
-                  <Activity className="h-12 w-12 text-gray-900" />
+              <div className="py-16 px-6">
+                <div className="max-w-md mx-auto">
+                  <p className="text-sm font-normal text-gray-500 mb-3">
+                    No requests yet, make your first one to unlock:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1.5 text-xs text-gray-500">
+                    <li>Token-by-token timeline</li>
+                    <li>Speculative execution waterfall</li>
+                    <li>Retry + cache savings</li>
+                    <li>Full cost breakdown</li>
+                    <li>Shareable, exportable traces</li>
+                  </ul>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  No requests yet — make your first call to see the magic
-                </h3>
-                <p className="text-gray-600 max-w-md mx-auto">
-                  Every request shows: token timelines, cost breakdowns, speculative races, retry attempts, cache savings, and shareable traces.
-                </p>
-                <div className="mt-6">
-                  <code className="bg-beige-secondary text-gray-900 px-4 py-2 rounded text-sm font-mono">
-                    curl -X POST {'{your-endpoint}'}/v1/infer -H "Authorization: Bearer YOUR_KEY"
-                  </code>
+                <div className="mt-8 max-w-2xl mx-auto">
+                  <div className="relative group">
+                    <pre className="bg-beige-secondary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-md">
+{`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}]}'`}
+                    </pre>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
+  -H "Authorization: Bearer sk-..." \\
+  -H "Content-Type: application/json" \\
+  -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}]}'`);
+                      }}
+                      className="absolute top-2 right-2 text-gray-600 hover:text-gray-900 p-2 rounded transition-colors"
+                      title="Copy to clipboard"
+                    >
+                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -1622,7 +1691,7 @@ export default function ObservabilityPage() {
                       type="monotone"
                       dataKey="rate"
                       stroke="#000000"
-                      strokeWidth={1.5}
+                      strokeWidth={1}
                       fill="url(#errorRateGradient)"
                       dot={false}
                     />
@@ -1653,7 +1722,7 @@ export default function ObservabilityPage() {
                             <div className="flex items-center justify-end gap-2">
                               <div className="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div
-                                  className="h-full bg-gray-900 transition-all duration-300"
+                                  className="h-full bg-gray-500 transition-all duration-300"
                                   style={{ width: `${provider.reliabilityScore}%` }}
                                 />
                               </div>
@@ -1759,8 +1828,9 @@ export default function ObservabilityPage() {
                               type="monotone"
                               dataKey={provider}
                               stroke={colors[idx % colors.length]}
-                              strokeWidth={2}
+                              strokeWidth={1}
                               dot={false}
+                              activeDot={{ r: 3 }}
                             />
                           );
                         })}
@@ -1970,7 +2040,7 @@ export default function ObservabilityPage() {
                   <select
                     value={selectedTenant}
                     onChange={(e) => setSelectedTenant(e.target.value)}
-                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-beige-primary focus:outline-none focus:ring-2 focus:ring-gray-900"
+                    className="text-sm border border-border-light rounded-md px-3 py-1.5 bg-beige-primary focus:outline-none"
                   >
                     <option value="all">All Tenants</option>
                     {mockTenants.map((tenant) => (
@@ -2333,7 +2403,7 @@ export default function ObservabilityPage() {
                               if (point?.is_first || point?.is_last) {
                                 return <circle cx={props.cx} cy={props.cy} r={3} fill="#f59e0b" />;
                               }
-                              return null;
+                              return <></>;
                             }}
                           />
                         </LineChart>
@@ -2586,6 +2656,123 @@ export default function ObservabilityPage() {
                     )}
                   </div>
                 )}
+
+                {/* Trace Notes/Annotations */}
+                <div className="border-t border-border-light pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-gray-900">Trace Notes</h3>
+                    <span className="text-xs text-gray-600">
+                      {traceNotes[selectedTrace.id]?.length || 0} notes
+                    </span>
+                  </div>
+
+                  {/* Add Note Input */}
+                  <div className="space-y-2 mb-4">
+                    <Input
+                      placeholder="Add a note to this trace..."
+                      value={newNoteContent}
+                      onChange={(e) => setNewNoteContent(e.target.value)}
+                      className="text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && newNoteContent.trim()) {
+                          const newNote = {
+                            id: `note_${Date.now()}`,
+                            author: tenant?.name || 'You',
+                            timestamp: new Date().toISOString(),
+                            content: newNoteContent.trim(),
+                          };
+                          setTraceNotes(prev => ({
+                            ...prev,
+                            [selectedTrace.id]: [...(prev[selectedTrace.id] || []), newNote],
+                          }));
+                          setNewNoteContent('');
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        if (newNoteContent.trim()) {
+                          const newNote = {
+                            id: `note_${Date.now()}`,
+                            author: tenant?.name || 'You',
+                            timestamp: new Date().toISOString(),
+                            content: newNoteContent.trim(),
+                          };
+                          setTraceNotes(prev => ({
+                            ...prev,
+                            [selectedTrace.id]: [...(prev[selectedTrace.id] || []), newNote],
+                          }));
+                          setNewNoteContent('');
+                        }
+                      }}
+                      disabled={!newNoteContent.trim()}
+                    >
+                      Add Note
+                    </Button>
+                  </div>
+
+                  {/* Display Notes */}
+                  {traceNotes[selectedTrace.id] && traceNotes[selectedTrace.id].length > 0 && (
+                    <div className="space-y-3">
+                      {traceNotes[selectedTrace.id].slice(-5).reverse().map((note, idx) => (
+                        <div key={note.id} className="bg-beige-secondary border border-border-light rounded-md p-3">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white font-semibold text-xs">
+                                {note.author.charAt(0).toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="text-xs font-medium text-gray-900">{note.author}</p>
+                                <p className="text-xs text-gray-600">{formatDateTime(note.timestamp)}</p>
+                              </div>
+                            </div>
+                            {tenant?.plan === 'Scale' && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs text-gray-600"
+                                onClick={() => {
+                                  setTraceNotes(prev => ({
+                                    ...prev,
+                                    [selectedTrace.id]: prev[selectedTrace.id].filter(n => n.id !== note.id),
+                                  }));
+                                }}
+                              >
+                                Delete
+                              </Button>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-900">{note.content}</p>
+                        </div>
+                      ))}
+                      {traceNotes[selectedTrace.id].length > 5 && (
+                        <p className="text-xs text-gray-600 text-center">
+                          Showing latest 5 of {traceNotes[selectedTrace.id].length} notes
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {(!traceNotes[selectedTrace.id] || traceNotes[selectedTrace.id].length === 0) && (
+                    <div className="text-center py-4">
+                      <p className="text-xs text-gray-600">No notes yet. Add the first one above.</p>
+                    </div>
+                  )}
+
+                  {tenant?.plan !== 'Scale' && (
+                    <div className="mt-4 p-3 rounded-lg bg-blue-50 border border-blue-200">
+                      <p className="text-sm text-blue-900 font-medium">
+                        @mentions available on Scale plan
+                      </p>
+                      <p className="text-xs text-blue-800 mt-1">
+                        Upgrade to mention team members in trace notes
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </SheetBody>

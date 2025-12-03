@@ -2,43 +2,15 @@
 
 export const dynamic = 'force-dynamic';
 
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUsageSummary } from '@/hooks/useUsage';
+import { useTenant } from '@/hooks/useTenant';
 import { formatCurrency, formatNumber, formatLatency } from '@/utils/helpers';
 import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
-
-// Mock data for charts (replace with real data from API)
-const requestsData = [
-  { time: '00:00', requests: 120 },
-  { time: '04:00', requests: 80 },
-  { time: '08:00', requests: 200 },
-  { time: '12:00', requests: 350 },
-  { time: '16:00', requests: 280 },
-  { time: '20:00', requests: 150 },
-];
-
-const providerCostData = [
-  { provider: 'OpenAI', cost: 45.20 },
-  { provider: 'Anthropic', cost: 32.50 },
-  { provider: 'Google', cost: 18.30 },
-  { provider: 'Cohere', cost: 12.00 },
-  { provider: 'xAI', cost: 8.50 },
-  { provider: 'Mistral', cost: 6.20 },
-  { provider: 'Together', cost: 4.80 },
-  { provider: 'Replicate', cost: 3.10 },
-];
-
-const latencyData = [
-  { time: '00:00', latency: 120 },
-  { time: '04:00', latency: 95 },
-  { time: '08:00', latency: 110 },
-  { time: '12:00', latency: 130 },
-  { time: '16:00', latency: 105 },
-  { time: '20:00', latency: 90 },
-];
 
 function MetricCard({
   title,
@@ -78,6 +50,62 @@ function MetricCard({
 
 export default function DashboardPage() {
   const { data: summary, isLoading } = useUsageSummary();
+  const { data: tenant } = useTenant();
+
+  // Real data from APIs
+  const [providerUptime, setProviderUptime] = useState<Array<{provider: string, uptime: string, status: string}>>([]);
+  const [requestsData, setRequestsData] = useState<Array<{time: string, requests: number}>>([]);
+  const [latencyData, setLatencyData] = useState<Array<{time: string, latency: number}>>([]);
+  const [providerCostData, setProviderCostData] = useState<Array<{provider: string, cost: number}>>([]);
+
+  // Fetch dashboard metrics from backend
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      if (!tenant?.tenant_id) return;
+
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const authHeaders = {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+        };
+
+        // Fetch uptime
+        const uptimeRes = await fetch(`${apiUrl}/internal/metrics/uptime`, { headers: authHeaders });
+        if (uptimeRes.ok) {
+          const data = await uptimeRes.json();
+          if (data.providers) setProviderUptime(data.providers);
+        }
+
+        // Fetch requests timeline
+        const requestsRes = await fetch(`${apiUrl}/v1/usage/requests-timeline`, { headers: authHeaders });
+        if (requestsRes.ok) {
+          const data = await requestsRes.json();
+          if (data.timeline) setRequestsData(data.timeline);
+        }
+
+        // Fetch latency data
+        const latencyRes = await fetch(`${apiUrl}/v1/usage/latency-timeline`, { headers: authHeaders });
+        if (latencyRes.ok) {
+          const data = await latencyRes.json();
+          if (data.timeline) setLatencyData(data.timeline);
+        }
+
+        // Fetch provider costs
+        const costsRes = await fetch(`${apiUrl}/v1/usage/provider-costs`, { headers: authHeaders });
+        if (costsRes.ok) {
+          const data = await costsRes.json();
+          if (data.providers) setProviderCostData(data.providers);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard metrics:', error);
+      }
+    };
+
+    fetchMetrics();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchMetrics, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [tenant?.tenant_id]);
 
   if (isLoading) {
     return (
@@ -95,112 +123,101 @@ export default function DashboardPage() {
         {/* Header */}
         <div>
           <h1 className="text-xl font-medium text-gray-900 font-inter">
-            Dashboard
+            Welcome back
           </h1>
           <p className="text-gray-600 mt-1 font-inter">
-            Overview of your AI inference infrastructure
+            Overview of your AI infrastructure
           </p>
         </div>
 
-        {/* Metrics Cards */}
+        {/* Four Big Live Metrics with Trends & Mini Sparklines */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <MetricCard
-            title="Monthly Spend"
+            title="Requests Today"
+            value={formatNumber(summary?.total_requests || 0)}
+            description="Last 24 hours"
+            icon={Activity}
+            trend={summary?.requests_trend}
+          />
+          <MetricCard
+            title="Spend This Month"
             value={formatCurrency(summary?.monthly_spend || 0)}
             description="Current billing period"
             icon={DollarSign}
-            trend="+12.5%"
-          />
-          <MetricCard
-            title="Total Requests"
-            value={formatNumber(summary?.total_requests || 0)}
-            description="This month"
-            icon={Activity}
-            trend="+23.1%"
+            trend={summary?.spend_trend}
           />
           <MetricCard
             title="Avg Latency"
             value={formatLatency(summary?.avg_latency || 0)}
-            description="Response time"
+            description="P50 response time"
             icon={Zap}
-            trend="-5.2%"
+            trend={summary?.latency_trend}
           />
           <MetricCard
-            title="Budget Utilization"
-            value={`${summary?.budget_utilization || 0}%`}
-            description="Of monthly budget"
+            title="Active Providers"
+            value={String(providerUptime.length || 0)}
+            description="Currently configured"
             icon={TrendingUp}
           />
         </div>
 
-        {/* Charts */}
+        {/* Two Mini Charts: Requests/Cost last 7 days + Latency P95 last 24h */}
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Requests Over Time */}
           <Card className="border-border-light shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-gray-900" />
-                Requests Over Time
+                Requests & Cost
               </CardTitle>
-              <CardDescription>Last 24 hours</CardDescription>
+              <CardDescription>Last 7 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={requestsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="time" stroke="#6b7280" />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#f8f6f3',
+                      border: '1px solid #e5e1d8',
+                      borderRadius: '6px'
+                    }}
+                  />
                   <Line
                     type="monotone"
                     dataKey="requests"
                     stroke="#000000"
-                    strokeWidth={2}
-                    dot={{ fill: "#000000" }}
+                    strokeWidth={1}
+                    dot={false}
+                    activeDot={{ r: 3, fill: "#000000" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
 
-          {/* Cost by Provider */}
           <Card className="border-border-light shadow-md">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-gray-900" />
-                Cost by Provider
-              </CardTitle>
-              <CardDescription>This month</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={providerCostData} barSize={20}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="provider" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
-                  <Tooltip />
-                  <Bar dataKey="cost" fill="#000000" radius={[8, 8, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Latency Distribution */}
-          <Card className="border-border-light shadow-md md:col-span-2">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-900" />
-                Latency Distribution
+                Latency P95
               </CardTitle>
-              <CardDescription>Average response time over last 24 hours</CardDescription>
+              <CardDescription>Last 24 hours</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={200}>
                 <AreaChart data={latencyData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="time" stroke="#6b7280" />
                   <YAxis stroke="#6b7280" />
-                  <Tooltip />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: '#f8f6f3',
+                      border: '1px solid #e5e1d8',
+                      borderRadius: '6px'
+                    }}
+                  />
                   <Area
                     type="monotone"
                     dataKey="latency"
@@ -214,34 +231,53 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Activity Feed */}
-        <Card className="border-border-light shadow-md">
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-            <CardDescription>Latest events and updates</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {[
-                { event: 'API key added for OpenAI', time: '2 minutes ago', status: 'success' },
-                { event: 'Policy updated: Max monthly cost set to $500', time: '1 hour ago', status: 'info' },
-                { event: 'High latency detected on Anthropic endpoint', time: '3 hours ago', status: 'warning' },
-                { event: 'Monthly usage report generated', time: '1 day ago', status: 'success' },
-              ].map((activity, i) => (
-                <div key={i} className="flex items-center gap-4 p-3 rounded-lg bg-beige-secondary">
-                  <div className={`w-2 h-2 rounded-full ${
-                    activity.status === 'success' ? 'bg-green-500' :
-                    activity.status === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
-                  }`} />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-900">{activity.event}</p>
-                    <p className="text-xs text-gray-600">{activity.time}</p>
+        {/* Top 5 Models by Spend and Provider Reliability */}
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card className="border-border-light shadow-md">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <DollarSign className="h-5 w-5 text-gray-900" />
+                Top Models by Spend
+              </CardTitle>
+              <CardDescription>This month</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {providerCostData.slice(0, 5).map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-beige-primary">
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-900">{i + 1}.</span>
+                      <span className="text-sm text-gray-900">{item.provider}</span>
+                    </div>
+                    <span className="text-sm font-medium text-gray-900">{formatCurrency(item.cost)}</span>
                   </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border-light shadow-md">
+            <CardHeader>
+              <CardTitle>Provider Reliability</CardTitle>
+              <CardDescription>Last 7 days uptime</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {providerUptime.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                    <span className="text-sm font-medium text-gray-900">{item.provider}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">{item.uptime}</span>
+                      <div className={`w-2 h-2 rounded-full ${
+                        item.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
+                      }`} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </DashboardLayout>
   );

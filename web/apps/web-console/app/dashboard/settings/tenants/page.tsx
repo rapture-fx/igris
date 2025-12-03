@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { formatDate, formatCurrency } from '@/utils/helpers';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { formatDate, formatCurrency, formatNumber } from '@/utils/helpers';
+import { useTenant } from '@/hooks/useTenant';
 import {
   Users,
   Plus,
@@ -29,6 +37,9 @@ import {
   XCircle,
   Edit,
   Trash2,
+  DollarSign as Budget,
+  GitBranch,
+  UserPlus,
 } from 'lucide-react';
 
 interface Tenant {
@@ -43,43 +54,21 @@ interface Tenant {
 }
 
 export default function TenantsPage() {
+  const { data: tenant } = useTenant();
+  const tier = tenant?.plan?.toLowerCase() || 'develop';
+
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showBudgetDialog, setShowBudgetDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [newTenantName, setNewTenantName] = useState('');
   const [newTenantDescription, setNewTenantDescription] = useState('');
+  const [budgetAmount, setBudgetAmount] = useState('');
+  const [tenantHardCap, setTenantHardCap] = useState(false);
 
-  // Mock data - in production, fetch from API
-  const [tenants, setTenants] = useState<Tenant[]>([
-    {
-      id: 'tenant-acme-corp',
-      name: 'Acme Corp',
-      description: 'Production environment',
-      created_at: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'active',
-      monthly_spend: 1247.53,
-      budget_limit: 5000,
-      request_count: 125430,
-    },
-    {
-      id: 'tenant-techstart',
-      name: 'TechStart Inc',
-      description: 'Staging environment',
-      created_at: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'active',
-      monthly_spend: 342.18,
-      budget_limit: 1000,
-      request_count: 34210,
-    },
-    {
-      id: 'tenant-global-sys',
-      name: 'Global Systems',
-      description: 'Development',
-      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      status: 'active',
-      monthly_spend: 89.42,
-      request_count: 8940,
-    },
-  ]);
+  const [tenants, setTenants] = useState<Tenant[]>([]);
 
   const handleCreateTenant = async () => {
     if (!newTenantName.trim()) return;
@@ -106,8 +95,27 @@ export default function TenantsPage() {
     setNewTenantDescription('');
   };
 
-  const getTotalSpend = () => tenants.reduce((sum, t) => sum + t.monthly_spend, 0);
-  const getTotalRequests = () => tenants.reduce((sum, t) => sum + t.request_count, 0);
+  const handleSetBudget = async () => {
+    if (!selectedTenant || !budgetAmount) return;
+
+    // API call would go here
+    console.log('Set budget for:', selectedTenant.id, budgetAmount);
+
+    setShowBudgetDialog(false);
+    setSelectedTenant(null);
+    setBudgetAmount('');
+  };
+
+  const handleDelete = async () => {
+    if (!selectedTenant) return;
+
+    // API call would go here
+    console.log('Delete tenant:', selectedTenant.id);
+
+    setTenants(tenants.filter(t => t.id !== selectedTenant.id));
+    setShowDeleteDialog(false);
+    setSelectedTenant(null);
+  };
 
   return (
     <DashboardLayout>
@@ -155,10 +163,10 @@ export default function TenantsPage() {
                       Created
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Monthly Spend
+                      Spend (30d)
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Status
+                      Requests
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                       Actions
@@ -166,71 +174,128 @@ export default function TenantsPage() {
                   </tr>
                 </thead>
                 <tbody className="bg-beige-primary divide-y divide-border-light">
-                  {tenants.map((tenant) => (
-                    <tr key={tenant.id} className="hover:bg-beige-secondary transition-colors">
+                  {tenants.map((tenantItem) => (
+                    <tr key={tenantItem.id} className="hover:bg-beige-secondary transition-colors">
                       <td className="px-6 py-4">
                         <div>
                           <div className="font-medium text-gray-900 font-inter">
-                            {tenant.name}
+                            {tenantItem.name}
                           </div>
-                          {tenant.description && (
+                          {tenantItem.description && (
                             <div className="text-sm text-gray-600 mt-0.5">
-                              {tenant.description}
+                              {tenantItem.description}
                             </div>
                           )}
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono text-gray-700">
-                          {tenant.id}
+                          {tenantItem.id}
                         </code>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5" />
-                          {formatDate(tenant.created_at)}
-                        </div>
+                        {formatDate(tenantItem.created_at)}
                       </td>
                       <td className="px-6 py-4">
-                        <div className="text-sm font-medium text-gray-900">
-                          {formatCurrency(tenant.monthly_spend)}
-                        </div>
-                        {tenant.budget_limit && (
-                          <div className="text-xs text-gray-600 mt-0.5">
-                            of {formatCurrency(tenant.budget_limit)} limit
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="font-medium text-gray-900">
+                              {formatCurrency(tenantItem.monthly_spend)}
+                            </span>
+                            {tenantItem.budget_limit && tier === 'scale' && (
+                              <span className="text-xs text-gray-600">
+                                / {formatCurrency(tenantItem.budget_limit)}
+                              </span>
+                            )}
                           </div>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {tenant.status === 'active' ? (
-                          <Badge className="bg-green-50 text-green-700 border-green-200 inline-flex items-center gap-1">
-                            <CheckCircle className="h-3 w-3" />
-                            Active
-                          </Badge>
-                        ) : (
-                          <Badge className="bg-red-50 text-red-700 border-red-200 inline-flex items-center gap-1">
-                            <XCircle className="h-3 w-3" />
-                            {tenant.status}
-                          </Badge>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {tenantItem.budget_limit && tier === 'scale' && (
+                            <>
+                              <div className="w-32 bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                <div
+                                  className={`h-full transition-all ${
+                                    (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 >= 90
+                                      ? 'bg-red-600'
+                                      : (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 >= 70
+                                      ? 'bg-yellow-500'
+                                      : ''
+                                  }`}
+                                  style={{
+                                    width: `${Math.min((tenantItem.monthly_spend / tenantItem.budget_limit) * 100, 100)}%`,
+                                    backgroundColor: (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 < 70 ? '#299a93' : undefined
+                                  }}
+                                />
+                              </div>
+                              <span className="text-xs text-gray-600">
+                                {((tenantItem.monthly_spend / tenantItem.budget_limit) * 100).toFixed(0)}% used
+                              </span>
+                            </>
+                          )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900">
+                        {formatNumber(tenantItem.request_count)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-48">
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setSelectedTenant(tenantItem);
+                                setNewTenantName(tenantItem.name);
+                                setNewTenantDescription(tenantItem.description || '');
+                                setShowEditDialog(true);
+                              }}
+                            >
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            {tier === 'scale' && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    setSelectedTenant(tenantItem);
+                                    setBudgetAmount(tenantItem.budget_limit?.toString() || '');
+                                    setShowBudgetDialog(true);
+                                  }}
+                                >
+                                  <Budget className="mr-2 h-4 w-4" />
+                                  Set Budget
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    console.log('Set routing policy for:', tenantItem.id);
+                                  }}
+                                >
+                                  <GitBranch className="mr-2 h-4 w-4" />
+                                  Routing Policy
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    console.log('Invite admin for:', tenantItem.id);
+                                  }}
+                                >
+                                  <UserPlus className="mr-2 h-4 w-4" />
+                                  Invite Tenant Admin
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => {
+                                setSelectedTenant(tenantItem);
+                                setShowDeleteDialog(true);
+                              }}
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))}
@@ -264,20 +329,37 @@ export default function TenantsPage() {
               <Building2 className="h-5 w-5 text-blue-700 flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-medium text-blue-900 font-inter mb-1">
-                  What are tenants?
+                  Enterprise Multi-Tenancy
                 </h3>
                 <p className="text-sm text-blue-800">
-                  Tenants provide complete isolation for different customers, environments, or teams. Each tenant gets:
-                  <br />
-                  • Isolated API keys and credentials
-                  <br />
-                  • Separate usage tracking and billing
-                  <br />
-                  • Independent budget limits
-                  <br />
-                  • Dedicated observability data
-                  <br />
-                  • Physical data separation at database level
+                  {tier === 'scale' ? (
+                    <>
+                      You have full access to enterprise multi-tenancy features:
+                      <br />
+                      • Per-tenant API keys and credentials
+                      <br />
+                      • Independent budget limits and enforcement
+                      <br />
+                      • Custom routing policies per tenant
+                      <br />
+                      • Tenant admin role management
+                      <br />
+                      • 90-day trace retention per tenant
+                    </>
+                  ) : (
+                    <>
+                      Create isolated tenants for customers or environments. Each tenant gets:
+                      <br />
+                      • Isolated API keys and credentials
+                      <br />
+                      • Separate usage tracking and billing
+                      <br />
+                      • Independent data isolation
+                      <br />
+                      <br />
+                      <span className="font-medium">Upgrade to Scale</span> for: Per-tenant budgets • Custom routing policies • Tenant admin roles
+                    </>
+                  )}
                 </p>
               </div>
             </div>
@@ -319,19 +401,6 @@ export default function TenantsPage() {
                 disabled={isCreating}
               />
             </div>
-            <div className="p-4 rounded-lg bg-beige-secondary border border-border-light">
-              <p className="text-xs text-gray-600">
-                After creation, you'll receive:
-                <br />
-                • Unique tenant ID for API authentication
-                <br />
-                • Isolated data storage
-                <br />
-                • Separate usage tracking
-                <br />
-                • Independent budget configuration
-              </p>
-            </div>
           </div>
           <DialogFooter>
             <Button
@@ -356,6 +425,142 @@ export default function TenantsPage() {
                   Create Tenant
                 </>
               )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Tenant Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Tenant</DialogTitle>
+            <DialogDescription>
+              Update tenant information
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="editTenantName">
+                Tenant Name <span className="text-red-600">*</span>
+              </Label>
+              <Input
+                id="editTenantName"
+                value={newTenantName}
+                onChange={(e) => setNewTenantName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="editTenantDescription">
+                Description (optional)
+              </Label>
+              <Input
+                id="editTenantDescription"
+                value={newTenantDescription}
+                onChange={(e) => setNewTenantDescription(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowEditDialog(false)}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Set Budget Dialog */}
+      <Dialog open={showBudgetDialog} onOpenChange={setShowBudgetDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Set Budget Limit</DialogTitle>
+            <DialogDescription>
+              Configure monthly spending limit for {selectedTenant?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="budgetAmount">
+                Monthly Budget (USD) <span className="text-red-600">*</span>
+              </Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
+                <Input
+                  id="budgetAmount"
+                  type="number"
+                  placeholder="1000"
+                  value={budgetAmount}
+                  onChange={(e) => setBudgetAmount(e.target.value)}
+                  className="pl-7"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+              <div className="space-y-0.5">
+                <Label htmlFor="tenantHardCap" className="text-base font-medium">
+                  Hard cap
+                </Label>
+                <p className="text-sm text-gray-600">
+                  Block all requests when budget limit is reached
+                </p>
+              </div>
+              <Switch
+                id="tenantHardCap"
+                checked={tenantHardCap}
+                onCheckedChange={setTenantHardCap}
+              />
+            </div>
+
+            <div className="p-3 rounded-lg bg-yellow-50 border border-yellow-200">
+              <p className="text-xs text-yellow-900">
+                When the limit is reached, all requests for this tenant will be blocked until the next billing cycle.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowBudgetDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSetBudget} disabled={!budgetAmount}>
+              Set Budget
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Tenant</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {selectedTenant?.name}? This action cannot be undone and will delete all associated data.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+            <p className="text-sm text-red-900 font-medium">
+              This will permanently delete:
+              <br />
+              • All tenant API keys
+              <br />
+              • Usage history and traces
+              <br />
+              • Budget configurations
+              <br />
+              • All tenant data
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Permanently
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -85,12 +85,21 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-40 h-screen w-64 transform bg-beige-primary transition-transform duration-200 ease-in-out md:translate-x-0',
+          'fixed top-0 left-0 z-50 h-screen w-72 transform transition-transform duration-200 ease-in-out md:translate-x-0 p-3',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col border-r border-border-light">
-          <div className="h-16 border-r border-border-light"></div>
+        <div className="flex h-full flex-col bg-beige-secondary rounded-2xl shadow-xl border border-border-light">
+          {/* Logo Section */}
+          <div className="h-20 flex items-center px-7 pt-6">
+            <Link href="/dashboard" className="flex items-center">
+              <img
+                src="/schlep-logo-34.png"
+                alt="Schlep Logo"
+                className="h-6 w-auto"
+              />
+            </Link>
+          </div>
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 pt-8 pb-4">
             <ul className="space-y-1">
@@ -118,22 +127,34 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           </nav>
 
           {/* Footer Section */}
-          <div className="border-t border-border-light p-4 flex-shrink-0">
-            {/* Help Section */}
-            <div className="rounded-lg bg-beige-secondary p-3 mb-4">
-              <p className="text-xs font-medium font-inter text-gray-900 mb-1">
-                Need help?
-              </p>
-              <p className="text-xs text-gray-600 font-inter mb-2">
-                Check our documentation or contact support
-              </p>
-              <Button variant="outline" size="sm" className="w-full text-xs">
-                View Docs
-              </Button>
-            </div>
+          <div className="p-4 flex-shrink-0">
+            <div className="bg-beige-secondary shadow-md border border-border-light rounded-xl p-4 space-y-4">
+              {/* Help Section */}
+              <div>
+                <p className="text-xs font-medium font-inter text-gray-900 mb-1">
+                  Need help?
+                </p>
+                <p className="text-xs text-gray-600 font-inter">
+                  Check our{' '}
+                  <Link
+                    href="/docs"
+                    className="text-gray-600 hover:text-gray-900 font-medium underline inline-flex items-center gap-1"
+                  >
+                    documentation
+                    <span className="text-xs">↗</span>
+                  </Link>
+                  {' '}or{' '}
+                  <a
+                    href="mailto:support@schlep-engine.com"
+                    className="text-gray-600 hover:text-gray-900 font-medium underline"
+                  >
+                    support@schlep-engine.com
+                  </a>
+                </p>
+              </div>
 
-            {/* Profile & Sign Out Section */}
-            <div className="relative">
+              {/* Profile & Sign Out Section */}
+              <div className="relative pt-3 border-t border-border-light">
               {/* Profile Menu Dropdown */}
               {showProfileMenu && (
                 <>
@@ -199,6 +220,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                 </Button>
               </div>
             </div>
+          </div>
           </div>
         </div>
       </aside>

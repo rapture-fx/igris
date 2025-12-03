@@ -1,7 +1,7 @@
 'use client';
 
 export const dynamic = 'force-dynamic';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ import {
 import { useTenant } from '@/hooks/useTenant';
 import { logout } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import { formatDate, getInitials } from '@/utils/helpers';
+import { formatDate, getInitials, formatCurrency } from '@/utils/helpers';
 import {
   Settings as SettingsIcon,
   User,
@@ -52,8 +52,142 @@ export default function SettingsPage() {
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [usageAlerts, setUsageAlerts] = useState(true);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [is2FALoading, setIs2FALoading] = useState(false);
   const [slackWebhook, setSlackWebhook] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
+  const [globalBudget, setGlobalBudget] = useState('50000');
+  const [hardCapEnabled, setHardCapEnabled] = useState(false);
+
+  // Mock current usage
+  const currentSpend = 18427;
+  const budgetNumber = parseFloat(globalBudget) || 0;
+  const budgetPercentage = budgetNumber > 0 ? (currentSpend / budgetNumber) * 100 : 0;
+
+  // Fetch 2FA status on mount
+  useEffect(() => {
+    const fetch2FAStatus = async () => {
+      try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+        const response = await fetch(`${apiUrl}/v1/auth/2fa/status`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setTwoFactorEnabled(data.enabled || false);
+        }
+      } catch (error) {
+        console.error('Error fetching 2FA status:', error);
+      }
+    };
+
+    if (tenant?.tenant_id) {
+      fetch2FAStatus();
+    }
+  }, [tenant?.tenant_id]);
+
+  // Handle 2FA toggle
+  const handle2FAToggle = async (enabled: boolean) => {
+    setIs2FALoading(true);
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+
+      if (enabled) {
+        // Generate secret first
+        const generateResponse = await fetch(`${apiUrl}/v1/auth/2fa/generate`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          },
+        });
+
+        if (!generateResponse.ok) throw new Error('Failed to generate 2FA secret');
+
+        const { secret, qr_code_url } = await generateResponse.json();
+
+        // Prompt user for verification code
+        const code = prompt('Enter the 6-digit code from your authenticator app:');
+        if (!code) {
+          setIs2FALoading(false);
+          return;
+        }
+
+        // Enable 2FA
+        const enableResponse = await fetch(`${apiUrl}/v1/auth/2fa/enable`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ secret, code }),
+        });
+
+        if (!enableResponse.ok) {
+          throw new Error('Invalid verification code');
+        }
+
+        setTwoFactorEnabled(true);
+        alert('2FA enabled successfully');
+      } else {
+        // Disable 2FA
+        const code = prompt('Enter your 6-digit 2FA code to disable:');
+        if (!code) {
+          setIs2FALoading(false);
+          return;
+        }
+
+        const response = await fetch(`${apiUrl}/v1/auth/2fa/disable`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Invalid 2FA code');
+        }
+
+        setTwoFactorEnabled(false);
+        alert('2FA disabled successfully');
+      }
+    } catch (error) {
+      console.error('Error toggling 2FA:', error);
+      alert('Failed to update 2FA: ' + (error as Error).message);
+      setTwoFactorEnabled(!enabled);
+    } finally {
+      setIs2FALoading(false);
+    }
+  };
+
+  // Handle plan upgrade
+  const handlePlanUpgrade = async () => {
+    if (!confirm('Redirect to billing portal to change your plan?')) {
+      return;
+    }
+
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+      const response = await fetch(`${apiUrl}/v1/billing/portal`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) throw new Error('Failed to create billing portal session');
+
+      const { url } = await response.json();
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error creating billing portal:', error);
+      alert('Failed to open billing portal. Please contact support.');
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -84,13 +218,13 @@ export default function SettingsPage() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="team">
-          <TabsList>
+        <Tabs defaultValue="notifications">
+          <TabsList className="shadow-md border border-border-light mb-6">
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="tenants">Clients & Tenants</TabsTrigger>
-            <TabsTrigger value="billing">Billing</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
 
           {/* Team Tab */}
@@ -205,7 +339,7 @@ export default function SettingsPage() {
 
                   <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
                     <p className="text-sm text-blue-900 font-medium mb-1">
-                      Available on Scale plan ($2,999/mo)
+                      Available on Scale plan
                     </p>
                     <p className="text-xs text-blue-800">
                       Unlimited multi-tenancy with full data isolation, per-tenant budgets, and 90-day trace retention.
@@ -260,7 +394,7 @@ export default function SettingsPage() {
                         Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                       </p>
                     </div>
-                    <Button variant="outline" className="shadow-md">
+                    <Button variant="outline" className="shadow-md" onClick={handlePlanUpgrade}>
                       {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
                     </Button>
                   </div>
@@ -275,6 +409,88 @@ export default function SettingsPage() {
                       </p>
                     </div>
                   )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Global Monthly Budget */}
+            <Card className="border-border-light shadow-md">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Receipt className="h-5 w-5 text-gray-900" />
+                  Global Monthly Budget
+                </CardTitle>
+                <CardDescription>
+                  Set a spending limit across all requests
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="globalBudget">
+                    Monthly Budget Limit (USD)
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">$</span>
+                    <Input
+                      id="globalBudget"
+                      type="number"
+                      value={globalBudget}
+                      onChange={(e) => setGlobalBudget(e.target.value)}
+                      className="pl-7"
+                      placeholder="50000"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="hardCap" className="text-base font-medium">
+                      Hard cap — block all requests at 100%
+                    </Label>
+                    <p className="text-sm text-gray-600">
+                      When enabled, all requests will be blocked once the budget is exhausted
+                    </p>
+                  </div>
+                  <Switch
+                    id="hardCap"
+                    checked={hardCapEnabled}
+                    onCheckedChange={setHardCapEnabled}
+                  />
+                </div>
+
+                {/* Current Usage Bar */}
+                <div className="space-y-3 p-4 rounded-lg bg-beige-secondary border border-border-light">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-900">Current Month Usage</span>
+                    <span className="font-medium text-gray-900">
+                      {formatCurrency(currentSpend)} / {formatCurrency(budgetNumber)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div
+                      className={`h-full transition-all ${
+                        budgetPercentage >= 90
+                          ? 'bg-red-600'
+                          : budgetPercentage >= 70
+                          ? 'bg-yellow-500'
+                          : ''
+                      }`}
+                      style={{
+                        width: `${Math.min(budgetPercentage, 100)}%`,
+                        backgroundColor: budgetPercentage < 70 ? '#299a93' : undefined
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-600">
+                    <span>{budgetPercentage.toFixed(1)}% used</span>
+                    <span>{formatCurrency(budgetNumber - currentSpend)} remaining</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button variant="outline" className="shadow-md">
+                    Save Budget Settings
+                  </Button>
                 </div>
               </CardContent>
             </Card>
@@ -344,7 +560,8 @@ export default function SettingsPage() {
                   <Switch
                     id="twoFactor"
                     checked={twoFactorEnabled}
-                    onCheckedChange={setTwoFactorEnabled}
+                    onCheckedChange={handle2FAToggle}
+                    disabled={is2FALoading}
                   />
                 </div>
               </CardContent>
@@ -472,34 +689,125 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            {/* Slack Integration */}
+            {/* Webhook Alerts */}
             <Card className="border-border-light shadow-md">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Webhook className="h-5 w-5 text-gray-900" />
-                  Slack Integration
+                  Webhook Alerts
                 </CardTitle>
                 <CardDescription>
-                  Receive notifications in Slack
+                  Get real-time alerts via webhook when critical events occur
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="slackWebhook">Webhook URL</Label>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="webhookUrl">Webhook URL</Label>
+                  <div className="flex gap-2">
                     <Input
-                      id="slackWebhook"
+                      id="webhookUrl"
                       type="url"
                       placeholder="https://hooks.slack.com/services/..."
                       value={slackWebhook}
                       onChange={(e) => setSlackWebhook(e.target.value)}
+                      className="flex-1"
                     />
-                    <p className="text-xs text-gray-600">
-                      Enter your Slack webhook URL to receive notifications
-                    </p>
+                    <Button
+                      variant="outline"
+                      className="shadow-md"
+                      onClick={() => {
+                        if (slackWebhook) {
+                          alert('Test payload sent to webhook');
+                        }
+                      }}
+                    >
+                      Test
+                    </Button>
                   </div>
+                  <p className="text-xs text-gray-600">
+                    Supports Slack, Discord, Microsoft Teams, and custom webhooks
+                  </p>
+                </div>
+
+                {/* Alert Events */}
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Alert Events</Label>
+
+                  <div className="space-y-3 p-4 rounded-lg border border-border-light bg-beige-secondary">
+                    {/* Error Rate Alert */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="errorRateAlert" className="text-sm font-medium">
+                          Error rate threshold (%)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Alert when error rate exceeds threshold
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Input
+                          type="number"
+                          placeholder="10"
+                          defaultValue="10"
+                          className="w-20"
+                          min="1"
+                          max="100"
+                        />
+                        <Switch id="errorRateAlert" defaultChecked />
+                      </div>
+                    </div>
+
+                    {/* Budget Alert */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="budgetAlert" className="text-sm font-medium">
+                          Budget threshold (%)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Alert when budget usage exceeds threshold
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Input
+                          type="number"
+                          placeholder="80"
+                          defaultValue="80"
+                          className="w-20"
+                          min="1"
+                          max="100"
+                        />
+                        <Switch id="budgetAlert" defaultChecked />
+                      </div>
+                    </div>
+
+                    {/* Provider Downtime Alert */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <Label htmlFor="downtimeAlert" className="text-sm font-medium">
+                          Provider downtime (failures)
+                        </Label>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Alert when provider fails consecutively
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 ml-4">
+                        <Input
+                          type="number"
+                          placeholder="5"
+                          defaultValue="5"
+                          className="w-20"
+                          min="1"
+                          max="50"
+                        />
+                        <Switch id="downtimeAlert" defaultChecked />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
                   <Button variant="outline" className="shadow-md">
-                    Save Webhook
+                    Save Alert Settings
                   </Button>
                 </div>
               </CardContent>

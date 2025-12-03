@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
+import { Footer } from './Footer';
 import { useTenant } from '@/hooks/useTenant';
 import { AlertCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,10 +27,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen bg-beige-primary m-0 p-0 overflow-x-hidden">
       <Navbar onMenuClick={() => setSidebarOpen(true)} />
 
-      <div className="flex m-0 p-0 pt-16">
+      <div className="flex m-0 p-0 pt-12">
         <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="flex-1 md:ml-64 overflow-x-hidden">
+        <main className="flex-1 md:ml-72 md:pl-2 md:pr-2 overflow-x-hidden">
           {/* Trial Banner */}
           {showTrialBanner && (
             <div className="bg-blue-600 text-white px-4 sm:px-6 lg:px-8 py-3">
@@ -59,11 +60,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           )}
 
-          <div className="px-4 sm:px-6 lg:px-8 py-6">
+          <div className="px-4 sm:px-6 lg:px-8 py-6 pb-16">
             {children}
           </div>
         </main>
       </div>
+      <Footer />
     </div>
   );
 }

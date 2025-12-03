@@ -1,0 +1,572 @@
+# Architecture Overview
+
+Schlep Engine uses a hybrid polyglot architecture that leverages the strengths of Go, Rust, and Python to build a high-performance, intelligent LLM routing platform.
+
+## System Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client Applications                      │
+│  (Web, Mobile, CLI, SDKs: Python, JS, Go, Rust, Ruby, Java, C#)│
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ↓ HTTPS / WebSocket
+┌─────────────────────────────────────────────────────────────────┐
+│                        Go API Gateway                            │
+│                    (Fiber Web Framework)                         │
+│                                                                   │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐          │
+│  │ Auth Layer   │  │ Rate Limiter │  │ Tier Gating  │          │
+│  │ JWT + API Key│  │ Redis-backed │  │ Feature Flags│          │
+│  └──────────────┘  └──────────────┘  └──────────────┘          │
+│                                                                   │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │              Adaptive Router (Go)                        │  │
+│  │  • Thompson Sampling (Bayesian Multi-Armed Bandit)      │  │
+│  │  • Speculative Execution (Race Multiple Providers)      │  │
+│  │  • Council Mode (Multi-Provider Consensus)              │  │
+│  │  • Semantic Routing (ONNX Classifier)                   │  │
+│  │  • Cost-Aware Routing                                   │  │
+│  │  • Circuit Breaker & Failover                           │  │
+│  └──────────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+          ┌───────────────────┼───────────────────┐
+          │                   │                   │
+          ↓ FFI (CGO)         ↓ gRPC             ↓ HTTP/HTTPS
+┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
+│  Rust Kernel     │  │ Python ML Service│  │ LLM Providers    │
+│  (Thompson       │  │ (Semantic Router)│  │ • OpenAI         │
+│   Sampling       │  │                  │  │ • Anthropic      │
+│   Optimizer)     │  │ • ONNX Runtime   │  │ • Google Gemini  │
+│                  │  │ • HuggingFace    │  │ • DeepSeek       │
+│ • Beta Sampling  │  │   Tokenizer      │  │ • Mistral        │
+│ • Parallel Exec  │  │ • GPU Accel      │  │ • Custom         │
+│ • Memory Pool    │  │ • Classification │  │                  │
+└──────────────────┘  └──────────────────┘  └──────────────────┘
+                              │
+                              ↓
+            ┌─────────────────────────────────┐
+            │       Data Layer                │
+            │                                 │
+            │  ┌──────────┐  ┌──────────┐   │
+            │  │PostgreSQL│  │  Redis   │   │
+            │  │(Metadata)│  │  (Cache) │   │
+            │  └──────────┘  └──────────┘   │
+            │                                 │
+            │  ┌──────────┐  ┌──────────┐   │
+            │  │  Vault   │  │Prometheus│   │
+            │  │ (Secrets)│  │ (Metrics)│   │
+            │  └──────────┘  └──────────┘   │
+            └─────────────────────────────────┘
+```
+
+## Technology Stack
+
+### Go Gateway (High-Concurrency HTTP)
+
+**Location:** `/cmd/schlep-api/`, `/internal/`
+
+**Responsibilities:**
+- HTTP request handling via Fiber web framework
+- Authentication (JWT + API key)
+- Rate limiting and tier-based gating
+- Request routing and orchestration
+- Circuit breaker and health monitoring
+- Metrics collection and observability
+- WebSocket streaming support
+
+**Key Packages:**
+```
+internal/
+├── api/                    # HTTP routes and handlers
+├── router/                 # Adaptive routing logic
+│   ├── adaptive_router.go
+│   ├── speculative_router.go
+│   ├── council.go
+│   └── semantic_router.go
+├── providers/              # Provider implementations
+│   ├── openai/
+│   ├── anthropic/
+│   └── provider_interface.go
+├── middleware/             # HTTP middleware
+│   ├── auth.go
+│   ├── rate_limiter.go
+│   └── tier_gating.go
+├── metrics/                # Prometheus metrics
+├── observability/          # Tracing and telemetry
+└── database/               # PostgreSQL client
+```
+
+**Why Go?**
+- Excellent HTTP performance and concurrency (goroutines)
+- Strong standard library for web services
+- Easy integration with cloud-native tools
+- Fast compilation and deployment
+
+### Rust Kernel (CPU-Intensive Optimization)
+
+**Location:** `/rust-core/rust_kernel/`
+
+**Responsibilities:**
+- Thompson Sampling optimizer (Beta distribution sampling)
+- High-performance statistical computations
+- Memory-safe parallel processing
+- FFI exports to Go via CGO
+
+**Key Modules:**
+```
+rust_kernel/src/
+├── lib.rs                  # FFI exports
+├── optimizer/
+│   ├── bandits.rs         # Beta distribution sampling
+│   ├── arms.rs            # Bandit arm state
+│   └── ffi.rs             # C-compatible FFI
+├── cache/                  # Caching layer
+├── mempool/                # Memory pooling
+└── parallel/               # Parallel processing
+```
+
+**FFI Interface:**
+```rust
+// Called from Go via CGO
+#[no_mangle]
+pub extern "C" fn optimizer_select_action(handle: *const OptimizerHandle) -> *const c_char {
+    // Select best provider based on Thompson Sampling
+}
+
+#[no_mangle]
+pub extern "C" fn optimizer_update_reward(
+    handle: *const OptimizerHandle,
+    provider_id: *const c_char,
+    reward: f64
+) {
+    // Update provider's alpha/beta parameters
+}
+```
+
+**Why Rust?**
+- Memory safety without garbage collection
+- 10-100x faster than Go for Beta sampling at scale
+- Zero-cost abstractions for performance-critical code
+- Safe concurrency with ownership system
+
+### Python ML Service (Semantic Routing)
+
+**Location:** `/adapters/python/python_ml/`
+
+**Responsibilities:**
+- ONNX model serving for semantic classification
+- HuggingFace tokenizer integration
+- Intent classification (creative, analytical, coding, etc.)
+- GPU acceleration (optional)
+- gRPC server for Go gateway integration
+
+**Service Architecture:**
+```
+python_ml/
+├── service/
+│   ├── server.py          # gRPC server
+│   ├── classifier.py      # ONNX classifier
+│   └── tokenizer.py       # HuggingFace tokenizer
+├── proto/
+│   └── ml_service.proto   # Protobuf definitions
+└── models/                 # ONNX model files
+    └── semantic_classifier.onnx
+```
+
+**Why Python?**
+- Best ecosystem for ML/AI (PyTorch, ONNX Runtime, HuggingFace)
+- Easy integration with pre-trained models
+- Rapid prototyping and experimentation
+
+## Request Flow
+
+### Standard Request Flow
+
+```
+1. Client Request
+   ↓
+2. Go Gateway (Auth + Rate Limiting)
+   ↓
+3. Adaptive Router
+   ├── Check semantic routing enabled?
+   │   ├── Yes → gRPC call to Python ML Service
+   │   │         └── Classify intent → Select provider
+   │   └── No → Use Thompson Sampling
+   │             ├── Check if Rust optimizer enabled?
+   │             │   ├── Yes → FFI call to Rust kernel
+   │             │   └── No → Go implementation
+   │             └── Select provider based on score
+   ↓
+4. Provider Client (HTTP call to LLM API)
+   ↓
+5. Update Metrics
+   ├── Prometheus metrics
+   ├── OpenTelemetry traces
+   └── Cost tracking (PostgreSQL)
+   ↓
+6. Return Response to Client
+```
+
+### Speculative Execution Flow
+
+```
+1. Client Request (speculative_mode: "latency")
+   ↓
+2. Go Gateway (Auth + Rate Limiting)
+   ↓
+3. Speculative Router
+   ├── Select N candidates (N=3) via Thompson Sampling
+   ├── Launch all providers in parallel with context cancellation
+   │   ├── Provider A: Start → Token 1 (240ms) → ...
+   │   ├── Provider B: Start → Token 1 (180ms) ← Winner
+   │   └── Provider C: Start → Token 1 (350ms) → ...
+   ├── Wait for early tokens (5 tokens or 5s timeout)
+   ├── Quality scorer evaluates candidates
+   └── Select winner based on composite score
+   ↓
+4. Stream Merger
+   ├── Deliver tokens from winner
+   ├── Buffer 5 tokens for fallback
+   ├── Cancel losing providers
+   └── If winner fails → switch to fallback
+   ↓
+5. Cost Accounting
+   ├── Track winner cost
+   ├── Track wasted cost (losing providers)
+   ├── Calculate waste ratio
+   └── Auto-disable if waste > 30%
+   ↓
+6. Return Stream to Client
+```
+
+### Council Mode Flow
+
+```
+1. Client Request (council_mode: true)
+   ↓
+2. Go Gateway (Auth + Rate Limiting)
+   ↓
+3. Council Router
+   ├── Select N providers (N=2-3)
+   ├── Send request to all providers in parallel
+   ├── Wait for all responses (with timeout)
+   ↓
+4. Council Judge (LLM-based evaluation)
+   ├── Compare responses for quality and consistency
+   ├── Detect hallucinations via cross-validation
+   ├── Score each response
+   └── Select best response or synthesize answer
+   ↓
+5. Return Best Response to Client
+```
+
+## Data Flow
+
+### Tenant Data Isolation
+
+```
+PostgreSQL Schema:
+┌──────────────────────┐
+│ tenants              │
+├──────────────────────┤
+│ tenant_id (PK)       │
+│ name                 │
+│ tier                 │ → developer, growth, scale
+│ api_keys             │
+│ created_at           │
+└──────────────────────┘
+
+┌──────────────────────┐
+│ provider_registry    │
+├──────────────────────┤
+│ registry_id (PK)     │
+│ tenant_id (FK)       │ → Tenant-specific providers
+│ provider_id          │
+│ api_key_encrypted    │
+│ config               │
+└──────────────────────┘
+
+┌──────────────────────┐
+│ requests             │
+├──────────────────────┤
+│ request_id (PK)      │
+│ tenant_id (FK)       │
+│ provider             │
+│ model                │
+│ cost_usd             │
+│ latency_ms           │
+│ timestamp            │
+└──────────────────────┘
+```
+
+### Caching Strategy
+
+**L1 Cache (Redis):**
+- Semantic classification results (TTL: 3600s)
+- Provider capabilities (TTL: 600s)
+- Rate limit counters (sliding window)
+- Session tokens (TTL: 24h)
+
+**L2 Cache (In-Memory):**
+- Not implemented (roadmap)
+- Planned for process-local LRU cache
+
+### Secret Management
+
+```
+HashiCorp Vault:
+/schlep-engine/
+  ├── tenants/
+  │   └── {tenant_id}/
+  │       └── providers/
+  │           ├── openai/
+  │           │   ├── api_key
+  │           │   └── config
+  │           └── anthropic/
+  │               ├── api_key
+  │               └── config
+  └── system/
+      ├── postgres_password
+      ├── redis_password
+      └── jwt_secret
+```
+
+## Component Interactions
+
+### 1. Authentication Flow
+
+```
+Request with API Key
+   ↓
+Middleware: Auth
+   ├── Extract API key from Authorization header
+   ├── Query PostgreSQL for tenant by API key
+   ├── Validate key is active and not expired
+   ├── Load tenant tier and features
+   └── Attach tenant context to request
+   ↓
+Request proceeds with tenant_id
+```
+
+### 2. Rate Limiting Flow
+
+```
+Request with tenant_id
+   ↓
+Middleware: Rate Limiter
+   ├── Get tier limits from tier_config.yaml
+   ├── Check Redis counter for tenant
+   │   ├── Key: "schlep:ratelimit:{tenant_id}:second"
+   │   ├── Key: "schlep:ratelimit:{tenant_id}:minute"
+   │   └── Key: "schlep:ratelimit:{tenant_id}:month"
+   ├── Increment counters
+   └── If limit exceeded → Return 429
+   ↓
+Request proceeds
+```
+
+### 3. Provider Selection Flow
+
+```
+Request with model="gpt-4"
+   ↓
+Adaptive Router
+   ├── Filter providers supporting "gpt-4"
+   ├── Filter by health status (circuit breaker)
+   ├── Check semantic routing enabled?
+   │   ├── Yes → Classify intent via Python ML
+   │   └── No → Skip
+   ├── Select routing policy
+   │   ├── thompson-sampling → Rust FFI or Go
+   │   ├── speculative → Race N providers
+   │   ├── council → Multi-provider consensus
+   │   └── cost-aware → Cheapest provider
+   └── Return selected provider
+   ↓
+Provider Client executes request
+```
+
+## Deployment Architecture
+
+### Docker Compose (Development)
+
+```yaml
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - PROVIDER_MODE=benchmark
+      - POSTGRES_URL=postgres://db:5432/schlep
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+      - ml-service
+
+  ml-service:
+    build: ./adapters/python/python_ml
+    ports:
+      - "50051:50051"
+
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=schlep
+      - POSTGRES_PASSWORD=secret
+
+  redis:
+    image: redis:7-alpine
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - "3000:3000"
+```
+
+### Kubernetes (Production)
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schlep-engine-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: schlep-engine-api
+  template:
+    spec:
+      containers:
+      - name: api
+        image: schlep-engine/api:1.2.1
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            cpu: 2
+            memory: 4Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        env:
+        - name: PROVIDER_MODE
+          value: "real"
+        - name: POSTGRES_URL
+          valueFrom:
+            secretKeyRef:
+              name: postgres-secret
+              key: url
+```
+
+## Observability Architecture
+
+### Metrics Collection
+
+```
+Application → Prometheus Client → Push Metrics
+                                       ↓
+                                 Prometheus Server
+                                       ↓
+                                    Grafana
+                                 (Dashboards)
+```
+
+**Key Metrics:**
+- `http_requests_total{method, path, status}`
+- `inference_requests_total{provider, model}`
+- `inference_latency_seconds{provider}`
+- `thompson_sampling_score{provider}`
+- `cost_usd_total{provider, component}`
+
+### Distributed Tracing
+
+```
+Request → OpenTelemetry SDK → Jaeger Collector
+                                      ↓
+                                 Jaeger Storage
+                                      ↓
+                                  Jaeger UI
+```
+
+**Trace Spans:**
+- `http_request` (parent)
+  - `auth_validation`
+  - `rate_limit_check`
+  - `routing_decision`
+    - `thompson_sampling`
+    - `semantic_classification` (if enabled)
+  - `provider_request`
+  - `cost_tracking`
+
+### Logging
+
+```
+Application → Structured Logs (JSON)
+                    ↓
+              Log Aggregator (ELK/Loki)
+                    ↓
+              Search & Analysis
+```
+
+## Scalability Considerations
+
+### Horizontal Scaling
+
+- **API Gateway**: Stateless, can scale to N replicas
+- **Python ML Service**: Scale based on classification QPS
+- **Redis**: Can use Redis Cluster for sharding
+- **PostgreSQL**: Read replicas for analytics queries
+
+### Performance Bottlenecks
+
+1. **Thompson Sampling**: Mitigated by Rust FFI optimization
+2. **Semantic Classification**: Cached in Redis (3600s TTL)
+3. **Provider API Latency**: Mitigated by speculative execution
+4. **Database Writes**: Batched cost tracking updates
+
+### Resource Requirements
+
+| Component | CPU | Memory | Scale at |
+|-----------|-----|--------|----------|
+| API Gateway | 2-4 cores | 4-8GB | 10k RPS |
+| ML Service | 4 cores | 8GB | 1k classifications/sec |
+| PostgreSQL | 2 cores | 4GB | 1M requests/day |
+| Redis | 1 core | 2GB | 100k ops/sec |
+
+## Security Architecture
+
+### Authentication & Authorization
+
+- **API Keys**: SHA-256 hashed, tenant-scoped
+- **JWT Tokens**: 24h expiry, RS256 signature
+- **RBAC**: Role-based access control (roadmap)
+- **Tenant Isolation**: PostgreSQL row-level security
+
+### Data Encryption
+
+- **In Transit**: TLS 1.3 for all external connections
+- **At Rest**: PostgreSQL transparent encryption
+- **Secrets**: HashiCorp Vault with AES-256
+
+### Network Security
+
+- **Firewall**: Restrict ports (8080, 50051, 5432, 6379)
+- **VPC**: Internal services in private subnet
+- **API Gateway**: Rate limiting + DDoS protection
+
+## Related Documentation
+
+- [Provider Keys](/docs/providers-keys) - Provider configuration
+- [Routing Policies](/docs/routing-policies) - Routing strategies
+- [Multi-Tenancy](/docs/multi-tenancy) - Tenant isolation
+- [Observability](/docs/observability) - Monitoring and tracing
