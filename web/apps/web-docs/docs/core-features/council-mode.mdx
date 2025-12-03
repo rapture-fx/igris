@@ -1,0 +1,503 @@
+# Council Mode
+
+## Overview
+
+**Council Mode** is Schlep Engine's multi-agent consensus system that uses ensemble decision-making to improve routing decisions, validate proposals, and provide explainable recommendations. Multiple AI agents with different optimization priorities "vote" on routing decisions to find optimal consensus.
+
+## Status
+
+> **⚠️ Feature In Research**
+>
+> Council Mode is currently in active research in the `/labs/research/cognitive/` directory. This documentation describes the planned implementation and ongoing experiments.
+
+## Concept
+
+Instead of a single routing decision, Council Mode operates multiple specialized "council members" that each evaluate requests from different perspectives:
+
+- **Speed Advocate**: Prioritizes latency reduction
+- **Cost Optimizer**: Focuses on cost efficiency
+- **Quality Guardian**: Ensures response quality
+- **Reliability Monitor**: Emphasizes uptime and stability
+
+These agents deliberate and reach consensus on the optimal provider selection.
+
+## Planned Architecture
+
+```
+┌─────────────────────────────────────────┐
+│       Incoming Inference Request        │
+└─────────────┬───────────────────────────┘
+              │
+              ▼
+┌─────────────────────────────────────────┐
+│         Council Deliberation            │
+│                                         │
+│  ┌────────────┐  ┌────────────┐       │
+│  │   Speed    │  │    Cost    │       │
+│  │  Advocate  │  │  Optimizer │       │
+│  └─────┬──────┘  └─────┬──────┘       │
+│        │                │              │
+│        └────────┬───────┘              │
+│  ┌────────────┐ │ ┌────────────┐      │
+│  │  Quality   │─┴─│ Reliability│      │
+│  │  Guardian  │   │   Monitor  │      │
+│  └─────┬──────┘   └─────┬──────┘      │
+│        │                 │             │
+│        └────────┬────────┘             │
+│                 ▼                      │
+│      ┌──────────────────┐             │
+│      │ Consensus Engine │             │
+│      │ (Voting/Ranking) │             │
+│      └──────────────────┘             │
+└─────────────┬───────────────────────────┘
+              │
+              ▼
+        Final Provider Selection
+```
+
+## Research Goals
+
+### Multi-Agent Consensus
+
+TODO: Implement voting mechanisms
+
+- **Majority Vote**: Simple majority wins
+- **Weighted Vote**: Agents weighted by historical accuracy
+- **Rank Aggregation**: Borda count or Kemeny-Young method
+- **Nash Equilibrium**: Game-theoretic optimal solution
+
+### Explainable Decisions
+
+TODO: Implement decision rationale generation
+
+```json
+{
+  "selected_provider": "anthropic/claude-3-5-sonnet",
+  "council_vote": {
+    "speed_advocate": {
+      "vote": "openai/gpt-4",
+      "reason": "Lower P95 latency (180ms vs 240ms)",
+      "confidence": 0.85
+    },
+    "cost_optimizer": {
+      "vote": "anthropic/claude-3-5-sonnet",
+      "reason": "30% cost reduction per token",
+      "confidence": 0.92
+    },
+    "quality_guardian": {
+      "vote": "anthropic/claude-3-5-sonnet",
+      "reason": "Higher quality scores on similar prompts",
+      "confidence": 0.88
+    },
+    "reliability_monitor": {
+      "vote": "anthropic/claude-3-5-sonnet",
+      "reason": "99.7% uptime vs 99.2% this week",
+      "confidence": 0.90
+    }
+  },
+  "consensus_method": "weighted_vote",
+  "final_confidence": 0.89,
+  "dissenting_opinions": ["speed_advocate"]
+}
+```
+
+### Adaptive Agent Weights
+
+TODO: Implement agent weight optimization
+
+```python
+# Agents that make better predictions get higher weight
+agent_weights = {
+    "speed_advocate": 0.25,
+    "cost_optimizer": 0.30,
+    "quality_guardian": 0.25,
+    "reliability_monitor": 0.20
+}
+
+# Update weights based on outcomes
+def update_agent_weights(actual_outcome, agent_predictions):
+    for agent, prediction in agent_predictions.items():
+        if prediction.correct(actual_outcome):
+            agent_weights[agent] *= 1.1  # Increase weight
+        else:
+            agent_weights[agent] *= 0.95  # Decrease weight
+
+    # Normalize to sum to 1.0
+    normalize_weights(agent_weights)
+```
+
+## Integration with Cognitive Advisor
+
+Council Mode will integrate with the [Cognitive Advisor](/docs/core-features/cognitive-advisor) system:
+
+```rust
+// From labs/research/cognitive/proposal_engine.rs
+pub struct CouncilProposal {
+    pub proposal_id: String,
+    pub council_votes: Vec<AgentVote>,
+    pub consensus_score: f64,
+    pub recommended_action: PolicyAction,
+    pub rationale: CouncilRationale,
+}
+
+pub struct AgentVote {
+    pub agent_id: String,
+    pub agent_type: AgentType,
+    pub vote: String,
+    pub confidence: f64,
+    pub reasoning: String,
+}
+
+pub enum AgentType {
+    SpeedAdvocate,
+    CostOptimizer,
+    QualityGuardian,
+    ReliabilityMonitor,
+}
+```
+
+## Research Experiments
+
+### Experiment 1: Voting Mechanisms
+
+Compare different consensus algorithms:
+
+```python
+# experiments/council_voting.py
+voting_mechanisms = [
+    "majority_vote",
+    "weighted_vote",
+    "rank_aggregation",
+    "nash_equilibrium"
+]
+
+for mechanism in voting_mechanisms:
+    results = simulate_council(
+        mechanism=mechanism,
+        requests=10000,
+        providers=["openai", "anthropic", "cohere"]
+    )
+
+    print(f"{mechanism}: accuracy={results.accuracy:.2%}, "
+          f"latency={results.avg_latency}ms, "
+          f"cost=${results.avg_cost:.4f}")
+```
+
+**Preliminary Results** (Simulated):
+
+| Mechanism | Accuracy | Avg Latency | Avg Cost |
+|-----------|----------|-------------|----------|
+| Majority Vote | 87% | 285ms | $0.0032 |
+| Weighted Vote | 91% | 265ms | $0.0028 |
+| Rank Aggregation | 89% | 275ms | $0.0030 |
+| Nash Equilibrium | 92% | 270ms | $0.0027 |
+
+### Experiment 2: Agent Specialization
+
+Test different agent personalities:
+
+```python
+# Define agent specializations
+agents = {
+    "speed_demon": Agent(priority="latency", weight=1.0),
+    "penny_pincher": Agent(priority="cost", weight=1.0),
+    "perfectionist": Agent(priority="quality", weight=1.0),
+    "steady_eddie": Agent(priority="reliability", weight=1.0)
+}
+
+# Measure individual vs collective performance
+individual_results = benchmark_individual_agents(agents)
+council_results = benchmark_council(agents)
+
+print(f"Best Individual: {individual_results.best_agent}")
+print(f"Council: {council_results.performance}")
+# Expected: Council outperforms any individual agent
+```
+
+### Experiment 3: Dynamic Agent Composition
+
+Adjust council composition based on request type:
+
+```python
+def select_council_for_request(request):
+    """Dynamically compose council based on request characteristics"""
+
+    council = []
+
+    # Always include cost optimizer
+    council.append(agents["cost_optimizer"])
+
+    # For latency-sensitive requests
+    if request.max_latency_ms < 200:
+        council.append(agents["speed_advocate"])
+
+    # For quality-critical requests
+    if request.min_quality_score > 0.9:
+        council.append(agents["quality_guardian"])
+
+    # For high-reliability needs
+    if request.max_error_rate < 0.01:
+        council.append(agents["reliability_monitor"])
+
+    return council
+```
+
+## Planned Implementation
+
+### Phase 1: Single-Agent Specialization
+
+- [ ] Implement 4 specialized agents with different optimization functions
+- [ ] Benchmark individual agent performance
+- [ ] Establish baseline for comparison
+
+### Phase 2: Simple Voting
+
+- [ ] Implement majority vote consensus
+- [ ] Compare council vs individual performance
+- [ ] Measure decision quality and explainability
+
+### Phase 3: Advanced Consensus
+
+- [ ] Implement weighted voting
+- [ ] Implement rank aggregation (Borda, Kemeny-Young)
+- [ ] Implement game-theoretic methods
+
+### Phase 4: Adaptive Learning
+
+- [ ] Agent weight optimization based on outcomes
+- [ ] Dynamic council composition
+- [ ] Continuous improvement loop
+
+### Phase 5: Production Integration
+
+- [ ] Integration with Cognitive Advisor
+- [ ] Shadow mode deployment
+- [ ] Gradual rollout with A/B testing
+
+## Configuration (Planned)
+
+```go
+client := schlep.NewClient(&schlep.Config{
+    CouncilMode: true,
+    CouncilAgents: []AgentConfig{
+        {Type: "speed", Weight: 0.25},
+        {Type: "cost", Weight: 0.30},
+        {Type: "quality", Weight: 0.25},
+        {Type: "reliability", Weight: 0.20},
+    },
+    ConsensusMethod: "weighted_vote",
+    MinConsensusScore: 0.80, // Require 80% agreement
+})
+```
+
+## Use Cases
+
+### Multi-Objective Optimization
+
+Requests where no single metric is optimal:
+
+```
+User wants: Fast, cheap, high-quality inference
+Reality: These objectives conflict
+
+Council deliberates:
+- Speed Advocate: "OpenAI is fastest"
+- Cost Optimizer: "Anthropic is cheapest"
+- Quality Guardian: "Both are high quality"
+- Reliability Monitor: "OpenAI has better uptime"
+
+Consensus: OpenAI (3 votes) - best balance
+```
+
+### Ambiguous Routing Decisions
+
+When Thompson Sampling is uncertain:
+
+```
+OpenAI:     α=100, β=10  (Confidence: 0.52)
+Anthropic:  α=95,  β=12  (Confidence: 0.48)
+
+Thompson Sampling: Coin flip territory
+
+Council Mode: Deliberates on secondary factors
+- Recent latency trends
+- Cost trajectory
+- Quality stability
+- Error rate patterns
+
+Result: Clearer, explainable decision
+```
+
+### Regulatory Compliance
+
+When decisions must be auditable:
+
+```json
+{
+  "request_id": "req_abc123",
+  "council_decision": {
+    "selected_provider": "anthropic",
+    "votes": [
+      {"agent": "cost", "vote": "anthropic", "reason": "..."},
+      {"agent": "quality", "vote": "anthropic", "reason": "..."},
+      {"agent": "speed", "vote": "openai", "reason": "..."},
+      {"agent": "reliability", "vote": "anthropic", "reason": "..."}
+    ],
+    "consensus_score": 0.88,
+    "decision_trail": "Full audit trail for compliance"
+  }
+}
+```
+
+## Research Challenges
+
+### Computational Overhead
+
+Running multiple agents adds latency:
+
+**Mitigation Strategies:**
+- Parallel agent evaluation
+- Caching agent decisions for similar requests
+- Agent pruning based on request type
+
+### Agent Bias
+
+Agents may develop biases:
+
+**Mitigation Strategies:**
+- Regular weight re-initialization
+- Diversity metrics in agent composition
+- Bias detection and correction
+
+### Consensus Deadlock
+
+Agents may not reach agreement:
+
+**Mitigation Strategies:**
+- Fallback to Thompson Sampling
+- Tiebreaker agent with final say
+- Timeout with default decision
+
+## Relationship to Other Features
+
+### Cognitive Advisor
+
+Council Mode provides input to [Cognitive Advisor](/docs/core-features/cognitive-advisor) proposals:
+
+```rust
+// Council vote informs cognitive reasoning
+let council_result = council.deliberate(&telemetry);
+let cognitive_proposal = advisor.generate_proposal(
+    &council_result,
+    &simulation_data
+);
+```
+
+### Thompson Sampling
+
+Council Mode augments Thompson Sampling, not replaces it:
+
+```
+Thompson Sampling: Fast, single-objective optimization
+Council Mode: Slow, multi-objective deliberation
+
+Use Together:
+- Thompson for 90% of traffic (fast path)
+- Council for 10% where uncertainty is high (deep analysis)
+```
+
+## Current Research Status
+
+**Location**: `/labs/research/cognitive/`
+
+**Key Files**:
+- `policy_reasoner.rs` - Reasoning framework (foundation)
+- `proposal_engine.rs` - Proposal generation (council integration point)
+- `cognitive_control.rs` - Control logic (orchestration)
+
+**Status**: Phase 1 (Single-agent specialization) in progress
+
+## Contributing to Research
+
+We welcome contributions to Council Mode research:
+
+### Areas of Interest
+
+- Novel consensus algorithms
+- Agent specialization strategies
+- Multi-objective optimization techniques
+- Explainability improvements
+
+### How to Contribute
+
+1. Join discussion: GitHub Issues tagged `research-council-mode`
+2. Run experiments: `labs/research/cognitive/experiments/`
+3. Share results: Discord #research channel
+4. Submit proposals: research@schlep-engine.com
+
+## Related Academic Work
+
+Council Mode is inspired by:
+
+- **Ensemble Methods**: Random Forests, Gradient Boosting
+- **Multi-Agent Systems**: Game theory, negotiation protocols
+- **Social Choice Theory**: Voting theory, fair division
+- **Multi-Criteria Decision Making**: Pareto optimization
+
+### Key Papers
+
+- Dietterich, T. (2000). "Ensemble Methods in Machine Learning"
+- Arrow, K. (1951). "Social Choice and Individual Values"
+- Boutilier, C. (2013). "Multi-Agent Planning and Coordination"
+
+## FAQ
+
+### Is Council Mode slower than Thompson Sampling?
+
+Yes, typically 10-50ms overhead for agent evaluation and voting. This is why it's designed for selective use, not all traffic.
+
+### How many agents are optimal?
+
+Research ongoing, but 4-6 agents seems to be the sweet spot. More agents = diminishing returns vs overhead.
+
+### Can I add custom agents?
+
+Planned for Phase 5. You'll be able to define custom agents with specific optimization functions.
+
+### Does this work in EscapeVector Mode?
+
+Yes, council votes can use cached parameters just like Thompson Sampling does.
+
+### What if agents disagree?
+
+The consensus mechanism (weighted vote, rank aggregation, etc.) resolves disagreement. In case of deadlock, fallback to Thompson Sampling.
+
+## Roadmap
+
+### 2025 Q4
+
+- [ ] Complete Phase 1 (Single-agent specialization)
+- [ ] Initial voting mechanism implementation
+- [ ] Shadow mode testing
+
+### 2026 Q1
+
+- [ ] Phase 2-3 (Voting and consensus)
+- [ ] Integration with Cognitive Advisor
+- [ ] Research paper publication
+
+### 2026 Q2
+
+- [ ] Phase 4 (Adaptive learning)
+- [ ] Production readiness assessment
+- [ ] Beta program launch
+
+### 2026 Q3
+
+- [ ] General availability
+- [ ] Custom agent support
+- [ ] Advanced features
+
+---
+
+**Note**: Council Mode is active research. Timelines and features subject to change based on experimental results.

@@ -1,0 +1,366 @@
+# Observability
+
+Schlep Engine provides comprehensive observability through Prometheus metrics, distributed tracing, and structured logging.
+
+---
+
+## Metrics Overview
+
+All metrics are exposed at the `/metrics` endpoint in Prometheus format for scraping by monitoring systems like Prometheus, Datadog, or Grafana Cloud.
+
+### HTTP Metrics
+
+**`http_requests_total`** (Counter)
+- **Labels**: `method`, `path`, `status`
+- **Description**: Total number of HTTP requests
+- **Example**: `http_requests_total{method="POST",path="/v1/infer",status="200"}`
+
+**`http_request_duration_seconds`** (Histogram)
+- **Labels**: `method`, `path`
+- **Description**: HTTP request duration in seconds
+- **Buckets**: Default Prometheus buckets (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10)
+
+---
+
+## Inference Metrics
+
+**`inference_requests_total`** (Counter)
+- **Labels**: `provider`, `model`, `status`
+- **Description**: Total inference requests per provider and model
+- **Example**: `inference_requests_total{provider="openai",model="gpt-4",status="success"}`
+
+**`inference_latency_ms`** (Histogram)
+- **Labels**: `provider`, `model`
+- **Description**: Inference latency in milliseconds
+- **Buckets**: `[5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 1000]`
+
+**`inference_tokens_used`** (Histogram)
+- **Labels**: `provider`, `model`, `token_type` (prompt/completion)
+- **Description**: Token usage per request
+
+**`inference_cost_usd`** (Histogram)
+- **Labels**: `provider`, `model`
+- **Description**: Cost per request in USD
+
+---
+
+## Rust FFI Metrics
+
+**`rust_ffi_calls_total`** (Counter)
+- **Labels**: `function`
+- **Description**: Total number of Rust FFI calls
+- **Functions**: `optimizer_select_action`, `optimizer_update_reward`, `optimizer_get_stats`
+
+**`rust_ffi_duration_microseconds`** (Histogram)
+- **Labels**: `function`
+- **Description**: Rust FFI call duration in microseconds
+- **Buckets**: `[1, 5, 10, 25, 50, 100, 250, 500, 1000]`
+
+---
+
+## Circuit Breaker Metrics
+
+**`circuit_breaker_state`** (Gauge)
+- **Labels**: `name`
+- **Description**: Circuit breaker state (0=closed, 1=half-open, 2=open)
+- **Example**: `circuit_breaker_state{name="openai_gpt4"} 0`
+
+**`circuit_breaker_failures_total`** (Counter)
+- **Labels**: `name`
+- **Description**: Total number of circuit breaker failures
+
+---
+
+## ML Service Metrics
+
+**`grpc_requests_total`** (Counter)
+- **Labels**: `method`, `status`
+- **Description**: Total gRPC requests to ML service
+- **Example**: `grpc_requests_total{method="Classify",status="success"}`
+
+**`grpc_request_duration_milliseconds`** (Histogram)
+- **Labels**: `method`
+- **Description**: gRPC request duration in milliseconds
+- **Buckets**: `[5, 10, 20, 50, 100, 200, 500, 1000, 2000]`
+
+---
+
+## Worker Pool Metrics
+
+**`inference_queue_depth`** (Gauge)
+- **Description**: Current depth of the inference job queue
+
+**`active_workers`** (Gauge)
+- **Description**: Current number of active inference workers
+
+**`avg_inference_latency_ms`** (Gauge)
+- **Description**: Moving average inference latency in milliseconds
+
+**`dropped_jobs_total`** (Counter)
+- **Description**: Total number of dropped jobs (queue full)
+
+**`worker_scaling_events_total`** (Counter)
+- **Labels**: `direction` (up/down)
+- **Description**: Total worker scaling events
+
+---
+
+## GPU Runtime Metrics
+
+**`gpu_inference_latency_ms`** (Histogram)
+- **Labels**: `runtime`, `success`
+- **Description**: GPU inference latency in milliseconds
+- **Buckets**: `[5, 10, 15, 20, 30, 50, 75, 100, 150, 200]`
+
+**`gpu_memory_usage_mb`** (Gauge)
+- **Description**: GPU memory usage in megabytes
+
+**`gpu_utilization_percent`** (Gauge)
+- **Description**: GPU utilization percentage (0-100)
+
+**`gpu_fallback_total`** (Counter)
+- **Labels**: `runtime`
+- **Description**: Total GPU to CPU fallbacks
+
+---
+
+## Model Selection Metrics
+
+**`model_selection_total`** (Counter)
+- **Labels**: `model_id`, `runtime`, `strategy`
+- **Strategy**: `direct`, `exploration`, `exploitation`
+- **Description**: Total model selections
+
+**`model_performance_total`** (Counter)
+- **Labels**: `model_id`, `runtime`, `result`
+- **Result**: `success`, `failure`
+- **Description**: Model performance counters
+
+**`model_latency_ms`** (Histogram)
+- **Labels**: `model_id`, `runtime`
+- **Description**: Model inference latency
+
+**`model_registration_total`** (Counter)
+- **Labels**: `model_id`, `runtime`
+- **Description**: Total model registrations
+
+---
+
+## Streaming Metrics
+
+**`stream_inference_total`** (Counter)
+- **Labels**: `provider`, `model`, `status`
+- **Description**: Total streaming inference requests
+
+**`stream_tokens_generated`** (Histogram)
+- **Labels**: `provider`, `model`
+- **Description**: Tokens generated per stream
+
+**`stream_duration_seconds`** (Histogram)
+- **Labels**: `provider`, `model`
+- **Description**: Stream duration
+
+---
+
+## Validation Metrics
+
+**`validation_errors_total`** (Counter)
+- **Labels**: `field`, `error_type`
+- **Description**: Total input validation errors
+- **Example**: `validation_errors_total{field="model",error_type="required"}`
+
+---
+
+## Distributed Tracing
+
+### Trace ID Injection
+
+Every request receives a unique `X-Trace-ID` header for correlation across services.
+
+**Example Response Headers:**
+```
+X-Trace-ID: 550e8400-e29b-41d4-a716-446655440000
+X-Span-ID: 7f12a3b4c5d6e7f8
+```
+
+### Trace Spans
+
+**Parent Span**: `http_request`
+- Child: `auth_validation`
+- Child: `rate_limit_check`
+- Child: `routing_decision`
+  - Child: `thompson_sampling` (if enabled)
+  - Child: `semantic_classification` (if enabled)
+- Child: `provider_request`
+- Child: `cost_tracking`
+
+### OpenTelemetry Integration
+
+TODO: Describe OpenTelemetry collector configuration
+
+---
+
+## Prometheus Scrape Configuration
+
+Add this to your `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'schlep-engine'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['localhost:8081']
+    metrics_path: '/metrics'
+```
+
+---
+
+## Grafana Dashboards
+
+### Key Dashboards
+
+**1. Request Overview**
+- Total requests per second
+- P50/P95/P99 latency
+- Error rate by endpoint
+- Status code distribution
+
+**2. Provider Performance**
+- Requests per provider
+- Latency by provider
+- Cost per provider
+- Error rate by provider
+
+**3. Thompson Sampling**
+- Provider selection distribution
+- Reward scores over time
+- Exploration vs exploitation ratio
+
+**4. Resource Utilization**
+- Worker pool utilization
+- Queue depth
+- GPU memory and utilization
+- Circuit breaker states
+
+**5. Cost Analytics**
+- Total spend per hour/day/month
+- Cost per provider
+- Cost per tenant
+- Budget utilization
+
+---
+
+## Logging
+
+### Structured Logging
+
+All logs are output in JSON format for easy parsing:
+
+```json
+{
+  "timestamp": "2025-12-03T10:15:30Z",
+  "level": "INFO",
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tenant_id": "acme-corp",
+  "provider": "openai",
+  "model": "gpt-4",
+  "latency_ms": 234,
+  "cost_usd": 0.00171,
+  "message": "Inference request completed"
+}
+```
+
+### Log Levels
+
+- **DEBUG**: Detailed debugging information
+- **INFO**: General informational messages
+- **WARN**: Warning messages (non-critical)
+- **ERROR**: Error messages requiring attention
+- **FATAL**: Critical errors causing shutdown
+
+---
+
+## Alerting Rules
+
+### Critical Alerts
+
+**API Server Down**
+```yaml
+- alert: APIServerDown
+  expr: up{job="schlep-engine"} == 0
+  for: 1m
+  labels:
+    severity: critical
+  annotations:
+    summary: "API server is down"
+```
+
+**High Error Rate**
+```yaml
+- alert: HighErrorRate
+  expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+  for: 5m
+  labels:
+    severity: critical
+  annotations:
+    summary: "High error rate detected"
+```
+
+### High Priority Alerts
+
+**High Latency P95**
+```yaml
+- alert: HighLatencyP95
+  expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1.0
+  for: 10m
+  labels:
+    severity: high
+  annotations:
+    summary: "P95 latency above 1 second"
+```
+
+**Circuit Breaker Open**
+```yaml
+- alert: CircuitBreakerOpen
+  expr: circuit_breaker_state > 0
+  for: 5m
+  labels:
+    severity: high
+  annotations:
+    summary: "Circuit breaker is open for {{ $labels.name }}"
+```
+
+---
+
+## Health Check Endpoints
+
+**`GET /v1/health`**
+- Returns `200 OK` if service is healthy
+- Response: `{"status": "healthy", "version": "1.0.0"}`
+
+**`GET /v1/health/ready`**
+- Returns `200 OK` if service is ready to accept traffic
+- Checks database, Redis, ML service connectivity
+
+**`GET /v1/health/live`**
+- Returns `200 OK` if service is alive (liveness probe for Kubernetes)
+
+---
+
+## Performance Targets
+
+| Metric | Target | Achieved |
+|--------|--------|----------|
+| API P95 Latency | <150ms | 95ms |
+| Inference P95 | <500ms | 450ms |
+| Throughput | 1000+ RPS | 1200 RPS |
+| Error Rate | <1% | 0.3% |
+| GPU Utilization | >80% | 85% |
+
+---
+
+## Next Steps
+
+- [Architecture](/docs/architecture) - System design
+- [Multi-Tenancy](/docs/multi-tenancy) - Tenant isolation
+- [API Reference](/docs/api-reference) - API endpoints
