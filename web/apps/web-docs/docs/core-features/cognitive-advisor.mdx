@@ -2,9 +2,9 @@
 
 ## Overview
 
-**Cognitive Advisor** is Schlep Engine's AI-native operational autonomy system that generates explainable policy recommendations by synthesizing multiple signals: reinforcement learning, predictive forecasts, telemetry, and performance history. It operates in shadow-only mode, producing proposals for human review rather than making autonomous changes.
+**Cognitive Advisor** is Schlep Engine's AI-native operational autonomy system that generates explainable policy recommendations by analyzing provider performance, telemetry, and historical patterns. It operates in shadow-only mode, producing proposals for human review rather than making autonomous changes.
 
-This is the flagship feature of Schlep Engine's autonomous operations research, implementing Phase 11.3 of the AI-Native Operational Autonomy roadmap.
+The implementation is located in `/internal/cognitive/` and is fully operational in production environments.
 
 ## Key Features
 
@@ -57,19 +57,19 @@ Every proposal includes:
 
 ### Core Components
 
-**1. Cognitive Reasoning Engine** (`/labs/research/cognitive/policy_reasoner.rs`)
-- 899 lines of code
-- Multi-signal synthesis
-- Shadow-only evaluation
-- Automatic JSON export
+**1. Cognitive Advisor Core** (`/internal/cognitive/advisor.go` - 485 lines)
+- Provider performance analysis
+- Degradation detection
+- Proposal generation
+- Multi-tenant analysis
 
-**2. Proposal Generation** (`/labs/research/cognitive/proposal_engine.rs`)
-- Structured proposal format
-- Safety gate validation
-- Evidence linking
-- Rationale generation
+**2. Proposal Applier** (`/internal/cognitive/applier.go` - 412 lines)
+- Safe proposal application
+- Thompson Sampling updates
+- Exploration rate tuning
+- Audit logging
 
-**3. Go Backend Integration** (`/internal/cognitive/advisor.go`)
+**3. Background Worker** (`/internal/cognitive/worker.go` - 137 lines)
 - Provider performance analysis
 - Thompson Sampling parameter optimization
 - Degradation detection
@@ -602,7 +602,7 @@ Thompson Sampling makes real-time routing decisions. Cognitive Advisor generates
 
 For questions about Cognitive Advisor:
 - Documentation: /docs/cognitive-advisor
-- Email: research@schlep-engine.com
+- Email: support@schlep-engine.com
 - GitHub: Issues tagged `cognitive-advisor`
 - Discord: #cognitive-advisor channel
 
