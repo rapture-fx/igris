@@ -124,10 +124,10 @@ print(response.metadata)
 ```
 
 **Result:**
-- ✅ One API instead of three
-- ✅ Automatic failover (no try/except hell)
-- ✅ Cost optimization (Thompson Sampling learns best provider)
-- ✅ Complete observability (every request tracked)
+- One API instead of three
+- Automatic failover (no try/except hell)
+- Cost optimization (Thompson Sampling learns best provider)
+- Complete observability (every request tracked)
 
 ---
 
@@ -262,19 +262,6 @@ helm install schlep-engine ./infra/helm/schlep-engine \
   --set postgresql.enabled=true \
   --set redis.enabled=true
 ```
-
----
-
-## Pricing
-
-| Tier | Price | Requests/Month | Key Features |
-|------|-------|----------------|--------------|
-| **Trial** | **$0** | 50k | All features for 14 days |
-| **Develop** | **$149** | 500k | Core routing + observability |
-| **Growth** | **$899** | 2M | + Speculative, Council, Cognitive |
-| **Scale** | **$2,999** | Unlimited | + Self-hosted, custom SLAs |
-
-[View Full Pricing](/docs/pricing-tiers)
 
 ---
 

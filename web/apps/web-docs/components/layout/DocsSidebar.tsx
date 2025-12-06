@@ -112,11 +112,6 @@ const navigation: NavigationItem[] = [
     icon: BarChart3,
   },
   {
-    name: 'Pricing & Tiers',
-    href: '/docs/pricing',
-    icon: DollarSign,
-  },
-  {
     name: 'FAQ',
     href: '/docs/faq',
     icon: HelpCircle,
@@ -263,7 +258,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                               <Link
                                 href={child.href}
                                 className={cn(
-                                  'flex items-start gap-2.5 rounded-lg px-3 py-1.5 text-[0.8125rem] font-medium font-inter transition-colors',
+                                  'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                                   isChildActive
                                     ? 'text-primary font-semibold'
                                     : 'text-gray-700 hover:text-gray-900'
@@ -288,7 +283,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                     {child.badge}
                                   </span>
                                 )}
-                                <span className="break-all flex-1">{child.name}</span>
+                                <span className="break-all flex-1 leading-relaxed">{child.name}</span>
                               </Link>
                             </li>
                           );
