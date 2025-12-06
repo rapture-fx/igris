@@ -32,6 +32,7 @@ interface NavigationItem {
   href: string;
   icon?: any;
   children?: NavigationItem[];
+  badge?: string;
 }
 
 const navigation: NavigationItem[] = [
@@ -59,6 +60,23 @@ const navigation: NavigationItem[] = [
     name: 'API Reference',
     href: '/docs/api',
     icon: Code,
+    children: [
+      { name: '/v1/health', href: '/docs/api#health-check', badge: 'GET' },
+      { name: '/v1/infer', href: '/docs/api#inference-openai-compatible', badge: 'POST' },
+      { name: '/v1/chat/completions', href: '/docs/api#inference-openai-compatible', badge: 'POST' },
+      { name: '/v1/embeddings', href: '/docs/api#embeddings', badge: 'POST' },
+      { name: '/v1/providers', href: '/docs/api#list-providers', badge: 'GET' },
+      { name: '/v1/providers/{name}/stats', href: '/docs/api#provider-stats', badge: 'GET' },
+      { name: '/v1/providers/custom', href: '/docs/api#register-custom-provider', badge: 'POST' },
+      { name: '/v1/admin/tenants', href: '/docs/api#create-tenant', badge: 'POST' },
+      { name: '/v1/tenants/{id}/usage', href: '/docs/api#get-tenant-usage', badge: 'GET' },
+      { name: '/v1/tenants/{id}/costs/breakdown', href: '/docs/api#get-cost-breakdown', badge: 'GET' },
+      { name: '/v1/routing/preview', href: '/docs/api#preview-routing-decision', badge: 'POST' },
+      { name: '/v1/health/metrics', href: '/docs/api#health-metrics', badge: 'GET' },
+      { name: '/metrics', href: '/docs/api#prometheus-metrics', badge: 'GET' },
+      { name: '/admin/optimizer', href: '/docs/api#update-optimizer-config', badge: 'POST' },
+      { name: '/admin/routing/reset', href: '/docs/api#reset-thompson-sampling', badge: 'POST' },
+    ],
   },
   {
     name: 'SDK Usage',
@@ -186,45 +204,58 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 return (
                   <li key={item.name}>
                     {hasChildren ? (
-                      // Expandable button for items with children
-                      <button
-                        onClick={() => toggleExpanded(item.name)}
-                        className={cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium font-inter transition-colors w-full',
-                          isParentActive
-                            ? 'text-primary font-semibold'
-                            : 'text-gray-700 hover:text-gray-900'
-                        )}
-                      >
-                        {item.icon && <item.icon className="h-5 w-5" />}
-                        <span className="flex-1 text-left">{item.name}</span>
-                        <ChevronRight
+                      // Items with children - clickable link + expand button
+                      <div className="flex items-center gap-0 rounded-lg overflow-hidden">
+                        <Link
+                          href={item.href}
                           className={cn(
-                            'h-4 w-4 transition-transform',
-                            isExpanded && 'rotate-90'
+                            'flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors flex-1',
+                            isParentActive
+                              ? 'text-primary font-semibold'
+                              : 'text-gray-700 hover:text-gray-900'
                           )}
-                        />
-                      </button>
+                          onClick={onClose}
+                        >
+                          {item.icon && <item.icon className="h-4 w-4" />}
+                          <span className="flex-1">{item.name}</span>
+                        </Link>
+                        <button
+                          onClick={() => toggleExpanded(item.name)}
+                          className={cn(
+                            'px-2 py-2 transition-colors',
+                            isParentActive
+                              ? 'text-primary'
+                              : 'text-gray-700 hover:text-gray-900'
+                          )}
+                        >
+                          <ChevronRight
+                            className={cn(
+                              'h-3.5 w-3.5 transition-transform',
+                              isExpanded && 'rotate-90'
+                            )}
+                          />
+                        </button>
+                      </div>
                     ) : (
                       // Regular link for items without children
                       <Link
                         href={item.href}
                         className={cn(
-                          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium font-inter transition-colors',
+                          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                           isActive
                             ? 'text-primary font-semibold'
                             : 'text-gray-700 hover:text-gray-900'
                         )}
                         onClick={onClose}
                       >
-                        {item.icon && <item.icon className="h-5 w-5" />}
+                        {item.icon && <item.icon className="h-4 w-4" />}
                         {item.name}
                       </Link>
                     )}
 
                     {/* Render children if they exist and item is expanded */}
                     {hasChildren && isExpanded && (
-                      <ul className="mt-1 ml-8 space-y-1">
+                      <ul className="mt-1 ml-6 space-y-0.5">
                         {item.children!.map((child) => {
                           const isChildActive = pathname === child.href;
                           return (
@@ -232,14 +263,32 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                               <Link
                                 href={child.href}
                                 className={cn(
-                                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium font-inter transition-colors',
+                                  'flex items-start gap-2.5 rounded-lg px-3 py-1.5 text-[0.8125rem] font-medium font-inter transition-colors',
                                   isChildActive
                                     ? 'text-primary font-semibold'
                                     : 'text-gray-700 hover:text-gray-900'
                                 )}
                                 onClick={onClose}
                               >
-                                {child.name}
+                                {child.badge && (
+                                  <span
+                                    className={cn(
+                                      'px-1.5 py-0.5 text-[0.6rem] font-bold rounded min-w-[2.25rem] text-center flex-shrink-0 mt-0.5',
+                                      child.badge === 'GET'
+                                        ? 'bg-blue-100 text-blue-700'
+                                        : child.badge === 'POST'
+                                        ? 'bg-green-100 text-green-700'
+                                        : child.badge === 'PUT'
+                                        ? 'bg-yellow-100 text-yellow-700'
+                                        : child.badge === 'DELETE'
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-gray-100 text-gray-700'
+                                    )}
+                                  >
+                                    {child.badge}
+                                  </span>
+                                )}
+                                <span className="break-all flex-1">{child.name}</span>
                               </Link>
                             </li>
                           );
@@ -254,11 +303,11 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
 
           {/* Footer Section */}
           <div className="p-4 flex-shrink-0">
-            <div className="bg-beige-secondary shadow-md border border-border-light rounded-xl p-4">
-              <p className="text-xs font-medium font-inter text-gray-900 mb-1">
+            <div className="bg-beige-secondary shadow-md border border-border-light rounded-xl p-3">
+              <p className="text-[0.6875rem] font-medium font-inter text-gray-900 mb-0.5">
                 Need help?
               </p>
-              <p className="text-xs text-gray-600 font-inter">
+              <p className="text-[0.6875rem] text-gray-600 font-inter">
                 Contact us at{' '}
                 <a
                   href="mailto:support@schlep-engine.com"
