@@ -16,7 +16,6 @@ const searchIndex = [
   { title: 'Observability', path: '/docs/observability', keywords: 'observability monitoring logging metrics' },
   { title: 'Routing Policies', path: '/docs/routing-policies', keywords: 'routing policies rules configuration' },
   { title: 'Multi-Tenancy', path: '/docs/multi-tenancy', keywords: 'multi tenancy tenant isolation' },
-  { title: 'Pricing Tiers', path: '/docs/pricing-tiers', keywords: 'pricing tiers plans cost billing' },
   { title: 'FAQ', path: '/docs/faq', keywords: 'faq questions answers help' },
   { title: 'Changelog', path: '/docs/changelog', keywords: 'changelog updates releases versions' },
   { title: 'Escape Vector', path: '/docs/core-features/escape-vector', keywords: 'escape vector feature core' },

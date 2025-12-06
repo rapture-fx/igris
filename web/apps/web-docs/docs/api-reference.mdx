@@ -41,13 +41,11 @@ curl https://api.schlep-engine.com/v1/infer \
 
 ## Core Endpoints
 
+<EndpointBlock method="GET" path="/v1/health">
+
 ### Health Check
 
 Check API health and version.
-
-```bash
-GET /v1/health
-```
 
 **Response:**
 ```json
@@ -61,14 +59,15 @@ GET /v1/health
 }
 ```
 
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/infer">
+
 ### Inference (OpenAI-Compatible)
 
 Perform inference with automatic provider selection.
 
-```bash
-POST /v1/infer
-POST /v1/chat/completions  # OpenAI-compatible alias
-```
+**Also available at:** `/v1/chat/completions` (OpenAI-compatible alias)
 
 **Request:**
 ```json
@@ -153,10 +152,15 @@ data: {"id":"chatcmpl-abc123","object":"chat.completion.chunk","created":1701234
 data: [DONE]
 ```
 
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/embeddings">
+
 ### Embeddings
 
 Generate text embeddings (if supported by provider).
 
+**Request:**
 ```bash
 POST /v1/embeddings
 ```
@@ -189,15 +193,15 @@ POST /v1/embeddings
 }
 ```
 
+</EndpointBlock>
+
 ## Provider Management
+
+<EndpointBlock method="GET" path="/v1/providers">
 
 ### List Providers
 
 Get all available providers and their capabilities.
-
-```bash
-GET /v1/providers
-```
 
 **Response:**
 ```json
@@ -238,13 +242,13 @@ GET /v1/providers
 }
 ```
 
+</EndpointBlock>
+
+<EndpointBlock method="GET" path="/v1/providers/{name}/stats">
+
 ### Provider Stats
 
 Get detailed statistics for a specific provider.
-
-```bash
-GET /v1/providers/{provider_name}/stats
-```
 
 **Response:**
 ```json
@@ -265,13 +269,13 @@ GET /v1/providers/{provider_name}/stats
 }
 ```
 
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/v1/providers/custom">
+
 ### Register Custom Provider
 
 Add a custom provider to the registry (Scale tier).
-
-```bash
-POST /v1/providers/custom
-```
 
 **Request:**
 ```json
@@ -287,12 +291,13 @@ POST /v1/providers/custom
 }
 ```
 
+</EndpointBlock>
+
 ## Tenant Management (Multi-Tenancy)
 
-### Create Tenant
+<EndpointBlock method="POST" path="/v1/admin/tenants">
 
-```bash
-POST /v1/admin/tenants
+### Create Tenant
 ```
 
 **Request:**
@@ -334,11 +339,11 @@ POST /v1/admin/tenants
 }
 ```
 
-### Get Tenant Usage
+</EndpointBlock>
 
-```bash
-GET /v1/tenants/{tenant_id}/usage
-```
+<EndpointBlock method="GET" path="/v1/tenants/{id}/usage">
+
+### Get Tenant Usage
 
 **Query Parameters:**
 - `period`: "day", "week", "month" (default: "day")
@@ -377,11 +382,11 @@ GET /v1/tenants/{tenant_id}/usage
 }
 ```
 
-### Update Tenant Tier
+</EndpointBlock>
 
-```bash
-PATCH /v1/admin/tenants/{tenant_id}/tier
-```
+<EndpointBlock method="PATCH" path="/v1/admin/tenants/{id}/tier">
+
+### Update Tenant Tier
 
 **Request:**
 ```json
@@ -390,13 +395,13 @@ PATCH /v1/admin/tenants/{tenant_id}/tier
 }
 ```
 
+</EndpointBlock>
+
 ## Cost & Budget Management
 
-### Get Cost Breakdown
+<EndpointBlock method="GET" path="/v1/tenants/{id}/costs/breakdown">
 
-```bash
-GET /v1/tenants/{tenant_id}/costs/breakdown
-```
+### Get Cost Breakdown
 
 **Response:**
 ```json
@@ -435,11 +440,11 @@ GET /v1/tenants/{tenant_id}/costs/breakdown
 }
 ```
 
-### Set Budget Alert
+</EndpointBlock>
 
-```bash
-POST /v1/tenants/{tenant_id}/budgets/alerts
-```
+<EndpointBlock method="POST" path="/v1/tenants/{id}/budgets/alerts">
+
+### Set Budget Alert
 
 **Request:**
 ```json
@@ -450,15 +455,15 @@ POST /v1/tenants/{tenant_id}/budgets/alerts
 }
 ```
 
+</EndpointBlock>
+
 ## Routing & Optimization
+
+<EndpointBlock method="POST" path="/v1/routing/preview">
 
 ### Preview Routing Decision
 
 Preview which provider would be selected without executing.
-
-```bash
-POST /v1/routing/preview
-```
 
 **Request:**
 ```json
@@ -492,13 +497,13 @@ POST /v1/routing/preview
 }
 ```
 
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/admin/optimizer">
+
 ### Update Optimizer Config
 
 Hot-reload optimizer configuration (admin).
-
-```bash
-POST /admin/optimizer
-```
 
 **Request:**
 ```json
@@ -514,11 +519,11 @@ POST /admin/optimizer
 - `rust`: Use Rust Thompson Sampling optimizer
 - `shadow`: Run Rust in parallel for validation
 
-### Get Optimizer Status
+</EndpointBlock>
 
-```bash
-GET /admin/optimizer/status
-```
+<EndpointBlock method="GET" path="/admin/optimizer/status">
+
+### Get Optimizer Status
 
 **Response:**
 ```json
@@ -534,15 +539,15 @@ GET /admin/optimizer/status
 }
 ```
 
+</EndpointBlock>
+
 ## Metrics & Monitoring
+
+<EndpointBlock method="GET" path="/metrics">
 
 ### Prometheus Metrics
 
 All metrics are exposed at the `/metrics` endpoint in Prometheus format.
-
-```bash
-GET /metrics
-```
 
 **Key Metrics:**
 
@@ -588,11 +593,11 @@ speculative_latency_saved_seconds{mode="latency"}
 circuit_breaker_state{name="openai"}
 ```
 
-### Health Metrics
+</EndpointBlock>
 
-```bash
-GET /v1/health/metrics
-```
+<EndpointBlock method="GET" path="/v1/health/metrics">
+
+### Health Metrics
 
 **Response:**
 ```json
@@ -623,33 +628,38 @@ GET /v1/health/metrics
 }
 ```
 
+</EndpointBlock>
+
 ## Admin Endpoints
+
+<EndpointBlock method="POST" path="/admin/routing/reset">
 
 ### Reset Thompson Sampling
 
 Reset all Thompson Sampling state (admin).
 
-```bash
-POST /admin/routing/reset
-```
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/admin/config/reload">
 
 ### Reload Configuration
 
 Hot-reload tier configuration without restart.
 
-```bash
-POST /admin/config/reload
-```
+</EndpointBlock>
+
+<EndpointBlock method="POST" path="/admin/circuit-breaker/{provider}/reset">
 
 ### Circuit Breaker Control
 
 Manually control circuit breaker state.
 
-```bash
-POST /admin/circuit-breaker/{provider}/reset
-POST /admin/circuit-breaker/{provider}/open
-POST /admin/circuit-breaker/{provider}/close
-```
+**Available actions:**
+- `/admin/circuit-breaker/{provider}/reset`
+- `/admin/circuit-breaker/{provider}/open`
+- `/admin/circuit-breaker/{provider}/close`
+
+</EndpointBlock>
 
 ## Error Responses
 

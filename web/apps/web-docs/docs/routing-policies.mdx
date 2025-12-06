@@ -134,8 +134,8 @@ WASTE_THRESHOLD=0.30             # Auto-disable at 30% waste
 │  Tokens: Hello, I can help...                       │
 │  Buffer: [5 tokens stored for fallback]             │
 │                                                      │
-│  ❌ Provider B fails at token 50                     │
-│  ✅ Switch to Provider A (buffered tokens)          │
+│  Provider B fails at token 50                     │
+│  Switch to Provider A (buffered tokens)          │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -275,11 +275,11 @@ curl -X POST http://localhost:8080/v1/infer \
 
 **Cost Comparison (per 1K tokens):**
 ```
-GPT-3.5 Turbo:    $0.0015  ✅ Cheapest
+GPT-3.5 Turbo:    $0.0015  Cheapest
 Claude Haiku:     $0.0025
 GPT-4 Turbo:      $0.01
 Claude Opus:      $0.015
-GPT-4:            $0.03    ❌ Most expensive
+GPT-4:            $0.03    Most expensive
 ```
 
 ### 6. Round Robin
@@ -562,13 +562,13 @@ provider_circuit_breaker_timeout_seconds: 30
 
 | Feature | Developer | Growth | Scale |
 |---------|-----------|--------|-------|
-| Thompson Sampling | ✅ | ✅ | ✅ |
-| Semantic Routing | ✅ | ✅ | ✅ |
-| Cost-Aware Routing | ✅ | ✅ | ✅ |
-| Circuit Breaker | ✅ | ✅ | ✅ |
-| Speculative Execution | ❌ | ✅ | ✅ |
-| Council Mode | ❌ | ✅ | ✅ |
-| Cognitive Advisor | ❌ | ✅ | ✅ |
+| Thompson Sampling | | | |
+| Semantic Routing | | | |
+| Cost-Aware Routing | | | |
+| Circuit Breaker | | | |
+| Speculative Execution | | | |
+| Council Mode | | | |
+| Cognitive Advisor | | | |
 
 ## Best Practices
 
