@@ -179,18 +179,21 @@ export function DocsNavbar() {
             </div>
 
             {/* Right side: Search Bar and Sign Up button */}
-            <div className="hidden xl:flex items-center gap-3 w-64 flex-shrink-0 -ml-8">
+            <div className="hidden xl:flex items-center gap-3 w-96 flex-shrink-0">
               <div className="relative flex-1">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                   <input
                     ref={inputRef}
                     type="text"
-                    placeholder="Search documentation..."
+                    placeholder=""
                     readOnly
                     onClick={() => setIsSearchModalOpen(true)}
-                    className="w-full pl-10 pr-4 py-1.5 text-xs border border-gray-300 rounded-lg outline-none bg-beige-primary shadow-sm cursor-pointer"
+                    className="w-full pl-10 pr-16 py-1.5 text-xs border border-gray-300 rounded-lg outline-none bg-beige-primary shadow-sm cursor-pointer"
                   />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
+                    <span className="text-xs font-medium text-gray-400">⌘ F</span>
+                  </div>
                 </div>
               </div>
 
