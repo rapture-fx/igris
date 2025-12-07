@@ -150,8 +150,8 @@ export function DocsNavbar() {
     <>
     <nav className="bg-beige-primary border-b border-transparent">
       <div className="py-4">
-        <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16">
-          <div className="flex gap-8">
+        <div className="max-w-[90rem] mx-auto px-8 sm:px-12 lg:px-16">
+          <div className="flex gap-12">
             {/* Left side: Breadcrumbs + spacer for content area */}
             <div className="flex-1 min-w-0 flex items-center">
               <div className="flex items-center space-x-2 text-sm">

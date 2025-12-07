@@ -23,9 +23,9 @@ export function Tabs({ children }: TabsProps) {
   const tabElements = tabs.filter((child: any) => child?.type === Tab || child?.type?.name === 'Tab');
 
   return (
-    <div className="my-6 border border-gray-200 rounded-lg overflow-hidden">
+    <div className="my-6 border border-gray-200/30 rounded-lg overflow-hidden">
       {/* Tab Headers */}
-      <div className="flex border-b border-gray-200 bg-gray-50">
+      <div className="flex border-b border-gray-200/30 bg-gray-50">
         {tabElements.map((tab: any, index: number) => {
           const label = tab?.props?.label || `Tab ${index + 1}`;
           return (

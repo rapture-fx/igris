@@ -26,8 +26,8 @@ export function DocsLayout({ children }: DocsLayoutProps) {
 
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto">
-            <div className="max-w-7xl mx-auto px-8 sm:px-12 lg:px-16 py-6 pb-16">
-              <div className="flex gap-8">
+            <div className="max-w-[90rem] mx-auto px-8 sm:px-12 lg:px-16 py-6 pb-16">
+              <div className="flex gap-12">
                 {/* Content */}
                 <div className="flex-1 min-w-0 relative">
                   {children}

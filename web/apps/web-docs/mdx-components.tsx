@@ -1,6 +1,7 @@
 import { Tab, Tabs } from '@/components/Tabs';
 import { CopyPageButton } from '@/components/CopyPageButton';
 import { EndpointBlock } from '@/components/EndpointBlock';
+import { CodeBlock } from '@/components/CodeBlock';
 
 export function useMDXComponents(components: any): any {
   return {
@@ -15,6 +16,7 @@ export function useMDXComponents(components: any): any {
         </div>
       </div>
     ),
+    pre: (props: any) => <CodeBlock {...props} />,
     ...components,
   };
 }
