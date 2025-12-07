@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -18,7 +18,8 @@ import {
   DollarSign,
   HelpCircle,
   FileText,
-  ChevronRight
+  ChevronRight,
+  ChevronDown
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -126,6 +127,8 @@ const navigation: NavigationItem[] = [
 export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
   const pathname = usePathname();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Auto-expand parent if child is active
   useEffect(() => {
@@ -140,6 +143,18 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
       }
     });
   }, [pathname]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const toggleExpanded = (itemName: string) => {
     setExpandedItems((prev) =>
@@ -176,6 +191,51 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 className="h-6 w-auto"
               />
             </Link>
+          </div>
+
+          {/* Dropdown Menu */}
+          <div className="px-4 pb-4 pt-4" ref={dropdownRef}>
+            <div className="relative">
+              <button
+                onClick={() => setDropdownOpen(!dropdownOpen)}
+                className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-gray-900 bg-beige-secondary rounded-lg transition-colors border border-gray-200"
+              >
+                <span>Documentation</span>
+                <ChevronDown className={cn(
+                  "h-4 w-4 transition-transform",
+                  dropdownOpen && "rotate-180"
+                )} />
+              </button>
+
+              {dropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-beige-secondary border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50">
+                  <Link
+                    href="/docs"
+                    onClick={() => { setDropdownOpen(false); onClose?.(); }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    <span>Documentation</span>
+                  </Link>
+                  <Link
+                    href="/docs/api"
+                    onClick={() => { setDropdownOpen(false); onClose?.(); }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
+                  >
+                    <Code className="h-4 w-4" />
+                    <span>API Reference</span>
+                  </Link>
+                  <Link
+                    href="/docs/changelog"
+                    onClick={() => { setDropdownOpen(false); onClose?.(); }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Change Log</span>
+                  </Link>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Navigation */}
