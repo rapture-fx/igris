@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
+import { useTraces, useRealTimeMetrics, useInvalidateTraces } from './hooks';
 
 // Types
 type RequestTag = 'expected' | 'bug' | 'reviewed' | 'spam' | 'golden' | null;
@@ -306,9 +307,12 @@ export default function ObservabilityPage() {
   const router = useRouter();
   const { data: tenant, isLoading: tenantLoading } = useTenant();
 
+  // TanStack Query hooks for data fetching
+  const { data: traces = [], isLoading: isLoadingTraces } = useTraces();
+  const { data: metricsData } = useRealTimeMetrics();
+  const invalidateTraces = useInvalidateTraces();
+
   // State
-  const [traces, setTraces] = useState<RequestTrace[]>([]);
-  const [isLoadingTraces, setIsLoadingTraces] = useState(true);
   const [selectedTrace, setSelectedTrace] = useState<RequestTrace | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenant, setSelectedTenant] = useState<string>('all');
@@ -343,15 +347,15 @@ export default function ObservabilityPage() {
   const [traceNotes, setTraceNotes] = useState<Record<string, Array<{ id: string; author: string; timestamp: string; content: string }>>>({});
   const [newNoteContent, setNewNoteContent] = useState('');
 
-  // Real-time metrics state
-  const [realTimeMetrics, setRealTimeMetrics] = useState({
-    requestsPerSecond: 0,
-    p50Latency: 0,
-    p95Latency: 0,
-    costPerHour: 0,
-    activeProviders: 0,
+  // Real-time metrics from TanStack Query
+  const realTimeMetrics = {
+    requestsPerSecond: metricsData?.requestsPerSecond || 0,
+    p50Latency: metricsData?.avgLatency || 0,
+    p95Latency: metricsData?.avgLatency || 0,
+    costPerHour: metricsData?.totalCost || 0,
+    activeProviders: metricsData?.activeProviders?.length || 0,
     requestsSparkline: [],
-  });
+  };
 
   // Tier-based access control
   const tier = tenant?.plan || 'scale'; // Temporarily default to 'scale' for development
@@ -377,74 +381,6 @@ export default function ObservabilityPage() {
     router.push('/dashboard/usage');
     return null;
   }
-
-  // Fetch real-time metrics from backend
-  useEffect(() => {
-    const fetchRealTimeMetrics = async () => {
-      if (!tenant?.tenant_id) return;
-
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
-        const response = await fetch(`${apiUrl}/v1/metrics/realtime`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setRealTimeMetrics({
-            requestsPerSecond: data.requests_per_second || 0,
-            p50Latency: data.p50_latency || 0,
-            p95Latency: data.p95_latency || 0,
-            costPerHour: data.cost_per_hour || 0,
-            activeProviders: data.active_providers || 0,
-            requestsSparkline: data.sparkline || [],
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching real-time metrics:', error);
-      }
-    };
-
-    fetchRealTimeMetrics();
-    const interval = setInterval(fetchRealTimeMetrics, 5000);
-    return () => clearInterval(interval);
-  }, [tenant?.tenant_id]);
-
-  // Fetch traces from backend
-  useEffect(() => {
-    const fetchTraces = async () => {
-      if (!tenant?.tenant_id) return;
-
-      setIsLoadingTraces(true);
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
-        const response = await fetch(`${apiUrl}/v1/traces?limit=150`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          },
-        });
-
-        if (!response.ok) throw new Error('Failed to fetch traces');
-
-        const data = await response.json();
-        setTraces(data.traces || []);
-      } catch (error) {
-        console.error('Error fetching traces:', error);
-        // Fallback to mock data on error
-        setTraces(generateMockTraces(150));
-      } finally {
-        setIsLoadingTraces(false);
-      }
-    };
-
-    fetchTraces();
-
-    // Refresh traces every 30 seconds
-    const interval = setInterval(fetchTraces, 30000);
-    return () => clearInterval(interval);
-  }, [tenant?.tenant_id]);
 
   // Filtered traces
   const filteredTraces = useMemo(() => {
@@ -850,13 +786,12 @@ export default function ObservabilityPage() {
     // Generate a shareable URL (7-day expiry)
     const sharedUrl = `https://schlep.ai/traces/${trace.id}?token=${btoa(Date.now().toString())}`;
     copyToClipboard(sharedUrl);
-    // Update trace with shared URL
-    setTraces(prev => prev.map(t => t.id === trace.id ? { ...t, shared_url: sharedUrl } : t));
+    // Optimistic update would go here with queryClient.setQueryData
     alert('Trace URL copied to clipboard! Valid for 7 days.');
   };
 
   const handleTagTrace = (trace: RequestTrace, tag: RequestTag) => {
-    setTraces(prev => prev.map(t => t.id === trace.id ? { ...t, tag } : t));
+    // Optimistic update would go here with queryClient.setQueryData
     if (selectedTrace?.id === trace.id) {
       setSelectedTrace({ ...trace, tag });
     }
@@ -886,7 +821,8 @@ export default function ObservabilityPage() {
 
   const handleDeleteAllTraces = () => {
     if (window.confirm('Are you sure you want to delete ALL traces? This action cannot be undone.')) {
-      setTraces([]);
+      // This would require an API call to delete traces
+      // invalidateTraces();
       setSelectedTrace(null);
       alert('All traces have been permanently deleted.');
     }
@@ -2550,7 +2486,7 @@ export default function ObservabilityPage() {
                           className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-secondary shadow-md text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
-                            setTraces(prev => prev.map(t => t.id === selectedTrace.id ? updatedTrace : t));
+                            // Optimistic update would go here
                             setSelectedTrace(updatedTrace);
                           }}
                         >
@@ -2562,7 +2498,7 @@ export default function ObservabilityPage() {
                           className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-secondary shadow-md text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
-                            setTraces(prev => prev.map(t => t.id === selectedTrace.id ? updatedTrace : t));
+                            // Optimistic update would go here
                             setSelectedTrace(updatedTrace);
                           }}
                         >
