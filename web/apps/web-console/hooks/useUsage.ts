@@ -69,16 +69,12 @@ export function useUsageSummary() {
   return useQuery<UsageSummary>({
     queryKey: [QUERY_KEYS.USAGE_SUMMARY],
     queryFn: async () => {
-      try {
-        return await api.get<UsageSummary>(API_ENDPOINTS.USAGE_SUMMARY);
-      } catch (error) {
-        // Silently fail - errors are expected when API is not available
-        throw error;
-      }
+      return await api.get<UsageSummary>(API_ENDPOINTS.USAGE_SUMMARY);
     },
     staleTime: 60 * 1000, // 1 minute
     retry: false,
     refetchOnWindowFocus: false,
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    throwOnError: false, // Prevent uncaught errors in console
   });
 }
