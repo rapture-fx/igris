@@ -11,6 +11,10 @@ const nextConfig = {
   pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
   reactStrictMode: true,
   transpilePackages: [],
+  // Explicitly use webpack for MDX support
+  webpack: (config) => {
+    return config;
+  },
 };
 
 module.exports = withMDX(nextConfig);

@@ -16,8 +16,16 @@ export interface Tenant {
 export function useTenant() {
   return useQuery<Tenant>({
     queryKey: [QUERY_KEYS.TENANT],
-    queryFn: () => api.get<Tenant>(API_ENDPOINTS.TENANT_CURRENT),
+    queryFn: async () => {
+      try {
+        return await api.get<Tenant>(API_ENDPOINTS.TENANT_CURRENT);
+      } catch (error) {
+        // Silently fail - errors are expected when API is not available
+        throw error;
+      }
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 1,
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 }

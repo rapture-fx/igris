@@ -3,9 +3,9 @@ import { MDXContent } from '@/components/MDXContent';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     feature: string;
-  };
+  }>;
 }
 
 // Map feature slugs to their corresponding MDX files
@@ -25,7 +25,8 @@ export async function generateStaticParams() {
 }
 
 export default async function CoreFeaturePage({ params }: PageProps) {
-  const fileName = featureToFile[params.feature];
+  const { feature } = await params;
+  const fileName = featureToFile[feature];
 
   if (!fileName) {
     notFound();

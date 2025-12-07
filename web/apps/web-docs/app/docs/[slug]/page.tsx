@@ -3,9 +3,9 @@ import { MDXContent } from '@/components/MDXContent';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 // Map slugs to their corresponding MDX files
@@ -30,7 +30,8 @@ export async function generateStaticParams() {
 }
 
 export default async function DocPage({ params }: PageProps) {
-  const fileName = slugToFile[params.slug];
+  const { slug } = await params;
+  const fileName = slugToFile[slug];
 
   if (!fileName) {
     notFound();
