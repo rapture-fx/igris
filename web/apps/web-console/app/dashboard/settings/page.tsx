@@ -83,10 +83,10 @@ export default function SettingsPage() {
       }
     };
 
-    if (tenant?.tenant_id) {
+    if (tenant?.id) {
       fetch2FAStatus();
     }
-  }, [tenant?.tenant_id]);
+  }, [tenant?.id]);
 
   // Handle 2FA toggle
   const handle2FAToggle = async (enabled: boolean) => {

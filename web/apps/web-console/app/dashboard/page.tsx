@@ -61,7 +61,7 @@ export default function DashboardPage() {
   // Fetch dashboard metrics from backend
   useEffect(() => {
     const fetchMetrics = async () => {
-      if (!tenant?.tenant_id) return;
+      if (!tenant?.id) return;
 
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
@@ -105,7 +105,7 @@ export default function DashboardPage() {
     // Refresh every 5 minutes
     const interval = setInterval(fetchMetrics, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [tenant?.tenant_id]);
+  }, [tenant?.id]);
 
   if (isLoading) {
     return (
@@ -137,21 +137,21 @@ export default function DashboardPage() {
             value={formatNumber(summary?.total_requests || 0)}
             description="Last 24 hours"
             icon={Activity}
-            trend={summary?.requests_trend}
+            trend={(summary as any)?.requests_trend}
           />
           <MetricCard
             title="Spend This Month"
             value={formatCurrency(summary?.monthly_spend || 0)}
             description="Current billing period"
             icon={DollarSign}
-            trend={summary?.spend_trend}
+            trend={(summary as any)?.spend_trend}
           />
           <MetricCard
             title="Avg Latency"
             value={formatLatency(summary?.avg_latency || 0)}
             description="P50 response time"
             icon={Zap}
-            trend={summary?.latency_trend}
+            trend={(summary as any)?.latency_trend}
           />
           <MetricCard
             title="Active Providers"
