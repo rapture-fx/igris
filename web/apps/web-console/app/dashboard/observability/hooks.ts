@@ -77,15 +77,22 @@ export function useTraces() {
   return useQuery<RequestTrace[]>({
     queryKey: ['traces'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/v1/traces?limit=150`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('Failed to fetch traces');
-      const data = await response.json();
-      return data?.traces || [];
+      try {
+        const response = await fetch(`${API_BASE_URL}/v1/traces?limit=150`, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) throw new Error('Failed to fetch traces');
+        const data = await response.json();
+        return data?.traces || [];
+      } catch (error) {
+        // Silently return empty array on error to prevent console spam
+        return [];
+      }
     },
     refetchInterval: 5000,
     staleTime: 3000,
+    retry: false, // Don't retry on error
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -93,10 +100,25 @@ export function useRealTimeMetrics() {
   return useQuery<RealTimeMetrics>({
     queryKey: ['realTimeMetrics'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/v1/metrics/realtime`, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) {
+      try {
+        const response = await fetch(`${API_BASE_URL}/v1/metrics/realtime`, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+        if (!response.ok) {
+          return {
+            requestsPerSecond: 0,
+            avgLatency: 0,
+            errorRate: 0,
+            totalTokens: 0,
+            totalCost: 0,
+            cacheHitRate: 0,
+            activeProviders: [],
+            statusDistribution: {},
+          };
+        }
+        return response.json();
+      } catch (error) {
+        // Silently return default values on error
         return {
           requestsPerSecond: 0,
           avgLatency: 0,
@@ -108,10 +130,11 @@ export function useRealTimeMetrics() {
           statusDistribution: {},
         };
       }
-      return response.json();
     },
     refetchInterval: 5000,
     staleTime: 3000,
+    retry: false, // Don't retry on error
+    refetchOnWindowFocus: false,
   });
 }
 
