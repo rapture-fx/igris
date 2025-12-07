@@ -17,15 +17,11 @@ export function useTenant() {
   return useQuery<Tenant>({
     queryKey: [QUERY_KEYS.TENANT],
     queryFn: async () => {
-      try {
-        return await api.get<Tenant>(API_ENDPOINTS.TENANT_CURRENT);
-      } catch (error) {
-        // Silently fail - errors are expected when API is not available
-        throw error;
-      }
+      return await api.get<Tenant>(API_ENDPOINTS.TENANT_CURRENT);
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: false,
     refetchOnWindowFocus: false,
+    throwOnError: false, // Prevent uncaught errors in console
   });
 }
