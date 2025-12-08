@@ -9,27 +9,29 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "16.0.7",
-    "react": "19.2.1",
-    "react-dom": "19.2.1",
     "@mdx-js/loader": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
     "@next/mdx": "^15.1.8",
-    "next-mdx-remote": "^4.4.1",
+    "clsx": "^2.1.0",
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.294.0",
-    "clsx": "^2.1.0",
+    "next": "16.0.7",
+    "next-mdx-remote": "^4.4.1",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
+    "rehype-mermaid": "^3.0.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^2.2.0"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.5",
-    "typescript": "^5.6.3",
     "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "16.0.7",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.15",
-    "eslint": "^8.57.1",
-    "eslint-config-next": "16.0.7"
+    "typescript": "^5.6.3"
   }
 }

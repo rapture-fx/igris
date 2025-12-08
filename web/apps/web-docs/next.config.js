@@ -1,8 +1,10 @@
 const withMDX = require('@next/mdx')({
   extension: /\.mdx?$/,
   options: {
-    remarkPlugins: [],
-    rehypePlugins: [],
+    remarkPlugins: [require('remark-gfm').default],
+    rehypePlugins: [
+      [require('rehype-mermaid').default, { strategy: 'img-svg' }]
+    ],
   },
 });
 
