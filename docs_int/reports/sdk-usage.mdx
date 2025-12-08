@@ -1,0 +1,436 @@
+# SDK Usage
+
+Schlep Engine provides official SDKs for **Go**, **Python**, and **OpenAI-compatible** clients. All SDKs support intelligent routing with Thompson Sampling and EscapeVector Mode for zero-downtime resilience.
+
+---
+
+## Go SDK
+
+The official Go SDK provides a native client with automatic retry logic, EscapeVector Mode, and full type safety.
+
+### Installation
+
+```bash
+go get github.com/schlep-engine/schlep-engine/internal/sdk/go/schlep
+```
+
+### Quick Start
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "log"
+
+    "github.com/schlep-engine/schlep-engine/internal/sdk/go/schlep"
+)
+
+func main() {
+    // Create client with default configuration
+    client := schlep.NewClient(&schlep.Config{
+        BaseURL: "http://localhost:8081",
+        APIKey:  "your-api-key", // optional
+    })
+
+    // Make inference request
+    ctx := context.Background()
+    response, err := client.Infer(ctx, &schlep.InferRequest{
+        Model: "gpt-4",
+        Messages: []schlep.Message{
+            {Role: "user", Content: "Explain Thompson Sampling"},
+        },
+        MaxTokens: schlep.Int(200),
+        Temperature: schlep.Float64(0.7),
+    })
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println(response.Choices[0].Message.Content)
+}
+```
+
+### Configuration
+
+The client supports environment variables and explicit configuration:
+
+```go
+client := schlep.NewClient(&schlep.Config{
+    BaseURL: "http://localhost:8081",        // default: http://localhost:8081
+    APIKey:  os.Getenv("SCHLEP_API_KEY"),    // optional authentication
+    Timeout: 60 * time.Second,                // default: 30s
+})
+```
+
+**Environment Variables:**
+- `SCHLEP_BASE_URL` - API base URL
+- `SCHLEP_API_KEY` - API authentication key
+
+### API Methods
+
+#### Infer
+
+Make an inference request using intelligent routing:
+
+```go
+response, err := client.Infer(ctx, &schlep.InferRequest{
+    Model: "gpt-4",
+    Messages: []schlep.Message{
+        {Role: "system", Content: "You are a helpful assistant."},
+        {Role: "user", Content: "Hello!"},
+    },
+    MaxTokens: schlep.Int(200),
+    Temperature: schlep.Float64(0.7),
+    TopP: schlep.Float64(0.9),
+})
+```
+
+#### List Models
+
+Retrieve all available models:
+
+```go
+models, err := client.ListModels(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+
+for _, model := range models.Data {
+    fmt.Printf("Model: %s (owned by %s)\n", model.ID, model.OwnedBy)
+}
+```
+
+#### Health Check
+
+Verify API status:
+
+```go
+health, err := client.Health(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+
+if health.Status == "healthy" {
+    fmt.Println("API is operational")
+}
+```
+
+#### Provider Statistics
+
+Get provider performance metrics:
+
+```go
+stats, err := client.ProviderStats(ctx)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Stats: %+v\n", stats)
+```
+
+### EscapeVector Mode
+
+The Go SDK includes **EscapeVector Mode** - Thompson Sampling-powered resilience that continues Bayesian optimization during control plane outages.
+
+**How it works:**
+- Monitors control plane health (3 consecutive timeouts > 500ms)
+- Automatically switches to local Thompson Sampling fallback
+- Uses cached Bayesian parameters
+- Ensures zero dropped tokens during outages
+
+```go
+// EscapeVector is automatically initialized in the client
+client := schlep.NewClient(&schlep.Config{
+    BaseURL: "http://localhost:8081",
+})
+
+// Automatic failover during control plane outage
+response, err := client.Infer(ctx, &schlep.InferRequest{
+    Model: "gpt-4",
+    Messages: []schlep.Message{
+        {Role: "user", Content: "Test during outage"},
+    },
+})
+// SDK automatically uses EscapeVector Mode if control plane is down
+```
+
+### Error Handling
+
+The SDK provides typed errors:
+
+```go
+response, err := client.Infer(ctx, req)
+if err != nil {
+    if apiErr, ok := err.(*schlep.APIError); ok {
+        fmt.Printf("API Error %d: %s\n", apiErr.StatusCode, apiErr.Message)
+    } else {
+        fmt.Printf("Request error: %v\n", err)
+    }
+}
+```
+
+### Context and Timeouts
+
+All methods support context cancellation:
+
+```go
+// Request with timeout
+ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+defer cancel()
+
+response, err := client.Infer(ctx, req)
+```
+
+---
+
+## Python SDK
+
+The Python SDK provides a thin HTTP client with authentication and error handling.
+
+### Installation
+
+```bash
+pip install schlep-engine
+```
+
+### Quick Start
+
+```python
+from schlep import Client
+
+# Create client
+client = Client(base_url="http://localhost:8081")
+
+# Make inference request
+response = client.infer(
+    model="gpt-4",
+    messages=[
+        {"role": "user", "content": "Hello!"}
+    ],
+    max_tokens=200
+)
+
+print(response["choices"][0]["message"]["content"])
+```
+
+### Context Manager
+
+Use the client as a context manager for automatic cleanup:
+
+```python
+with Client(base_url="http://localhost:8081") as client:
+    health = client.health()
+    print(f"Status: {health['status']}")
+```
+
+### Health Check
+
+```python
+from schlep import Client, SchlepError
+
+client = Client(base_url="http://localhost:8081")
+try:
+    health = client.health()
+    print(f"Health: {health}")
+except SchlepError as e:
+    print(f"Error: {e}")
+```
+
+---
+
+## OpenAI-Compatible API
+
+Schlep Engine is **OpenAI-compatible** - use any OpenAI SDK by changing the base URL.
+
+### OpenAI Python SDK
+
+```python
+from openai import OpenAI
+
+# Point to Schlep Engine instead of OpenAI
+client = OpenAI(
+    base_url="http://localhost:8081/v1",
+    api_key="your-api-key"  # optional
+)
+
+# Standard OpenAI API calls
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "user", "content": "Explain Thompson Sampling"}
+    ]
+)
+
+print(response.choices[0].message.content)
+```
+
+### OpenAI Node.js SDK
+
+```javascript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8081/v1',
+  apiKey: 'your-api-key' // optional
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+### cURL (HTTP API)
+
+```bash
+curl -X POST http://localhost:8081/v1/infer \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-api-key" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [
+      {"role": "user", "content": "Explain Thompson Sampling"}
+    ],
+    "max_tokens": 200,
+    "temperature": 0.7
+  }'
+```
+
+---
+
+## Response Format
+
+All SDKs return OpenAI-compatible responses with additional metadata:
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1677652288,
+  "model": "gpt-4",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Thompson Sampling is a Bayesian approach..."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 42,
+    "total_tokens": 57
+  },
+  "metadata": {
+    "provider": "openai",
+    "latency_ms": 234,
+    "cost_usd": 0.00171,
+    "routing_decision": "thompson-sampling",
+    "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+
+### Metadata Fields
+
+- **provider** - Which provider executed the request (e.g., "openai", "anthropic")
+- **latency_ms** - Request latency in milliseconds
+- **cost_usd** - Estimated cost in USD
+- **routing_decision** - Routing method used ("thompson-sampling", "round-robin", etc.)
+- **trace_id** - Distributed tracing ID for correlation
+
+---
+
+## Best Practices
+
+### Retry Logic
+
+The Go SDK includes automatic retry with exponential backoff for:
+- Rate limits (HTTP 429)
+- Server errors (HTTP 5xx)
+- Network timeouts
+
+```go
+// Retries are automatic - no configuration needed
+response, err := client.Infer(ctx, req)
+```
+
+### Timeout Configuration
+
+Always use reasonable timeouts to prevent hanging requests:
+
+```go
+// Go SDK
+client := schlep.NewClient(&schlep.Config{
+    Timeout: 30 * time.Second,
+})
+
+// Or per-request
+ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+defer cancel()
+```
+
+### Error Handling
+
+Handle both API errors and network errors:
+
+```go
+response, err := client.Infer(ctx, req)
+if err != nil {
+    // Check for API error
+    if apiErr, ok := err.(*schlep.APIError); ok {
+        switch apiErr.StatusCode {
+        case 401:
+            // Handle authentication error
+        case 429:
+            // Handle rate limit
+        case 500:
+            // Handle server error
+        }
+    }
+    // Handle network/timeout errors
+    return err
+}
+```
+
+### Cost Optimization
+
+Use optimization hints for cost-aware routing:
+
+```bash
+curl -X POST http://localhost:8081/v1/infer \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-3.5-turbo",
+    "messages": [{"role": "user", "content": "Hello"}],
+    "optimization": "cost"
+  }'
+```
+
+---
+
+## SDK Version
+
+Current SDK version: **v1.0.0-rc1**
+
+Check SDK version:
+
+```go
+// Go SDK
+fmt.Println(schlep.SDKVersion) // "1.0.0-rc1"
+```
+
+---
+
+## Next Steps
+
+- [API Reference](/docs/api-reference) - Complete API documentation
+- [Architecture](/docs/architecture) - System design and components
+- [Observability](/docs/observability) - Monitoring and tracing
