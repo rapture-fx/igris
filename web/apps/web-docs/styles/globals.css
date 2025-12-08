@@ -187,20 +187,20 @@
 }
 
 .prose th {
-  background-color: #f9fafb;
+  background-color: var(--background);
   font-weight: 600;
-  color: #111827;
+  color: var(--foreground);
   font-size: 0.8125rem;
   text-transform: uppercase;
   letter-spacing: 0.025em;
 }
 
 .prose td {
-  background-color: white;
+  background-color: var(--background);
 }
 
 .prose tbody tr:hover {
-  background-color: #f9fafb;
+  background-color: var(--card);
 }
 
 .prose hr {
