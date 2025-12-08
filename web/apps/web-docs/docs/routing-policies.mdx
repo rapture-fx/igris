@@ -1,90 +1,114 @@
 # Routing Policies & Strategies
 
-Comprehensive guide to intelligent request routing in Schlep Engine, including Thompson Sampling, speculative execution, and semantic routing.
+**TL;DR:** Schlep Engine automatically selects the best AI provider for each request using Thompson Sampling (a smart learning algorithm). Growth+ tiers unlock Speculative Execution (60% faster) and Council Mode (+15-20% better quality).
+
+---
 
 ## Overview
 
-Schlep Engine provides **multiple routing strategies** to optimize LLM inference across providers:
+Schlep Engine uses intelligent routing to automatically select the best provider for each request based on:
 
-- **Thompson Sampling** - Bayesian multi-armed bandit with adaptive learning
-- **Speculative Execution** - Race multiple providers for 60% faster TTFT
-- **Semantic Routing** - ONNX-powered ML classification for intent-based routing
-- **Cost-Aware Routing** - Automatic selection based on cost optimization
-- **Council Mode** - Multi-provider consensus for +15-20% quality improvement
-- **Round Robin** - Simple load distribution
-- **Least Latency** - Select fastest provider
-- **Least Load** - Select provider with lowest current load
+- **Speed** - Which provider responds fastest
+- **Cost** - Which provider offers the best value
+- **Quality** - Which provider gives the best answers
+- **Availability** - Which providers are currently healthy
 
-## Routing Strategies
+### Available Routing Strategies
 
-### 1. Thompson Sampling (Recommended)
+| Strategy | Description | Best For | Tier |
+|----------|-------------|----------|------|
+| **Thompson Sampling** | AI-powered learning algorithm | Production workloads | All tiers |
+| **Speculative Execution** | Race multiple providers in parallel | Latency-critical apps | Growth+ |
+| **Council Mode** | Multi-provider consensus | High-stakes decisions | Growth+ |
+| **Cost-Aware** | Automatic cheapest provider selection | Budget-conscious apps | All tiers |
+| **Semantic Routing** | AI classification by task type | Mixed workloads | All tiers |
 
-**Bayesian multi-armed bandit** algorithm that balances exploration and exploitation.
+---
 
-```go
-router := router.NewAdaptiveRouter(
-    router.PolicyThompsonSampling,
-    5*time.Minute, // Metrics window
+## Thompson Sampling (Recommended)
+
+**What it does:** Automatically learns which providers work best for your workload and routes traffic accordingly.
+
+### How It Works
+
+Thompson Sampling continuously learns from every request:
+
+1. Each provider starts with equal probability
+2. After each request, the system records:
+   - How fast the provider responded
+   - How much the request cost
+   - Whether it succeeded or failed
+3. Over time, better providers get selected more often
+4. The system keeps exploring alternatives to avoid missing improvements
+
+### Usage
+
+Thompson Sampling is enabled by default. No configuration needed:
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.schlep.cloud/v1",
+    api_key="sk-schlep-YOUR_KEY"
+)
+
+# Automatic Thompson Sampling routing
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}]
 )
 ```
 
-**How it works:**
-1. Each provider maintains **α (successes)** and **β (failures)** parameters
-2. For each request, sample from **Beta(α, β)** distribution
-3. Select provider with **highest sample** (exploitation) or **random** (exploration)
-4. Update α/β based on **outcome** (latency, cost, errors)
+### Response Metadata
 
-**Configuration:**
-```go
-type ThompsonSamplingConfig struct {
-    ExplorationRate  float64  // Default: 0.15 (15% exploration)
-    SuccessThreshold float64  // Default: 0.6
-    InitialAlpha     float64  // Default: 1.0
-    InitialBeta      float64  // Default: 1.0
-}
-```
+Every response includes routing information:
 
-**Reward Calculation:**
-```
-reward = (0.4 × latency_score) + (0.3 × cost_score) + (0.3 × success_score)
-
-where:
-  latency_score = 1 - (latency / max_latency)
-  cost_score = 1 - (cost / max_cost)
-  success_score = 1 if no error, 0 otherwise
-```
-
-**Example:**
-```bash
-curl -X POST http://localhost:8080/v1/infer \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Explain Thompson Sampling"}],
-    "routing_policy": "thompson-sampling"
-  }'
-```
-
-**Response Metadata:**
 ```json
 {
+  "choices": [...],
   "metadata": {
     "provider": "openai/gpt-4",
     "routing_decision": "thompson-sampling",
-    "thompson_sampling_score": 0.87,
-    "exploration": false,
-    "alternatives": ["anthropic/claude-3-sonnet"]
+    "latency_ms": 234,
+    "cost_usd": 0.00525
   }
 }
 ```
 
-### 2. Speculative Execution (Growth+ Tier)
+<details>
+<summary>Advanced: How Thompson Sampling Scores Providers</summary>
 
-**Race multiple providers** in parallel and deliver tokens from the fastest responder.
+The system calculates a composite score for each provider:
+
+```
+score = (40% × speed) + (30% × cost-efficiency) + (30% × reliability)
+```
+
+Providers with higher scores are selected more frequently, but the system maintains 15% exploration to discover improvements.
+</details>
+
+---
+
+## Speculative Execution (Growth+)
+
+**What it does:** Races 2-3 providers in parallel and streams the fastest response. **60% faster** time-to-first-token.
+
+### Benefits
+
+- **60% faster p50 TTFT**: 450ms → 180ms
+- **62% faster p95 TTFT**: 850ms → 320ms
+- **96% fewer failures**: Automatic fallback if one provider fails
+- **20% lower cost**: Smart cancellation reduces waste
+
+### Usage
+
+Enable Speculative Execution in your request:
 
 ```bash
-curl -X POST http://localhost:8080/v1/infer \
+curl -X POST https://api.schlep.cloud/v1/infer \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [{"role": "user", "content": "Hello!"}],
@@ -93,80 +117,44 @@ curl -X POST http://localhost:8080/v1/infer \
   }'
 ```
 
-**Speculative Modes:**
+### Speculative Modes
 
-| Mode | Latency Weight | Quality Weight | Cost Weight | Use Case |
-|------|---------------|----------------|-------------|----------|
-| **latency** | 0.7 | 0.2 | 0.1 | Real-time chat, interactive |
-| **balanced** | 0.4 | 0.4 | 0.2 | General purpose |
-| **quality** | 0.2 | 0.6 | 0.2 | Content generation |
-| **cost** | 0.2 | 0.2 | 0.6 | Batch processing |
+| Mode | Use Case | Speed Priority | Quality Priority | Cost Priority |
+|------|----------|----------------|------------------|---------------|
+| `latency` | Real-time chat | 70% | 20% | 10% |
+| `balanced` | General purpose | 40% | 40% | 20% |
+| `quality` | Content generation | 20% | 60% | 20% |
+| `cost` | Batch processing | 20% | 20% | 60% |
 
-**Configuration:**
-```bash
-# Enable speculative execution (disabled by default)
-ENABLE_SPECULATIVE=true
-MAX_SPECULATIVE_PROVIDERS=3      # Race 3 providers
-FIRST_TOKEN_TIMEOUT=5s           # Timeout for first token
-EARLY_TOKEN_COUNT=5              # Fallback buffer size
-WASTE_THRESHOLD=0.30             # Auto-disable at 30% waste
-```
+### How It Works
 
-**Performance Gains (from v1.2.1):**
-- **60% faster p50 TTFT**: 450ms → 180ms
-- **62% faster p95 TTFT**: 850ms → 320ms
-- **96% fewer stream failures**: 2.5% → 0.1%
-- **20% lower cost**: $0.015 → $0.012 per request
+1. Request comes in
+2. Schlep Engine races 2-3 providers simultaneously
+3. Stream tokens from whoever responds first
+4. If the fastest provider fails mid-stream, seamlessly switch to backup
+5. Cancel slower providers to minimize waste
 
-**Mid-Stream Switching:**
-```
-┌──────────────────────────────────────────────────────┐
-│ Race Phase (0-5s)                                    │
-│                                                      │
-│  Provider A: ████░░░░░░░░ (240ms TTFT)             │
-│  Provider B: ███████░░░░░ (180ms TTFT) ← Winner     │
-│  Provider C: ██░░░░░░░░░░ (350ms TTFT)             │
-└──────────────────────────────────────────────────────┘
+**Available in:** Growth and Scale tiers
 
-┌──────────────────────────────────────────────────────┐
-│ Streaming Phase (Winner: Provider B)                │
-│                                                      │
-│  Tokens: Hello, I can help...                       │
-│  Buffer: [5 tokens stored for fallback]             │
-│                                                      │
-│  Provider B fails at token 50                     │
-│  Switch to Provider A (buffered tokens)          │
-└──────────────────────────────────────────────────────┘
-```
+---
 
-**Cost Accounting:**
-```go
-// Per-tenant cost tracking
-type CostStats struct {
-    TotalWinnerCost  float64  // Cost of winning providers
-    TotalWastedCost  float64  // Cost of losing providers
-    WasteRatio       float64  // wasted / (winner + wasted)
-    RequestCount     int
-    AutoDisabled     bool     // True if waste > threshold
-}
-```
+## Council Mode (Growth+)
 
-**Auto-Disable on Waste:**
-```
-If waste_ratio > 30% for a tenant:
-  1. Auto-disable speculative mode for 5 minutes
-  2. Log warning message
-  3. Send alert to monitoring
-  4. Resume after cool-down period
-```
+**What it does:** Sends requests to multiple providers, cross-validates responses, and synthesizes the best answer. **+15-20% better quality.**
 
-### 3. Council Mode (Growth+ Tier)
+### Benefits
 
-**Multi-provider consensus** for improved response quality.
+- **Better reasoning**: Multiple AI perspectives on complex problems
+- **Hallucination detection**: Cross-validation catches incorrect facts
+- **Higher confidence**: Consensus from multiple providers
+- **Quality improvement**: +15-20% on reasoning tasks, +12% on factual questions
+
+### Usage
 
 ```bash
-curl -X POST http://localhost:8080/v1/infer \
+curl -X POST https://api.schlep.cloud/v1/infer \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [{"role": "user", "content": "Complex reasoning task"}],
@@ -176,83 +164,70 @@ curl -X POST http://localhost:8080/v1/infer \
   }'
 ```
 
-**How it works:**
-1. Send request to **multiple providers** in parallel
-2. Collect **all responses**
-3. Use **LLM judge** to evaluate quality and consistency
-4. Return **highest quality response** or **synthesized answer**
+### When to Use
 
-**Quality Improvements (measured):**
-- **+15-20% quality** on reasoning tasks
-- **+12% accuracy** on factual questions
-- **Better hallucination detection** via cross-validation
+- High-stakes decisions requiring validation
+- Complex reasoning or analysis tasks
+- Quality-critical applications
+- Hallucination-sensitive use cases
 
-**Configuration:**
-```go
-type CouncilConfig struct {
-    MinProviders       int      // Default: 2
-    MaxProviders       int      // Default: 3
-    ConsensusThreshold float64  // Default: 0.7
-    JudgeModel         string   // Default: "gpt-4"
-    Timeout            time.Duration
-}
-```
+### Trade-offs
 
-### 4. Semantic Routing
+- **Cost**: 3-5x more expensive (multiple provider calls)
+- **Latency**: 2-3x slower (parallel + synthesis)
+- **Best for**: Quality over speed/cost
 
-**ONNX-powered ML classification** for intent-based routing.
+**Available in:** Growth and Scale tiers
+
+---
+
+## Semantic Routing
+
+**What it does:** Uses AI to classify your prompt and route to the best provider for that task type.
+
+### How It Works
+
+Schlep Engine analyzes each prompt and classifies it into categories:
+
+- **Creative** (stories, poetry) → Routes to Claude
+- **Analytical** (data, math) → Routes to GPT-4
+- **Coding** → Routes to DeepSeek Coder or GPT-4
+- **Conversational** (chat) → Routes to GPT-3.5 (cost-effective)
+- **Translation** → Routes to specialized models
+
+### Usage
+
+Enable semantic routing:
 
 ```bash
-curl -X POST http://localhost:8080/v1/infer \
+curl -X POST https://api.schlep.cloud/v1/infer \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
   -d '{
     "model": "auto",
-    "messages": [{"role": "user", "content": "Write creative story"}],
+    "messages": [{"role": "user", "content": "Write a creative story"}],
     "enable_semantic_routing": true
   }'
 ```
 
-**Classification Categories:**
-- **Creative**: Stories, poetry → Route to Claude (better creativity)
-- **Analytical**: Data analysis, math → Route to GPT-4 (better reasoning)
-- **Coding**: Code generation → Route to DeepSeek Coder
-- **Conversational**: Chat, Q&A → Route to GPT-3.5 (cost-effective)
-- **Translation**: Language translation → Route to specialized models
+### Benefits
 
-**Model Architecture:**
-```
-Input Text → HuggingFace Tokenizer → ONNX Classifier → Category + Confidence
-                                                              ↓
-                                                    Provider Selection
-```
+- **Better quality**: Task-specific provider selection
+- **Lower cost**: Routes simple tasks to cheaper models
+- **Automatic optimization**: No manual provider selection needed
 
-**Configuration:**
-```yaml
-# Enable semantic routing
-enable_semantic_routing: true
-classification_confidence_threshold: 0.6
-classification_cache_ttl_seconds: 3600
+---
 
-# Routing rules
-semantic_routing_rules:
-  creative:
-    providers: ["anthropic/claude-3-sonnet", "anthropic/claude-3-opus"]
-    min_confidence: 0.7
-  analytical:
-    providers: ["openai/gpt-4", "openai/gpt-4-turbo"]
-    min_confidence: 0.6
-  coding:
-    providers: ["deepseek/deepseek-coder", "openai/gpt-4"]
-    min_confidence: 0.8
-```
+## Cost-Aware Routing
 
-### 5. Cost-Aware Routing
+**What it does:** Automatically selects the cheapest provider that meets your quality requirements.
 
-**Automatically select cheapest provider** meeting quality requirements.
+### Usage
 
 ```bash
-curl -X POST http://localhost:8080/v1/infer \
+curl -X POST https://api.schlep.cloud/v1/infer \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
   -d '{
     "model": "auto",
     "messages": [{"role": "user", "content": "Simple Q&A"}],
@@ -261,211 +236,49 @@ curl -X POST http://localhost:8080/v1/infer \
   }'
 ```
 
-**Selection Logic:**
-```
-1. Filter providers by:
-   - Supports requested features
-   - Quality score >= min_quality_score
-   - Latency <= latency_budget (if specified)
+### Cost Comparison
 
-2. Sort by cost (ascending)
+Typical costs per 1,000 tokens:
 
-3. Select cheapest provider
-```
+- GPT-3.5 Turbo: $0.0015 (cheapest)
+- Claude Haiku: $0.0025
+- GPT-4 Turbo: $0.01
+- Claude Opus: $0.015
+- GPT-4: $0.03 (most expensive)
 
-**Cost Comparison (per 1K tokens):**
-```
-GPT-3.5 Turbo:    $0.0015  Cheapest
-Claude Haiku:     $0.0025
-GPT-4 Turbo:      $0.01
-Claude Opus:      $0.015
-GPT-4:            $0.03    Most expensive
-```
+### When to Use
 
-### 6. Round Robin
+- Batch processing jobs
+- Simple Q&A applications
+- Budget-constrained workloads
+- High-volume traffic
 
-**Simple load distribution** across all available providers.
+---
 
-```go
-router := router.NewAdaptiveRouter(
-    router.PolicyRoundRobin,
-    5*time.Minute,
-)
-```
+## Automatic Failover
 
-**Use case:** Testing, even distribution, no ML overhead
+All routing strategies include automatic failover:
 
-### 7. Least Latency
+1. **Health Monitoring**: Continuous provider health checks
+2. **Circuit Breakers**: Automatic disabling of unhealthy providers
+3. **Graceful Fallback**: Seamless switching to backup providers
+4. **No Dropped Requests**: Zero failed requests during provider outages
 
-**Select provider with lowest average latency** in recent window.
+### What You Get
 
-```go
-router := router.NewAdaptiveRouter(
-    router.PolicyLeastLatency,
-    5*time.Minute, // Metrics window
-)
-```
+- **99.9% uptime** even when individual providers fail
+- **Sub-30-second failover** to healthy providers
+- **Automatic recovery** when providers come back online
+- **Complete transparency** via response metadata
 
-**Latency Tracking:**
-```go
-type Backend struct {
-    AvgLatency   float64      // Sliding window average
-    P50Latency   float64
-    P95Latency   float64
-    P99Latency   float64
-}
-```
+---
 
-### 8. Least Load
+## Routing Preview API
 
-**Select provider with lowest current request count.**
-
-```go
-router := router.NewAdaptiveRouter(
-    router.PolicyLeastLoad,
-    5*time.Minute,
-)
-```
-
-**Load Tracking:**
-```go
-type Backend struct {
-    CurrentLoad  int  // Active requests
-    MaxCapacity  int  // Max concurrent requests
-    LoadFactor   float64  // CurrentLoad / MaxCapacity
-}
-```
-
-## Adaptive Learning
-
-Schlep Engine continuously learns and adapts routing decisions based on performance.
-
-### Self-Tuning Reward Weights
-
-```go
-// Reward weights are automatically adjusted based on:
-// - Recent performance trends
-// - User tier and preferences
-// - Time of day / traffic patterns
-
-type RewardWeights struct {
-    Latency  float64  // Default: 0.4
-    Cost     float64  // Default: 0.3
-    Success  float64  // Default: 0.3
-}
-
-// Auto-adjust every 5 minutes
-func (ar *AdaptiveRouter) autoTuneWeights() {
-    // If cost increasing → increase cost weight
-    // If latency degrading → increase latency weight
-    // If errors increasing → increase success weight
-}
-```
-
-### Thompson Sampling Updates
-
-```go
-// Update provider scores after each request
-func (ar *AdaptiveRouter) UpdateReward(providerID string, latencyMs int, cost float64, success bool) {
-    provider := ar.backends[providerID]
-
-    // Calculate reward (0.0 - 1.0)
-    reward := calculateCompositeReward(latencyMs, cost, success)
-
-    if reward >= ar.config.SuccessThreshold {
-        // Increment α (successes)
-        provider.Alpha += 1.0
-    } else {
-        // Increment β (failures)
-        provider.Beta += 1.0
-    }
-
-    // Update running averages
-    provider.AvgLatency = updateAverage(provider.AvgLatency, latencyMs)
-    provider.AvgCost = updateAverage(provider.AvgCost, cost)
-}
-```
-
-## Circuit Breaker & Failover
-
-Automatic provider health monitoring and failover.
-
-### Circuit Breaker States
-
-```
-┌──────────┐
-│  CLOSED  │  Normal operation
-└──────────┘
-     │
-     │ 3+ failures
-     ↓
-┌──────────┐
-│   OPEN   │  All requests fail fast
-└──────────┘
-     │
-     │ After 30s timeout
-     ↓
-┌──────────┐
-│ HALF-OPEN│  Test with 1 request
-└──────────┘
-     │
-     ├── Success → Back to CLOSED
-     └── Failure → Back to OPEN
-```
-
-### Configuration
-
-```yaml
-# Circuit breaker settings
-provider_health_check_interval_seconds: 60
-provider_degraded_threshold_failures: 3
-provider_circuit_breaker_timeout_seconds: 30
-```
-
-### Health Monitoring
-
-```go
-// Continuous health checks
-func (ar *AdaptiveRouter) monitorHealth() {
-    ticker := time.NewTicker(60 * time.Second)
-    for range ticker.C {
-        for _, backend := range ar.backends {
-            err := backend.Provider.HealthCheck(ctx)
-            if err != nil {
-                backend.FailureCount++
-                if backend.FailureCount >= 3 {
-                    // Open circuit breaker
-                    backend.CircuitBreakerOpen = true
-                }
-            } else {
-                backend.FailureCount = 0
-                backend.CircuitBreakerOpen = false
-            }
-        }
-    }
-}
-```
-
-## Provider Selection API
-
-### Manual Provider Selection
+Preview which provider would be selected without actually making the request:
 
 ```bash
-# Explicitly specify provider
-curl -X POST http://localhost:8080/v1/infer \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4",
-    "provider": "openai",
-    "messages": [{"role": "user", "content": "Hello"}]
-  }'
-```
-
-### Get Routing Decision
-
-```bash
-# Preview routing decision without executing
-POST /v1/routing/preview
+POST https://api.schlep.cloud/v1/routing/preview
 
 {
   "model": "gpt-4",
@@ -475,163 +288,85 @@ POST /v1/routing/preview
 ```
 
 **Response:**
+
 ```json
 {
   "selected_provider": "openai/gpt-4",
-  "reason": "Highest Thompson Sampling score",
+  "reason": "Highest Thompson Sampling score (0.87)",
   "confidence": 0.87,
   "alternatives": [
     {
       "provider": "anthropic/claude-3-sonnet",
       "score": 0.78,
-      "estimated_cost": 0.012,
+      "estimated_cost_usd": 0.012,
       "estimated_latency_ms": 250
     }
   ],
-  "estimated_cost": 0.015,
+  "estimated_cost_usd": 0.015,
   "estimated_latency_ms": 200
 }
 ```
 
-## Metrics & Monitoring
-
-### Routing Metrics
-
-```promql
-# Routing decisions by policy
-routing_decisions_total{policy="thompson-sampling"}
-
-# Thompson Sampling scores
-thompson_sampling_score{provider="openai"}
-
-# Speculative execution performance
-histogram_quantile(0.95, speculative_latency_saved_seconds{mode="latency"})
-
-# Council mode quality improvements
-council_quality_improvement{task="reasoning"}
-
-# Circuit breaker state
-circuit_breaker_state{name="openai"} # 0=closed, 1=half-open, 2=open
-```
-
-### Provider Performance
-
-```promql
-# Provider latency by percentile
-histogram_quantile(0.50, provider_latency_seconds{provider="openai"})
-histogram_quantile(0.95, provider_latency_seconds{provider="openai"})
-histogram_quantile(0.99, provider_latency_seconds{provider="openai"})
-
-# Provider error rate
-rate(provider_errors_total{provider="anthropic"}[5m])
-
-# Provider cost per request
-rate(provider_cost_usd_total{provider="openai"}[1h]) /
-rate(provider_requests_total{provider="openai"}[1h])
-```
-
-## Configuration Reference
-
-### Routing Configuration
-
-```yaml
-# /Users/wira/Desktop/schlep-engine/config/tier_config.yaml
-
-# Thompson Sampling
-bandit_exploration_rate: 0.15
-bandit_update_batch_size: 100
-bandit_reward_alpha_init: 1.0
-bandit_reward_beta_init: 1.0
-
-# Reward Weights
-reward_weight_latency: 0.4
-reward_weight_cost: 0.3
-reward_weight_success: 0.3
-
-# Semantic Routing
-classification_confidence_threshold: 0.6
-classification_cache_ttl_seconds: 3600
-
-# Circuit Breaker
-provider_health_check_interval_seconds: 60
-provider_degraded_threshold_failures: 3
-provider_circuit_breaker_timeout_seconds: 30
-```
-
-### Feature Flags by Tier
-
-| Feature | Developer | Growth | Scale |
-|---------|-----------|--------|-------|
-| Thompson Sampling | | | |
-| Semantic Routing | | | |
-| Cost-Aware Routing | | | |
-| Circuit Breaker | | | |
-| Speculative Execution | | | |
-| Council Mode | | | |
-| Cognitive Advisor | | | |
+---
 
 ## Best Practices
 
 ### When to Use Each Strategy
 
-1. **Thompson Sampling**: General-purpose, production workloads
-2. **Speculative Execution**: Real-time chat, interactive applications (Growth+)
-3. **Council Mode**: High-stakes decisions, content generation (Growth+)
-4. **Semantic Routing**: Heterogeneous workloads, cost optimization
-5. **Cost-Aware**: Batch processing, budget-conscious applications
-6. **Round Robin**: Testing, A/B comparisons
-7. **Least Latency**: Latency-critical applications
-8. **Least Load**: Even distribution, capacity management
+1. **Thompson Sampling**: Default for all production workloads
+2. **Speculative Execution**: Real-time chat, interactive apps (Growth+)
+3. **Council Mode**: High-stakes decisions, content quality (Growth+)
+4. **Semantic Routing**: Mixed workloads (chat + code + analysis)
+5. **Cost-Aware**: Batch jobs, budget-conscious applications
 
 ### Performance Tips
 
-1. **Enable caching** for semantic classification (3600s TTL)
-2. **Set reasonable timeouts** (5s for first token)
-3. **Monitor waste ratio** for speculative execution (&lt;30%)
-4. **Use council mode sparingly** (higher cost and latency)
-5. **Configure fallback providers** for each tier
+- Enable **Speculative Execution** for latency-critical apps (Growth+)
+- Use **Council Mode** sparingly due to higher cost
+- Let **Thompson Sampling** run for 100+ requests to learn optimal routing
+- Monitor cost per request in your dashboard
 
 ### Cost Optimization
 
-1. Start with **Cost-Aware Routing** for predictable workloads
-2. Use **Speculative Execution** in latency mode (20% cost reduction)
-3. Enable **auto-disable** for speculative when waste >30%
-4. Route simple queries to **GPT-3.5** via semantic routing
-5. Monitor **cost per request** metrics continuously
+- Start with **Cost-Aware Routing** for predictable workloads
+- Use **Speculative Execution** in `cost` mode for 20% savings
+- Route simple queries to GPT-3.5 via **Semantic Routing**
+- Set budget alerts in your dashboard
 
-## Troubleshooting
+---
 
-### Issue: "All providers circuit breaker open"
+## FAQ
 
-**Solution:**
-- Check provider API keys are valid
-- Verify network connectivity to provider endpoints
-- Review health check logs: `grep "HealthCheck" logs/`
-- Manually reset circuit breaker: `POST /admin/circuit-breaker/{provider}/reset`
+### Which routing strategy should I use?
 
-### Issue: "Speculative execution auto-disabled"
+**Thompson Sampling** is recommended for 95% of use cases. It automatically learns and adapts to your workload.
 
-**Cause:** Waste ratio exceeded 30%
+### Can I manually select a provider?
 
-**Solution:**
-- Review provider selection (are they too similar?)
-- Increase diversity of providers in race
-- Adjust mode to "balanced" or "cost"
-- Check if one provider is significantly slower
+Yes, specify the provider explicitly:
 
-### Issue: "Thompson Sampling always picks same provider"
+```python
+response = client.chat.completions.create(
+    model="gpt-4",
+    provider="anthropic",  # Force Anthropic
+    messages=[{"role": "user", "content": "Hello"}]
+)
+```
 
-**Cause:** Low exploration rate or one provider significantly better
+### How long does Thompson Sampling take to learn?
 
-**Solution:**
-- Increase `bandit_exploration_rate` from 0.15 to 0.25
-- Reset Thompson Sampling state: `POST /admin/routing/reset`
-- Check if other providers are healthy
-- Review reward weight configuration
+- **100 requests**: Basic preferences established
+- **500 requests**: Stable routing patterns
+- **1000+ requests**: Near-optimal provider selection
 
-## Related Documentation
+### Is Speculative Execution always faster?
 
-- [Provider Keys](/docs/providers-keys) - Provider configuration and BYOK
-- [Observability](/docs/observability) - Monitoring routing decisions
-- [Pricing](/docs/pricing) - Cost tracking and optimization
-- [Architecture](/docs/architecture) - System design and data flow
+Typically 60% faster for p50 latency, but increases cost by 1.3-2x. Best for latency-critical applications on Growth+ tiers.
+
+---
+
+## Next Steps
+
+- [Provider Keys](/docs/providers-keys) - Connect your provider API keys
+- [SDK Usage](/docs/sdk-usage) - Integration guides
+- [Pricing](/docs/pricing-tiers) - Feature availability by tier

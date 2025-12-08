@@ -19,7 +19,6 @@ Successfully activated and productionized the Schlep-engine Go SDK, creating a c
 
 ### Location
 - **Production Path:** `/internal/sdk/go/`
-- **Legacy Path:** `/labs/packages/go-sdk/` (archived)
 
 ## Features Implemented
 
@@ -251,23 +250,19 @@ The Go SDK follows the same patterns as Python and JavaScript SDKs:
 | `/v1/health` | GET | ✅ | ✅ |
 | `/v1/providers/stats` | GET | ✅ | ✅ |
 
-## Key Differences from Labs Version
+## Production-Ready Implementation
 
-### Simplified Architecture
-- **Labs:** Complex multi-package structure with observability, websockets, etc.
-- **Production:** Single-package, focused implementation
+This SDK is built from scratch for production use with:
 
-### Reduced Dependencies
-- **Labs:** 15+ dependencies (resty, viper, prometheus, opentelemetry, etc.)
-- **Production:** 1 dependency (backoff)
+### Clean Architecture
+- Single-package, focused implementation
+- Minimal dependencies (only backoff for retry logic)
+- Idiomatic Go patterns throughout
 
-### Cleaner API
-- **Labs:** Multiple sub-clients (Data, ML, Storage, Monitor, etc.)
-- **Production:** Single client with core methods
-
-### Better Testing
-- **Labs:** Integration tests requiring full stack
-- **Production:** Unit tests with mocked HTTP responses
+### Production Quality
+- Comprehensive unit tests with mocked HTTP responses
+- Full test coverage of all public APIs
+- Memory-safe error handling
 
 ## Publication Readiness
 

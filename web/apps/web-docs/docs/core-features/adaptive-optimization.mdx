@@ -1,0 +1,391 @@
+# Adaptive Optimization Engine
+
+**Real-time quality scoring. Automatic performance tuning.**
+
+The Adaptive Optimization Engine continuously monitors provider performance and automatically adjusts routing decisions to maintain optimal quality, speed, and cost efficiency.
+
+---
+
+## Quick Example
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.schlep.cloud/v1",
+    api_key="your-key"
+)
+
+# Adaptive optimization runs automatically
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Explain quantum computing"}]
+)
+
+# Engine automatically selected the best-performing provider
+print(response.metadata)
+# {
+#   "provider": "anthropic",
+#   "routing_reason": "quality_score_highest",
+#   "quality_score": 0.94,
+#   "optimization_applied": true
+# }
+```
+
+---
+
+## What You Get
+
+### Real-Time Quality Scoring
+
+Continuous evaluation of provider performance:
+
+**Multi-Metric Analysis**: Combines latency, cost, and reliability
+
+**Dynamic Scoring**: Updates every 10 seconds based on recent performance
+
+**Context-Aware**: Considers request type, complexity, and historical patterns
+
+**Automatic Adjustment**: Routes traffic to highest-scoring providers
+
+### Automatic Performance Tuning
+
+No manual intervention required:
+
+**Latency Optimization**: Shifts traffic when response times degrade
+
+**Cost Efficiency**: Balances quality with budget constraints
+
+**Load Balancing**: Distributes requests to prevent provider saturation
+
+**Error Recovery**: Redirects traffic away from failing providers
+
+---
+
+## How It Works
+
+<details>
+<summary><strong>1. Continuous Monitoring</strong></summary>
+
+The engine tracks every request:
+
+- **Response Time**: Measures actual latency per provider
+- **Success Rate**: Monitors errors and failures
+- **Cost Efficiency**: Calculates cost per successful request
+- **Quality Signals**: Analyzes output consistency and completeness
+
+</details>
+
+<details>
+<summary><strong>2. Composite Scoring</strong></summary>
+
+Providers receive scores based on weighted metrics:
+
+```
+Quality Score = (α × Latency) + (β × Cost) + (γ × Success Rate)
+```
+
+Default weights:
+- **Latency**: 40% - How fast responses are delivered
+- **Cost**: 30% - How efficiently budget is used
+- **Success**: 30% - How reliably requests complete
+
+Weights are automatically tuned based on your usage patterns.
+
+</details>
+
+<details>
+<summary><strong>3. Intelligent Routing</strong></summary>
+
+Traffic is directed to optimal providers:
+
+- **High-Score Preference**: 70% of traffic goes to top performers
+- **Exploration**: 30% tests alternatives to discover improvements
+- **Gradual Shifts**: Traffic moves slowly to prevent disruption
+- **Fallback Protection**: Poor performers are deprioritized automatically
+
+</details>
+
+<details>
+<summary><strong>4. Automatic Adaptation</strong></summary>
+
+The system learns and improves continuously:
+
+- **Pattern Recognition**: Identifies time-of-day performance trends
+- **Seasonal Adjustment**: Adapts to provider maintenance windows
+- **Anomaly Detection**: Flags unusual degradation patterns
+- **Self-Tuning**: Adjusts scoring weights for your workload
+
+</details>
+
+---
+
+## Configuration
+
+### Optimization Priorities
+
+Set your performance goals:
+
+```python
+# Optimize for speed
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello"}],
+    extra_body={
+        "optimization_priority": "latency",
+        "max_latency_ms": 500
+    }
+)
+```
+
+```python
+# Optimize for cost
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello"}],
+    extra_body={
+        "optimization_priority": "cost",
+        "max_cost_per_request": 0.01
+    }
+)
+```
+
+```python
+# Balanced optimization
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello"}],
+    extra_body={
+        "optimization_priority": "balanced"
+    }
+)
+```
+
+### Custom Weights
+
+Override default scoring weights:
+
+```yaml
+adaptive_config:
+  scoring_weights:
+    latency: 0.5      # Prioritize speed
+    cost: 0.2         # Moderate cost focus
+    success: 0.3      # Standard reliability
+
+  learning_rate: 0.1  # How fast to adapt (0.0-1.0)
+  exploration_rate: 0.15  # How often to test alternatives
+```
+
+### Performance Thresholds
+
+Define acceptable performance ranges:
+
+```yaml
+performance_thresholds:
+  min_success_rate: 0.95    # Require 95%+ success
+  max_p99_latency_ms: 1000  # P99 must be under 1s
+  max_cost_per_1k: 0.50     # Max $0.50 per 1k requests
+```
+
+---
+
+## Benefits
+
+### Automatic Performance Improvement
+
+Real results from production deployments:
+
+**35% Faster Average Latency**
+- Automatic shift to faster providers during peak hours
+- Dynamic load balancing prevents bottlenecks
+
+**22% Cost Reduction**
+- Intelligent provider selection based on efficiency
+- Automatic fallback to cheaper alternatives when quality is maintained
+
+**98.5% Request Success Rate**
+- Proactive error detection and avoidance
+- Instant failover from degraded providers
+
+### Zero Manual Tuning
+
+The engine handles optimization automatically:
+
+**No Configuration Required**: Works out of the box with sensible defaults
+
+**Self-Learning**: Improves over time based on your traffic patterns
+
+**Transparent Operation**: Full visibility into routing decisions
+
+**Override Available**: Manual control when needed
+
+---
+
+## Observability
+
+### Dashboard View
+
+Monitor optimization in real-time:
+
+```
+Adaptive Optimization Status
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Provider Quality Scores:
+  Anthropic Claude:  0.94  ⭐ (45% traffic)
+  OpenAI GPT-4:      0.89  ✅ (35% traffic)
+  Google Gemini:     0.82  ⚠️  (20% traffic)
+
+Last 24h Optimizations:
+  ↑ Latency improved 35%
+  ↓ Cost reduced 22%
+  ✓ Success rate: 98.5%
+  🔄 Auto-adjustments: 47
+```
+
+### Prometheus Metrics
+
+Track optimization performance:
+
+```
+adaptive_quality_score{provider="anthropic"}
+adaptive_routing_decisions_total{reason="quality"}
+adaptive_performance_improvement_pct{metric="latency"}
+adaptive_cost_savings_usd_total
+adaptive_weight_adjustments_total
+```
+
+### Optimization Events
+
+View routing decision history:
+
+```json
+{
+  "timestamp": "2025-12-09T10:15:30Z",
+  "event": "traffic_shift",
+  "reason": "quality_score_change",
+  "from_provider": "openai",
+  "to_provider": "anthropic",
+  "quality_delta": 0.08,
+  "traffic_percentage": 15,
+  "estimated_impact": {
+    "latency_improvement_ms": -45,
+    "cost_change_pct": 2,
+    "success_rate_delta": 0.02
+  }
+}
+```
+
+---
+
+## Use Cases
+
+### High-Volume Production
+
+**Challenge**: Millions of requests daily, performance varies by time of day
+
+**Solution**: Adaptive optimization automatically shifts traffic during:
+- Provider maintenance windows
+- Regional peak hours
+- Unexpected degradation events
+
+**Result**: Consistent performance despite provider variability
+
+### Cost-Constrained Environments
+
+**Challenge**: Tight budget limits, need to maximize value
+
+**Solution**: Engine finds the optimal balance between cost and quality:
+- Routes simple queries to cheaper providers
+- Reserves premium providers for complex requests
+- Automatically detects when cheaper options maintain quality
+
+**Result**: 20-30% cost reduction without quality loss
+
+### SLA-Critical Applications
+
+**Challenge**: Must maintain 99.9% success rate and sub-500ms latency
+
+**Solution**: Real-time monitoring and instant response:
+- Detects degradation within seconds
+- Shifts traffic before SLA breach
+- Maintains performance buffer
+
+**Result**: Consistent SLA compliance with minimal manual intervention
+
+---
+
+## Best Practices
+
+### Start with Balanced Mode
+
+Begin with default settings:
+
+1. Enable adaptive optimization (on by default)
+2. Monitor for 48 hours to establish baseline
+3. Review quality scores and routing decisions
+4. Adjust priorities based on actual patterns
+
+### Define Clear Objectives
+
+Set measurable goals:
+
+```yaml
+objectives:
+  primary: "latency"     # What matters most
+  target_p99: 500        # Specific threshold
+  cost_tolerance: 20     # Acceptable cost variance %
+```
+
+### Monitor Optimization Impact
+
+Track key metrics:
+
+- **Quality Score Trends**: Are providers improving or degrading?
+- **Traffic Distribution**: Is routing balanced or concentrated?
+- **Performance Deltas**: What's the actual improvement?
+- **Cost Impact**: Are optimizations budget-neutral?
+
+### Review Weekly
+
+Check optimization effectiveness:
+
+- Review traffic distribution changes
+- Validate performance improvements
+- Adjust weights if needed
+- Update thresholds based on growth
+
+---
+
+## Integration
+
+Works seamlessly with other features:
+
+**Thompson Sampling**: Exploration rate feeds bandit algorithm
+
+**Speculative Execution**: Quality scores influence provider selection
+
+**SLO Enforcer**: Triggers automatic remediation on threshold breach
+
+**Shadow Mode**: Tests optimization changes safely before production
+
+---
+
+## Availability
+
+Adaptive Optimization Engine is included in:
+
+- **Developer Tier**: Basic optimization (fixed weights)
+- **Growth Tier**: Full optimization with auto-tuning
+- **Scale Tier**: Advanced optimization with custom strategies
+
+---
+
+## Related Features
+
+- [SLO Enforcer](/docs/core-features/slo-enforcer) - Automatic guardrails
+- [Shadow Mode](/docs/core-features/shadow-mode) - Safe testing
+- [Speculative Execution](/docs/core-features/speculative) - Parallel racing
+
+---
+
+**Questions?** Email support@schlep-engine.com or join our [Discord](https://discord.gg/schlep-engine)

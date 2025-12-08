@@ -1,10 +1,10 @@
 # Quick Start
 
-Get started with Schlep Engine in **5 minutes**. Start with cloud hosted (easiest) or self-host for full control.
+**TL;DR:** Point your OpenAI SDK to Schlep Engine. Get automatic routing, failover, and cost optimization in 5 minutes.
 
 ---
 
-## Option 1: Cloud Hosted (Fastest)
+## Get Started in 5 Minutes
 
 ### Step 1: Start Free Trial
 
@@ -23,20 +23,6 @@ Dashboard → Settings → API Keys → Copy
 Your API key looks like: `sk-schlep-abc123...`
 
 ### Step 3: Make Your First Request
-
-**Using cURL:**
-
-```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4",
-    "messages": [
-      {"role": "user", "content": "Explain Thompson Sampling in one sentence"}
-    ]
-  }'
-```
 
 **Using Python (OpenAI SDK):**
 
@@ -78,40 +64,18 @@ console.log(`Cost: $${response.metadata.cost_usd}`);
 console.log(`Provider: ${response.metadata.provider}`);
 ```
 
-**Using Go:**
+**Using cURL:**
 
-```go
-package main
-
-import (
-    "context"
-    "fmt"
-    "log"
-
-    "github.com/schlep-engine/schlep-engine/internal/sdk/go/schlep"
-)
-
-func main() {
-    client := schlep.NewClient(&schlep.Config{
-        BaseURL: "https://api.schlep.cloud",
-        APIKey:  "sk-schlep-YOUR_KEY",
-    })
-
-    response, err := client.Infer(context.Background(), &schlep.InferRequest{
-        Model: "gpt-4",
-        Messages: []schlep.Message{
-            {Role: "user", Content: "Hello!"},
-        },
-    })
-
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Println(response.Choices[0].Message.Content)
-    fmt.Printf("Cost: $%.4f\n", response.Metadata.CostUSD)
-    fmt.Printf("Provider: %s\n", response.Metadata.Provider)
-}
+```bash
+curl -X POST https://api.schlep.cloud/v1/infer \
+  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [
+      {"role": "user", "content": "Explain Thompson Sampling in one sentence"}
+    ]
+  }'
 ```
 
 ### Step 4: View in Dashboard
@@ -162,9 +126,10 @@ Every request includes metadata about routing:
 
 ---
 
-## Advanced Usage
+## Advanced Features
 
-### Cost Optimization
+<details>
+<summary><strong>Cost Optimization</strong></summary>
 
 Request the cheapest provider that meets quality standards:
 
@@ -179,7 +144,10 @@ curl -X POST https://api.schlep.cloud/v1/infer \
   }'
 ```
 
-### Latency Optimization
+</details>
+
+<details>
+<summary><strong>Latency Optimization</strong></summary>
 
 Request the fastest provider:
 
@@ -194,7 +162,10 @@ curl -X POST https://api.schlep.cloud/v1/infer \
   }'
 ```
 
-### Speculative Execution (Growth+ Tier)
+</details>
+
+<details>
+<summary><strong>Speculative Execution (Growth+ Tier)</strong></summary>
 
 Race multiple providers for 60% faster time-to-first-token:
 
@@ -209,7 +180,10 @@ curl -X POST https://api.schlep.cloud/v1/infer \
   }'
 ```
 
-### Streaming Responses
+</details>
+
+<details>
+<summary><strong>Streaming Responses</strong></summary>
 
 Get tokens as they're generated:
 
@@ -232,203 +206,7 @@ for chunk in response:
         print(chunk.choices[0].delta.content, end='', flush=True)
 ```
 
----
-
-## Option 2: Self-Hosted
-
-Deploy Schlep Engine in your own infrastructure (Scale tier required).
-
-### Prerequisites
-
-- Docker & Docker Compose
-- Or: Kubernetes cluster with Helm
-
-### Docker Compose (Quickest)
-
-```bash
-# Clone repository
-git clone https://github.com/schlep-engine/schlep-engine
-cd schlep-engine
-
-# Configure environment
-cp .env.example .env
-# Edit .env with your provider API keys
-
-# Start services
-docker-compose up -d
-
-# Verify health
-curl http://localhost:8081/v1/health
-```
-
-**Services started:**
-- API Gateway: `localhost:8081`
-- Prometheus: `localhost:9090`
-- Grafana: `localhost:3000`
-- PostgreSQL: `localhost:5432`
-- Redis: `localhost:6379`
-
-### Kubernetes (Production)
-
-```bash
-# Add Helm repo
-helm repo add schlep-engine https://charts.schlep.cloud
-helm repo update
-
-# Install with default values
-helm install schlep-engine schlep-engine/schlep-engine \
-  --set postgresql.enabled=true \
-  --set redis.enabled=true \
-  --set ingress.enabled=true \
-  --set ingress.host=api.yourcompany.com
-
-# Check status
-kubectl get pods -l app=schlep-engine
-```
-
-### Configuration
-
-Set your provider API keys:
-
-```bash
-# Using environment variables
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-
-# Or using Kubernetes secrets
-kubectl create secret generic schlep-provider-keys \
-  --from-literal=openai-key=sk-... \
-  --from-literal=anthropic-key=sk-ant-...
-```
-
-### Verify Installation
-
-```bash
-# Health check
-curl http://localhost:8081/v1/health
-
-# List available models
-curl http://localhost:8081/v1/models
-
-# Test inference
-curl -X POST http://localhost:8081/v1/infer \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-4",
-    "messages": [{"role": "user", "content": "Hello"}]
-  }'
-```
-
----
-
-## Enable Advanced Features
-
-### Thompson Sampling Optimizer
-
-Switch from Go router to Rust-powered Thompson Sampling:
-
-```bash
-curl -X POST http://localhost:8081/admin/optimizer \
-  -H "X-Admin-Token: YOUR_ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "mode": "rust",
-    "sample_rate": 1.0
-  }'
-```
-
-**Modes:**
-- `go` - Basic Go router (default)
-- `shadow` - Run Rust in parallel for testing (no impact on routing)
-- `rust` - Use Rust optimizer for all requests
-
-### Check Optimizer Status
-
-```bash
-curl http://localhost:8081/admin/optimizer/status \
-  -H "X-Admin-Token: YOUR_ADMIN_TOKEN"
-```
-
-**Response:**
-```json
-{
-  "mode": "rust",
-  "sample_rate": 1.0,
-  "total_requests": 10523,
-  "rust_requests": 10523,
-  "go_fallbacks": 12,
-  "avg_latency_ms": 234,
-  "cost_savings_percent": 32.4
-}
-```
-
----
-
-## Monitor Your System
-
-### Prometheus Metrics
-
-View metrics at `http://localhost:9090`
-
-**Key metrics:**
-- `http_requests_total{method, path, status}`
-- `inference_requests_total{provider, model, status}`
-- `inference_latency_ms{provider, model}`
-- `cost_usd_total{provider, tenant}`
-
-### Grafana Dashboards
-
-Access Grafana at `http://localhost:3000`
-
-**Default credentials:**
-- Username: `admin`
-- Password: `admin`
-
-**Pre-built dashboards:**
-1. Request Overview - RPS, latency, errors
-2. Provider Performance - Per-provider metrics
-3. Cost Analytics - Spend tracking
-4. Thompson Sampling - Routing decisions
-
-### View Logs
-
-```bash
-# Docker Compose
-docker-compose logs -f schlep-api
-
-# Kubernetes
-kubectl logs -f deployment/schlep-engine -c api
-```
-
----
-
-## Testing with Different Providers
-
-### Benchmark Mode (No API Keys Needed)
-
-Test without real API calls:
-
-```bash
-export PROVIDER_MODE=benchmark
-./schlep-api
-```
-
-Benchmark mode simulates:
-- Realistic latency profiles
-- Token counting
-- Cost calculation
-- Provider errors/failures
-
-### Real Mode (With API Keys)
-
-Use actual provider APIs:
-
-```bash
-export PROVIDER_MODE=real
-export OPENAI_API_KEY="sk-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-./schlep-api
-```
+</details>
 
 ---
 
@@ -453,57 +231,6 @@ Set up tenant isolation and per-tenant budgets:
 
 Set up dashboards and alerts:
 [Observability →](/docs/observability)
-
----
-
-## Common Issues
-
-### Port Already in Use
-
-```bash
-# Check what's using port 8081
-lsof -i :8081
-
-# Kill the process
-kill -9 <PID>
-```
-
-### Connection Refused
-
-Ensure all services are running:
-
-```bash
-# Docker Compose
-docker-compose ps
-
-# Kubernetes
-kubectl get pods
-```
-
-### Authentication Failed
-
-Check your API key:
-
-```bash
-# Test with curl
-curl -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
-  https://api.schlep.cloud/v1/health
-```
-
-### High Latency
-
-Enable Rust optimizer and speculative execution:
-
-```bash
-# Enable Rust optimizer
-curl -X POST http://localhost:8081/admin/optimizer \
-  -H "X-Admin-Token: YOUR_ADMIN_TOKEN" \
-  -d '{"mode": "rust", "sample_rate": 1.0}'
-
-# Use speculative mode in requests
-curl -X POST http://localhost:8081/v1/infer \
-  -d '{"model": "gpt-4", "messages": [...], "speculative_mode": "latency"}'
-```
 
 ---
 
