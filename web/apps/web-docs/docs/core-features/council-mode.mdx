@@ -4,11 +4,6 @@
 
 **Council Mode** is Schlep Engine's multi-provider consensus system that improves routing quality through ensemble decision-making. Multiple AI providers evaluate the same request in parallel, peer-rank each other's responses, and a "chairman" provider synthesizes the best final answer from the collective input.
 
-## Status
-
-> **✅ Production Ready**
->
-> Council Mode is fully implemented and available in production. The implementation is located in `/internal/router/council.go` with comprehensive test coverage and production-ready APIs.
 
 ## How It Works
 
@@ -71,17 +66,17 @@ This approach combines the strengths of multiple models to produce higher-qualit
 
 ### When to Use Council Mode
 
-✅ **High-stakes decisions** requiring extra validation
-✅ **Complex reasoning tasks** benefiting from multiple perspectives
-✅ **Quality-critical applications** where correctness matters more than speed
-✅ **Hallucination mitigation** through cross-validation
+**High-stakes decisions** requiring extra validation
+**Complex reasoning tasks** benefiting from multiple perspectives
+**Quality-critical applications** where correctness matters more than speed
+**Hallucination mitigation** through cross-validation
 
 ### When NOT to Use Council Mode
 
-❌ **Cost-sensitive workloads** (runs 3-5x more expensive)
-❌ **Latency-critical applications** (takes 2-3x longer)
-❌ **Simple/routine requests** (overkill for basic tasks)
-❌ **High-volume batch processing** (cost scales rapidly)
+**Cost-sensitive workloads** (runs 3-5x more expensive)
+**Latency-critical applications** (takes 2-3x longer)
+**Simple/routine requests** (overkill for basic tasks)
+**High-volume batch processing** (cost scales rapidly)
 
 ## API Usage
 

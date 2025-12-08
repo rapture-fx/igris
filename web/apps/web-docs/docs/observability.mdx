@@ -1,366 +1,438 @@
 # Observability
 
-Schlep Engine provides comprehensive observability through Prometheus metrics, distributed tracing, and structured logging.
+**TL;DR:** Complete visibility into every request with real-time metrics, distributed tracing, and cost tracking. Export to your existing monitoring tools.
 
 ---
 
-## Metrics Overview
+## What You Can Track
 
-All metrics are exposed at the `/metrics` endpoint in Prometheus format for scraping by monitoring systems like Prometheus, Datadog, or Grafana Cloud.
+Schlep Engine provides comprehensive observability:
 
-### HTTP Metrics
-
-**`http_requests_total`** (Counter)
-- **Labels**: `method`, `path`, `status`
-- **Description**: Total number of HTTP requests
-- **Example**: `http_requests_total{method="POST",path="/v1/infer",status="200"}`
-
-**`http_request_duration_seconds`** (Histogram)
-- **Labels**: `method`, `path`
-- **Description**: HTTP request duration in seconds
-- **Buckets**: Default Prometheus buckets (0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10)
+- **Request Metrics**: Success rate, latency, throughput
+- **Cost Tracking**: Per-request, per-provider, per-tenant costs
+- **Provider Performance**: Which providers are fastest, cheapest, most reliable
+- **Routing Decisions**: See why each request went to a specific provider
+- **Distributed Traces**: Follow requests across the entire system
+- **Error Tracking**: Detailed error rates and types
 
 ---
 
-## Inference Metrics
+## Metrics Endpoint
 
-**`inference_requests_total`** (Counter)
-- **Labels**: `provider`, `model`, `status`
-- **Description**: Total inference requests per provider and model
-- **Example**: `inference_requests_total{provider="openai",model="gpt-4",status="success"}`
+All metrics are exposed in Prometheus format at `/metrics`:
 
-**`inference_latency_ms`** (Histogram)
-- **Labels**: `provider`, `model`
-- **Description**: Inference latency in milliseconds
-- **Buckets**: `[5, 10, 20, 30, 50, 75, 100, 150, 200, 300, 500, 1000]`
+```bash
+curl https://api.schlep.cloud/metrics
+```
 
-**`inference_tokens_used`** (Histogram)
-- **Labels**: `provider`, `model`, `token_type` (prompt/completion)
-- **Description**: Token usage per request
-
-**`inference_cost_usd`** (Histogram)
-- **Labels**: `provider`, `model`
-- **Description**: Cost per request in USD
+This endpoint is compatible with:
+- Prometheus
+- Datadog
+- Grafana Cloud
+- New Relic
+- Any Prometheus-compatible monitoring system
 
 ---
 
-## Rust FFI Metrics
+## Key Metrics Available
 
-**`rust_ffi_calls_total`** (Counter)
-- **Labels**: `function`
-- **Description**: Total number of Rust FFI calls
-- **Functions**: `optimizer_select_action`, `optimizer_update_reward`, `optimizer_get_stats`
+### Request Metrics
 
-**`rust_ffi_duration_microseconds`** (Histogram)
-- **Labels**: `function`
-- **Description**: Rust FFI call duration in microseconds
-- **Buckets**: `[1, 5, 10, 25, 50, 100, 250, 500, 1000]`
+Track overall request health:
 
----
+- **Total requests**: Count of all requests
+- **Success rate**: Percentage of successful requests
+- **Request duration**: Latency histograms (p50, p95, p99)
+- **Requests per second**: Current throughput
 
-## Circuit Breaker Metrics
+### Inference Metrics
 
-**`circuit_breaker_state`** (Gauge)
-- **Labels**: `name`
-- **Description**: Circuit breaker state (0=closed, 1=half-open, 2=open)
-- **Example**: `circuit_breaker_state{name="openai_gpt4"} 0`
+LLM-specific metrics:
 
-**`circuit_breaker_failures_total`** (Counter)
-- **Labels**: `name`
-- **Description**: Total number of circuit breaker failures
+- **Requests by provider**: OpenAI, Anthropic, Google, etc.
+- **Requests by model**: GPT-4, Claude 3, Gemini, etc.
+- **Token usage**: Prompt tokens, completion tokens
+- **Cost per request**: Real-time cost in USD
 
----
+### Routing Metrics
 
-## ML Service Metrics
+Understand routing decisions:
 
-**`grpc_requests_total`** (Counter)
-- **Labels**: `method`, `status`
-- **Description**: Total gRPC requests to ML service
-- **Example**: `grpc_requests_total{method="Classify",status="success"}`
-
-**`grpc_request_duration_milliseconds`** (Histogram)
-- **Labels**: `method`
-- **Description**: gRPC request duration in milliseconds
-- **Buckets**: `[5, 10, 20, 50, 100, 200, 500, 1000, 2000]`
-
----
-
-## Worker Pool Metrics
-
-**`inference_queue_depth`** (Gauge)
-- **Description**: Current depth of the inference job queue
-
-**`active_workers`** (Gauge)
-- **Description**: Current number of active inference workers
-
-**`avg_inference_latency_ms`** (Gauge)
-- **Description**: Moving average inference latency in milliseconds
-
-**`dropped_jobs_total`** (Counter)
-- **Description**: Total number of dropped jobs (queue full)
-
-**`worker_scaling_events_total`** (Counter)
-- **Labels**: `direction` (up/down)
-- **Description**: Total worker scaling events
-
----
-
-## GPU Runtime Metrics
-
-**`gpu_inference_latency_ms`** (Histogram)
-- **Labels**: `runtime`, `success`
-- **Description**: GPU inference latency in milliseconds
-- **Buckets**: `[5, 10, 15, 20, 30, 50, 75, 100, 150, 200]`
-
-**`gpu_memory_usage_mb`** (Gauge)
-- **Description**: GPU memory usage in megabytes
-
-**`gpu_utilization_percent`** (Gauge)
-- **Description**: GPU utilization percentage (0-100)
-
-**`gpu_fallback_total`** (Counter)
-- **Labels**: `runtime`
-- **Description**: Total GPU to CPU fallbacks
-
----
-
-## Model Selection Metrics
-
-**`model_selection_total`** (Counter)
-- **Labels**: `model_id`, `runtime`, `strategy`
-- **Strategy**: `direct`, `exploration`, `exploitation`
-- **Description**: Total model selections
-
-**`model_performance_total`** (Counter)
-- **Labels**: `model_id`, `runtime`, `result`
-- **Result**: `success`, `failure`
-- **Description**: Model performance counters
-
-**`model_latency_ms`** (Histogram)
-- **Labels**: `model_id`, `runtime`
-- **Description**: Model inference latency
-
-**`model_registration_total`** (Counter)
-- **Labels**: `model_id`, `runtime`
-- **Description**: Total model registrations
-
----
-
-## Streaming Metrics
-
-**`stream_inference_total`** (Counter)
-- **Labels**: `provider`, `model`, `status`
-- **Description**: Total streaming inference requests
-
-**`stream_tokens_generated`** (Histogram)
-- **Labels**: `provider`, `model`
-- **Description**: Tokens generated per stream
-
-**`stream_duration_seconds`** (Histogram)
-- **Labels**: `provider`, `model`
-- **Description**: Stream duration
-
----
-
-## Validation Metrics
-
-**`validation_errors_total`** (Counter)
-- **Labels**: `field`, `error_type`
-- **Description**: Total input validation errors
-- **Example**: `validation_errors_total{field="model",error_type="required"}`
+- **Thompson Sampling scores**: Which provider is winning
+- **Semantic routing classifications**: Creative, analytical, coding, etc.
+- **Speculative execution**: Race winners and latency improvements
+- **Circuit breaker status**: Which providers are healthy/unhealthy
 
 ---
 
 ## Distributed Tracing
 
-### Trace ID Injection
+Every request gets a unique trace ID for end-to-end visibility:
 
-Every request receives a unique `X-Trace-ID` header for correlation across services.
-
-**Example Response Headers:**
-```
-X-Trace-ID: 550e8400-e29b-41d4-a716-446655440000
-X-Span-ID: 7f12a3b4c5d6e7f8
+```json
+{
+  "id": "chatcmpl-abc123",
+  "metadata": {
+    "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+    "provider": "anthropic",
+    "latency_ms": 187
+  }
+}
 ```
 
 ### Trace Spans
 
-**Parent Span**: `http_request`
-- Child: `auth_validation`
-- Child: `rate_limit_check`
-- Child: `routing_decision`
-  - Child: `thompson_sampling` (if enabled)
-  - Child: `semantic_classification` (if enabled)
-- Child: `provider_request`
-- Child: `cost_tracking`
+Each request creates spans for:
 
-### OpenTelemetry Integration
+1. **HTTP Request** (parent span)
+2. **Authentication** (validating API key)
+3. **Rate Limiting** (checking tenant limits)
+4. **Routing Decision** (Thompson Sampling or semantic routing)
+5. **Provider Request** (actual LLM API call)
+6. **Cost Tracking** (recording usage and cost)
 
-TODO: Describe OpenTelemetry collector configuration
+### Viewing Traces
 
----
+Use trace IDs to search in your tracing system:
 
-## Prometheus Scrape Configuration
+- Jaeger
+- Zipkin
+- Honeycomb
+- Datadog APM
+- New Relic
 
-Add this to your `prometheus.yml`:
-
-```yaml
-scrape_configs:
-  - job_name: 'schlep-engine'
-    scrape_interval: 15s
-    static_configs:
-      - targets: ['localhost:8081']
-    metrics_path: '/metrics'
+**Example trace timeline:**
+```
+HTTP Request (total: 234ms)
+├─ Auth (2ms)
+├─ Rate Limit (1ms)
+├─ Routing Decision (5ms)
+│  └─ Thompson Sampling (4ms)
+├─ Provider Request (187ms)
+│  └─ Anthropic API (185ms)
+└─ Cost Tracking (3ms)
 ```
 
 ---
 
-## Grafana Dashboards
+## Cost Tracking
 
-### Key Dashboards
+### Per-Request Cost
 
-**1. Request Overview**
-- Total requests per second
-- P50/P95/P99 latency
-- Error rate by endpoint
-- Status code distribution
-
-**2. Provider Performance**
-- Requests per provider
-- Latency by provider
-- Cost per provider
-- Error rate by provider
-
-**3. Thompson Sampling**
-- Provider selection distribution
-- Reward scores over time
-- Exploration vs exploitation ratio
-
-**4. Resource Utilization**
-- Worker pool utilization
-- Queue depth
-- GPU memory and utilization
-- Circuit breaker states
-
-**5. Cost Analytics**
-- Total spend per hour/day/month
-- Cost per provider
-- Cost per tenant
-- Budget utilization
-
----
-
-## Logging
-
-### Structured Logging
-
-All logs are output in JSON format for easy parsing:
+Every response includes cost breakdown:
 
 ```json
 {
-  "timestamp": "2025-12-03T10:15:30Z",
-  "level": "INFO",
-  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
-  "tenant_id": "acme-corp",
-  "provider": "openai",
-  "model": "gpt-4",
-  "latency_ms": 234,
-  "cost_usd": 0.00171,
-  "message": "Inference request completed"
+  "usage": {
+    "prompt_tokens": 15,
+    "completion_tokens": 42,
+    "total_tokens": 57
+  },
+  "metadata": {
+    "cost_usd": 0.00171,
+    "provider": "openai",
+    "model": "gpt-4",
+    "cost_breakdown": {
+      "prompt_cost": 0.00045,
+      "completion_cost": 0.00126
+    }
+  }
 }
 ```
 
-### Log Levels
+### Aggregate Cost Metrics
 
-- **DEBUG**: Detailed debugging information
-- **INFO**: General informational messages
-- **WARN**: Warning messages (non-critical)
-- **ERROR**: Error messages requiring attention
-- **FATAL**: Critical errors causing shutdown
+Track spending over time:
 
----
+```bash
+# Get cost metrics by provider
+curl https://api.schlep.cloud/v1/metrics/cost?group_by=provider
 
-## Alerting Rules
+# Get cost metrics by tenant
+curl https://api.schlep.cloud/v1/metrics/cost?group_by=tenant
 
-### Critical Alerts
-
-**API Server Down**
-```yaml
-- alert: APIServerDown
-  expr: up{job="schlep-engine"} == 0
-  for: 1m
-  labels:
-    severity: critical
-  annotations:
-    summary: "API server is down"
+# Get cost metrics by model
+curl https://api.schlep.cloud/v1/metrics/cost?group_by=model
 ```
 
-**High Error Rate**
-```yaml
-- alert: HighErrorRate
-  expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
-  for: 5m
-  labels:
-    severity: critical
-  annotations:
-    summary: "High error rate detected"
-```
-
-### High Priority Alerts
-
-**High Latency P95**
-```yaml
-- alert: HighLatencyP95
-  expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1.0
-  for: 10m
-  labels:
-    severity: high
-  annotations:
-    summary: "P95 latency above 1 second"
-```
-
-**Circuit Breaker Open**
-```yaml
-- alert: CircuitBreakerOpen
-  expr: circuit_breaker_state > 0
-  for: 5m
-  labels:
-    severity: high
-  annotations:
-    summary: "Circuit breaker is open for {{ $labels.name }}"
+**Response:**
+```json
+{
+  "period": "today",
+  "total_cost_usd": 456.78,
+  "by_provider": {
+    "openai": 234.56,
+    "anthropic": 222.22
+  },
+  "by_model": {
+    "gpt-4": 178.90,
+    "gpt-3.5-turbo": 55.66,
+    "claude-3-sonnet": 222.22
+  }
+}
 ```
 
 ---
 
-## Health Check Endpoints
+## Dashboards
 
-**`GET /v1/health`**
-- Returns `200 OK` if service is healthy
-- Response: `{"status": "healthy", "version": "1.0.0"}`
+<details>
+<summary><strong>Cloud Hosted Dashboards</strong></summary>
 
-**`GET /v1/health/ready`**
-- Returns `200 OK` if service is ready to accept traffic
-- Checks database, Redis, ML service connectivity
+If you're using cloud hosted Schlep Engine, dashboards are built-in:
 
-**`GET /v1/health/live`**
-- Returns `200 OK` if service is alive (liveness probe for Kubernetes)
+1. **Overview Dashboard**
+   - Requests per second
+   - Success rate
+   - Average latency
+   - Total cost today
+
+2. **Provider Performance**
+   - Latency by provider
+   - Success rate by provider
+   - Cost efficiency comparison
+
+3. **Cost Analytics**
+   - Spend over time
+   - Top spending tenants
+   - Cost per provider/model
+   - Budget alerts
+
+4. **Routing Insights**
+   - Thompson Sampling scores
+   - Provider selection distribution
+   - Speculative execution wins
+
+[View Dashboard →](https://app.schlep.cloud/dashboard)
+
+</details>
+
+<details>
+<summary><strong>Self-Hosted Monitoring</strong></summary>
+
+For self-hosted deployments, export metrics to your existing stack:
+
+**Prometheus + Grafana:**
+
+```yaml
+# prometheus.yml
+scrape_configs:
+  - job_name: 'schlep-engine'
+    static_configs:
+      - targets: ['api.schlep.internal:8081']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+```
+
+**Datadog:**
+
+```yaml
+# datadog.yaml
+instances:
+  - prometheus_url: http://api.schlep.internal:8081/metrics
+    namespace: schlep_engine
+    metrics:
+      - '*'
+```
+
+**Grafana Cloud:**
+
+Use the Prometheus remote write endpoint to send metrics directly to Grafana Cloud.
+
+</details>
 
 ---
 
-## Performance Targets
+## Alerts
 
-| Metric | Target | Achieved |
-|--------|--------|----------|
-| API P95 Latency | &lt;150ms | 95ms |
-| Inference P95 | &lt;500ms | 450ms |
-| Throughput | 1000+ RPS | 1200 RPS |
-| Error Rate | &lt;1% | 0.3% |
-| GPU Utilization | >80% | 85% |
+Set up alerts for critical events:
+
+### Budget Alerts
+
+Get notified when spending approaches limits:
+
+```bash
+POST /v1/tenants/{tenant_id}/budget
+{
+  "monthly_budget_usd": 5000.00,
+  "alert_threshold": 0.90,
+  "notification_channels": ["email", "webhook"]
+}
+```
+
+### Performance Alerts
+
+Monitor latency and error rates:
+
+- **High Latency**: Alert when p95 latency > 2000ms
+- **High Error Rate**: Alert when error rate > 5%
+- **Provider Failure**: Alert when circuit breaker opens
+- **Rate Limit**: Alert when approaching rate limits
+
+### Custom Webhooks
+
+Send alerts to your own systems:
+
+```json
+{
+  "event": "high_latency_alert",
+  "tenant_id": "tenant_abc123",
+  "metric": "p95_latency_ms",
+  "current_value": 2345,
+  "threshold": 2000,
+  "provider": "openai",
+  "timestamp": "2025-11-30T12:00:00Z"
+}
+```
+
+---
+
+## Log Integration
+
+### Structured Logging
+
+All logs are JSON-formatted for easy parsing:
+
+```json
+{
+  "timestamp": "2025-11-30T12:00:00Z",
+  "level": "info",
+  "message": "inference_request_completed",
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+  "tenant_id": "tenant_abc123",
+  "provider": "anthropic",
+  "model": "claude-3-sonnet",
+  "latency_ms": 187,
+  "cost_usd": 0.00034,
+  "status": "success"
+}
+```
+
+### Log Aggregation
+
+Compatible with standard log aggregation tools:
+
+- **ELK Stack** (Elasticsearch, Logstash, Kibana)
+- **Loki + Grafana**
+- **Splunk**
+- **Datadog Logs**
+- **CloudWatch Logs**
+
+---
+
+## Example Queries
+
+### Prometheus Queries
+
+**Requests per second:**
+```promql
+rate(http_requests_total[5m])
+```
+
+**Success rate:**
+```promql
+sum(rate(http_requests_total{status=~"2.."}[5m]))
+/
+sum(rate(http_requests_total[5m]))
+```
+
+**P95 latency:**
+```promql
+histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
+```
+
+**Cost per hour:**
+```promql
+sum(rate(cost_usd_total[1h]))
+```
+
+---
+
+## Best Practices
+
+### Monitoring
+
+1. **Set up dashboards early** - Don't wait until you have issues
+2. **Monitor all three**: latency, error rate, throughput
+3. **Track costs daily** - Catch unexpected spending quickly
+4. **Use trace IDs** to debug specific failed requests
+
+### Alerting
+
+1. **Start with budget alerts** - Most critical for cost control
+2. **Alert on trends** not just thresholds (e.g., latency increasing)
+3. **Use different channels** for different severity (email vs. PagerDuty)
+4. **Test your alerts** before going to production
+
+### Optimization
+
+1. **Review provider performance weekly** - Thompson Sampling adapts, but review manually
+2. **Check for cost anomalies** - Unusual spikes might indicate issues
+3. **Monitor circuit breaker state** - Frequent opens = provider reliability issues
+4. **Track speculative execution waste** - Should be `<30%`
+
+---
+
+## API Reference
+
+<details>
+<summary><strong>GET /metrics</strong></summary>
+
+Prometheus-formatted metrics endpoint.
+
+**Response format:** Prometheus exposition format
+
+**Access:** Requires admin token or metrics-specific token
+
+</details>
+
+<details>
+<summary><strong>GET /v1/metrics/cost</strong></summary>
+
+Aggregate cost metrics.
+
+**Query parameters:**
+- `period`: `today`, `week`, `month`
+- `group_by`: `provider`, `model`, `tenant`
+- `tenant_id`: Filter by tenant (admin only)
+
+**Response:**
+```json
+{
+  "period": "today",
+  "total_cost_usd": 456.78,
+  "breakdown": {...}
+}
+```
+
+</details>
+
+<details>
+<summary><strong>GET /v1/metrics/latency</strong></summary>
+
+Latency percentiles.
+
+**Query parameters:**
+- `period`: `5m`, `1h`, `1d`
+- `provider`: Filter by provider
+- `model`: Filter by model
+
+**Response:**
+```json
+{
+  "period": "1h",
+  "p50_ms": 234,
+  "p95_ms": 456,
+  "p99_ms": 678
+}
+```
+
+</details>
 
 ---
 
 ## Next Steps
 
-- [Architecture](/docs/architecture) - System design
-- [Multi-Tenancy](/docs/multi-tenancy) - Tenant isolation
-- [API Reference](/docs/api-reference) - API endpoints
+- [Multi-Tenancy](/docs/multi-tenancy) - Per-tenant monitoring
+- [API Reference](/docs/api-reference) - Complete API docs
+- [Quick Start](/docs/quickstart) - Get started with Schlep Engine

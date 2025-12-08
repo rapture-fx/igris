@@ -1,284 +1,123 @@
 # Provider Keys & Configuration
 
-Complete guide to configuring and managing LLM provider API keys in Schlep Engine.
+**TL;DR:** Connect your own API keys from OpenAI, Anthropic, Google, and 9+ other providers. Zero-downtime key rotation included. All keys are AES-256 encrypted and isolated per account.
+
+---
 
 ## Overview
 
-Schlep Engine supports multiple LLM providers through a flexible **Bring Your Own Key (BYOK)** system with:
+Schlep Engine supports **Bring Your Own Key (BYOK)** for multiple LLM providers. You can connect your existing provider accounts and manage API keys securely through our platform.
 
-- **Zero-downtime key rotation** with dual-key support
-- **Multi-tenant isolation** with per-tenant provider configurations
-- **Automatic key refresh** from Vault every 60 seconds
-- **Graceful fallback** during rotation periods
+### Key Benefits
+
+- **Zero-downtime key rotation** - Rotate keys without service interruption
+- **Secure storage** - AES-256 encryption for all API keys
+- **Multi-provider support** - Connect 10+ providers simultaneously
+- **Automatic failover** - Switch providers instantly if one becomes unavailable
+
+---
 
 ## Supported Providers
 
-### Cloud Providers
+### Major Cloud Providers
 
-| Provider | Model Examples | Configuration |
-|----------|---------------|---------------|
-| **OpenAI** | `gpt-4`, `gpt-3.5-turbo`, `gpt-4-turbo` | `OPENAI_API_KEY` |
-| **Anthropic** | `claude-3-opus`, `claude-3-sonnet`, `claude-3-haiku` | `ANTHROPIC_API_KEY` |
-| **Google Gemini** | `gemini-pro`, `gemini-ultra` | `GOOGLE_API_KEY` |
-| **xAI** | `grok-1` | `XAI_API_KEY` |
-| **Mistral** | `mistral-large`, `mistral-medium` | `MISTRAL_API_KEY` |
-| **DeepSeek** | `deepseek-chat`, `deepseek-coder` | `DEEPSEEK_API_KEY` |
+| Provider | Models Available | Setup Guide |
+|----------|-----------------|-------------|
+| **OpenAI** | GPT-4, GPT-3.5 Turbo, GPT-4 Turbo | Add your `OPENAI_API_KEY` |
+| **Anthropic** | Claude 3 Opus, Sonnet, Haiku | Add your `ANTHROPIC_API_KEY` |
+| **Google Gemini** | Gemini Pro, Gemini Ultra | Add your `GOOGLE_API_KEY` |
+| **xAI** | Grok-1 | Add your `XAI_API_KEY` |
+| **Mistral** | Mistral Large, Medium | Add your `MISTRAL_API_KEY` |
+| **DeepSeek** | DeepSeek Chat, DeepSeek Coder | Add your `DEEPSEEK_API_KEY` |
 
 ### Chinese Providers
 
-| Provider | Model Examples | Configuration |
-|----------|---------------|---------------|
-| **Kimi (Moonshot)** | `moonshot-v1-8k`, `moonshot-v1-32k` | `KIMI_API_KEY` |
-| **Qwen (Alibaba)** | `qwen-turbo`, `qwen-plus`, `qwen-max` | `QWEN_API_KEY` |
-| **Zai (MiniMax)** | `abab5.5-chat`, `abab6-chat` | `ZAI_API_KEY` |
+| Provider | Models Available | Setup Guide |
+|----------|-----------------|-------------|
+| **Kimi (Moonshot)** | Moonshot V1 8K, 32K | Add your `KIMI_API_KEY` |
+| **Qwen (Alibaba)** | Qwen Turbo, Plus, Max | Add your `QWEN_API_KEY` |
+| **Zai (MiniMax)** | Abab 5.5, Abab 6 | Add your `ZAI_API_KEY` |
+
+---
 
 ## Quick Start
 
-### Environment Variables
+### 1. Add Your Provider Keys
 
+Via Dashboard:
+1. Log in to https://app.schlep.cloud
+2. Navigate to **Settings** → **Provider Keys**
+3. Click **Add Provider**
+4. Select provider and paste your API key
+5. Click **Save**
+
+Via API:
 ```bash
-# Core Configuration
-PROVIDER_MODE=real                    # Options: mock, benchmark, real, hybrid
-OPENAI_API_KEY=sk-...                 # Your OpenAI key
-ANTHROPIC_API_KEY=sk-ant-...          # Your Anthropic key
-
-# Key Rotation (optional)
-VAULT_ENABLED=true                    # Enable Vault integration
-VAULT_ADDR=https://vault.example.com
-KEY_ROTATION_ENABLED=true
-KEY_REFRESH_INTERVAL=60s              # Default: 60 seconds
-KEY_ROTATION_GRACE_PERIOD=15m         # Default: 15 minutes
+curl -X POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/openai/keys \
+  -H "Authorization: Bearer YOUR_SCHLEP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "api_key": "sk-...",
+    "config": {
+      "timeout": 30,
+      "max_retries": 3
+    }
+  }'
 ```
 
-### Basic Provider Registration
+### 2. Start Using Multiple Providers
 
-```go
-import (
-    "github.com/schlep-engine/schlep-engine/internal/providers"
-    "github.com/schlep-engine/schlep-engine/internal/providers/openai"
-    "github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
+```python
+from openai import OpenAI
+
+# Point to Schlep Engine
+client = OpenAI(
+    base_url="https://api.schlep.cloud/v1",
+    api_key="sk-schlep-YOUR_KEY"
 )
 
-// Initialize provider registry
-registry := providers.NewProviderRegistry()
+# Schlep Engine automatically routes to the best provider
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
 
-// Register OpenAI
-openaiProvider := openai.NewProvider(&providers.ProviderConfig{
-    APIKey:        os.Getenv("OPENAI_API_KEY"),
-    BaseURL:       "https://api.openai.com/v1",
-    Timeout:       30,
-    MaxRetries:    3,
-    EnableMetrics: true,
-})
-registry.Register(openaiProvider)
-
-// Register Anthropic
-anthropicProvider := anthropic.NewProvider(&providers.ProviderConfig{
-    APIKey:        os.Getenv("ANTHROPIC_API_KEY"),
-    BaseURL:       "https://api.anthropic.com/v1",
-    Timeout:       30,
-    MaxRetries:    3,
-    EnableMetrics: true,
-})
-registry.Register(anthropicProvider)
+print(response.choices[0].message.content)
 ```
 
-## Provider Interface
+Schlep Engine automatically selects the best provider based on performance, cost, and availability.
 
-All providers implement the standard `Provider` interface:
-
-```go
-type Provider interface {
-    // Name returns provider identifier
-    Name() string
-
-    // Infer performs a single inference request
-    Infer(ctx context.Context, req *models.InferRequest) (*models.InferResponse, error)
-
-    // InferStream performs streaming inference
-    InferStream(ctx context.Context, req *models.InferRequest) (<-chan *models.StreamChunk, <-chan error)
-
-    // HealthCheck verifies provider availability
-    HealthCheck(ctx context.Context) error
-
-    // GetCapabilities returns provider capabilities
-    GetCapabilities() *ProviderCapabilities
-
-    // EstimateCost estimates cost for request
-    EstimateCost(req *models.InferRequest) (float64, error)
-
-    // Close releases resources
-    Close() error
-}
-```
-
-### Provider Capabilities
-
-```go
-type ProviderCapabilities struct {
-    Models                   []string // Supported models
-    SupportsStreaming        bool     // Streaming support
-    SupportsVision           bool     // Vision/multimodal support
-    SupportsTools            bool     // Function calling support
-    SupportsTemperature      bool     // Temperature parameter
-    MaxTokens                int      // Maximum tokens per request
-    MaxContextWindow         int      // Maximum context window
-    RateLimitRPM             int      // Requests per minute
-    AverageLatencyMs         int      // Average response latency
-    CostPerToken             float64  // USD per token
-}
-```
+---
 
 ## Key Rotation
 
-Schlep Engine supports **zero-downtime key rotation** with dual-key support during grace periods.
+### Zero-Downtime Rotation
 
-### How It Works
+Rotate your API keys without any service interruption:
 
-1. **Dual Key Storage**: Each tenant can have an active key and a pending key
-2. **Grace Period**: During rotation, both keys remain valid (default: 15 minutes)
-3. **Automatic Promotion**: After grace period expires, pending key becomes active
-4. **Fallback Support**: If new key fails, automatically retries with old key
+1. **Add new key** as a "pending" key
+2. **Grace period** (15 minutes default) - both old and new keys work
+3. **Automatic promotion** - new key becomes active after grace period
+4. **Graceful fallback** - if new key fails, automatically retries with old key
 
-### Key Rotation Manager
+### How to Rotate Keys
 
-```go
-import "github.com/schlep-engine/schlep-engine/internal/providers"
+**Via Dashboard:**
+1. Go to **Settings** → **Provider Keys**
+2. Click **Rotate** next to the provider
+3. Enter your new API key
+4. Click **Initiate Rotation**
+5. Monitor status - rotation completes automatically after 15 minutes
 
-// Initialize key rotation manager
-krm := providers.NewKeyRotationManager(
-    vaultClient,
-    60*time.Second,  // Refresh interval
-    15*time.Minute,  // Grace period
-)
-
-// Get active key for tenant
-key, err := krm.GetActiveKey(tenantID, providerID)
-if err != nil {
-    // Try fallback key during rotation
-    key, err = krm.GetFallbackKey(tenantID, providerID)
-}
-
-// Initiate key rotation
-newKey := &providers.ProviderKey{
-    KeyID:     "new-key-id",
-    KeyValue:  "sk-new-key...",
-    CreatedAt: time.Now(),
-}
-krm.InitiateRotation(tenantID, providerID, newKey)
-
-// Check rotation status
-status, err := krm.GetRotationStatus(tenantID, providerID)
-fmt.Printf("Rotation in progress: %v\n", status.RotationInProgress)
-fmt.Printf("Grace period remaining: %v\n", status.GracePeriodRemaining)
-```
-
-### Rotation Workflow
-
-```
-┌─────────────┐
-│ Active Key  │  Initial state: Single active key
-└─────────────┘
-
-        ↓ Initiate Rotation
-
-┌─────────────┐
-│ Active Key  │  Grace period: Both keys valid
-│ Pending Key │  Duration: 15 minutes (default)
-└─────────────┘
-
-        ↓ Grace Period Expires
-
-┌─────────────┐
-│ Active Key  │  Pending key promoted to active
-│   (new)     │  Old key discarded
-└─────────────┘
-```
-
-### Automatic Background Refresh
-
-The Key Rotation Manager automatically refreshes keys from Vault:
-
-```go
-// Runs every 60 seconds (configurable)
-func (krm *KeyRotationManager) backgroundRefresh() {
-    ticker := time.NewTicker(krm.refreshInterval)
-    for {
-        select {
-        case <-ticker.C:
-            // Refresh all tenant keys from Vault
-            krm.refreshAllKeys()
-
-            // Auto-promote keys after grace period
-            krm.promoteExpiredRotations()
-        case <-krm.stopChan:
-            return
-        }
-    }
-}
-```
-
-## Multi-Tenant BYOK
-
-### Per-Tenant Provider Configuration
-
-Each tenant can configure their own provider keys:
-
-```go
-// Tenant-specific key storage
-tenantKeys := map[string]map[string]*TenantProviderKeys{
-    "tenant-123": {
-        "openai":    &TenantProviderKeys{...},
-        "anthropic": &TenantProviderKeys{...},
-    },
-    "tenant-456": {
-        "openai": &TenantProviderKeys{...},
-    },
-}
-```
-
-### API: Register Provider Key
-
+**Via API:**
 ```bash
-POST /v1/tenants/{tenant_id}/providers/{provider_id}/keys
-```
-
-**Request:**
-```json
-{
-  "provider_id": "openai",
-  "api_key": "sk-...",
-  "config": {
-    "base_url": "https://api.openai.com/v1",
-    "timeout": 30,
-    "max_retries": 3
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "key_id": "key_abc123",
-  "provider_id": "openai",
-  "tenant_id": "tenant-123",
-  "created_at": "2025-11-30T12:00:00Z",
-  "status": "active"
-}
-```
-
-### API: Rotate Provider Key
-
-```bash
-POST /v1/tenants/{tenant_id}/providers/{provider_id}/keys/rotate
-```
-
-**Request:**
-```json
-{
-  "new_api_key": "sk-new-key...",
-  "grace_period_minutes": 15
-}
+curl -X POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/openai/keys/rotate \
+  -H "Authorization: Bearer YOUR_SCHLEP_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "new_api_key": "sk-new-key...",
+    "grace_period_minutes": 15
+  }'
 ```
 
 **Response:**
@@ -286,143 +125,161 @@ POST /v1/tenants/{tenant_id}/providers/{provider_id}/keys/rotate
 {
   "rotation_id": "rot_xyz789",
   "status": "in_progress",
-  "grace_period_ends": "2025-11-30T12:15:00Z",
+  "grace_period_ends": "2025-12-08T12:15:00Z",
   "old_key_id": "key_abc123",
   "new_key_id": "key_def456"
 }
 ```
 
-## Vault Integration
+---
 
-### HashiCorp Vault Setup
+## Usage Examples
 
-```bash
-# Enable KV v2 secrets engine
-vault secrets enable -path=schlep-engine kv-v2
+### Python SDK
 
-# Store provider keys
-vault kv put schlep-engine/tenants/tenant-123/providers/openai \
-  api_key="sk-..." \
-  base_url="https://api.openai.com/v1"
+```python
+from openai import OpenAI
 
-# Read provider keys
-vault kv get schlep-engine/tenants/tenant-123/providers/openai
+client = OpenAI(
+    base_url="https://api.schlep.cloud/v1",
+    api_key="sk-schlep-YOUR_KEY"
+)
+
+# Automatic provider selection
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Explain quantum computing"}]
+)
+
+# Response includes metadata about which provider was used
+print(f"Provider used: {response.metadata.provider}")
+print(f"Cost: ${response.metadata.cost_usd}")
 ```
 
-### Vault Client Interface
+### JavaScript/Node.js SDK
 
-```go
-type VaultClient interface {
-    // Get single provider key
-    GetProviderKey(ctx context.Context, tenantID, providerID string) (*ProviderKey, error)
+```javascript
+import OpenAI from 'openai';
 
-    // List all keys for tenant+provider
-    ListProviderKeys(ctx context.Context, tenantID, providerID string) ([]*ProviderKey, error)
+const client = new OpenAI({
+  baseURL: 'https://api.schlep.cloud/v1',
+  apiKey: 'sk-schlep-YOUR_KEY'
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+### cURL (HTTP)
+
+```bash
+curl -X POST https://api.schlep.cloud/v1/infer \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ]
+  }'
+```
+
+---
+
+## Security & Privacy
+
+### Encryption
+
+- All API keys are encrypted with **AES-256-GCM**
+- Keys are never stored in plaintext
+- Encryption keys are managed securely and rotated regularly
+
+### Isolation
+
+- Each account's keys are completely isolated
+- No cross-account access possible
+- Keys are only accessible by your authorized users
+
+### Best Practices
+
+1. **Rotate keys regularly** - Use our zero-downtime rotation feature every 90 days
+2. **Monitor key usage** - Review usage metrics in your dashboard
+3. **Set up alerts** - Get notified of unusual activity or high usage
+4. **Use least privilege** - Only grant necessary permissions to each API key
+
+---
+
+## Troubleshooting
+
+### "Provider authentication failed"
+
+**Cause:** Invalid or expired API key
+
+**Solution:**
+1. Verify the API key is correct in your provider's dashboard
+2. Check the key hasn't expired
+3. Ensure the key has the necessary permissions
+4. Try creating a new key and rotating to it
+
+### "Rate limit exceeded"
+
+**Cause:** Too many requests to a specific provider
+
+**Solution:**
+- Schlep Engine automatically fails over to other providers
+- Add additional providers to distribute load
+- Contact your provider to increase rate limits
+- Review your usage patterns in the dashboard
+
+### "All providers unavailable"
+
+**Cause:** All configured providers are experiencing issues
+
+**Solution:**
+- Schlep Engine includes automatic retry logic
+- Add more providers for better redundancy
+- Check provider status pages for ongoing incidents
+- Contact support@schlep.cloud if issues persist
+
+---
+
+## Cost Tracking
+
+Every request includes detailed cost information:
+
+```json
+{
+  "metadata": {
+    "provider": "openai",
+    "cost_usd": 0.00234,
+    "cost_breakdown": {
+      "input_tokens": 25,
+      "output_tokens": 150,
+      "input_cost": 0.00075,
+      "output_cost": 0.00159
+    }
+  }
 }
 ```
 
-## Provider Modes
+View detailed cost analytics in your dashboard:
+- Cost per provider
+- Cost per model
+- Daily/weekly/monthly trends
+- Cost forecasting
 
-Schlep Engine supports multiple provider modes for different use cases:
-
-### 1. Benchmark Mode (Default)
-
-Simulates provider APIs without real API calls. Perfect for testing and development.
-
-```bash
-PROVIDER_MODE=benchmark
-```
-
-**Features:**
-- Realistic latency profiles (OpenAI: 200-300ms, Anthropic: 250-350ms)
-- Accurate token counting and cost calculation
-- No API keys required
-- Deterministic responses
-
-### 2. Real Mode
-
-Makes actual API calls to provider endpoints. Requires valid API keys.
-
-```bash
-PROVIDER_MODE=real
-OPENAI_API_KEY=sk-...
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
-### 3. Mock Mode
-
-Simple mock responses for unit testing. Fastest mode with fixed responses.
-
-```bash
-PROVIDER_MODE=mock
-```
-
-### 4. Hybrid Mode
-
-Mix of benchmark and real providers for gradual migration.
-
-```bash
-PROVIDER_MODE=hybrid
-```
-
-## Provider Health Checks
-
-Schlep Engine continuously monitors provider health:
-
-```go
-// Check provider health
-err := provider.HealthCheck(ctx)
-if err != nil {
-    // Provider is unhealthy, trigger circuit breaker
-    log.Printf("Provider %s unhealthy: %v", provider.Name(), err)
-}
-```
-
-### Health Check Configuration
-
-```yaml
-# Global configuration (tier_config.yaml)
-provider_health_check_interval_seconds: 60
-provider_degraded_threshold_failures: 3
-provider_circuit_breaker_timeout_seconds: 30
-```
-
-## Cost Estimation
-
-All providers support cost estimation:
-
-```go
-// Estimate cost before making request
-cost, err := provider.EstimateCost(req)
-if err != nil {
-    return err
-}
-
-// Check if cost exceeds budget
-if cost > budget {
-    return errors.New("request exceeds budget")
-}
-```
-
-### Cost Models
-
-Cost is calculated based on:
-- **Input tokens** × `cost_per_input_token`
-- **Output tokens** × `cost_per_output_token`
-- **Provider overhead** (optional)
-
-Example: OpenAI GPT-4
-```
-Input:  $0.03 per 1K tokens
-Output: $0.06 per 1K tokens
-```
+---
 
 ## API Reference
 
-### List Providers
+### List Your Providers
 
 ```bash
-GET /v1/providers
+GET https://api.schlep.cloud/v1/providers
 ```
 
 **Response:**
@@ -430,114 +287,37 @@ GET /v1/providers
 {
   "providers": [
     {
-      "name": "openai/gpt-4",
-      "capabilities": {
-        "models": ["gpt-4", "gpt-4-turbo"],
-        "supports_streaming": true,
-        "max_tokens": 8192,
-        "cost_per_token": 0.00003
-      },
-      "health": "healthy",
-      "last_health_check": "2025-11-30T12:00:00Z"
+      "name": "openai",
+      "status": "active",
+      "models": ["gpt-4", "gpt-3.5-turbo"],
+      "health": "healthy"
+    },
+    {
+      "name": "anthropic",
+      "status": "active",
+      "models": ["claude-3-opus", "claude-3-sonnet"],
+      "health": "healthy"
     }
   ]
 }
 ```
 
-### Register Custom Provider
+### Add Provider Key
 
 ```bash
-POST /v1/providers/custom
+POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/{provider}/keys
 ```
 
-**Request:**
-```json
-{
-  "name": "custom-llm",
-  "base_url": "https://custom-llm.example.com/v1",
-  "api_key": "custom-key",
-  "capabilities": {
-    "models": ["custom-model-1"],
-    "supports_streaming": true,
-    "max_tokens": 4096
-  }
-}
+### Rotate Provider Key
+
+```bash
+POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/{provider}/keys/rotate
 ```
 
-## Best Practices
+---
 
-### Security
+## Next Steps
 
-1. **Never commit API keys** to version control
-2. **Use Vault** for production key storage
-3. **Enable key rotation** with 15-minute grace periods
-4. **Monitor key usage** via Prometheus metrics
-5. **Implement rate limiting** per tenant
-
-### Performance
-
-1. **Enable connection pooling** for provider clients
-2. **Set appropriate timeouts** (30s recommended)
-3. **Use benchmark mode** for load testing
-4. **Cache provider capabilities** to reduce overhead
-
-### Reliability
-
-1. **Configure automatic retries** (3 retries recommended)
-2. **Enable circuit breakers** for failing providers
-3. **Monitor health checks** (60s interval)
-4. **Set up fallback providers** for critical workloads
-
-## Troubleshooting
-
-### Issue: "Provider authentication failed"
-
-**Solution:**
-- Verify API key is correct and not expired
-- Check provider base URL is correct
-- Ensure API key has necessary permissions
-- Test key with provider's official tools
-
-### Issue: "Key rotation stuck in grace period"
-
-**Solution:**
-- Check Vault connection is healthy
-- Verify background refresh is running
-- Manually complete rotation: `krm.CompleteRotation(tenantID, providerID)`
-- Check grace period configuration
-
-### Issue: "Rate limit exceeded"
-
-**Solution:**
-- Increase `RateLimitRPM` in provider configuration
-- Implement request throttling at application level
-- Use multiple API keys with round-robin distribution
-- Enable tier-based rate limiting in `tier_config.yaml`
-
-## Metrics
-
-Key provider metrics exposed at `/metrics`:
-
-```promql
-# Provider request count
-provider_requests_total{provider="openai", model="gpt-4"}
-
-# Provider latency
-histogram_quantile(0.95, provider_latency_seconds{provider="openai"})
-
-# Provider error rate
-rate(provider_errors_total{provider="anthropic"}[5m])
-
-# Key rotation status
-key_rotation_grace_period_remaining_seconds{tenant="tenant-123"}
-
-# Health check failures
-provider_health_check_failures_total{provider="openai"}
-```
-
-## Related Documentation
-
-- [Routing Policies](/docs/routing-policies) - How providers are selected
-- [Multi-Tenancy](/docs/multi-tenancy) - Tenant isolation and BYOK
-- [Observability](/docs/observability) - Monitoring and metrics
-- [Pricing](/docs/pricing) - Cost tracking and budgets
+- [Routing Policies](/docs/routing-policies) - How Schlep Engine selects providers
+- [SDK Usage](/docs/sdk-usage) - Integration guides for your language
+- [Pricing](/docs/pricing-tiers) - Plans and pricing details

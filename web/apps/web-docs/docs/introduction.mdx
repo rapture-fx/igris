@@ -1,6 +1,6 @@
 # Introduction
 
-**Stop wrestling with multiple AI providers.** Schlep Engine routes your requests to the best provider automatically — optimizing for cost, speed, and reliability in real-time.
+**TL;DR:** Stop wrestling with multiple AI providers. Schlep Engine routes your requests to the best provider automatically — optimizing for cost, speed, and reliability in real-time.
 
 ---
 
@@ -18,7 +18,7 @@ You add Anthropic as a backup. Now you're managing two APIs, two auth flows, two
 
 One API call. Multiple providers. Intelligent routing. Automatic failover.
 
-```bash
+```python
 # Instead of this mess:
 try:
     openai_response = openai.chat.completions.create(...)
@@ -50,11 +50,11 @@ response = client.chat.completions.create(
 
 **Zero-Downtime Failover:**
 - Provider down? Schlep Engine routes to the next best option
-- Circuit breakers detect failures in &lt;30s
+- Circuit breakers detect failures automatically
 - Automatic retries with exponential backoff
 
 **Complete Observability:**
-- 150+ Prometheus metrics
+- Comprehensive metrics and monitoring
 - Per-request cost tracking
 - Distributed tracing with correlation IDs
 
@@ -102,7 +102,7 @@ from openai import OpenAI
 
 # Point to Schlep Engine
 client = OpenAI(
-    base_url="http://localhost:8081/v1",
+    base_url="https://api.schlep.cloud/v1",
     api_key="your-api-key"
 )
 
@@ -148,7 +148,7 @@ Bayesian multi-armed bandit algorithm that learns which provider is best for you
 
 ```bash
 # Primary provider fails
-curl -X POST http://localhost:8081/v1/infer \
+curl -X POST https://api.schlep.cloud/v1/infer \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -169,7 +169,7 @@ curl -X POST http://localhost:8081/v1/infer \
 
 ### 3. Semantic Routing
 
-ONNX-powered ML classifier routes requests based on intent:
+ML-powered classifier routes requests based on intent:
 - Code generation → DeepSeek Coder
 - Creative writing → Claude 3
 - Math/reasoning → GPT-4
@@ -205,7 +205,7 @@ Track spending per tenant, per provider, per model in real-time.
 ### Multi-Tenancy with BYOK
 
 Each tenant brings their own provider API keys:
-- AES-256 encrypted storage
+- Encrypted storage
 - Per-tenant routing policies
 - Complete isolation (no cross-tenant data leakage)
 
@@ -218,10 +218,10 @@ Set monthly budgets per tenant:
 
 ### Observability
 
-**150+ Prometheus metrics:**
-- `inference_requests_total{provider, model, status}`
-- `inference_latency_ms{provider, model}`
-- `cost_usd_total{provider, tenant}`
+**Comprehensive metrics:**
+- Request success rate, latency, and throughput
+- Cost tracking by provider and model
+- Routing decision insights
 
 **Distributed tracing:**
 - Every request gets a trace ID
@@ -240,28 +240,27 @@ Set monthly budgets per tenant:
 
 We run it for you. Zero ops overhead.
 
-```bash
-# Point your app to our endpoint
-export SCHLEP_BASE_URL="https://api.schlep.cloud"
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.schlep.cloud/v1",
+    api_key="your-api-key"
+)
 ```
+
+[Start Free Trial →](https://app.schlep.cloud/signup)
 
 ### Self-Hosted (Scale Tier)
 
-Run in your infrastructure:
+Run in your own infrastructure with full control:
 
-**Docker Compose:**
-```bash
-git clone https://github.com/schlep-engine/schlep-engine
-cd schlep-engine
-docker-compose up -d
-```
+- Deploy to AWS, GCP, Azure, or on-premises
+- Bring your own monitoring and observability stack
+- Custom compliance and security requirements
+- Full access to source code
 
-**Kubernetes:**
-```bash
-helm install schlep-engine ./infra/helm/schlep-engine \
-  --set postgresql.enabled=true \
-  --set redis.enabled=true
-```
+[View Deployment Guide →](/docs/deployment)
 
 ---
 
@@ -286,7 +285,7 @@ helm install schlep-engine ./infra/helm/schlep-engine \
 
 ## Support
 
-- **Docs:** docs.schlep-engine.com
-- **GitHub:** github.com/schlep-engine/schlep-engine
+- **Docs:** [docs.schlep.cloud](https://docs.schlep.cloud)
+- **GitHub:** [github.com/schlep-engine/schlep-engine](https://github.com/schlep-engine/schlep-engine)
 - **Discord:** [Join community](https://discord.gg/schlep-engine)
 - **Email:** support@schlep-engine.com

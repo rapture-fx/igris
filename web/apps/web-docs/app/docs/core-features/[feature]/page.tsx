@@ -10,12 +10,16 @@ interface PageProps {
 
 // Map feature slugs to their corresponding MDX files
 const featureToFile: Record<string, string> = {
+  'adaptive-optimization': 'adaptive-optimization',
+  'provider-health': 'provider-health',
   'escape-vector': 'escape-vector',
   'gold-code': 'gold-code',
   'hotfix-blob': 'hotfix-blob',
   'speculative': 'speculative',
   'council-mode': 'council-mode',
   'cognitive-advisor': 'cognitive-advisor',
+  'shadow-mode': 'shadow-mode',
+  'slo-enforcer': 'slo-enforcer',
 };
 
 export async function generateStaticParams() {

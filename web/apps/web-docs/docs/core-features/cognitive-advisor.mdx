@@ -1,443 +1,212 @@
 # Cognitive Advisor
 
-## Overview
+**Your AI routing gets smarter every day — automatically.**
 
-**Cognitive Advisor** is Schlep Engine's AI-native operational autonomy system that generates explainable policy recommendations by analyzing provider performance, telemetry, and historical patterns. It operates in shadow-only mode, producing proposals for human review rather than making autonomous changes.
+Schlep Engine analyzes provider performance and suggests optimizations. Every recommendation includes clear reasoning, projected impact, and zero risk of auto-execution.
 
-The implementation is located in `/internal/cognitive/` and is fully operational in production environments.
+---
 
-## Key Features
+## Quick Example
 
-### Shadow-Only Operation
-
-- **No Live Mutations**: All recommendations are proposals only, never automatically applied
-- **Human-in-the-Loop**: Requires explicit approval before any policy changes
-- **Safety-First**: Multiple validation gates before proposal generation
-- **Audit Trail**: Complete history of all proposals and decisions
-
-### Multi-Signal Synthesis
-
-Cognitive Advisor combines multiple data sources:
-
-1. **Phase 11.1 RL Agent**: Policy suggestions from reinforcement learning
-2. **Phase 11.2 Predictive Forecasts**: Future state predictions (integration ready)
-3. **Real-Time Telemetry**: Current performance metrics and trends
-4. **Historical Data**: Past performance patterns and trends
-
-### Explainable Decisions
-
-Every proposal includes:
-
-- **Human-Readable Rationale**: Clear explanation of why the recommendation was made
-- **Risk Assessment**: Quantified rollback risk and confidence scores
-- **Evidence Links**: References to supporting data (RL outputs, simulations, telemetry)
-- **Alternative Actions**: Other options considered and why they were rejected
-
-## Architecture
-
-```
-┌─────────────┐     ┌──────────────┐     ┌────────────────┐
-│  RL Agent   │────▶│   Cognitive  │────▶│    Shadow      │
-│  (11.1)     │     │   Reasoner   │     │   Evaluation   │
-└─────────────┘     │              │     │   (Proposals)  │
-                    │              │     └────────────────┘
-┌─────────────┐     │              │
-│ Predictive  │────▶│  Generates:  │
-│ Forecasts   │     │  • Rationale │
-│  (11.2)     │     │  • Confidence│
-└─────────────┘     │  • Risk Score│
-                    │  • Actions   │
-┌─────────────┐     │              │
-│ Telemetry + │────▶│              │
-│  History    │     └──────────────┘
-└─────────────┘
+```bash
+# Get AI-generated recommendations
+curl https://api.schlep.cloud/v1/cognitive/proposals?status=pending
 ```
 
-## Implementation
-
-### Core Components
-
-**1. Cognitive Advisor Core** (`/internal/cognitive/advisor.go` - 485 lines)
-- Provider performance analysis
-- Degradation detection
-- Proposal generation
-- Multi-tenant analysis
-
-**2. Proposal Applier** (`/internal/cognitive/applier.go` - 412 lines)
-- Safe proposal application
-- Thompson Sampling updates
-- Exploration rate tuning
-- Audit logging
-
-**3. Background Worker** (`/internal/cognitive/worker.go` - 137 lines)
-- Provider performance analysis
-- Thompson Sampling parameter optimization
-- Degradation detection
-- Database persistence
-
-## Usage
-
-### Backend Integration (Go)
-
-The Cognitive Advisor runs as a background process analyzing provider performance:
-
-```go
-import "github.com/schlep-engine/internal/cognitive"
-
-// Initialize advisor
-advisor := cognitive.NewAdvisor(db)
-
-// Run analysis cycle (typically every 15 minutes)
-err := advisor.AnalyzeAndGenerateProposals(ctx)
+**Response:**
+```json
+{
+  "proposals": [
+    {
+      "proposal_id": "prop_abc123",
+      "confidence": 0.92,
+      "rationale": "Provider 'openai/gpt-4' showing degradation: 5.2% error rate. Anthropic has 99.1% success rate.",
+      "projected_impact": {
+        "latency_reduction": "35.6%",
+        "cost_savings": "$124/month",
+        "error_rate_improvement": "4.1%"
+      },
+      "proposed_action": "Shift traffic from OpenAI to Anthropic",
+      "status": "pending_your_review"
+    }
+  ]
+}
 ```
 
-### Proposal Structure
+---
+
+## What You Get
+
+### AI-Powered Recommendations
+
+The system continuously analyzes:
+- **Provider Performance**: Error rates, latency, success rates
+- **Cost Efficiency**: Which providers give best value
+- **Traffic Patterns**: Historical trends and anomalies
+- **Routing Decisions**: Thompson Sampling effectiveness
+
+### Human-in-the-Loop
+
+Every recommendation requires your approval:
+- **No Auto-Execution**: Proposals never apply automatically
+- **Clear Reasoning**: Understand why changes are suggested
+- **Risk Assessment**: See confidence scores and potential downsides
+- **One-Click Apply**: Approve recommendations you trust
+
+### Projected Impact
+
+Know exactly what will happen before you approve:
 
 ```json
 {
-  "proposal_id": "prop_abc123",
-  "tenant_id": "tenant-xyz",
-  "generated_at": "2025-12-03T10:30:00Z",
-  "confidence": 0.92,
-  "risk_score": 0.08,
-
-  "rationale": {
-    "primary_reason": "Provider 'openai/gpt-4' showing degradation: 5.2% error rate, 450ms P95 latency",
-    "supporting_reasons": [
-      "Anthropic/claude-3-5-sonnet has 99.1% success rate and 240ms P95 latency",
-      "Thompson Sampling suggests traffic shift would improve overall performance"
-    ],
-    "key_observations": [
-      "OpenAI error rate increased 3x in past hour",
-      "Anthropic maintaining stable performance",
-      "Cost differential: $0.0032 vs $0.0028 per request"
-    ],
-    "trade_offs": [
-      "Shifting traffic may increase Anthropic load",
-      "OpenAI issues may be temporary"
-    ],
-    "preference_justification": "Reliability improvement outweighs cost considerations"
-  },
-
-  "proposed_changes": [
-    {
-      "type": "thompson_alpha_beta",
-      "provider": "openai/gpt-4",
-      "intent": "general",
-      "alpha": 70,
-      "beta": 39
-    },
-    {
-      "type": "intent_filter",
-      "intent": "general",
-      "preferred_provider": "anthropic/claude-3-5-sonnet"
-    }
-  ],
-
   "projected_impact": {
     "latency_p95_reduction_pct": 35.6,
     "cost_saving_usd_monthly": 124.50,
     "expected_error_rate_improvement": 4.1
-  },
-
-  "status": "pending"
+  }
 }
 ```
 
-### Proposal Workflow
+---
 
-```
-┌─────────────────┐
-│   Generated     │
-│  (Automatic)    │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│    Pending      │
-│ (Human Review)  │
-└────────┬────────┘
-         │
-    ┌────┴────┐
-    │         │
-    ▼         ▼
-┌─────────┐ ┌─────────┐
-│Approved │ │Rejected │
-└────┬────┘ └─────────┘
-     │
-     ▼
-┌─────────────────┐
-│    Applied      │
-│  (Executed)     │
-└─────────────────┘
-```
+## How It Works
 
-## Reasoning Capabilities
+<details>
+<summary><strong>1. Continuous Analysis (Every 15 Minutes)</strong></summary>
 
-| Capability | Description | Status |
-|------------|-------------|--------|
-| Multi-Signal Synthesis | Combines RL, predictive, and telemetry | ✅ Implemented |
-| Explainable Decisions | Human-readable rationale | ✅ Implemented |
-| Risk Assessment | Rollback/degradation/disruption risks | ✅ Implemented |
-| Confidence Scoring | 0.0-1.0 confidence with thresholds | ✅ Implemented |
-| Action Recommendation | Batch/routing/rollback/no-action | ✅ Implemented |
-| Alternative Consideration | Documents rejected alternatives | ✅ Implemented |
-| Anomaly Detection | High error/latency detection | ✅ Implemented |
-| Trend Analysis | Historical trend identification | ✅ Implemented |
-| Shadow-Only Operation | No live mutations | ✅ Verified |
-| Structured JSON Output | Easy integration | ✅ Implemented |
+The Cognitive Advisor monitors all providers:
+- Error rates and success rates
+- Latency percentiles (p50, p95, p99)
+- Cost per request
+- Thompson Sampling parameters
+- Traffic distribution
 
-## Safety Guarantees
+</details>
 
-The Cognitive Advisor implements multiple safety mechanisms:
+<details>
+<summary><strong>2. Recommendation Generation</strong></summary>
 
-### 1. Shadow-Only Mode
+When performance issues are detected:
 
-All recommendations are proposals only - never automatically executed:
+1. **Identifies Problem**: "OpenAI error rate increased 3x in past hour"
+2. **Finds Solution**: "Anthropic maintaining 99% success rate"
+3. **Calculates Impact**: "Shifting 50% traffic reduces errors by 4%"
+4. **Generates Proposal**: Human-readable recommendation with evidence
 
-```rust
-// From policy_reasoner.rs
-pub struct ReasonerConfig {
-    pub enabled: bool,
-    pub shadow_only: true, // ALWAYS true, never false
-    pub output_dir: "experiments/cognitive",
-    // ...
+</details>
+
+<details>
+<summary><strong>3. Safety Checks</strong></summary>
+
+Before generating a proposal:
+- **Confidence Gate**: Must be >75% confident in recommendation
+- **Risk Assessment**: Quantifies rollback risk
+- **Drift Detection**: Prevents excessive changes
+- **Minimum Data**: Requires statistical significance (100+ requests)
+
+Proposals below 85% confidence are flagged for extra review.
+
+</details>
+
+<details>
+<summary><strong>4. Human Review & Approval</strong></summary>
+
+You decide what gets applied:
+
+```bash
+# Review proposal
+GET /v1/cognitive/proposals/prop_abc123
+
+# Approve it
+POST /v1/cognitive/proposals/prop_abc123/approve
+{
+  "approved_by": "admin@example.com",
+  "notes": "Looks good, applying"
 }
 ```
 
-### 2. Confidence Gates
+</details>
 
-Proposals below 85% confidence are flagged for extra review:
+---
 
-```rust
-if proposal.confidence_score < 0.85 {
-    proposal.requires_human_review = true;
-    proposal.review_reason = "Low confidence score";
-}
-```
+## Recommendation Types
 
-### 3. Risk Thresholds
+### 1. Traffic Shifting
 
-High-risk proposals (>15% rollback risk) trigger additional validation:
-
-```rust
-if proposal.risk_assessment.rollback_risk > 0.15 {
-    proposal.requires_human_review = true;
-    proposal.review_reason = "High rollback risk";
-}
-```
-
-### 4. Drift Detection
-
-Prevents excessive policy changes:
-
-```rust
-let drift_percentage = calculate_drift(&current_policy, &proposed_policy);
-if drift_percentage > 5.0 {
-    proposal.safety_assessment.drift_gate_passed = false;
-}
-```
-
-### 5. Safety Priority
-
-Critical states override RL suggestions:
-
-```rust
-if telemetry.error_rate > 0.10 {
-    // Override RL, recommend immediate rollback
-    return generate_emergency_rollback_proposal();
-}
-```
-
-## Performance Analysis
-
-### Degradation Detection
-
-The advisor continuously monitors provider performance:
-
-```go
-func (a *Advisor) calculateDegradationScore(m *ProviderMetrics) float64 {
-    // Weighted scoring:
-    // - Error rate: 40%
-    // - P95 latency: 30%
-    // - P99 latency: 20%
-    // - Thompson beta: 10%
-
-    errorScore := m.ErrorRate * 0.4
-    latencyScore := math.Min(m.P95Latency/5000.0, 1.0) * 0.3
-    p99Score := math.Min(m.P99Latency/10000.0, 1.0) * 0.2
-    betaScore := float64(m.ThompsonBeta) / float64(m.ThompsonAlpha+m.ThompsonBeta) * 0.1
-
-    return errorScore + latencyScore + p99Score + betaScore
-}
-```
-
-### Proposal Generation Criteria
-
-Proposals are generated when:
-
-1. **Significant Degradation**: Degradation score > 0.3
-2. **Performance Gap**: >20% difference between best and worst providers
-3. **Confidence Threshold**: Statistical significance (>100 requests per provider)
-4. **Time Window**: Sustained degradation over 1+ hour
-
-## Integration with Other Features
-
-### Thompson Sampling
-
-Cognitive Advisor optimizes Thompson Sampling parameters:
+When a provider underperforms:
 
 ```json
 {
-  "type": "thompson_alpha_beta",
+  "type": "traffic_shift",
+  "from_provider": "openai/gpt-4",
+  "to_provider": "anthropic/claude-3-sonnet",
+  "rationale": "OpenAI: 5.2% errors. Anthropic: 0.9% errors",
+  "projected_improvement": "4.3% error reduction"
+}
+```
+
+### 2. Thompson Sampling Optimization
+
+Adjusting routing parameters:
+
+```json
+{
+  "type": "thompson_tuning",
   "provider": "openai/gpt-4",
-  "current_alpha": 100,
-  "current_beta": 15,
-  "proposed_alpha": 70,
-  "proposed_beta": 39,
-  "rationale": "Reduce selection probability due to elevated error rate"
+  "action": "reduce_selection_probability",
+  "rationale": "Elevated error rate warrants lower priority",
+  "confidence": 0.89
 }
 ```
 
-### Semantic Routing
+### 3. Cost Optimization
 
-Advisor can recommend intent filter adjustments:
+Finding cheaper alternatives:
 
 ```json
 {
-  "type": "intent_filter",
+  "type": "cost_optimization",
+  "current_provider": "gpt-4",
+  "suggested_provider": "gpt-3.5-turbo",
+  "task_type": "simple_queries",
+  "cost_savings": "$450/month",
+  "quality_impact": "minimal (<2% difference)"
+}
+```
+
+### 4. Semantic Routing Adjustments
+
+Optimizing task-to-provider mapping:
+
+```json
+{
+  "type": "intent_optimization",
   "intent": "code_generation",
   "current_preference": "openai/gpt-4",
   "proposed_preference": "anthropic/claude-3-5-sonnet",
-  "rationale": "Better performance on coding tasks based on recent telemetry"
+  "rationale": "Better performance on coding tasks (recent data)"
 }
 ```
 
-### Council Mode Integration
-
-Planned integration with [Council Mode](/docs/core-features/council-mode):
-
-```rust
-// Future: Council votes inform proposals
-pub struct CouncilEnhancedProposal {
-    pub cognitive_recommendation: Proposal,
-    pub council_votes: Vec<AgentVote>,
-    pub consensus_score: f64,
-}
-```
-
-## Configuration
-
-### Environment Variables
-
-```bash
-# Enable cognitive advisor
-COGNITIVE_ADVISOR_ENABLED=true
-
-# Analysis interval (minutes)
-COGNITIVE_ANALYSIS_INTERVAL=15
-
-# Confidence threshold
-COGNITIVE_MIN_CONFIDENCE=0.75
-
-# Minimum requests per provider for analysis
-COGNITIVE_MIN_REQUEST_COUNT=100
-
-# Output directory for proposals
-COGNITIVE_OUTPUT_DIR="experiments/cognitive"
-```
-
-### Database Schema
-
-```sql
-CREATE TABLE cognitive_proposals (
-    id BIGSERIAL PRIMARY KEY,
-    proposal_id VARCHAR(255) UNIQUE NOT NULL,
-    tenant_id VARCHAR(255) NOT NULL,
-    generated_at TIMESTAMP DEFAULT NOW(),
-
-    confidence DECIMAL(3,2) NOT NULL,
-    risk_score DECIMAL(3,2) NOT NULL,
-
-    projected_latency_p95_reduction_pct DECIMAL(5,2),
-    projected_cost_saving_usd_monthly DECIMAL(10,2),
-
-    rationale TEXT NOT NULL,
-    proposed_changes JSONB NOT NULL,
-    shadow_simulation_results JSONB,
-
-    status VARCHAR(50) DEFAULT 'pending',
-    approved_by VARCHAR(255),
-    approved_at TIMESTAMP,
-    applied_at TIMESTAMP,
-
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE cognitive_audit_log (
-    id BIGSERIAL PRIMARY KEY,
-    proposal_id VARCHAR(255) NOT NULL,
-    action VARCHAR(50) NOT NULL,
-    actor VARCHAR(255) NOT NULL,
-    details TEXT,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-```
-
-## Monitoring & Metrics
-
-### Proposal Metrics
-
-```prometheus
-# Total proposals generated
-cognitive_proposals_total{status="pending|approved|rejected|applied"}
-
-# Proposal confidence distribution
-cognitive_proposal_confidence{quantile="0.5|0.95|0.99"}
-
-# Proposal risk scores
-cognitive_proposal_risk{level="low|medium|high"}
-
-# Time to approval
-cognitive_approval_duration_seconds
-
-# Proposal accuracy (projected vs actual impact)
-cognitive_proposal_accuracy_ratio
-```
-
-### Analysis Metrics
-
-```prometheus
-# Tenants analyzed per cycle
-cognitive_tenants_analyzed_total
-
-# Providers with degradation detected
-cognitive_degradation_detected_total{provider}
-
-# Analysis cycle duration
-cognitive_analysis_duration_seconds
-```
+---
 
 ## API Reference
 
 ### List Proposals
 
 ```bash
-GET /api/v1/cognitive/proposals?status=pending&limit=50
+GET /v1/cognitive/proposals?status=pending&limit=10
 ```
 
+**Query Parameters:**
+- `status`: `pending`, `approved`, `rejected`, `applied`
+- `tenant_id`: Filter by tenant (multi-tenant mode)
+- `limit`: Results per page (default: 50)
+
+**Response:**
 ```json
 {
-  "proposals": [
-    {
-      "proposal_id": "prop_abc123",
-      "tenant_id": "tenant-xyz",
-      "confidence": 0.92,
-      "risk_score": 0.08,
-      "status": "pending",
-      "generated_at": "2025-12-03T10:30:00Z"
-    }
-  ],
+  "proposals": [...],
   "total": 3,
   "page": 1
 }
@@ -446,168 +215,165 @@ GET /api/v1/cognitive/proposals?status=pending&limit=50
 ### Get Proposal Details
 
 ```bash
-GET /api/v1/cognitive/proposals/prop_abc123
+GET /v1/cognitive/proposals/prop_abc123
 ```
 
-Returns full proposal with rationale, proposed changes, and evidence.
+Returns full recommendation with:
+- Human-readable rationale
+- Supporting evidence and metrics
+- Projected impact
+- Risk assessment
+- Alternative options considered
 
 ### Approve Proposal
 
 ```bash
-POST /api/v1/cognitive/proposals/prop_abc123/approve
-```
-
-```json
+POST /v1/cognitive/proposals/prop_abc123/approve
 {
   "approved_by": "admin@example.com",
-  "notes": "Approved after shadow testing"
+  "notes": "Approved after review"
 }
 ```
 
 ### Reject Proposal
 
 ```bash
-POST /api/v1/cognitive/proposals/prop_abc123/reject
-```
-
-```json
+POST /v1/cognitive/proposals/prop_abc123/reject
 {
   "rejected_by": "admin@example.com",
   "reason": "Waiting for longer observation period"
 }
 ```
 
-### Apply Proposal
+### Apply Approved Proposal
 
 ```bash
-POST /api/v1/cognitive/proposals/prop_abc123/apply
+POST /v1/cognitive/proposals/prop_abc123/apply
 ```
 
-Applies the approved proposal to the live system.
-
-## Testing & Validation
-
-### Shadow Evaluation Scenarios
-
-The system includes 10 comprehensive test scenarios:
-
-1. **shadow_no_action_scenario**: Stable system, no action needed
-2. **shadow_rl_guided_batch_increase**: RL suggests increase, system has capacity
-3. **shadow_critical_error_rollback**: High error rate triggers rollback
-4. **shadow_high_resource_batch_decrease**: High CPU/memory triggers decrease
-5. **shadow_conflicting_signals**: Safety prioritized over RL
-6. **shadow_trend_analysis**: Trend detection validated
-7. **shadow_metrics_accumulation**: Metrics tracking verified
-8. **shadow_reasoning_history**: History management verified
-9. **shadow_alternatives_considered**: Alternatives documented
-10. **shadow_json_roundtrip**: JSON integrity verified
-
-### Test Results
-
-**Unit Tests**: 15 tests, 95%+ pass rate
-
-**Shadow Evaluation**: 10 scenarios, all passing
-
-**Production Status**: Ready for shadow deployment
-
-## Best Practices
-
-### Review Process
-
-1. **Daily Review**: Check pending proposals each morning
-2. **Confidence Filtering**: Review high-confidence (>0.90) proposals first
-3. **Risk Assessment**: Extra scrutiny for medium/high risk proposals
-4. **Shadow Testing**: Deploy to staging before production
-5. **Gradual Rollout**: Apply to 10% → 50% → 100% of traffic
-
-### Monitoring
-
-```bash
-# Watch for new proposals
-watch -n 60 'curl -s localhost:8080/api/v1/cognitive/proposals?status=pending | jq ".total"'
-
-# Monitor proposal accuracy
-curl localhost:8080/metrics | grep cognitive_proposal_accuracy
-```
-
-### Incident Response
-
-If a proposal causes issues after application:
-
-1. **Immediate Rollback**: Use previous snapshot
-2. **Mark Proposal**: Update status to "rolled_back"
-3. **Document Issue**: Add to audit log
-4. **Update Thresholds**: Adjust confidence/risk thresholds if needed
-
-## Success Criteria
-
-| Requirement | Status | Evidence |
-|-------------|--------|----------|
-| Produces valid reasoning JSON without affecting live engine | ✅ MET | Shadow-only mode enforced, no mutations |
-| 95%+ unit test pass rate on cognitive modules | ✅ MET | 15 tests implemented and passing |
-| At least 3 reasoning scenarios for review | ✅ EXCEEDED | 10 comprehensive scenarios defined |
-
-## Roadmap
-
-### Phase 11.4 (Current)
-
-- ✅ Cognitive reasoning engine
-- ✅ Proposal generation
-- ✅ Shadow-only operation
-- ✅ Safety gates and validation
-
-### Phase 11.5 (Q1 2026)
-
-- [ ] Integration with Phase 11.2 predictive forecasts
-- [ ] Enhanced trend analysis algorithms
-- [ ] Multi-region proposal coordination
-- [ ] Advanced anomaly detection
-
-### Phase 11.6 (Q2 2026)
-
-- [ ] Council Mode integration
-- [ ] Automated A/B testing of proposals
-- [ ] Self-tuning confidence thresholds
-- [ ] Proposal recommendation engine
-
-## FAQ
-
-### Does Cognitive Advisor make automatic changes?
-
-No, it only generates proposals for human review. All changes require explicit approval.
-
-### How often does analysis run?
-
-Default: every 15 minutes. Configurable via `COGNITIVE_ANALYSIS_INTERVAL`.
-
-### What happens if I reject all proposals?
-
-The system continues generating proposals. Rejections are used to improve future recommendations.
-
-### Can I customize the scoring weights?
-
-Yes, degradation scoring weights are configurable in the advisor initialization.
-
-### How is this different from Thompson Sampling?
-
-Thompson Sampling makes real-time routing decisions. Cognitive Advisor generates policy improvement recommendations over longer time windows.
-
-## Related Features
-
-- [Council Mode](/docs/core-features/council-mode) - Multi-agent consensus
-- [Thompson Sampling](/docs/architecture/routing) - Real-time routing
-- [EscapeVector Mode](/docs/core-features/escape-vector) - Failover system
-
-## Support
-
-For questions about Cognitive Advisor:
-- Documentation: /docs/cognitive-advisor
-- Email: support@schlep-engine.com
-- GitHub: Issues tagged `cognitive-advisor`
-- Discord: #cognitive-advisor channel
+Executes the changes in production.
 
 ---
 
-**Status**: Production Ready (Shadow Mode)
-**Version**: 1.0.0
-**Last Updated**: 2025-12-03
+## Best Practices
+
+### Daily Review
+
+1. **Check pending proposals** each morning
+2. **Prioritize high-confidence** (>0.90) recommendations
+3. **Review risk scores** - extra scrutiny for medium/high risk
+4. **Test in staging** before production (if self-hosted)
+
+### Gradual Rollout
+
+For critical changes:
+1. Apply to 10% of traffic
+2. Monitor for 24 hours
+3. Expand to 50%
+4. Monitor for 48 hours
+5. Apply to 100%
+
+### Monitoring
+
+Track proposal accuracy:
+- Compare projected vs actual impact
+- Monitor error rates after applying
+- Review cost savings achieved
+- Adjust confidence thresholds based on results
+
+---
+
+## Safety Guarantees
+
+✅ **No Auto-Execution**: All proposals require explicit approval
+
+✅ **Confidence Thresholds**: Low-confidence proposals flagged for review
+
+✅ **Risk Assessment**: High-risk changes get extra validation
+
+✅ **Audit Trail**: Complete history of all proposals and approvals
+
+✅ **Easy Rollback**: Previous configurations saved automatically
+
+---
+
+## Configuration
+
+Enable Cognitive Advisor in your dashboard:
+
+```
+Settings → Features → Cognitive Advisor → Enable
+```
+
+**Options:**
+- Analysis Interval: 15-60 minutes (default: 15)
+- Minimum Confidence: 0.5-0.95 (default: 0.75)
+- Auto-Notify: Email when proposals are ready
+
+---
+
+## Pricing
+
+- **Developer Tier**: ❌ Not available
+- **Growth Tier**: ✅ Up to 10 proposals/month
+- **Scale Tier**: ✅ Unlimited proposals
+
+[View Pricing →](/docs/pricing-tiers)
+
+---
+
+## FAQ
+
+<details>
+<summary><strong>Does this make automatic changes?</strong></summary>
+
+No. All recommendations require explicit human approval before execution.
+
+</details>
+
+<details>
+<summary><strong>How often does analysis run?</strong></summary>
+
+Default: every 15 minutes. Configurable from 15-60 minutes.
+
+</details>
+
+<details>
+<summary><strong>What if I reject all proposals?</strong></summary>
+
+The system continues analyzing and learning. Rejections help improve future recommendations.
+
+</details>
+
+<details>
+<summary><strong>Can I customize the scoring logic?</strong></summary>
+
+Not directly, but confidence thresholds and risk gates are configurable. Contact support for custom scoring.
+
+</details>
+
+<details>
+<summary><strong>What happens if an approved change causes issues?</strong></summary>
+
+Use the one-click rollback feature to restore previous configuration. All changes are versioned.
+
+</details>
+
+---
+
+## Related Features
+
+- [Thompson Sampling](/docs/routing-policies) - Real-time intelligent routing
+- [Council Mode](/docs/core-features/council-mode) - Multi-provider consensus
+- [Observability](/docs/observability) - Performance monitoring
+
+---
+
+## Get Started
+
+1. [Sign up for Growth or Scale tier](https://app.schlep.cloud/signup)
+2. Enable Cognitive Advisor in settings
+3. Wait 1 hour for initial analysis
+4. Review your first recommendations
+
+**Questions?** Email support@schlep-engine.com

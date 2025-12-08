@@ -76,12 +76,16 @@ const navigationSections: NavigationSection[] = [
         href: '/docs/core-features',
         icon: Box,
         children: [
+          { name: 'Adaptive Optimization', href: '/docs/core-features/adaptive-optimization' },
+          { name: 'Provider Health Checks', href: '/docs/core-features/provider-health' },
           { name: 'EscapeVector Mode', href: '/docs/core-features/escape-vector' },
           { name: 'Gold Code Override', href: '/docs/core-features/gold-code' },
           { name: 'Emergency Hotfix Blob', href: '/docs/core-features/hotfix-blob' },
           { name: 'Speculative Execution', href: '/docs/core-features/speculative' },
           { name: 'Council Mode', href: '/docs/core-features/council-mode' },
           { name: 'Cognitive Advisor', href: '/docs/core-features/cognitive-advisor' },
+          { name: 'Shadow Mode', href: '/docs/core-features/shadow-mode' },
+          { name: 'SLO Enforcer', href: '/docs/core-features/slo-enforcer' },
         ],
       },
       {
@@ -118,24 +122,39 @@ const navigationSections: NavigationSection[] = [
   },
 ];
 
-const apiReferenceNavigation: NavigationItem[] = [
-  { name: 'Introduction', href: '/docs/api-reference/introduction', icon: BookOpen },
-  { name: 'Quick Start', href: '/docs/api-reference/quick-start', icon: Zap },
-  { name: 'Authentication', href: '/docs/api-reference/authentication', icon: Key },
+const apiReferenceSections: NavigationSection[] = [
   {
-    name: 'Endpoints',
-    href: '/docs/api-reference/endpoints/chat-completions',
-    icon: Code,
-    children: [
-      { name: 'Chat Completions', href: '/docs/api-reference/endpoints/chat-completions', badge: 'POST' },
-      { name: 'Models', href: '/docs/api-reference/endpoints/models', badge: 'GET' },
-      { name: 'Embeddings', href: '/docs/api-reference/endpoints/embeddings', badge: 'POST' },
-      { name: 'Status & Health', href: '/docs/api-reference/endpoints/status', badge: 'GET' },
-    ]
+    section: 'Documentation',
+    items: [
+      { name: 'Introduction', href: '/docs/api-reference/introduction', icon: BookOpen },
+      { name: 'Quick Start', href: '/docs/api-reference/quick-start', icon: Zap },
+    ],
   },
-  { name: 'Errors & Retries', href: '/docs/api-reference/errors-retries', icon: HelpCircle },
-  { name: 'Rate Limits & Budgets', href: '/docs/api-reference/rate-limits-budgets', icon: BarChart3 },
-  { name: 'SDKs', href: '/docs/api-reference/sdks', icon: Package },
+  {
+    section: 'API',
+    items: [
+      { name: 'Authentication', href: '/docs/api-reference/authentication', icon: Key },
+      {
+        name: 'Endpoints',
+        href: '/docs/api-reference/endpoints/chat-completions',
+        icon: Code,
+        children: [
+          { name: 'Chat Completions', href: '/docs/api-reference/endpoints/chat-completions', badge: 'POST' },
+          { name: 'Models', href: '/docs/api-reference/endpoints/models', badge: 'GET' },
+          { name: 'Embeddings', href: '/docs/api-reference/endpoints/embeddings', badge: 'POST' },
+          { name: 'Status & Health', href: '/docs/api-reference/endpoints/status', badge: 'GET' },
+        ]
+      },
+      { name: 'Errors & Retries', href: '/docs/api-reference/errors-retries', icon: HelpCircle },
+      { name: 'Rate Limits & Budgets', href: '/docs/api-reference/rate-limits-budgets', icon: BarChart3 },
+    ],
+  },
+  {
+    section: 'Resources',
+    items: [
+      { name: 'SDKs', href: '/docs/api-reference/sdks', icon: Package },
+    ],
+  },
 ];
 
 const navigation: NavigationItem[] = [
@@ -174,6 +193,10 @@ const searchIndex = [
   { title: 'Gold Code', path: '/docs/core-features/gold-code', keywords: 'gold code quality feature core' },
   { title: 'Speculative', path: '/docs/core-features/speculative', keywords: 'speculative feature core prediction' },
   { title: 'Council Mode', path: '/docs/core-features/council-mode', keywords: 'council mode feature core collaboration' },
+  { title: 'Shadow Mode', path: '/docs/core-features/shadow-mode', keywords: 'shadow mode testing canary feature core rollout' },
+  { title: 'SLO Enforcer', path: '/docs/core-features/slo-enforcer', keywords: 'slo enforcer service level objective guardrails monitoring' },
+  { title: 'Adaptive Optimization', path: '/docs/core-features/adaptive-optimization', keywords: 'adaptive optimization quality scoring performance tuning automatic' },
+  { title: 'Provider Health Checks', path: '/docs/core-features/provider-health', keywords: 'provider health checks monitoring failover resilient availability' },
 ];
 
 const dropdownItems = [
@@ -203,7 +226,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
     if (selectedItem.label === 'Documentation') {
       allItems = navigationSections.flatMap(section => section.items);
     } else if (selectedItem.label === 'API Reference') {
-      allItems = apiReferenceNavigation;
+      allItems = apiReferenceSections.flatMap(section => section.items);
     } else {
       allItems = navigation;
     }
@@ -385,7 +408,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-sm border border-border-light rounded-xl outline-none bg-beige-secondary shadow cursor-pointer"
+                className="w-full pl-9 pr-16 py-2 text-sm border border-border-light rounded-xl outline-none bg-beige-secondary shadow-sm cursor-pointer"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                 <span className="text-xs font-medium text-gray-400">⌘ F</span>
@@ -398,7 +421,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-gray-900 bg-beige-secondary rounded-xl transition-colors border border-border-light shadow"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-gray-900 bg-beige-secondary rounded-xl transition-colors border border-border-light shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
                   <selectedItem.icon className="h-4 w-4" />
@@ -434,12 +457,12 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto px-4 pt-8 pb-4 scrollbar-hide">
-            {selectedItem.label === 'Documentation' ? (
-              // Show grouped sections for Documentation
+            {(selectedItem.label === 'Documentation' || selectedItem.label === 'API Reference') ? (
+              // Show grouped sections for Documentation and API Reference
               <div className="space-y-6">
-                {navigationSections.map((section) => (
+                {(selectedItem.label === 'Documentation' ? navigationSections : apiReferenceSections).map((section) => (
                   <div key={section.section}>
-                    <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    <h3 className="px-3 mb-2 text-xs font-semibold text-gray-500 tracking-wider">
                       {section.section}
                     </h3>
                     <ul className="space-y-1">
@@ -547,9 +570,9 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 ))}
               </div>
             ) : (
-              // Show flat navigation for API Reference and Changelog
+              // Show flat navigation for Changelog
               <ul className="space-y-1">
-                {(selectedItem.label === 'API Reference' ? apiReferenceNavigation : navigation).filter((item) => {
+                {navigation.filter((item) => {
                   if (selectedItem.label === 'Change Log') {
                     return item.name === 'Changelog';
                   }
