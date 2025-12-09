@@ -15,6 +15,8 @@ type SemanticRouter struct {
 	rewardEngine     *bandit.RewardEngine
 	adaptiveRouter   *AdaptiveRouter
 	explorationRate  float64
+	enabled          bool // If false, skip semantic routing
+	fallbackCount    int  // Track fallback usage
 }
 
 // SemanticRoutingRequest extends RoutingRequest with prompt information
@@ -51,10 +53,20 @@ func NewSemanticRouter(
 
 // Route performs semantic classification and Thompson Sampling-based routing
 func (sr *SemanticRouter) Route(ctx context.Context, req *SemanticRoutingRequest) (*SemanticRoutingDecision, error) {
-	// Step 1: Classify the prompt
-	classification, err := sr.classifier.Classify(ctx, req.Prompt)
+	// If semantic routing disabled, skip directly to Thompson Sampling
+	if !sr.enabled {
+		return sr.fallbackToThompsonSampling(ctx, req, "semantic_routing_disabled")
+	}
+
+	// Step 1: Classify the prompt with timeout
+	classifyCtx, cancel := context.WithTimeout(ctx, 200*time.Millisecond)
+	defer cancel()
+
+	classification, err := sr.classifier.Classify(classifyCtx, req.Prompt)
 	if err != nil {
-		return nil, fmt.Errorf("classification failed: %w", err)
+		// On classification failure, fall back to pure Thompson Sampling
+		sr.fallbackCount++
+		return sr.fallbackToThompsonSampling(ctx, req, fmt.Sprintf("classification_failed: %v", err))
 	}
 
 	// Step 2: Get available providers from adaptive router
@@ -218,4 +230,84 @@ func (sr *SemanticRouter) GetProviderStats(ctx context.Context, semanticClass st
 // UpdateWeights updates the composite reward weights for a semantic class
 func (sr *SemanticRouter) UpdateWeights(semanticClass string, weights bandit.RewardWeights) error {
 	return sr.rewardEngine.SetWeights(semanticClass, weights)
+}
+
+// fallbackToThompsonSampling falls back to pure Thompson Sampling without semantic classification
+func (sr *SemanticRouter) fallbackToThompsonSampling(ctx context.Context, req *SemanticRoutingRequest, reason string) (*SemanticRoutingDecision, error) {
+	// Get all available backends
+	backends := sr.adaptiveRouter.filterHealthy(sr.adaptiveRouter.getAllBackends())
+	if len(backends) == 0 {
+		return nil, fmt.Errorf("no healthy backends available")
+	}
+
+	// Use default semantic class
+	defaultClass := "default"
+	providerIDs := make([]string, len(backends))
+	for i, backend := range backends {
+		providerIDs[i] = backend.ID
+	}
+
+	// Get bandit arms
+	arms, err := sr.getBanditArms(ctx, providerIDs, defaultClass)
+	if err != nil {
+		// If bandit fails too, just pick first backend
+		return &SemanticRoutingDecision{
+			RoutingDecision: &RoutingDecision{
+				Backend: backends[0],
+				Reason:  fmt.Sprintf("fallback_simple: %s", reason),
+				Confidence: 0.5,
+			},
+			SemanticClass: defaultClass,
+			ExplorationMode: false,
+		}, nil
+	}
+
+	// Select using Thompson Sampling
+	selectedArm := sr.rewardEngine.SelectArmThompsonSampling(arms, sr.explorationRate)
+	if selectedArm == nil {
+		selectedArm = &bandit.BanditArm{
+			ProviderID:    backends[0].ID,
+			SemanticClass: defaultClass,
+			Alpha:         1.0,
+			Beta:          1.0,
+		}
+	}
+
+	// Find backend
+	var selectedBackend *Backend
+	for _, backend := range backends {
+		if backend.ID == selectedArm.ProviderID {
+			selectedBackend = backend
+			break
+		}
+	}
+
+	if selectedBackend == nil {
+		selectedBackend = backends[0]
+	}
+
+	return &SemanticRoutingDecision{
+		RoutingDecision: &RoutingDecision{
+			Backend: selectedBackend,
+			Reason:  fmt.Sprintf("fallback_thompson: %s", reason),
+			Confidence: selectedArm.GetMean(),
+			AlternativeIDs: sr.getAlternativeIDs(arms, selectedArm.ProviderID),
+		},
+		SemanticClass:   defaultClass,
+		BanditArm:       selectedArm,
+		ThompsonSample:  selectedArm.GetMean(),
+		ExplorationMode: false,
+	}, nil
+}
+
+// getAllBackends returns all backends from adaptive router
+func (ar *AdaptiveRouter) getAllBackends() []*Backend {
+	ar.mu.RLock()
+	defer ar.mu.RUnlock()
+
+	backends := make([]*Backend, 0, len(ar.backends))
+	for _, backend := range ar.backends {
+		backends = append(backends, backend)
+	}
+	return backends
 }

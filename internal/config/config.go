@@ -39,6 +39,7 @@ type MLServiceConfig struct {
 	Address    string
 	Timeout    time.Duration
 	MaxRetries int
+	Enabled    bool // If false, skip semantic routing and use Thompson Sampling only
 }
 
 // CircuitBreakerConfig holds circuit breaker configuration
