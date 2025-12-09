@@ -148,7 +148,7 @@ func NewAdaptiveCircuitBreaker(config CircuitBreakerConfig) *AdaptiveCircuitBrea
 
 	log.Info().
 		Str("circuit_breaker", config.Name).
-		Str("state", cb.state.String()).
+		Str("state", CircuitBreakerState(cb.state).String()).
 		Msg("Circuit breaker initialized")
 
 	return cb

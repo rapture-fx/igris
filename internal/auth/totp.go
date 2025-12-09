@@ -5,9 +5,7 @@ import (
 	"database/sql"
 	"encoding/base32"
 	"fmt"
-	"time"
 
-	"github.com/pquerna/otp"
 	"github.com/pquerna/otp/totp"
 )
 
