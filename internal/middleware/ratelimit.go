@@ -1,20 +1,30 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/redis/go-redis/v9"
 )
 
-// RateLimiter implements token bucket rate limiting
+// RateLimiter implements token bucket rate limiting with Redis and local fallback
 type RateLimiter struct {
 	mu       sync.Mutex
 	buckets  map[string]*bucket
 	rate     int           // requests per window
 	window   time.Duration // time window
 	cleanupInterval time.Duration
+
+	// Redis support with automatic fallback
+	redis         *redis.Client
+	redisEnabled  bool
+	redisFailed   bool
+	lastRedisCheck time.Time
+	redisCheckInterval time.Duration
 }
 
 type bucket struct {
@@ -29,10 +39,32 @@ func NewRateLimiter(rate int, window time.Duration) *RateLimiter {
 		rate:     rate,
 		window:   window,
 		cleanupInterval: time.Minute * 5,
+		redisCheckInterval: time.Second * 30,
 	}
 
 	// Start cleanup goroutine
 	go limiter.cleanup()
+
+	return limiter
+}
+
+// NewRateLimiterWithRedis creates a rate limiter with Redis backend
+func NewRateLimiterWithRedis(rate int, window time.Duration, redisClient *redis.Client) *RateLimiter {
+	limiter := &RateLimiter{
+		buckets:  make(map[string]*bucket),
+		rate:     rate,
+		window:   window,
+		cleanupInterval: time.Minute * 5,
+		redis:    redisClient,
+		redisEnabled: true,
+		redisCheckInterval: time.Second * 30,
+	}
+
+	// Start cleanup goroutine
+	go limiter.cleanup()
+
+	// Start Redis health check
+	go limiter.monitorRedis()
 
 	return limiter
 }
@@ -72,6 +104,44 @@ func (rl *RateLimiter) RateLimitMiddleware() fiber.Handler {
 
 // allow checks if request is allowed based on rate limit
 func (rl *RateLimiter) allow(key string) bool {
+	// Try Redis first if enabled and not failed
+	if rl.redisEnabled && !rl.redisFailed {
+		allowed, err := rl.allowRedis(key)
+		if err == nil {
+			return allowed
+		}
+		// Redis failed, mark it and fall back to local
+		rl.redisFailed = true
+		log.Printf("Redis rate limiter failed, falling back to local: %v", err)
+	}
+
+	// Local token bucket fallback
+	return rl.allowLocal(key)
+}
+
+// allowRedis checks rate limit using Redis
+func (rl *RateLimiter) allowRedis(key string) (bool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
+
+	redisKey := fmt.Sprintf("ratelimit:%s", key)
+
+	// Increment counter
+	count, err := rl.redis.Incr(ctx, redisKey).Result()
+	if err != nil {
+		return false, err
+	}
+
+	// Set expiry on first request
+	if count == 1 {
+		rl.redis.Expire(ctx, redisKey, rl.window)
+	}
+
+	return count <= int64(rl.rate), nil
+}
+
+// allowLocal checks rate limit using local token bucket
+func (rl *RateLimiter) allowLocal(key string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
 
@@ -119,5 +189,28 @@ func (rl *RateLimiter) cleanup() {
 			}
 		}
 		rl.mu.Unlock()
+	}
+}
+
+// monitorRedis periodically checks Redis health and recovers if needed
+func (rl *RateLimiter) monitorRedis() {
+	ticker := time.NewTicker(rl.redisCheckInterval)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		if !rl.redisFailed {
+			continue
+		}
+
+		// Try to ping Redis
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		err := rl.redis.Ping(ctx).Err()
+		cancel()
+
+		if err == nil {
+			// Redis recovered
+			rl.redisFailed = false
+			log.Println("Redis rate limiter recovered, resuming Redis mode")
+		}
 	}
 }
