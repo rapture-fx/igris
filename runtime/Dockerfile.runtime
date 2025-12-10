@@ -1,0 +1,28 @@
+# Stage 1: Rust musl builder
+FROM rust:1.75-alpine AS builder
+
+RUN apk add --no-cache musl-dev upx
+
+WORKDIR /build
+COPY . .
+
+# Build static binary
+RUN cargo build --release --target x86_64-unknown-linux-musl
+
+# Compress with UPX
+RUN upx --best --lzma /build/target/x86_64-unknown-linux-musl/release/igris-runtime
+
+# Stage 2: Scratch runtime
+FROM scratch
+
+# Copy binary
+COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/igris-runtime /igris-runtime
+
+# Copy CA certificates for HTTPS
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Expose port
+EXPOSE 8080
+
+# Run
+ENTRYPOINT ["/igris-runtime"]
