@@ -1,0 +1,27 @@
+[package]
+name = "igris-routing"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Path dependency to existing Rust optimizer (Thompson Sampling)
+# CRITICAL: This reuses the production-ready Thompson Sampling implementation
+thompson-optimizer = { path = "../../../rust-core/rust_kernel" }
+
+# Workspace dependencies
+tokio = { workspace = true }
+futures = { workspace = true }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+# Core dependency
+igris-core = { path = "../igris-core" }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }
