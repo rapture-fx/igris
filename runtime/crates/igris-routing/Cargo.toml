@@ -9,7 +9,7 @@ license.workspace = true
 [dependencies]
 # Path dependency to existing Rust optimizer (Thompson Sampling)
 # CRITICAL: This reuses the production-ready Thompson Sampling implementation
-thompson-optimizer = { path = "../../../rust-core/rust_kernel" }
+schlep-kernel = { path = "../../../rust-core/rust_kernel" }
 
 # Workspace dependencies
 tokio = { workspace = true }
