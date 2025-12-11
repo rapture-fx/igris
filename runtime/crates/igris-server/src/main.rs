@@ -389,6 +389,7 @@ async fn main() -> anyhow::Result<()> {
             let llm_config = LocalLLMConfig {
                 enabled: local_config.enabled,
                 model_path: local_config.model_path.clone(),
+                lora_adapter_path: local_config.lora_adapter_path.clone(),
                 context_size: local_config.context_size,
                 threads: local_config.threads,
                 max_tokens: local_config.max_tokens,
