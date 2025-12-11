@@ -6,18 +6,38 @@ use tokio::sync::RwLock;
 use tracing::info;
 
 use crate::protocol::{ContextMessage, SharedContextEnvelope};
+use crate::storage::EncryptedStorage;
 
-/// In-memory context store with eventual Redb persistence
+/// In-memory context store with encrypted Redb persistence
 #[derive(Clone)]
 pub struct ContextStore {
     contexts: Arc<RwLock<HashMap<String, SharedContext>>>,
+    storage: Option<Arc<EncryptedStorage>>,
 }
 
 impl ContextStore {
     pub fn new() -> Self {
         Self {
             contexts: Arc::new(RwLock::new(HashMap::new())),
+            storage: None,
         }
+    }
+
+    /// Create store with persistent storage
+    pub fn with_storage(storage: Arc<EncryptedStorage>) -> Result<Self> {
+        let mut contexts_map = HashMap::new();
+
+        // Load existing contexts from storage
+        let stored_contexts = storage.get_all_contexts()?;
+        for context in stored_contexts {
+            info!("Loaded context from storage: {}", context.conversation_id);
+            contexts_map.insert(context.conversation_id.clone(), context);
+        }
+
+        Ok(Self {
+            contexts: Arc::new(RwLock::new(contexts_map)),
+            storage: Some(storage),
+        })
     }
 
     /// Sync context from a peer
@@ -25,32 +45,36 @@ impl ContextStore {
         let mut contexts = self.contexts.write().await;
 
         let existing = contexts.get(&envelope.conversation_id);
+        let should_update = match existing {
+            Some(existing) => envelope.last_updated > existing.last_updated,
+            None => true,
+        };
 
-        // Merge or replace based on timestamp
-        if let Some(existing) = existing {
-            if envelope.last_updated > existing.last_updated {
+        if should_update {
+            let context = SharedContext::from_envelope(envelope.clone());
+
+            if existing.is_some() {
                 info!(
                     "Updating context {} with newer data from peer {}",
                     envelope.conversation_id, envelope.peer_id
                 );
-                contexts.insert(
-                    envelope.conversation_id.clone(),
-                    SharedContext::from_envelope(envelope),
-                );
             } else {
                 info!(
-                    "Ignoring older context update for {}",
-                    envelope.conversation_id
+                    "Creating new context {} from peer {}",
+                    envelope.conversation_id, envelope.peer_id
                 );
             }
+
+            // Persist to storage
+            if let Some(storage) = &self.storage {
+                storage.store_context(&context)?;
+            }
+
+            contexts.insert(envelope.conversation_id.clone(), context);
         } else {
             info!(
-                "Creating new context {} from peer {}",
-                envelope.conversation_id, envelope.peer_id
-            );
-            contexts.insert(
-                envelope.conversation_id.clone(),
-                SharedContext::from_envelope(envelope),
+                "Ignoring older context update for {}",
+                envelope.conversation_id
             );
         }
 
@@ -91,6 +115,11 @@ impl ContextStore {
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs();
+
+        // Persist to storage
+        if let Some(storage) = &self.storage {
+            storage.store_context(context)?;
+        }
 
         Ok(())
     }
