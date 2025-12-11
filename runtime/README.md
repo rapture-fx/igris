@@ -134,7 +134,47 @@ curl http://localhost:8080/v1/chat/completions -d '{
 
 ---
 
-## Features
+## Core Features
+
+### 🌐 MCP Swarm Mode (NEW in v1.2)
+
+**Peer-to-peer AI swarm intelligence with zero configuration**
+
+Turn multiple Igris Runtime instances into a distributed AI brain that shares context across all nodes:
+
+- **Auto-discovery**: Peers find each other via mDNS + UDP multicast (zero config)
+- **Context sync**: Full conversation history shared in real-time across all instances
+- **Encrypted persistence**: All context encrypted at rest with AES-256-GCM
+- **Offline-first**: Works in degraded networks where mDNS may be blocked
+- **Fault-tolerant**: Any instance can pick up where another left off
+- **Binary size**: Still < 12 MB after UPX compression
+
+**Quick Start:**
+
+```json5
+// config.json5
+{
+  mcp: {
+    enabled: true,       // Enable swarm mode
+    mdns: true,          // Auto-discovery via mDNS
+    multicast: true,     // UDP fallback for restricted networks
+    persist: true,       // Encrypted context storage
+    storage_path: "mcp_contexts.db",
+  }
+}
+```
+
+Start multiple instances on the same network - they'll discover each other automatically and begin sharing context within 5 seconds.
+
+**Integration Test:**
+
+```bash
+./test-mcp-swarm.sh
+```
+
+See [MCP Swarm Mode Guide](#mcp-swarm-mode-guide) below for details.
+
+---
 
 ### Core Routing Modes
 
