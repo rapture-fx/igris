@@ -7,7 +7,11 @@ description = "Minimal Rust kernel for Go FFI prototype"
 
 [lib]
 name = "schlep_kernel"
-crate-type = ["cdylib", "staticlib"]  # Both for compatibility
+crate-type = ["cdylib", "staticlib", "rlib"]  # rlib for Rust-to-Rust linking
+
+[features]
+default = []
+tracing = ["opentelemetry", "opentelemetry_sdk", "opentelemetry-jaeger", "tracing-opentelemetry"]
 
 [dependencies]
 # Core inference dependencies (Phase 10 cleanup)
@@ -41,13 +45,13 @@ thiserror = "1.0"
 async-trait = "0.1"
 tonic = "0.9"
 
-# Phase 4: OpenTelemetry distributed tracing
-opentelemetry = { version = "0.21", features = ["trace"] }
-opentelemetry_sdk = { version = "0.21", features = ["trace", "rt-tokio"] }
-opentelemetry-jaeger = { version = "0.20", features = ["rt-tokio", "collector_client", "reqwest_collector_client"] }
+# Phase 4: OpenTelemetry distributed tracing (optional)
+opentelemetry = { version = "0.21", features = ["trace"], optional = true }
+opentelemetry_sdk = { version = "0.21", features = ["trace", "rt-tokio"], optional = true }
+opentelemetry-jaeger = { version = "0.20", features = ["rt-tokio", "collector_client", "reqwest_collector_client"], optional = true }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
-tracing-opentelemetry = "0.22"
+tracing-opentelemetry = { version = "0.22", optional = true }
 
 # REMOVED deprecated data processing deps:
 # csv = "1.3" - not used in inference pipeline

@@ -40,7 +40,8 @@ pub mod rewards;
 pub mod bandits;
 pub mod ffi;
 
-// Phase 4: Distributed tracing support
+// Phase 4: Distributed tracing support (optional)
+#[cfg(feature = "tracing")]
 pub mod tracing;
 
 // Re-export main types for convenience
