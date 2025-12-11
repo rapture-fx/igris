@@ -9,6 +9,7 @@ pub struct IgrisConfig {
     pub routing: RoutingConfig,
     pub auth: AuthConfig,
     pub local_fallback: Option<LocalFallbackConfig>,
+    pub mcp: Option<McpConfig>,
 }
 
 impl Default for IgrisConfig {
@@ -20,6 +21,7 @@ impl Default for IgrisConfig {
             routing: RoutingConfig::default(),
             auth: AuthConfig::default(),
             local_fallback: Some(LocalFallbackConfig::default()),
+            mcp: Some(McpConfig::default()),
         }
     }
 }
@@ -171,6 +173,49 @@ impl Default for LocalFallbackConfig {
             max_tokens: 512,
             temperature: 0.7,
             cost_per_1k_tokens: 0.0, // Free!
+        }
+    }
+}
+
+/// MCP Swarm Configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct McpConfig {
+    /// Enable MCP swarm mode
+    pub enabled: bool,
+    /// Enable mDNS discovery
+    #[serde(default = "default_true")]
+    pub mdns: bool,
+    /// Enable UDP multicast fallback
+    #[serde(default = "default_true")]
+    pub multicast: bool,
+    /// Enable encrypted persistence
+    #[serde(default = "default_true")]
+    pub persist: bool,
+    /// MCP storage path
+    #[serde(default = "default_mcp_storage_path")]
+    pub storage_path: String,
+    /// Peer ID (auto-generated if not specified)
+    #[serde(default)]
+    pub peer_id: Option<String>,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_mcp_storage_path() -> String {
+    "mcp_contexts.db".to_string()
+}
+
+impl Default for McpConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            mdns: true,
+            multicast: true,
+            persist: true,
+            storage_path: "mcp_contexts.db".to_string(),
+            peer_id: None,
         }
     }
 }
