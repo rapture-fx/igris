@@ -6,6 +6,7 @@ members = [
     "crates/igris-emergency",
     "crates/igris-local-llm",
     "crates/mcp-server",
+    "crates/mcp-client",
 ]
 resolver = "2"
 
