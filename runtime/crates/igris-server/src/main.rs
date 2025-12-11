@@ -14,7 +14,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
-use igris_core::{config::IgrisConfig, providers::get_default_providers, storage::RedbStorage};
+use igris_core::{config::IgrisConfig, storage::RedbStorage};
 use igris_routing::{
     cloud_provider::CloudProvider,
     speculative::SpeculativeRouter,
@@ -23,6 +23,11 @@ use igris_routing::{
 };
 use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
 use igris_routing::local_provider::LocalProvider;
+use igris_mcp_server::{
+    build_mcp_router, ContextStore, EncryptedStorage, McpState, PeerDiscovery,
+    protocol::ServerInfo,
+};
+use igris_mcp_client::{ContextBroadcaster, McpClient};
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -33,6 +38,7 @@ struct AppState {
     council_router: Arc<CouncilRouter>,
     cloud_providers: Arc<Vec<CloudProvider>>,
     local_provider: Option<Arc<LocalProvider>>,
+    mcp_context_store: Option<Arc<ContextStore>>,
 }
 
 /// OpenAPI documentation
@@ -226,15 +232,12 @@ async fn chat_completions(
     if !state.cloud_providers.is_empty() {
         info!("Attempting cloud providers with speculative routing");
 
-        // Convert cloud providers to trait objects
-        let providers: Vec<Box<dyn Provider + Send + Sync>> = state
+        // Convert cloud providers to wrappers
+        let providers: Vec<CloudProviderWrapper> = state
             .cloud_providers
             .iter()
             .take(3) // Use top 3 providers for speculative routing
-            .map(|p| {
-                let boxed: Box<dyn Provider + Send + Sync> = Box::new(CloudProviderWrapper(p.clone()));
-                boxed
-            })
+            .map(|p| CloudProviderWrapper(p.clone()))
             .collect();
 
         if let Ok(result) = state.speculative_router.route(&prompt, providers).await {
@@ -424,6 +427,82 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Routing engines initialized");
 
+    // Check if local provider is available
+    let has_local_fallback = local_provider.is_some();
+
+    // Initialize MCP swarm if enabled
+    let (mcp_context_store, mcp_router) = if let Some(mcp_config) = &config.mcp {
+        if mcp_config.enabled {
+            info!("MCP Swarm Mode is ENABLED");
+
+            // Generate or use peer ID
+            let peer_id = mcp_config
+                .peer_id
+                .clone()
+                .unwrap_or_else(|| format!("igris-{}", uuid::Uuid::new_v4()));
+            info!("Peer ID: {}", peer_id);
+
+            // Initialize context storage
+            let context_store = if mcp_config.persist {
+                let enc_storage = Arc::new(
+                    EncryptedStorage::new(&mcp_config.storage_path, None)
+                        .expect("Failed to create encrypted storage"),
+                );
+                Arc::new(
+                    ContextStore::with_storage(enc_storage)
+                        .expect("Failed to initialize context store"),
+                )
+            } else {
+                Arc::new(ContextStore::new())
+            };
+
+            // Initialize peer discovery
+            let discovery = Arc::new(
+                PeerDiscovery::new(peer_id.clone(), config.server.port)
+                    .expect("Failed to initialize peer discovery"),
+            );
+
+            // Start discovery
+            discovery.clone().start().await.expect("Failed to start discovery");
+
+            // Initialize MCP client
+            let mcp_client = Arc::new(McpClient::new(peer_id.clone()));
+
+            // Start context broadcaster
+            let broadcaster = Arc::new(ContextBroadcaster::new(
+                mcp_client.clone(),
+                context_store.clone(),
+                discovery.clone(),
+                peer_id.clone(),
+            ));
+
+            tokio::spawn(async move {
+                broadcaster.start().await;
+            });
+
+            // Build MCP router
+            let mcp_state = McpState {
+                context_store: context_store.clone(),
+                peer_id: peer_id.clone(),
+                server_info: ServerInfo {
+                    name: "Igris Runtime MCP Server".to_string(),
+                    version: "1.2.0".to_string(),
+                },
+            };
+
+            let mcp_router = build_mcp_router(mcp_state);
+
+            info!("MCP Swarm Mode initialized successfully");
+            (Some(context_store), Some(mcp_router))
+        } else {
+            info!("MCP Swarm Mode is DISABLED in config");
+            (None, None)
+        }
+    } else {
+        info!("MCP Swarm Mode not configured");
+        (None, None)
+    };
+
     // Create application state
     let state = AppState {
         config: Arc::new(config),
@@ -432,22 +511,29 @@ async fn main() -> anyhow::Result<()> {
         council_router: Arc::new(council_router),
         cloud_providers: Arc::new(cloud_providers),
         local_provider,
+        mcp_context_store,
     };
 
     // Build router
-    let app = Router::new()
+    let mut app = Router::new()
         .route("/v1/health", get(health))
         .route("/v1/chat/completions", post(chat_completions))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(CorsLayer::permissive())
         .with_state(state);
 
+    // Merge MCP router if enabled
+    if let Some(mcp_router) = mcp_router {
+        app = app.merge(mcp_router);
+        info!("MCP endpoints mounted at /mcp");
+    }
+
     // Start server
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     info!("Server listening on {}", addr);
     info!("Swagger UI available at http://localhost:8080/swagger-ui");
     info!("Igris Runtime v1.1 started successfully");
-    info!("Local LLM fallback: {}", if local_provider.is_some() { "ENABLED" } else { "DISABLED" });
+    info!("Local LLM fallback: {}", if has_local_fallback { "ENABLED" } else { "DISABLED" });
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
