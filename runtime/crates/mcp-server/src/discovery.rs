@@ -6,16 +6,19 @@ use tokio::sync::RwLock;
 use tokio::time::sleep;
 use tracing::{info, warn, error};
 
+use crate::multicast::MulticastDiscovery;
+
 const SERVICE_TYPE: &str = "_igris-mcp._tcp.local.";
 const DISCOVERY_INTERVAL_SECS: u64 = 5;
 
-/// Peer Discovery Manager with mDNS
+/// Peer Discovery Manager with mDNS + UDP multicast fallback
 #[derive(Clone)]
 pub struct PeerDiscovery {
     peers: Arc<RwLock<Vec<PeerInfo>>>,
     local_peer_id: String,
     local_port: u16,
     mdns: Arc<ServiceDaemon>,
+    multicast: Arc<MulticastDiscovery>,
 }
 
 #[derive(Debug, Clone)]
@@ -28,30 +31,35 @@ pub struct PeerInfo {
 impl PeerDiscovery {
     pub fn new(local_peer_id: String, local_port: u16) -> anyhow::Result<Self> {
         let mdns = ServiceDaemon::new()?;
+        let multicast = MulticastDiscovery::new(local_peer_id.clone(), local_port);
 
         Ok(Self {
             peers: Arc::new(RwLock::new(Vec::new())),
             local_peer_id,
             local_port,
             mdns: Arc::new(mdns),
+            multicast: Arc::new(multicast),
         })
     }
 
-    /// Start mDNS discovery and announcement
+    /// Start mDNS + multicast discovery and announcement
     pub async fn start(self: Arc<Self>) -> anyhow::Result<()> {
         info!(
-            "Starting mDNS peer discovery (peer_id={}, port={})",
+            "Starting hybrid peer discovery (mDNS + multicast) (peer_id={}, port={})",
             self.local_peer_id, self.local_port
         );
 
-        // Register this instance
+        // Register mDNS service
         self.register_service().await?;
 
-        // Start discovery loop
+        // Start mDNS discovery loop
         let discovery_handle = self.clone();
         tokio::spawn(async move {
             discovery_handle.discovery_loop().await;
         });
+
+        // Start multicast fallback
+        self.multicast.clone().start().await?;
 
         Ok(())
     }
@@ -173,9 +181,17 @@ impl PeerDiscovery {
         peers.retain(|p| p.peer_id != peer_id);
     }
 
-    /// Get all known peers
+    /// Get all known peers (merged from mDNS and multicast)
     pub async fn get_peers(&self) -> Vec<PeerInfo> {
         let mut peers = self.peers.read().await.clone();
+
+        // Merge multicast-discovered peers
+        let multicast_peers = self.multicast.get_peers().await;
+        for mp in multicast_peers {
+            if !peers.iter().any(|p| p.peer_id == mp.peer_id) {
+                peers.push(mp);
+            }
+        }
 
         // Filter out stale peers (not seen in 60 seconds)
         let now = std::time::SystemTime::now()
