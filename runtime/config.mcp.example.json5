@@ -1,0 +1,90 @@
+// Igris Runtime v1.2 - MCP Swarm Mode Example Configuration
+// Save as config.json5 and customize for your setup
+{
+  server: {
+    host: "0.0.0.0",
+    port: 8080,
+  },
+
+  storage: {
+    path: "igris.db",
+  },
+
+  // Cloud LLM providers (optional - works offline with local_fallback)
+  providers: [
+    {
+      id: "anthropic-sonnet",
+      name: "Claude 3.5 Sonnet",
+      model: "claude-3-5-sonnet-20241022",
+      api_key: "${ANTHROPIC_API_KEY}",
+      base_url: "https://api.anthropic.com/v1/messages",
+      provider_type: "anthropic",
+      priority: 1,
+      rate_limit: 50,
+      timeout_ms: 30000,
+      cost_per_1k_input_tokens: 0.003,
+      cost_per_1k_output_tokens: 0.015,
+      fallback_models: [],
+    },
+  ],
+
+  routing: {
+    thompson_sampling: {
+      enabled: true,
+      exploration_rate: 0.1,
+    },
+    speculative: {
+      enabled: true,
+      max_providers: 3,
+      first_token_timeout_ms: 5000,
+    },
+    council: {
+      enabled: true,
+      chairman: "anthropic-sonnet",
+    },
+  },
+
+  auth: {
+    api_key: "your-api-key",
+  },
+
+  // Local LLM fallback (works offline)
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    context_size: 4096,
+    threads: 4,
+    max_tokens: 512,
+    temperature: 0.7,
+    cost_per_1k_tokens: 0.0,
+  },
+
+  // ========================================
+  // MCP SWARM MODE (NEW in v1.2)
+  // ========================================
+  // Enables peer-to-peer AI swarm intelligence:
+  // - Multiple Igris instances auto-discover each other
+  // - Share conversation context across all peers
+  // - Continue conversations even with partial internet loss
+  // - Full encryption at rest
+  // ========================================
+  mcp: {
+    // Enable MCP swarm mode
+    enabled: true,
+
+    // Enable mDNS auto-discovery (zero-config peer detection)
+    mdns: true,
+
+    // Enable UDP multicast fallback (works in degraded networks)
+    multicast: true,
+
+    // Enable encrypted context persistence (survives restarts)
+    persist: true,
+
+    // Storage path for encrypted contexts
+    storage_path: "mcp_contexts.db",
+
+    // Optional: Custom peer ID (auto-generated if not set)
+    // peer_id: "drone-alpha",
+  },
+}
