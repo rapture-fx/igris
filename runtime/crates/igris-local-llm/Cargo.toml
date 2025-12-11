@@ -1,0 +1,36 @@
+[package]
+name = "igris-local-llm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Workspace dependencies
+tokio.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+
+# LLM inference using llama.cpp (static linking)
+# NOTE: llama_cpp_rs requires platform-specific configuration and native library linking.
+# For production use, configure with appropriate features for your platform.
+# llama_cpp_rs = { version = "0.5", default-features = false }
+
+# Async utilities
+futures.workspace = true
+
+# For streaming
+async-stream = "0.3"
+
+[build-dependencies]
+# Build script for static linking
+cc = "1.0"
+
+[features]
+default = ["static"]
+static = []
+cuda = []
