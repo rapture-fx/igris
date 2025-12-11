@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  igris-runtime:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: igris-runtime
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config.json5:/app/config.json5:ro
+      - ./models:/app/models:ro
+      - igris-data:/app/data
+    environment:
+      - RUST_LOG=info
+      - IGRIS_CONFIG=/app/config.json5
+      # Add your API keys here or use .env file
+      # - OPENAI_API_KEY=${OPENAI_API_KEY}
+      # - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      # - GROQ_API_KEY=${GROQ_API_KEY}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/v1/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  igris-data:
+    driver: local
