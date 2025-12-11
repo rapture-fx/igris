@@ -11,6 +11,7 @@ const REQUEST_COUNTER_TABLE: TableDefinition<&str, u64> = TableDefinition::new("
 const LAST_TRAINING_TABLE: TableDefinition<&str, u64> = TableDefinition::new("last_training");
 
 /// Training data store using Redb
+#[derive(Clone)]
 pub struct TrainingDataStore {
     db: Arc<Database>,
 }
@@ -196,12 +197,18 @@ mod tests {
         let db_path = dir.path().join("test.db");
         let store = TrainingDataStore::open(&db_path)?;
 
-        // Add some examples
+        // Use current time minus 10 seconds for before-training examples
+        let base_time = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_secs()
+            - 10; // 10 seconds in the past
+
+        // Add some examples before training
         for i in 0..5 {
             let example = TrainingExample {
                 prompt: format!("Prompt {}", i),
                 completion: format!("Completion {}", i),
-                timestamp: 1000 + i as u64,
+                timestamp: base_time + i as u64,
                 model_used: "phi-3".to_string(),
             };
             store.store_example(&example)?;
@@ -211,15 +218,22 @@ mod tests {
         let history = store.get_history_since_last_training()?;
         assert_eq!(history.len(), 5);
 
-        // Mark training completed
+        // Mark training completed (sets timestamp to NOW)
         store.mark_training_completed()?;
 
-        // Add more examples
-        for i in 5..8 {
+        // Sleep 1 second to ensure separation
+        std::thread::sleep(std::time::Duration::from_secs(1));
+
+        // Add more examples after training (with timestamps in the future)
+        let post_training_base = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)?
+            .as_secs();
+
+        for i in 0..3 {
             let example = TrainingExample {
-                prompt: format!("Prompt {}", i),
-                completion: format!("Completion {}", i),
-                timestamp: 1000 + i as u64,
+                prompt: format!("Prompt {}", i + 5),
+                completion: format!("Completion {}", i + 5),
+                timestamp: post_training_base + i as u64,
                 model_used: "phi-3".to_string(),
             };
             store.store_example(&example)?;
