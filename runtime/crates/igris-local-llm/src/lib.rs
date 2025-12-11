@@ -1,6 +1,6 @@
 pub mod provider;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -16,6 +16,9 @@ pub struct LocalLLMConfig {
     pub enabled: bool,
     /// Path to GGUF model file
     pub model_path: String,
+    /// Optional LoRA adapter path (for fine-tuned models)
+    #[serde(default)]
+    pub lora_adapter_path: Option<String>,
     /// Context size (default: 4096)
     #[serde(default = "default_context_size")]
     pub context_size: u32,
@@ -54,6 +57,7 @@ impl Default for LocalLLMConfig {
         Self {
             enabled: false,
             model_path: "models/phi-3-mini-4k-instruct-q4.gguf".to_string(),
+            lora_adapter_path: None,
             context_size: 4096,
             threads: 4,
             max_tokens: 512,
@@ -63,15 +67,16 @@ impl Default for LocalLLMConfig {
     }
 }
 
-/// Local LLM provider using llama.cpp
+/// Local LLM provider using llama.cpp with optional LoRA adapter support
 ///
 /// NOTE: This is a stub implementation. The actual llama.cpp integration
 /// requires platform-specific compilation and is configured via the
 /// llama_cpp_rs crate. For production use, ensure llama_cpp_rs is properly
 /// configured in Cargo.toml with the appropriate features for your platform.
 pub struct LocalLLMProvider {
-    config: LocalLLMConfig,
+    config: Arc<Mutex<LocalLLMConfig>>,
     _model_path: PathBuf,
+    current_adapter: Arc<Mutex<Option<PathBuf>>>,
 }
 
 impl LocalLLMProvider {
@@ -88,14 +93,27 @@ impl LocalLLMProvider {
         }
 
         info!("Model file found: {}", config.model_path);
+
+        let adapter_path = config.lora_adapter_path.as_ref().map(PathBuf::from);
+        if let Some(ref adapter) = adapter_path {
+            if adapter.exists() {
+                info!("LoRA adapter found: {}", adapter.display());
+            } else {
+                warn!("LoRA adapter configured but not found: {}", adapter.display());
+            }
+        }
+
         info!(
-            "Local LLM initialized: context_size={}, threads={}",
-            config.context_size, config.threads
+            "Local LLM initialized: context_size={}, threads={}, adapter={}",
+            config.context_size,
+            config.threads,
+            adapter_path.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| "None".to_string())
         );
 
         Ok(Self {
-            config,
+            config: Arc::new(Mutex::new(config)),
             _model_path: model_path,
+            current_adapter: Arc::new(Mutex::new(adapter_path)),
         })
     }
 
@@ -106,24 +124,66 @@ impl LocalLLMProvider {
     pub async fn generate(&self, prompt: &str) -> Result<String> {
         debug!("Local LLM generating response for prompt: {}", prompt);
 
+        let config = self.config.lock().await;
+        let adapter = self.current_adapter.lock().await;
+
         // Stub implementation - returns a placeholder response
-        // In production, this would call llama.cpp for actual inference
+        // In production, this would call llama.cpp for actual inference with optional LoRA adapter
+        let adapter_info = if let Some(ref adapter_path) = *adapter {
+            format!("\nLoRA Adapter: {} (ACTIVE)", adapter_path.display())
+        } else {
+            String::from("\nLoRA Adapter: None")
+        };
+
         let response = format!(
-            "[Local LLM Response - Phi-3 Mini 4K]\n\nReceived prompt: {}\n\n\
+            "[Local LLM Response - Phi-3 Mini 4K{}]\n\nReceived prompt: {}\n\n\
             This is a placeholder response. To enable actual local LLM inference:\n\
             1. Ensure llama_cpp_rs is properly configured with platform-specific features\n\
             2. Link against llama.cpp native library\n\
             3. Implement inference using LlamaModel, LlamaContext, and LlamaSampler\n\n\
-            Model: {}\nThreads: {}\nContext: {}",
+            Model: {}\nThreads: {}\nContext: {}{}",
+            if adapter.is_some() { " + LoRA" } else { "" },
             prompt,
-            self.config.model_path,
-            self.config.threads,
-            self.config.context_size
+            config.model_path,
+            config.threads,
+            config.context_size,
+            adapter_info
         );
 
         tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
 
         Ok(response)
+    }
+
+    /// Hot-swap LoRA adapter at runtime
+    pub async fn load_lora_adapter(&self, adapter_path: Option<PathBuf>) -> Result<()> {
+        if let Some(ref path) = adapter_path {
+            if !path.exists() {
+                anyhow::bail!("LoRA adapter file not found: {}", path.display());
+            }
+            info!("Loading LoRA adapter: {}", path.display());
+        } else {
+            info!("Unloading LoRA adapter (using base model only)");
+        }
+
+        let mut adapter = self.current_adapter.lock().await;
+        let mut config = self.config.lock().await;
+
+        *adapter = adapter_path.clone();
+        config.lora_adapter_path = adapter_path.map(|p| p.display().to_string());
+
+        info!("LoRA adapter hot-swap completed");
+        Ok(())
+    }
+
+    /// Check if a LoRA adapter is currently loaded
+    pub async fn has_adapter(&self) -> bool {
+        self.current_adapter.lock().await.is_some()
+    }
+
+    /// Get current adapter path
+    pub async fn get_adapter_path(&self) -> Option<PathBuf> {
+        self.current_adapter.lock().await.clone()
     }
 
     /// Get provider ID
@@ -137,13 +197,13 @@ impl LocalLLMProvider {
     }
 
     /// Get model path
-    pub fn model_path(&self) -> &str {
-        &self.config.model_path
+    pub async fn model_path(&self) -> String {
+        self.config.lock().await.model_path.clone()
     }
 
-    /// Get config
-    pub fn config(&self) -> &LocalLLMConfig {
-        &self.config
+    /// Get config (async due to mutex)
+    pub async fn config(&self) -> LocalLLMConfig {
+        self.config.lock().await.clone()
     }
 }
 
