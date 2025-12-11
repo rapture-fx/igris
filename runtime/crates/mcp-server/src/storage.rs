@@ -47,17 +47,25 @@ impl EncryptedStorage {
 
     /// Get existing key or create new one
     fn get_or_create_key(db: &Database) -> Result<[u8; 32]> {
+        // First, ensure tables exist
+        {
+            let write_txn = db.begin_write()?;
+            let _ = write_txn.open_table(KEY_TABLE);
+            let _ = write_txn.open_table(CONTEXT_TABLE);
+            write_txn.commit()?;
+        }
+
         // Try to read existing key
         {
             let read_txn = db.begin_read()?;
-            let table = read_txn.open_table(KEY_TABLE)?;
-
-            if let Some(existing) = table.get("master_key")? {
-                let key_bytes = existing.value();
-                if key_bytes.len() == 32 {
-                    let mut key = [0u8; 32];
-                    key.copy_from_slice(key_bytes);
-                    return Ok(key);
+            if let Ok(table) = read_txn.open_table(KEY_TABLE) {
+                if let Some(existing) = table.get("master_key")? {
+                    let key_bytes = existing.value();
+                    if key_bytes.len() == 32 {
+                        let mut key = [0u8; 32];
+                        key.copy_from_slice(key_bytes);
+                        return Ok(key);
+                    }
                 }
             }
         }
