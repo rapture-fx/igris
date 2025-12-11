@@ -71,6 +71,9 @@ uuid = { version = "1.6", features = ["v4", "serde"] }
 # Async streaming
 async-stream = "0.3"
 
+# mDNS service discovery
+mdns-sd = "0.11"
+
 [profile.release]
 opt-level = "z"        # Optimize for size
 lto = "fat"            # Full link-time optimization
