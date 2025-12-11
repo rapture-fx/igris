@@ -127,7 +127,7 @@ mod tests {
     fn test_broadcaster_creation() {
         let client = Arc::new(McpClient::new("test".to_string()));
         let store = Arc::new(ContextStore::new());
-        let discovery = Arc::new(PeerDiscovery::new("test".to_string()));
+        let discovery = Arc::new(PeerDiscovery::new("test".to_string(), 8080).unwrap());
 
         let broadcaster = ContextBroadcaster::new(
             client,
