@@ -14,11 +14,29 @@
   local_fallback: {
     enabled: false,  // Set to true after downloading model
     model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    lora_adapter_path: null,  // Optional: path to LoRA adapter (set automatically by training)
     context_size: 4096,
     threads: 4,
     max_tokens: 512,
     temperature: 0.7,
     cost_per_1k_tokens: 0.0
+  },
+
+  // On-Device QLoRA Fine-Tuning (NEW in v1.3)
+  lora_training: {
+    enabled: false,  // Enable automatic on-device fine-tuning
+    trigger_threshold: 100,  // Train after N requests
+    max_adapter_size_mb: 64,  // Maximum adapter size in MB
+    lora_rank: 8,  // LoRA rank (smaller = faster, less accurate)
+    lora_alpha: 16.0,  // LoRA alpha scaling factor
+    epochs: 1,  // Training epochs
+    batch_size: 4,  // Batch size for training
+    learning_rate: 0.0001,  // Learning rate
+    adapter_dir: "lora_adapters",  // Directory to store adapters
+    encrypt_adapters: true,  // Encrypt adapters at rest (AES-256-GCM)
+    auto_load_adapter: true,  // Auto-load latest adapter on startup
+    max_training_time_secs: 1800,  // Max training time (30 minutes)
+    training_threads: 4  // Number of threads for training
   },
 
   // Cloud providers (add your API keys)

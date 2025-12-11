@@ -135,6 +135,8 @@ impl Default for AuthConfig {
 pub struct LocalFallbackConfig {
     pub enabled: bool,
     pub model_path: String,
+    #[serde(default)]
+    pub lora_adapter_path: Option<String>,
     #[serde(default = "default_context_size")]
     pub context_size: u32,
     #[serde(default = "default_threads")]
@@ -168,6 +170,7 @@ impl Default for LocalFallbackConfig {
         Self {
             enabled: false,
             model_path: "models/phi-3-mini-4k-instruct-q4.gguf".to_string(),
+            lora_adapter_path: None,
             context_size: 4096,
             threads: 4,
             max_tokens: 512,
