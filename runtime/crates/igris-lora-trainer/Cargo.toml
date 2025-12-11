@@ -1,0 +1,35 @@
+[package]
+name = "igris-lora-trainer"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Workspace dependencies (with additional features)
+tokio = { workspace = true, features = ["fs", "process"] }
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+redb.workspace = true
+aes-gcm.workspace = true
+sha2.workspace = true
+rand.workspace = true
+base64.workspace = true
+
+# For training data management
+bincode = "1.3"
+
+# For device identification
+hostname = "0.4"
+
+[dev-dependencies]
+tempfile = "3.8"
+
+[build-dependencies]
+# Build script for FFI bindings
+cc = "1.0"
+bindgen = "0.70"
