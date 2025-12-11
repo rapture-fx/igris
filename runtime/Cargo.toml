@@ -4,6 +4,7 @@ members = [
     "crates/igris-routing",
     "crates/igris-server",
     "crates/igris-emergency",
+    "crates/igris-local-llm",
 ]
 resolver = "2"
 
@@ -64,6 +65,9 @@ regex = "1.10"
 
 # UUID generation
 uuid = { version = "1.6", features = ["v4", "serde"] }
+
+# Async streaming
+async-stream = "0.3"
 
 [profile.release]
 opt-level = "z"        # Optimize for size

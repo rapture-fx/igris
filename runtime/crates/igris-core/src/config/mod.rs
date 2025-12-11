@@ -8,6 +8,7 @@ pub struct IgrisConfig {
     pub providers: Vec<super::providers::ProviderConfig>,
     pub routing: RoutingConfig,
     pub auth: AuthConfig,
+    pub local_fallback: Option<LocalFallbackConfig>,
 }
 
 impl Default for IgrisConfig {
@@ -18,6 +19,7 @@ impl Default for IgrisConfig {
             providers: super::providers::get_default_providers(),
             routing: RoutingConfig::default(),
             auth: AuthConfig::default(),
+            local_fallback: Some(LocalFallbackConfig::default()),
         }
     }
 }
@@ -123,6 +125,52 @@ impl Default for AuthConfig {
     fn default() -> Self {
         Self {
             api_key: "default-api-key".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocalFallbackConfig {
+    pub enabled: bool,
+    pub model_path: String,
+    #[serde(default = "default_context_size")]
+    pub context_size: u32,
+    #[serde(default = "default_threads")]
+    pub threads: u32,
+    #[serde(default = "default_max_tokens")]
+    pub max_tokens: u32,
+    #[serde(default = "default_temperature")]
+    pub temperature: f32,
+    #[serde(default)]
+    pub cost_per_1k_tokens: f64,
+}
+
+fn default_context_size() -> u32 {
+    4096
+}
+
+fn default_threads() -> u32 {
+    4
+}
+
+fn default_max_tokens() -> u32 {
+    512
+}
+
+fn default_temperature() -> f32 {
+    0.7
+}
+
+impl Default for LocalFallbackConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            model_path: "models/phi-3-mini-4k-instruct-q4.gguf".to_string(),
+            context_size: 4096,
+            threads: 4,
+            max_tokens: 512,
+            temperature: 0.7,
+            cost_per_1k_tokens: 0.0, // Free!
         }
     }
 }

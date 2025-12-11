@@ -28,8 +28,9 @@ uuid = { workspace = true }
 
 # Internal dependencies
 igris-core = { path = "../igris-core" }
-igris-routing = { path = "../igris-routing" }
+igris-routing = { path = "../igris-routing", features = ["local-llm"] }
 igris-emergency = { path = "../igris-emergency" }
+igris-local-llm = { path = "../igris-local-llm" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

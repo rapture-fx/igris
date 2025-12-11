@@ -19,9 +19,18 @@ thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tracing = { workspace = true }
+reqwest = { workspace = true }
+async-stream = { workspace = true }
 
 # Core dependency
 igris-core = { path = "../igris-core" }
 
+# Local LLM support (optional)
+igris-local-llm = { path = "../igris-local-llm", optional = true }
+
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
+
+[features]
+default = []
+local-llm = ["igris-local-llm"]

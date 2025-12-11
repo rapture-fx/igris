@@ -9,13 +9,20 @@ use serde::{Deserialize, Serialize};
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
-use tracing::{info, warn};
+use tracing::{info, warn, error};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 
 use igris_core::{config::IgrisConfig, providers::get_default_providers, storage::RedbStorage};
-use igris_routing::{speculative::SpeculativeRouter, council::CouncilRouter};
+use igris_routing::{
+    cloud_provider::CloudProvider,
+    speculative::SpeculativeRouter,
+    council::CouncilRouter,
+    Provider,
+};
+use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
+use igris_routing::local_provider::LocalProvider;
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -24,6 +31,8 @@ struct AppState {
     storage: Arc<RedbStorage>,
     speculative_router: Arc<SpeculativeRouter>,
     council_router: Arc<CouncilRouter>,
+    cloud_providers: Arc<Vec<CloudProvider>>,
+    local_provider: Option<Arc<LocalProvider>>,
 }
 
 /// OpenAPI documentation
@@ -39,8 +48,8 @@ struct AppState {
     ),
     info(
         title = "Igris Runtime API",
-        version = "1.0.0",
-        description = "Pure Rust AI routing engine with Thompson Sampling, Speculative Execution, and Council Mode",
+        version = "1.1.0",
+        description = "Pure Rust AI routing engine with Thompson Sampling, Speculative Execution, Council Mode, and Local LLM Fallback",
         license(name = "MIT OR Apache-2.0")
     )
 )]
@@ -75,7 +84,7 @@ struct ChatCompletionRequest {
     temperature: Option<f32>,
     /// Routing mode: "thompson", "speculative", or "council"
     #[serde(default)]
-    #[schema(example = "thompson")]
+    #[schema(example = "speculative")]
     mode: Option<String>,
     /// Stream responses (not yet implemented)
     #[serde(default)]
@@ -168,7 +177,7 @@ async fn health() -> &'static str {
     "OK"
 }
 
-/// Chat completions endpoint
+/// Chat completions endpoint with local LLM fallback
 #[utoipa::path(
     post,
     path = "/v1/chat/completions",
@@ -181,7 +190,7 @@ async fn health() -> &'static str {
     )
 )]
 async fn chat_completions(
-    State(_state): State<AppState>,
+    State(state): State<AppState>,
     Json(req): Json<ChatCompletionRequest>,
 ) -> Result<Json<ChatCompletionResponse>, ApiError> {
     info!(
@@ -209,14 +218,64 @@ async fn chat_completions(
         .collect::<Vec<_>>()
         .join("\n");
 
-    // For now, return a mock response
-    // TODO: Implement actual routing logic with Thompson Sampling, Speculative, and Council modes
-    let response_text = format!(
-        "Mock response to: {}\n(Routing mode: {}, Model requested: {})",
-        prompt,
-        req.mode.as_deref().unwrap_or("thompson"),
-        req.model
-    );
+    // Try cloud providers first using speculative routing
+    let mut response_text = None;
+    let mut used_provider = "unknown";
+    let mut used_local_fallback = false;
+
+    if !state.cloud_providers.is_empty() {
+        info!("Attempting cloud providers with speculative routing");
+
+        // Convert cloud providers to trait objects
+        let providers: Vec<Box<dyn Provider + Send + Sync>> = state
+            .cloud_providers
+            .iter()
+            .take(3) // Use top 3 providers for speculative routing
+            .map(|p| {
+                let boxed: Box<dyn Provider + Send + Sync> = Box::new(CloudProviderWrapper(p.clone()));
+                boxed
+            })
+            .collect();
+
+        if let Ok(result) = state.speculative_router.route(&prompt, providers).await {
+            info!(
+                "Cloud provider succeeded: {} ({}ms)",
+                result.winner_id, result.total_latency_ms
+            );
+            response_text = Some(result.response);
+            used_provider = &result.winner_id;
+        } else {
+            warn!("All cloud providers failed or timed out");
+        }
+    }
+
+    // Fallback to local LLM if cloud providers failed
+    if response_text.is_none() && state.local_provider.is_some() {
+        info!("Cloud providers failed, falling back to local LLM");
+        used_local_fallback = true;
+
+        if let Some(local_provider) = &state.local_provider {
+            match local_provider.complete(&prompt).await {
+                Ok(result) => {
+                    info!("Local LLM succeeded");
+                    response_text = Some(result);
+                    used_provider = local_provider.id();
+                }
+                Err(e) => {
+                    error!("Local LLM also failed: {}", e);
+                    return Err(ApiError::InternalError(format!(
+                        "All providers failed. Last error: {}",
+                        e
+                    )));
+                }
+            }
+        }
+    }
+
+    // If we still don't have a response, fail
+    let response_text = response_text.ok_or_else(|| {
+        ApiError::InternalError("All providers unavailable".to_string())
+    })?;
 
     let response = ChatCompletionResponse {
         id: format!("chatcmpl-{}", uuid::Uuid::new_v4()),
@@ -225,7 +284,11 @@ async fn chat_completions(
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
             .as_secs(),
-        model: req.model.clone(),
+        model: if used_local_fallback {
+            "phi-3-mini-4k (local)".to_string()
+        } else {
+            req.model.clone()
+        },
         choices: vec![ChatCompletionChoice {
             index: 0,
             message: ChatMessage {
@@ -244,18 +307,43 @@ async fn chat_completions(
     Ok(Json(response))
 }
 
+// Wrapper to allow CloudProvider to be cloned in Box<dyn Provider>
+#[derive(Clone)]
+struct CloudProviderWrapper(CloudProvider);
+
+impl Provider for CloudProviderWrapper {
+    fn id(&self) -> &str {
+        self.0.id()
+    }
+
+    fn name(&self) -> &str {
+        self.0.name()
+    }
+
+    async fn stream(
+        &self,
+        prompt: &str,
+    ) -> anyhow::Result<std::pin::Pin<Box<dyn futures::Stream<Item = Result<String, anyhow::Error>> + Send>>> {
+        self.0.stream(prompt).await
+    }
+
+    async fn complete(&self, prompt: &str) -> anyhow::Result<String> {
+        self.0.complete(prompt).await
+    }
+}
+
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     // Initialize tracing
     tracing_subscriber::registry()
         .with(
             tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "igris_server=info,igris_routing=info,igris_core=info".into()),
+                .unwrap_or_else(|_| "igris_server=info,igris_routing=info,igris_core=info,igris_local_llm=info".into()),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    info!("Igris Runtime v1.0 starting...");
+    info!("Igris Runtime v1.1 starting...");
 
     // Load configuration
     let config_path = std::env::var("IGRIS_CONFIG").unwrap_or_else(|_| "config.json5".to_string());
@@ -280,6 +368,51 @@ async fn main() -> anyhow::Result<()> {
     let storage = RedbStorage::new(storage_path)?;
     info!("Storage initialized");
 
+    // Initialize cloud providers
+    let cloud_providers: Vec<CloudProvider> = config
+        .providers
+        .iter()
+        .map(|c| CloudProvider::new(c.clone()))
+        .collect();
+
+    info!("Loaded {} cloud providers", cloud_providers.len());
+
+    // Initialize local LLM provider if enabled
+    let local_provider = if let Some(local_config) = &config.local_fallback {
+        if local_config.enabled {
+            info!("Local fallback is ENABLED");
+            info!("Model path: {}", local_config.model_path);
+
+            let llm_config = LocalLLMConfig {
+                enabled: local_config.enabled,
+                model_path: local_config.model_path.clone(),
+                context_size: local_config.context_size,
+                threads: local_config.threads,
+                max_tokens: local_config.max_tokens,
+                temperature: local_config.temperature,
+                cost_per_1k_tokens: local_config.cost_per_1k_tokens,
+            };
+
+            match LocalLLMProviderAdapter::new(llm_config) {
+                Ok(adapter) => {
+                    info!("Local LLM provider initialized successfully");
+                    Some(Arc::new(LocalProvider::new(adapter)))
+                }
+                Err(e) => {
+                    warn!("Failed to initialize local LLM provider: {}", e);
+                    warn!("Local fallback will not be available");
+                    None
+                }
+            }
+        } else {
+            info!("Local fallback is DISABLED in config");
+            None
+        }
+    } else {
+        info!("Local fallback not configured");
+        None
+    };
+
     // Initialize routers
     info!("Initializing routing engines...");
     let speculative_router = SpeculativeRouter::new(
@@ -291,16 +424,14 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Routing engines initialized");
 
-    // Load default providers
-    let providers = get_default_providers();
-    info!("Loaded {} default providers", providers.len());
-
     // Create application state
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
         speculative_router: Arc::new(speculative_router),
         council_router: Arc::new(council_router),
+        cloud_providers: Arc::new(cloud_providers),
+        local_provider,
     };
 
     // Build router
@@ -315,7 +446,8 @@ async fn main() -> anyhow::Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     info!("Server listening on {}", addr);
     info!("Swagger UI available at http://localhost:8080/swagger-ui");
-    info!("Igris Runtime v1.0 started successfully");
+    info!("Igris Runtime v1.1 started successfully");
+    info!("Local LLM fallback: {}", if local_provider.is_some() { "ENABLED" } else { "DISABLED" });
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
