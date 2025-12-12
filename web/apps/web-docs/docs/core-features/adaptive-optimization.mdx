@@ -4,14 +4,6 @@
 
 The Adaptive Optimization Engine continuously monitors provider performance and automatically adjusts routing decisions to maintain optimal quality, speed, and cost efficiency.
 
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border-radius: 8px; margin: 16px 0;">
-  <strong>🚀 v1.5.0 Per-Tenant Learning (2025-12-12)</strong><br/>
-  • <strong>Automatic weight optimization</strong> using gradient descent (α=0.05)<br/>
-  • <strong>+20-25% scoring accuracy</strong> after 500+ requests per tenant<br/>
-  • <strong>Zero configuration</strong> - learns your workload patterns automatically<br/>
-  • <strong>Semantic-class specific</strong> - different weights for code vs chat vs analysis
-</div>
-
 ---
 
 ## Quick Example
@@ -68,6 +60,18 @@ No manual intervention required:
 
 **Error Recovery**: Redirects traffic away from failing providers
 
+### Per-Tenant Adaptive Learning
+
+The engine automatically learns and adapts to your specific workload patterns:
+
+**Automatic Weight Optimization**: Uses gradient descent (α=0.05) to optimize routing decisions for your unique traffic patterns
+
+**Zero Configuration Required**: Achieves 20-25% scoring accuracy improvement after 500+ requests per tenant without any manual tuning
+
+**Semantic-Class Specialization**: Learns different optimization strategies for different task types (code generation, chat, analysis)
+
+**Intelligent Exploration**: Maintains balanced exploration rates (10-15%) that adapt per-tenant to discover improvements while exploiting known winners
+
 ---
 
 ## How It Works
@@ -119,7 +123,7 @@ w_new = w_old + α * (correlation - w_old)
 ```
 confidence = 1 / (1 + e^(-(n - 500)/100))
 ```
-- Low confidence (<500 requests): Uses default weights
+- Low confidence (&lt;500 requests): Uses default weights
 - High confidence (1000+ requests): Fully adapted to your workload
 
 **Semantic-Class Override:**
@@ -150,7 +154,7 @@ The system learns and improves continuously using **gradient descent optimizatio
 - **Anomaly Detection**: Flags unusual degradation patterns for investigation
 - **Semantic-Class Specialization**: Learns different weights for code generation vs chat vs analysis tasks
 - **Warm Start for New Models**: New models (e.g., `gpt-4.5`) inherit 50% of similar model's performance (e.g., `gpt-4`) instead of starting from scratch
-- **Sparse Data Handling**: UCB-style exploration bonus for models with <30 observations prevents premature exploitation
+- **Sparse Data Handling**: UCB-style exploration bonus for models with &lt;30 observations prevents premature exploitation
 
 **Learning Timeline:**
 - **50 requests**: New models with warm start reach baseline (50% faster than before)
@@ -285,7 +289,7 @@ Real results from production deployments:
 - Reduced learning time saves cost and improves early decisions
 
 **+15% Better Cold Start Decisions (NEW)**
-- UCB exploration bonus for models with <30 observations
+- UCB exploration bonus for models with &lt;30 observations
 - Prevents premature exploitation of limited data
 - Improves routing quality in first 50 requests
 
