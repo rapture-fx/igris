@@ -90,6 +90,38 @@ impl ThompsonSampling {
         best_arm_id
     }
 
+    /// Select best arm with regularization for sparse data (improved exploration)
+    /// Adds UCB-style exploration bonus for under-explored arms (pulls < 30)
+    pub fn select_action_with_regularization(&self) -> String {
+        let mut best_score = f64::NEG_INFINITY;
+        let mut best_arm_id = String::new();
+
+        for (arm_id, arm) in &self.arms {
+            let sample = arm.sample();
+
+            // Add exploration bonus for under-explored arms
+            let score = if arm.pulls < 30 {
+                // Exploration bonus: 2 * sqrt(ln(total_pulls) / pulls)
+                let exploration_bonus = if arm.pulls > 0 {
+                    2.0 * ((self.total_pulls as f64).ln() / arm.pulls as f64).sqrt()
+                } else {
+                    10.0 // Force exploration of completely unvisited arms
+                };
+
+                sample + exploration_bonus
+            } else {
+                sample // No bonus after 30 pulls (sufficient data)
+            };
+
+            if score > best_score || best_arm_id.is_empty() {
+                best_score = score;
+                best_arm_id = arm_id.clone();
+            }
+        }
+
+        best_arm_id
+    }
+
     /// Update arm with reward from metrics
     pub fn update(&mut self, arm_id: &str, metrics: &RewardMetrics) {
         let reward = calculate_reward(metrics, &self.config.reward_policy);
@@ -592,5 +624,32 @@ mod tests {
         let arm = optimizer.get_arm("custom/model").unwrap();
         assert_eq!(arm.alpha, 30.0); // 25 + 5
         assert_eq!(arm.beta, 8.0);
+    }
+
+    #[test]
+    fn test_select_with_regularization() {
+        let config = ThompsonSamplingConfig::default();
+        let mut optimizer = ThompsonSampling::new(config.clone());
+
+        // Heavily train one arm
+        for _ in 0..100 {
+            optimizer.update_reward(&config.arms[0], 0.9);
+        }
+
+        // Add new arm with no data
+        optimizer.arms.insert(
+            "new/model".to_string(),
+            BanditArm::new("new/model".to_string(), 1.0, 1.0),
+        );
+
+        // With regularization, should explore the new arm more
+        let mut selections = HashMap::new();
+        for _ in 0..50 {
+            let action = optimizer.select_action_with_regularization();
+            *selections.entry(action).or_insert(0) += 1;
+        }
+
+        // New model should get some selections due to exploration bonus
+        assert!(selections.get("new/model").unwrap_or(&0) > &0);
     }
 }
