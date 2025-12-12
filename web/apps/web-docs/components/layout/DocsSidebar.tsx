@@ -244,8 +244,8 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
     // Only update if the expanded items list would actually change
     setExpandedItems((prev) => {
       const shouldUpdate = itemsToExpand.some(name => !prev.includes(name)) ||
-                          prev.some(name => !itemsToExpand.includes(name) &&
-                          allItems.some(item => item.name === name && item.children));
+        prev.some(name => !itemsToExpand.includes(name) &&
+          allItems.some(item => item.name === name && item.children));
 
       if (shouldUpdate) {
         return [...new Set([...prev.filter(name =>
@@ -387,7 +387,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-beige-secondary rounded-2xl shadow-md border border-border-light">
+        <div className="flex h-full flex-col bg-beige-primary rounded-2xl shadow-md border border-border-light">
           {/* Logo Section */}
           <div className="h-20 flex items-center px-7 pt-6 pb-4">
             <Link href="/docs" className="flex items-center">
@@ -408,7 +408,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-sm border border-border-light rounded-xl outline-none bg-beige-secondary shadow-sm cursor-pointer"
+                className="w-full pl-9 pr-16 py-2 text-sm border border-border-light rounded-xl outline-none bg-beige-primary shadow-sm cursor-pointer"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                 <span className="text-xs font-medium text-gray-400">⌘ F</span>
@@ -421,7 +421,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-medium text-gray-900 bg-beige-secondary rounded-xl transition-colors border border-border-light shadow-sm"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-[0.8125rem] font-medium text-gray-900 bg-beige-primary rounded-xl transition-colors border border-border-light shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
                   <selectedItem.icon className="h-4 w-4" />
@@ -434,7 +434,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
               </button>
 
               {dropdownOpen && (
-                <div className="absolute top-full left-0 right-0 mt-1 bg-beige-secondary border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50">
+                <div className="absolute top-full left-0 right-0 mt-1 bg-beige-primary border border-gray-200 rounded-lg shadow-lg overflow-hidden z-50">
                   {dropdownItems.map((item) => (
                     <Link
                       key={item.href}
@@ -444,7 +444,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         setDropdownOpen(false);
                         onClose?.();
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.8125rem] font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
@@ -467,103 +467,103 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                     </h3>
                     <ul className="space-y-1">
                       {section.items.map((item) => {
-                // For the introduction page, only match exact path
-                const isActive = item.href === '/docs'
-                  ? pathname === '/docs'
-                  : pathname === item.href;
+                        // For the introduction page, only match exact path
+                        const isActive = item.href === '/docs'
+                          ? pathname === '/docs'
+                          : pathname === item.href;
 
-                const hasChildren = item.children && item.children.length > 0;
-                const isExpanded = expandedItems.includes(item.name);
+                        const hasChildren = item.children && item.children.length > 0;
+                        const isExpanded = expandedItems.includes(item.name);
 
-                // Check if any child is active
-                const hasActiveChild = hasChildren && item.children?.some(child => pathname === child.href);
+                        // Check if any child is active
+                        const hasActiveChild = hasChildren && item.children?.some(child => pathname === child.href);
 
-                // Parent is only active if it's a direct match (not if child is active)
-                const isParentActive = hasChildren && pathname === item.href;
+                        // Parent is only active if it's a direct match (not if child is active)
+                        const isParentActive = hasChildren && pathname === item.href;
 
-                return (
-                  <li key={item.name}>
-                    {hasChildren ? (
-                      // Items with children - only expand/collapse, no navigation
-                      <button
-                        onClick={() => toggleExpanded(item.name)}
-                        className={cn(
-                          'w-full flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors rounded-lg',
-                          isParentActive
-                            ? 'text-primary font-semibold'
-                            : 'text-gray-700 hover:text-gray-900'
-                        )}
-                      >
-                        {item.icon && <item.icon className="h-4 w-4" />}
-                        <span className="flex-1 text-left">{item.name}</span>
-                        <ChevronRight
-                          className={cn(
-                            'h-3.5 w-3.5 transition-transform',
-                            isExpanded && 'rotate-90'
-                          )}
-                        />
-                      </button>
-                    ) : (
-                      // Regular link for items without children
-                      <Link
-                        href={item.href}
-                        className={cn(
-                          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
-                          isActive
-                            ? 'text-primary font-semibold'
-                            : 'text-gray-700 hover:text-gray-900'
-                        )}
-                        onClick={onClose}
-                      >
-                        {item.icon && <item.icon className="h-4 w-4" />}
-                        {item.name}
-                      </Link>
-                    )}
-
-                    {/* Render children if they exist and item is expanded */}
-                    {hasChildren && isExpanded && (
-                      <ul className="mt-1 ml-6 space-y-0.5">
-                        {item.children!.map((child) => {
-                          const isChildActive = pathname === child.href;
-                          return (
-                            <li key={child.name}>
-                              <Link
-                                href={child.href}
+                        return (
+                          <li key={item.name}>
+                            {hasChildren ? (
+                              // Items with children - only expand/collapse, no navigation
+                              <button
+                                onClick={() => toggleExpanded(item.name)}
                                 className={cn(
-                                  'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
-                                  isChildActive
+                                  'w-full flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors rounded-lg',
+                                  isParentActive
+                                    ? 'text-primary font-semibold'
+                                    : 'text-gray-700 hover:text-gray-900'
+                                )}
+                              >
+                                {item.icon && <item.icon className="h-4 w-4" />}
+                                <span className="flex-1 text-left">{item.name}</span>
+                                <ChevronRight
+                                  className={cn(
+                                    'h-3.5 w-3.5 transition-transform',
+                                    isExpanded && 'rotate-90'
+                                  )}
+                                />
+                              </button>
+                            ) : (
+                              // Regular link for items without children
+                              <Link
+                                href={item.href}
+                                className={cn(
+                                  'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
+                                  isActive
                                     ? 'text-primary font-semibold'
                                     : 'text-gray-700 hover:text-gray-900'
                                 )}
                                 onClick={onClose}
                               >
-                                {child.badge && (
-                                  <span
-                                    className={cn(
-                                      'px-1.5 py-0.5 text-[0.6rem] font-bold rounded min-w-[2.25rem] text-center flex-shrink-0 mt-0.5',
-                                      child.badge === 'GET'
-                                        ? 'bg-blue-100 text-blue-700'
-                                        : child.badge === 'POST'
-                                        ? 'bg-green-100 text-green-700'
-                                        : child.badge === 'PUT'
-                                        ? 'bg-yellow-100 text-yellow-700'
-                                        : child.badge === 'DELETE'
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-gray-100 text-gray-700'
-                                    )}
-                                  >
-                                    {child.badge}
-                                  </span>
-                                )}
-                                <span className="break-all flex-1 leading-relaxed">{child.name}</span>
+                                {item.icon && <item.icon className="h-4 w-4" />}
+                                {item.name}
                               </Link>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
-                        </li>
-                      );
+                            )}
+
+                            {/* Render children if they exist and item is expanded */}
+                            {hasChildren && isExpanded && (
+                              <ul className="mt-1 ml-6 space-y-0.5">
+                                {item.children!.map((child) => {
+                                  const isChildActive = pathname === child.href;
+                                  return (
+                                    <li key={child.name}>
+                                      <Link
+                                        href={child.href}
+                                        className={cn(
+                                          'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
+                                          isChildActive
+                                            ? 'text-primary font-semibold'
+                                            : 'text-gray-700 hover:text-gray-900'
+                                        )}
+                                        onClick={onClose}
+                                      >
+                                        {child.badge && (
+                                          <span
+                                            className={cn(
+                                              'px-1.5 py-0.5 text-[0.6rem] font-bold rounded min-w-[2.25rem] text-center flex-shrink-0 mt-0.5',
+                                              child.badge === 'GET'
+                                                ? 'bg-blue-100 text-blue-700'
+                                                : child.badge === 'POST'
+                                                  ? 'bg-green-100 text-green-700'
+                                                  : child.badge === 'PUT'
+                                                    ? 'bg-yellow-100 text-yellow-700'
+                                                    : child.badge === 'DELETE'
+                                                      ? 'bg-red-100 text-red-700'
+                                                      : 'bg-gray-100 text-gray-700'
+                                            )}
+                                          >
+                                            {child.badge}
+                                          </span>
+                                        )}
+                                        <span className="break-all flex-1 leading-relaxed">{child.name}</span>
+                                      </Link>
+                                    </li>
+                                  );
+                                })}
+                              </ul>
+                            )}
+                          </li>
+                        );
                       })}
                     </ul>
                   </div>
@@ -647,12 +647,12 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                         child.badge === 'GET'
                                           ? 'bg-blue-100 text-blue-700'
                                           : child.badge === 'POST'
-                                          ? 'bg-green-100 text-green-700'
-                                          : child.badge === 'PUT'
-                                          ? 'bg-yellow-100 text-yellow-700'
-                                          : child.badge === 'DELETE'
-                                          ? 'bg-red-100 text-red-700'
-                                          : 'bg-gray-100 text-gray-700'
+                                            ? 'bg-green-100 text-green-700'
+                                            : child.badge === 'PUT'
+                                              ? 'bg-yellow-100 text-yellow-700'
+                                              : child.badge === 'DELETE'
+                                                ? 'bg-red-100 text-red-700'
+                                                : 'bg-gray-100 text-gray-700'
                                       )}
                                     >
                                       {child.badge}
@@ -711,9 +711,8 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                     <button
                       key={result.path}
                       onClick={() => handleResultClick(result.path)}
-                      className={`w-full px-3 py-2 transition-colors text-left flex items-start gap-2.5 border-b border-gray-100 last:border-b-0 ${
-                        index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
-                      }`}
+                      className={`w-full px-3 py-2 transition-colors text-left flex items-start gap-2.5 border-b border-gray-100 last:border-b-0 ${index === selectedIndex ? 'bg-gray-100' : 'hover:bg-gray-50'
+                        }`}
                     >
                       <FileText className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
