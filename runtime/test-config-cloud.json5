@@ -1,0 +1,38 @@
+{
+  server: { host: "0.0.0.0", port: 8090 },
+  storage: { path: "test-minimal.db" },
+  providers: [
+    {
+      id: "mock-cloud",
+      name: "Mock Cloud Provider",
+      endpoint: "http://nonexistent.example.com/v1",
+      model: "mock-model",
+      api_key_env: "NONEXISTENT_KEY",
+      cost_per_1k_input: 0.01,
+      cost_per_1k_output: 0.03,
+      capabilities: ["testing"]
+    }
+  ],
+  routing: {
+    thompson_sampling: { enabled: true, exploration_rate: 0.1 },
+    speculative: { enabled: true, max_providers: 1, first_token_timeout_ms: 2000 },
+    council: { enabled: false, chairman: "none" }
+  },
+  auth: { api_key: "test-key-validation" },
+  local_fallback: { 
+    enabled: false, 
+    model_path: "models/none.gguf", 
+    context_size: 512, 
+    threads: 1, 
+    max_tokens: 50, 
+    temperature: 0.7, 
+    cost_per_1k_tokens: 0.0 
+  },
+  mcp: {
+    enabled: false,
+    mdns: false,
+    multicast: false,
+    persist: false,
+    storage_path: "mcp_test.db"
+  }
+}
