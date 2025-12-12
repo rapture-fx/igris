@@ -24,12 +24,81 @@ pub struct BanditArm {
     pub action_id: String,
 }
 
+/// Informed prior for warm start of new models
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InformedPrior {
+    /// Baseline alpha from historical average
+    pub baseline_alpha: f64,
+
+    /// Baseline beta from historical average
+    pub baseline_beta: f64,
+
+    /// Similarity boost for related models (e.g., same provider family)
+    pub similarity_boost: f64,
+}
+
+impl Default for InformedPrior {
+    fn default() -> Self {
+        Self {
+            baseline_alpha: 20.0,  // From historical average (good performer)
+            baseline_beta: 5.0,    // From historical average
+            similarity_boost: 10.0, // Boost for similar models
+        }
+    }
+}
+
+impl InformedPrior {
+    /// Create from existing arm's performance
+    pub fn from_arm(arm: &BanditArm, similarity_factor: f64) -> Self {
+        Self {
+            baseline_alpha: arm.alpha * similarity_factor,
+            baseline_beta: arm.beta * similarity_factor,
+            similarity_boost: 0.0, // Already applied
+        }
+    }
+
+    /// Apply similarity boost based on model family match
+    pub fn with_similarity_boost(mut self, boost: f64) -> Self {
+        self.similarity_boost = boost;
+        self
+    }
+}
+
 impl BanditArm {
     /// Create a new arm with prior parameters
     pub fn new(action_id: String, alpha: f64, beta: f64) -> Self {
         Self {
             alpha,
             beta,
+            pulls: 0,
+            cumulative_reward: 0.0,
+            action_id,
+        }
+    }
+
+    /// Create a new arm with informed prior (warm start)
+    /// Initializes with historical performance instead of uninformative (1,1)
+    pub fn new_with_prior(action_id: String, prior: &InformedPrior) -> Self {
+        let alpha = prior.baseline_alpha + prior.similarity_boost;
+        let beta = prior.baseline_beta;
+
+        Self {
+            alpha,
+            beta,
+            pulls: 0,
+            cumulative_reward: 0.0,
+            action_id,
+        }
+    }
+
+    /// Create arm by copying historical performance from similar model
+    /// Uses 50% of the similar model's α/β values
+    pub fn new_from_similar(action_id: String, similar_arm: &BanditArm) -> Self {
+        let similarity_factor = 0.5; // Use 50% of similar model's performance
+
+        Self {
+            alpha: (similar_arm.alpha * similarity_factor).max(1.0),
+            beta: (similar_arm.beta * similarity_factor).max(1.0),
             pulls: 0,
             cumulative_reward: 0.0,
             action_id,
@@ -170,5 +239,103 @@ mod tests {
         let arm = BanditArm::new("test".to_string(), 1.0, 1.0);
         let score = arm.ucb_score(100, 1.0);
         assert_eq!(score, f64::INFINITY);
+    }
+
+    #[test]
+    fn test_informed_prior_default() {
+        let prior = InformedPrior::default();
+        assert_eq!(prior.baseline_alpha, 20.0);
+        assert_eq!(prior.baseline_beta, 5.0);
+        assert_eq!(prior.similarity_boost, 10.0);
+    }
+
+    #[test]
+    fn test_informed_prior_from_arm() {
+        let arm = BanditArm::new("existing".to_string(), 40.0, 10.0);
+        let prior = InformedPrior::from_arm(&arm, 0.5);
+
+        // Should be 50% of existing arm's values
+        assert_eq!(prior.baseline_alpha, 20.0);
+        assert_eq!(prior.baseline_beta, 5.0);
+        assert_eq!(prior.similarity_boost, 0.0);
+    }
+
+    #[test]
+    fn test_new_with_prior() {
+        let prior = InformedPrior {
+            baseline_alpha: 15.0,
+            baseline_beta: 3.0,
+            similarity_boost: 5.0,
+        };
+
+        let arm = BanditArm::new_with_prior("new_model".to_string(), &prior);
+
+        // Alpha should include similarity boost
+        assert_eq!(arm.alpha, 20.0); // 15 + 5
+        assert_eq!(arm.beta, 3.0);
+        assert_eq!(arm.pulls, 0);
+        assert_eq!(arm.cumulative_reward, 0.0);
+
+        // Beta mean should be higher than uninformative (1,1) prior
+        let uninformed = BanditArm::new("uninformed".to_string(), 1.0, 1.0);
+        assert!(arm.beta_mean() > uninformed.beta_mean());
+    }
+
+    #[test]
+    fn test_new_from_similar() {
+        // Existing successful model
+        let mut existing = BanditArm::new("gpt-4".to_string(), 1.0, 1.0);
+        for _ in 0..100 {
+            existing.update(0.9, 0.6); // High success rate
+        }
+
+        // New similar model (e.g., gpt-4.5)
+        let new_model = BanditArm::new_from_similar("gpt-4.5".to_string(), &existing);
+
+        // Should have 50% of existing model's α/β
+        assert!((new_model.alpha - existing.alpha * 0.5).abs() < 1.0);
+        assert!((new_model.beta - existing.beta * 0.5).abs() < 1.0);
+
+        // Should start with better prior than uninformative
+        let uninformed = BanditArm::new("uninformed".to_string(), 1.0, 1.0);
+        assert!(new_model.beta_mean() > uninformed.beta_mean());
+
+        // Should have no pulls yet
+        assert_eq!(new_model.pulls, 0);
+    }
+
+    #[test]
+    fn test_warm_start_convergence() {
+        // Warm start should converge faster than cold start
+
+        // Cold start: uninformative prior
+        let mut cold_start = BanditArm::new("cold".to_string(), 1.0, 1.0);
+
+        // Warm start: informed prior
+        let prior = InformedPrior {
+            baseline_alpha: 30.0,
+            baseline_beta: 10.0,
+            similarity_boost: 0.0,
+        };
+        let mut warm_start = BanditArm::new_with_prior("warm".to_string(), &prior);
+
+        // After just 10 observations, warm start should be more stable
+        for _ in 0..10 {
+            cold_start.update(0.8, 0.6);
+            warm_start.update(0.8, 0.6);
+        }
+
+        // Warm start should have narrower confidence interval (more stable)
+        assert!(warm_start.confidence_width() < cold_start.confidence_width());
+    }
+
+    #[test]
+    fn test_similarity_boost_application() {
+        let prior = InformedPrior::default().with_similarity_boost(15.0);
+
+        assert_eq!(prior.similarity_boost, 15.0);
+
+        let arm = BanditArm::new_with_prior("test".to_string(), &prior);
+        assert_eq!(arm.alpha, 35.0); // 20 + 15
     }
 }
