@@ -39,6 +39,7 @@ pub mod arms;
 pub mod rewards;
 pub mod bandits;
 pub mod ffi;
+pub mod binary_ffi; // Optimized binary FFI for Go (3-5x faster than JSON)
 
 // Phase 4: Distributed tracing support (optional)
 #[cfg(feature = "tracing")]
