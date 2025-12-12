@@ -29,13 +29,7 @@ Schlep Engine uses intelligent routing to automatically select the best provider
 
 **What it does:** Automatically learns which providers work best for your workload and routes traffic accordingly.
 
-<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 16px; border-radius: 8px; margin: 16px 0;">
-  <strong>🚀 v1.5.0 Enhancements (2025-12-12)</strong><br/>
-  • <strong>+25% scoring accuracy</strong> via adaptive per-tenant reward weighting<br/>
-  • <strong>50% faster convergence</strong> for new models with informed priors<br/>
-  • <strong>+15% better decisions</strong> in first 50 requests with sparse data handling<br/>
-  • <strong>Per-tenant learning</strong> adapts to your unique workload patterns
-</div>
+Thompson Sampling delivers 25% improved scoring accuracy through adaptive per-tenant reward weighting, 50% faster convergence for new models via informed priors, and 15% better decisions in the first 50 requests with intelligent sparse data handling. The system automatically adapts to your unique workload patterns, requiring zero configuration.
 
 ### How It Works
 
@@ -111,7 +105,7 @@ w_new = w_old + α * (correlation - w_old)
 When a new model is added (e.g., `gpt-4.5-turbo`), it inherits 50% of similar models' performance (e.g., `gpt-4`) instead of starting from scratch. This reduces learning time from ~100 requests to ~50 requests.
 
 **Sparse Data Handling:**
-For models with <30 observations, applies UCB-style exploration bonus:
+For models with &lt;30 observations, applies UCB-style exploration bonus:
 ```
 exploration_bonus = 2 × sqrt(ln(total_pulls) / pulls)
 ```
