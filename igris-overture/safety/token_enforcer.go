@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 // TokenEnforcer enforces token limits on requests

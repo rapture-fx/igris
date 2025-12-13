@@ -6,8 +6,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
-	"github.com/Schlep-engine/igris-inertial/internal/providers"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
 )
 
 // MockAnthropicProvider implements a realistic mock for Anthropic API

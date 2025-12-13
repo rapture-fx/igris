@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
-	"github.com/Schlep-engine/igris-inertial/internal/providers"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
 )
 
 // SafetyController orchestrates all safety controls

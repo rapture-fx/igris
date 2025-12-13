@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/rust"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/rust"
 )
 
 // ============================================================================

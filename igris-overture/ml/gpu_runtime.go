@@ -8,7 +8,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // RuntimeType represents different inference runtime backends

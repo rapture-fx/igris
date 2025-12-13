@@ -3,7 +3,7 @@ package quality
 import (
 	"strings"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 // RequestClassification represents the classification of an inference request

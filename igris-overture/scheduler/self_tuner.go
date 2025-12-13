@@ -10,8 +10,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/internal/bandit"
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/bandit"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // SelfTuner performs automatic weight optimization for composite rewards

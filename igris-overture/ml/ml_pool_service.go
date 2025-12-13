@@ -16,7 +16,7 @@ import (
 	"github.com/rs/zerolog/log"
 	
 	pb "github.com/Schlep-engine/igris-inertial/proto"
-	"github.com/Schlep-engine/igris-inertial/internal/metrics"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
 )
 
 // PoolService manages ML service connections via connection pooling

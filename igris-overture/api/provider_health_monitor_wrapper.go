@@ -4,8 +4,8 @@ package api
 import (
 	"database/sql"
 
-	"github.com/Schlep-engine/igris-inertial/internal/scheduler"
-	"github.com/Schlep-engine/igris-inertial/internal/security"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/scheduler"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
 )
 
 // NewProviderHealthMonitor creates a new provider health monitor

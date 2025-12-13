@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/internal/cognitive"
-	"github.com/Schlep-engine/igris-inertial/internal/config"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/cognitive"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
 )
 
 // CognitiveHandler handles cognitive advisor API requests

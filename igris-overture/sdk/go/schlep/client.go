@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/Schlep-engine/igris-inertial/internal/sdk/go/schlep/escapevector"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/schlep/escapevector"
 )
 
 const (

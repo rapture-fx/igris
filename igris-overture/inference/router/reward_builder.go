@@ -1,9 +1,9 @@
 package router
 
 import (
-	"github.com/Schlep-engine/igris-inertial/internal/inference/optimizer/ffi"
-	"github.com/Schlep-engine/igris-inertial/internal/inference/quality"
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/ffi"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/quality"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 // RewardPolicyBuilder builds reward policies based on customer preferences

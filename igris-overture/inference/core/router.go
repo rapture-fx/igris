@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // ModelMetadata contains information about a registered model

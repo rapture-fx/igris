@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/alerts"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/alerts"
 )
 
 // EmailProvider sends alerts via SMTP email

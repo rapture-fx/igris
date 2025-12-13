@@ -6,8 +6,8 @@ import (
 	"log"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/internal/middleware"
-	"github.com/Schlep-engine/igris-inertial/internal/security"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
 )
 
 // VaultHandler handles BYOK vault operations

@@ -13,7 +13,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/internal/policies"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/policies"
 	pb "github.com/Schlep-engine/igris-inertial/proto/orchestration"
 )
 

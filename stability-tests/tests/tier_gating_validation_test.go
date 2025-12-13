@@ -12,7 +12,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/redis/go-redis/v9"
-	"github.com/Schlep-engine/igris-inertial/internal/middleware"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

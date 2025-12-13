@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // RewardEngine implements composite reward calculation for Thompson Sampling

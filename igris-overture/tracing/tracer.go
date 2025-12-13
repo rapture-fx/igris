@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/Schlep-engine/igris-inertial/internal/logging"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/logging"
 )
 
 // TraceContext contains trace information for request tracking

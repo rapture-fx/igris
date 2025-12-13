@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"sync"
 
-	"github.com/Schlep-engine/igris-inertial/internal/metrics"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
 )
 
 // TenantBudgetManager manages per-tenant budget trackers
