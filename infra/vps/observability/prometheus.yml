@@ -2,7 +2,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    cluster: 'schlep-engine'
+    cluster: 'igris-inertial'
     environment: 'production'
 
 # Alertmanager configuration
@@ -19,7 +19,7 @@ rule_files:
 # Scrape configurations
 scrape_configs:
   # Schlep-Engine API metrics
-  - job_name: 'schlep-engine-api'
+  - job_name: 'igris-overture'
     static_configs:
       - targets: ['host.docker.internal:9090']
         labels:

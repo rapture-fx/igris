@@ -234,7 +234,7 @@ Estimated Cost: $400-600/month
   # Missing from main.tf:
   terraform {
     backend "s3" {
-      bucket         = "schlep-engine-terraform-state"
+      bucket         = "igris-inertial-terraform-state"
       key            = "infrastructure/terraform.tfstate"
       region         = "us-west-2"
       encrypt        = true
@@ -274,7 +274,7 @@ terraform {
   required_version = ">= 1.5"
 
   backend "s3" {
-    bucket         = "schlep-engine-tf-state"
+    bucket         = "igris-inertial-tf-state"
     key            = "infrastructure/terraform.tfstate"
     region         = "us-west-2"
     encrypt        = true
@@ -425,7 +425,7 @@ Weaknesses:
      - This condition may not catch all failures
 
   ❌ Hardcoded URLs (not environment-agnostic):
-     - curl -f https://api.schlep-engine.com/health
+     - curl -f https://api.igris-inertial.com/health
 
   ❌ 10-minute monitoring inadequate:
      - while time.time() - start_time < 600  # Only 10 min
@@ -1277,9 +1277,9 @@ postgres-exporter:
   ports:
     - "9187:9187"
   environment:
-    DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/schlep_engine?sslmode=disable"
+    DATA_SOURCE_NAME: "postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/igris_overture?sslmode=disable"
   networks:
-    - schlep-engine
+    - igris-inertial
 
 redis-exporter:
   image: oliver006/redis_exporter:latest
@@ -1288,7 +1288,7 @@ redis-exporter:
   environment:
     REDIS_ADDR: "redis:6379"
   networks:
-    - schlep-engine
+    - igris-inertial
 
 # Add to observability/prometheus.yml:
 scrape_configs:
@@ -1628,16 +1628,16 @@ Required Components:
 #!/bin/bash
 BACKUP_DIR="/backups/postgres"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-FILENAME="schlep_engine_${TIMESTAMP}.sql.gz"
+FILENAME="igris_overture_${TIMESTAMP}.sql.gz"
 
 # Backup database
-docker exec schlep-postgres pg_dump -U postgres schlep_engine | gzip > "${BACKUP_DIR}/${FILENAME}"
+docker exec schlep-postgres pg_dump -U postgres igris_overture | gzip > "${BACKUP_DIR}/${FILENAME}"
 
 # Encrypt backup
-gpg --encrypt --recipient backup@schlep-engine.com "${BACKUP_DIR}/${FILENAME}"
+gpg --encrypt --recipient backup@igris-inertial.com "${BACKUP_DIR}/${FILENAME}"
 
 # Upload to S3
-aws s3 cp "${BACKUP_DIR}/${FILENAME}.gpg" "s3://schlep-engine-backups/postgres/${FILENAME}.gpg"
+aws s3 cp "${BACKUP_DIR}/${FILENAME}.gpg" "s3://igris-inertial-backups/postgres/${FILENAME}.gpg"
 
 # Clean old local backups (keep 7 days)
 find ${BACKUP_DIR} -name "*.sql.gz*" -mtime +7 -delete
@@ -1646,7 +1646,7 @@ find ${BACKUP_DIR} -name "*.sql.gz*" -mtime +7 -delete
 if [ $? -eq 0 ]; then
   echo "Backup successful: ${FILENAME}"
 else
-  echo "Backup failed!" | mail -s "Backup Failure" ops@schlep-engine.com
+  echo "Backup failed!" | mail -s "Backup Failure" ops@igris-inertial.com
 fi
 
 # 2. Cron schedule:

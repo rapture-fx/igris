@@ -1,3 +1,3 @@
-[submodule "runtime/llama.cpp"]
-	path = runtime/llama.cpp
+[submodule "igris-runtime/llama.cpp"]
+	path = igris-runtime/llama.cpp
 	url = https://github.com/ggerganov/llama.cpp.git

@@ -1,6 +1,6 @@
 # SDK Usage
 
-Schlep Engine provides official SDKs for **Go**, **Python**, and **OpenAI-compatible** clients. All SDKs support intelligent routing with Thompson Sampling and EscapeVector Mode for zero-downtime resilience.
+Igris Overture provides official SDKs for **Go**, **Python**, and **OpenAI-compatible** clients. All SDKs support intelligent routing with Thompson Sampling and EscapeVector Mode for zero-downtime resilience.
 
 ---
 
@@ -243,14 +243,14 @@ except SchlepError as e:
 
 ## OpenAI-Compatible API
 
-Schlep Engine is **OpenAI-compatible** - use any OpenAI SDK by changing the base URL.
+Igris Overture is **OpenAI-compatible** - use any OpenAI SDK by changing the base URL.
 
 ### OpenAI Python SDK
 
 ```python
 from openai import OpenAI
 
-# Point to Schlep Engine instead of OpenAI
+# Point to Igris Overture instead of OpenAI
 client = OpenAI(
     base_url="http://localhost:8081/v1",
     api_key="your-api-key"  # optional

@@ -6,7 +6,7 @@
 
 ## Overview
 
-Schlep Engine supports **Bring Your Own Key (BYOK)** for multiple LLM providers. You can connect your existing provider accounts and manage API keys securely through our platform.
+Igris Overture supports **Bring Your Own Key (BYOK)** for multiple LLM providers. You can connect your existing provider accounts and manage API keys securely through our platform.
 
 ### Key Benefits
 
@@ -70,13 +70,13 @@ curl -X POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/openai/ke
 ```python
 from openai import OpenAI
 
-# Point to Schlep Engine
+# Point to Igris Overture
 client = OpenAI(
     base_url="https://api.schlep.cloud/v1",
     api_key="sk-schlep-YOUR_KEY"
 )
 
-# Schlep Engine automatically routes to the best provider
+# Igris Overture automatically routes to the best provider
 response = client.chat.completions.create(
     model="gpt-4",
     messages=[{"role": "user", "content": "Hello!"}]
@@ -85,7 +85,7 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-Schlep Engine automatically selects the best provider based on performance, cost, and availability.
+Igris Overture automatically selects the best provider based on performance, cost, and availability.
 
 ---
 
@@ -230,7 +230,7 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 **Cause:** Too many requests to a specific provider
 
 **Solution:**
-- Schlep Engine automatically fails over to other providers
+- Igris Overture automatically fails over to other providers
 - Add additional providers to distribute load
 - Contact your provider to increase rate limits
 - Review your usage patterns in the dashboard
@@ -240,7 +240,7 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 **Cause:** All configured providers are experiencing issues
 
 **Solution:**
-- Schlep Engine includes automatic retry logic
+- Igris Overture includes automatic retry logic
 - Add more providers for better redundancy
 - Check provider status pages for ongoing incidents
 - Contact support@schlep.cloud if issues persist
@@ -318,6 +318,6 @@ POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/{provider}/keys/r
 
 ## Next Steps
 
-- [Routing Policies](/docs/routing-policies) - How Schlep Engine selects providers
+- [Routing Policies](/docs/routing-policies) - How Igris Overture selects providers
 - [SDK Usage](/docs/sdk-usage) - Integration guides for your language
 - [Pricing](/docs/pricing-tiers) - Plans and pricing details

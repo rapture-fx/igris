@@ -79,7 +79,7 @@ vault kv put secret/database/postgres \
   password="$(openssl rand -base64 32)" \
   host="postgres" \
   port="5432" \
-  database="schlep_engine"
+  database="igris_overture"
 
 vault kv put secret/database/redis \
   password="$(openssl rand -base64 32)" \
@@ -107,14 +107,14 @@ vault kv put secret/smtp \
   port="587" \
   username="REPLACE_WITH_SMTP_USERNAME" \
   password="REPLACE_WITH_SMTP_PASSWORD" \
-  from_email="notifications@schlep-engine.com"
+  from_email="notifications@igris-inertial.com"
 
 # Enable AppRole auth method for services
 echo "🔑 Configuring AppRole authentication..."
 vault auth enable approle
 
-# Create policy for schlep-engine services
-vault policy write schlep-engine-policy - <<EOF
+# Create policy for igris-inertial services
+vault policy write igris-inertial-policy - <<EOF
 # Read database credentials
 path "secret/data/database/*" {
   capabilities = ["read"]
@@ -138,7 +138,7 @@ EOF
 
 # Create AppRole for Go Gateway
 vault write auth/approle/role/go-gateway \
-  token_policies="schlep-engine-policy" \
+  token_policies="igris-inertial-policy" \
   token_ttl=1h \
   token_max_ttl=4h
 
@@ -153,7 +153,7 @@ echo "📋 Configuration Summary:"
 echo "  - Vault Address: $VAULT_ADDR"
 echo "  - Secrets Engine: kv-v2 at /secret"
 echo "  - Auth Method: AppRole"
-echo "  - Policy: schlep-engine-policy"
+echo "  - Policy: igris-inertial-policy"
 echo ""
 echo "🔑 AppRole Credentials (Go Gateway):"
 echo "  Role ID: $ROLE_ID"

@@ -67,10 +67,10 @@ spec:
         - name: SCHLEP_API_KEY
           valueFrom:
             secretKeyRef:
-              name: schlep-api-secret
+              name: igris-overture-secret
               key: api-key
         - name: SCHLEP_BASE_URL
-          value: "https://api.schlep-engine.com"
+          value: "https://api.igris-inertial.com"
         - name: SCHLEP_TIMEOUT_SECONDS
           value: "60"
         - name: SCHLEP_MAX_RETRIES
@@ -266,7 +266,7 @@ metadata:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: schlep-api-secret
+  name: igris-overture-secret
   namespace: default
   labels:
     app: schlep-cloud-native-service

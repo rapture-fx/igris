@@ -1,6 +1,6 @@
 global:
   smtp_smarthost: 'localhost:587'
-  smtp_from: 'alerts@schlep-engine.com'
+  smtp_from: 'alerts@igris-inertial.com'
 
 route:
   group_by: ['alertname']

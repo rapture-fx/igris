@@ -12,16 +12,16 @@
     "typescript",
     "javascript"
   ],
-  "author": "Schlep-engine <support@schlep-engine.com>",
+  "author": "Schlep-engine <support@igris-inertial.com>",
   "license": "MIT",
   "type": "module",
-  "homepage": "https://schlep-engine.com",
+  "homepage": "https://igris-inertial.com",
   "repository": {
     "type": "git",
-    "url": "https://github.com/schlep-engine/javascript-sdk.git"
+    "url": "https://github.com/igris-inertial/javascript-sdk.git"
   },
   "bugs": {
-    "url": "https://github.com/schlep-engine/javascript-sdk/issues"
+    "url": "https://github.com/igris-inertial/javascript-sdk/issues"
   },
   "main": "src/index.ts",
   "module": "src/index.ts",

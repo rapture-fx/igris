@@ -16,7 +16,7 @@ This directory contains SQL migration scripts for Schlep-Engine database schema.
 
 ```bash
 # Set your database URL
-export DATABASE_URL="postgres://user:password@localhost:5432/schlep_engine"
+export DATABASE_URL="postgres://user:password@localhost:5432/igris_overture"
 
 # Run all migrations in order
 psql $DATABASE_URL -f migrations/001_create_optimizer_states.sql
@@ -40,7 +40,7 @@ docker-compose -f docker-compose.production.yml logs postgres
 
 ```bash
 # Connect to database
-psql postgres://user:password@localhost:5432/schlep_engine
+psql postgres://user:password@localhost:5432/igris_overture
 
 -- Run migrations
 \i migrations/001_create_optimizer_states.sql

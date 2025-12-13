@@ -45,7 +45,7 @@ importers:
 
   apps/web-admin:
     dependencies:
-      '@schlep-engine/types':
+      '@igris-inertial/types':
         specifier: workspace:*
         version: link:../../packages/types
       '@tanstack/react-query':
@@ -179,10 +179,10 @@ importers:
 
   apps/web-landing:
     dependencies:
-      '@schlep-engine/types':
+      '@igris-inertial/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@schlep-engine/ui':
+      '@igris-inertial/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@supabase/supabase-js':
@@ -216,7 +216,7 @@ importers:
         specifier: ^1.14.0
         version: 1.14.0
     devDependencies:
-      '@schlep-engine/config':
+      '@igris-inertial/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':

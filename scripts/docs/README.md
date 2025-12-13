@@ -142,7 +142,7 @@ The workflow (`.github/workflows/docs-sync.yml`) runs automatically on:
 
 **Bot user:**
 - Name: `docs-sync-bot`
-- Email: `bot@schlep-engine.com`
+- Email: `bot@igris-inertial.com`
 
 ## Adding New Extractions
 
@@ -247,4 +247,4 @@ Changes are automatically deployed to docs site after commit.
 ---
 
 **Last updated:** 2025-12-03
-**Maintained by:** Schlep Engine team
+**Maintained by:** Igris Overture team

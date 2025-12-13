@@ -20,7 +20,7 @@ This monitoring system provides comprehensive frontend observability with:
 
 ```tsx
 import React from 'react';
-import { MonitoringProvider, MonitoringConfig } from '@schlep-engine/ui';
+import { MonitoringProvider, MonitoringConfig } from '@igris-inertial/ui';
 
 const monitoringConfig: MonitoringConfig = {
   sentry: {
@@ -54,7 +54,7 @@ function App() {
 ### Dashboard Integration
 
 ```tsx
-import { ComprehensiveMonitoringDashboard } from '@schlep-engine/ui';
+import { ComprehensiveMonitoringDashboard } from '@igris-inertial/ui';
 
 function AdminPanel() {
   return (
@@ -69,7 +69,7 @@ function AdminPanel() {
 ### Status Bar
 
 ```tsx
-import { MonitoringStatusBar } from '@schlep-engine/ui';
+import { MonitoringStatusBar } from '@igris-inertial/ui';
 
 function Header() {
   return (
@@ -88,7 +88,7 @@ function Header() {
 Advanced error tracking with business context:
 
 ```tsx
-import { ErrorReporter, MLOperationError } from '@schlep-engine/ui';
+import { ErrorReporter, MLOperationError } from '@igris-inertial/ui';
 
 // Report ML operation errors
 ErrorReporter.reportMLError(
@@ -121,7 +121,7 @@ import {
   useComponentPerformance,
   useAPIPerformance,
   withPerformanceTracking
-} from '@schlep-engine/ui';
+} from '@igris-inertial/ui';
 
 // Component performance tracking
 const MyComponent = withPerformanceTracking(() => {
@@ -171,7 +171,7 @@ import {
   FeatureErrorBoundary,
   ComponentErrorBoundary,
   useAsyncErrorHandler
-} from '@schlep-engine/ui';
+} from '@igris-inertial/ui';
 
 // Page-level error boundary
 function App() {
@@ -226,7 +226,7 @@ import {
   useWebSocketMonitoring,
   WebSocketStatusDashboard,
   WebSocketStatusIndicator 
-} from '@schlep-engine/ui';
+} from '@igris-inertial/ui';
 
 function WebSocketComponent() {
   const { 
@@ -283,7 +283,7 @@ import {
   useMLOperationTracking,
   useRLOperationTracking,
   BusinessMetricsDashboard
-} from '@schlep-engine/ui';
+} from '@igris-inertial/ui';
 
 function MLModelTraining() {
   const trackMLOperation = useMLOperationTracking();
@@ -363,7 +363,7 @@ import {
   AuthPerformanceDashboard,
   AuthStatusIndicator,
   AuthMethod
-} from '@schlep-engine/ui';
+} from '@igris-inertial/ui';
 
 function LoginForm() {
   const { trackLoginStart, trackLoginComplete } = useLoginTracking();
@@ -448,7 +448,7 @@ import {
   AlertManagementDashboard,
   AlertBellIcon,
   AlertSeverity
-} from '@schlep-engine/ui';
+} from '@igris-inertial/ui';
 
 function NavigationBar() {
   const { unacknowledgedAlerts, testAlert } = useAlerting();
@@ -705,7 +705,7 @@ groups:
 
 ```tsx
 import { render, screen } from '@testing-library/react';
-import { MonitoringProvider, useWebVitals } from '@schlep-engine/ui';
+import { MonitoringProvider, useWebVitals } from '@igris-inertial/ui';
 
 const TestComponent = () => {
   const { webVitals } = useWebVitals();
@@ -727,7 +727,7 @@ test('web vitals tracking works', () => {
 
 ```tsx
 import { renderHook, act } from '@testing-library/react';
-import { useMLOperationTracking } from '@schlep-engine/ui';
+import { useMLOperationTracking } from '@igris-inertial/ui';
 
 test('ML operation tracking', () => {
   const { result } = renderHook(() => useMLOperationTracking());

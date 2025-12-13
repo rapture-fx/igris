@@ -1,6 +1,6 @@
 # 🚀 OAuth Production Deployment Security Checklist
 
-**Schlep Engine OAuth Security Audit & Production Readiness Guide**
+**Igris Overture OAuth Security Audit & Production Readiness Guide**
 
 ---
 

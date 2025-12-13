@@ -112,7 +112,7 @@ data:
       "dashboard": {
         "id": null,
         "title": "Schlep Cloud Native Service",
-        "tags": ["schlep-engine", "cloud-native"],
+        "tags": ["igris-inertial", "cloud-native"],
         "style": "dark",
         "timezone": "browser",
         "refresh": "30s",

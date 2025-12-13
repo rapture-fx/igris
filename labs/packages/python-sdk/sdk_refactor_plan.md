@@ -18,7 +18,7 @@ Current Python SDK has **6,777 lines of code** with embedded business logic. Thi
 
 ### Current SDK Structure
 ```
-schlep_engine/
+igris_overture/
 ├── client/main.py              (314 lines) - Complex client orchestration
 ├── api/
 │   ├── data_processing.py     (452 lines) - Business logic heavy
@@ -145,7 +145,7 @@ class LegacySchlepEngineClient(SchlepEngineClient):
 - [ ] Write unit tests for thin client
 
 **Deliverables:**
-- `schlep_engine/thin_client.py` (~200 lines)
+- `igris_overture/thin_client.py` (~200 lines)
 - `tests/test_thin_client.py` (~150 lines)
 - Migration guide document
 
@@ -264,8 +264,8 @@ class LegacySchlepEngineClient(SchlepEngineClient):
 ## Deliverables
 
 ### Code Deliverables
-1. **Thin Client Package** (`schlep_engine/thin_client/`)
-2. **Migration Layer** (`schlep_engine/legacy/`)
+1. **Thin Client Package** (`igris_overture/thin_client/`)
+2. **Migration Layer** (`igris_overture/legacy/`)
 3. **Backend Enhancements** (Go Gateway endpoints)
 4. **Test Suite** (comprehensive coverage)
 

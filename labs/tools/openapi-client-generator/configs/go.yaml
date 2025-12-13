@@ -9,13 +9,13 @@ package-version: "v2.0.0"
 additional-properties:
   packageName: schlepengine
   packageVersion: v2.0.0
-  packageUrl: https://github.com/schlep-engine/go-client
+  packageUrl: https://github.com/igris-inertial/go-client
   packageCompany: Schlep-engine
   packageDescription: "Go client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
   
   # Go module configuration
-  moduleName: github.com/schlep-engine/go-client
-  goModuleName: github.com/schlep-engine/go-client
+  moduleName: github.com/igris-inertial/go-client
+  goModuleName: github.com/igris-inertial/go-client
   
   # API Configuration
   withGoCodegenComment: true

@@ -124,16 +124,16 @@ The system includes automated workflows for:
 ### Python
 
 ```python
-from schlep_engine_client import SchlepEngineClient
+from igris_overture_client import SchlepEngineClient
 
-client = SchlepEngineClient(api_key="your_key", base_url="https://api.schlep-engine.com")
+client = SchlepEngineClient(api_key="your_key", base_url="https://api.igris-inertial.com")
 response = client.upload_file("data.csv")
 ```
 
 ### TypeScript
 
 ```typescript
-import { SchlepEngineClient } from '@schlep-engine/client';
+import { SchlepEngineClient } from '@igris-inertial/client';
 
 const client = new SchlepEngineClient({ apiKey: 'your_key' });
 const response = await client.uploadFile('data.csv');
@@ -142,7 +142,7 @@ const response = await client.uploadFile('data.csv');
 ### Go
 
 ```go
-import "github.com/schlep-engine/go-client"
+import "github.com/igris-inertial/go-client"
 
 client := schlepengine.NewClient("your_key")
 response, err := client.UploadFile("data.csv")

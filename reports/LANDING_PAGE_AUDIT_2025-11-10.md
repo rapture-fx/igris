@@ -25,8 +25,8 @@ This audit validates all claims made on the Schlep-Engine landing page against t
 **File:** `/docs_int/public/architecture/`
 
 ### Files Reviewed:
-- `schlep_engine_public_overview_public_v1_2.mmd` (public simplified diagram)
-- `schlep_engine_public_overview.mmd` (detailed technical diagram)
+- `igris_overture_public_overview_public_v1_2.mmd` (public simplified diagram)
+- `igris_overture_public_overview.mmd` (detailed technical diagram)
 - `Schlep_engine_technical_overview.mmd` (full architecture)
 
 ### Architecture Components Shown:
@@ -151,7 +151,7 @@ This audit validates all claims made on the Schlep-Engine landing page against t
 |---|---------|---------|--------|--------------|-----------------|---------|
 | 1 | Unlimited requests (1000 RPS) | Unlimited | max_requests_per_month: -1 (unlimited) | YES | YES (no limit enforcement) | ✅ TRUE |
 | 2 | Up to 20 AI providers | 20 | max_providers: 20 | YES | YES | ✅ TRUE |
-| 3 | On-premise deployment (Kubernetes) | Kubernetes | on_premise_deployment: true, kubernetes_ready: true | YES (/infra/helm/schlep-engine/) | YES | ✅ TRUE |
+| 3 | On-premise deployment (Kubernetes) | Kubernetes | on_premise_deployment: true, kubernetes_ready: true | YES (/infra/helm/igris-inertial/) | YES | ✅ TRUE |
 | 4 | Self-hosted deployment option | Self-hosted | self_hosted: true | YES (Kubernetes deployable) | YES | ✅ TRUE |
 | 5 | ONNX model framework integration | ONNX framework | onnx_model_framework: true | YES (/internal/semantic/onnx_classifier.go) | YES (Phase 5.3 scaffolding) | ✅ TRUE |
 | 6 | Advanced security & tenant isolation | Security controls | advanced_security_controls: true | YES (/internal/middleware/auth.go, tenant isolation) | YES | ✅ TRUE |
@@ -225,7 +225,7 @@ The feature comparison table dynamically generates a matrix from the pricing tie
 
 **Current FAQs (3 questions):**
 
-### Q1: "What is Schlep Engine?"
+### Q1: "What is Igris Overture?"
 **Answer:** "Advanced routing and optimization platform designed for modern microservices architectures..."
 
 **Validation:**
@@ -236,7 +236,7 @@ The feature comparison table dynamically generates a matrix from the pricing tie
 
 **Suggested Update:**
 ```
-"Schlep Engine is an advanced AI provider routing and optimization platform 
+"Igris Overture is an advanced AI provider routing and optimization platform 
 designed for modern microservices architectures. It intelligently routes 
 requests across multiple AI providers (OpenAI, Anthropic, etc.), optimizing 
 for cost, latency, and reliability."
@@ -274,11 +274,11 @@ your next billing cycle."
 **Missing Important Questions:**
 
 1. **"Is there a free tier?"** → Not addressed (no free tier in pricing model)
-2. **"What providers does Schlep Engine support?"** → Not addressed (important question)
+2. **"What providers does Igris Overture support?"** → Not addressed (important question)
 3. **"How does semantic routing work?"** → Not addressed (core differentiator)
 4. **"What happens if I exceed my tier limits?"** → Not addressed (important for cost control)
 5. **"Is my data encrypted?"** → Not addressed (security concern)
-6. **"Can I integrate Schlep Engine with my existing system?"** → Not addressed (technical implementation question)
+6. **"Can I integrate Igris Overture with my existing system?"** → Not addressed (technical implementation question)
 
 ### FAQ Verdict: NEEDS EXPANSION
 
@@ -468,7 +468,7 @@ Add note: "v1.0 Core Architecture - See Release Notes for Phase 5.3 enhancements
 
 **1. Expand FAQ Section**
 Add questions:
-- "What AI providers does Schlep Engine support?"
+- "What AI providers does Igris Overture support?"
 - "How is my data secured?"
 - "What happens if I exceed my tier limits?"
 - "Can I integrate with my existing system?"

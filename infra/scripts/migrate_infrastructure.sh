@@ -252,7 +252,7 @@ deploy_to_railway() {
     if ! railway status &>/dev/null; then
         print_info "Creating new Railway project..."
         railway login --token="$RAILWAY_TOKEN"
-        railway create --name="schlep-engine-backend"
+        railway create --name="igris-inertial-backend"
     fi
     
     # Set environment variables
@@ -298,10 +298,10 @@ deploy_admin_to_vercel() {
     # Deploy to Vercel
     print_info "Deploying to Vercel..."
     if vercel deploy --prod --token="$VERCEL_TOKEN" --local-config="$vercel_config"; then
-        local vercel_url=$(vercel ls --token="$VERCEL_TOKEN" | grep schlep-engine-admin | awk '{print $2}' | head -1)
+        local vercel_url=$(vercel ls --token="$VERCEL_TOKEN" | grep igris-inertial-admin | awk '{print $2}' | head -1)
         MIGRATION_STATE[vercel_deployed]="true"
         SERVICE_ENDPOINTS[admin]="https://$vercel_url"
-        add_rollback_command "vercel" "vercel remove schlep-engine-admin --token='$VERCEL_TOKEN' --yes"
+        add_rollback_command "vercel" "vercel remove igris-inertial-admin --token='$VERCEL_TOKEN' --yes"
         print_success "Vercel deployment completed: https://$vercel_url"
         save_migration_state
     else
@@ -333,8 +333,8 @@ deploy_to_cloudflare_pages() {
         # This is simplified - actual implementation would use Cloudflare Pages API
         print_info "Cloudflare Pages deployment configured"
         MIGRATION_STATE[cloudflare_deployed]="true"
-        SERVICE_ENDPOINTS[landing]="https://schlep-engine.pages.dev"
-        SERVICE_ENDPOINTS[docs]="https://docs.schlep-engine.pages.dev"
+        SERVICE_ENDPOINTS[landing]="https://igris-inertial.pages.dev"
+        SERVICE_ENDPOINTS[docs]="https://docs.igris-inertial.pages.dev"
         add_rollback_command "cloudflare" "# Delete Cloudflare Pages deployment"
         print_success "Cloudflare Pages deployment completed"
         save_migration_state

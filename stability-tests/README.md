@@ -23,11 +23,11 @@ This testing suite validates:
 pip install aiohttp psutil requests
 
 # Start API in benchmark mode (no real API costs)
-cd /Users/wira/Desktop/schlep-engine
+cd /Users/wira/Desktop/igris-inertial
 export PROVIDER_MODE=benchmark
 export ENABLE_COGNITIVE_ADVISOR=true
 export OPTIMIZER_MODE=shadow  # or "full" to test FFI
-go run cmd/schlep-engine-api/main.go
+go run cmd/igris-overture/main.go
 ```
 
 ### Run All Tests
@@ -266,8 +266,8 @@ curl http://localhost:8080/readyz
 
 ```bash
 # Kubernetes
-kubectl rollout undo deployment/schlep-engine-api
-kubectl rollout status deployment/schlep-engine-api
+kubectl rollout undo deployment/igris-overture
+kubectl rollout status deployment/igris-overture
 
 # Docker Compose
 docker-compose down
@@ -323,7 +323,7 @@ export MAX_MONTHLY_COST_USD=10.0
 1. **High 5xx Rate**
    ```bash
    # Check recent logs
-   kubectl logs deployment/schlep-engine-api --tail=100
+   kubectl logs deployment/igris-overture --tail=100
 
    # Check provider health
    curl http://localhost:8080/v1/providers/stats
@@ -342,7 +342,7 @@ export MAX_MONTHLY_COST_USD=10.0
 
    # Disable optimizer as fallback
    export OPTIMIZER_MODE=go-only
-   kubectl rollout restart deployment/schlep-engine-api
+   kubectl rollout restart deployment/igris-overture
    ```
 
 3. **Memory Leak**
@@ -352,7 +352,7 @@ export MAX_MONTHLY_COST_USD=10.0
    go tool pprof -http=:8081 heap.prof
 
    # Check for FFI leaks
-   ps aux | grep schlep-engine-api
+   ps aux | grep igris-overture
    ```
 
 4. **Circuit Breaker Stuck Open**
@@ -379,7 +379,7 @@ jobs:
       - name: Start API
         run: |
           export PROVIDER_MODE=benchmark
-          go run cmd/schlep-engine-api/main.go &
+          go run cmd/igris-overture/main.go &
           sleep 10
       - name: Run Stability Tests
         run: |
@@ -439,6 +439,6 @@ jobs:
 ## Support
 
 For issues or questions:
-- GitHub Issues: https://github.com/your-org/schlep-engine/issues
-- Documentation: https://docs.schlep-engine.com
+- GitHub Issues: https://github.com/your-org/igris-inertial/issues
+- Documentation: https://docs.igris-inertial.com
 - On-call: Check PagerDuty rotation

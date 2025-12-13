@@ -289,7 +289,7 @@ groups:
       - alert: HighDatabaseConnections
         expr: |
           (
-            pg_stat_database_numbackends{datname="schlep_engine"}
+            pg_stat_database_numbackends{datname="igris_overture"}
             /
             pg_settings_max_connections
           ) > 0.8

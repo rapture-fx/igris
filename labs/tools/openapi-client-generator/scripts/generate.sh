@@ -162,7 +162,7 @@ EOF
     "version": "2.0.0"
   },
   "servers": [
-    {"url": "https://api.schlep-engine.com", "description": "Production server"},
+    {"url": "https://api.igris-inertial.com", "description": "Production server"},
     {"url": "http://localhost:8000", "description": "Development server"}
   ],
   "paths": {},
@@ -274,7 +274,7 @@ post_process_client() {
             fi
             
             # Create __init__.py with convenience imports
-            cat > "$output_dir/schlep_engine_client/__init__.py" << 'EOF'
+            cat > "$output_dir/igris_overture_client/__init__.py" << 'EOF'
 """Schlep-engine Python Client
 
 A comprehensive Python client library for the Schlep-engine API.
@@ -300,7 +300,7 @@ EOF
                 pkg.scripts.build = 'rollup -c';
                 pkg.scripts.test = 'jest';
                 pkg.scripts.lint = 'eslint src --ext .ts';
-                pkg.keywords = ['data-processing', 'machine-learning', 'api-client', 'schlep-engine'];
+                pkg.keywords = ['data-processing', 'machine-learning', 'api-client', 'igris-inertial'];
                 JSON.stringify(pkg, null, 2);
                 " > "$output_dir/package.json.tmp"
                 mv "$output_dir/package.json.tmp" "$output_dir/package.json"
@@ -311,7 +311,7 @@ EOF
             # Initialize Go module
             if [ ! -f "$output_dir/go.mod" ]; then
                 cd "$output_dir"
-                go mod init github.com/schlep-engine/go-client
+                go mod init github.com/igris-inertial/go-client
                 go mod tidy
                 cd - > /dev/null
             fi

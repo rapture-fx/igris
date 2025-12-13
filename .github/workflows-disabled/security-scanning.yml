@@ -157,7 +157,7 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       with:
         args: >
-          -Dsonar.projectKey=schlep-engine
+          -Dsonar.projectKey=igris-inertial
           -Dsonar.organization=your-org
           -Dsonar.sources=apps/
           -Dsonar.exclusions=**/node_modules/**,**/venv/**

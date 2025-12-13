@@ -243,7 +243,7 @@ const file_adapters_python_python_ml_proto_ml_service_proto_rawDesc = "" +
 	"\aversion\x18\x02 \x01(\tR\aversion2\x7f\n" +
 	"\tMLService\x122\n" +
 	"\aPredict\x12\x12.ml.PredictRequest\x1a\x13.ml.PredictResponse\x12>\n" +
-	"\vHealthCheck\x12\x16.ml.HealthCheckRequest\x1a\x17.ml.HealthCheckResponseB1Z/github.com/schlep-engine/schlep-engine/proto/mlb\x06proto3"
+	"\vHealthCheck\x12\x16.ml.HealthCheckRequest\x1a\x17.ml.HealthCheckResponseB1Z/github.com/Schlep-engine/igris-inertial/proto/mlb\x06proto3"
 
 var (
 	file_adapters_python_python_ml_proto_ml_service_proto_rawDescOnce sync.Once

@@ -50,13 +50,13 @@ importers:
       '@radix-ui/react-toast':
         specifier: ^1.1.5
         version: 1.2.15(@types/react-dom@19.2.3)(@types/react@19.2.7)(react-dom@19.2.1)(react@19.2.1)
-      '@schlep-engine/javascript-sdk':
+      '@igris-inertial/javascript-sdk':
         specifier: workspace:*
         version: link:../../packages/javascript-sdk
-      '@schlep-engine/types':
+      '@igris-inertial/types':
         specifier: workspace:*
         version: link:../../packages/types
-      '@schlep-engine/ui':
+      '@igris-inertial/ui':
         specifier: workspace:*
         version: link:../../packages/ui
       '@tanstack/react-query':
@@ -108,7 +108,7 @@ importers:
         specifier: ^3.22.4
         version: 3.25.76
     devDependencies:
-      '@schlep-engine/config':
+      '@igris-inertial/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/js-cookie':
@@ -239,7 +239,7 @@ importers:
       '@cloudflare/next-on-pages':
         specifier: ^1.13.16
         version: 1.13.16(next@16.0.7)(wrangler@4.48.0)
-      '@schlep-engine/config':
+      '@igris-inertial/config':
         specifier: workspace:*
         version: link:../../packages/config
       '@types/node':
@@ -427,7 +427,7 @@ importers:
       '@radix-ui/react-tooltip':
         specifier: ^1.2.7
         version: 1.2.8(@types/react-dom@18.3.7)(@types/react@18.3.27)(react-dom@18.3.1)(react@18.3.1)
-      '@schlep-engine/types':
+      '@igris-inertial/types':
         specifier: workspace:*
         version: link:../types
       '@sentry/react':

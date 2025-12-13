@@ -28,7 +28,7 @@ log_error() {
 # Configuration
 API_PORT=8081
 API_URL="http://localhost:${API_PORT}"
-PROJECT_ROOT="/Users/wira/Desktop/schlep-engine"
+PROJECT_ROOT="/Users/wira/Desktop/igris-inertial"
 
 echo ""
 echo "========================================================================"
@@ -56,7 +56,7 @@ else
     echo "  export ENABLE_COGNITIVE_ADVISOR=true"
     echo "  export OPTIMIZER_MODE=shadow"
     echo "  export PORT=${API_PORT}"
-    echo "  go run cmd/schlep-engine-api/main.go &"
+    echo "  go run cmd/igris-inertial-api/main.go &"
     echo ""
     echo "Wait ~10 seconds, then run this script again:"
     echo "  ./stability-tests/scripts/setup_and_test.sh"

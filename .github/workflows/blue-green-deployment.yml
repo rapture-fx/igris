@@ -47,7 +47,7 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  NAMESPACE: schlep-engine
+  NAMESPACE: igris-inertial
   DEPLOYMENT_TIMEOUT: 1800  # 30 minutes
 
 jobs:
@@ -151,7 +151,7 @@ jobs:
           cd apps/api
           python -m pytest tests/ --cov=app --cov-report=xml
         else
-          pnpm --filter @schlep-engine/${{ matrix.app }} test
+          pnpm --filter @igris-inertial/${{ matrix.app }} test
         fi
 
     - name: Run linting for ${{ matrix.app }}
@@ -161,17 +161,17 @@ jobs:
           ruff check .
           black --check .
         else
-          pnpm --filter @schlep-engine/${{ matrix.app }} lint
+          pnpm --filter @igris-inertial/${{ matrix.app }} lint
         fi
 
     - name: Run type checking for ${{ matrix.app }}
       if: matrix.app != 'api'
-      run: pnpm --filter @schlep-engine/${{ matrix.app }} type-check
+      run: pnpm --filter @igris-inertial/${{ matrix.app }} type-check
 
     - name: Build application
       run: |
         if [ "${{ matrix.app }}" != "api" ]; then
-          pnpm --filter @schlep-engine/${{ matrix.app }} build
+          pnpm --filter @igris-inertial/${{ matrix.app }} build
         fi
 
     - name: Setup Docker Buildx
@@ -294,13 +294,13 @@ jobs:
     - name: Run staging smoke tests
       run: |
         # Test API health
-        curl -f https://staging-api.schlep-engine.com/health
+        curl -f https://staging-api.igris-inertial.com/health
 
         # Test web admin
-        curl -f https://staging.schlep-engine.com/api/health
+        curl -f https://staging.igris-inertial.com/api/health
 
         # Test web landing
-        curl -f https://staging-landing.schlep-engine.com/api/health
+        curl -f https://staging-landing.igris-inertial.com/api/health
 
     - name: Notify staging deployment
       if: always()
@@ -451,13 +451,13 @@ jobs:
     - name: Run production smoke tests
       run: |
         # Test API health
-        curl -f https://api.schlep-engine.com/health
+        curl -f https://api.igris-inertial.com/health
 
         # Test web admin
-        curl -f https://app.schlep-engine.com/api/health
+        curl -f https://app.igris-inertial.com/api/health
 
         # Test web landing
-        curl -f https://schlep-engine.com/api/health
+        curl -f https://igris-inertial.com/api/health
 
         echo "Production smoke tests passed"
 
@@ -514,7 +514,7 @@ jobs:
             deployment_id: ${{ steps.deployment.outputs.result }},
             state: 'success',
             description: 'Blue-Green deployment completed successfully',
-            environment_url: 'https://app.schlep-engine.com'
+            environment_url: 'https://app.igris-inertial.com'
           });
 
     - name: Update deployment status to failure
@@ -609,9 +609,9 @@ jobs:
     - name: Verify rollback
       run: |
         # Test all services are healthy after rollback
-        curl -f https://api.schlep-engine.com/health
-        curl -f https://app.schlep-engine.com/api/health
-        curl -f https://schlep-engine.com/api/health
+        curl -f https://api.igris-inertial.com/health
+        curl -f https://app.igris-inertial.com/api/health
+        curl -f https://igris-inertial.com/api/health
 
     - name: Notify rollback completion
       run: |

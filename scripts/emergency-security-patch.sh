@@ -37,7 +37,7 @@ cat > .env.production << EOF
 
 # Database Configuration
 POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-POSTGRES_DB=schlep_engine
+POSTGRES_DB=igris_overture
 POSTGRES_USER=schlep_user
 
 # Redis Configuration  
@@ -60,7 +60,7 @@ GITHUB_CLIENT_SECRET=your-github-client-secret
 BYPASS_AUTH=false
 
 # Email Configuration (for SSL certificates)
-SSL_EMAIL=admin@schlep-engine.com
+SSL_EMAIL=admin@igris-inertial.com
 
 # Additional Security Settings
 WEB_CONCURRENCY=4

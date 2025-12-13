@@ -3,8 +3,8 @@
 Official .NET SDK for the Schlep-engine API platform.
 
 [![NuGet](https://img.shields.io/nuget/v/SchlepEngine.SDK.svg)](https://www.nuget.org/packages/SchlepEngine.SDK)
-[![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://docs.schlep-engine.com/sdk/dotnet)
-[![License](https://img.shields.io/github/license/schlep-engine/csharp-sdk.svg)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://docs.igris-inertial.com/sdk/dotnet)
+[![License](https://img.shields.io/github/license/igris-inertial/csharp-sdk.svg)](LICENSE)
 
 ## Features
 
@@ -268,7 +268,7 @@ services.AddHttpClient<SchlepClient>();
 services.Configure<SchlepClientOptions>(options =>
 {
     options.ApiKey = "your-api-key";
-    options.BaseUrl = "https://api.schlep-engine.com/v1";
+    options.BaseUrl = "https://api.igris-inertial.com/v1";
 });
 
 // Register client
@@ -319,9 +319,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📖 [Documentation](https://docs.schlep-engine.com/sdk/dotnet)
-- 🐛 [Issues](https://github.com/schlep-engine/csharp-sdk/issues)
-- 💬 [Support](https://support.schlep-engine.com)
+- 📖 [Documentation](https://docs.igris-inertial.com/sdk/dotnet)
+- 🐛 [Issues](https://github.com/igris-inertial/csharp-sdk/issues)
+- 💬 [Support](https://support.igris-inertial.com)
 
 ## Contributing
 

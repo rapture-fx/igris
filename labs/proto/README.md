@@ -86,7 +86,7 @@ pip install grpcio-tools
 - Added `api_version` field to all requests/responses for compatibility checking
 - Consolidated proto from 2 files → 1 canonical source
 - Added extensive documentation in proto file
-- Proper Go package path: `github.com/schlep-engine/go-gateway/proto;mlpb`
+- Proper Go package path: `github.com/igris-inertial/go-gateway/proto;mlpb`
 
 **Removed:**
 - `go_gateway/proto/ml_service_pb_stub.go` (hand-written stub - replaced with proper codegen)
@@ -129,7 +129,7 @@ message PredictRequest {
 
 **Before (v0.x):**
 ```go
-import pb "github.com/schlep-engine/go-gateway/proto"
+import pb "github.com/igris-inertial/go-gateway/proto"
 
 resp, err := client.Predict(ctx, &pb.PredictRequest{
     ModelId: "iris",
@@ -141,7 +141,7 @@ latency := resp.InferenceTimeMs  // OLD field name
 
 **After (v1.0.0):**
 ```go
-import mlpb "github.com/schlep-engine/go-gateway/proto"
+import mlpb "github.com/igris-inertial/go-gateway/proto"
 
 resp, err := client.Predict(ctx, &mlpb.PredictRequest{
     ApiVersion: "v1.0.0",  // NEW: Required

@@ -112,8 +112,8 @@
 Algorithm: HS256
 Access Token Expiry: 30 minutes
 Refresh Token Expiry: 7 days
-Issuer: schlep-engine
-Audience: schlep-engine-api
+Issuer: igris-inertial
+Audience: igris-overture
 ```
 
 ### Required OAuth Scopes

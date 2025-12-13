@@ -2,24 +2,24 @@
 generator-name: python
 input-spec: "../../apps/api/openapi.json"
 output-dir: "./generated/python"
-package-name: "schlep-engine-client"
-package-url: "https://github.com/schlep-engine/python-client"
+package-name: "igris-inertial-client"
+package-url: "https://github.com/igris-inertial/python-client"
 package-company: "Schlep-engine"
 package-description: "Python client library for Schlep-engine API"
 package-version: "2.0.0"
-project-name: "schlep-engine-client"
+project-name: "igris-inertial-client"
 
 # Package configuration
 additional-properties:
-  packageName: schlep_engine_client
-  projectName: schlep-engine-client
+  packageName: igris_overture_client
+  projectName: igris-inertial-client
   packageVersion: 2.0.0
-  packageUrl: https://github.com/schlep-engine/python-client
+  packageUrl: https://github.com/igris-inertial/python-client
   packageCompany: Schlep-engine
   packageAuthor: Schlep-engine Team
-  packageEmail: support@schlep-engine.com
+  packageEmail: support@igris-inertial.com
   packageDescription: Python client library for Schlep-engine API - comprehensive data processing and ML pipeline platform
-  packageKeywords: "data-processing,machine-learning,api-client,schlep-engine"
+  packageKeywords: "data-processing,machine-learning,api-client,igris-inertial"
   
   # Python-specific configuration
   pythonAttr: true
@@ -27,12 +27,12 @@ additional-properties:
   library: urllib3
   
   # API Configuration
-  apiPackage: schlep_engine_client.api
-  modelPackage: schlep_engine_client.models
-  clientPackage: schlep_engine_client.client
+  apiPackage: igris_overture_client.api
+  modelPackage: igris_overture_client.models
+  clientPackage: igris_overture_client.client
   
   # Authentication
-  httpUserAgent: "schlep-engine-python-client/2.0.0"
+  httpUserAgent: "igris-inertial-python-client/2.0.0"
   
   # Documentation
   hideGenerationTimestamp: true
@@ -93,7 +93,7 @@ publishing:
   enabled: true
   registry: "pypi"
   test-registry: "test.pypi.org"
-  package-name: "schlep-engine-client"
+  package-name: "igris-inertial-client"
   
 # Version management
 versioning:

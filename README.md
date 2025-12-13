@@ -1,8 +1,15 @@
-# Schlep-engine - Routing engine and Control Plane for AI Inference
+# igris-inertial - AI Inference Platform
 
 > **Status:** v1.0.0
 
-**Schlep Engine** is an intelligent AI request routing platform that uses **Thompson Sampling** (Bayesian multi-armed bandit) and **ML-powered semantic routing** to optimize requests across multiple AI providers.
+**This repository contains two products:**
+
+- **Igris Overture** - Cloud gateway and control plane for intelligent AI request routing
+- **Igris Runtime** - Offline/embedded runtime binary for edge deployment
+
+## Igris Overture (Cloud Gateway)
+
+**Igris Overture** is an intelligent AI request routing platform that uses **Thompson Sampling** (Bayesian multi-armed bandit) and **ML-powered semantic routing** to optimize requests across multiple AI providers.
 
 ## Core Features
 
@@ -43,9 +50,10 @@
 
 The system uses a **hybrid polyglot architecture** to leverage the strengths of each language:
 
-- **Go** (`cmd/`, `internal/`) - High-concurrency HTTP gateway, request routing, middleware
+- **Go** (`cmd/`, `igris-overture/`) - High-concurrency HTTP gateway, request routing, middleware (Igris Overture)
 - **Rust** (`rust-core/`) - CPU-intensive Thompson Sampling optimizer via FFI, safe parallel processing
 - **Python** (`adapters/python/`) - ML model serving via gRPC (PyTorch, ONNX Runtime)
+- **Igris Runtime** (`igris-runtime/`) - Offline/embedded runtime binary for edge deployment
 
 ```
 ┌────────┐      HTTP Request       ┌──────────────┐
@@ -85,8 +93,8 @@ The system uses a **hybrid polyglot architecture** to leverage the strengths of 
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/schlep-engine.git
-cd schlep-engine
+git clone https://github.com/Schlep-engine/igris-inertial.git
+cd igris-inertial
 
 # Start all services
 docker-compose up --build
@@ -106,8 +114,8 @@ cd ../..
 
 **2. Build Go Gateway:**
 ```bash
-cd cmd/schlep-api
-go build -o schlep-api
+cd cmd/igris-overture
+go build -o igris-overture
 cd ../..
 ```
 
@@ -123,7 +131,7 @@ cd ../../..
 ```bash
 export PROVIDER_MODE=benchmark  # Options: mock, benchmark, real, hybrid
 export PORT=8080
-./cmd/schlep-api/schlep-api
+./cmd/igris-overture/igris-overture
 ```
 
 ---
@@ -140,7 +148,7 @@ curl http://localhost:8080/v1/health
 ```json
 {
   "status": "ok",
-  "service": "schlep-engine-api",
+  "service": "igris-overture",
   "version": "0.1.0-alpha"
 }
 ```
@@ -331,10 +339,10 @@ Exports metrics in Prometheus format:
 ## Project Structure
 
 ```
-schlep-engine/
+igris-inertial/
 ├── cmd/
-│   └── schlep-api/          # Main API entry point
-├── internal/                # Core Go packages
+│   └── igris-overture/          # Main API entry point (Cloud Gateway)
+├── igris-overture/          # Core Go packages (Cloud Gateway)
 │   ├── api/                 # Routes and handlers
 │   ├── inference/           # Router, optimizer, policy
 │   ├── router/              # AdaptiveRouter with Thompson Sampling
@@ -346,6 +354,7 @@ schlep-engine/
 │   ├── metrics/             # Prometheus metrics, cost tracking
 │   ├── middleware/          # HTTP middleware
 │   └── telemetry/           # Observability
+├── igris-runtime/           # Offline/Embedded Runtime (separate product)
 ├── rust-core/
 │   └── rust_kernel/         # Rust FFI library
 │       ├── src/
@@ -583,10 +592,10 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## Support
 
-- **Documentation:** [https://docs.schlep-engine.com](https://docs.schlep-engine.com)
-- **Issues:** [GitHub Issues](https://github.com/yourusername/schlep-engine/issues)
-- **Email:** support@schlep-engine.com
-- **Discord:** [Join our community](https://discord.gg/schlep-engine)
+- **Documentation:** [https://docs.igris-inertial.com](https://docs.igris-inertial.com)
+- **Issues:** [GitHub Issues](https://github.com/Schlep-engine/igris-inertial/issues)
+- **Email:** support@igris-inertial.com
+- **Discord:** [Join our community](https://discord.gg/igris-inertial)
 
 ---
 

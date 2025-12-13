@@ -90,21 +90,21 @@ jobs:
       - name: Build test binaries
         run: |
           echo "Building API server..."
-          go build -o bin/schlep-engine-api ./cmd/schlep-engine-api
+          go build -o bin/igris-overture ./cmd/igris-overture
 
           echo "Building test binaries..."
           go test -c -o bin/e2e_tests ./tests/...
 
       - name: Start API server in background
         run: |
-          echo "Starting Schlep Engine API server..."
+          echo "Starting Igris Overture API server..."
           export DATABASE_URL="${{ env.DATABASE_URL }}"
           export REDIS_URL="${{ env.REDIS_URL }}"
           export PORT=8081
           export LOG_LEVEL=debug
           export PROVIDER_SIMULATOR_URL="${{ env.PROVIDER_SIMULATOR_URL }}"
 
-          ./bin/schlep-engine-api > logs/api_test.log 2>&1 &
+          ./bin/igris-overture > logs/api_test.log 2>&1 &
           API_PID=$!
           echo "API_PID=$API_PID" >> $GITHUB_ENV
 

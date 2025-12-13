@@ -36,15 +36,15 @@ No. Start with one endpoint or service. Gradual migration works perfectly.
 
 ### What if a provider goes down?
 
-Schlep Engine **automatically fails over** to the next best provider in &lt;30 seconds. Your requests never fail.
+Igris Overture **automatically fails over** to the next best provider in &lt;30 seconds. Your requests never fail.
 
 ---
 
 ## Getting Started
 
-### What is Schlep Engine?
+### What is Igris Overture?
 
-Schlep Engine is an **AI routing and cost optimization platform** that sits between your app and multiple LLM providers. Instead of managing OpenAI, Anthropic, Google separately, you make one API call—Schlep Engine routes it to the best provider based on cost, speed, and quality.
+Igris Overture is an **AI routing and cost optimization platform** that sits between your app and multiple LLM providers. Instead of managing OpenAI, Anthropic, Google separately, you make one API call—Igris Overture routes it to the best provider based on cost, speed, and quality.
 
 **Think of it as a smart load balancer for AI.**
 
@@ -52,7 +52,7 @@ Schlep Engine is an **AI routing and cost optimization platform** that sits betw
 
 Using OpenAI directly = one provider, one point of failure, manual cost management.
 
-Using Schlep Engine = automatic routing across OpenAI, Anthropic, Google, etc. with:
+Using Igris Overture = automatic routing across OpenAI, Anthropic, Google, etc. with:
 - **30-40% cost savings** from intelligent provider selection
 - **Zero-downtime failover** if OpenAI goes down
 - **60% faster responses** with Speculative Execution (races multiple providers)
@@ -82,7 +82,7 @@ response = client.chat.completions.create(
 )
 ```
 
-Schlep Engine is **100% OpenAI-compatible**. Use any OpenAI SDK (Python, Node.js, Go, etc.) with zero code changes beyond the base URL.
+Igris Overture is **100% OpenAI-compatible**. Use any OpenAI SDK (Python, Node.js, Go, etc.) with zero code changes beyond the base URL.
 
 ---
 
@@ -102,7 +102,7 @@ No! The trial requires no credit card. Simply sign up and start using all featur
 
 ### What happens after the trial ends?
 
-Your account will be paused. You can upgrade to Develop, Growth, or Scale tier anytime to continue using Schlep Engine.
+Your account will be paused. You can upgrade to Develop, Growth, or Scale tier anytime to continue using Igris Overture.
 
 ### Can I change tiers mid-month?
 
@@ -156,7 +156,7 @@ Cognitive Advisor is an **AI-driven routing assistant** that provides recommenda
 
 ### What is BYOK (Bring Your Own Key)?
 
-BYOK allows you to use **your own LLM provider API keys** instead of Schlep Engine's. Keys are:
+BYOK allows you to use **your own LLM provider API keys** instead of Igris Overture's. Keys are:
 - **AES-256 encrypted** in storage
 - **Isolated per tenant** (no cross-tenant access)
 - **Rotatable** with zero-downtime support
@@ -180,7 +180,7 @@ BYOK allows you to use **your own LLM provider API keys** instead of Schlep Engi
 
 ### Can I use multiple providers simultaneously?
 
-Yes! Schlep Engine routes requests across all configured providers based on:
+Yes! Igris Overture routes requests across all configured providers based on:
 - Thompson Sampling scores
 - Semantic routing classification
 - Cost optimization goals
@@ -197,9 +197,9 @@ Semantic Routing uses an **ONNX-powered ML classifier** to classify prompts into
 
 ## Technical
 
-### What architecture does Schlep Engine use?
+### What architecture does Igris Overture use?
 
-Schlep Engine uses a **hybrid polyglot architecture:**
+Igris Overture uses a **hybrid polyglot architecture:**
 - **Go** - HTTP gateway, routing, middleware
 - **Rust** - Thompson Sampling optimizer (FFI)
 - **Python** - ML semantic classifier (gRPC)
@@ -220,7 +220,7 @@ The Rust optimizer is a **high-performance Thompson Sampling implementation** ca
 - **Structured JSON logging** with trace correlation
 - **Grafana dashboards** (templates provided)
 
-### Can I self-host Schlep Engine?
+### Can I self-host Igris Overture?
 
 Yes! Self-hosting is available on the **Scale tier** with:
 - Kubernetes Helm charts
@@ -233,7 +233,7 @@ Yes! Self-hosting is available on the **Scale tier** with:
 - **Growth:** 99.5% uptime (enforced)
 - **Scale:** 99.9% uptime (enforced, customizable)
 
-### How fast is Schlep Engine?
+### How fast is Igris Overture?
 
 **Latency:**
 - API gateway P95: &lt;95ms
@@ -324,7 +324,7 @@ for chunk in response:
 
 ### Can I use cURL?
 
-Yes! Schlep Engine is a standard HTTP API:
+Yes! Igris Overture is a standard HTTP API:
 
 ```bash
 curl -X POST http://localhost:8081/v1/infer \
@@ -339,9 +339,9 @@ curl -X POST http://localhost:8081/v1/infer \
 
 ## Deployment
 
-### Where can I deploy Schlep Engine?
+### Where can I deploy Igris Overture?
 
-- **Cloud Hosted** - Managed by Schlep Engine (all tiers)
+- **Cloud Hosted** - Managed by Igris Overture (all tiers)
 - **Self-Hosted** - Your infrastructure (Scale tier only)
   - AWS, GCP, Azure
   - On-premise Kubernetes
@@ -401,7 +401,7 @@ Yes! Submit feature requests via:
 Common causes:
 1. **Invalid API key** - Check your `OPENAI_API_KEY` or provider credentials
 2. **Rate limit exceeded** - Check tier limits in dashboard
-3. **Provider down** - Schlep Engine will auto-fallback to next provider
+3. **Provider down** - Igris Overture will auto-fallback to next provider
 4. **Invalid model name** - Verify model is supported by the provider
 
 ### How do I check system health?
@@ -449,7 +449,7 @@ Enable Speculative Execution (Growth+) to reduce latency by 60%.
 
 ### Can I contribute?
 
-Yes! Schlep Engine is open source (MIT license). See [CONTRIBUTING.md](https://github.com/schlep-engine/schlep-engine/blob/main/CONTRIBUTING.md) for guidelines.
+Yes! Igris Overture is open source (MIT license). See [CONTRIBUTING.md](https://github.com/schlep-engine/schlep-engine/blob/main/CONTRIBUTING.md) for guidelines.
 
 ---
 

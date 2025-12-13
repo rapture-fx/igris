@@ -12,9 +12,9 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/schlep-engine/go-sdk/pkg/client"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	"github.com/schlep-engine/go-sdk/pkg/models"
+	"github.com/igris-inertial/go-sdk/pkg/client"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/models"
 )
 
 // DataProcessingService demonstrates a microservice using Schlep-engine SDK
@@ -28,7 +28,7 @@ func NewDataProcessingService() (*DataProcessingService, error) {
 	// Load configuration from environment
 	cfg := &config.Config{
 		APIKey:                os.Getenv("SCHLEP_API_KEY"),
-		BaseURL:              getEnvOrDefault("SCHLEP_BASE_URL", "https://api.schlep-engine.com"),
+		BaseURL:              getEnvOrDefault("SCHLEP_BASE_URL", "https://api.igris-inertial.com"),
 		EnableMetrics:         true,
 		EnableTracing:         true,
 		EnableLogging:         true,

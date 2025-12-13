@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: schlep-engine-ml-api
+  name: igris-inertial-ml-api
   namespace: production
   labels:
-    app: schlep-engine-ml-api
+    app: igris-inertial-ml-api
     version: v1
     tier: ml-serving
 spec:
@@ -16,24 +16,24 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      app: schlep-engine-ml-api
+      app: igris-inertial-ml-api
   template:
     metadata:
       labels:
-        app: schlep-engine-ml-api
+        app: igris-inertial-ml-api
         version: v1
     spec:
       containers:
       - name: ml-api
-        image: schlep-engine/ml-api:latest
+        image: igris-inertial/ml-api:latest
         ports:
         - containerPort: 8000
           name: http
         env:
-        - name: SCHLEP_ENGINE_API_KEY
+        - name: IGRIS_OVERTURE_API_KEY
           valueFrom:
             secretKeyRef:
-              name: schlep-engine-secrets
+              name: igris-inertial-secrets
               key: api-key
         - name: MODEL_PATH
           value: "/models"
@@ -80,10 +80,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: schlep-engine-ml-api-service
+  name: igris-inertial-ml-api-service
   namespace: production
   labels:
-    app: schlep-engine-ml-api
+    app: igris-inertial-ml-api
 spec:
   type: ClusterIP
   ports:
@@ -92,13 +92,13 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: schlep-engine-ml-api
+    app: igris-inertial-ml-api
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: schlep-engine-ml-api-ingress
+  name: igris-inertial-ml-api-ingress
   namespace: production
   annotations:
     kubernetes.io/ingress.class: "nginx"
@@ -108,17 +108,17 @@ metadata:
 spec:
   tls:
   - hosts:
-    - ml-api.schlep-engine.com
+    - ml-api.igris-inertial.com
     secretName: ml-api-tls
   rules:
-  - host: ml-api.schlep-engine.com
+  - host: ml-api.igris-inertial.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: schlep-engine-ml-api-service
+            name: igris-inertial-ml-api-service
             port:
               number: 80
 
@@ -140,13 +140,13 @@ spec:
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: schlep-engine-ml-api-hpa
+  name: igris-inertial-ml-api-hpa
   namespace: production
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: schlep-engine-ml-api
+    name: igris-inertial-ml-api
   minReplicas: 2
   maxReplicas: 10
   metrics:
@@ -167,7 +167,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: schlep-engine-ml-config
+  name: igris-inertial-ml-config
   namespace: production
 data:
   config.yaml: |
@@ -193,7 +193,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: schlep-engine-secrets
+  name: igris-inertial-secrets
   namespace: production
 type: Opaque
 data:
@@ -204,10 +204,10 @@ data:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: schlep-engine-ml-api-pdb
+  name: igris-inertial-ml-api-pdb
   namespace: production
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: schlep-engine-ml-api
+      app: igris-inertial-ml-api

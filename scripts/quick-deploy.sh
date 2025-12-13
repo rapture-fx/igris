@@ -4,7 +4,7 @@
 # Run this on your local machine to deploy to VPS
 
 VPS_IP="45.77.44.216"
-PROJECT_DIR="/opt/schlep-engine"
+PROJECT_DIR="/opt/igris-inertial"
 
 echo "🚀 Deploying Schlep Engine to VPS ($VPS_IP)..."
 
@@ -38,7 +38,7 @@ rsync -avz --progress \
     --exclude="__pycache__/" \
     --exclude=".next/" \
     --exclude="*.log" \
-    ./ root@$VPS_IP:/tmp/schlep-engine-deploy/
+    ./ root@$VPS_IP:/tmp/igris-inertial-deploy/
 
 # Step 2: Execute deployment on VPS
 print_status "Executing deployment on VPS..."
@@ -46,11 +46,11 @@ ssh root@$VPS_IP << 'ENDSSH'
     set -e
     
     # Create project directory
-    mkdir -p /opt/schlep-engine
+    mkdir -p /opt/igris-inertial
     
     # Copy files
-    cp -r /tmp/schlep-engine-deploy/* /opt/schlep-engine/
-    cd /opt/schlep-engine
+    cp -r /tmp/igris-inertial-deploy/* /opt/igris-inertial/
+    cd /opt/igris-inertial
     
     # Make scripts executable
     chmod +x deploy.sh ssl-setup.sh
@@ -61,8 +61,8 @@ ssh root@$VPS_IP << 'ENDSSH'
     echo ""
     echo "🎉 Deployment completed!"
     echo "📋 Next steps:"
-    echo "   1. Edit /opt/schlep-engine/.env with your OAuth credentials"
-    echo "   2. Run: cd /opt/schlep-engine && ./ssl-setup.sh"
+    echo "   1. Edit /opt/igris-inertial/.env with your OAuth credentials"
+    echo "   2. Run: cd /opt/igris-inertial && ./ssl-setup.sh"
     echo "   3. Run: docker-compose restart"
 ENDSSH
 
@@ -71,7 +71,7 @@ print_warning "Don't forget to configure OAuth credentials and run SSL setup!"
 
 echo ""
 echo "🌐 Your applications will be available at:"
-echo "   Main Site: https://schlep-engine.com"
-echo "   API: https://api.schlep-engine.com"  
-echo "   Admin: https://admin.schlep-engine.com"
-echo "   Docs: https://docs.schlep-engine.com"
+echo "   Main Site: https://igris-inertial.com"
+echo "   API: https://api.igris-inertial.com"  
+echo "   Admin: https://admin.igris-inertial.com"
+echo "   Docs: https://docs.igris-inertial.com"

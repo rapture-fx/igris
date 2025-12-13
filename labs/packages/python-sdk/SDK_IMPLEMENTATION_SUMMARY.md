@@ -112,7 +112,7 @@ Based on the FastAPI backend routes, implemented all major endpoints:
 
 ```
 /packages/python-sdk/
-├── schlep_engine/                 # Main package
+├── igris_overture/                 # Main package
 │   ├── __init__.py               # Package init with Schlep-engine branding
 │   ├── py.typed                  # Type annotations marker
 │   ├── api/                      # API endpoint implementations
@@ -168,7 +168,7 @@ result = client.data.process_file("data.csv")
 
 ### Comprehensive Error Handling
 ```python
-from schlep_engine.exceptions import RateLimitError, ValidationError
+from igris_overture.exceptions import RateLimitError, ValidationError
 
 try:
     result = await client.ml.train_pipeline(pipeline_id)
@@ -180,7 +180,7 @@ except ValidationError as e:
 
 ### Type Safety
 ```python
-from schlep_engine.models.ml import MLPipelineConfig, MLTaskType
+from igris_overture.models.ml import MLPipelineConfig, MLTaskType
 
 config = MLPipelineConfig(
     name="My Pipeline",
@@ -205,7 +205,7 @@ Results: ✅ 9/9 tests passed
 The SDK is ready for PyPI publication:
 
 ```bash
-pip install schlep-engine
+pip install igris-inertial
 ```
 
 ## 🔧 Development Setup
@@ -234,7 +234,7 @@ pip install -e .  # Development install
 ## 🎯 Compliance with Requirements
 
 ✅ **Package Structure**: Complete Python package in `/packages/python-sdk/`  
-✅ **Installation**: Configured for `pip install schlep-engine`  
+✅ **Installation**: Configured for `pip install igris-inertial`  
 ✅ **Company Branding**: "Schlep-engine" used consistently throughout  
 ✅ **Authentication**: API key and JWT token support  
 ✅ **API Coverage**: All FastAPI endpoints implemented  

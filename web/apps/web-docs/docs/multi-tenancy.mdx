@@ -1,12 +1,12 @@
 # Multi-Tenancy Guide
 
-**TL;DR:** Schlep Engine provides complete tenant isolation with BYOK (Bring Your Own Key), per-tenant budgets, and usage tracking. Perfect for SaaS platforms serving multiple customers.
+**TL;DR:** Igris Overture provides complete tenant isolation with BYOK (Bring Your Own Key), per-tenant budgets, and usage tracking. Perfect for SaaS platforms serving multiple customers.
 
 ---
 
 ## What You Get
 
-Multi-tenancy in Schlep Engine ensures:
+Multi-tenancy in Igris Overture ensures:
 
 - **Complete Isolation**: Tenant data never mixes - each tenant has their own space
 - **BYOK Support**: Each tenant brings their own provider API keys (OpenAI, Anthropic, etc.)
@@ -269,7 +269,7 @@ You'll receive alerts when spending approaches limits:
 ```
 Subject: Budget Alert - 90% of Monthly Limit Reached
 
-Your Schlep Engine account has used 90% of your monthly budget:
+Your Igris Overture account has used 90% of your monthly budget:
 
 Budget: $5,000.00
 Used: $4,500.00
@@ -421,7 +421,7 @@ POST /v1/admin/tenants/{tenant_id}/resume
 
 ## Complete Isolation
 
-Every aspect of Schlep Engine enforces tenant isolation:
+Every aspect of Igris Overture enforces tenant isolation:
 
 - **API Keys**: Each tenant has unique API keys
 - **Provider Keys**: Tenant provider keys are encrypted and isolated

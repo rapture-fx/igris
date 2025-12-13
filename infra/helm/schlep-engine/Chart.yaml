@@ -1,5 +1,5 @@
 apiVersion: v2
-name: schlep-engine
+name: igris-inertial
 description: Enterprise ML Inference Platform with Multi-Tier Caching and Observability
 type: application
 version: 1.0.0
@@ -14,7 +14,7 @@ keywords:
 
 maintainers:
   - name: Schlep-Engine Team
-    email: team@schlep-engine.com
+    email: team@igris-inertial.com
 
 dependencies:
   - name: redis

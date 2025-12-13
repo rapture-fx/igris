@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**TL;DR:** Schlep Engine is a high-performance routing platform that sits between your app and LLM providers, intelligently selecting the best provider for each request.
+**TL;DR:** Igris Overture is a high-performance routing platform that sits between your app and LLM providers, intelligently selecting the best provider for each request.
 
 ---
 
@@ -9,7 +9,7 @@
 ```text
 Your Application
       ↓
-Schlep Engine API
+Igris Overture API
       ↓
    Intelligent Router
    ├─ Thompson Sampling (learns best provider)
@@ -29,7 +29,7 @@ Multiple LLM Providers
 
 ## What Happens to Your Request
 
-1. **Your app makes a request** to Schlep Engine (same format as OpenAI)
+1. **Your app makes a request** to Igris Overture (same format as OpenAI)
 2. **Router analyzes the request** and selects the best provider
 3. **Request goes to the selected provider** (OpenAI, Anthropic, etc.)
 4. **Response comes back** with metadata about cost, latency, and routing
@@ -41,7 +41,7 @@ Multiple LLM Providers
 
 ### Intelligent Router
 
-The brain of Schlep Engine. Uses multiple algorithms to select the right provider:
+The brain of Igris Overture. Uses multiple algorithms to select the right provider:
 
 - **Thompson Sampling**: Learns which provider performs best for your workload
 - **Semantic Routing**: Matches request types to optimal providers (e.g., code → DeepSeek, creative → Claude)

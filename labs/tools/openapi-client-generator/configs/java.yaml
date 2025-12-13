@@ -8,9 +8,9 @@ package-version: "2.0.0"
 # Java-specific configuration
 additional-properties:
   groupId: com.schlepengine
-  artifactId: schlep-engine-client
+  artifactId: igris-inertial-client
   artifactVersion: 2.0.0
-  artifactUrl: https://github.com/schlep-engine/java-client
+  artifactUrl: https://github.com/igris-inertial/java-client
   artifactDescription: "Java client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
   
   # Java configuration
@@ -44,9 +44,9 @@ additional-properties:
   
   # Developer info
   developerName: "Schlep-engine Team"
-  developerEmail: "support@schlep-engine.com"
+  developerEmail: "support@igris-inertial.com"
   developerOrganization: "Schlep-engine"
-  developerOrganizationUrl: "https://schlep-engine.com"
+  developerOrganizationUrl: "https://igris-inertial.com"
   
   # License
   licenseName: "MIT"

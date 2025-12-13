@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/schlep-engine/schlep-engine/internal/cache"
-	"github.com/schlep-engine/schlep-engine/internal/policies"
-	"github.com/schlep-engine/schlep-engine/internal/router"
+	"github.com/Schlep-engine/igris-inertial/internal/cache"
+	"github.com/Schlep-engine/igris-inertial/internal/policies"
+	"github.com/Schlep-engine/igris-inertial/internal/router"
 )
 
 // TestPolicyDSLParsing validates policy YAML parsing

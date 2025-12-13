@@ -68,7 +68,7 @@ type Config struct {
 // DefaultConfig returns a configuration with sensible defaults for cloud-native applications
 func DefaultConfig() *Config {
 	return &Config{
-		BaseURL:                      "https://api.schlep-engine.com",
+		BaseURL:                      "https://api.igris-inertial.com",
 		Timeout:                      30 * time.Second,
 		MaxRetries:                   3,
 		RetryWaitTime:               1 * time.Second,
@@ -82,7 +82,7 @@ func DefaultConfig() *Config {
 		EnableTracing:               true,
 		EnableLogging:               true,
 		LogLevel:                    "info",
-		ServiceName:                 "schlep-engine-client",
+		ServiceName:                 "igris-inertial-client",
 		ServiceVersion:              "1.0.0",
 		MaxIdleConns:                100,
 		MaxIdleConnsPerHost:         10,
@@ -94,7 +94,7 @@ func DefaultConfig() *Config {
 		EnableRateLimit:             false,
 		RateLimit:                   100, // 100 requests per second
 		RateBurst:                   200, // burst up to 200
-		UserAgent:                   "schlep-engine-go-sdk/1.0.0",
+		UserAgent:                   "igris-inertial-go-sdk/1.0.0",
 		CustomHeaders:               make(map[string]string),
 		Debug:                       false,
 		InsecureSkipVerify:          false,
@@ -111,11 +111,11 @@ func LoadConfig() (*Config, error) {
 	}
 
 	// Try to load from config file
-	viper.SetConfigName("schlep-engine")
+	viper.SetConfigName("igris-inertial")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".")
-	viper.AddConfigPath("$HOME/.schlep-engine")
-	viper.AddConfigPath("/etc/schlep-engine")
+	viper.AddConfigPath("$HOME/.igris-inertial")
+	viper.AddConfigPath("/etc/igris-inertial")
 
 	// Read config file if it exists
 	if err := viper.ReadInConfig(); err == nil {
@@ -389,9 +389,9 @@ func GetSDKInfo() map[string]interface{} {
 		"version":      "1.0.0",
 		"company":      "Schlep-engine",
 		"description":  "Official Go SDK for Schlep-engine API - Cloud-native data processing platform",
-		"documentation": "https://docs.schlep-engine.com/sdk/go",
-		"support":      "https://support.schlep-engine.com",
-		"github":       "https://github.com/schlep-engine/go-sdk",
+		"documentation": "https://docs.igris-inertial.com/sdk/go",
+		"support":      "https://support.igris-inertial.com",
+		"github":       "https://github.com/igris-inertial/go-sdk",
 		"go_version":   "1.21+",
 		"features": []string{
 			"Cloud-native ready",

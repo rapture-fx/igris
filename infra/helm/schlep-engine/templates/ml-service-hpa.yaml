@@ -2,15 +2,15 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "schlep-engine.fullname" . }}-ml-service
+  name: {{ include "igris-inertial.fullname" . }}-ml-service
   labels:
-    {{- include "schlep-engine.labels" . | nindent 4 }}
+    {{- include "igris-inertial.labels" . | nindent 4 }}
     app.kubernetes.io/component: ml-service
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "schlep-engine.fullname" . }}-ml-service
+    name: {{ include "igris-inertial.fullname" . }}-ml-service
   minReplicas: {{ .Values.mlService.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.mlService.autoscaling.maxReplicas }}
   metrics:

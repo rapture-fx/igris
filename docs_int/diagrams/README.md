@@ -25,12 +25,12 @@ Customer-facing diagrams that abstract implementation details and focus on conce
 
 | Diagram | Description | File |
 |---------|-------------|------|
-| **Public Overview** | High-level conceptual architecture for external documentation | `schlep_engine_public_overview.mmd` |
+| **Public Overview** | High-level conceptual architecture for external documentation | `igris_overture_public_overview.mmd` |
 
 ## Architecture Components (Synchronized with Codebase)
 
 ### Go Layer
-- **InferHandler** (`cmd/schlep-engine-api/handlers/infer.go`)
+- **InferHandler** (`cmd/igris-overture/handlers/infer.go`)
 - **ShadowRunner** (`internal/inference/optimizer/shadow/shadow_runner.go`)
 - **InferenceRouter** (`internal/router/`)
 - **ProviderRegistry** (`internal/providers/`)

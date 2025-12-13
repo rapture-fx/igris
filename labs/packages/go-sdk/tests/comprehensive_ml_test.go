@@ -10,10 +10,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/client"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	"github.com/schlep-engine/go-sdk/pkg/models/common"
-	"github.com/schlep-engine/go-sdk/pkg/models/ml"
+	"github.com/igris-inertial/go-sdk/pkg/client"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/models/common"
+	"github.com/igris-inertial/go-sdk/pkg/models/ml"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -964,7 +964,7 @@ func TestModelVersioning(t *testing.T) {
 				VersionID:    "v2.0",
 				Environment:  "production",
 				Status:       "deploying",
-				EndpointURL:  "https://api.schlep-engine.com/ml/pipeline-123/predict",
+				EndpointURL:  "https://api.igris-inertial.com/ml/pipeline-123/predict",
 			}
 
 			response := common.APIResponse{

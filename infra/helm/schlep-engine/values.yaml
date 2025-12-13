@@ -1,4 +1,4 @@
-# Default values for schlep-engine
+# Default values for igris-inertial
 # This is a YAML-formatted file.
 
 global:
@@ -10,7 +10,7 @@ gateway:
   enabled: true
   replicaCount: 3
   image:
-    repository: schlep-engine/go-gateway
+    repository: igris-inertial/go-gateway
     pullPolicy: IfNotPresent
     tag: "2.0.0"
 
@@ -27,14 +27,14 @@ gateway:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
       nginx.ingress.kubernetes.io/rate-limit: "100"
     hosts:
-      - host: api.schlep-engine.com
+      - host: api.igris-inertial.com
         paths:
           - path: /
             pathType: Prefix
     tls:
-      - secretName: schlep-engine-tls
+      - secretName: igris-inertial-tls
         hosts:
-          - api.schlep-engine.com
+          - api.igris-inertial.com
 
   resources:
     limits:
@@ -86,7 +86,7 @@ rustKernel:
   enabled: true
   replicaCount: 2
   image:
-    repository: schlep-engine/rust-kernel
+    repository: igris-inertial/rust-kernel
     pullPolicy: IfNotPresent
     tag: "2.0.0"
 
@@ -111,7 +111,7 @@ mlService:
   enabled: true
   replicaCount: 5
   image:
-    repository: schlep-engine/ml-service
+    repository: igris-inertial/ml-service
     pullPolicy: IfNotPresent
     tag: "2.0.0"
 
@@ -167,7 +167,7 @@ postgresql:
   auth:
     username: schlep
     password: "schlep-db-secret"
-    database: schlep_engine
+    database: igris_overture
   primary:
     persistence:
       enabled: true
@@ -240,7 +240,7 @@ persistence:
 serviceAccount:
   create: true
   annotations: {}
-  name: "schlep-engine"
+  name: "igris-inertial"
 
 # Network Policies
 networkPolicy:

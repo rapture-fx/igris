@@ -1,6 +1,6 @@
 # Introduction
 
-**TL;DR:** Stop wrestling with multiple AI providers. Schlep Engine routes your requests to the best provider automatically — optimizing for cost, speed, and reliability in real-time.
+**TL;DR:** Stop wrestling with multiple AI providers. Igris Overture routes your requests to the best provider automatically — optimizing for cost, speed, and reliability in real-time.
 
 ---
 
@@ -14,7 +14,7 @@ You add Anthropic as a backup. Now you're managing two APIs, two auth flows, two
 
 ---
 
-## What Schlep Engine Does
+## What Igris Overture Does
 
 One API call. Multiple providers. Intelligent routing. Automatic failover.
 
@@ -33,7 +33,7 @@ response = client.chat.completions.create(
     model="gpt-4",
     messages=[{"role": "user", "content": "Hello"}]
 )
-# Schlep Engine handles routing, failover, and optimization
+# Igris Overture handles routing, failover, and optimization
 ```
 
 ### What You Get
@@ -49,7 +49,7 @@ response = client.chat.completions.create(
 - Cost-aware selection saves 30-40% on AI spend
 
 **Zero-Downtime Failover:**
-- Provider down? Schlep Engine routes to the next best option
+- Provider down? Igris Overture routes to the next best option
 - Circuit breakers detect failures automatically
 - Automatic retries with exponential backoff
 
@@ -100,13 +100,13 @@ except Exception as e:
 ```python
 from openai import OpenAI
 
-# Point to Schlep Engine
+# Point to Igris Overture
 client = OpenAI(
     base_url="https://api.schlep.cloud/v1",
     api_key="your-api-key"
 )
 
-# Make your request - Schlep Engine handles everything
+# Make your request - Igris Overture handles everything
 response = client.chat.completions.create(
     model="gpt-4",
     messages=[{"role": "user", "content": prompt}]
@@ -269,7 +269,7 @@ Run in your own infrastructure with full control:
 ### 5-Minute Quick Start
 
 1. **Start free trial** (no credit card)
-2. **Point your OpenAI SDK** to Schlep Engine
+2. **Point your OpenAI SDK** to Igris Overture
 3. **Make requests** - automatic routing enabled
 4. **Check dashboard** - see cost savings and routing decisions
 

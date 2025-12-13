@@ -15,7 +15,7 @@ additional-properties:
   packageAuthors: "Schlep-engine Team"
   packageCopyright: "Copyright © Schlep-engine 2024"
   packageDescription: "C# client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
-  packageKeywords: "data-processing,machine-learning,api-client,schlep-engine,csharp,dotnet"
+  packageKeywords: "data-processing,machine-learning,api-client,igris-inertial,csharp,dotnet"
   
   # .NET configuration
   targetFramework: net6.0
@@ -47,8 +47,8 @@ additional-properties:
   generateAsyncMethods: true
   
   # Repository info
-  repositoryUrl: https://github.com/schlep-engine/csharp-client
-  projectUrl: https://schlep-engine.com
+  repositoryUrl: https://github.com/igris-inertial/csharp-client
+  projectUrl: https://igris-inertial.com
   
   # License
   licenseName: MIT
@@ -149,9 +149,9 @@ publishing:
   # NuGet metadata
   nuget-metadata:
     repository-type: "git"
-    repository-url: "https://github.com/schlep-engine/csharp-client.git"
+    repository-url: "https://github.com/igris-inertial/csharp-client.git"
     repository-branch: "main"
-    project-url: "https://schlep-engine.com"
-    icon-url: "https://schlep-engine.com/icon.png"
-    release-notes-url: "https://github.com/schlep-engine/csharp-client/releases"
+    project-url: "https://igris-inertial.com"
+    icon-url: "https://igris-inertial.com/icon.png"
+    release-notes-url: "https://github.com/igris-inertial/csharp-client/releases"
     tags: "api-client,data-processing,machine-learning"

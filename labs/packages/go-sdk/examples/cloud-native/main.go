@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/schlep-engine/go-sdk/pkg/client"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	"github.com/schlep-engine/go-sdk/pkg/models"
+	"github.com/igris-inertial/go-sdk/pkg/client"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/models"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
@@ -78,7 +78,7 @@ func loadCloudNativeConfig() *config.Config {
 		APIKey: getRequiredEnv("SCHLEP_API_KEY"),
 
 		// Connection settings
-		BaseURL: getEnvOrDefault("SCHLEP_BASE_URL", "https://api.schlep-engine.com"),
+		BaseURL: getEnvOrDefault("SCHLEP_BASE_URL", "https://api.igris-inertial.com"),
 		Timeout: time.Duration(getEnvAsInt("SCHLEP_TIMEOUT_SECONDS", 60)) * time.Second,
 
 		// Retry configuration (important for cloud environments)
@@ -188,7 +188,7 @@ func (s *CloudNativeService) addCloudNativeHealthChecks() {
 		defer cancel()
 
 		if err := s.schlepClient.Auth.TestConnection(ctx); err != nil {
-			return fmt.Errorf("schlep-engine API not reachable: %w", err)
+			return fmt.Errorf("igris-inertial API not reachable: %w", err)
 		}
 
 		// Check if streaming is connected (if enabled)
@@ -205,7 +205,7 @@ func (s *CloudNativeService) addCloudNativeHealthChecks() {
 	s.schlepClient.AddHealthCheck("kubernetes_liveness", func() error {
 		// Check if we can authenticate with Schlep-engine
 		if !s.schlepClient.IsAuthenticated() {
-			return fmt.Errorf("not authenticated with schlep-engine")
+			return fmt.Errorf("not authenticated with igris-inertial")
 		}
 
 		// Check memory usage

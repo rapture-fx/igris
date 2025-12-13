@@ -1,10 +1,10 @@
 # @schlep/pricing-config
 
-Canonical pricing configuration package for Schlep Engine's inference orchestration platform.
+Canonical pricing configuration package for Igris Overture's inference orchestration platform.
 
 ## Overview
 
-This package provides a single source of truth for pricing tiers, quotas, and billing calculations across the Schlep Engine platform.
+This package provides a single source of truth for pricing tiers, quotas, and billing calculations across the Igris Overture platform.
 
 ## Features
 

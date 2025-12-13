@@ -66,7 +66,7 @@ internal/slo/action_executor.go:5:2: "context" imported and not used
 
 **After fixes:**
 ```bash
-go build cmd/schlep-engine-api/main.go
+go build cmd/igris-overture/main.go
 ./main
 # Then run stability tests
 cd stability-tests/scripts
@@ -79,7 +79,7 @@ cd stability-tests/scripts
 git log --oneline --all | grep -i "working\|stable\|deploy"
 # Find last working commit
 git checkout <working-commit>
-go run cmd/schlep-engine-api/main.go
+go run cmd/igris-overture/main.go
 ```
 
 ### Option 3: Test Framework with Mock (Immediate)
@@ -178,7 +178,7 @@ Even without running live tests yet, you have:
 
 2. **Verify API starts**:
    ```bash
-   go run cmd/schlep-engine-api/main.go
+   go run cmd/igris-overture/main.go
    curl http://localhost:8080/healthz
    ```
 
@@ -219,7 +219,7 @@ Once API compiles:
 ```bash
 # 1. Start API
 export PROVIDER_MODE=benchmark
-go run cmd/schlep-engine-api/main.go
+go run cmd/igris-overture/main.go
 
 # 2. Run tests (new terminal)
 cd stability-tests/scripts

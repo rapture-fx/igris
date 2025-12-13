@@ -270,7 +270,7 @@ jobs:
         cd apps/${{ matrix.app }}
         pnpm run build
       env:
-        NEXT_PUBLIC_API_URL: https://api.staging.schlep-engine.com
+        NEXT_PUBLIC_API_URL: https://api.staging.igris-inertial.com
         NEXT_PUBLIC_APP_ENV: test
 
     - name: Upload test results
@@ -561,7 +561,7 @@ jobs:
     if: github.ref == 'refs/heads/develop'
     environment: 
       name: staging
-      url: https://staging.schlep-engine.com
+      url: https://staging.igris-inertial.com
     
     steps:
     - name: Checkout code
@@ -592,15 +592,15 @@ jobs:
     - name: Health check
       run: |
         sleep 30
-        curl -f https://staging.schlep-engine.com/api/v1/health || exit 1
-        curl -f https://staging.schlep-engine.com || exit 1
+        curl -f https://staging.igris-inertial.com/api/v1/health || exit 1
+        curl -f https://staging.igris-inertial.com || exit 1
 
     - name: Run smoke tests
       run: |
         cd apps/api
         python -m pytest tests/smoke/ -v || echo "Smoke tests failed but deployment continues"
       env:
-        API_BASE_URL: https://staging.schlep-engine.com/api/v1
+        API_BASE_URL: https://staging.igris-inertial.com/api/v1
 
   deploy-production:
     name: Deploy to Production
@@ -609,7 +609,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
     environment: 
       name: production
-      url: https://schlep-engine.com
+      url: https://igris-inertial.com
     
     steps:
     - name: Checkout code
@@ -628,7 +628,7 @@ jobs:
 
     - name: Create database backup
       run: |
-        kubectl exec -n schlep-production $(kubectl get pods -n schlep-production -l app=postgres -o jsonpath='{.items[0].metadata.name}') -- pg_dump -U postgres schlep_engine > backup-$(date +%Y%m%d_%H%M%S).sql
+        kubectl exec -n schlep-production $(kubectl get pods -n schlep-production -l app=postgres -o jsonpath='{.items[0].metadata.name}') -- pg_dump -U postgres igris_overture > backup-$(date +%Y%m%d_%H%M%S).sql
         aws s3 cp backup-$(date +%Y%m%d_%H%M%S).sql s3://schlep-backups/pre-deployment/
 
     - name: Blue-Green Deployment
@@ -655,7 +655,7 @@ jobs:
       run: |
         sleep 60
         for i in {1..5}; do
-          if curl -f https://schlep-engine.com/api/v1/health && curl -f https://schlep-engine.com; then
+          if curl -f https://igris-inertial.com/api/v1/health && curl -f https://igris-inertial.com; then
             echo "Health check passed"
             break
           fi
@@ -673,7 +673,7 @@ jobs:
         cd apps/api
         python -m pytest tests/smoke/ -v
       env:
-        API_BASE_URL: https://schlep-engine.com/api/v1
+        API_BASE_URL: https://igris-inertial.com/api/v1
 
     - name: Cleanup old blue deployment
       run: |
@@ -781,7 +781,7 @@ jobs:
         status: ${{ needs.deploy-production.result }}
         channel: '#deployments'
         text: |
-          **Schlep Engine Deployment ${{ needs.deploy-production.result }}**
+          **Igris Overture Deployment ${{ needs.deploy-production.result }}**
           
           **Environment:** Production
           **Version:** ${{ github.ref }}
@@ -847,7 +847,7 @@ jobs:
         
         # Verify health after rollback
         sleep 30
-        curl -f https://schlep-engine.com/api/v1/health || exit 1
+        curl -f https://igris-inertial.com/api/v1/health || exit 1
         
         echo "Rollback completed successfully"
 

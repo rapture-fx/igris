@@ -6,7 +6,7 @@ services:
     image: postgres:15-alpine
     container_name: schlep_postgres
     environment:
-      POSTGRES_DB: schlep_engine
+      POSTGRES_DB: igris_overture
       POSTGRES_USER: schlep_user
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: /var/lib/postgresql/data/pgdata
@@ -19,7 +19,7 @@ services:
       - schlep_network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U schlep_user -d schlep_engine"]
+      test: ["CMD-SHELL", "pg_isready -U schlep_user -d igris_overture"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -56,14 +56,14 @@ services:
       dockerfile: Dockerfile
     container_name: schlep_backend
     environment:
-      - DATABASE_URL=postgresql://schlep_user:${POSTGRES_PASSWORD}@postgres:5432/schlep_engine
+      - DATABASE_URL=postgresql://schlep_user:${POSTGRES_PASSWORD}@postgres:5432/igris_overture
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
       - SECRET_KEY=${SECRET_KEY}
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
       - ENVIRONMENT=production
       - DEBUG=false
-      - ALLOWED_ORIGINS=https://schlep-engine.com,https://admin.schlep-engine.com,https://docs.schlep-engine.com
-      - ALLOWED_HOSTS=api.schlep-engine.com,45.77.44.216
+      - ALLOWED_ORIGINS=https://igris-inertial.com,https://admin.igris-inertial.com,https://docs.igris-inertial.com
+      - ALLOWED_HOSTS=api.igris-inertial.com,45.77.44.216
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
@@ -77,7 +77,7 @@ services:
       - SMTP_PORT=${SMTP_PORT:-587}
       - SMTP_USERNAME=${SMTP_USERNAME:-}
       - SMTP_PASSWORD=${SMTP_PASSWORD:-}
-      - FROM_EMAIL=${FROM_EMAIL:-notifications@schlep-engine.com}
+      - FROM_EMAIL=${FROM_EMAIL:-notifications@igris-inertial.com}
     ports:
       - "3001:8000"
     depends_on:
@@ -106,9 +106,9 @@ services:
     container_name: schlep_landing
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://api.schlep-engine.com
-      - NEXT_PUBLIC_DOCS_URL=https://docs.schlep-engine.com
-      - NEXT_PUBLIC_ADMIN_URL=https://admin.schlep-engine.com
+      - NEXT_PUBLIC_API_URL=https://api.igris-inertial.com
+      - NEXT_PUBLIC_DOCS_URL=https://docs.igris-inertial.com
+      - NEXT_PUBLIC_ADMIN_URL=https://admin.igris-inertial.com
     ports:
       - "3000:3000"
     networks:
@@ -128,7 +128,7 @@ services:
     container_name: schlep_admin
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://api.schlep-engine.com
+      - NEXT_PUBLIC_API_URL=https://api.igris-inertial.com
       - NEXT_PUBLIC_BYPASS_AUTH=${BYPASS_AUTH:-false}
     ports:
       - "3002:3000"
@@ -149,7 +149,7 @@ services:
     container_name: schlep_docs
     environment:
       - NODE_ENV=production
-      - NEXT_PUBLIC_API_URL=https://api.schlep-engine.com
+      - NEXT_PUBLIC_API_URL=https://api.igris-inertial.com
     ports:
       - "3003:3000"
     networks:
@@ -242,7 +242,7 @@ services:
     container_name: schlep_stream_consumer
     environment:
       - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
-      - DATABASE_URL=postgresql://schlep_user:${POSTGRES_PASSWORD}@postgres:5432/schlep_engine
+      - DATABASE_URL=postgresql://schlep_user:${POSTGRES_PASSWORD}@postgres:5432/igris_overture
       - STREAM_SERVICE_MODE=consumer
       - LOG_LEVEL=INFO
     depends_on:
@@ -268,7 +268,7 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    command: certonly --webroot --webroot-path=/var/www/certbot --email admin@schlep-engine.com --agree-tos --no-eff-email -d schlep-engine.com -d api.schlep-engine.com -d admin.schlep-engine.com -d docs.schlep-engine.com
+    command: certonly --webroot --webroot-path=/var/www/certbot --email admin@igris-inertial.com --agree-tos --no-eff-email -d igris-inertial.com -d api.igris-inertial.com -d admin.igris-inertial.com -d docs.igris-inertial.com
     depends_on:
       - nginx
 

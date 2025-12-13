@@ -7,16 +7,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/client"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	"github.com/schlep-engine/go-sdk/pkg/models"
+	"github.com/igris-inertial/go-sdk/pkg/client"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/models"
 )
 
 func main() {
 	// Initialize client with configuration
 	cfg := &config.Config{
 		APIKey:           os.Getenv("SCHLEP_API_KEY"),
-		BaseURL:          "https://api.schlep-engine.com",
+		BaseURL:          "https://api.igris-inertial.com",
 		EnableMetrics:    true,
 		EnableTracing:    true,
 		EnableLogging:    true,

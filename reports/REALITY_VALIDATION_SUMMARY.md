@@ -824,7 +824,7 @@ The Schlep-Engine codebase demonstrates **production-ready** implementation acro
 
 ### 2. Auto-Sync Feature Matrix with Documentation
 
-**Target:** https://docs.schlep-engine.com/
+**Target:** https://docs.igris-inertial.com/
 
 **Required Updates:**
 - Semantic routing: Confirm ONNX classifier operational
@@ -916,7 +916,7 @@ The Schlep-Engine is production-ready and delivers on all promised differentiato
 
 **Report Generated:** 2025-11-10
 **Audit Completion Time:** ~2 hours
-**Codebase Location:** `/Users/wira/Desktop/schlep-engine`
+**Codebase Location:** `/Users/wira/Desktop/igris-inertial`
 **Total Files Analyzed:** 159 Go files + 7 migrations + Rust core + configs
 **Validation Status:** ✅ **APPROVED FOR PRODUCTION DEPLOYMENT**
 

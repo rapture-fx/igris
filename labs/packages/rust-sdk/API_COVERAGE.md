@@ -11,7 +11,7 @@ The Rust SDK now provides complete coverage of all Schlep-engine API endpoints t
 The SDK is organized using the builder pattern with specialized API clients accessible through the main `SchlepClient`:
 
 ```rust
-use schlep_engine::{SchlepClient, Result};
+use igris_overture::{SchlepClient, Result};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -318,7 +318,7 @@ The main `SchlepClient` includes helper methods used internally by API modules:
 The SDK uses the `Result<T>` type with comprehensive error types:
 
 ```rust
-use schlep_engine::{Result, Error};
+use igris_overture::{Result, Error};
 
 match client.data().process_file(&data, "csv").await {
     Ok(job) => println!("Success: {}", job.job_id),

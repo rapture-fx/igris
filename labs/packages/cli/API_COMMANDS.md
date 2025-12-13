@@ -975,9 +975,9 @@ schlep document ocr scanned-receipt.jpg --output receipt-text.txt
 
 For additional help:
 
-- Documentation: https://docs.schlep-engine.com
-- GitHub Issues: https://github.com/schlep-engine/cli/issues
-- Community Forum: https://community.schlep-engine.com
+- Documentation: https://docs.igris-inertial.com
+- GitHub Issues: https://github.com/igris-inertial/cli/issues
+- Community Forum: https://community.igris-inertial.com
 
 ## Version
 

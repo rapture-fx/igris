@@ -27,7 +27,7 @@ Schlep-Engine is an **LLM inference gateway** with intelligent routing and cost 
                          ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │                    API GATEWAY (Fiber/Go)                        │
-│  - Entry: cmd/schlep-api/main.go                                │
+│  - Entry: cmd/igris-overture/main.go                                │
 │  - Middleware: CORS, Recovery, TraceID, Logging, Metrics        │
 │  - Routes: /v1/infer, /v1/health, /metrics, /admin/*            │
 └────────────────────────┬────────────────────────────────────────┘
@@ -35,7 +35,7 @@ Schlep-Engine is an **LLM inference gateway** with intelligent routing and cost 
                          ↓
 ┌─────────────────────────────────────────────────────────────────┐
 │                   INFERENCE HANDLER LAYER                        │
-│  - File: cmd/schlep-api/handlers/infer.go                       │
+│  - File: cmd/igris-overture/handlers/infer.go                       │
 │  - InferHandler.HandleInfer()                                   │
 │  - Determines: Go Router vs Rust Optimizer                      │
 │  - Handles: Streaming & Non-streaming requests                  │
@@ -134,7 +134,7 @@ Schlep-Engine is an **LLM inference gateway** with intelligent routing and cost 
    - Metrics recording
    ↓
 3. InferHandler.HandleInfer()
-   - Parse InferRequest (cmd/schlep-api/handlers/infer.go:200)
+   - Parse InferRequest (cmd/igris-overture/handlers/infer.go:200)
    - Validate request (models/infer_request.go)
    - Start distributed trace
    ↓
@@ -242,7 +242,7 @@ Request → Sample Rate Check
   - `OPTIMIZER_SAMPLE_RATE=0.05` (start at 5%, gradually increase to 1.0)
 - **Safety**: Automatic Go fallback if Rust fails
 - **Files**:
-  - `cmd/schlep-api/handlers/infer.go:254-299`
+  - `cmd/igris-overture/handlers/infer.go:254-299`
   - `internal/inference/optimizer/slo_breaker.go` (SLO guardrails)
 
 ---
@@ -273,7 +273,7 @@ type Provider interface {
 | `benchmark` | Simulated providers with realistic pricing/latency | Benchmark OpenAI, Benchmark Anthropic |
 | `hybrid` | All of the above | Mock + Real + Benchmark |
 
-**File**: `cmd/schlep-api/handlers/infer.go:44-147`
+**File**: `cmd/igris-overture/handlers/infer.go:44-147`
 
 ### Provider Selection Logic
 
@@ -540,15 +540,15 @@ OptimizerConfig {
 
 | Variable | Default | Description | File |
 |----------|---------|-------------|------|
-| `PORT` | `8080` | HTTP server port | `cmd/schlep-api/main.go:59` |
-| `DEBUG` | `false` | Enable debug logging | `cmd/schlep-api/main.go:17` |
-| `PROVIDER_MODE` | `mock` | Provider mode (mock/real/benchmark/hybrid) | `cmd/schlep-api/handlers/infer.go:44` |
+| `PORT` | `8080` | HTTP server port | `cmd/igris-overture/main.go:59` |
+| `DEBUG` | `false` | Enable debug logging | `cmd/igris-overture/main.go:17` |
+| `PROVIDER_MODE` | `mock` | Provider mode (mock/real/benchmark/hybrid) | `cmd/igris-overture/handlers/infer.go:44` |
 | `OPTIMIZER_MODE` | `shadow` | Optimizer mode (go/shadow/rust) | `internal/config/optimizer_config.go:36` |
 | `OPTIMIZER_SAMPLE_RATE` | `0.0` | Rust optimizer sample rate (0.0-1.0) | `internal/config/optimizer_config.go:37` |
 | `OPTIMIZER_LOG_DIR` | `logs/optimizer` | Shadow comparison log directory | `internal/config/optimizer_config.go:38` |
 | `ADMIN_TOKEN` | `""` | Admin API authentication token | `internal/config/optimizer_config.go:39` |
-| `OPENAI_API_KEY` | `""` | OpenAI API key (BYOK) | `cmd/schlep-api/handlers/infer.go:112` |
-| `ANTHROPIC_API_KEY` | `""` | Anthropic API key (BYOK) | `cmd/schlep-api/handlers/infer.go:130` |
+| `OPENAI_API_KEY` | `""` | OpenAI API key (BYOK) | `cmd/igris-overture/handlers/infer.go:112` |
+| `ANTHROPIC_API_KEY` | `""` | Anthropic API key (BYOK) | `cmd/igris-overture/handlers/infer.go:130` |
 
 ### Runtime Configuration (Hot-Reload)
 
@@ -570,12 +570,12 @@ config.SetSampleRate(0.5)             // Update sample rate (hot-reload)
 ## Key Code References
 
 ### Main Entry Points
-- Server: `cmd/schlep-api/main.go:15-72`
+- Server: `cmd/igris-overture/main.go:15-72`
 - Route Registration: `internal/api/routes_metrics.go:124-136`
 - Middleware Setup: `internal/api/routes_metrics.go:139-147`
 
 ### Inference Flow
-- Handler: `cmd/schlep-api/handlers/infer.go:199-369`
+- Handler: `cmd/igris-overture/handlers/infer.go:199-369`
 - Router: `internal/inference/router/router_integration.go:52-103`
 - Provider Interface: `internal/providers/provider_interface.go:12-37`
 - Provider Implementations:

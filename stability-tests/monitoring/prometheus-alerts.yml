@@ -2,7 +2,7 @@
 # Critical alerts for API stability and customer application protection
 
 groups:
-  - name: schlep_engine_critical_alerts
+  - name: igris_overture_critical_alerts
     interval: 30s
     rules:
       # API Availability Alerts
@@ -21,8 +21,8 @@ groups:
         annotations:
           summary: "High 5xx error rate detected"
           description: "Server error rate is {{ $value | humanizePercentage }} (threshold: 1%). Customer applications may be affected."
-          runbook_url: "https://docs.schlep-engine.com/runbooks/high-error-rate"
-          dashboard: "https://grafana.schlep-engine.com/d/api-health"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/high-error-rate"
+          dashboard: "https://grafana.igris-inertial.com/d/api-health"
 
       - alert: APICompleteOutage
         expr: |
@@ -244,7 +244,7 @@ groups:
           summary: "Circuit breaker flapping for {{ $labels.provider }}"
           description: "Circuit breaker for {{ $labels.provider }} has changed state {{ $value }} times in 10 minutes. Investigate provider instability."
 
-  - name: schlep_engine_slo_alerts
+  - name: igris_overture_slo_alerts
     interval: 1m
     rules:
       # SLO: 99.9% availability
@@ -281,7 +281,7 @@ groups:
           summary: "SLO breach: P95 latency above 2000ms"
           description: "30-minute P95 latency is {{ $value }}ms (SLO: <2000ms)"
 
-  - name: schlep_engine_deployment_alerts
+  - name: igris_overture_deployment_alerts
     interval: 1m
     rules:
       - alert: RecentDeploymentErrorSpike

@@ -16,7 +16,7 @@ services:
       - IPC_LOCK
     environment:
       VAULT_ADDR: 'https://127.0.0.1:8200'
-      VAULT_API_ADDR: 'https://vault.schlep-engine.internal:8200'
+      VAULT_API_ADDR: 'https://vault.igris-inertial.internal:8200'
     command: server
     networks:
       - schlep_network

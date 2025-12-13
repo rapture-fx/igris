@@ -91,7 +91,7 @@ func NewTracer(config TracingConfig) (*Tracer, error) {
 	))
 
 	// Create tracer
-	tracer := tp.Tracer("schlep-engine-go-sdk")
+	tracer := tp.Tracer("igris-inertial-go-sdk")
 
 	return &Tracer{
 		tracer:      tracer,

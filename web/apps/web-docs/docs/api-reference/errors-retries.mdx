@@ -149,7 +149,7 @@ X-RateLimit-Reset: 1701234567
 }
 ```
 
-**Fix:** Retry with exponential backoff. Schlep Engine automatically falls back to healthy providers.
+**Fix:** Retry with exponential backoff. Igris Overture automatically falls back to healthy providers.
 
 ### timeout_error (504)
 
@@ -190,7 +190,7 @@ X-RateLimit-Reset: 1701234567
 }
 ```
 
-**Fix:** Schlep Engine automatically routes to healthy providers. No action needed.
+**Fix:** Igris Overture automatically routes to healthy providers. No action needed.
 
 ## Retry Strategies
 
@@ -315,7 +315,7 @@ func isRetryableError(err error) bool {
 
 ## Automatic Failover
 
-Schlep Engine automatically handles provider failures:
+Igris Overture automatically handles provider failures:
 
 ```bash
 curl https://api.schlep-engine.com/v1/chat/completions \
@@ -390,7 +390,7 @@ except Exception as e:
 ### 503: Provider Down
 
 ```python
-# Schlep Engine automatically falls back to healthy providers
+# Igris Overture automatically falls back to healthy providers
 # No special handling needed!
 
 response = client.chat.completions.create(

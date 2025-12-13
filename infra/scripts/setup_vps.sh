@@ -164,10 +164,10 @@ configure_firewall() {
 create_directories() {
     log_info "Creating directory structure..."
 
-    mkdir -p /opt/schlep-engine/{data,backups,logs}
-    mkdir -p /opt/schlep-engine/data/{postgres,redis,prometheus,grafana}
+    mkdir -p /opt/igris-inertial/{data,backups,logs}
+    mkdir -p /opt/igris-inertial/data/{postgres,redis,prometheus,grafana}
 
-    chmod -R 755 /opt/schlep-engine
+    chmod -R 755 /opt/igris-inertial
 
     log_success "Directory structure created"
 }
@@ -232,8 +232,8 @@ setup_swap() {
 configure_log_rotation() {
     log_info "Configuring log rotation..."
 
-    cat > /etc/logrotate.d/schlep-engine <<EOF
-/opt/schlep-engine/logs/*.log {
+    cat > /etc/logrotate.d/igris-inertial <<EOF
+/opt/igris-inertial/logs/*.log {
     daily
     rotate 14
     compress
@@ -285,9 +285,9 @@ setup_backups() {
     log_info "Setting up automated backups..."
 
     # Create backup script
-    cat > /opt/schlep-engine/scripts/backup.sh <<'EOF'
+    cat > /opt/igris-inertial/scripts/backup.sh <<'EOF'
 #!/bin/bash
-BACKUP_DIR="/opt/schlep-engine/backups"
+BACKUP_DIR="/opt/igris-inertial/backups"
 DATE=$(date +%Y%m%d_%H%M%S)
 
 # Backup PostgreSQL
@@ -307,10 +307,10 @@ find ${BACKUP_DIR} -name "*.gz" -mtime +30 -delete
 echo "Backup completed: ${DATE}"
 EOF
 
-    chmod +x /opt/schlep-engine/scripts/backup.sh
+    chmod +x /opt/igris-inertial/scripts/backup.sh
 
     # Add to crontab (daily at 2 AM)
-    (crontab -l 2>/dev/null; echo "0 2 * * * /opt/schlep-engine/scripts/backup.sh >> /opt/schlep-engine/logs/backup.log 2>&1") | crontab -
+    (crontab -l 2>/dev/null; echo "0 2 * * * /opt/igris-inertial/scripts/backup.sh >> /opt/igris-inertial/logs/backup.log 2>&1") | crontab -
 
     log_success "Automated backups configured (daily at 2 AM)"
 }

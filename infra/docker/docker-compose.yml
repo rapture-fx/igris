@@ -62,7 +62,7 @@ services:
   postgres:
     image: postgres:15
     environment:
-      POSTGRES_DB: schlep_engine
+      POSTGRES_DB: igris_overture
       POSTGRES_USER: schlep_user
       POSTGRES_PASSWORD: schlep_password
     ports:

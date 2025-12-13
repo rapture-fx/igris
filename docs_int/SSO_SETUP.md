@@ -78,7 +78,7 @@ This creates:
 For supported providers, you can use the built-in presets:
 
 ```go
-import "github.com/schlep-engine/internal/auth"
+import "github.com/igris-inertial/internal/auth"
 
 // Example: Configure Auth0
 provider, err := auth.NewOAuth2ProviderFromPreset(
@@ -370,7 +370,7 @@ SSO providers can pass groups and roles in the authentication response. These ar
 Use environment variables or a secrets manager (e.g., HashiCorp Vault, AWS Secrets Manager):
 
 ```go
-import "github.com/schlep-engine/internal/vault"
+import "github.com/igris-inertial/internal/vault"
 
 // Encrypt client secret before storing
 encryptedSecret, err := vault.Encrypt(clientSecret)
@@ -535,10 +535,10 @@ EOF
 ## Support
 
 For additional help:
-- Check the [Schlep-Engine Documentation](https://docs.schlep-engine.com)
+- Check the [Schlep-Engine Documentation](https://docs.igris-inertial.com)
 - Review [provider-specific guides](#provider-specific-configuration)
-- Contact support: support@schlep-engine.com
-- File an issue: https://github.com/schlep-engine/issues
+- Contact support: support@igris-inertial.com
+- File an issue: https://github.com/igris-inertial/issues
 
 ---
 

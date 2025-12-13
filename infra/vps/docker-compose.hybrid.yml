@@ -15,7 +15,7 @@ services:
     ports:
       - "5432:5432"
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-schlep_engine}
+      POSTGRES_DB: ${POSTGRES_DB:-igris_overture}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
       POSTGRES_INITDB_ARGS: "-E UTF8"
@@ -112,7 +112,7 @@ services:
       - SERVER_PORT=8080
       - ML_SERVICE_URL=python-ml:50051
       - POSTGRES_HOST=postgres
-      - POSTGRES_DB=${POSTGRES_DB:-schlep_engine}
+      - POSTGRES_DB=${POSTGRES_DB:-igris_overture}
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
       - REDIS_URL=redis://redis:6379/0

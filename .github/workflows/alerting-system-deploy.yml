@@ -18,7 +18,7 @@ permissions:
   deployments: write
 
 env:
-  MONITORING_NAMESPACE: schlep-engine-monitoring
+  MONITORING_NAMESPACE: igris-inertial-monitoring
   ALERT_MANAGER_VERSION: v0.25.0
   PROMETHEUS_VERSION: v2.45.0
 

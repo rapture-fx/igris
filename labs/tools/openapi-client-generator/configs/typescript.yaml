@@ -2,17 +2,17 @@
 generator-name: typescript-axios
 input-spec: "../../apps/api/openapi.json"
 output-dir: "./generated/typescript"
-package-name: "@schlep-engine/client"
+package-name: "@igris-inertial/client"
 package-version: "2.0.0"
 
 # NPM Package configuration
 additional-properties:
-  npmName: "@schlep-engine/client"
+  npmName: "@igris-inertial/client"
   npmVersion: "2.0.0"
-  npmRepository: "https://github.com/schlep-engine/typescript-client.git"
+  npmRepository: "https://github.com/igris-inertial/typescript-client.git"
   npmDescription: "TypeScript/JavaScript client library for Schlep-engine API - comprehensive data processing and ML pipeline platform"
-  npmAuthor: "Schlep-engine Team <support@schlep-engine.com>"
-  npmKeywords: "data-processing,machine-learning,api-client,schlep-engine,typescript,javascript"
+  npmAuthor: "Schlep-engine Team <support@igris-inertial.com>"
+  npmKeywords: "data-processing,machine-learning,api-client,igris-inertial,typescript,javascript"
   
   # TypeScript-specific configuration
   typescriptThreePlus: true
@@ -95,7 +95,7 @@ publishing:
   enabled: true
   registry: "npm"
   access: "public"
-  package-name: "@schlep-engine/client"
+  package-name: "@igris-inertial/client"
   
 # Build configuration
 build:

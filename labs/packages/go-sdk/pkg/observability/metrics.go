@@ -162,7 +162,7 @@ func NewMetricsCollector(serviceName string, enabled bool) *MetricsCollector {
 	)
 
 	// OpenTelemetry meter
-	otelMeter := otel.Meter("schlep-engine-go-sdk")
+	otelMeter := otel.Meter("igris-inertial-go-sdk")
 
 	return &MetricsCollector{
 		enabled:               true,

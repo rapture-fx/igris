@@ -17,7 +17,7 @@ Speculative execution races multiple LLM providers in parallel and delivers toke
 export ENABLE_SPECULATIVE=true
 
 # Start the server
-./schlep-engine-api
+./igris-overture
 ```
 
 ### Make a Speculative Request
@@ -135,7 +135,7 @@ Add to your Prometheus scrape config:
 
 ```yaml
 scrape_configs:
-  - job_name: 'schlep-engine'
+  - job_name: 'igris-inertial'
     static_configs:
       - targets: ['localhost:8081']
     metrics_path: '/metrics'
@@ -457,7 +457,7 @@ export ENABLE_SPECULATIVE=true
 export COUNCIL_CHAIRMAN_PROVIDER=gpt-4
 
 # Start the server
-./schlep-engine-api
+./igris-overture
 ```
 
 ### Make a Council Request

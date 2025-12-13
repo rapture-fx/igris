@@ -51,7 +51,7 @@ ENTRYPOINT ["/app/main"]
 LABEL maintainer="Schlep-engine Team" \
       version="1.0.0" \
       description="Cloud-native microservice using Schlep-engine Go SDK" \
-      org.opencontainers.image.source="https://github.com/schlep-engine/go-sdk" \
+      org.opencontainers.image.source="https://github.com/igris-inertial/go-sdk" \
       org.opencontainers.image.version="1.0.0" \
       org.opencontainers.image.title="Schlep Cloud Native Service" \
       org.opencontainers.image.description="A cloud-native microservice demonstrating Schlep-engine Go SDK usage"

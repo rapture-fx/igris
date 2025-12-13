@@ -27,7 +27,7 @@ spec:
         prometheus.io/port: "8080"
         prometheus.io/path: "/metrics"
     spec:
-      serviceAccountName: schlep-engine-sa
+      serviceAccountName: igris-inertial-sa
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -35,7 +35,7 @@ spec:
 
       containers:
       - name: gateway
-        image: schlep-engine/go-gateway:v2.0
+        image: igris-inertial/go-gateway:v2.0
         imagePullPolicy: Always
 
         ports:
@@ -54,80 +54,80 @@ spec:
         - name: SERVER_PORT
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: SERVER_PORT
 
         - name: TLS_PORT
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: TLS_PORT
 
         - name: TLS_ENABLED
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: TLS_ENABLED
 
         - name: ML_SERVICE_URL
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: ML_SERVICE_URL
 
         - name: POSTGRES_HOST
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: POSTGRES_HOST
 
         - name: REDIS_URL
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: REDIS_URL
 
         - name: NATS_URL
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: NATS_URL
 
         - name: JAEGER_ENDPOINT
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: JAEGER_ENDPOINT
 
         - name: LOG_LEVEL
           valueFrom:
             configMapKeyRef:
-              name: schlep-engine-config
+              name: igris-inertial-config
               key: LOG_LEVEL
 
         # Load secrets from Kubernetes Secret
         - name: JWT_SECRET_KEY
           valueFrom:
             secretKeyRef:
-              name: schlep-engine-secrets
+              name: igris-inertial-secrets
               key: jwt-secret-key
 
         - name: POSTGRES_USER
           valueFrom:
             secretKeyRef:
-              name: schlep-engine-secrets
+              name: igris-inertial-secrets
               key: postgres-user
 
         - name: POSTGRES_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: schlep-engine-secrets
+              name: igris-inertial-secrets
               key: postgres-password
 
         - name: POSTGRES_DB
           valueFrom:
             secretKeyRef:
-              name: schlep-engine-secrets
+              name: igris-inertial-secrets
               key: postgres-db
 
         # TLS certificate paths
@@ -227,7 +227,7 @@ spec:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: schlep-engine-sa
+  name: igris-inertial-sa
   namespace: default
   annotations:
     eks.amazonaws.com/role-arn: "${AWS_IAM_ROLE_ARN}"

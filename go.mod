@@ -1,4 +1,4 @@
-module github.com/schlep-engine/schlep-engine
+module github.com/Schlep-engine/igris-inertial
 
 go 1.24.0
 

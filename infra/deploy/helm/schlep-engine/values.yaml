@@ -1,4 +1,4 @@
-## Default values for schlep-engine
+## Default values for igris-inertial
 ## This is a YAML-formatted file.
 
 ## Global settings
@@ -9,7 +9,7 @@ global:
 ## Image configuration
 image:
   registry: docker.io
-  repository: schlep-engine/inference
+  repository: igris-inertial/inference
   tag: "v1.0.0-gpu"
   pullPolicy: IfNotPresent
 
@@ -82,14 +82,14 @@ ingress:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/rate-limit: "1000"
   hosts:
-    - host: inference.schlep-engine.io
+    - host: inference.igris-inertial.io
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: schlep-engine-tls
+    - secretName: igris-inertial-tls
       hosts:
-        - inference.schlep-engine.io
+        - inference.igris-inertial.io
 
 ## Adaptive Pool configuration
 adaptivePool:
@@ -211,7 +211,7 @@ affinity:
               - key: app
                 operator: In
                 values:
-                  - schlep-engine
+                  - igris-inertial
           topologyKey: kubernetes.io/hostname
 
 ## Model Storage
@@ -259,7 +259,7 @@ security:
   serviceAccount:
     create: true
     annotations: {}
-    name: schlep-engine-inference
+    name: igris-inertial-inference
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 1000

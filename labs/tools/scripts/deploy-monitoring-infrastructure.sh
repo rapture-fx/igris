@@ -17,8 +17,8 @@ MONITORING_DIR="$K8S_DIR/monitoring"
 # Environment configuration
 ENVIRONMENT="${ENVIRONMENT:-production}"
 AWS_REGION="${AWS_REGION:-us-east-1}"
-CLUSTER_NAME="${CLUSTER_NAME:-schlep-engine-eks}"
-DOMAIN_NAME="${DOMAIN_NAME:-schlep-engine.com}"
+CLUSTER_NAME="${CLUSTER_NAME:-igris-inertial-eks}"
+DOMAIN_NAME="${DOMAIN_NAME:-igris-inertial.com}"
 
 # Colors for output
 RED='\033[0;31m'
@@ -163,19 +163,19 @@ prometheus:
       environment: $ENVIRONMENT
     
     additionalScrapeConfigs:
-    - job_name: 'schlep-engine-circuit-breakers'
+    - job_name: 'igris-inertial-circuit-breakers'
       static_configs:
-      - targets: ['schlep-engine-backend-service.schlep-engine:8000']
+      - targets: ['igris-inertial-backend-service.igris-inertial:8000']
       metrics_path: '/metrics'
       scrape_interval: 15s
     
     ruleSelector:
       matchLabels:
-        prometheus: schlep-engine
+        prometheus: igris-inertial
     
     serviceMonitorSelector:
       matchLabels:
-        prometheus: schlep-engine
+        prometheus: igris-inertial
 
 grafana:
   adminPassword: "${GRAFANA_ADMIN_PASSWORD:-admin123}"
@@ -191,7 +191,7 @@ grafana:
     
     database:
       type: postgres
-      host: schlep-engine-postgres.schlep-engine:5432
+      host: igris-inertial-postgres.igris-inertial:5432
       name: grafana
       user: grafana
       password: "${GRAFANA_DB_PASSWORD:-grafana123}"
@@ -201,14 +201,14 @@ grafana:
     dashboardproviders.yaml:
       apiVersion: 1
       providers:
-      - name: 'schlep-engine-dashboards'
+      - name: 'igris-inertial-dashboards'
         orgId: 1
         folder: 'Schlep Engine'
         type: file
         disableDeletion: false
         editable: true
         options:
-          path: /var/lib/grafana/dashboards/schlep-engine
+          path: /var/lib/grafana/dashboards/igris-inertial
 
 alertmanager:
   alertmanagerSpec:
@@ -286,8 +286,8 @@ deploy_istio_service_mesh() {
     # Install Istio control plane
     istioctl install --set values.defaultRevision=default -y
     
-    # Label schlep-engine namespace for Istio injection
-    kubectl label namespace schlep-engine istio-injection=enabled --overwrite
+    # Label igris-inertial namespace for Istio injection
+    kubectl label namespace igris-inertial istio-injection=enabled --overwrite
     
     # Apply Istio configurations
     kubectl apply -f "$MONITORING_DIR/istio-service-mesh.yaml"
@@ -361,7 +361,7 @@ verify_deployment() {
     
     # Check application namespace with Istio injection
     log_info "Checking application pods with Istio sidecars..."
-    kubectl get pods -n schlep-engine -o wide
+    kubectl get pods -n igris-inertial -o wide
     
     # Test endpoints
     log_info "Testing monitoring endpoints..."
@@ -553,8 +553,8 @@ case "${1:-}" in
         echo "Environment variables:"
         echo "  ENVIRONMENT       Deployment environment (default: production)"
         echo "  AWS_REGION        AWS region (default: us-east-1)"
-        echo "  CLUSTER_NAME      EKS cluster name (default: schlep-engine-eks)"
-        echo "  DOMAIN_NAME       Base domain name (default: schlep-engine.com)"
+        echo "  CLUSTER_NAME      EKS cluster name (default: igris-inertial-eks)"
+        echo "  DOMAIN_NAME       Base domain name (default: igris-inertial.com)"
         echo "  SLACK_WEBHOOK_URL Slack webhook for notifications (optional)"
         echo "  GRAFANA_ADMIN_PASSWORD Grafana admin password (default: admin123)"
         echo "  GRAFANA_DB_PASSWORD Grafana database password (default: grafana123)"

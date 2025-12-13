@@ -9,10 +9,10 @@ on:
   workflow_dispatch:
 
 env:
-  PRODUCTION_API: https://api.schlep-engine.com
-  STAGING_API: https://api-staging.schlep-engine.com
-  PRODUCTION_FRONTEND: https://schlep-engine.com
-  STAGING_FRONTEND: https://staging.schlep-engine.com
+  PRODUCTION_API: https://api.igris-inertial.com
+  STAGING_API: https://api-staging.igris-inertial.com
+  PRODUCTION_FRONTEND: https://igris-inertial.com
+  STAGING_FRONTEND: https://staging.igris-inertial.com
 
 jobs:
   health-check:
@@ -88,7 +88,7 @@ jobs:
           echo "Checking SSL certificates..."
           
           # Check SSL certificate expiry
-          CERT_EXPIRY=$(echo | openssl s_client -connect schlep-engine.com:443 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2)
+          CERT_EXPIRY=$(echo | openssl s_client -connect igris-inertial.com:443 2>/dev/null | openssl x509 -noout -dates | grep notAfter | cut -d= -f2)
           EXPIRY_TIMESTAMP=$(date -d "$CERT_EXPIRY" +%s)
           CURRENT_TIMESTAMP=$(date +%s)
           DAYS_UNTIL_EXPIRY=$(( (EXPIRY_TIMESTAMP - CURRENT_TIMESTAMP) / 86400 ))

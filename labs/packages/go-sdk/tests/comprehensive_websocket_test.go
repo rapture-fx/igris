@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/schlep-engine/go-sdk/pkg/websocket"
-	"github.com/schlep-engine/go-sdk/pkg/models/streaming"
+	"github.com/igris-inertial/go-sdk/pkg/websocket"
+	"github.com/igris-inertial/go-sdk/pkg/models/streaming"
 )
 
 var upgrader = websocket.Upgrader{

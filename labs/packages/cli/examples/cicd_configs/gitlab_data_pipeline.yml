@@ -5,7 +5,7 @@ stages:
   - deploy
 
 variables:
-  SCHLEP_ENGINE_VERSION: "1.0.0"
+  IGRIS_OVERTURE_VERSION: "1.0.0"
   PYTHON_VERSION: "3.9"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
 
@@ -22,10 +22,10 @@ validate-data:
     - python -m venv venv
     - source venv/bin/activate
     - pip install --upgrade pip
-    - pip install schlep-engine-cli
+    - pip install igris-inertial-cli
     - pip install -r requirements.txt
   script:
-    - schlep auth login --api-key $SCHLEP_ENGINE_API_KEY
+    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
     - schlep process batch "data/raw/*.csv" --validate --dry-run
     - schlep process batch "data/raw/*.json" --validate --dry-run
   artifacts:
@@ -48,10 +48,10 @@ process-data-dev:
   before_script:
     - python -m venv venv
     - source venv/bin/activate
-    - pip install schlep-engine-cli
+    - pip install igris-inertial-cli
     - pip install -r requirements.txt
   script:
-    - schlep auth login --api-key $SCHLEP_ENGINE_API_KEY
+    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Submit batch processing jobs
       schlep batch submit-files "data/raw/*.csv" \
@@ -82,10 +82,10 @@ process-data-staging:
   before_script:
     - python -m venv venv
     - source venv/bin/activate
-    - pip install schlep-engine-cli
+    - pip install igris-inertial-cli
     - pip install -r requirements.txt
   script:
-    - schlep auth login --api-key $SCHLEP_ENGINE_API_KEY
+    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Process with higher batch size for staging
       schlep batch submit-files "data/raw/*.csv" \
@@ -115,9 +115,9 @@ quality-check:
   before_script:
     - python -m venv venv
     - source venv/bin/activate
-    - pip install schlep-engine-cli
+    - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $SCHLEP_ENGINE_API_KEY
+    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Generate data quality reports
       schlep process batch "processed_data/*.parquet" \
@@ -144,9 +144,9 @@ deploy-pipeline-prod:
   before_script:
     - python -m venv venv
     - source venv/bin/activate
-    - pip install schlep-engine-cli
+    - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $SCHLEP_ENGINE_API_KEY
+    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Deploy infrastructure components
       schlep devops deploy infrastructure/data-pipeline/ \
@@ -166,7 +166,7 @@ deploy-pipeline-prod:
         --max-retries 3
   environment:
     name: production
-    url: https://data-pipeline.schlep-engine.com
+    url: https://data-pipeline.igris-inertial.com
   when: manual
   only:
     - main
@@ -178,9 +178,9 @@ monitor-infrastructure:
   before_script:
     - python -m venv venv
     - source venv/bin/activate
-    - pip install schlep-engine-cli
+    - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $SCHLEP_ENGINE_API_KEY
+    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Monitor infrastructure status
       schlep devops status --provider kubernetes --output-format json > infrastructure-status.json
@@ -203,9 +203,9 @@ cleanup-jobs:
   before_script:
     - python -m venv venv
     - source venv/bin/activate
-    - pip install schlep-engine-cli
+    - pip install igris-inertial-cli
   script:
-    - schlep auth login --api-key $SCHLEP_ENGINE_API_KEY
+    - schlep auth login --api-key $IGRIS_OVERTURE_API_KEY
     - |
       # Clean up old completed jobs (older than 7 days)
       schlep batch cleanup \

@@ -1,6 +1,6 @@
 #!/bin/bash
 set -x
-cd "/Users/wira/Desktop/schlep-engine"
+cd "/Users/wira/Desktop/igris-inertial"
 
 # Clean server startup script for Schlep Engine
 echo "Starting Schlep Engine servers..."

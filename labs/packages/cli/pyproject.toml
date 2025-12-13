@@ -9,10 +9,10 @@ description = "Official command-line interface for Schlep-engine API"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Schlep-engine", email = "support@schlep-engine.com"}
+    {name = "Schlep-engine", email = "support@igris-inertial.com"}
 ]
 maintainers = [
-    {name = "Schlep-engine", email = "support@schlep-engine.com"}
+    {name = "Schlep-engine", email = "support@igris-inertial.com"}
 ]
 keywords = [
     "cli", "data-processing", "machine-learning", "devops", 
@@ -75,11 +75,11 @@ sdk = [
 ]
 
 [project.urls]
-Homepage = "https://schlep-engine.com"
-Documentation = "https://docs.schlep-engine.com/cli"
-Repository = "https://github.com/schlep-engine/cli"
-"Bug Tracker" = "https://github.com/schlep-engine/cli/issues"
-Changelog = "https://github.com/schlep-engine/cli/blob/main/CHANGELOG.md"
+Homepage = "https://igris-inertial.com"
+Documentation = "https://docs.igris-inertial.com/cli"
+Repository = "https://github.com/igris-inertial/cli"
+"Bug Tracker" = "https://github.com/igris-inertial/cli/issues"
+Changelog = "https://github.com/igris-inertial/cli/blob/main/CHANGELOG.md"
 
 [project.scripts]
 schlep = "schlep_cli.main:cli"

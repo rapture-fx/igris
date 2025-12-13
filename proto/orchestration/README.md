@@ -16,13 +16,13 @@ Current project uses an older gRPC version.
 
 ## To Regenerate Proto Files:
 ```bash
-cd /Users/wira/Desktop/schlep-engine
+cd /Users/wira/Desktop/igris-inertial
 protoc --go_out=. --go_opt=paths=source_relative \
   --go-grpc_out=. --go-grpc_opt=paths=source_relative \
   labs/proto/orchestration/inference_router.proto
 ```
 
 ## Workaround:
-The main schlep-engine API works without gRPC orchestration.
+The main igris-inertial API works without gRPC orchestration.
 gRPC is only needed for distributed multi-node deployments.
 

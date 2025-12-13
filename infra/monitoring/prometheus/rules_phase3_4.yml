@@ -330,14 +330,14 @@ groups:
       # Metrics collection issues
       - alert: MetricsCollectionDegraded
         expr: |
-          up{job="schlep-engine-api"} == 0
+          up{job="igris-overture"} == 0
         for: 5m
         labels:
           severity: critical
           component: monitoring
         annotations:
           summary: "Metrics collection down"
-          description: "Unable to scrape metrics from schlep-engine-api. Check service health."
+          description: "Unable to scrape metrics from igris-overture. Check service health."
 
   # ============================================================================
   # Performance Regression Alerts

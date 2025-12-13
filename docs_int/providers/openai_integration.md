@@ -57,8 +57,8 @@ The OpenAI provider implements full HTTP client functionality for OpenAI's Chat 
 
 ```go
 import (
-    "github.com/schlep-engine/schlep-engine/internal/providers"
-    "github.com/schlep-engine/schlep-engine/internal/providers/openai"
+    "github.com/igris-inertial/igris-inertial/internal/providers"
+    "github.com/igris-inertial/igris-inertial/internal/providers/openai"
 )
 
 // Create configuration

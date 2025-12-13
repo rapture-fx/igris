@@ -111,12 +111,12 @@ sync_python_sdk() {
         log_info "Merging Python SDK (preserving custom code)..."
         
         # Copy generated API and models, preserve custom implementations
-        if [ -d "$generated_dir/schlep_engine_client/api" ]; then
-            cp -r "$generated_dir/schlep_engine_client/api" "$existing_dir/schlep_engine/"
+        if [ -d "$generated_dir/igris_overture_client/api" ]; then
+            cp -r "$generated_dir/igris_overture_client/api" "$existing_dir/igris_overture/"
         fi
         
-        if [ -d "$generated_dir/schlep_engine_client/models" ]; then
-            cp -r "$generated_dir/schlep_engine_client/models" "$existing_dir/schlep_engine/"
+        if [ -d "$generated_dir/igris_overture_client/models" ]; then
+            cp -r "$generated_dir/igris_overture_client/models" "$existing_dir/igris_overture/"
         fi
         
         # Copy setup.py but preserve custom metadata
@@ -142,8 +142,8 @@ sync_python_sdk() {
             cp -r "$generated_dir" "$existing_dir"
             
             # Rename package directory to match existing structure
-            if [ -d "$existing_dir/schlep_engine_client" ]; then
-                mv "$existing_dir/schlep_engine_client" "$existing_dir/schlep_engine"
+            if [ -d "$existing_dir/igris_overture_client" ]; then
+                mv "$existing_dir/igris_overture_client" "$existing_dir/igris_overture"
             fi
         else
             log_warning "Target directory exists. Use --force to overwrite."
@@ -155,7 +155,7 @@ sync_python_sdk() {
     log_info "Adding custom enhancements to Python SDK..."
     
     # Add custom __init__.py with convenience imports
-    cat > "$existing_dir/schlep_engine/__init__.py" << 'EOF'
+    cat > "$existing_dir/igris_overture/__init__.py" << 'EOF'
 """Schlep-engine Python SDK
 
 A comprehensive Python client library for the Schlep-engine API.
@@ -281,7 +281,7 @@ sync_typescript_sdk() {
  */
 
 // Export generated client
-export * from './client/schlep-engine';
+export * from './client/igris-inertial';
 export * from './api';
 export * from './types';
 
@@ -291,7 +291,7 @@ export { RetryConfig } from './utils/retry';
 export { RateLimiter } from './utils/rate-limiter';
 
 // Default export
-import { SchlepEngineClient } from './client/schlep-engine';
+import { SchlepEngineClient } from './client/igris-inertial';
 export default SchlepEngineClient;
 EOF
     
@@ -356,7 +356,7 @@ sync_go_sdk() {
     # Initialize Go module if not exists
     if [ ! -f "$existing_dir/go.mod" ]; then
         cd "$existing_dir"
-        go mod init github.com/schlep-engine/go-client
+        go mod init github.com/igris-inertial/go-client
         go mod tidy
         cd - > /dev/null
     fi

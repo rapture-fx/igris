@@ -9,10 +9,10 @@ description = "Official Python SDK for Schlep-engine API - Advanced data process
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Schlep-engine", email = "support@schlep-engine.com"}
+    {name = "Schlep-engine", email = "support@igris-inertial.com"}
 ]
 maintainers = [
-    {name = "Schlep-engine", email = "support@schlep-engine.com"}
+    {name = "Schlep-engine", email = "support@igris-inertial.com"}
 ]
 keywords = [
     "schlep-engine",
@@ -78,12 +78,12 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://schlep-engine.com"
-Documentation = "https://docs.schlep-engine.com/sdk/python"
-Repository = "https://github.com/schlep-engine/python-sdk"
-"Bug Reports" = "https://github.com/schlep-engine/python-sdk/issues"
-"Support" = "https://support.schlep-engine.com"
-"API Documentation" = "https://docs.schlep-engine.com/api"
+Homepage = "https://igris-inertial.com"
+Documentation = "https://docs.igris-inertial.com/sdk/python"
+Repository = "https://github.com/igris-inertial/python-sdk"
+"Bug Reports" = "https://github.com/igris-inertial/python-sdk/issues"
+"Support" = "https://support.igris-inertial.com"
+"API Documentation" = "https://docs.igris-inertial.com/api"
 
 [tool.setuptools]
 package-dir = {"" = "."}

@@ -1,5 +1,5 @@
 apiVersion: v2
-name: schlep-engine
+name: igris-inertial
 description: Production-grade ML inference engine with GPU acceleration and multi-model routing
 type: application
 version: 1.0.0
@@ -13,13 +13,13 @@ keywords:
   - tensorrt
   - streaming
 
-home: https://github.com/schlep-engine/schlep-engine
+home: https://github.com/igris-inertial/igris-inertial
 sources:
-  - https://github.com/schlep-engine/schlep-engine
+  - https://github.com/igris-inertial/igris-inertial
 
 maintainers:
-  - name: Schlep Engine Team
-    email: team@schlep-engine.io
+  - name: Igris Overture Team
+    email: team@igris-inertial.io
 
 dependencies:
   - name: prometheus

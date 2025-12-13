@@ -76,11 +76,11 @@ build_and_push_images() {
     
     # Build backend image
     print_status "Building backend image..."
-    docker build -t $DOCKER_REGISTRY/schlep-engine/backend:$IMAGE_TAG .
+    docker build -t $DOCKER_REGISTRY/igris-inertial/backend:$IMAGE_TAG .
     
     # Push backend image
     print_status "Pushing backend image..."
-    docker push $DOCKER_REGISTRY/schlep-engine/backend:$IMAGE_TAG
+    docker push $DOCKER_REGISTRY/igris-inertial/backend:$IMAGE_TAG
     
     print_success "Docker images built and pushed successfully"
 }
@@ -150,7 +150,7 @@ spec:
     spec:
       containers:
       - name: migrations
-        image: $DOCKER_REGISTRY/schlep-engine/backend:$IMAGE_TAG
+        image: $DOCKER_REGISTRY/igris-inertial/backend:$IMAGE_TAG
         command: ["alembic", "upgrade", "head"]
         env:
         - name: STAGING_DB_HOST
@@ -158,7 +158,7 @@ spec:
         - name: STAGING_DB_PORT
           value: "5432"
         - name: STAGING_DB_NAME
-          value: "schlep_engine_staging"
+          value: "igris_overture_staging"
         - name: STAGING_DB_USER
           value: "schlep_staging"
         - name: STAGING_DB_PASSWORD
@@ -223,13 +223,13 @@ display_deployment_info() {
     echo "  Registry: $DOCKER_REGISTRY"
     echo ""
     echo "🌐 Service URLs:"
-    echo "  - Backend API: http://staging.schlep-engine.com"
-    echo "  - API Documentation: http://staging.schlep-engine.com/docs"
-    echo "  - Health Check: http://staging.schlep-engine.com/api/v1/health"
-    echo "  - Metrics: http://staging.schlep-engine.com/api/v1/metrics"
-    echo "  - Prometheus: http://monitoring.staging.schlep-engine.com/prometheus"
-    echo "  - Grafana: http://monitoring.staging.schlep-engine.com/grafana (admin/admin)"
-    echo "  - AlertManager: http://monitoring.staging.schlep-engine.com/alertmanager"
+    echo "  - Backend API: http://staging.igris-inertial.com"
+    echo "  - API Documentation: http://staging.igris-inertial.com/docs"
+    echo "  - Health Check: http://staging.igris-inertial.com/api/v1/health"
+    echo "  - Metrics: http://staging.igris-inertial.com/api/v1/metrics"
+    echo "  - Prometheus: http://monitoring.staging.igris-inertial.com/prometheus"
+    echo "  - Grafana: http://monitoring.staging.igris-inertial.com/grafana (admin/admin)"
+    echo "  - AlertManager: http://monitoring.staging.igris-inertial.com/alertmanager"
     echo ""
     echo "🔧 Useful Commands:"
     echo "  - View pods: kubectl get pods -n $NAMESPACE"
@@ -239,9 +239,9 @@ display_deployment_info() {
     echo "  - Delete deployment: kubectl delete namespace $NAMESPACE"
     echo ""
     echo "📊 Monitoring:"
-    echo "  - Prometheus: http://monitoring.staging.schlep-engine.com/prometheus"
-    echo "  - Grafana: http://monitoring.staging.schlep-engine.com/grafana"
-    echo "  - AlertManager: http://monitoring.staging.schlep-engine.com/alertmanager"
+    echo "  - Prometheus: http://monitoring.staging.igris-inertial.com/prometheus"
+    echo "  - Grafana: http://monitoring.staging.igris-inertial.com/grafana"
+    echo "  - AlertManager: http://monitoring.staging.igris-inertial.com/alertmanager"
     echo ""
 }
 

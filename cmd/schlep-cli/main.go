@@ -13,7 +13,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/schlep-engine/schlep-engine/internal/emergency"
+	"github.com/Schlep-engine/igris-inertial/internal/emergency"
 	"github.com/spf13/cobra"
 )
 

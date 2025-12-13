@@ -86,13 +86,13 @@ Each language has its own configuration file in `configs/`:
 generator-name: python
 input-spec: "../../apps/api/openapi.json"
 output-dir: "./generated/python"
-package-name: "schlep-engine-client"
+package-name: "igris-inertial-client"
 package-version: "2.0.0"
 
 additional-properties:
-  packageName: schlep_engine_client
+  packageName: igris_overture_client
   packageVersion: 2.0.0
-  packageUrl: https://github.com/schlep-engine/python-client
+  packageUrl: https://github.com/igris-inertial/python-client
   packageDescription: "Python client library for Schlep-engine API"
   
   # Python-specific settings
@@ -393,6 +393,6 @@ alerts:
 
 - [OpenAPI Generator Documentation](https://openapi-generator.tech/docs/)
 - [FastAPI OpenAPI Guide](https://fastapi.tiangolo.com/tutorial/metadata/)
-- [Schlep-engine API Documentation](https://docs.schlep-engine.com)
+- [Schlep-engine API Documentation](https://docs.igris-inertial.com)
 - [SDK Comparison Report](../SDK_COMPARISON_REPORT.md)
 - [Troubleshooting Guide](./TROUBLESHOOTING.md)

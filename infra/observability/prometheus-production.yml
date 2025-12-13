@@ -2,7 +2,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    cluster: 'schlep-engine-production'
+    cluster: 'igris-inertial-production'
     environment: 'production'
 
 # Alertmanager configuration

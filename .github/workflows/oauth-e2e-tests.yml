@@ -163,7 +163,7 @@ jobs:
 
     - name: Run OAuth unit tests
       run: |
-        pnpm --filter @schlep-engine/ui test:oauth
+        pnpm --filter @igris-inertial/ui test:oauth
         pnpm test:auth
 
     - name: Upload unit test coverage
@@ -210,9 +210,9 @@ jobs:
 
     - name: Start frontend applications
       run: |
-        pnpm --filter @schlep-engine/web-admin start &
+        pnpm --filter @igris-inertial/web-admin start &
         echo $! > admin_server.pid
-        pnpm --filter @schlep-engine/web-landing start &
+        pnpm --filter @igris-inertial/web-landing start &
         echo $! > landing_server.pid
 
     - name: Wait for frontend servers

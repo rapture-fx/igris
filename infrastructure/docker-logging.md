@@ -198,7 +198,7 @@ for i in {1..100000}; do
 done
 
 # Check log size
-docker inspect schlep-api | grep LogPath
+docker inspect igris-overture | grep LogPath
 du -h /var/lib/docker/containers/.../...-json.log
 ```
 
@@ -220,7 +220,7 @@ ls -lh /var/lib/docker/containers/.../
 docker-compose restart api
 
 # Check logs still accessible
-docker logs schlep-api
+docker logs igris-overture
 ```
 
 ---

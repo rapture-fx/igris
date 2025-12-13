@@ -34,7 +34,7 @@ datasources:
   - name: PostgreSQL
     type: postgres
     url: postgres:5432
-    database: schlep_engine
+    database: igris_overture
     user: postgres
     secureJsonData:
       password: postgres

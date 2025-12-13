@@ -625,7 +625,7 @@ app.Post("/v1/providers", handleCreateProvider)
 
 **Integration:**
 ```go
-import "github.com/schlep-engine/schlep-engine/internal/middleware"
+import "github.com/igris-inertial/igris-inertial/internal/middleware"
 
 // Initialize tier enforcer in customer app
 enforcer, _ := middleware.NewTierEnforcer(middleware.TierEnforcerConfig{
@@ -649,7 +649,7 @@ customerApp.Use(enforcer.Enforce())
 **Recommended Cron Job:**
 ```bash
 # Reset counters on first day of month at midnight UTC
-0 0 1 * * cd /opt/schlep-engine && ./reset-tier-counters.sh
+0 0 1 * * cd /opt/igris-inertial && ./reset-tier-counters.sh
 ```
 
 **Reset Script:**
@@ -657,10 +657,10 @@ customerApp.Use(enforcer.Enforce())
 #!/bin/bash
 # reset-tier-counters.sh
 
-psql -U schlep -d schlep_engine -c "SELECT reset_monthly_request_counters();"
+psql -U schlep -d igris_overture -c "SELECT reset_monthly_request_counters();"
 
 # Verify reset
-RESET_COUNT=$(psql -U schlep -d schlep_engine -t -c "SELECT reset_monthly_request_counters();")
+RESET_COUNT=$(psql -U schlep -d igris_overture -t -c "SELECT reset_monthly_request_counters();")
 echo "Reset $RESET_COUNT tenant counters"
 ```
 
@@ -719,11 +719,11 @@ groups:
 
 1. **Deploy Database Migration** ✅ Ready
    ```bash
-   psql -U schlep -d schlep_engine -f migrations/008_add_tier_column_to_tenants.sql
+   psql -U schlep -d igris_overture -f migrations/008_add_tier_column_to_tenants.sql
    ```
 
 2. **Integrate Middleware into API** ✅ Ready
-   - Add to `cmd/schlep-engine-api/main.go`
+   - Add to `cmd/igris-overture/main.go`
    - Configure tier_config.yaml path
    - Enable Redis connection
 

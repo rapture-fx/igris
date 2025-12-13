@@ -295,7 +295,7 @@ The Schlep-Engine API is:
 
 ## 📞 Quick Reference
 
-**All files**: `/Users/wira/Desktop/schlep-engine/stability-tests/`
+**All files**: `/Users/wira/Desktop/igris-inertial/stability-tests/`
 
 **Start here**: `START_HERE.md`  
 **Full guide**: `README.md`  

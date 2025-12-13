@@ -62,7 +62,7 @@ jobs:
         if: steps.git-check.outputs.changed == 'true'
         run: |
           git config user.name "docs-sync-bot"
-          git config user.email "bot@schlep-engine.com"
+          git config user.email "bot@igris-inertial.com"
           git add web/apps/web-docs/docs/
           git commit -m "docs: auto-sync documentation from codebase
 

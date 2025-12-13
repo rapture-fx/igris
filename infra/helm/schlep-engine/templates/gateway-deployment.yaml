@@ -2,9 +2,9 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "schlep-engine.fullname" . }}-gateway
+  name: {{ include "igris-inertial.fullname" . }}-gateway
   labels:
-    {{- include "schlep-engine.labels" . | nindent 4 }}
+    {{- include "igris-inertial.labels" . | nindent 4 }}
     app.kubernetes.io/component: gateway
 spec:
   {{- if not .Values.gateway.autoscaling.enabled }}
@@ -12,7 +12,7 @@ spec:
   {{- end }}
   selector:
     matchLabels:
-      {{- include "schlep-engine.selectorLabels" . | nindent 6 }}
+      {{- include "igris-inertial.selectorLabels" . | nindent 6 }}
       app.kubernetes.io/component: gateway
   template:
     metadata:
@@ -22,7 +22,7 @@ spec:
         prometheus.io/port: "8080"
         prometheus.io/path: "/metrics"
       labels:
-        {{- include "schlep-engine.selectorLabels" . | nindent 8 }}
+        {{- include "igris-inertial.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: gateway
         version: {{ .Values.gateway.image.tag | quote }}
     spec:
@@ -30,7 +30,7 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "schlep-engine.serviceAccountName" . }}
+      serviceAccountName: {{ include "igris-inertial.serviceAccountName" . }}
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000
@@ -56,14 +56,14 @@ spec:
         - name: REDIS_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "schlep-engine.fullname" . }}-secrets
+              name: {{ include "igris-inertial.fullname" . }}-secrets
               key: redis-password
         - name: DB_HOST
           value: "{{ .Release.Name }}-postgresql"
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: {{ include "schlep-engine.fullname" . }}-secrets
+              name: {{ include "igris-inertial.fullname" . }}-secrets
               key: db-password
         - name: JAEGER_AGENT_HOST
           value: "{{ .Release.Name }}-jaeger-agent"
@@ -77,10 +77,10 @@ spec:
           {{- toYaml .Values.gateway.resources | nindent 10 }}
         volumeMounts:
         - name: config
-          mountPath: /etc/schlep-engine
+          mountPath: /etc/igris-inertial
           readOnly: true
       volumes:
       - name: config
         configMap:
-          name: {{ include "schlep-engine.fullname" . }}-config
+          name: {{ include "igris-inertial.fullname" . }}-config
 {{- end }}

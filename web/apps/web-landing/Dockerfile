@@ -1,4 +1,4 @@
-# Schlep Engine Landing - Production Docker Image
+# Igris Overture Landing - Production Docker Image
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed

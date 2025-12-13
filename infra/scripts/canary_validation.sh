@@ -459,7 +459,7 @@ EXAMPLES:
     $0 --continuous expand
 
     # Use custom API URL
-    API_URL=https://staging.schlep-engine.com $0 full
+    API_URL=https://staging.igris-inertial.com $0 full
 
 EOF
     exit 0

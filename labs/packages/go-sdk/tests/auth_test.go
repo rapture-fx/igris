@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/auth"
+	"github.com/igris-inertial/go-sdk/pkg/auth"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
