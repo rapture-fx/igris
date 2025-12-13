@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/config"
-	"github.com/Schlep-engine/igris-inertial/internal/models"
-	"github.com/Schlep-engine/igris-inertial/internal/providers"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
 )
 
 // TestHandlerIntegration_SpeculativeFlow tests the full speculative execution flow

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 func TestQualityScorer_ScoreResponse(t *testing.T) {

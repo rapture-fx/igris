@@ -9,9 +9,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/metrics"
-	"github.com/Schlep-engine/igris-inertial/internal/models"
-	"github.com/Schlep-engine/igris-inertial/internal/providers"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
 )
 
 // AnthropicProvider implements the Provider interface for Anthropic API

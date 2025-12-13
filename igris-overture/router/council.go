@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
-	"github.com/Schlep-engine/igris-inertial/internal/tracing"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/tracing"
 )
 
 // CouncilMetadata contains metadata about the council execution

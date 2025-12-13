@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/logging"
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/logging"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 // ChatCompletionRequest represents a standard OpenAI-style chat completion request

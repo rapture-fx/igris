@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/config"
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // CostAccounting tracks speculative execution costs and implements auto-disable logic

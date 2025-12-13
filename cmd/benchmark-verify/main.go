@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
-	"github.com/Schlep-engine/igris-inertial/internal/providers"
-	"github.com/Schlep-engine/igris-inertial/internal/providers/anthropic"
-	"github.com/Schlep-engine/igris-inertial/internal/providers/openai"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers/anthropic"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers/openai"
 )
 
 func main() {

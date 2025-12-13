@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/internal/security"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
 )
 
 // TenantAuth provides tenant authentication middleware

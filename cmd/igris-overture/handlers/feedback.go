@@ -9,8 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/internal/bandit"
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/bandit"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // FeedbackHandler handles inference feedback submissions

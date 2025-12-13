@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/security"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
 )
 
 // KeyVaultHandler handles BYOK key vault HTTP requests

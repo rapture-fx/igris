@@ -4,7 +4,7 @@ package api
 import (
 	"database/sql"
 
-	"github.com/Schlep-engine/igris-inertial/internal/scheduler"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/scheduler"
 )
 
 // NewTelemetryAggregator creates a new telemetry aggregator

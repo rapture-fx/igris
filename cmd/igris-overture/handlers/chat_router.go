@@ -10,13 +10,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/Schlep-engine/igris-inertial/internal/adapters"
-	"github.com/Schlep-engine/igris-inertial/internal/logging"
-	"github.com/Schlep-engine/igris-inertial/internal/middleware"
-	"github.com/Schlep-engine/igris-inertial/internal/repository"
-	"github.com/Schlep-engine/igris-inertial/internal/routing"
-	"github.com/Schlep-engine/igris-inertial/internal/security"
-	"github.com/Schlep-engine/igris-inertial/internal/telemetry"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/adapters"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/logging"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/repository"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/routing"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/security"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/telemetry"
 )
 
 // ChatRouterHandler handles intelligent multi-provider routing

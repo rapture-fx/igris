@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // Classifier performs semantic classification of prompts

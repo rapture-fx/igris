@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/sony/gobreaker"
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
 )
 
 // CircuitBreakerClient wraps ML client with circuit breaker protection

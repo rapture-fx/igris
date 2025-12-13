@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/schlep-ai/igris-inertial/internal/emergency"
+	"github.com/schlep-ai/igris-inertial/igris-overture/emergency"
 )
 
 // EmergencyFetcher periodically checks for emergency policy updates

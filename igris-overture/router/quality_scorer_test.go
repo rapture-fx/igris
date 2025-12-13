@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/config"
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 // TestQualityScorer_LatencyMode tests latency-only scoring

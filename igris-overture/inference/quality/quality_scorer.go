@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 // QualityScorer manages quality scoring for inference responses

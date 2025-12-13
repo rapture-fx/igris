@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Schlep-engine/igris-inertial/internal/config"
-	"github.com/Schlep-engine/igris-inertial/internal/observability"
-	"github.com/Schlep-engine/igris-inertial/internal/policies"
-	"github.com/Schlep-engine/igris-inertial/internal/providers"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/observability"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/policies"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/providers"
 )
 
 // CostAwareRouter implements cost-based routing decisions

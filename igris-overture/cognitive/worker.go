@@ -7,8 +7,8 @@ import (
 
 	"github.com/rs/zerolog/log"
 
-	"github.com/Schlep-engine/igris-inertial/internal/policies"
-	"github.com/Schlep-engine/igris-inertial/internal/router"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/policies"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/router"
 )
 
 // Worker runs the cognitive advisor on a schedule

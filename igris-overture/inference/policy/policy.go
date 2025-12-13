@@ -19,9 +19,9 @@ import (
 	"google.golang.org/grpc/status"
 
 	pb "github.com/Schlep-engine/igris-inertial/proto/orchestration"
-	"github.com/Schlep-engine/igris-inertial/internal/metrics"
-	"github.com/Schlep-engine/igris-inertial/internal/cache"
-	"github.com/Schlep-engine/igris-inertial/internal/vault"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/metrics"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/cache"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/vault"
 )
 
 // PolicyEngine handles routing decision-making based on policies and live metrics

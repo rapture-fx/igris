@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/Schlep-engine/igris-inertial/internal/config"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/config"
 )
 
 // CostAnalyticsHandler provides real-time cost analytics

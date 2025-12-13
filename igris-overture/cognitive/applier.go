@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 
-	"github.com/Schlep-engine/igris-inertial/internal/policies"
-	"github.com/Schlep-engine/igris-inertial/internal/router"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/policies"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/router"
 )
 
 // Applier applies approved cognitive proposals to the routing system

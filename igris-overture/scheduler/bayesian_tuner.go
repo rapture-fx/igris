@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
-	"github.com/Schlep-engine/igris-inertial/internal/bandit"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/bandit"
 )
 
 // BayesianTuner performs Bayesian optimization for reward weight tuning

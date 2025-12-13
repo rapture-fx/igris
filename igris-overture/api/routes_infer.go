@@ -6,8 +6,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/Schlep-engine/igris-inertial/cmd/igris-overture/handlers"
-	"github.com/Schlep-engine/igris-inertial/internal/database"
-	"github.com/Schlep-engine/igris-inertial/internal/middleware"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/database"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/middleware"
 )
 
 // RegisterInferRoutes registers /v1/infer and related endpoints

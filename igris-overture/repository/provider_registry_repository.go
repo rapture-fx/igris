@@ -9,7 +9,7 @@ import (
 	"log"
 
 	"github.com/google/uuid"
-	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/models"
 )
 
 // ProviderRegistryRepository defines the interface for provider registry operations

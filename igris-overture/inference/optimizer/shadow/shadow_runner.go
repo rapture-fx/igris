@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Schlep-engine/igris-inertial/internal/inference/optimizer/ffi"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/inference/optimizer/ffi"
 )
 
 // ShadowMode represents the optimizer mode
