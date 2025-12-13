@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: docker/go-gateway/Dockerfile
       target: production
-    image: schlep-engine/go-gateway:production
+    image: igris-inertial/go-gateway:production
     container_name: schlep_gateway_prod
     environment:
       # Service Configuration
@@ -100,7 +100,7 @@ services:
     build:
       context: ./python_ml
       dockerfile: Dockerfile.production
-    image: schlep-engine/python-ml:production
+    image: igris-inertial/python-ml:production
     container_name: schlep_ml_prod
     environment:
       # Service Configuration
@@ -279,7 +279,7 @@ services:
     build:
       context: ./rust_kernel
       dockerfile: Dockerfile.production
-    image: schlep-engine/rust-kernel:production
+    image: igris-inertial/rust-kernel:production
     container_name: schlep_rust_prod
     environment:
       RUST_LOG: "info"

@@ -26,7 +26,7 @@ jobs:
               "attachments": [
                 {
                   "color": "good",
-                  "title": "Schlep Engine Deployment",
+                  "title": "Igris Overture Deployment",
                   "fields": [
                     {
                       "title": "Environment",
@@ -53,12 +53,12 @@ jobs:
                     {
                       "type": "button",
                       "text": "🌐 Visit Site",
-                      "url": "${{ contains(github.event.workflow_run.name, 'Production') && 'https://schlep-engine.com' || 'https://staging.schlep-engine.com' }}"
+                      "url": "${{ contains(github.event.workflow_run.name, 'Production') && 'https://igris-inertial.com' || 'https://staging.igris-inertial.com' }}"
                     },
                     {
                       "type": "button", 
                       "text": "🔗 API",
-                      "url": "${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.schlep-engine.com' || 'https://api-staging.schlep-engine.com' }}"
+                      "url": "${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.igris-inertial.com' || 'https://api-staging.igris-inertial.com' }}"
                     },
                     {
                       "type": "button",
@@ -82,8 +82,8 @@ jobs:
             **Author:** ${{ github.event.workflow_run.actor.login }}
             **Branch:** ${{ github.event.workflow_run.head_branch }}
             
-            🌐 [Visit Site](${{ contains(github.event.workflow_run.name, 'Production') && 'https://schlep-engine.com' || 'https://staging.schlep-engine.com' }})
-            🔗 [API Docs](${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.schlep-engine.com/docs' || 'https://api-staging.schlep-engine.com/docs' }})
+            🌐 [Visit Site](${{ contains(github.event.workflow_run.name, 'Production') && 'https://igris-inertial.com' || 'https://staging.igris-inertial.com' }})
+            🔗 [API Docs](${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.igris-inertial.com/docs' || 'https://api-staging.igris-inertial.com/docs' }})
             📊 [View Logs](https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }})
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
@@ -96,9 +96,9 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "✅ Schlep Engine Deployment Successful"
+          subject: "✅ Igris Overture Deployment Successful"
           to: ${{ vars.NOTIFICATION_EMAIL }}
-          from: Schlep Engine CI/CD <${{ secrets.EMAIL_USERNAME }}>
+          from: Igris Overture CI/CD <${{ secrets.EMAIL_USERNAME }}>
           html_body: |
             <!DOCTYPE html>
             <html>
@@ -114,7 +114,7 @@ jobs:
             <body>
                 <div class="header">
                     <h2>✅ Deployment Successful</h2>
-                    <p>Schlep Engine has been successfully deployed!</p>
+                    <p>Igris Overture has been successfully deployed!</p>
                 </div>
                 
                 <div class="content">
@@ -130,10 +130,10 @@ jobs:
                     <div class="info">
                         <h3>Services</h3>
                         <p>All services are now live and accessible:</p>
-                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://schlep-engine.com' || 'https://staging.schlep-engine.com' }}" class="button">🌐 Landing Page</a>
-                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.schlep-engine.com' || 'https://api-staging.schlep-engine.com' }}" class="button">🔗 API Backend</a>
-                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://admin.schlep-engine.com' || 'https://admin-staging.schlep-engine.com' }}" class="button">👤 Admin Dashboard</a>
-                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://docs.schlep-engine.com' || 'https://docs-staging.schlep-engine.com' }}" class="button">📚 Documentation</a>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://igris-inertial.com' || 'https://staging.igris-inertial.com' }}" class="button">🌐 Landing Page</a>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://api.igris-inertial.com' || 'https://api-staging.igris-inertial.com' }}" class="button">🔗 API Backend</a>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://admin.igris-inertial.com' || 'https://admin-staging.igris-inertial.com' }}" class="button">👤 Admin Dashboard</a>
+                        <a href="${{ contains(github.event.workflow_run.name, 'Production') && 'https://docs.igris-inertial.com' || 'https://docs-staging.igris-inertial.com' }}" class="button">📚 Documentation</a>
                     </div>
                     
                     <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }}" class="button">📊 View Deployment Logs</a></p>
@@ -160,7 +160,7 @@ jobs:
               "attachments": [
                 {
                   "color": "danger",
-                  "title": "Schlep Engine Deployment Failed",
+                  "title": "Igris Overture Deployment Failed",
                   "fields": [
                     {
                       "title": "Environment",
@@ -226,9 +226,9 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "❌ URGENT: Schlep Engine Deployment Failed"
+          subject: "❌ URGENT: Igris Overture Deployment Failed"
           to: ${{ vars.NOTIFICATION_EMAIL }}
-          from: Schlep Engine CI/CD <${{ secrets.EMAIL_USERNAME }}>
+          from: Igris Overture CI/CD <${{ secrets.EMAIL_USERNAME }}>
           html_body: |
             <!DOCTYPE html>
             <html>
@@ -244,7 +244,7 @@ jobs:
             <body>
                 <div class="header">
                     <h2>❌ Deployment Failed</h2>
-                    <p>Schlep Engine deployment has failed and requires immediate attention!</p>
+                    <p>Igris Overture deployment has failed and requires immediate attention!</p>
                 </div>
                 
                 <div class="content">

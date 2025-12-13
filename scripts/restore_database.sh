@@ -6,7 +6,7 @@ set -e
 # Configuration
 BACKUP_DIR="/root/backups"
 DB_CONTAINER="root-postgres-1"
-DB_NAME="schlep_engine"
+DB_NAME="igris_overture"
 DB_USER="postgres"
 
 # Function to log with timestamp
@@ -17,10 +17,10 @@ log() {
 # Usage function
 usage() {
     echo "Usage: $0 <backup_file>"
-    echo "Example: $0 schlep_engine_backup_20240814_120000.sql.gz"
+    echo "Example: $0 igris_overture_backup_20240814_120000.sql.gz"
     echo ""
     echo "Available backups:"
-    find "$BACKUP_DIR" -name "schlep_engine_backup_*.sql.gz" -printf "%f\n" | sort -r | head -10
+    find "$BACKUP_DIR" -name "igris_overture_backup_*.sql.gz" -printf "%f\n" | sort -r | head -10
     exit 1
 }
 
@@ -54,7 +54,7 @@ fi
 log "Starting database restore from: $BACKUP_FILE"
 
 # Create a backup of current database before restore
-CURRENT_BACKUP="schlep_engine_pre_restore_$(date +%Y%m%d_%H%M%S).sql"
+CURRENT_BACKUP="igris_overture_pre_restore_$(date +%Y%m%d_%H%M%S).sql"
 log "Creating backup of current database: $CURRENT_BACKUP"
 docker exec "$DB_CONTAINER" pg_dump -U "$DB_USER" "$DB_NAME" > "$BACKUP_DIR/$CURRENT_BACKUP"
 gzip "$BACKUP_DIR/$CURRENT_BACKUP"

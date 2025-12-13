@@ -220,9 +220,9 @@ update_version_in_files() {
                 rm -f "$client_dir/setup.py.bak"
             fi
             
-            if [ -f "$client_dir/schlep_engine_client/__init__.py" ]; then
-                sed -i.bak "s/__version__ = '[^']*'/__version__ = '$new_version'/g" "$client_dir/schlep_engine_client/__init__.py"
-                rm -f "$client_dir/schlep_engine_client/__init__.py.bak"
+            if [ -f "$client_dir/igris_overture_client/__init__.py" ]; then
+                sed -i.bak "s/__version__ = '[^']*'/__version__ = '$new_version'/g" "$client_dir/igris_overture_client/__init__.py"
+                rm -f "$client_dir/igris_overture_client/__init__.py.bak"
             fi
             ;;
             

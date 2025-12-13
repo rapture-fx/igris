@@ -18,7 +18,7 @@ services:
       
       # Schlep-engine configuration
       - SCHLEP_API_KEY=${SCHLEP_API_KEY}
-      - SCHLEP_BASE_URL=https://api.schlep-engine.com
+      - SCHLEP_BASE_URL=https://api.igris-inertial.com
       - SCHLEP_TIMEOUT_SECONDS=60
       - SCHLEP_MAX_RETRIES=5
       - SCHLEP_RETRY_WAIT_SECONDS=2

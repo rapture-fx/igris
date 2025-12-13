@@ -89,7 +89,7 @@ sleep 30
 # Verify API health
 if ! curl -f http://localhost:${API_PORT:-8080}/healthz > /dev/null 2>&1; then
     echo -e "${RED}ERROR: API health check failed${NC}"
-    echo "Check logs: docker logs schlep-api"
+    echo "Check logs: docker logs igris-overture"
     echo ""
     echo "MANUAL INTERVENTION REQUIRED"
     echo "Run rollback script if needed: ./scripts/rollback_dragonfly.sh"
@@ -112,7 +112,7 @@ echo "   - Connection pool: no timeouts"
 echo "   - Memory usage: stable (no leaks)"
 echo ""
 echo "2. Check application logs:"
-echo "   docker logs -f schlep-api"
+echo "   docker logs -f igris-overture"
 echo ""
 echo "3. Check Dragonfly logs:"
 echo "   docker logs -f schlep-dragonfly"

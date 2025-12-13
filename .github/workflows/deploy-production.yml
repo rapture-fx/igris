@@ -25,9 +25,9 @@ on:
 env:
   VPS_HOST: ${{ secrets.VPS_HOST }}
   VPS_USER: ${{ secrets.VPS_USER }}
-  DEPLOY_PATH: /home/deploy/schlep-engine
+  DEPLOY_PATH: /home/deploy/igris-inertial
   DOCKER_REGISTRY: ghcr.io
-  IMAGE_NAME: schlep-engine
+  IMAGE_NAME: igris-inertial
 
 jobs:
   # ==================================================
@@ -256,7 +256,7 @@ jobs:
           rsync -avz --progress \
             --delete-after \
             deployment-package/ \
-            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/schlep-engine-deploy/
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/tmp/igris-inertial-deploy/
 
       - name: Deploy to Vultr VPS
         run: |
@@ -281,7 +281,7 @@ jobs:
             
             # Copy new deployment
             echo "📁 Copying new deployment files..."
-            cp -r /tmp/schlep-engine-deploy ${{ env.DEPLOY_PATH }}/current
+            cp -r /tmp/igris-inertial-deploy ${{ env.DEPLOY_PATH }}/current
             cd ${{ env.DEPLOY_PATH }}/current
             
             # Make scripts executable
@@ -315,7 +315,7 @@ jobs:
           sleep 30
           
           # Check API health
-          API_URL="https://api.schlep-engine.com/health"
+          API_URL="https://api.igris-inertial.com/health"
           echo "Checking API health at $API_URL"
           
           for i in {1..10}; do
@@ -334,7 +334,7 @@ jobs:
           done
           
           # Check frontend
-          FRONTEND_URL="https://schlep-engine.com"
+          FRONTEND_URL="https://igris-inertial.com"
           echo "Checking frontend at $FRONTEND_URL"
           
           if curl -f -s -o /dev/null "$FRONTEND_URL"; then
@@ -349,11 +349,11 @@ jobs:
           echo "🧪 Running post-deployment tests..."
           
           # Run API performance tests against live environment
-          curl -f -s "https://api.schlep-engine.com/metrics" | jq '.'
+          curl -f -s "https://api.igris-inertial.com/metrics" | jq '.'
           
           # Test key endpoints
-          curl -f -s "https://api.schlep-engine.com/" | jq '.status'
-          curl -f -s "https://api.schlep-engine.com/docs" > /dev/null
+          curl -f -s "https://api.igris-inertial.com/" | jq '.status'
+          curl -f -s "https://api.igris-inertial.com/docs" > /dev/null
           
           echo "✅ Post-deployment tests passed"
 
@@ -475,7 +475,7 @@ jobs:
                   },
                   {
                     "title": "Status",
-                    "value": "🌐 https://schlep-engine.com\n🔗 https://api.schlep-engine.com",
+                    "value": "🌐 https://igris-inertial.com\n🔗 https://api.igris-inertial.com",
                     "short": false
                   }
                 ]
@@ -490,9 +490,9 @@ jobs:
           server_port: 587
           username: ${{ secrets.EMAIL_USERNAME }}
           password: ${{ secrets.EMAIL_PASSWORD }}
-          subject: "🚀 Schlep Engine Deployment ${{ needs.deploy.result }}"
+          subject: "🚀 Igris Overture Deployment ${{ needs.deploy.result }}"
           to: ${{ vars.NOTIFICATION_EMAIL }}
-          from: Schlep Engine CI/CD <${{ secrets.EMAIL_USERNAME }}>
+          from: Igris Overture CI/CD <${{ secrets.EMAIL_USERNAME }}>
           html_body: |
             <h2>${{ needs.deploy.result == 'success' && '✅ Deployment Successful' || '❌ Deployment Failed' }}</h2>
             <p><strong>Repository:</strong> ${{ github.repository }}</p>
@@ -503,10 +503,10 @@ jobs:
             
             ${{ needs.deploy.result == 'success' && '<p><strong>Services:</strong></p>
             <ul>
-              <li><a href="https://schlep-engine.com">🌐 Landing Page</a></li>
-              <li><a href="https://api.schlep-engine.com">🔗 API Backend</a></li>
-              <li><a href="https://admin.schlep-engine.com">👤 Admin Dashboard</a></li>
-              <li><a href="https://docs.schlep-engine.com">📚 Documentation</a></li>
+              <li><a href="https://igris-inertial.com">🌐 Landing Page</a></li>
+              <li><a href="https://api.igris-inertial.com">🔗 API Backend</a></li>
+              <li><a href="https://admin.igris-inertial.com">👤 Admin Dashboard</a></li>
+              <li><a href="https://docs.igris-inertial.com">📚 Documentation</a></li>
             </ul>' || '<p>Please check the GitHub Actions logs for error details.</p>' }}
             
             <p><a href="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}">View deployment logs</a></p>

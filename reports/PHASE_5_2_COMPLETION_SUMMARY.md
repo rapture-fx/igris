@@ -367,18 +367,18 @@ schlep_tier_soft_limit_warnings_total{tier,tenant_id,limit_type}
 **Day 1-2: Migration**
 ```bash
 # Backup database
-pg_dump -U schlep schlep_engine > backup_pre_tier_migration.sql
+pg_dump -U schlep igris_overture > backup_pre_tier_migration.sql
 
 # Run migration
-psql -U schlep -d schlep_engine -f migrations/008_add_tier_column_to_tenants.sql
+psql -U schlep -d igris_overture -f migrations/008_add_tier_column_to_tenants.sql
 
 # Verify migration
-psql -U schlep -d schlep_engine -c "SELECT COUNT(*) FROM tenants WHERE tier IS NOT NULL;"
+psql -U schlep -d igris_overture -c "SELECT COUNT(*) FROM tenants WHERE tier IS NOT NULL;"
 ```
 
 **Day 3-4: Middleware Integration**
 ```go
-// In cmd/schlep-engine-api/main.go
+// In cmd/igris-overture/main.go
 
 tierEnforcer, err := middleware.NewTierEnforcer(middleware.TierEnforcerConfig{
     ConfigPath: "./config/tier_config.yaml",
@@ -443,7 +443,7 @@ app.Use(tierEnforcer.Enforce())
 **Manual (Backup):**
 ```bash
 # On first day of month
-psql -U schlep -d schlep_engine -c "SELECT reset_monthly_request_counters();"
+psql -U schlep -d igris_overture -c "SELECT reset_monthly_request_counters();"
 ```
 
 ### Tier Upgrade Process

@@ -1,10 +1,10 @@
 # Schlep-engine JavaScript SDK
 
-[![npm version](https://badge.fury.io/js/%40schlep-engine%2Fjavascript-sdk.svg)](https://badge.fury.io/js/%40schlep-engine%2Fjavascript-sdk)
+[![npm version](https://badge.fury.io/js/%40igris-inertial%2Fjavascript-sdk.svg)](https://badge.fury.io/js/%40igris-inertial%2Fjavascript-sdk)
 [![TypeScript](https://badges.aleen42.io/src/typescript.svg)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Official JavaScript/TypeScript SDK for [Schlep-engine](https://schlep-engine.com) - Advanced data processing, machine learning, and analytics platform.
+Official JavaScript/TypeScript SDK for [Schlep-engine](https://igris-inertial.com) - Advanced data processing, machine learning, and analytics platform.
 
 ## 🚀 Features
 
@@ -20,15 +20,15 @@ Official JavaScript/TypeScript SDK for [Schlep-engine](https://schlep-engine.com
 ## 📦 Installation
 
 ```bash
-npm install @schlep-engine/javascript-sdk
+npm install @igris-inertial/javascript-sdk
 ```
 
 ```bash
-yarn add @schlep-engine/javascript-sdk
+yarn add @igris-inertial/javascript-sdk
 ```
 
 ```bash
-pnpm add @schlep-engine/javascript-sdk
+pnpm add @igris-inertial/javascript-sdk
 ```
 
 ## 🏃 Quick Start
@@ -36,11 +36,11 @@ pnpm add @schlep-engine/javascript-sdk
 ### API Key Authentication
 
 ```typescript
-import { SchlepEngineClient, DataFormat } from '@schlep-engine/javascript-sdk';
+import { SchlepEngineClient, DataFormat } from '@igris-inertial/javascript-sdk';
 
 const client = new SchlepEngineClient({
   apiKey: 'your-api-key',
-  baseUrl: 'https://api.schlep-engine.com'
+  baseUrl: 'https://api.igris-inertial.com'
 });
 
 // Process a file
@@ -83,7 +83,7 @@ const finalResult = await client.data.waitForJob(result.data.job_id);
 ### Machine Learning
 
 ```typescript
-import { MLTaskType, ModelType } from '@schlep-engine/javascript-sdk';
+import { MLTaskType, ModelType } from '@igris-inertial/javascript-sdk';
 
 // Create ML pipeline
 const pipeline = await client.ml.createPipeline({
@@ -118,10 +118,10 @@ const prediction = await client.ml.predict({
 ### Real-time Streaming
 
 ```typescript
-import { StreamingManager } from '@schlep-engine/javascript-sdk';
+import { StreamingManager } from '@igris-inertial/javascript-sdk';
 
 const streaming = new StreamingManager({
-  baseUrl: 'https://api.schlep-engine.com',
+  baseUrl: 'https://api.igris-inertial.com',
   apiKey: 'your-api-key'
 });
 
@@ -256,7 +256,7 @@ await client.monitoring.getActiveAlerts();
 ### Via CDN
 
 ```html
-<script src="https://unpkg.com/@schlep-engine/javascript-sdk/dist/index.umd.js"></script>
+<script src="https://unpkg.com/@igris-inertial/javascript-sdk/dist/index.umd.js"></script>
 <script>
   const client = new SchlepEngine.SchlepEngineClient({
     apiKey: 'your-api-key'
@@ -286,14 +286,14 @@ if (file) {
 
 ```bash
 export SCHLEP_API_KEY="your-api-key"
-export SCHLEP_BASE_URL="https://api.schlep-engine.com"
+export SCHLEP_BASE_URL="https://api.igris-inertial.com"
 ```
 
 ### File Processing
 
 ```typescript
 import fs from 'fs';
-import { SchlepEngineClient } from '@schlep-engine/javascript-sdk';
+import { SchlepEngineClient } from '@igris-inertial/javascript-sdk';
 
 const client = new SchlepEngineClient({
   apiKey: process.env.SCHLEP_API_KEY
@@ -314,7 +314,7 @@ import {
   APIError, 
   AuthenticationError, 
   RateLimitError 
-} from '@schlep-engine/javascript-sdk';
+} from '@igris-inertial/javascript-sdk';
 
 try {
   const result = await client.data.processFile(file);
@@ -419,10 +419,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Documentation**: [https://docs.schlep-engine.com/sdk/javascript](https://docs.schlep-engine.com/sdk/javascript)
-- **API Reference**: [https://api.schlep-engine.com/docs](https://api.schlep-engine.com/docs)
-- **Support**: [support@schlep-engine.com](mailto:support@schlep-engine.com)
-- **Issues**: [GitHub Issues](https://github.com/schlep-engine/javascript-sdk/issues)
+- **Documentation**: [https://docs.igris-inertial.com/sdk/javascript](https://docs.igris-inertial.com/sdk/javascript)
+- **API Reference**: [https://api.igris-inertial.com/docs](https://api.igris-inertial.com/docs)
+- **Support**: [support@igris-inertial.com](mailto:support@igris-inertial.com)
+- **Issues**: [GitHub Issues](https://github.com/igris-inertial/javascript-sdk/issues)
 
 ## 🔄 Changelog
 
@@ -430,4 +430,4 @@ See [CHANGELOG.md](CHANGELOG.md) for details about changes in each version.
 
 ---
 
-Built with ❤️ by the [Schlep-engine](https://schlep-engine.com) team
+Built with ❤️ by the [Schlep-engine](https://igris-inertial.com) team

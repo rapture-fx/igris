@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/models"
+	"github.com/igris-inertial/go-sdk/pkg/models"
 	"go.opentelemetry.io/otel/attribute"
 )
 

@@ -3,9 +3,9 @@
 # Schlep Engine Development Server Starter
 # This script ensures the dev server runs persistently
 
-PID_FILE="/tmp/schlep-engine-dev.pid"
-LOG_FILE="/tmp/schlep-engine-dev.log"
-APP_DIR="/Users/wira/Desktop/schlep-engine/web/apps/web-landing"
+PID_FILE="/tmp/igris-inertial-dev.pid"
+LOG_FILE="/tmp/igris-inertial-dev.log"
+APP_DIR="/Users/wira/Desktop/igris-inertial/web/apps/web-landing"
 
 # Function to check if server is running
 is_running() {
@@ -27,7 +27,7 @@ start_server() {
     cd "$APP_DIR"
 
     # Start server in background with nohup to survive shell exits
-    nohup pnpm --filter @schlep-engine/web-landing dev > "$LOG_FILE" 2>&1 &
+    nohup pnpm --filter @igris-inertial/web-landing dev > "$LOG_FILE" 2>&1 &
     PID=$!
     echo $PID > "$PID_FILE"
 

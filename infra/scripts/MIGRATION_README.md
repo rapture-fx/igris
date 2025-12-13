@@ -187,7 +187,7 @@ python migrate_to_supabase.py --mode=migrate --resume /tmp/migration_logs/migrat
 
 ## 📋 Database Model Coverage
 
-The migration script handles all Schlep Engine database models:
+The migration script handles all Igris Overture database models:
 
 ### Core Models
 - ✅ Users (with enhanced security fields)
@@ -345,4 +345,4 @@ If data validation fails:
 
 ---
 
-*This migration script is designed specifically for the Schlep Engine application architecture and database schema. For questions or issues, please consult the development team.*
+*This migration script is designed specifically for the Igris Overture application architecture and database schema. For questions or issues, please consult the development team.*

@@ -124,7 +124,7 @@ FROM golang:1.23 AS go-builder
 WORKDIR /build
 COPY --from=rust-builder /build/rust-core ./rust-core/
 COPY . .
-RUN go build -o schlep-api cmd/schlep-api/main.go
+RUN go build -o igris-overture cmd/igris-overture/main.go
 ```
 
 ## Graduation Policy

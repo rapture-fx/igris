@@ -21,7 +21,7 @@ EXISTING_PR=$(gh pr list --head fix/ci-architecture-alignment --state open --jso
 
 if [ -n "$EXISTING_PR" ]; then
     echo "⚠️  PR #$EXISTING_PR already exists for this branch"
-    echo "    View it at: https://github.com/wiramahendra/schlep-engine/pull/$EXISTING_PR"
+    echo "    View it at: https://github.com/wiramahendra/igris-inertial/pull/$EXISTING_PR"
     echo ""
     read -p "Do you want to update the existing PR? (y/N): " -n 1 -r
     echo ""

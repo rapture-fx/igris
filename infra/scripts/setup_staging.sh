@@ -104,7 +104,7 @@ DEBUG=false
 # Database
 STAGING_DB_HOST=staging-db
 STAGING_DB_PORT=5432
-STAGING_DB_NAME=schlep_engine_staging
+STAGING_DB_NAME=igris_overture_staging
 STAGING_DB_USER=schlep_staging
 STAGING_DB_PASSWORD=staging_secure_password_$(openssl rand -hex 16)
 
@@ -115,10 +115,10 @@ STAGING_REDIS_PASSWORD=staging_redis_$(openssl rand -hex 16)
 
 # Storage
 STAGING_STORAGE_PROVIDER=gcs
-STAGING_STORAGE_BUCKET=schlep-engine-staging
+STAGING_STORAGE_BUCKET=igris-inertial-staging
 STAGING_STORAGE_CREDENTIALS_PATH=/app/credentials/staging-storage-key.json
 STAGING_STORAGE_REGION=us-central1
-STAGING_CDN_URL=https://staging-cdn.schlep-engine.com
+STAGING_CDN_URL=https://staging-cdn.igris-inertial.com
 
 # Security
 STAGING_SECRET_KEY=staging_secret_$(openssl rand -hex 32)
@@ -132,7 +132,7 @@ LOCKOUT_DURATION_MINUTES=15
 STAGING_SENTRY_DSN=https://your-sentry-dsn@sentry.io/staging
 SENTRY_ENVIRONMENT=staging
 LOG_LEVEL=INFO
-LOG_FILE=/var/log/schlep-engine/app.log
+LOG_FILE=/var/log/igris-inertial/app.log
 PROMETHEUS_ENABLED=true
 METRICS_RETENTION_DAYS=30
 
@@ -141,13 +141,13 @@ STAGING_CELERY_BROKER_URL=redis://:staging_redis_$(openssl rand -hex 16)@staging
 STAGING_CELERY_RESULT_BACKEND=redis://:staging_redis_$(openssl rand -hex 16)@staging-redis:6379/0
 
 # External Services
-STAGING_ML_SERVICE_URL=https://staging-ml.schlep-engine.com
-STAGING_EMAIL_SERVICE_URL=https://staging-email.schlep-engine.com
-STAGING_NOTIFICATION_SERVICE_URL=https://staging-notifications.schlep-engine.com
+STAGING_ML_SERVICE_URL=https://staging-ml.igris-inertial.com
+STAGING_EMAIL_SERVICE_URL=https://staging-email.igris-inertial.com
+STAGING_NOTIFICATION_SERVICE_URL=https://staging-notifications.igris-inertial.com
 
 # CORS
-STAGING_ALLOWED_ORIGINS=http://localhost:3001,https://staging.schlep-engine.com
-STAGING_ALLOWED_HOSTS=staging.schlep-engine.com,localhost
+STAGING_ALLOWED_ORIGINS=http://localhost:3001,https://staging.igris-inertial.com
+STAGING_ALLOWED_HOSTS=staging.igris-inertial.com,localhost
 
 # Rate Limiting
 RATE_LIMIT_REQUESTS=100
@@ -194,17 +194,17 @@ create_staging_db_init() {
 -- Staging Database Initialization Script
 
 -- Create staging database
-CREATE DATABASE schlep_engine_staging;
+CREATE DATABASE igris_overture_staging;
 
 -- Create staging user
 CREATE USER schlep_staging WITH PASSWORD 'staging_secure_password';
 
 -- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE schlep_engine_staging TO schlep_staging;
-GRANT CREATE ON DATABASE schlep_engine_staging TO schlep_staging;
+GRANT ALL PRIVILEGES ON DATABASE igris_overture_staging TO schlep_staging;
+GRANT CREATE ON DATABASE igris_overture_staging TO schlep_staging;
 
 -- Connect to staging database
-\c schlep_engine_staging;
+\c igris_overture_staging;
 
 -- Grant schema privileges
 GRANT ALL ON SCHEMA public TO schlep_staging;
@@ -241,10 +241,10 @@ global:
   evaluation_interval: 15s
   external_labels:
     environment: staging
-    service: schlep-engine
+    service: igris-inertial
 
 scrape_configs:
-  - job_name: 'schlep-engine-staging'
+  - job_name: 'igris-inertial-staging'
     static_configs:
       - targets: ['staging-backend:8000']
     metrics_path: '/api/v1/metrics'
@@ -383,7 +383,7 @@ docker-compose -f docker-compose.staging.yml down
 
 # Remove old volumes (optional - uncomment if you want fresh data)
 # print_status "Removing old volumes..."
-# docker volume rm schlep-engine_staging_postgres_data schlep-engine_staging_redis_data 2>/dev/null || true
+# docker volume rm igris-inertial_staging_postgres_data igris-inertial_staging_redis_data 2>/dev/null || true
 
 # Build images
 print_status "Building Docker images..."
@@ -459,7 +459,7 @@ mkdir -p "$BACKUP_DIR"
 
 # Backup database
 echo "Backing up database..."
-docker-compose -f docker-compose.staging.yml exec -T staging-db pg_dump -U schlep_staging schlep_engine_staging > "$BACKUP_DIR/${BACKUP_NAME}_database.sql"
+docker-compose -f docker-compose.staging.yml exec -T staging-db pg_dump -U schlep_staging igris_overture_staging > "$BACKUP_DIR/${BACKUP_NAME}_database.sql"
 
 # Backup Redis data (if needed)
 echo "Backing up Redis data..."
@@ -468,7 +468,7 @@ docker cp $(docker-compose -f docker-compose.staging.yml ps -q staging-redis):/d
 
 # Backup logs
 echo "Backing up logs..."
-docker-compose -f docker-compose.staging.yml exec -T staging-backend tar -czf /tmp/logs.tar.gz /var/log/schlep-engine/
+docker-compose -f docker-compose.staging.yml exec -T staging-backend tar -czf /tmp/logs.tar.gz /var/log/igris-inertial/
 docker cp $(docker-compose -f docker-compose.staging.yml ps -q staging-backend):/tmp/logs.tar.gz "$BACKUP_DIR/${BACKUP_NAME}_logs.tar.gz"
 
 # Create backup archive
@@ -529,9 +529,9 @@ docker-compose -f ../../docker-compose.staging.yml down
 echo "Restoring database..."
 docker-compose -f ../../docker-compose.staging.yml up -d staging-db
 sleep 10
-docker-compose -f ../../docker-compose.staging.yml exec -T staging-db psql -U schlep_staging -d postgres -c "DROP DATABASE IF EXISTS schlep_engine_staging;"
-docker-compose -f ../../docker-compose.staging.yml exec -T staging-db psql -U schlep_staging -d postgres -c "CREATE DATABASE schlep_engine_staging;"
-docker-compose -f ../../docker-compose.staging.yml exec -T staging-db psql -U schlep_staging -d schlep_engine_staging < *_database.sql
+docker-compose -f ../../docker-compose.staging.yml exec -T staging-db psql -U schlep_staging -d postgres -c "DROP DATABASE IF EXISTS igris_overture_staging;"
+docker-compose -f ../../docker-compose.staging.yml exec -T staging-db psql -U schlep_staging -d postgres -c "CREATE DATABASE igris_overture_staging;"
+docker-compose -f ../../docker-compose.staging.yml exec -T staging-db psql -U schlep_staging -d igris_overture_staging < *_database.sql
 
 # Restore Redis (if needed)
 echo "Restoring Redis data..."
@@ -708,13 +708,13 @@ read -p "Do you want to remove all staging data (volumes)? This will delete all 
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     print_warning "Removing all staging data..."
-    docker volume rm schlep-engine_staging_postgres_data 2>/dev/null || true
-    docker volume rm schlep-engine_staging_redis_data 2>/dev/null || true
-    docker volume rm schlep-engine_staging_logs 2>/dev/null || true
-    docker volume rm schlep-engine_staging_uploads 2>/dev/null || true
-    docker volume rm schlep-engine_staging_prometheus_data 2>/dev/null || true
-    docker volume rm schlep-engine_staging_grafana_data 2>/dev/null || true
-    docker volume rm schlep-engine_staging_alertmanager_data 2>/dev/null || true
+    docker volume rm igris-inertial_staging_postgres_data 2>/dev/null || true
+    docker volume rm igris-inertial_staging_redis_data 2>/dev/null || true
+    docker volume rm igris-inertial_staging_logs 2>/dev/null || true
+    docker volume rm igris-inertial_staging_uploads 2>/dev/null || true
+    docker volume rm igris-inertial_staging_prometheus_data 2>/dev/null || true
+    docker volume rm igris-inertial_staging_grafana_data 2>/dev/null || true
+    docker volume rm igris-inertial_staging_alertmanager_data 2>/dev/null || true
     print_success "All staging data removed"
 else
     print_status "Keeping staging data"
@@ -722,7 +722,7 @@ fi
 
 # Remove networks
 print_status "Removing networks..."
-docker network rm schlep-engine_schlep-staging-network 2>/dev/null || true
+docker network rm igris-inertial_schlep-staging-network 2>/dev/null || true
 
 # Clean up old images (optional)
 read -p "Do you want to remove unused Docker images? (y/N): " -n 1 -r

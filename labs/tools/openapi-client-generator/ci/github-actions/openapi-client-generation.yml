@@ -472,10 +472,10 @@ jobs:
           This release includes automatically generated client libraries for the Schlep-engine API.
           
           ### Languages Supported
-          - Python (PyPI: `schlep-engine-client`)
-          - TypeScript/JavaScript (NPM: `@schlep-engine/client`)
-          - Go (GitHub: `github.com/schlep-engine/go-client`)
-          - Java (Maven Central: `com.schlepengine:schlep-engine-client`)
+          - Python (PyPI: `igris-inertial-client`)
+          - TypeScript/JavaScript (NPM: `@igris-inertial/client`)
+          - Go (GitHub: `github.com/igris-inertial/go-client`)
+          - Java (Maven Central: `com.schlepengine:igris-inertial-client`)
           - C# (NuGet: `SchlepEngine.Client`)
           
           ### Changes in This Release
@@ -488,24 +488,24 @@ jobs:
           
           **Python:**
           ```bash
-          pip install schlep-engine-client
+          pip install igris-inertial-client
           ```
           
           **TypeScript/JavaScript:**
           ```bash
-          npm install @schlep-engine/client
+          npm install @igris-inertial/client
           ```
           
           **Go:**
           ```bash
-          go get github.com/schlep-engine/go-client
+          go get github.com/igris-inertial/go-client
           ```
           
           **Java:**
           ```xml
           <dependency>
             <groupId>com.schlepengine</groupId>
-            <artifactId>schlep-engine-client</artifactId>
+            <artifactId>igris-inertial-client</artifactId>
             <version>2.0.0</version>
           </dependency>
           ```

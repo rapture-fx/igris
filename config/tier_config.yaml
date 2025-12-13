@@ -361,7 +361,7 @@ tiers:
       # Scale-specific features
       on_premise_deployment: true     # ✅ Kubernetes/Helm charts
       self_hosted: true               # ✅ Deployable
-      kubernetes_ready: true          # ✅ Full Helm chart (infra/helm/schlep-engine)
+      kubernetes_ready: true          # ✅ Full Helm chart (infra/helm/igris-inertial)
       custom_provider_adapters: true  # ✅ Generic Provider interface (internal/providers/provider_interface.go)
       onnx_model_framework: true      # ✅ Framework ready (needs model files)
       advanced_security_controls: true # ✅ RBAC + isolation + audit (internal/safety/audit_logger.go)

@@ -443,8 +443,8 @@ DB_MAX_OVERFLOW=30
 
 ### Support
 - Documentation: docs/ENHANCED_SECURITY_SYSTEM.md
-- Security team: security@schlep-engine.com
-- Bug reports: github.com/schlep-engine/issues
+- Security team: security@igris-inertial.com
+- Bug reports: github.com/igris-inertial/issues
 EOF
 
 print_success "Security configuration guide created"

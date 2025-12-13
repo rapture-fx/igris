@@ -156,13 +156,13 @@ rule_files:
   # - "second_rules.yml"
 
 scrape_configs:
-  - job_name: 'schlep-engine'
+  - job_name: 'igris-inertial'
     static_configs:
       - targets: ['localhost:8000']
     metrics_path: '/metrics'
     scrape_interval: 15s
 
-  - job_name: 'schlep-engine-health'
+  - job_name: 'igris-inertial-health'
     static_configs:
       - targets: ['localhost:8000']
     metrics_path: '/api/v1/health'
@@ -234,12 +234,12 @@ providers:
 EOF
     
     # Create basic dashboard
-    cat > grafana/dashboards/schlep-engine-dashboard.json << EOF
+    cat > grafana/dashboards/igris-inertial-dashboard.json << EOF
 {
   "dashboard": {
     "id": null,
     "title": "Schlep-engine Dashboard",
-    "tags": ["schlep-engine"],
+    "tags": ["igris-inertial"],
     "timezone": "browser",
     "panels": [
       {

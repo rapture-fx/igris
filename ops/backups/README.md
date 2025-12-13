@@ -26,13 +26,13 @@ RETENTION_DAYS=14 ./backup.sh
 ./restore.sh latest
 
 # Restore from specific file
-./restore.sh ./data/schlep_engine_backup_20251026_143000.sql.gz
+./restore.sh ./data/igris_overture_backup_20251026_143000.sql.gz
 
 # List available backups
 ./restore.sh --list
 
 # Verify backup without restoring
-./restore.sh --verify ./data/schlep_engine_backup_20251026_143000.sql.gz
+./restore.sh --verify ./data/igris_overture_backup_20251026_143000.sql.gz
 ```
 
 ---
@@ -77,7 +77,7 @@ RETENTION_DAYS=14 ./backup.sh
 crontab -e
 
 # Daily backup at 2 AM
-0 2 * * * /opt/schlep-engine/ops/backups/backup.sh >> /var/log/schlep-backup.log 2>&1
+0 2 * * * /opt/igris-inertial/ops/backups/backup.sh >> /var/log/schlep-backup.log 2>&1
 ```
 
 ### Docker Cron Container
@@ -90,15 +90,15 @@ services:
     command: |
       sh -c "
         apk add --no-cache postgresql-client gzip aws-cli &&
-        echo '0 2 * * * /opt/schlep-engine/ops/backups/backup.sh' | crontab - &&
+        echo '0 2 * * * /opt/igris-inertial/ops/backups/backup.sh' | crontab - &&
         crond -f
       "
     volumes:
-      - ./ops/backups:/opt/schlep-engine/ops/backups
+      - ./ops/backups:/opt/igris-inertial/ops/backups
     environment:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
-      - POSTGRES_DB=schlep_engine
+      - POSTGRES_DB=igris_overture
       - POSTGRES_USER=schlep_user
       - POSTGRES_PASSWORD=changeme
     networks:
@@ -117,11 +117,11 @@ services:
 | `RETENTION_DAYS` | `7` | Days to keep backups |
 | `POSTGRES_HOST` | `localhost` | Database host |
 | `POSTGRES_PORT` | `5432` | Database port |
-| `POSTGRES_DB` | `schlep_engine` | Database name |
+| `POSTGRES_DB` | `igris_overture` | Database name |
 | `POSTGRES_USER` | `schlep_user` | Database user |
 | `POSTGRES_PASSWORD` | `changeme` | Database password |
 | `S3_BACKUP_ENABLED` | `false` | Enable S3 upload |
-| `S3_BUCKET` | `schlep-engine-backups` | S3 bucket name |
+| `S3_BUCKET` | `igris-inertial-backups` | S3 bucket name |
 | `S3_PREFIX` | `backups/` | S3 key prefix |
 | `SLACK_WEBHOOK_URL` | `` | Slack webhook for notifications |
 | `BACKUP_EMAIL` | `` | Email for notifications |
@@ -141,8 +141,8 @@ services:
         "s3:DeleteObject"
       ],
       "Resource": [
-        "arn:aws:s3:::schlep-engine-backups/*",
-        "arn:aws:s3:::schlep-engine-backups"
+        "arn:aws:s3:::igris-inertial-backups/*",
+        "arn:aws:s3:::igris-inertial-backups"
       ]
     }
   ]
@@ -155,12 +155,12 @@ services:
 
 ### Local Backups
 - **Location**: `./ops/backups/data/`
-- **Format**: `schlep_engine_backup_YYYYMMDD_HHMMSS.sql.gz`
+- **Format**: `igris_overture_backup_YYYYMMDD_HHMMSS.sql.gz`
 - **Retention**: 7 days (configurable)
 - **Cleanup**: Automatic daily cleanup
 
 ### S3 Backups (Optional)
-- **Location**: `s3://BUCKET/PREFIX/schlep_engine_backup_*.sql.gz`
+- **Location**: `s3://BUCKET/PREFIX/igris_overture_backup_*.sql.gz`
 - **Storage Class**: STANDARD_IA (Infrequent Access)
 - **Retention**: 7 days in S3, then lifecycle to Glacier
 - **Cost**: ~$0.01/GB/month (STANDARD_IA)
@@ -186,7 +186,7 @@ services:
 ./restore.sh --list
 
 # Restore specific backup
-./restore.sh ./data/schlep_engine_backup_20251025_020000.sql.gz
+./restore.sh ./data/igris_overture_backup_20251025_020000.sql.gz
 ```
 
 **RTO**: <10 minutes
@@ -196,11 +196,11 @@ services:
 
 ```bash
 # Download from S3
-S3_BACKUP_ENABLED=true ./restore.sh schlep_engine_backup_20251026_020000.sql.gz
+S3_BACKUP_ENABLED=true ./restore.sh igris_overture_backup_20251026_020000.sql.gz
 
 # Or manually
-aws s3 cp s3://schlep-engine-backups/backups/schlep_engine_backup_20251026_020000.sql.gz ./data/
-./restore.sh ./data/schlep_engine_backup_20251026_020000.sql.gz
+aws s3 cp s3://igris-inertial-backups/backups/igris_overture_backup_20251026_020000.sql.gz ./data/
+./restore.sh ./data/igris_overture_backup_20251026_020000.sql.gz
 ```
 
 **RTO**: <15 minutes (including S3 download)
@@ -217,10 +217,10 @@ aws s3 cp s3://schlep-engine-backups/backups/schlep_engine_backup_20251026_02000
 ./backup.sh
 
 # Verify backup exists
-ls -lh ./data/schlep_engine_backup_*.sql.gz
+ls -lh ./data/igris_overture_backup_*.sql.gz
 
 # Check backup content
-zcat ./data/schlep_engine_backup_*.sql.gz | head -n 20
+zcat ./data/igris_overture_backup_*.sql.gz | head -n 20
 ```
 
 **Expected**: File ~1-10MB, contains "PostgreSQL database dump"
@@ -253,7 +253,7 @@ S3_BACKUP_ENABLED=true S3_BUCKET=test-bucket ./backup.sh
 aws s3 ls s3://test-bucket/backups/
 
 # Download and restore
-S3_BACKUP_ENABLED=true ./restore.sh schlep_engine_backup_20251026_143000.sql.gz
+S3_BACKUP_ENABLED=true ./restore.sh igris_overture_backup_20251026_143000.sql.gz
 ```
 
 **Expected**: S3 upload/download successful
@@ -307,7 +307,7 @@ brew install postgresql
 aws sts get-caller-identity
 
 # Test S3 access
-aws s3 ls s3://schlep-engine-backups/
+aws s3 ls s3://igris-inertial-backups/
 
 # Check IAM permissions
 aws iam get-user-policy --user-name backup-user --policy-name BackupPolicy
@@ -318,7 +318,7 @@ aws iam get-user-policy --user-name backup-user --policy-name BackupPolicy
 ```bash
 # Terminate active connections
 psql -U postgres -d postgres -c \
-  "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='schlep_engine';"
+  "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='igris_overture';"
 
 # Then retry restore
 ./restore.sh latest
@@ -328,11 +328,11 @@ psql -U postgres -d postgres -c \
 
 ```bash
 # Test gzip integrity
-gzip -t ./data/schlep_engine_backup_*.sql.gz
+gzip -t ./data/igris_overture_backup_*.sql.gz
 
 # If corrupted, use previous backup
 ./restore.sh --list
-./restore.sh ./data/schlep_engine_backup_PREVIOUS_DATE.sql.gz
+./restore.sh ./data/igris_overture_backup_PREVIOUS_DATE.sql.gz
 ```
 
 ---

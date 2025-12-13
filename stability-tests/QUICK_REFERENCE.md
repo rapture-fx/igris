@@ -6,8 +6,8 @@
 # 1. Start API in benchmark mode (no costs)
 export PROVIDER_MODE=benchmark
 export OPTIMIZER_MODE=shadow
-cd /Users/wira/Desktop/schlep-engine
-go run cmd/schlep-engine-api/main.go &
+cd /Users/wira/Desktop/igris-inertial
+go run cmd/igris-overture/main.go &
 
 # 2. Wait and verify
 sleep 10
@@ -73,8 +73,8 @@ python test_malformed_requests.py --iterations 500
 ./rollback_automation.sh
 
 # Manual (Kubernetes)
-kubectl rollout undo deployment/schlep-engine-api
-kubectl rollout status deployment/schlep-engine-api
+kubectl rollout undo deployment/igris-overture
+kubectl rollout status deployment/igris-overture
 ```
 
 ## ⚠️ Critical Alerts
@@ -95,10 +95,10 @@ kubectl rollout status deployment/schlep-engine-api
 curl http://localhost:8080/healthz
 
 # 2. Check logs
-kubectl logs deployment/schlep-engine-api --tail=100
+kubectl logs deployment/igris-overture --tail=100
 
 # 3. Rollback if needed
-kubectl rollout undo deployment/schlep-engine-api
+kubectl rollout undo deployment/igris-overture
 ```
 
 ### High 5xx Rate
@@ -107,19 +107,19 @@ kubectl rollout undo deployment/schlep-engine-api
 curl http://localhost:8080/v1/providers/stats
 
 # 2. Check recent deployment
-kubectl rollout history deployment/schlep-engine-api
+kubectl rollout history deployment/igris-overture
 
 # 3. Rollback if recent deploy
-kubectl rollout undo deployment/schlep-engine-api
+kubectl rollout undo deployment/igris-overture
 ```
 
 ### FFI Crash/Panic
 ```bash
 # 1. Disable Rust optimizer immediately
-kubectl set env deployment/schlep-engine-api OPTIMIZER_MODE=go-only
+kubectl set env deployment/igris-overture OPTIMIZER_MODE=go-only
 
 # 2. Restart
-kubectl rollout restart deployment/schlep-engine-api
+kubectl rollout restart deployment/igris-overture
 
 # 3. Monitor recovery
 watch -n 2 'curl -s http://localhost:8080/metrics | grep http_requests_total'
@@ -162,7 +162,7 @@ export OPTIMIZER_SAMPLE_RATE=0.1
 
 ## 📈 Monitoring URLs
 
-- **Grafana**: http://grafana:3000/d/schlep-engine
+- **Grafana**: http://grafana:3000/d/igris-inertial
 - **Prometheus**: http://prometheus:9090/targets
 - **API Metrics**: http://localhost:8080/metrics
 - **Health**: http://localhost:8080/healthz
@@ -229,7 +229,7 @@ python script.py --timeout 60
 python script.py --concurrency 10
 
 # Check API logs
-kubectl logs deployment/schlep-engine-api
+kubectl logs deployment/igris-overture
 ```
 
 ### False Positives

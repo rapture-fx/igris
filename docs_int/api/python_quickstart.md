@@ -275,9 +275,9 @@ if __name__ == "__main__":
 
 ## Support
 
-- GitHub Issues: https://github.com/schlep-engine/schlep-engine/issues
-- Email: hello@schlep-engine.com
-- Documentation: https://github.com/schlep-engine/schlep-engine
+- GitHub Issues: https://github.com/igris-inertial/igris-inertial/issues
+- Email: hello@igris-inertial.com
+- Documentation: https://github.com/igris-inertial/igris-inertial
 
 ---
 

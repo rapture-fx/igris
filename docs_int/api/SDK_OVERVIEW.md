@@ -89,19 +89,19 @@ console.log(response.choices[0].message.content);
 ### Go SDK ✅
 
 **Status:** Production Ready (v1.0.0-rc1)
-**Module:** `github.com/schlep-engine/sdk-go`
+**Module:** `github.com/igris-inertial/sdk-go`
 **Package:** `schlep`
 
 Official Go SDK for Schlep-engine with idiomatic Go patterns and minimal dependencies.
 
 **Installation:**
 ```bash
-go get github.com/schlep-engine/sdk-go
+go get github.com/igris-inertial/sdk-go
 ```
 
 **Quick Example:**
 ```go
-import "github.com/schlep-engine/sdk-go/schlep"
+import "github.com/igris-inertial/sdk-go/schlep"
 
 client := schlep.NewClient(&schlep.Config{
     BaseURL: "http://localhost:8081",
@@ -130,7 +130,7 @@ fmt.Println(response.Choices[0].Message.Content)
 - [Go Quickstart](/docs/api/go_quickstart.md)
 - [Go API Reference](/docs/api/go_reference.md)
 - [Go SDK README](/internal/sdk/go/README.md)
-- [GoDoc](https://pkg.go.dev/github.com/schlep-engine/sdk-go)
+- [GoDoc](https://pkg.go.dev/github.com/igris-inertial/sdk-go)
 
 ---
 
@@ -532,7 +532,7 @@ schlep config
 ## Repository Structure
 
 ```
-schlep-engine/
+igris-inertial/
 ├── internal/
 │   ├── sdk/
 │   │   ├── python/          # Production Python SDK
@@ -559,12 +559,12 @@ schlep-engine/
 
 Interested in contributing to an SDK?
 
-1. Check the [Contributing Guide](https://github.com/schlep-engine/schlep-engine/blob/main/CONTRIBUTING.md)
+1. Check the [Contributing Guide](https://github.com/igris-inertial/igris-inertial/blob/main/CONTRIBUTING.md)
 2. Review the SDK's README in `/internal/sdk/legacy/{language}/`
 3. Open an issue to discuss your contribution
 4. Submit a pull request
 
-For early access to SDKs in development, contact hello@schlep-engine.com
+For early access to SDKs in development, contact hello@igris-inertial.com
 
 ---
 
@@ -578,9 +578,9 @@ For early access to SDKs in development, contact hello@schlep-engine.com
 - [CLI Documentation](/internal/cli/README.md)
 
 ### Community
-- GitHub: https://github.com/schlep-engine/schlep-engine
-- Issues: https://github.com/schlep-engine/schlep-engine/issues
-- Email: hello@schlep-engine.com
+- GitHub: https://github.com/igris-inertial/igris-inertial
+- Issues: https://github.com/igris-inertial/igris-inertial/issues
+- Email: hello@igris-inertial.com
 
 ### API Status
 - Health: `GET /v1/health`

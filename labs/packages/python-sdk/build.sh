@@ -48,7 +48,7 @@ ls -la dist/
 
 echo ""
 echo "To install locally for testing:"
-echo "  pip install dist/schlep_engine-*.whl"
+echo "  pip install dist/igris_overture-*.whl"
 echo ""
 echo "To publish to PyPI:"
 echo "  twine upload dist/*"

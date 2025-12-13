@@ -5,13 +5,13 @@ Complete API reference for the Schlep-engine Go SDK.
 ## Installation
 
 ```bash
-go get github.com/schlep-engine/sdk-go
+go get github.com/igris-inertial/sdk-go
 ```
 
 ## Import
 
 ```go
-import "github.com/schlep-engine/sdk-go/schlep"
+import "github.com/igris-inertial/sdk-go/schlep"
 ```
 
 ## Package: `schlep`
@@ -601,7 +601,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -671,10 +671,10 @@ func main() {
 
 ## Support
 
-- GoDoc: https://pkg.go.dev/github.com/schlep-engine/sdk-go
-- GitHub: https://github.com/schlep-engine/schlep-engine
-- Issues: https://github.com/schlep-engine/schlep-engine/issues
-- Email: hello@schlep-engine.com
+- GoDoc: https://pkg.go.dev/github.com/igris-inertial/sdk-go
+- GitHub: https://github.com/igris-inertial/igris-inertial
+- Issues: https://github.com/igris-inertial/igris-inertial/issues
+- Email: hello@igris-inertial.com
 
 ---
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -14,14 +14,14 @@ import (
 func TestDefaultConfig(t *testing.T) {
 	cfg := config.DefaultConfig()
 	
-	assert.Equal(t, "https://api.schlep-engine.com", cfg.BaseURL)
+	assert.Equal(t, "https://api.igris-inertial.com", cfg.BaseURL)
 	assert.Equal(t, 30*time.Second, cfg.Timeout)
 	assert.Equal(t, 3, cfg.MaxRetries)
 	assert.True(t, cfg.CircuitBreakerEnabled)
 	assert.True(t, cfg.EnableMetrics)
 	assert.True(t, cfg.EnableTracing)
 	assert.Equal(t, "info", cfg.LogLevel)
-	assert.Equal(t, "schlep-engine-client", cfg.ServiceName)
+	assert.Equal(t, "igris-inertial-client", cfg.ServiceName)
 }
 
 func TestLoadConfigFromEnv(t *testing.T) {
@@ -133,7 +133,7 @@ func TestGetSDKInfo(t *testing.T) {
 	assert.Equal(t, "1.0.0", info["version"])
 	assert.Equal(t, "Schlep-engine", info["company"])
 	assert.Contains(t, info["description"], "Go SDK")
-	assert.Contains(t, info["documentation"], "docs.schlep-engine.com")
+	assert.Contains(t, info["documentation"], "docs.igris-inertial.com")
 	
 	// Check features array
 	features, ok := info["features"].([]string)

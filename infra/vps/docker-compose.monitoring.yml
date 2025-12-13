@@ -14,7 +14,7 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.enable-lifecycle'
     networks:
-      - schlep-engine
+      - igris-inertial
     depends_on:
       - alertmanager
 
@@ -32,7 +32,7 @@ services:
       - '--storage.path=/alertmanager'
       - '--web.external-url=http://localhost:9093'
     networks:
-      - schlep-engine
+      - igris-inertial
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9093/-/healthy"]
@@ -54,7 +54,7 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
     networks:
-      - schlep-engine
+      - igris-inertial
 
   # cAdvisor for container metrics
   cadvisor:
@@ -68,7 +68,7 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     privileged: true
     networks:
-      - schlep-engine
+      - igris-inertial
 
   # Grafana for metrics visualization
   grafana-metrics:
@@ -82,7 +82,7 @@ services:
       - ./grafana/dashboards:/var/lib/grafana/dashboards
       - ./grafana/provisioning:/etc/grafana/provisioning
     networks:
-      - schlep-engine
+      - igris-inertial
     depends_on:
       - prometheus
 
@@ -102,11 +102,11 @@ services:
       - COLLECTOR_ZIPKIN_HOST_PORT=:9411
       - COLLECTOR_OTLP_ENABLED=true
     networks:
-      - schlep-engine
+      - igris-inertial
     restart: unless-stopped
 
 networks:
-  schlep-engine:
+  igris-inertial:
     external: true
 
 volumes:

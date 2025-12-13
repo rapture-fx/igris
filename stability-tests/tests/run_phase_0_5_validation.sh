@@ -66,13 +66,13 @@ run_module() {
 run_module \
     "redis_lock_test" \
     "Redis Distributed Lock Performance Test" \
-    "cd /Users/wira/Desktop/schlep-engine && REDIS_URL='$REDIS_URL' go test -v -run TestRedisDistributedLockPerformance ./tests/"
+    "cd /Users/wira/Desktop/igris-inertial && REDIS_URL='$REDIS_URL' go test -v -run TestRedisDistributedLockPerformance ./tests/"
 
 # Module 2: JWT & BYOK Security Audit
 run_module \
     "jwt_byok_security_audit" \
     "JWT and BYOK Security Audit" \
-    "cd /Users/wira/Desktop/schlep-engine && go test -v -run TestJWTAndBYOKSecurityAudit ./tests/"
+    "cd /Users/wira/Desktop/igris-inertial && go test -v -run TestJWTAndBYOKSecurityAudit ./tests/"
 
 # Module 3: Telemetry Completeness Check
 run_module \

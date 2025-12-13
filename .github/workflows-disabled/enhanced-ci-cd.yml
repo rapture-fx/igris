@@ -231,7 +231,7 @@ jobs:
         cd packages/frontend
         pnpm run build
       env:
-        NEXT_PUBLIC_API_URL: https://api.staging.schlep-engine.com
+        NEXT_PUBLIC_API_URL: https://api.staging.igris-inertial.com
         NEXT_PUBLIC_APP_ENV: test
 
     - name: 📊 Upload test results
@@ -427,7 +427,7 @@ jobs:
     - name: 🏥 Health check
       run: |
         sleep 30
-        curl -f https://staging.schlep-engine.com/health || exit 1
+        curl -f https://staging.igris-inertial.com/health || exit 1
 
   deploy-production:
     name: 🚀 Deploy to Production
@@ -465,7 +465,7 @@ jobs:
     - name: 🏥 Health check
       run: |
         sleep 30
-        curl -f https://schlep-engine.com/health || exit 1
+        curl -f https://igris-inertial.com/health || exit 1
 
     - name: 📊 Create GitHub Release
       if: startsWith(github.ref, 'refs/tags/')

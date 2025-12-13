@@ -63,8 +63,8 @@ The Anthropic provider implements full HTTP client functionality for Anthropic's
 
 ```go
 import (
-    "github.com/schlep-engine/schlep-engine/internal/providers"
-    "github.com/schlep-engine/schlep-engine/internal/providers/anthropic"
+    "github.com/igris-inertial/igris-inertial/internal/providers"
+    "github.com/igris-inertial/igris-inertial/internal/providers/anthropic"
 )
 
 // Create configuration

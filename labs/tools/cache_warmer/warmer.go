@@ -17,8 +17,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/schlep-engine/schlep-engine/web/apps/go-gateway/internal/cache"
-	mlv1 "github.com/schlep-engine/schlep-engine/web/apps/go-gateway/proto/ml/v1"
+	"github.com/Schlep-engine/igris-inertial/web/apps/go-gateway/internal/cache"
+	mlv1 "github.com/Schlep-engine/igris-inertial/web/apps/go-gateway/proto/ml/v1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

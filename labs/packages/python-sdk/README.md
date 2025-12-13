@@ -1,7 +1,7 @@
 # Schlep-engine Python SDK
 
-[![PyPI version](https://badge.fury.io/py/schlep-engine.svg)](https://badge.fury.io/py/schlep-engine)
-[![Python Support](https://img.shields.io/pypi/pyversions/schlep-engine.svg)](https://pypi.org/project/schlep-engine/)
+[![PyPI version](https://badge.fury.io/py/igris-inertial.svg)](https://badge.fury.io/py/igris-inertial)
+[![Python Support](https://img.shields.io/pypi/pyversions/igris-inertial.svg)](https://pypi.org/project/igris-inertial/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Official Python SDK for the **Schlep-engine** API - Advanced data processing, machine learning, and analytics platform.
@@ -22,13 +22,13 @@ Official Python SDK for the **Schlep-engine** API - Advanced data processing, ma
 ## Installation
 
 ```bash
-pip install schlep-engine
+pip install igris-inertial
 ```
 
 For development dependencies:
 
 ```bash
-pip install "schlep-engine[dev]"
+pip install "igris-inertial[dev]"
 ```
 
 ## Quick Start
@@ -36,7 +36,7 @@ pip install "schlep-engine[dev]"
 ### API Key Authentication
 
 ```python
-from schlep_engine import SchlepEngineClient
+from igris_overture import SchlepEngineClient
 
 # Initialize client with API key
 client = SchlepEngineClient(api_key="your-api-key-here")
@@ -56,7 +56,7 @@ print(f"Processing complete! Job ID: {result.job_id}")
 ### User Authentication
 
 ```python
-from schlep_engine import SchlepEngineClient
+from igris_overture import SchlepEngineClient
 
 # Initialize client
 client = SchlepEngineClient()
@@ -72,7 +72,7 @@ pipelines = await client.ml.list_pipelines()
 ### Synchronous Usage
 
 ```python
-from schlep_engine import SchlepEngineClientSync
+from igris_overture import SchlepEngineClientSync
 
 # Synchronous client for non-async environments
 client = SchlepEngineClientSync(api_key="your-api-key")
@@ -115,7 +115,7 @@ created_pipeline = await client.data.create_pipeline(pipeline)
 ### Machine Learning
 
 ```python
-from schlep_engine.models.ml import MLPipelineConfig, MLTaskType, ModelType
+from igris_overture.models.ml import MLPipelineConfig, MLTaskType, ModelType
 
 # Create ML pipeline
 config = MLPipelineConfig(
@@ -186,7 +186,7 @@ for metric in quality_report.metrics:
 ### Analytics Queries
 
 ```python
-from schlep_engine.models.analytics import AnalyticsQuery, AggregationType
+from igris_overture.models.analytics import AnalyticsQuery, AggregationType
 
 # Run analytics query
 query = AnalyticsQuery(
@@ -225,7 +225,7 @@ async with SchlepEngineClient(api_key="your-key") as client:
 ### Custom Configuration
 
 ```python
-from schlep_engine.utils.retry import RetryConfig, RetryStrategy
+from igris_overture.utils.retry import RetryConfig, RetryStrategy
 
 # Custom retry configuration
 retry_config = RetryConfig(
@@ -237,7 +237,7 @@ retry_config = RetryConfig(
 
 client = SchlepEngineClient(
     api_key="your-key",
-    base_url="https://api.schlep-engine.com",
+    base_url="https://api.igris-inertial.com",
     timeout=60.0,
     retry_config=retry_config,
     debug=True
@@ -247,7 +247,7 @@ client = SchlepEngineClient(
 ### Error Handling
 
 ```python
-from schlep_engine.exceptions import (
+from igris_overture.exceptions import (
     SchlepEngineError, APIError, AuthenticationError, 
     RateLimitError, ValidationError
 )
@@ -272,13 +272,13 @@ The SDK supports configuration via environment variables:
 
 ```bash
 # API Configuration
-SCHLEP_ENGINE_API_KEY=your-api-key-here
-SCHLEP_ENGINE_BASE_URL=https://api.schlep-engine.com
-SCHLEP_ENGINE_TIMEOUT=30.0
+IGRIS_OVERTURE_API_KEY=your-api-key-here
+IGRIS_OVERTURE_BASE_URL=https://api.igris-inertial.com
+IGRIS_OVERTURE_TIMEOUT=30.0
 
 # Debug Settings
-SCHLEP_ENGINE_DEBUG=true
-SCHLEP_ENGINE_LOG_LEVEL=DEBUG
+IGRIS_OVERTURE_DEBUG=true
+IGRIS_OVERTURE_LOG_LEVEL=DEBUG
 ```
 
 ## Real-world Examples
@@ -286,8 +286,8 @@ SCHLEP_ENGINE_LOG_LEVEL=DEBUG
 ### E-commerce Data Processing Pipeline
 
 ```python
-from schlep_engine import SchlepEngineClient
-from schlep_engine.models import DataPipeline, TransformationRule, ProcessingMode
+from igris_overture import SchlepEngineClient
+from igris_overture.models import DataPipeline, TransformationRule, ProcessingMode
 import asyncio
 
 async def process_ecommerce_data():
@@ -368,8 +368,8 @@ asyncio.run(process_ecommerce_data())
 ### Fraud Detection ML Pipeline
 
 ```python
-from schlep_engine import SchlepEngineClient
-from schlep_engine.models.ml import MLPipelineConfig, MLTaskType, ModelType
+from igris_overture import SchlepEngineClient
+from igris_overture.models.ml import MLPipelineConfig, MLTaskType, ModelType
 
 async def setup_fraud_detection():
     client = SchlepEngineClient(api_key="your-api-key")
@@ -451,8 +451,8 @@ model_id = asyncio.run(setup_fraud_detection())
 ### Data Quality Monitoring System
 
 ```python
-from schlep_engine import SchlepEngineClient
-from schlep_engine.models.quality import DataQualityRules, QualityThreshold
+from igris_overture import SchlepEngineClient
+from igris_overture.models.quality import DataQualityRules, QualityThreshold
 
 async def setup_data_quality_monitoring():
     client = SchlepEngineClient(api_key="your-api-key")
@@ -556,8 +556,8 @@ asyncio.run(setup_data_quality_monitoring())
 ### Connection Pooling and Async Optimization
 
 ```python
-from schlep_engine import SchlepEngineClient
-from schlep_engine.utils.retry import RetryConfig, RetryStrategy
+from igris_overture import SchlepEngineClient
+from igris_overture.utils.retry import RetryConfig, RetryStrategy
 import asyncio
 import aiohttp
 
@@ -583,7 +583,7 @@ async def create_optimized_client():
     
     client = SchlepEngineClient(
         api_key="your-api-key",
-        base_url="https://api.schlep-engine.com",
+        base_url="https://api.igris-inertial.com",
         timeout=120.0,
         retry_config=retry_config,
         http_connector=connector,
@@ -640,11 +640,11 @@ The v2.0 release includes several breaking changes and new features:
 1. **Client Initialization**
    ```python
    # v1.x (deprecated)
-   from schlep_engine import SchlepClient
+   from igris_overture import SchlepClient
    client = SchlepClient(api_key="your-key")
    
    # v2.x (new)
-   from schlep_engine import SchlepEngineClient
+   from igris_overture import SchlepEngineClient
    client = SchlepEngineClient(api_key="your-key")
    ```
 
@@ -739,7 +739,7 @@ class SchlepEngineV2Migrator:
 
 # Usage example
 async def migrate_existing_workflows():
-    from schlep_engine import SchlepEngineClient
+    from igris_overture import SchlepEngineClient
     
     # Initialize new client
     new_client = SchlepEngineClient(api_key="your-api-key")
@@ -782,7 +782,7 @@ asyncio.run(migrate_existing_workflows())
 #### 1. Authentication Errors
 
 ```python
-from schlep_engine.exceptions import AuthenticationError
+from igris_overture.exceptions import AuthenticationError
 
 try:
     client = SchlepEngineClient(api_key="invalid-key")
@@ -799,7 +799,7 @@ except AuthenticationError as e:
 #### 2. Rate Limiting Issues
 
 ```python
-from schlep_engine.exceptions import RateLimitError
+from igris_overture.exceptions import RateLimitError
 import asyncio
 
 try:
@@ -823,7 +823,7 @@ except RateLimitError as e:
 #### 3. Connection Timeouts
 
 ```python
-from schlep_engine.exceptions import TimeoutError
+from igris_overture.exceptions import TimeoutError
 import asyncio
 
 try:
@@ -930,7 +930,7 @@ client = SchlepEngineClient(
 
 ```python
 import logging
-from schlep_engine import SchlepEngineClient
+from igris_overture import SchlepEngineClient
 
 # Enable debug mode
 logging.basicConfig(level=logging.DEBUG)
@@ -943,11 +943,11 @@ client = SchlepEngineClient(
 )
 
 # Custom logger configuration
-logger = logging.getLogger('schlep_engine')
+logger = logging.getLogger('igris_overture')
 logger.setLevel(logging.DEBUG)
 
 # File handler for persistent logging
-file_handler = logging.FileHandler('schlep_engine_debug.log')
+file_handler = logging.FileHandler('igris_overture_debug.log')
 file_handler.setLevel(logging.DEBUG)
 
 # Console handler for immediate feedback
@@ -974,17 +974,17 @@ logger.addHandler(console_handler)
 
 ## Documentation
 
-- [API Documentation](https://docs.schlep-engine.com/api)
-- [SDK Documentation](https://docs.schlep-engine.com/sdk/python)
-- [Getting Started Guide](https://docs.schlep-engine.com/getting-started)
-- [Examples Repository](https://github.com/schlep-engine/python-sdk-examples)
+- [API Documentation](https://docs.igris-inertial.com/api)
+- [SDK Documentation](https://docs.igris-inertial.com/sdk/python)
+- [Getting Started Guide](https://docs.igris-inertial.com/getting-started)
+- [Examples Repository](https://github.com/igris-inertial/python-sdk-examples)
 
 ## Support
 
-- [Support Center](https://support.schlep-engine.com)
-- [GitHub Issues](https://github.com/schlep-engine/python-sdk/issues)
-- [Community Forum](https://community.schlep-engine.com)
-- Email: support@schlep-engine.com
+- [Support Center](https://support.igris-inertial.com)
+- [GitHub Issues](https://github.com/igris-inertial/python-sdk/issues)
+- [Community Forum](https://community.igris-inertial.com)
+- Email: support@igris-inertial.com
 
 ## License
 

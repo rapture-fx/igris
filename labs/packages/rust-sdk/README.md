@@ -2,9 +2,9 @@
 
 Official Rust SDK for the Schlep-engine API platform.
 
-[![Crates.io](https://img.shields.io/crates/v/schlep_engine.svg)](https://crates.io/crates/schlep_engine)
-[![Documentation](https://docs.rs/schlep_engine/badge.svg)](https://docs.rs/schlep_engine)
-[![License](https://img.shields.io/crates/l/schlep_engine.svg)](LICENSE)
+[![Crates.io](https://img.shields.io/crates/v/igris_overture.svg)](https://crates.io/crates/igris_overture)
+[![Documentation](https://docs.rs/igris_overture/badge.svg)](https://docs.rs/igris_overture)
+[![License](https://img.shields.io/crates/l/igris_overture.svg)](LICENSE)
 
 ## Features
 
@@ -21,14 +21,14 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-schlep_engine = "1.0.0"
+igris_overture = "1.0.0"
 tokio = { version = "1.0", features = ["full"] }
 ```
 
 ## Quick Start
 
 ```rust
-use schlep_engine::{SchlepClient, Result};
+use igris_overture::{SchlepClient, Result};
 use serde_json::json;
 
 #[tokio::main]
@@ -115,7 +115,7 @@ if let Some(progress) = status.progress {
 ### Stream Events
 
 ```rust
-use schlep_engine::StreamConfig;
+use igris_overture::StreamConfig;
 
 let config = StreamConfig {
     event_types: vec!["training".to_string(), "deployment".to_string()],
@@ -132,13 +132,13 @@ The SDK provides comprehensive error handling:
 ```rust
 match client.upload("data").await {
     Ok(result) => println!("Success: {}", result.job_id),
-    Err(schlep_engine::Error::Api { code, message }) => {
+    Err(igris_overture::Error::Api { code, message }) => {
         eprintln!("API error {}: {}", code, message);
     }
-    Err(schlep_engine::Error::Http(e)) => {
+    Err(igris_overture::Error::Http(e)) => {
         eprintln!("Network error: {}", e);
     }
-    Err(schlep_engine::Error::Config(e)) => {
+    Err(igris_overture::Error::Config(e)) => {
         eprintln!("Configuration error: {}", e);
     }
     Err(e) => {
@@ -162,7 +162,7 @@ cargo test
 
 # Run example
 export SCHLEP_API_KEY=your-api-key-here
-cargo run --example schlep_engine_example
+cargo run --example igris_overture_example
 
 # Generate documentation
 cargo doc --open
@@ -195,9 +195,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📖 [Documentation](https://docs.schlep-engine.com/sdk/rust)
-- 🐛 [Issues](https://github.com/schlep-engine/rust-sdk/issues)
-- 💬 [Support](https://support.schlep-engine.com)
+- 📖 [Documentation](https://docs.igris-inertial.com/sdk/rust)
+- 🐛 [Issues](https://github.com/igris-inertial/rust-sdk/issues)
+- 💬 [Support](https://support.igris-inertial.com)
 
 ## Contributing
 

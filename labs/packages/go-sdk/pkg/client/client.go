@@ -8,12 +8,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/auth"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	httpClient "github.com/schlep-engine/go-sdk/pkg/http"
-	"github.com/schlep-engine/go-sdk/pkg/models"
-	"github.com/schlep-engine/go-sdk/pkg/observability"
-	"github.com/schlep-engine/go-sdk/pkg/websocket"
+	"github.com/igris-inertial/go-sdk/pkg/auth"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	httpClient "github.com/igris-inertial/go-sdk/pkg/http"
+	"github.com/igris-inertial/go-sdk/pkg/models"
+	"github.com/igris-inertial/go-sdk/pkg/observability"
+	"github.com/igris-inertial/go-sdk/pkg/websocket"
 	"go.opentelemetry.io/otel/attribute"
 )
 

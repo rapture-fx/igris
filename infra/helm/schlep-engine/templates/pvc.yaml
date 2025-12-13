@@ -2,9 +2,9 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "schlep-engine.fullname" . }}-models
+  name: {{ include "igris-inertial.fullname" . }}-models
   labels:
-    {{- include "schlep-engine.labels" . | nindent 4 }}
+    {{- include "igris-inertial.labels" . | nindent 4 }}
 spec:
   accessModes:
     - {{ .Values.persistence.modelStorage.accessMode }}
@@ -20,9 +20,9 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ include "schlep-engine.fullname" . }}-data
+  name: {{ include "igris-inertial.fullname" . }}-data
   labels:
-    {{- include "schlep-engine.labels" . | nindent 4 }}
+    {{- include "igris-inertial.labels" . | nindent 4 }}
 spec:
   accessModes:
     - {{ .Values.persistence.dataStorage.accessMode }}

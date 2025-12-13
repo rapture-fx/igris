@@ -653,14 +653,14 @@ schlep_sla_compliance_rate
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: schlep-api
+  name: igris-overture
 spec:
   replicas: 3
   template:
     spec:
       containers:
       - name: api
-        image: schlep-engine:latest
+        image: igris-inertial:latest
         ports:
         - containerPort: 8081
         env:

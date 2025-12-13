@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide sets up complete CI/CD automation for Schlep Engine with GitHub Actions to automatically deploy to your Vultr VPS when code is pushed to the main branch.
+This guide sets up complete CI/CD automation for Igris Overture with GitHub Actions to automatically deploy to your Vultr VPS when code is pushed to the main branch.
 
 ## 🔧 Prerequisites
 
@@ -66,7 +66,7 @@ EMAIL_USERNAME=your-email@gmail.com
 EMAIL_PASSWORD=your-app-password
 
 # Notification targets
-NOTIFICATION_EMAIL=team@schlep-engine.com
+NOTIFICATION_EMAIL=team@igris-inertial.com
 ```
 
 ## 🏗️ VPS Setup
@@ -98,11 +98,11 @@ ssh deploy@your.vultr.vps.ip
 
 ```bash
 # On VPS as deploy user
-mkdir -p /home/deploy/schlep-engine
-cd /home/deploy/schlep-engine
+mkdir -p /home/deploy/igris-inertial
+cd /home/deploy/igris-inertial
 
 # Clone repository (if not done already)
-git clone https://github.com/your-username/schlep-engine.git .
+git clone https://github.com/your-username/igris-inertial.git .
 
 # Create environment file from template
 cp apps/api/env.production.template .env.production
@@ -198,7 +198,7 @@ If you need to deploy manually on the VPS:
 ssh deploy@your.vultr.vps.ip
 
 # Navigate to project
-cd /home/deploy/schlep-engine
+cd /home/deploy/igris-inertial
 
 # Pull latest changes
 git pull origin main
@@ -218,16 +218,16 @@ After deployment, verify these endpoints:
 
 ```bash
 # API Health
-curl https://api.schlep-engine.com/health
+curl https://api.igris-inertial.com/health
 
 # Frontend
-curl https://schlep-engine.com
+curl https://igris-inertial.com
 
 # Admin Dashboard
-curl https://admin.schlep-engine.com
+curl https://admin.igris-inertial.com
 
 # Documentation
-curl https://docs.schlep-engine.com
+curl https://docs.igris-inertial.com
 ```
 
 ### Log Monitoring
@@ -235,7 +235,7 @@ curl https://docs.schlep-engine.com
 ```bash
 # On VPS, check deployment logs
 ssh deploy@your.vultr.vps.ip
-cd /home/deploy/schlep-engine
+cd /home/deploy/igris-inertial
 docker-compose -f infrastructure/vultr/docker-compose.production.yml logs -f
 
 # Check specific service
@@ -251,7 +251,7 @@ docker-compose logs -f nginx
 
 # Manual rollback on VPS
 ssh deploy@your.vultr.vps.ip
-cd /home/deploy/schlep-engine
+cd /home/deploy/igris-inertial
 
 # List available backups
 ls -la backup-*/
@@ -284,7 +284,7 @@ sudo usermod -aG docker deploy
 ### 3. Environment Variables Not Found
 ```bash
 # Check .env.production file exists and has correct values
-ls -la /home/deploy/schlep-engine/.env.production
+ls -la /home/deploy/igris-inertial/.env.production
 ```
 
 ### 4. Health Check Failed

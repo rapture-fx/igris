@@ -41,5 +41,5 @@ jobs:
 
       - name: Lint and package
         run: |
-          helm lint helm/schlep-engine/
-          helm package helm/schlep-engine/
+          helm lint helm/igris-inertial/
+          helm package helm/igris-inertial/

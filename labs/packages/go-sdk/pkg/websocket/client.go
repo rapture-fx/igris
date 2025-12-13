@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	"github.com/schlep-engine/go-sdk/pkg/models"
-	"github.com/schlep-engine/go-sdk/pkg/observability"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/models"
+	"github.com/igris-inertial/go-sdk/pkg/observability"
 	"go.opentelemetry.io/otel/attribute"
 )
 

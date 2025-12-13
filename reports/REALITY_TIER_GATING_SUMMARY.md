@@ -99,7 +99,7 @@ This report provides a **line-by-line validation** of every feature claim in the
 | # | Feature Claim | Reality Check | Status | Evidence |
 |---|--------------|---------------|--------|----------|
 | 1 | "Unlimited requests" | ✅ Validated stable at 1,000 RPS sustained | ✅ **ACCURATE** | Subject to fair use (infrastructure scales horizontally) |
-| 2 | "On-premise deployment option" | ✅ Kubernetes/Helm charts exist | ✅ **ACCURATE** | infra/helm/schlep-engine/ directory |
+| 2 | "On-premise deployment option" | ✅ Kubernetes/Helm charts exist | ✅ **ACCURATE** | infra/helm/igris-inertial/ directory |
 | 3 | "Custom provider integrations" | ✅ BYOK + custom_adapter compatibility class | ✅ **ACCURATE** | provider_registry supports custom providers |
 | 4 | "Self-hosted deployment" | ✅ Same as on-premise | ✅ **ACCURATE** | Helm deployable |
 | 5 | "Custom ML model integration" | ⚠️ ONNX framework ready, needs model provisioning | ⚠️ **PARTIALLY ACCURATE** | onnx_classifier.go exists, model files not bundled |

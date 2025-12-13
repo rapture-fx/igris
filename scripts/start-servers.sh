@@ -1,13 +1,13 @@
 #!/bin/bash
 
-cd "/Users/wira/Desktop/schlep-engine"
+cd "/Users/wira/Desktop/igris-inertial"
 
 # Clean server startup script for Schlep Engine
 echo "Starting Schlep Engine servers..."
 
 # Start landing page
 echo "Starting landing page on port 3000..."
-(cd apps/web-landing && /Users/wira/Desktop/schlep-engine/node_modules/.pnpm/node_modules/.bin/next dev -p 3000 > ../web-landing/landing.log 2>&1) &
+(cd apps/web-landing && /Users/wira/Desktop/igris-inertial/node_modules/.pnpm/node_modules/.bin/next dev -p 3000 > ../web-landing/landing.log 2>&1) &
 LANDING_PID=$!
 
 # Start console

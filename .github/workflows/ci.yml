@@ -96,7 +96,7 @@ jobs:
       if: matrix.test-type == 'unit'
       run: |
         cd packages/python-sdk
-        pytest tests/test_comprehensive_auth.py tests/test_comprehensive_data_processing.py tests/test_comprehensive_ml_pipeline.py tests/test_error_handling.py -v --tb=short --maxfail=5 --durations=10 --cov=schlep_engine --cov-report=xml --cov-report=term-missing
+        pytest tests/test_comprehensive_auth.py tests/test_comprehensive_data_processing.py tests/test_comprehensive_ml_pipeline.py tests/test_error_handling.py -v --tb=short --maxfail=5 --durations=10 --cov=igris_overture --cov-report=xml --cov-report=term-missing
       env:
         SCHLEP_API_BASE_URL: https://api-test.schlepengine.com
         SCHLEP_API_KEY: ${{ secrets.TEST_API_KEY }}
@@ -546,7 +546,7 @@ jobs:
 
         # Python SDK test
         cd packages/python-sdk
-        python -c "from schlep_engine import SchlepEngine; client = SchlepEngine(); print('✅ Python SDK initialized')"
+        python -c "from igris_overture import SchlepEngine; client = SchlepEngine(); print('✅ Python SDK initialized')"
         cd ../..
 
         # CLI test
@@ -638,7 +638,7 @@ jobs:
         cd packages/python-sdk
         pip install safety bandit
         safety check --json --output safety-results.json || true
-        bandit -r schlep_engine/ -f json -o bandit-results.json || true
+        bandit -r igris_overture/ -f json -o bandit-results.json || true
 
     - name: 🔧 Node.js Security Audit
       run: |

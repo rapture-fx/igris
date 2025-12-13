@@ -1,4 +1,4 @@
-# Schlep Engine Production CI/CD Pipeline
+# Igris Overture Production CI/CD Pipeline
 # Comprehensive testing, quality checks, and deployment automation
 
 name: Production CI/CD
@@ -316,12 +316,12 @@ jobs:
       - name: Build minimal Docker image
         run: |
           cd apps/api
-          docker build -f Dockerfile.minimal -t schlep-engine:minimal .
+          docker build -f Dockerfile.minimal -t igris-inertial:minimal .
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'schlep-engine:minimal'
+          image-ref: 'igris-inertial:minimal'
           format: 'sarif'
           output: 'trivy-results.sarif'
 
@@ -333,7 +333,7 @@ jobs:
       - name: Test Docker image
         run: |
           # Start container
-          docker run -d --name schlep-test -p 8000:8000 schlep-engine:minimal
+          docker run -d --name schlep-test -p 8000:8000 igris-inertial:minimal
 
           # Wait for startup
           sleep 10
@@ -424,7 +424,7 @@ jobs:
 
       - name: Generate release notes
         run: |
-          echo "# Schlep Engine Release $(date +'%Y.%m.%d')" > RELEASE_NOTES.md
+          echo "# Igris Overture Release $(date +'%Y.%m.%d')" > RELEASE_NOTES.md
           echo "" >> RELEASE_NOTES.md
           echo "## Features Added" >> RELEASE_NOTES.md
           echo "- Production-ready monitoring with Prometheus + Grafana" >> RELEASE_NOTES.md
@@ -443,7 +443,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v2.0.${{ github.run_number }}
-          release_name: Schlep Engine v2.0.${{ github.run_number }}
+          release_name: Igris Overture v2.0.${{ github.run_number }}
           body_path: RELEASE_NOTES.md
           draft: false
           prerelease: false

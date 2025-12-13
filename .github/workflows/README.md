@@ -1,6 +1,6 @@
 # GitHub Actions Workflows
 
-Automated CI/CD workflows for Schlep Engine.
+Automated CI/CD workflows for Igris Overture.
 
 ## Workflows
 

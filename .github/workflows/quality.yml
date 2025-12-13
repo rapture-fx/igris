@@ -29,12 +29,12 @@ jobs:
         run: pip-audit
 
       - name: Build Docker image
-        run: docker build . -f apps/api/Dockerfile -t schlep-api-image
+        run: docker build . -f apps/api/Dockerfile -t igris-overture-image
 
       - name: 🐳 Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: "schlep-api-image"
+          image-ref: "igris-overture-image"
           format: "table"
           exit-code: "1"
           ignore-unfixed: true

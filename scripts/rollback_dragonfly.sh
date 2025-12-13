@@ -119,7 +119,7 @@ if curl -f http://localhost:${API_PORT:-8080}/healthz > /dev/null 2>&1; then
     echo -e "${GREEN}✓ API is healthy${NC}"
 else
     echo -e "${RED}✗ API health check failed${NC}"
-    echo "Check logs: docker logs schlep-api"
+    echo "Check logs: docker logs igris-overture"
     exit 1
 fi
 
@@ -131,7 +131,7 @@ echo ""
 echo "System has been rolled back to Redis."
 echo ""
 echo "Next steps:"
-echo "1. Monitor application logs: docker logs -f schlep-api"
+echo "1. Monitor application logs: docker logs -f igris-overture"
 echo "2. Check Redis logs: docker logs -f schlep-redis"
 echo "3. Verify critical features are working"
 echo "4. Review what went wrong before attempting Dragonfly again"

@@ -4,7 +4,7 @@
 > **Version:** v1.3.0 (Updated Pricing)
 > **Last Updated:** 2025-11-25
 
-This guide covers the complete Polar.sh billing integration for Schlep Engine API, including updated pricing tiers, trial flow, webhook setup, and migration from old pricing.
+This guide covers the complete Polar.sh billing integration for Igris Overture API, including updated pricing tiers, trial flow, webhook setup, and migration from old pricing.
 
 ---
 
@@ -68,7 +68,7 @@ Log into [Polar.sh Dashboard](https://polar.sh/dashboard) and create 3 products:
 
 **1. Develop Tier:**
 ```
-Product Name: Schlep Engine - Develop
+Product Name: Igris Overture - Develop
 Description: 500k requests/month, intelligent routing, BYOK
 Product ID: prod_develop (save this)
 
@@ -79,7 +79,7 @@ Prices:
 
 **2. Growth Tier:**
 ```
-Product Name: Schlep Engine - Growth
+Product Name: Igris Overture - Growth
 Description: 2M requests/month, speculative execution, council mode
 Product ID: prod_growth
 
@@ -90,7 +90,7 @@ Prices:
 
 **3. Scale Tier:**
 ```
-Product Name: Schlep Engine - Scale
+Product Name: Igris Overture - Scale
 Description: Unlimited requests, self-host, advanced SLO
 Product ID: prod_scale
 
@@ -102,7 +102,7 @@ Prices:
 ### Step 2: Configure Webhooks
 
 1. Navigate to **Settings → Webhooks**
-2. Add webhook endpoint: `https://api.schlep-engine.dev/polar/webhook`
+2. Add webhook endpoint: `https://api.igris-inertial.dev/polar/webhook`
 3. Select events:
    - `subscription.created`
    - `subscription.updated`
@@ -114,7 +114,7 @@ Prices:
 ### Step 3: Get API Keys
 
 1. Navigate to **Settings → API Keys**
-2. Create new key: `Schlep Engine Production`
+2. Create new key: `Igris Overture Production`
 3. Copy **Secret Key** (starts with `polar_sk_...`)
 
 ---
@@ -149,7 +149,7 @@ ENABLE_BILLING_GATING=true
 
 **Request:**
 ```bash
-curl -X POST https://api.schlep-engine.dev/api/subscribe/trial \
+curl -X POST https://api.igris-inertial.dev/api/subscribe/trial \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -175,8 +175,8 @@ curl -X POST https://api.schlep-engine.dev/api/subscribe/trial \
   "message": "Trial created! You have 14 days and 50,000 requests to explore all features.",
   "next_steps": [
     "Save your API key securely",
-    "Visit https://docs.schlep-engine.dev to get started",
-    "Upgrade anytime at https://polar.sh/schlep-engine/subscribe"
+    "Visit https://docs.igris-inertial.dev to get started",
+    "Upgrade anytime at https://polar.sh/igris-inertial/subscribe"
   ]
 }
 ```
@@ -267,7 +267,7 @@ Request → Auth (JWT/API Key) → Billing Gating → Route Handler
 
 Request:
 ```bash
-curl -X POST https://api.schlep-engine.dev/v1/infer \
+curl -X POST https://api.igris-inertial.dev/v1/infer \
   -H "Authorization: Bearer sk_develop_user_xyz" \
   -d '{
     "model": "gpt-4",
@@ -283,7 +283,7 @@ Response (402 Payment Required):
   "code": "FEATURE_LOCKED",
   "feature": "speculative_execution",
   "upgrade_tier": "growth",
-  "upgrade_url": "https://polar.sh/schlep-engine/subscribe?price=price_growth_monthly&customer=tenant_user"
+  "upgrade_url": "https://polar.sh/igris-inertial/subscribe?price=price_growth_monthly&customer=tenant_user"
 }
 ```
 
@@ -326,7 +326,7 @@ Response (402 Payment Required):
 
 ```bash
 # Run migration (one-time, idempotent)
-curl -X POST https://api.schlep-engine.dev/admin/migrate-pricing \
+curl -X POST https://api.igris-inertial.dev/admin/migrate-pricing \
   -H "Authorization: Bearer $ADMIN_API_KEY" \
   -d '{
     "dry_run": true
@@ -356,11 +356,11 @@ curl -X POST https://api.schlep-engine.dev/admin/migrate-pricing \
 
 **Customer Communication Template:**
 ```
-Subject: Great news: Your Schlep Engine subscription is now cheaper!
+Subject: Great news: Your Igris Overture subscription is now cheaper!
 
 Hi [Name],
 
-We've updated our pricing to make Schlep Engine more accessible. Your subscription has been automatically migrated to our new pricing:
+We've updated our pricing to make Igris Overture more accessible. Your subscription has been automatically migrated to our new pricing:
 
 Old: $799/month (Growth)
 New: $499/month (Growth)
@@ -368,10 +368,10 @@ You save: $300/month ($3,600/year)
 
 No action required - your next invoice will reflect the new pricing. All features remain unchanged.
 
-Questions? Reply to this email or visit https://docs.schlep-engine.dev
+Questions? Reply to this email or visit https://docs.igris-inertial.dev
 
 Cheers,
-The Schlep Engine Team
+The Igris Overture Team
 ```
 
 ---
@@ -394,7 +394,7 @@ go test ./internal/billing/... -v -cover
 ...
 PASS
 coverage: 92.3% of statements
-ok      schlep-engine/internal/billing  0.156s
+ok      igris-inertial/internal/billing  0.156s
 ```
 
 ### Manual Testing
@@ -460,7 +460,7 @@ curl -X POST http://localhost:8080/polar/webhook \
 - [ ] Set `POLAR_WEBHOOK_SECRET` in production environment
 - [ ] Enable `ENABLE_BILLING_GATING=true`
 - [ ] Verify Redis is running and accessible
-- [ ] Configure Polar webhook URL: `https://api.schlep-engine.dev/polar/webhook`
+- [ ] Configure Polar webhook URL: `https://api.igris-inertial.dev/polar/webhook`
 - [ ] Test webhook delivery with Polar dashboard "Send test event"
 - [ ] Run migration script with `dry_run=true`, then `dry_run=false`
 - [ ] Set up monitoring alerts:
@@ -507,13 +507,13 @@ curl -X POST http://localhost:8080/polar/webhook \
 
 ## Support
 
-- **Documentation:** https://docs.schlep-engine.dev/billing
+- **Documentation:** https://docs.igris-inertial.dev/billing
 - **Polar Support:** https://polar.sh/support
 - **Slack:** #billing channel (internal)
-- **Email:** billing@schlep-engine.dev
+- **Email:** billing@igris-inertial.dev
 
 ---
 
 **Last Updated:** 2025-11-25
 **Version:** v1.3.0
-**Author:** Schlep Engine Team
+**Author:** Igris Overture Team

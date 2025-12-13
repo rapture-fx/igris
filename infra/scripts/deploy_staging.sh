@@ -13,10 +13,10 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 DEPLOY_DIR="${PROJECT_ROOT}/infra/deploy"
-SSH_HOST="${SSH_HOST:-staging.schlep-engine.com}"
+SSH_HOST="${SSH_HOST:-staging.igris-inertial.com}"
 SSH_USER="${SSH_USER:-root}"
 SSH_PORT="${SSH_PORT:-22}"
-REMOTE_DIR="${REMOTE_DIR:-/opt/schlep-engine}"
+REMOTE_DIR="${REMOTE_DIR:-/opt/igris-inertial}"
 CANARY_STAGE="${CANARY_STAGE:-initial}"
 SKIP_HEALTH_CHECK=false
 DRY_RUN=false
@@ -83,18 +83,18 @@ create_deployment_package() {
     log_info "Creating deployment package..."
 
     local temp_dir=$(mktemp -d)
-    local package_file="/tmp/schlep-engine-deploy-$(date +%Y%m%d-%H%M%S).tar.gz"
+    local package_file="/tmp/igris-inertial-deploy-$(date +%Y%m%d-%H%M%S).tar.gz"
 
     # Copy necessary files
-    mkdir -p "$temp_dir/schlep-engine"
+    mkdir -p "$temp_dir/igris-inertial"
 
-    cp -r "${PROJECT_ROOT}/go_gateway" "$temp_dir/schlep-engine/" 2>/dev/null || log_warn "go_gateway not found"
-    cp -r "${PROJECT_ROOT}/apps" "$temp_dir/schlep-engine/" 2>/dev/null || log_warn "apps not found"
-    cp -r "${PROJECT_ROOT}/infra" "$temp_dir/schlep-engine/"
-    cp "${PROJECT_ROOT}/docker-compose.production.yml" "$temp_dir/schlep-engine/" 2>/dev/null || true
+    cp -r "${PROJECT_ROOT}/go_gateway" "$temp_dir/igris-inertial/" 2>/dev/null || log_warn "go_gateway not found"
+    cp -r "${PROJECT_ROOT}/apps" "$temp_dir/igris-inertial/" 2>/dev/null || log_warn "apps not found"
+    cp -r "${PROJECT_ROOT}/infra" "$temp_dir/igris-inertial/"
+    cp "${PROJECT_ROOT}/docker-compose.production.yml" "$temp_dir/igris-inertial/" 2>/dev/null || true
 
     # Create tarball
-    tar -czf "$package_file" -C "$temp_dir" schlep-engine
+    tar -czf "$package_file" -C "$temp_dir" igris-inertial
 
     # Cleanup
     rm -rf "$temp_dir"
@@ -128,10 +128,10 @@ deploy_to_server() {
     # Extract and prepare on server
     log_info "Extracting package on server..."
     ssh -p "$SSH_PORT" "${SSH_USER}@${SSH_HOST}" bash <<'EOF'
-cd /opt/schlep-engine
+cd /opt/igris-inertial
 tar -xzf package.tar.gz
-mv schlep-engine/* .
-rm -rf schlep-engine package.tar.gz
+mv igris-inertial/* .
+rm -rf igris-inertial package.tar.gz
 
 # Create data directories
 mkdir -p data/{postgres,redis,prometheus}
@@ -328,10 +328,10 @@ OPTIONS:
     -h, --help             Show this help message
 
 ENVIRONMENT VARIABLES:
-    SSH_HOST               Staging server hostname (default: staging.schlep-engine.com)
+    SSH_HOST               Staging server hostname (default: staging.igris-inertial.com)
     SSH_USER               SSH user (default: root)
     SSH_PORT               SSH port (default: 22)
-    REMOTE_DIR             Remote deployment directory (default: /opt/schlep-engine)
+    REMOTE_DIR             Remote deployment directory (default: /opt/igris-inertial)
 
 EXAMPLES:
     # Deploy initial canary (10% traffic)

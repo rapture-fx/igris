@@ -146,7 +146,7 @@ wait_for_services() {
     
     # Wait for PostgreSQL
     echo "🗄️  Waiting for PostgreSQL..."
-    until docker exec schlep_postgres_prod pg_isready -U schlep_user -d schlep_engine_prod; do
+    until docker exec schlep_postgres_prod pg_isready -U schlep_user -d igris_overture_prod; do
         echo "PostgreSQL not ready yet..."
         sleep 2
     done

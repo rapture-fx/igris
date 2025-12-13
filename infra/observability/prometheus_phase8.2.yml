@@ -5,7 +5,7 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    cluster: 'schlep-engine-prod'
+    cluster: 'igris-inertial-prod'
     phase: '8.2-canary'
     environment: 'production'
 

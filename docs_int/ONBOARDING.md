@@ -97,8 +97,8 @@ Welcome to the Schlep-Engine project! This guide will help you get up and runnin
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/your-org/schlep-engine.git
-cd schlep-engine
+git clone https://github.com/your-org/igris-inertial.git
+cd igris-inertial
 
 # 2. Install Go dependencies
 go mod download
@@ -133,7 +133,7 @@ docker-compose up -d postgres redis
 docker-compose up -d
 
 # View logs
-docker-compose logs -f schlep-api
+docker-compose logs -f igris-overture
 
 # Stop services
 docker-compose down
@@ -145,7 +145,7 @@ docker-compose down
 # Terminal 1: Start API server
 export DATABASE_URL="postgres://schlep:password@localhost:5432/schlep_dev?sslmode=disable"
 export REDIS_URL="redis://localhost:6379/0"
-go run cmd/schlep-engine-api/main.go
+go run cmd/igris-overture/main.go
 
 # Terminal 2: Start scheduler (optional)
 go run cmd/scheduler/main.go
@@ -389,7 +389,7 @@ psql $DATABASE_URL -c "SELECT 1"
 redis-cli ping
 
 # View logs
-docker-compose logs schlep-api
+docker-compose logs igris-overture
 
 # Common fixes:
 # - Verify DATABASE_URL and REDIS_URL in .env
@@ -465,8 +465,8 @@ curl -X POST http://localhost:9090/-/reload
 
 ## Getting Help
 
-- **Slack**: #schlep-engine-dev
-- **GitHub Issues**: https://github.com/your-org/schlep-engine/issues
+- **Slack**: #igris-inertial-dev
+- **GitHub Issues**: https://github.com/your-org/igris-inertial/issues
 - **Team Lead**: @tech-lead
 - **Documentation**: https://docs.schlep.io
 

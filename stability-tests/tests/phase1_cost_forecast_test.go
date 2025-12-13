@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/schlep-engine/schlep-engine/internal/config"
-	"github.com/schlep-engine/schlep-engine/internal/models"
-	"github.com/schlep-engine/schlep-engine/internal/providers"
+	"github.com/Schlep-engine/igris-inertial/internal/config"
+	"github.com/Schlep-engine/igris-inertial/internal/models"
+	"github.com/Schlep-engine/igris-inertial/internal/providers"
 )
 
 // TestCostMapLoading validates cost_map.yaml can be loaded

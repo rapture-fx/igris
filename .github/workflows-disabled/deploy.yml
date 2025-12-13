@@ -264,7 +264,7 @@ jobs:
           sleep 30
           
           # Add your production URL here
-          PROD_URL="https://schlep-engine.vercel.app"
+          PROD_URL="https://igris-inertial.vercel.app"
           
           # Basic health check
           if curl -f -s "$PROD_URL" > /dev/null; then

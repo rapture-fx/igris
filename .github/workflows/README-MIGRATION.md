@@ -61,7 +61,7 @@ file: go_gateway/Dockerfile
 
 ```yaml
 # OLD (FastAPI)
-run: docker build . -f apps/api/Dockerfile -t schlep-api-image
+run: docker build . -f apps/api/Dockerfile -t igris-overture-image
 
 # NEW (Go Gateway)
 run: docker build . -f go_gateway/Dockerfile -t schlep-gateway-image
@@ -126,7 +126,7 @@ If CI/CD changes cause issues:
 git checkout archive/fastapi-legacy -- apps/api/
 
 # Rebuild Docker image
-docker build -f apps/api/Dockerfile -t schlep-api .
+docker build -f apps/api/Dockerfile -t igris-overture .
 
 # Redeploy
 docker-compose up -d backend

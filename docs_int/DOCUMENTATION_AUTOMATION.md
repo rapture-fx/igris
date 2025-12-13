@@ -453,5 +453,5 @@ git revert <commit-hash>
 ---
 
 **Created:** 2025-12-03
-**Maintained by:** Schlep Engine team
+**Maintained by:** Igris Overture team
 **CI/CD:** GitHub Actions

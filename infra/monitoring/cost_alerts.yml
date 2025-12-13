@@ -12,8 +12,8 @@ groups:
         annotations:
           summary: "Monthly budget utilization at 80% threshold"
           description: "Total monthly cost of ${{ $value }} has reached 80% of the $145 budget. Current utilization: {{ $value | humanizePercentage }}%"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
-          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cost-management"
+          dashboard_url: "https://grafana.igris-inertial.com/d/cost-monitoring/cost-monitoring"
 
       - alert: MonthlyBudgetThreshold90Percent
         expr: sum(cost_current_month_dollars) >= 130.5
@@ -25,8 +25,8 @@ groups:
         annotations:
           summary: "Monthly budget utilization at 90% threshold - CRITICAL"
           description: "Total monthly cost of ${{ $value }} has reached 90% of the $145 budget. Immediate cost optimization required!"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
-          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cost-management"
+          dashboard_url: "https://grafana.igris-inertial.com/d/cost-monitoring/cost-monitoring"
 
       - alert: MonthlyBudgetExceeded
         expr: sum(cost_current_month_dollars) > 145
@@ -38,8 +38,8 @@ groups:
         annotations:
           summary: "MONTHLY BUDGET EXCEEDED"
           description: "Total monthly cost of ${{ $value }} has exceeded the $145 budget by ${{ $value | humanize }}. Emergency cost reduction measures required!"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/emergency-cost-reduction"
-          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/emergency-cost-reduction"
+          dashboard_url: "https://grafana.igris-inertial.com/d/cost-monitoring/cost-monitoring"
 
       # Daily Budget Alerts
       - alert: DailyBudgetExceeded
@@ -52,7 +52,7 @@ groups:
         annotations:
           summary: "Daily budget threshold exceeded"
           description: "Daily cost of ${{ $value }} exceeds the target of $4.83/day. Monthly projection: ${{ $value | humanize }}0"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-management"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cost-management"
 
       # Service-Specific Budget Alerts
       - alert: SupabaseBudgetThreshold80Percent
@@ -65,7 +65,7 @@ groups:
         annotations:
           summary: "Supabase budget at 80% threshold"
           description: "Supabase monthly cost of ${{ $value }} has reached 80% of the $25 budget"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/supabase-cost-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/supabase-cost-optimization"
 
       - alert: RailwayBackendBudgetThreshold80Percent
         expr: cost_current_month_dollars{service="railway_backend"} >= 40
@@ -77,7 +77,7 @@ groups:
         annotations:
           summary: "Railway Backend budget at 80% threshold"
           description: "Railway Backend monthly cost of ${{ $value }} has reached 80% of the $50 budget"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/railway-cost-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/railway-cost-optimization"
 
       - alert: VercelAdminBudgetThreshold80Percent
         expr: cost_current_month_dollars{service="vercel_admin"} >= 16
@@ -89,7 +89,7 @@ groups:
         annotations:
           summary: "Vercel Admin budget at 80% threshold"
           description: "Vercel Admin monthly cost of ${{ $value }} has reached 80% of the $20 budget"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/vercel-cost-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/vercel-cost-optimization"
 
       - alert: AWSBudgetThreshold80Percent
         expr: cost_current_month_dollars{service="aws_s3_cloudfront"} >= 20
@@ -101,7 +101,7 @@ groups:
         annotations:
           summary: "AWS S3/CloudFront budget at 80% threshold"
           description: "AWS S3/CloudFront monthly cost of ${{ $value }} has reached 80% of the $25 budget"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/aws-cost-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/aws-cost-optimization"
 
       - alert: RailwayRedisBudgetThreshold80Percent
         expr: cost_current_month_dollars{service="railway_redis"} >= 9.6
@@ -113,7 +113,7 @@ groups:
         annotations:
           summary: "Railway Redis budget at 80% threshold"
           description: "Railway Redis monthly cost of ${{ $value }} has reached 80% of the $12 budget"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/redis-cost-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/redis-cost-optimization"
 
       # Cost Forecast Alerts
       - alert: MonthlyForecastExceedsBudget
@@ -126,7 +126,7 @@ groups:
         annotations:
           summary: "Monthly cost forecast exceeds budget"
           description: "Based on current usage trends, projected monthly cost of ${{ $value }} will exceed the $145 budget"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-forecasting"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cost-forecasting"
 
       # Usage-Based Alerts
       - alert: APIRequestsApproachingLimit
@@ -139,7 +139,7 @@ groups:
         annotations:
           summary: "API requests approaching monthly limit"
           description: "Monthly API requests ({{ $value }}) are at 80% of the 50,000 limit"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/api-rate-limiting"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/api-rate-limiting"
 
       - alert: StorageApproachingLimit
         expr: storage_used_gb >= 80
@@ -151,7 +151,7 @@ groups:
         annotations:
           summary: "Storage usage approaching limit"
           description: "Storage usage ({{ $value }}GB) is at 80% of the 100GB limit"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/storage-management"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/storage-management"
 
       - alert: DatabaseConnectionsHigh
         expr: database_active_connections >= 80
@@ -163,7 +163,7 @@ groups:
         annotations:
           summary: "Database connections approaching limit"
           description: "Active database connections ({{ $value }}) are at 80% of the 100 connection limit"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/database-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/database-optimization"
 
       - alert: RedisMemoryHigh
         expr: redis_memory_used_mb >= 410
@@ -175,7 +175,7 @@ groups:
         annotations:
           summary: "Redis memory usage approaching limit"
           description: "Redis memory usage ({{ $value }}MB) is at 80% of the 512MB limit"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/redis-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/redis-optimization"
 
   - name: cost_monitoring_critical_alerts
     rules:
@@ -190,7 +190,7 @@ groups:
         annotations:
           summary: "Service budget exceeded for {{ $labels.service }}"
           description: "{{ $labels.service }} has exceeded its monthly budget with {{ $value }}% utilization"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/emergency-cost-reduction"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/emergency-cost-reduction"
 
       # Rapid cost increases
       - alert: RapidCostIncrease
@@ -203,7 +203,7 @@ groups:
         annotations:
           summary: "Rapid cost increase detected for {{ $labels.service }}"
           description: "{{ $labels.service }} cost increased by ${{ $value }} in the last hour"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-spike-investigation"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cost-spike-investigation"
 
       # End of month budget projection
       - alert: EndOfMonthBudgetProjection
@@ -216,7 +216,7 @@ groups:
         annotations:
           summary: "End of month budget projection exceeds limit"
           description: "With {{ 31 - day_of_month() }} days remaining, projected monthly cost is ${{ $value }}"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/month-end-cost-management"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/month-end-cost-management"
 
   - name: cost_monitoring_informational_alerts
     rules:
@@ -231,7 +231,7 @@ groups:
         annotations:
           summary: "Daily cost monitoring report"
           description: "Daily cost report: Current month total ${{ sum(cost_current_month_dollars) }}, yesterday ${{ sum(cost_daily_dollars) }}"
-          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+          dashboard_url: "https://grafana.igris-inertial.com/d/cost-monitoring/cost-monitoring"
 
       # Weekly cost summaries
       - alert: WeeklyCostSummary
@@ -244,7 +244,7 @@ groups:
         annotations:
           summary: "Weekly cost monitoring summary"
           description: "Weekly cost summary: Current month ${{ sum(cost_current_month_dollars) }}, budget utilization {{ sum(cost_budget_utilization_percent) }}%"
-          dashboard_url: "https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring"
+          dashboard_url: "https://grafana.igris-inertial.com/d/cost-monitoring/cost-monitoring"
 
       # Cost optimization opportunities
       - alert: CostOptimizationOpportunity
@@ -257,7 +257,7 @@ groups:
         annotations:
           summary: "Cost optimization opportunity for {{ $labels.service }}"
           description: "{{ $labels.service }} is using only {{ $value }}% of its budget - consider rightsizing"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cost-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cost-optimization"
 
 # AlertManager routing configuration
 route:
@@ -291,7 +291,7 @@ route:
 receivers:
   - name: 'cost-monitoring-team'
     email_configs:
-      - to: 'devops@schlep-engine.com'
+      - to: 'devops@igris-inertial.com'
         subject: 'Cost Alert: {{ .GroupLabels.alertname }}'
         body: |
           Alert: {{ .GroupLabels.alertname }}
@@ -324,7 +324,7 @@ receivers:
 
   - name: 'cost-critical-alerts'
     email_configs:
-      - to: 'alerts@schlep-engine.com'
+      - to: 'alerts@igris-inertial.com'
         subject: 'CRITICAL Cost Alert: {{ .GroupLabels.alertname }}'
         body: |
           🚨 CRITICAL COST ALERT 🚨
@@ -366,7 +366,7 @@ receivers:
 
   - name: 'cost-emergency-alerts'
     email_configs:
-      - to: 'emergency@schlep-engine.com'
+      - to: 'emergency@igris-inertial.com'
         subject: '🔥 EMERGENCY: Budget Exceeded'
         body: |
           🔥 EMERGENCY COST ALERT 🔥
@@ -393,7 +393,7 @@ receivers:
 
   - name: 'cost-daily-reports'
     email_configs:
-      - to: 'finance@schlep-engine.com'
+      - to: 'finance@igris-inertial.com'
         subject: 'Daily Cost Report - {{ .GroupLabels.alertname }}'
         body: |
           Daily Cost Monitoring Report
@@ -402,7 +402,7 @@ receivers:
           {{ .Annotations.description }}
           {{ end }}
           
-          View detailed dashboard: https://grafana.schlep-engine.com/d/cost-monitoring/cost-monitoring
+          View detailed dashboard: https://grafana.igris-inertial.com/d/cost-monitoring/cost-monitoring
 
 # Inhibit rules to prevent alert spam
 inhibit_rules:

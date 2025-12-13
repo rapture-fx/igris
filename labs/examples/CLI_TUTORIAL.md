@@ -5,7 +5,7 @@ Complete guide to using the Schlep-Engine CLI for Phases 1-5.
 ## Installation
 
 ```bash
-pip install schlep-engine-cli
+pip install igris-inertial-cli
 ```
 
 ## Authentication
@@ -199,13 +199,13 @@ schlep monitoring metrics --watch --interval 5
 
 ```bash
 # Deploy to staging
-helm upgrade --install schlep-engine helm/schlep-engine/ \
+helm upgrade --install igris-inertial helm/igris-inertial/ \
   --namespace schlep-staging \
   --create-namespace \
   --wait
 
 # Deploy canary to production
-helm upgrade --install schlep-engine-canary helm/schlep-engine/ \
+helm upgrade --install igris-inertial-canary helm/igris-inertial/ \
   --namespace schlep-production \
   --set canary.enabled=true \
   --set canary.weight=10
@@ -343,7 +343,7 @@ schlep monitoring status --detailed
 ```bash
 # Configuration
 export SCHLEP_API_KEY="sk-your-api-key"
-export SCHLEP_BASE_URL="https://api.schlep-engine.com"
+export SCHLEP_BASE_URL="https://api.igris-inertial.com"
 export SCHLEP_TIMEOUT=60
 
 # Processing settings
@@ -426,7 +426,7 @@ schlep ml registry-upload --help
 
 ## Resources
 
-- Documentation: https://docs.schlep-engine.com/cli
-- API Reference: https://docs.schlep-engine.com/api
-- Examples: https://github.com/schlep-engine/examples
-- Support: support@schlep-engine.com
+- Documentation: https://docs.igris-inertial.com/cli
+- API Reference: https://docs.igris-inertial.com/api
+- Examples: https://github.com/igris-inertial/examples
+- Support: support@igris-inertial.com

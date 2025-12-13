@@ -197,7 +197,7 @@ jobs:
       run: |
         cd packages/python-sdk
         pytest tests/ -v --tb=short \
-          --cov=schlep_engine --cov-report=xml --cov-report=term-missing \
+          --cov=igris_overture --cov-report=xml --cov-report=term-missing \
           --cov-branch --cov-fail-under=85 \
           --maxfail=3 --durations=15 \
           -x
@@ -233,8 +233,8 @@ jobs:
 
     - name: 🔍 Import test
       run: |
-        python -c "import schlep_engine; print(f'Successfully imported schlep_engine v{schlep_engine.__version__}')"
-        python -c "from schlep_engine import SchlepEngine; client = SchlepEngine(); print('Client initialization OK')"
+        python -c "import igris_overture; print(f'Successfully imported igris_overture v{igris_overture.__version__}')"
+        python -c "from igris_overture import SchlepEngine; client = SchlepEngine(); print('Client initialization OK')"
 
   # JavaScript SDK Release Testing
   javascript-sdk-release-tests:
@@ -388,7 +388,7 @@ jobs:
     - name: 🔍 Import validation
       run: |
         cd packages/go-sdk
-        go run -c 'package main; import ( _ "github.com/your-org/schlep-engine/pkg/client"; "fmt" ); func main() { fmt.Println("Import validation OK") }'
+        go run -c 'package main; import ( _ "github.com/your-org/igris-inertial/pkg/client"; "fmt" ); func main() { fmt.Println("Import validation OK") }'
 
   # CLI Release Testing
   cli-release-tests:
@@ -550,7 +550,7 @@ jobs:
         
         # Python SDK
         if [[ "${{ needs.pre-release-validation.outputs.should-release-python }}" == "true" ]]; then
-          python -c "from schlep_engine import SchlepEngine; client = SchlepEngine(); print('✅ Python SDK auth OK')"
+          python -c "from igris_overture import SchlepEngine; client = SchlepEngine(); print('✅ Python SDK auth OK')"
         fi
         
         # CLI

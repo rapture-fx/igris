@@ -103,7 +103,7 @@ fi
 section "3. Code Compilation"
 
 # Build the project
-if go build -o /tmp/schlep-engine ./cmd/api 2>/dev/null; then
+if go build -o /tmp/igris-inertial ./cmd/api 2>/dev/null; then
     pass "Code compiles successfully"
 else
     fail "Code compilation failed"

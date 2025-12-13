@@ -17,13 +17,13 @@ BACKUP_DIR="${BACKUP_DIR:-$SCRIPT_DIR/data}"
 # Database configuration
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
-DB_NAME="${POSTGRES_DB:-schlep_engine}"
+DB_NAME="${POSTGRES_DB:-igris_overture}"
 DB_USER="${POSTGRES_USER:-schlep_user}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-changeme}"
 
 # S3 configuration
 S3_ENABLED="${S3_BACKUP_ENABLED:-false}"
-S3_BUCKET="${S3_BUCKET:-schlep-engine-backups}"
+S3_BUCKET="${S3_BUCKET:-igris-inertial-backups}"
 S3_PREFIX="${S3_PREFIX:-backups/}"
 
 # ============================================================================
@@ -47,8 +47,8 @@ Restore Schlep-Engine database from backup file.
 Arguments:
   <backup_file>    Path to backup file or S3 key
                    Examples:
-                     - ./data/schlep_engine_backup_20251026_143000.sql.gz
-                     - s3://bucket/backups/schlep_engine_backup_20251026_143000.sql.gz
+                     - ./data/igris_overture_backup_20251026_143000.sql.gz
+                     - s3://bucket/backups/igris_overture_backup_20251026_143000.sql.gz
                      - latest  (automatically finds latest backup)
 
 Options:
@@ -60,13 +60,13 @@ Options:
 Environment Variables:
   POSTGRES_HOST    Database host (default: localhost)
   POSTGRES_PORT    Database port (default: 5432)
-  POSTGRES_DB      Database name (default: schlep_engine)
+  POSTGRES_DB      Database name (default: igris_overture)
   POSTGRES_USER    Database user (default: schlep_user)
   POSTGRES_PASSWORD Database password (default: changeme)
 
 Examples:
   # Restore from local file
-  $0 ./data/schlep_engine_backup_20251026_143000.sql.gz
+  $0 ./data/igris_overture_backup_20251026_143000.sql.gz
 
   # Restore latest backup
   $0 latest
@@ -75,7 +75,7 @@ Examples:
   $0 --list
 
   # Restore from S3
-  S3_BACKUP_ENABLED=true $0 schlep_engine_backup_20251026_143000.sql.gz
+  S3_BACKUP_ENABLED=true $0 igris_overture_backup_20251026_143000.sql.gz
 
 EOF
     exit 0
@@ -88,9 +88,9 @@ list_backups() {
     # List local backups
     if [ -d "$BACKUP_DIR" ]; then
         log "Local backups ($BACKUP_DIR):"
-        find "$BACKUP_DIR" -name "schlep_engine_backup_*.sql.gz" -type f | sort -r | while read -r backup; do
+        find "$BACKUP_DIR" -name "igris_overture_backup_*.sql.gz" -type f | sort -r | while read -r backup; do
             local size=$(du -h "$backup" | cut -f1)
-            local date=$(basename "$backup" | sed 's/schlep_engine_backup_\([0-9_]*\)\.sql\.gz/\1/')
+            local date=$(basename "$backup" | sed 's/igris_overture_backup_\([0-9_]*\)\.sql\.gz/\1/')
             log "  - $(basename "$backup") ($size) - $date"
         done
     fi
@@ -99,7 +99,7 @@ list_backups() {
     if [ "$S3_ENABLED" = "true" ] && command -v aws >/dev/null 2>&1; then
         log ""
         log "S3 backups (s3://$S3_BUCKET/$S3_PREFIX):"
-        aws s3 ls "s3://$S3_BUCKET/$S3_PREFIX" | grep "schlep_engine_backup_" | while read -r line; do
+        aws s3 ls "s3://$S3_BUCKET/$S3_PREFIX" | grep "igris_overture_backup_" | while read -r line; do
             local file=$(echo "$line" | awk '{print $4}')
             local size=$(echo "$line" | awk '{print $3}')
             log "  - $file ($size)"
@@ -112,7 +112,7 @@ list_backups() {
 find_latest_backup() {
     log "Finding latest backup..."
 
-    local latest=$(find "$BACKUP_DIR" -name "schlep_engine_backup_*.sql.gz" -type f | sort -r | head -n1)
+    local latest=$(find "$BACKUP_DIR" -name "igris_overture_backup_*.sql.gz" -type f | sort -r | head -n1)
 
     if [ -z "$latest" ]; then
         error "No backups found in $BACKUP_DIR"

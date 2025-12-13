@@ -32,9 +32,9 @@ echo ""
 
 echo "🌐 ACCESS POINTS:"
 echo "-----------------"
-echo "• Main Application: https://schlep-engine.com"
-echo "• API Documentation: https://schlep-engine.com/docs"
-echo "• Health Check: https://schlep-engine.com/health"
+echo "• Main Application: https://igris-inertial.com"
+echo "• API Documentation: https://igris-inertial.com/docs"
+echo "• Health Check: https://igris-inertial.com/health"
 echo ""
 
 echo "📊 MONITORING DASHBOARDS:"

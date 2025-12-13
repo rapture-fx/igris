@@ -2,9 +2,9 @@
 
 Official Java SDK for the Schlep-engine API platform.
 
-[![Maven Central](https://img.shields.io/maven-central/v/io.schlepengine/schlep-engine.svg)](https://search.maven.org/artifact/io.schlepengine/schlep-engine)
-[![Javadoc](https://javadoc.io/badge2/io.schlepengine/schlep-engine/javadoc.svg)](https://javadoc.io/doc/io.schlepengine/schlep-engine)
-[![License](https://img.shields.io/github/license/schlep-engine/java-sdk.svg)](LICENSE)
+[![Maven Central](https://img.shields.io/maven-central/v/io.schlepengine/igris-inertial.svg)](https://search.maven.org/artifact/io.schlepengine/igris-inertial)
+[![Javadoc](https://javadoc.io/badge2/io.schlepengine/igris-inertial/javadoc.svg)](https://javadoc.io/doc/io.schlepengine/igris-inertial)
+[![License](https://img.shields.io/github/license/igris-inertial/java-sdk.svg)](LICENSE)
 
 ## Features
 
@@ -40,7 +40,7 @@ Add this dependency to your `pom.xml`:
 ```xml
 <dependency>
     <groupId>io.schlepengine</groupId>
-    <artifactId>schlep-engine</artifactId>
+    <artifactId>igris-inertial</artifactId>
     <version>1.0.0</version>
 </dependency>
 ```
@@ -50,7 +50,7 @@ Add this dependency to your `pom.xml`:
 Add this to your `build.gradle`:
 
 ```gradle
-implementation 'io.schlepengine:schlep-engine:1.0.0'
+implementation 'io.schlepengine:igris-inertial:1.0.0'
 ```
 
 ## Quick Start
@@ -513,9 +513,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📖 [Documentation](https://docs.schlep-engine.com/sdk/java)
-- 🐛 [Issues](https://github.com/schlep-engine/java-sdk/issues)
-- 💬 [Support](https://support.schlep-engine.com)
+- 📖 [Documentation](https://docs.igris-inertial.com/sdk/java)
+- 🐛 [Issues](https://github.com/igris-inertial/java-sdk/issues)
+- 💬 [Support](https://support.igris-inertial.com)
 
 ## Contributing
 

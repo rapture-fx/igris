@@ -7,19 +7,19 @@ services:
       - "8001:8000"  # Different port for staging
     environment:
       - PYTHONPATH=/app
-      - DATABASE_URL=postgresql://postgres:password@postgres-staging:5432/schlep_engine_staging
+      - DATABASE_URL=postgresql://postgres:password@postgres-staging:5432/igris_overture_staging
       - ENVIRONMENT=staging
     volumes:
       - ./apps/api:/app
     depends_on:
       - postgres-staging
     networks:
-      - schlep-engine-staging
+      - igris-inertial-staging
 
   postgres-staging:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=schlep_engine_staging
+      - POSTGRES_DB=igris_overture_staging
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     volumes:
@@ -27,7 +27,7 @@ services:
     ports:
       - "5433:5432"  # Different port for staging
     networks:
-      - schlep-engine-staging
+      - igris-inertial-staging
 
   frontend:
     build:
@@ -39,10 +39,10 @@ services:
       - VITE_API_URL=http://45.77.44.216:8001
       - ENVIRONMENT=staging
     networks:
-      - schlep-engine-staging
+      - igris-inertial-staging
 
 networks:
-  schlep-engine-staging:
+  igris-inertial-staging:
     driver: bridge
 
 volumes:

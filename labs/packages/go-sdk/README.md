@@ -2,10 +2,10 @@
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Go Reference](https://pkg.go.dev/badge/github.com/schlep-engine/go-sdk.svg)](https://pkg.go.dev/github.com/schlep-engine/go-sdk)
-[![Go Report Card](https://goreportcard.com/badge/github.com/schlep-engine/go-sdk)](https://goreportcard.com/report/github.com/schlep-engine/go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/igris-inertial/go-sdk.svg)](https://pkg.go.dev/github.com/igris-inertial/go-sdk)
+[![Go Report Card](https://goreportcard.com/badge/github.com/igris-inertial/go-sdk)](https://goreportcard.com/report/github.com/igris-inertial/go-sdk)
 
-The official Go SDK for [Schlep-engine](https://schlep-engine.com) - a comprehensive cloud-native data processing and ML platform. This SDK is designed specifically for cloud-native applications and microservices, providing robust observability, resilience patterns, and enterprise-grade features.
+The official Go SDK for [Schlep-engine](https://igris-inertial.com) - a comprehensive cloud-native data processing and ML platform. This SDK is designed specifically for cloud-native applications and microservices, providing robust observability, resilience patterns, and enterprise-grade features.
 
 ## 🚀 Features
 
@@ -21,7 +21,7 @@ The official Go SDK for [Schlep-engine](https://schlep-engine.com) - a comprehen
 ## 📦 Installation
 
 ```bash
-go get github.com/schlep-engine/go-sdk
+go get github.com/igris-inertial/go-sdk
 ```
 
 ## 🏃 Quick Start
@@ -33,16 +33,16 @@ import (
     "context"
     "log"
 
-    "github.com/schlep-engine/go-sdk/pkg/client"
-    "github.com/schlep-engine/go-sdk/pkg/config"
-    "github.com/schlep-engine/go-sdk/pkg/models"
+    "github.com/igris-inertial/go-sdk/pkg/client"
+    "github.com/igris-inertial/go-sdk/pkg/config"
+    "github.com/igris-inertial/go-sdk/pkg/models"
 )
 
 func main() {
     // Create configuration
     cfg := &config.Config{
         APIKey:                "your-api-key",
-        BaseURL:              "https://api.schlep-engine.com",
+        BaseURL:              "https://api.igris-inertial.com",
         EnableMetrics:         true,
         EnableTracing:         true,
         EnableLogging:         true,
@@ -93,7 +93,7 @@ The SDK can be configured through multiple methods:
 export SCHLEP_API_KEY="your-api-key"
 
 # Connection
-export SCHLEP_BASE_URL="https://api.schlep-engine.com"
+export SCHLEP_BASE_URL="https://api.igris-inertial.com"
 export SCHLEP_TIMEOUT_SECONDS="60"
 
 # Retry & Circuit Breaker
@@ -109,11 +109,11 @@ export SERVICE_NAME="my-service"
 
 #### Configuration File
 
-Create a `schlep-engine.yaml` file:
+Create a `igris-inertial.yaml` file:
 
 ```yaml
 api_key: "your-api-key"
-base_url: "https://api.schlep-engine.com"
+base_url: "https://api.igris-inertial.com"
 timeout: 30s
 max_retries: 3
 circuit_breaker_enabled: true
@@ -128,7 +128,7 @@ service_name: "my-service"
 ```go
 cfg := &config.Config{
     APIKey:                "your-api-key",
-    BaseURL:              "https://api.schlep-engine.com",
+    BaseURL:              "https://api.igris-inertial.com",
     Timeout:              30 * time.Second,
     MaxRetries:           3,
     CircuitBreakerEnabled: true,
@@ -619,10 +619,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📞 Support
 
-- **Documentation**: https://docs.schlep-engine.com/sdk/go
-- **Support Portal**: https://support.schlep-engine.com
-- **GitHub Issues**: https://github.com/schlep-engine/go-sdk/issues
-- **Community Discord**: https://discord.gg/schlep-engine
+- **Documentation**: https://docs.igris-inertial.com/sdk/go
+- **Support Portal**: https://support.igris-inertial.com
+- **GitHub Issues**: https://github.com/igris-inertial/go-sdk/issues
+- **Community Discord**: https://discord.gg/igris-inertial
 
 ## 🙏 Acknowledgments
 

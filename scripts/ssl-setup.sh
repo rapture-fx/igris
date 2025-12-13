@@ -27,7 +27,7 @@ print_error() {
 
 # Check if running in project directory
 if [ ! -f "docker-compose.yml" ]; then
-    print_error "Please run this script from the project directory (/opt/schlep-engine)"
+    print_error "Please run this script from the project directory (/opt/igris-inertial)"
     exit 1
 fi
 
@@ -36,14 +36,14 @@ print_status "Running dry-run for SSL certificate..."
 docker-compose run --rm certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
-    --email admin@schlep-engine.com \
+    --email admin@igris-inertial.com \
     --agree-tos \
     --no-eff-email \
     --dry-run \
-    -d schlep-engine.com \
-    -d api.schlep-engine.com \
-    -d admin.schlep-engine.com \
-    -d docs.schlep-engine.com
+    -d igris-inertial.com \
+    -d api.igris-inertial.com \
+    -d admin.igris-inertial.com \
+    -d docs.igris-inertial.com
 
 print_status "Dry-run successful. Getting real certificates..."
 
@@ -51,13 +51,13 @@ print_status "Dry-run successful. Getting real certificates..."
 docker-compose run --rm certbot certonly \
     --webroot \
     --webroot-path=/var/www/certbot \
-    --email admin@schlep-engine.com \
+    --email admin@igris-inertial.com \
     --agree-tos \
     --no-eff-email \
-    -d schlep-engine.com \
-    -d api.schlep-engine.com \
-    -d admin.schlep-engine.com \
-    -d docs.schlep-engine.com
+    -d igris-inertial.com \
+    -d api.igris-inertial.com \
+    -d admin.igris-inertial.com \
+    -d docs.igris-inertial.com
 
 print_status "Certificates obtained successfully!"
 
@@ -69,7 +69,7 @@ docker-compose restart nginx
 print_status "Setting up certificate auto-renewal..."
 cat << 'EOF' > /etc/cron.d/certbot-renew
 # Renew SSL certificates twice daily
-0 12 * * * root cd /opt/schlep-engine && docker-compose run --rm certbot renew --quiet && docker-compose restart nginx
+0 12 * * * root cd /opt/igris-inertial && docker-compose run --rm certbot renew --quiet && docker-compose restart nginx
 EOF
 
 chmod 644 /etc/cron.d/certbot-renew
@@ -77,9 +77,9 @@ chmod 644 /etc/cron.d/certbot-renew
 print_status "SSL setup completed!"
 echo ""
 echo "🔒 SSL certificates are now active for:"
-echo "   • schlep-engine.com"
-echo "   • api.schlep-engine.com"
-echo "   • admin.schlep-engine.com"
-echo "   • docs.schlep-engine.com"
+echo "   • igris-inertial.com"
+echo "   • api.igris-inertial.com"
+echo "   • admin.igris-inertial.com"
+echo "   • docs.igris-inertial.com"
 echo ""
 print_status "Certificates will auto-renew twice daily via cron job"

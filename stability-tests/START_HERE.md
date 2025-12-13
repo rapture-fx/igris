@@ -7,7 +7,7 @@
 Open a terminal and run:
 
 ```bash
-cd /Users/wira/Desktop/schlep-engine
+cd /Users/wira/Desktop/igris-inertial
 
 # Set test configuration (NO API COSTS - uses benchmark mode)
 export PROVIDER_MODE=benchmark
@@ -17,7 +17,7 @@ export PORT=8081
 export ENABLE_BENCHMARK_FALLBACK=true
 
 # Start API
-go run cmd/schlep-engine-api/main.go
+go run cmd/igris-overture/main.go
 ```
 
 **Expected Output:**
@@ -37,7 +37,7 @@ go run cmd/schlep-engine-api/main.go
 Open a **new terminal** and run:
 
 ```bash
-cd /Users/wira/Desktop/schlep-engine/stability-tests/scripts
+cd /Users/wira/Desktop/igris-inertial/stability-tests/scripts
 
 # Interactive menu (recommended for first time)
 ./setup_and_test.sh
@@ -267,7 +267,7 @@ curl http://localhost:8081/v1/providers/stats | jq
 3. **Schedule Regular Tests**
    ```bash
    # Add to cron or CI/CD
-   0 2 * * * cd /path/to/schlep-engine && ./stability-tests/scripts/run_all_tests.sh
+   0 2 * * * cd /path/to/igris-inertial && ./stability-tests/scripts/run_all_tests.sh
    ```
 
 4. **Deploy with Confidence**
@@ -308,7 +308,7 @@ curl http://localhost:8081/v1/providers/stats | jq
 
 ```bash
 # Start API (benchmark mode - no costs)
-export PROVIDER_MODE=benchmark && go run cmd/schlep-engine-api/main.go
+export PROVIDER_MODE=benchmark && go run cmd/igris-overture/main.go
 
 # Quick smoke test (2 min)
 ./stability-tests/scripts/setup_and_test.sh

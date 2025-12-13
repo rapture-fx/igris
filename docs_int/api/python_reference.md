@@ -483,9 +483,9 @@ if __name__ == "__main__":
 
 ## Support
 
-- GitHub: https://github.com/schlep-engine/schlep-engine
-- Issues: https://github.com/schlep-engine/schlep-engine/issues
-- Email: hello@schlep-engine.com
+- GitHub: https://github.com/igris-inertial/igris-inertial
+- Issues: https://github.com/igris-inertial/igris-inertial/issues
+- Email: hello@igris-inertial.com
 
 ---
 

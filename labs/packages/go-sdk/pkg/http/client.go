@@ -17,7 +17,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/time/rate"
 
-	"github.com/schlep-engine/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/config"
 )
 
 // Client is a resilient HTTP client with observability features
@@ -92,7 +92,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	var cb *gobreaker.CircuitBreaker
 	if cfg.CircuitBreakerEnabled {
 		cbSettings := gobreaker.Settings{
-			Name:        "schlep-engine-api",
+			Name:        "igris-overture",
 			MaxRequests: cfg.CircuitBreakerMaxRequests,
 			Interval:    cfg.CircuitBreakerTimeout,
 			Timeout:     cfg.CircuitBreakerTimeout,
@@ -117,7 +117,7 @@ func NewClient(cfg *config.Config) (*Client, error) {
 	// Setup tracer if tracing is enabled
 	var tracer trace.Tracer
 	if cfg.EnableTracing {
-		tracer = otel.Tracer("schlep-engine-go-sdk")
+		tracer = otel.Tracer("igris-inertial-go-sdk")
 	}
 
 	return &Client{

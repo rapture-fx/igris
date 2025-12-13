@@ -6,7 +6,7 @@ groups:
     interval: 30s
     rules:
       - alert: APIServerDown
-        expr: up{job="schlep-api"} == 0
+        expr: up{job="igris-overture"} == 0
         for: 2m
         labels:
           severity: critical

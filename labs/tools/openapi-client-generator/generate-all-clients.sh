@@ -153,8 +153,8 @@ try:
     openapi_spec["info"]["description"] = "Comprehensive data processing and ML pipeline platform"
     openapi_spec["info"]["contact"] = {
         "name": "Schlep-engine Support",
-        "url": "https://schlep-engine.com",
-        "email": "support@schlep-engine.com"
+        "url": "https://igris-inertial.com",
+        "email": "support@igris-inertial.com"
     }
     openapi_spec["info"]["license"] = {
         "name": "MIT",
@@ -166,8 +166,8 @@ try:
         openapi_spec["servers"] = []
     
     servers = [
-        {"url": "https://api.schlep-engine.com", "description": "Production server"},
-        {"url": "https://staging-api.schlep-engine.com", "description": "Staging server"},
+        {"url": "https://api.igris-inertial.com", "description": "Production server"},
+        {"url": "https://staging-api.igris-inertial.com", "description": "Staging server"},
         {"url": "http://localhost:8000", "description": "Development server"}
     ]
     
@@ -193,7 +193,7 @@ except Exception as e:
             "description": "Comprehensive data processing and ML pipeline platform"
         },
         "servers": [
-            {"url": "https://api.schlep-engine.com", "description": "Production server"},
+            {"url": "https://api.igris-inertial.com", "description": "Production server"},
             {"url": "http://localhost:8000", "description": "Development server"}
         ],
         "paths": {},
@@ -475,10 +475,10 @@ create_release() {
 This release includes automatically generated client libraries for the Schlep-engine API.
 
 ### Languages Supported
-- Python (PyPI: `schlep-engine-client`)
-- TypeScript/JavaScript (NPM: `@schlep-engine/client`)
-- Go (GitHub: `github.com/schlep-engine/go-client`)
-- Java (Maven Central: `com.schlepengine:schlep-engine-client`)
+- Python (PyPI: `igris-inertial-client`)
+- TypeScript/JavaScript (NPM: `@igris-inertial/client`)
+- Go (GitHub: `github.com/igris-inertial/go-client`)
+- Java (Maven Central: `com.schlepengine:igris-inertial-client`)
 - C# (NuGet: `SchlepEngine.Client`)
 
 ### Features
@@ -493,17 +493,17 @@ This release includes automatically generated client libraries for the Schlep-en
 
 **Python:**
 ```bash
-pip install schlep-engine-client
+pip install igris-inertial-client
 ```
 
 **TypeScript/JavaScript:**
 ```bash
-npm install @schlep-engine/client
+npm install @igris-inertial/client
 ```
 
 **Go:**
 ```bash
-go get github.com/schlep-engine/go-client
+go get github.com/igris-inertial/go-client
 ```
 
 EOF

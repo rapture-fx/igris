@@ -21,16 +21,16 @@ KUBECONFIG=${KUBECONFIG:-"$HOME/.kube/config"}
 # Environment-specific configurations
 case $DEPLOYMENT_ENV in
   "staging")
-    NAMESPACE="schlep-engine-staging"
-    DOMAIN="staging.schlep-engine.com"
-    API_DOMAIN="api-staging.schlep-engine.com"
+    NAMESPACE="igris-inertial-staging"
+    DOMAIN="staging.igris-inertial.com"
+    API_DOMAIN="api-staging.igris-inertial.com"
     REPLICAS_BACKEND=2
     REPLICAS_FRONTEND=1
     ;;
   "production")
-    NAMESPACE="schlep-engine"
-    DOMAIN="schlep-engine.com"
-    API_DOMAIN="api.schlep-engine.com"
+    NAMESPACE="igris-inertial"
+    DOMAIN="igris-inertial.com"
+    API_DOMAIN="api.igris-inertial.com"
     REPLICAS_BACKEND=3
     REPLICAS_FRONTEND=2
     ;;
@@ -101,13 +101,13 @@ build_images() {
     
     # Build backend image
     log "Building backend image..."
-    docker build -f packages/backend/Dockerfile -t ghcr.io/schlep-engine/backend:latest packages/backend/
-    docker tag ghcr.io/schlep-engine/backend:latest ghcr.io/schlep-engine/backend:$DEPLOYMENT_ENV
+    docker build -f packages/backend/Dockerfile -t ghcr.io/igris-inertial/backend:latest packages/backend/
+    docker tag ghcr.io/igris-inertial/backend:latest ghcr.io/igris-inertial/backend:$DEPLOYMENT_ENV
     
     # Build frontend image
     log "Building frontend image..."
-    docker build -f packages/frontend/Dockerfile -t ghcr.io/schlep-engine/frontend:latest packages/frontend/
-    docker tag ghcr.io/schlep-engine/frontend:latest ghcr.io/schlep-engine/frontend:$DEPLOYMENT_ENV
+    docker build -f packages/frontend/Dockerfile -t ghcr.io/igris-inertial/frontend:latest packages/frontend/
+    docker tag ghcr.io/igris-inertial/frontend:latest ghcr.io/igris-inertial/frontend:$DEPLOYMENT_ENV
     
     success "Docker images built successfully"
 }
@@ -121,13 +121,13 @@ push_images() {
     
     # Push backend image
     log "Pushing backend image..."
-    docker push ghcr.io/schlep-engine/backend:latest
-    docker push ghcr.io/schlep-engine/backend:$DEPLOYMENT_ENV
+    docker push ghcr.io/igris-inertial/backend:latest
+    docker push ghcr.io/igris-inertial/backend:$DEPLOYMENT_ENV
     
     # Push frontend image
     log "Pushing frontend image..."
-    docker push ghcr.io/schlep-engine/frontend:latest
-    docker push ghcr.io/schlep-engine/frontend:$DEPLOYMENT_ENV
+    docker push ghcr.io/igris-inertial/frontend:latest
+    docker push ghcr.io/igris-inertial/frontend:$DEPLOYMENT_ENV
     
     success "Docker images pushed successfully"
 }
@@ -183,7 +183,7 @@ create_secrets() {
     fi
     
     # Create secrets
-    kubectl create secret generic schlep-engine-secrets \
+    kubectl create secret generic igris-inertial-secrets \
         --namespace=$NAMESPACE \
         --from-literal=POSTGRES_PASSWORD="$POSTGRES_PASSWORD" \
         --from-literal=SECRET_KEY="$SECRET_KEY" \
@@ -240,10 +240,10 @@ deploy_application() {
     
     # Wait for deployments to be ready
     log "Waiting for backend deployment to be ready..."
-    kubectl rollout status deployment/schlep-engine-backend -n $NAMESPACE --timeout=600s
+    kubectl rollout status deployment/igris-inertial-backend -n $NAMESPACE --timeout=600s
     
     log "Waiting for frontend deployment to be ready..."
-    kubectl rollout status deployment/schlep-engine-frontend -n $NAMESPACE --timeout=600s
+    kubectl rollout status deployment/igris-inertial-frontend -n $NAMESPACE --timeout=600s
     
     # Restore original file
     mv infrastructure/kubernetes/deployment.yaml.bak infrastructure/kubernetes/deployment.yaml
@@ -369,14 +369,14 @@ rollback() {
     log "Rolling back deployment..."
     
     # Rollback backend
-    kubectl rollout undo deployment/schlep-engine-backend -n $NAMESPACE
+    kubectl rollout undo deployment/igris-inertial-backend -n $NAMESPACE
     
     # Rollback frontend
-    kubectl rollout undo deployment/schlep-engine-frontend -n $NAMESPACE
+    kubectl rollout undo deployment/igris-inertial-frontend -n $NAMESPACE
     
     # Wait for rollback to complete
-    kubectl rollout status deployment/schlep-engine-backend -n $NAMESPACE
-    kubectl rollout status deployment/schlep-engine-frontend -n $NAMESPACE
+    kubectl rollout status deployment/igris-inertial-backend -n $NAMESPACE
+    kubectl rollout status deployment/igris-inertial-frontend -n $NAMESPACE
     
     success "Rollback completed"
 }

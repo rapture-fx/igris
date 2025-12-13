@@ -1,11 +1,11 @@
 # Schlep-engine CLI
 
-[![PyPI version](https://badge.fury.io/py/schlep-engine-cli.svg)](https://badge.fury.io/py/schlep-engine-cli)
-[![Python Support](https://img.shields.io/pypi/pyversions/schlep-engine-cli.svg)](https://pypi.org/project/schlep-engine-cli/)
+[![PyPI version](https://badge.fury.io/py/igris-inertial-cli.svg)](https://badge.fury.io/py/igris-inertial-cli)
+[![Python Support](https://img.shields.io/pypi/pyversions/igris-inertial-cli.svg)](https://pypi.org/project/igris-inertial-cli/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Downloads](https://pepy.tech/badge/schlep-engine-cli)](https://pepy.tech/project/schlep-engine-cli)
+[![Downloads](https://pepy.tech/badge/igris-inertial-cli)](https://pepy.tech/project/igris-inertial-cli)
 
-Official command-line interface for [Schlep-engine](https://schlep-engine.com) - Advanced data processing, machine learning, DevOps automation, and analytics platform.
+Official command-line interface for [Schlep-engine](https://igris-inertial.com) - Advanced data processing, machine learning, DevOps automation, and analytics platform.
 
 ## 🚀 Features
 
@@ -34,13 +34,13 @@ Official command-line interface for [Schlep-engine](https://schlep-engine.com) -
 ### From PyPI (Recommended)
 
 ```bash
-pip install schlep-engine-cli
+pip install igris-inertial-cli
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/schlep-engine/cli.git
+git clone https://github.com/igris-inertial/cli.git
 cd cli
 pip install -e .
 ```
@@ -48,7 +48,7 @@ pip install -e .
 ### Development Installation
 
 ```bash
-git clone https://github.com/schlep-engine/cli.git
+git clone https://github.com/igris-inertial/cli.git
 cd cli
 pip install -e ".[dev]"
 ```
@@ -57,7 +57,7 @@ pip install -e ".[dev]"
 
 ### 1. Authentication
 
-Get your API key from the [Schlep-engine Dashboard](https://dashboard.schlep-engine.com/api-keys):
+Get your API key from the [Schlep-engine Dashboard](https://dashboard.igris-inertial.com/api-keys):
 
 ```bash
 # Interactive login
@@ -252,7 +252,7 @@ The CLI uses a hierarchical configuration system:
 ```yaml
 # ~/.schlep/config.yml
 api:
-  base_url: https://api.schlep-engine.com
+  base_url: https://api.igris-inertial.com
   timeout: 30
   verify_ssl: true
 
@@ -278,7 +278,7 @@ pipelines:
 ```bash
 # API Configuration
 export SCHLEP_API_KEY="sk-your-api-key"
-export SCHLEP_BASE_URL="https://api.schlep-engine.com"
+export SCHLEP_BASE_URL="https://api.igris-inertial.com"
 export SCHLEP_TIMEOUT=30
 
 # Processing Settings
@@ -462,7 +462,7 @@ jobs:
           python-version: '3.9'
           
       - name: Install CLI
-        run: pip install schlep-engine-cli
+        run: pip install igris-inertial-cli
         
       - name: Process Data
         run: |
@@ -479,14 +479,14 @@ pipeline {
     agent any
     
     environment {
-        SCHLEP_API_KEY = credentials('schlep-api-key')
+        SCHLEP_API_KEY = credentials('igris-overture-key')
     }
     
     stages {
         stage('Process Data') {
             steps {
                 sh '''
-                    pip install schlep-engine-cli
+                    pip install igris-inertial-cli
                     schlep auth login --api-key $SCHLEP_API_KEY
                     schlep process batch "data/*.csv" --parallel 8
                 '''
@@ -509,7 +509,7 @@ pipeline {
 ```dockerfile
 FROM python:3.9-slim
 
-RUN pip install schlep-engine-cli
+RUN pip install igris-inertial-cli
 
 COPY data/ /app/data/
 COPY pipeline.yml /app/
@@ -546,7 +546,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ### Development Setup
 
 ```bash
-git clone https://github.com/schlep-engine/cli.git
+git clone https://github.com/igris-inertial/cli.git
 cd cli
 pip install -e ".[dev]"
 pre-commit install
@@ -573,10 +573,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- **Documentation**: [docs.schlep-engine.com/cli](https://docs.schlep-engine.com/cli)
-- **Issues**: [GitHub Issues](https://github.com/schlep-engine/cli/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/schlep-engine/cli/discussions)
-- **Email**: [support@schlep-engine.com](mailto:support@schlep-engine.com)
+- **Documentation**: [docs.igris-inertial.com/cli](https://docs.igris-inertial.com/cli)
+- **Issues**: [GitHub Issues](https://github.com/igris-inertial/cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/igris-inertial/cli/discussions)
+- **Email**: [support@igris-inertial.com](mailto:support@igris-inertial.com)
 
 ## 📈 Roadmap
 
@@ -597,4 +597,4 @@ Built with:
 
 ---
 
-Made with ❤️ by the [Schlep-engine](https://schlep-engine.com) team.
+Made with ❤️ by the [Schlep-engine](https://igris-inertial.com) team.

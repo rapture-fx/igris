@@ -327,7 +327,7 @@ EXAMPLES:
     $0 --verbose
 
     # Use custom URLs
-    API_URL=https://staging.schlep-engine.com $0
+    API_URL=https://staging.igris-inertial.com $0
 
 EOF
     exit 0

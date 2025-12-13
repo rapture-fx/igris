@@ -7,7 +7,7 @@ services:
     container_name: schlep-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-schlep_engine}
+      POSTGRES_DB: ${POSTGRES_DB:-igris_overture}
       POSTGRES_USER: ${POSTGRES_USER:-schlep_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
@@ -54,7 +54,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: schlep-api
+    container_name: igris-overture
     restart: unless-stopped
     ports:
       - "${API_PORT:-8080}:8080"
@@ -65,7 +65,7 @@ services:
       ENV: production
 
       # Database Configuration
-      DATABASE_URL: postgres://${POSTGRES_USER:-schlep_user}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-schlep_engine}?sslmode=disable
+      DATABASE_URL: postgres://${POSTGRES_USER:-schlep_user}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-igris_overture}?sslmode=disable
       ENABLE_PERSISTENCE: "true"
       DB_MAX_OPEN_CONNS: 25
       DB_MAX_IDLE_CONNS: 5

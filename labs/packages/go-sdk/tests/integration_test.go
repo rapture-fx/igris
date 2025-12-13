@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/client"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	"github.com/schlep-engine/go-sdk/pkg/models"
+	"github.com/igris-inertial/go-sdk/pkg/client"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -195,7 +195,7 @@ func TestIntegration(t *testing.T) {
 func TestClientLifecycle(t *testing.T) {
 	cfg := &config.Config{
 		APIKey:      "test-api-key",
-		BaseURL:     "https://api.schlep-engine.com",
+		BaseURL:     "https://api.igris-inertial.com",
 		ServiceName: "lifecycle-test",
 		Timeout:     10 * time.Second,
 	}
@@ -236,7 +236,7 @@ func TestConcurrency(t *testing.T) {
 
 	cfg := &config.Config{
 		APIKey:      "test-api-key",
-		BaseURL:     "https://api.schlep-engine.com",
+		BaseURL:     "https://api.igris-inertial.com",
 		ServiceName: "concurrency-test",
 		Timeout:     10 * time.Second,
 	}
@@ -273,7 +273,7 @@ func getTestBaseURL() string {
 	if url := os.Getenv("SCHLEP_TEST_BASE_URL"); url != "" {
 		return url
 	}
-	return "https://api.schlep-engine.com"
+	return "https://api.igris-inertial.com"
 }
 
 func stringPtr(s string) *string {

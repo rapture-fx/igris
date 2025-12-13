@@ -67,19 +67,19 @@
 
 ```bash
 # 1. Verify outage
-curl http://api.schlep-engine.com/healthz
-curl http://api.schlep-engine.com/v1/infer -X POST \
+curl http://api.igris-inertial.com/healthz
+curl http://api.igris-inertial.com/v1/infer -X POST \
   -H "Content-Type: application/json" \
   -d '{"model":"gpt-4","messages":[{"role":"user","content":"test"}],"max_tokens":10}'
 
 # 2. Check if pods are running (Kubernetes)
-kubectl get pods -n production -l app=schlep-engine-api
+kubectl get pods -n production -l app=igris-overture
 
 # 3. Check recent logs
-kubectl logs deployment/schlep-engine-api --tail=100 -n production
+kubectl logs deployment/igris-overture --tail=100 -n production
 
 # 4. Check database connectivity
-kubectl exec -it deployment/schlep-engine-api -- psql $DATABASE_URL -c "SELECT 1"
+kubectl exec -it deployment/igris-overture -- psql $DATABASE_URL -c "SELECT 1"
 
 # 5. If database down, check status
 kubectl get pods -n production -l app=postgresql
@@ -97,25 +97,25 @@ kubectl get pods -n production -l app=postgresql
 2. **API Crash**:
    ```bash
    # Check for panic in logs
-   kubectl logs deployment/schlep-engine-api --tail=500 | grep -i "panic\|fatal\|error"
+   kubectl logs deployment/igris-overture --tail=500 | grep -i "panic\|fatal\|error"
 
    # Restart API deployment
-   kubectl rollout restart deployment/schlep-engine-api -n production
+   kubectl rollout restart deployment/igris-overture -n production
    ```
 
 3. **Configuration Issue**:
    ```bash
    # Check environment variables
-   kubectl get deployment schlep-engine-api -o yaml | grep -A 20 "env:"
+   kubectl get deployment igris-overture -o yaml | grep -A 20 "env:"
 
    # Verify secrets
-   kubectl get secret schlep-engine-secrets -o yaml
+   kubectl get secret igris-inertial-secrets -o yaml
    ```
 
 4. **If all else fails - ROLLBACK**:
    ```bash
    # See "Rollback Procedures" section below
-   kubectl rollout undo deployment/schlep-engine-api -n production
+   kubectl rollout undo deployment/igris-overture -n production
    ```
 
 **Communication**:
@@ -136,16 +136,16 @@ kubectl get pods -n production -l app=postgresql
 
 ```bash
 # 1. Check error rate
-curl http://api.schlep-engine.com/metrics | grep "http_requests_total{status=\"5"
+curl http://api.igris-inertial.com/metrics | grep "http_requests_total{status=\"5"
 
 # 2. Check provider health
-curl http://api.schlep-engine.com/v1/providers/stats
+curl http://api.igris-inertial.com/v1/providers/stats
 
 # 3. Recent deployment?
-kubectl rollout history deployment/schlep-engine-api -n production
+kubectl rollout history deployment/igris-overture -n production
 
 # 4. Check logs for specific errors
-kubectl logs deployment/schlep-engine-api --tail=200 | grep -i "5[0-9][0-9]"
+kubectl logs deployment/igris-overture --tail=200 | grep -i "5[0-9][0-9]"
 ```
 
 **Common Causes & Fixes**:
@@ -153,7 +153,7 @@ kubectl logs deployment/schlep-engine-api --tail=200 | grep -i "5[0-9][0-9]"
 1. **Provider API Down**:
    ```bash
    # Check which provider is failing
-   curl http://api.schlep-engine.com/v1/providers/stats | jq
+   curl http://api.igris-inertial.com/v1/providers/stats | jq
 
    # If OpenAI down, verify API key is valid
    curl https://api.openai.com/v1/models \
@@ -161,41 +161,41 @@ kubectl logs deployment/schlep-engine-api --tail=200 | grep -i "5[0-9][0-9]"
 
    # Circuit breaker should auto-recover, but can force:
    # (if endpoint exists)
-   curl -X POST http://api.schlep-engine.com/v1/circuit-breaker/reset
+   curl -X POST http://api.igris-inertial.com/v1/circuit-breaker/reset
    ```
 
 2. **Database Query Timeout**:
    ```bash
    # Check database performance
-   kubectl exec -it deployment/schlep-engine-api -- \
+   kubectl exec -it deployment/igris-overture -- \
      psql $DATABASE_URL -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
 
    # Check for slow queries
-   kubectl exec -it deployment/schlep-engine-api -- \
+   kubectl exec -it deployment/igris-overture -- \
      psql $DATABASE_URL -c "SELECT pid, now() - pg_stat_activity.query_start AS duration, query FROM pg_stat_activity WHERE (now() - pg_stat_activity.query_start) > interval '5 seconds';"
 
    # Kill long-running queries if necessary
-   # kubectl exec -it deployment/schlep-engine-api -- \
+   # kubectl exec -it deployment/igris-overture -- \
    #   psql $DATABASE_URL -c "SELECT pg_terminate_backend(PID);"
    ```
 
 3. **Memory/Resource Exhaustion**:
    ```bash
    # Check resource usage
-   kubectl top pods -n production -l app=schlep-engine-api
+   kubectl top pods -n production -l app=igris-overture
 
    # Check for OOM kills
-   kubectl describe pod -n production -l app=schlep-engine-api | grep -i oom
+   kubectl describe pod -n production -l app=igris-overture | grep -i oom
 
    # Scale up if needed
-   kubectl scale deployment/schlep-engine-api --replicas=5 -n production
+   kubectl scale deployment/igris-overture --replicas=5 -n production
    ```
 
 4. **Recent Bad Deployment**:
    ```bash
    # Rollback to previous version
-   kubectl rollout undo deployment/schlep-engine-api -n production
-   kubectl rollout status deployment/schlep-engine-api -n production
+   kubectl rollout undo deployment/igris-overture -n production
+   kubectl rollout status deployment/igris-overture -n production
    ```
 
 ---
@@ -211,13 +211,13 @@ kubectl logs deployment/schlep-engine-api --tail=200 | grep -i "5[0-9][0-9]"
 
 ```bash
 # 1. Check for panics in logs
-kubectl logs deployment/schlep-engine-api --tail=500 | grep -i "panic\|ffi\|rust"
+kubectl logs deployment/igris-overture --tail=500 | grep -i "panic\|ffi\|rust"
 
 # 2. Check crash loop
-kubectl get pods -n production -l app=schlep-engine-api
+kubectl get pods -n production -l app=igris-overture
 
 # 3. Check optimizer mode
-kubectl get deployment schlep-engine-api -o yaml | grep OPTIMIZER_MODE
+kubectl get deployment igris-overture -o yaml | grep OPTIMIZER_MODE
 ```
 
 **Resolution**:
@@ -225,22 +225,22 @@ kubectl get deployment schlep-engine-api -o yaml | grep OPTIMIZER_MODE
 1. **Disable Rust Optimizer (Immediate Mitigation)**:
    ```bash
    # Switch to Go-only mode
-   kubectl set env deployment/schlep-engine-api OPTIMIZER_MODE=go-only -n production
+   kubectl set env deployment/igris-overture OPTIMIZER_MODE=go-only -n production
 
    # Restart to apply
-   kubectl rollout restart deployment/schlep-engine-api -n production
+   kubectl rollout restart deployment/igris-overture -n production
    ```
 
 2. **Check Core Dumps** (if enabled):
    ```bash
    # SSH into pod
-   kubectl exec -it deployment/schlep-engine-api-xxx -- /bin/bash
+   kubectl exec -it deployment/igris-overture-xxx -- /bin/bash
 
    # Check for core dumps
    ls -lh /tmp/core.*
 
    # If core dumps exist, copy for analysis
-   kubectl cp production/schlep-engine-api-xxx:/tmp/core.123 ./core.123
+   kubectl cp production/igris-overture-xxx:/tmp/core.123 ./core.123
    ```
 
 3. **Root Cause Analysis**:
@@ -268,15 +268,15 @@ kubectl get deployment schlep-engine-api -o yaml | grep OPTIMIZER_MODE
 ```bash
 # 1. Test streaming endpoint
 curl -N -H "Accept: text/event-stream" \
-  http://api.schlep-engine.com/v1/infer \
+  http://api.igris-inertial.com/v1/infer \
   -H "Content-Type: application/json" \
   -d '{"model":"gpt-4","messages":[{"role":"user","content":"test"}],"stream":true,"max_tokens":50}'
 
 # 2. Check for connection limits
-kubectl describe deployment schlep-engine-api | grep -i "limits\|requests"
+kubectl describe deployment igris-overture | grep -i "limits\|requests"
 
 # 3. Check ingress/load balancer timeouts
-kubectl get ingress schlep-engine-ingress -o yaml | grep timeout
+kubectl get ingress igris-inertial-ingress -o yaml | grep timeout
 ```
 
 **Common Fixes**:
@@ -284,7 +284,7 @@ kubectl get ingress schlep-engine-ingress -o yaml | grep timeout
 1. **Load Balancer Timeout**:
    ```bash
    # Increase timeout on ingress
-   kubectl annotate ingress schlep-engine-ingress \
+   kubectl annotate ingress igris-inertial-ingress \
      nginx.ingress.kubernetes.io/proxy-read-timeout="300" \
      nginx.ingress.kubernetes.io/proxy-send-timeout="300"
    ```
@@ -292,7 +292,7 @@ kubectl get ingress schlep-engine-ingress -o yaml | grep timeout
 2. **Connection Pool Exhaustion**:
    ```bash
    # Increase connection limits
-   kubectl set env deployment/schlep-engine-api \
+   kubectl set env deployment/igris-overture \
      MAX_CONNECTIONS=500 \
      -n production
    ```
@@ -309,7 +309,7 @@ kubectl get ingress schlep-engine-ingress -o yaml | grep timeout
 
 ```bash
 # Run automated rollback script
-cd /path/to/schlep-engine
+cd /path/to/igris-inertial
 ./stability-tests/scripts/rollback_automation.sh
 ```
 
@@ -324,20 +324,20 @@ The script will:
 
 ```bash
 # 1. Check rollout history
-kubectl rollout history deployment/schlep-engine-api -n production
+kubectl rollout history deployment/igris-overture -n production
 
 # 2. Rollback to previous revision
-kubectl rollout undo deployment/schlep-engine-api -n production
+kubectl rollout undo deployment/igris-overture -n production
 
 # 3. Or rollback to specific revision
-kubectl rollout undo deployment/schlep-engine-api --to-revision=5 -n production
+kubectl rollout undo deployment/igris-overture --to-revision=5 -n production
 
 # 4. Watch rollback progress
-kubectl rollout status deployment/schlep-engine-api -n production
+kubectl rollout status deployment/igris-overture -n production
 
 # 5. Verify health
-curl http://api.schlep-engine.com/healthz
-curl http://api.schlep-engine.com/v1/providers/stats
+curl http://api.igris-inertial.com/healthz
+curl http://api.igris-inertial.com/v1/providers/stats
 ```
 
 ### Manual Docker Compose Rollback
@@ -347,7 +347,7 @@ curl http://api.schlep-engine.com/v1/providers/stats
 docker-compose down
 
 # 2. Pull previous image tag
-docker pull schlep-engine-api:previous
+docker pull igris-overture:previous
 
 # 3. Update docker-compose.yml to use previous tag
 
@@ -355,19 +355,19 @@ docker pull schlep-engine-api:previous
 docker-compose up -d
 
 # 5. Check logs
-docker-compose logs -f schlep-engine-api
+docker-compose logs -f igris-overture
 ```
 
 ### Feature Flag Rollback (Gradual)
 
 ```bash
 # Disable problematic features without full rollback
-kubectl set env deployment/schlep-engine-api \
+kubectl set env deployment/igris-overture \
   ENABLE_COGNITIVE_ADVISOR=false \
   OPTIMIZER_MODE=go-only \
   -n production
 
-kubectl rollout restart deployment/schlep-engine-api -n production
+kubectl rollout restart deployment/igris-overture -n production
 ```
 
 ---
@@ -391,7 +391,7 @@ kubectl rollout restart deployment/schlep-engine-api -n production
 
 **Updates**: Will provide update in 15 minutes
 
-**Status Page**: https://status.schlep-engine.com
+**Status Page**: https://status.igris-inertial.com
 ```
 
 ### SEV-1 Resolution
@@ -443,7 +443,7 @@ Our database connection pool reached capacity, preventing new API requests from 
 - Infrastructure capacity planning updates
 - Enhanced monitoring and alerting
 
-We sincerely apologize for any inconvenience. If you have questions, please contact support@schlep-engine.com.
+We sincerely apologize for any inconvenience. If you have questions, please contact support@igris-inertial.com.
 
 Best regards,
 Schlep-Engine Platform Team
@@ -569,44 +569,44 @@ Schlep-Engine Platform Team
 
 ### Health Check URLs
 ```bash
-curl http://api.schlep-engine.com/healthz    # Liveness
-curl http://api.schlep-engine.com/readyz     # Readiness
-curl http://api.schlep-engine.com/metrics    # Prometheus metrics
-curl http://api.schlep-engine.com/v1/providers/stats  # Provider health
+curl http://api.igris-inertial.com/healthz    # Liveness
+curl http://api.igris-inertial.com/readyz     # Readiness
+curl http://api.igris-inertial.com/metrics    # Prometheus metrics
+curl http://api.igris-inertial.com/v1/providers/stats  # Provider health
 ```
 
 ### Key Metrics to Check
 ```bash
 # Error rate
-curl -s http://api.schlep-engine.com/metrics | grep 'http_requests_total{status="5'
+curl -s http://api.igris-inertial.com/metrics | grep 'http_requests_total{status="5'
 
 # Latency
-curl -s http://api.schlep-engine.com/metrics | grep 'http_request_duration'
+curl -s http://api.igris-inertial.com/metrics | grep 'http_request_duration'
 
 # Memory
-curl -s http://api.schlep-engine.com/metrics | grep 'process_resident_memory'
+curl -s http://api.igris-inertial.com/metrics | grep 'process_resident_memory'
 
 # Circuit breaker
-curl -s http://api.schlep-engine.com/metrics | grep 'circuit_breaker'
+curl -s http://api.igris-inertial.com/metrics | grep 'circuit_breaker'
 ```
 
 ### Important Log Searches
 ```bash
 # Recent errors
-kubectl logs deployment/schlep-engine-api --tail=100 | grep -i error
+kubectl logs deployment/igris-overture --tail=100 | grep -i error
 
 # Panics
-kubectl logs deployment/schlep-engine-api --tail=500 | grep -i panic
+kubectl logs deployment/igris-overture --tail=500 | grep -i panic
 
 # 5xx responses
-kubectl logs deployment/schlep-engine-api --tail=100 | grep '"status":5'
+kubectl logs deployment/igris-overture --tail=100 | grep '"status":5'
 
 # Specific trace ID
-kubectl logs deployment/schlep-engine-api | grep 'trace-id-12345'
+kubectl logs deployment/igris-overture | grep 'trace-id-12345'
 ```
 
 ---
 
 **End of Incident Response Playbook**
 
-*For updates or questions, contact: platform-team@schlep-engine.com*
+*For updates or questions, contact: platform-team@igris-inertial.com*

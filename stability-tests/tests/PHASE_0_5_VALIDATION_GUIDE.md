@@ -99,7 +99,7 @@ redis-server
 
 2. **Schlep-Engine HTTP service** running on `port 8080`:
 ```bash
-cd cmd/schlep-engine-api
+cd cmd/igris-overture
 go run main.go
 ```
 
@@ -116,7 +116,7 @@ apt-get install jq
 ### Run Full Validation Suite
 
 ```bash
-cd /Users/wira/Desktop/schlep-engine
+cd /Users/wira/Desktop/igris-inertial
 bash tests/run_phase_0_5_validation.sh http://localhost:8080 redis://localhost:6379/0
 ```
 
@@ -246,7 +246,7 @@ redis-server
 curl http://localhost:8080/health
 
 # Start the service
-cd cmd/schlep-engine-api
+cd cmd/igris-overture
 go run main.go
 ```
 
@@ -254,7 +254,7 @@ go run main.go
 ```bash
 # Ensure you're in the project root
 pwd
-# Should be: /Users/wira/Desktop/schlep-engine
+# Should be: /Users/wira/Desktop/igris-inertial
 
 # Create results directories if missing
 mkdir -p tests/results tests/security

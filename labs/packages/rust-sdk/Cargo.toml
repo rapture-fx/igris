@@ -2,11 +2,11 @@
 name = "schlep_engine"
 version = "1.0.0"
 edition = "2021"
-authors = ["Schlep-engine <support@schlep-engine.com>"]
+authors = ["Schlep-engine <support@igris-inertial.com>"]
 description = "Official Rust SDK for the Schlep-engine API platform"
 license = "MIT"
-repository = "https://github.com/schlep-engine/rust-sdk"
-documentation = "https://docs.schlep-engine.com/sdk/rust"
+repository = "https://github.com/igris-inertial/rust-sdk"
+documentation = "https://docs.igris-inertial.com/sdk/rust"
 keywords = ["api", "sdk", "data-processing", "machine-learning", "schlep-engine"]
 categories = ["api-bindings", "web-programming::http-client"]
 

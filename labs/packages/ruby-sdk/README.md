@@ -2,9 +2,9 @@
 
 Official Ruby SDK for the Schlep-engine API platform.
 
-[![Gem Version](https://badge.fury.io/rb/schlep_engine.svg)](https://badge.fury.io/rb/schlep_engine)
-[![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://docs.schlep-engine.com/sdk/ruby)
-[![License](https://img.shields.io/github/license/schlep-engine/ruby-sdk.svg)](LICENSE)
+[![Gem Version](https://badge.fury.io/rb/igris_overture.svg)](https://badge.fury.io/rb/igris_overture)
+[![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://docs.igris-inertial.com/sdk/ruby)
+[![License](https://img.shields.io/github/license/igris-inertial/ruby-sdk.svg)](LICENSE)
 
 ## Features
 
@@ -21,7 +21,7 @@ Official Ruby SDK for the Schlep-engine API platform.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'schlep_engine'
+gem 'igris_overture'
 ```
 
 And then execute:
@@ -33,13 +33,13 @@ $ bundle install
 Or install it yourself as:
 
 ```bash
-$ gem install schlep_engine
+$ gem install igris_overture
 ```
 
 ## Quick Start
 
 ```ruby
-require 'schlep_engine'
+require 'igris_overture'
 
 # Create client with API key
 client = Schlep::Engine::Client.new('your-api-key')
@@ -190,7 +190,7 @@ train_result.message    # => "Training started"
 ### DeployResponse
 ```ruby
 deploy_result.deployment_id  # => "deploy_101"
-deploy_result.endpoint_url   # => "https://api.schlep-engine.com/models/model_789/predict"
+deploy_result.endpoint_url   # => "https://api.igris-inertial.com/models/model_789/predict"
 deploy_result.status         # => "deployed"
 deploy_result.message        # => "Model deployed successfully"
 ```
@@ -231,8 +231,8 @@ bundle exec rubocop
 bundle exec yard
 
 # Build and install gem locally
-gem build schlep_engine.gemspec
-gem install ./schlep_engine-1.0.0.gem
+gem build igris_overture.gemspec
+gem install ./igris_overture-1.0.0.gem
 ```
 
 ## Testing
@@ -244,7 +244,7 @@ The SDK includes comprehensive tests with mocked HTTP responses:
 bundle exec rspec
 
 # Run specific test file
-bundle exec rspec spec/schlep_engine_spec.rb
+bundle exec rspec spec/igris_overture_spec.rb
 
 # Run tests with detailed output
 bundle exec rspec --format documentation
@@ -258,7 +258,7 @@ COVERAGE=true bundle exec rspec
 ```ruby
 # In your Rails application
 
-# config/initializers/schlep_engine.rb
+# config/initializers/igris_overture.rb
 Rails.application.config.after_initialize do
   $schlep_client = Schlep::Engine::Client.from_env
 end
@@ -361,13 +361,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- 📖 [Documentation](https://docs.schlep-engine.com/sdk/ruby)
-- 🐛 [Issues](https://github.com/schlep-engine/ruby-sdk/issues)
-- 💬 [Support](https://support.schlep-engine.com)
+- 📖 [Documentation](https://docs.igris-inertial.com/sdk/ruby)
+- 🐛 [Issues](https://github.com/igris-inertial/ruby-sdk/issues)
+- 💬 [Support](https://support.igris-inertial.com)
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/schlep-engine/ruby-sdk.
+Bug reports and pull requests are welcome on GitHub at https://github.com/igris-inertial/ruby-sdk.
 
 ### Development Setup
 

@@ -48,7 +48,7 @@ check_prerequisites() {
     # Check if API is running
     if ! curl -sf "${API_URL}/healthz" > /dev/null 2>&1; then
         log_error "API is not running at ${API_URL}"
-        log_error "Please start the API first: go run cmd/schlep-engine-api/main.go"
+        log_error "Please start the API first: go run cmd/igris-inertial-api/main.go"
         exit 1
     fi
 
@@ -195,7 +195,7 @@ EOF
 5. Ensure all dependencies (database, Redis, providers) are healthy
 
 Next Steps:
-- Review API logs: kubectl logs deployment/schlep-engine-api --tail=500
+- Review API logs: kubectl logs deployment/igris-inertial-api --tail=500
 - Check provider health: curl ${API_URL}/v1/providers/stats
 - Review metrics: curl ${API_URL}/metrics
 - Check database connectivity and query performance

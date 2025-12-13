@@ -1,4 +1,4 @@
-# Schlep Engine Landing Page
+# Igris Overture Landing Page
 
 A modern, elegant landing page built with Next.js 14, featuring Apple-inspired design with soft blue accents and smooth animations.
 

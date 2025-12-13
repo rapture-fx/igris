@@ -26,7 +26,7 @@ This WebSocket system provides real-time communication between the frontend and 
 ### 1. Setup WebSocket Provider
 
 ```tsx
-import { WebSocketProvider } from '@schlep-engine/ui'
+import { WebSocketProvider } from '@igris-inertial/ui'
 
 const wsConfig = {
   url: 'ws://localhost:8000/ml/progress/ws/authenticated',
@@ -49,7 +49,7 @@ function App() {
 ### 2. Use Real-time Hooks
 
 ```tsx
-import { useMLTraining, useSystemStatus } from '@schlep-engine/ui'
+import { useMLTraining, useSystemStatus } from '@igris-inertial/ui'
 
 function TrainingMonitor({ modelId }: { modelId: string }) {
   const { trainingData, metrics, isTraining } = useMLTraining(modelId)
@@ -72,7 +72,7 @@ import {
   ModelTrainingDashboard,
   LiveJobMonitor,
   NotificationCenter 
-} from '@schlep-engine/ui'
+} from '@igris-inertial/ui'
 
 function Dashboard() {
   return (
@@ -369,7 +369,7 @@ const config = {
     heartbeatInterval: 10000
   },
   production: {
-    url: 'wss://api.schlep-engine.com',
+    url: 'wss://api.igris-inertial.com',
     reconnectAttempts: 15,
     heartbeatInterval: 60000
   }
@@ -434,7 +434,7 @@ const mockTrainingProgress = {
 
 ```tsx
 import { render, screen } from '@testing-library/react'
-import { WebSocketProvider, ModelTrainingDashboard } from '@schlep-engine/ui'
+import { WebSocketProvider, ModelTrainingDashboard } from '@igris-inertial/ui'
 
 const mockWebSocketConfig = {
   url: 'ws://localhost:8000/test',

@@ -5,7 +5,7 @@ Get started with the Schlep-engine Go SDK in minutes.
 ## Installation
 
 ```bash
-go get github.com/schlep-engine/sdk-go
+go get github.com/igris-inertial/sdk-go
 ```
 
 ## Quick Start
@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -57,7 +57,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -94,7 +94,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -157,7 +157,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -188,7 +188,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -220,7 +220,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -261,7 +261,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 // Full configuration
@@ -353,7 +353,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/schlep-engine/sdk-go/schlep"
+	"github.com/igris-inertial/sdk-go/schlep"
 )
 
 func main() {
@@ -417,13 +417,13 @@ func main() {
 - Read the [Go SDK API Reference](/docs/api/go_reference.md)
 - Explore the [examples directory](/internal/sdk/go/examples/)
 - Learn about [BYOK configuration](/docs/byok.md)
-- Check the [GoDoc documentation](https://pkg.go.dev/github.com/schlep-engine/sdk-go)
+- Check the [GoDoc documentation](https://pkg.go.dev/github.com/igris-inertial/sdk-go)
 
 ## Support
 
-- GitHub: https://github.com/schlep-engine/schlep-engine
-- Issues: https://github.com/schlep-engine/schlep-engine/issues
-- Email: hello@schlep-engine.com
+- GitHub: https://github.com/igris-inertial/igris-inertial
+- Issues: https://github.com/igris-inertial/igris-inertial/issues
+- Email: hello@igris-inertial.com
 
 ---
 

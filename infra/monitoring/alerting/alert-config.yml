@@ -93,7 +93,7 @@ alert_rules:
     window: "2m"
     description: "API success rate below 50%"
     business_impact: "Revenue loss - customers cannot use the service"
-    runbook: "https://docs.schlep-engine.com/runbooks/api-down"
+    runbook: "https://docs.igris-inertial.com/runbooks/api-down"
 
   database_connection_failure:
     severity: critical
@@ -101,7 +101,7 @@ alert_rules:
     window: "1m"
     description: "No active database connections"
     business_impact: "Complete service outage"
-    runbook: "https://docs.schlep-engine.com/runbooks/database-down"
+    runbook: "https://docs.igris-inertial.com/runbooks/database-down"
 
   payment_processing_down:
     severity: critical
@@ -109,7 +109,7 @@ alert_rules:
     window: "5m"
     description: "Payment processing success rate below 80%"
     business_impact: "Direct revenue loss"
-    runbook: "https://docs.schlep-engine.com/runbooks/payments-down"
+    runbook: "https://docs.igris-inertial.com/runbooks/payments-down"
 
   security_breach_detected:
     severity: critical
@@ -117,7 +117,7 @@ alert_rules:
     window: "1m"
     description: "High number of security events detected"
     business_impact: "Potential data breach - customer trust and compliance"
-    runbook: "https://docs.schlep-engine.com/runbooks/security-incident"
+    runbook: "https://docs.igris-inertial.com/runbooks/security-incident"
 
   # HIGH ALERTS
   api_degraded_performance:
@@ -126,7 +126,7 @@ alert_rules:
     window: "5m"
     description: "API error rate above 20%"
     business_impact: "Customer experience degradation"
-    runbook: "https://docs.schlep-engine.com/runbooks/api-degraded"
+    runbook: "https://docs.igris-inertial.com/runbooks/api-degraded"
 
   slow_response_times:
     severity: high
@@ -134,7 +134,7 @@ alert_rules:
     window: "5m"
     description: "95th percentile response time above 10 seconds"
     business_impact: "Poor customer experience leading to churn"
-    runbook: "https://docs.schlep-engine.com/runbooks/slow-api"
+    runbook: "https://docs.igris-inertial.com/runbooks/slow-api"
 
   ml_pipeline_failures:
     severity: high
@@ -142,7 +142,7 @@ alert_rules:
     window: "10m"
     description: "ML pipeline failure rate above 30%"
     business_impact: "Core feature unavailable"
-    runbook: "https://docs.schlep-engine.com/runbooks/ml-pipeline-down"
+    runbook: "https://docs.igris-inertial.com/runbooks/ml-pipeline-down"
 
   high_memory_usage:
     severity: high
@@ -150,7 +150,7 @@ alert_rules:
     window: "10m"
     description: "Memory usage consistently above 85%"
     business_impact: "Risk of service instability and crashes"
-    runbook: "https://docs.schlep-engine.com/runbooks/high-memory"
+    runbook: "https://docs.igris-inertial.com/runbooks/high-memory"
 
   # MEDIUM ALERTS
   increased_error_rate:
@@ -159,7 +159,7 @@ alert_rules:
     window: "15m"
     description: "API error rate above 5%"
     business_impact: "Minor customer experience issues"
-    runbook: "https://docs.schlep-engine.com/runbooks/increased-errors"
+    runbook: "https://docs.igris-inertial.com/runbooks/increased-errors"
 
   background_job_delays:
     severity: medium
@@ -167,7 +167,7 @@ alert_rules:
     window: "30m"
     description: "Background job queue backing up"
     business_impact: "Delayed processing affecting user experience"
-    runbook: "https://docs.schlep-engine.com/runbooks/job-queue-backup"
+    runbook: "https://docs.igris-inertial.com/runbooks/job-queue-backup"
 
   disk_space_warning:
     severity: medium
@@ -175,7 +175,7 @@ alert_rules:
     window: "15m"
     description: "Disk usage above 75%"
     business_impact: "Risk of service disruption if not addressed"
-    runbook: "https://docs.schlep-engine.com/runbooks/disk-space"
+    runbook: "https://docs.igris-inertial.com/runbooks/disk-space"
 
   oauth_provider_slow:
     severity: medium
@@ -183,7 +183,7 @@ alert_rules:
     window: "10m"
     description: "OAuth provider response time above 30 seconds"
     business_impact: "Login delays affecting user experience"
-    runbook: "https://docs.schlep-engine.com/runbooks/oauth-slow"
+    runbook: "https://docs.igris-inertial.com/runbooks/oauth-slow"
 
   # LOW ALERTS
   cache_hit_rate_low:
@@ -192,7 +192,7 @@ alert_rules:
     window: "1h"
     description: "Cache hit rate below 70%"
     business_impact: "Potential performance optimization opportunity"
-    runbook: "https://docs.schlep-engine.com/runbooks/low-cache-hits"
+    runbook: "https://docs.igris-inertial.com/runbooks/low-cache-hits"
 
   log_ingestion_slow:
     severity: low
@@ -200,7 +200,7 @@ alert_rules:
     window: "1h"
     description: "Log ingestion rate below normal"
     business_impact: "Monitoring and debugging capabilities reduced"
-    runbook: "https://docs.schlep-engine.com/runbooks/slow-logging"
+    runbook: "https://docs.igris-inertial.com/runbooks/slow-logging"
 
   certificate_expiry_warning:
     severity: low
@@ -208,7 +208,7 @@ alert_rules:
     window: "24h"
     description: "SSL certificate expires in less than 30 days"
     business_impact: "Future service disruption if not renewed"
-    runbook: "https://docs.schlep-engine.com/runbooks/cert-renewal"
+    runbook: "https://docs.igris-inertial.com/runbooks/cert-renewal"
 
 # =====================================
 # ESCALATION POLICIES
@@ -302,7 +302,7 @@ notification_channels:
     smtp_port: 587
     username: "${SMTP_USERNAME}"
     password: "${SMTP_PASSWORD}"
-    from_address: "alerts@schlep-engine.com"
+    from_address: "alerts@igris-inertial.com"
 
   sms:
     type: "sms"
@@ -334,26 +334,26 @@ contact_groups:
       - type: "slack"
         channel: "#engineering"
       - type: "email"
-        address: "engineering@schlep-engine.com"
+        address: "engineering@igris-inertial.com"
 
   engineering-manager:
     members:
       - type: "email"
-        address: "eng-manager@schlep-engine.com"
+        address: "eng-manager@igris-inertial.com"
       - type: "sms"
         number: "${ENG_MANAGER_PHONE}"
 
   cto:
     members:
       - type: "email"
-        address: "cto@schlep-engine.com"
+        address: "cto@igris-inertial.com"
       - type: "sms"
         number: "${CTO_PHONE}"
 
   ceo:
     members:
       - type: "email"
-        address: "ceo@schlep-engine.com"
+        address: "ceo@igris-inertial.com"
 
 # =====================================
 # BUSINESS HOURS CONFIGURATION

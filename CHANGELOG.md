@@ -64,7 +64,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 9 tests: BasicTracking, AutoDisable, CoolDownPeriod, etc.
 
 **PR #6: Handler Integration** (`8cafb498b`)
-- `cmd/schlep-engine-api/handlers/infer.go`: Integrated into `/v1/infer`
+- `cmd/igris-overture/handlers/infer.go`: Integrated into `/v1/infer`
   - Check `speculative_mode` parameter in request
   - Route through SpeculativeRouter when mode specified
   - Fallback to normal routing if disabled or fails
@@ -175,7 +175,7 @@ See `docs/SPECULATIVE_EXECUTION.md` for complete production deployment guide.
 ## [1.1.0] - 2025-11-15
 
 ### Added
-- Initial release of Schlep Engine API
+- Initial release of Igris Overture API
 - Multi-provider LLM routing (OpenAI, Anthropic)
 - Thompson Sampling for adaptive routing
 - Prometheus metrics and OpenTelemetry tracing

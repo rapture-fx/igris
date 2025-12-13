@@ -1,4 +1,4 @@
-# Schlep Engine Authentication System
+# Igris Overture Authentication System
 
 A comprehensive, secure authentication system with OAuth support, multi-factor authentication, and enterprise-grade security features.
 
@@ -18,7 +18,7 @@ A comprehensive, secure authentication system with OAuth support, multi-factor a
 
 ```bash
 # Install the UI package in your app
-pnpm add @schlep-engine/ui @schlep-engine/types
+pnpm add @igris-inertial/ui @igris-inertial/types
 ```
 
 ## 🎯 Quick Start
@@ -27,7 +27,7 @@ pnpm add @schlep-engine/ui @schlep-engine/types
 
 ```tsx
 // app/layout.tsx
-import { AuthProvider } from '@schlep-engine/ui/auth'
+import { AuthProvider } from '@igris-inertial/ui/auth'
 
 export default function RootLayout({
   children,
@@ -59,7 +59,7 @@ export default function RootLayout({
 // app/login/page.tsx
 'use client'
 
-import { LoginForm, useAuth } from '@schlep-engine/ui/auth'
+import { LoginForm, useAuth } from '@igris-inertial/ui/auth'
 import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
@@ -107,7 +107,7 @@ export default function LoginPage() {
 
 ```tsx
 // app/dashboard/page.tsx
-import { ProtectedRoute } from '@schlep-engine/ui/auth'
+import { ProtectedRoute } from '@igris-inertial/ui/auth'
 
 export default function Dashboard() {
   return (
@@ -128,7 +128,7 @@ export default function Dashboard() {
 
 ```tsx
 // components/UserProfile.tsx
-import { useAuth } from '@schlep-engine/ui/auth'
+import { useAuth } from '@igris-inertial/ui/auth'
 
 export function UserProfile() {
   const { user, logout, isAuthenticated } = useAuth()
@@ -153,7 +153,7 @@ export function UserProfile() {
 ### Password Strength Validation
 
 ```tsx
-import { useAuth } from '@schlep-engine/ui/auth'
+import { useAuth } from '@igris-inertial/ui/auth'
 
 function PasswordField() {
   const { checkPasswordStrength } = useAuth()
@@ -188,7 +188,7 @@ function PasswordField() {
 ### Multi-Factor Authentication
 
 ```tsx
-import { useAuth } from '@schlep-engine/ui/auth'
+import { useAuth } from '@igris-inertial/ui/auth'
 
 function MFASetup() {
   const { setupMFA, verifyMFA, getMFAStatus } = useAuth()
@@ -238,7 +238,7 @@ function MFASetup() {
 ### Session Management
 
 ```tsx
-import { useAuth } from '@schlep-engine/ui/auth'
+import { useAuth } from '@igris-inertial/ui/auth'
 
 function SessionManager() {
   const { getSessions, revokeSession, revokeAllSessions } = useAuth()
@@ -295,7 +295,7 @@ import {
   RequireRole,
   RequirePermission,
   RequireVerified
-} from '@schlep-engine/ui/auth'
+} from '@igris-inertial/ui/auth'
 
 function MyComponent() {
   return (
@@ -336,7 +336,7 @@ function MyComponent() {
 ### useAuthGuard Hook
 
 ```tsx
-import { useAuthGuard } from '@schlep-engine/ui/auth'
+import { useAuthGuard } from '@igris-inertial/ui/auth'
 
 function MyComponent() {
   const {
@@ -376,7 +376,7 @@ function MyComponent() {
 ### Custom API Configuration
 
 ```tsx
-import { AuthProvider } from '@schlep-engine/ui/auth'
+import { AuthProvider } from '@igris-inertial/ui/auth'
 
 // Custom API configuration
 const authConfig = {
@@ -417,7 +417,7 @@ NEXT_PUBLIC_OAUTH_GITHUB_CLIENT_ID=your_github_client_id
 ### Setting up OAuth Providers
 
 ```tsx
-import { useOAuth } from '@schlep-engine/ui/auth'
+import { useOAuth } from '@igris-inertial/ui/auth'
 
 function OAuthLogin() {
   const { providers, startPopupFlow, startRedirectFlow } = useOAuth({
@@ -450,7 +450,7 @@ function OAuthLogin() {
 
 ```tsx
 // app/auth/callback/[provider]/page.tsx
-import { withOAuthCallback } from '@schlep-engine/ui/auth'
+import { withOAuthCallback } from '@igris-inertial/ui/auth'
 
 function CallbackPage() {
   return <div>Processing OAuth callback...</div>
@@ -491,7 +491,7 @@ The authentication components are built with Tailwind CSS and are fully responsi
 ### Custom Components
 
 ```tsx
-import { useAuth } from '@schlep-engine/ui/auth'
+import { useAuth } from '@igris-inertial/ui/auth'
 
 function CustomLoginForm() {
   const { login, error, isLoading } = useAuth()
@@ -510,7 +510,7 @@ function CustomLoginForm() {
 ## 🔍 Error Handling
 
 ```tsx
-import { AuthError } from '@schlep-engine/ui/auth'
+import { AuthError } from '@igris-inertial/ui/auth'
 
 function handleAuthError(error: AuthError) {
   switch (error.code) {
@@ -535,7 +535,7 @@ function handleAuthError(error: AuthError) {
 ## 📊 Analytics and Monitoring
 
 ```tsx
-import { useAuth } from '@schlep-engine/ui/auth'
+import { useAuth } from '@igris-inertial/ui/auth'
 
 function AuthAnalytics() {
   const { getSecurityEvents, getLoginAttempts } = useAuth()
@@ -574,7 +574,7 @@ function AuthAnalytics() {
 
 ```tsx
 import { render, screen, fireEvent } from '@testing-library/react'
-import { AuthProvider, LoginForm } from '@schlep-engine/ui/auth'
+import { AuthProvider, LoginForm } from '@igris-inertial/ui/auth'
 
 describe('LoginForm', () => {
   it('validates email format', async () => {
@@ -599,7 +599,7 @@ describe('LoginForm', () => {
 
 ```tsx
 import { renderWithAuth } from '../test-utils'
-import { ProtectedRoute } from '@schlep-engine/ui/auth'
+import { ProtectedRoute } from '@igris-inertial/ui/auth'
 
 describe('ProtectedRoute', () => {
   it('redirects unauthenticated users', () => {
@@ -662,11 +662,11 @@ MIT License - see LICENSE file for details.
 
 ## 🆘 Support
 
-- 📧 Email: support@schlep-engine.com  
-- 💬 Discord: [Join our community](https://discord.gg/schlep-engine)
-- 📖 Docs: [Full Documentation](https://docs.schlep-engine.com/auth)
-- 🐛 Issues: [GitHub Issues](https://github.com/your-org/schlep-engine/issues)
+- 📧 Email: support@igris-inertial.com  
+- 💬 Discord: [Join our community](https://discord.gg/igris-inertial)
+- 📖 Docs: [Full Documentation](https://docs.igris-inertial.com/auth)
+- 🐛 Issues: [GitHub Issues](https://github.com/your-org/igris-inertial/issues)
 
 ---
 
-Built with ❤️ by the Schlep Engine Team
+Built with ❤️ by the Igris Overture Team

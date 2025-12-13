@@ -182,7 +182,7 @@ if [ -n "${SECRET_KEY:-}" ]; then
     vault kv put -address="$VAULT_ADDR" \
         secret/app/general \
         secret_key="${SECRET_KEY}" \
-        allowed_origins="${ALLOWED_ORIGINS:-https://schlep-engine.com}"
+        allowed_origins="${ALLOWED_ORIGINS:-https://igris-inertial.com}"
     success "Application secrets configured"
 fi
 

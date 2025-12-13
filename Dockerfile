@@ -34,8 +34,8 @@ COPY --from=rust-builder /build/rust_optimizer/target/release/librust_optimizer.
 # Build Go application
 RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo \
     -ldflags="-s -w" \
-    -o schlep-engine-api \
-    ./cmd/schlep-engine-api
+    -o igris-overture \
+    ./cmd/igris-overture
 
 # Stage 3: Final runtime image
 FROM alpine:latest
@@ -50,7 +50,7 @@ RUN addgroup -g 1000 schlep && \
 WORKDIR /app
 
 # Copy binary from builder
-COPY --from=go-builder /build/schlep-engine-api .
+COPY --from=go-builder /build/igris-overture .
 
 # Copy Rust library
 COPY --from=rust-builder /build/rust_optimizer/target/release/librust_optimizer.so /usr/local/lib/
@@ -72,4 +72,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/v1/health || exit 1
 
 # Run the application
-CMD ["./schlep-engine-api"]
+CMD ["./igris-overture"]

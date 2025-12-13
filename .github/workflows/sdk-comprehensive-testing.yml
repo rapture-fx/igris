@@ -119,7 +119,7 @@ jobs:
         cd packages/python-sdk
         pytest tests/test_comprehensive_auth.py tests/test_comprehensive_data_processing.py tests/test_comprehensive_ml_pipeline.py \
           -v --tb=short --maxfail=10 --durations=20 \
-          --cov=schlep_engine --cov-report=xml --cov-report=term-missing \
+          --cov=igris_overture --cov-report=xml --cov-report=term-missing \
           --cov-branch --cov-fail-under=80 \
           -n auto --dist=loadscope
       env:

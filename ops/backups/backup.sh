@@ -3,7 +3,7 @@
 # Schlep-Engine Database Backup Script
 # Purpose: Create timestamped PostgreSQL backups with optional S3 upload
 # Usage: ./backup.sh [options]
-# Schedule: Run daily via cron: 0 2 * * * /opt/schlep-engine/ops/backups/backup.sh
+# Schedule: Run daily via cron: 0 2 * * * /opt/igris-inertial/ops/backups/backup.sh
 #
 
 set -euo pipefail  # Exit on error, undefined variable, or pipe failure
@@ -20,19 +20,19 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BACKUP_DIR="${BACKUP_DIR:-$SCRIPT_DIR/data}"
 RETENTION_DAYS="${RETENTION_DAYS:-7}"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_NAME="schlep_engine_backup_${TIMESTAMP}.sql.gz"
+BACKUP_NAME="igris_overture_backup_${TIMESTAMP}.sql.gz"
 BACKUP_PATH="$BACKUP_DIR/$BACKUP_NAME"
 
 # Database configuration (from environment or docker-compose)
 DB_HOST="${POSTGRES_HOST:-localhost}"
 DB_PORT="${POSTGRES_PORT:-5432}"
-DB_NAME="${POSTGRES_DB:-schlep_engine}"
+DB_NAME="${POSTGRES_DB:-igris_overture}"
 DB_USER="${POSTGRES_USER:-schlep_user}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-changeme}"
 
 # S3 configuration (optional)
 S3_ENABLED="${S3_BACKUP_ENABLED:-false}"
-S3_BUCKET="${S3_BUCKET:-schlep-engine-backups}"
+S3_BUCKET="${S3_BUCKET:-igris-inertial-backups}"
 S3_PREFIX="${S3_PREFIX:-backups/}"
 
 # Notification configuration (optional)
@@ -182,7 +182,7 @@ cleanup_old_backups() {
         rm -f "$backup"
         ((deleted_count++))
         log "Deleted old backup: $(basename "$backup")"
-    done < <(find "$BACKUP_DIR" -name "schlep_engine_backup_*.sql.gz" -mtime +$RETENTION_DAYS -print0)
+    done < <(find "$BACKUP_DIR" -name "igris_overture_backup_*.sql.gz" -mtime +$RETENTION_DAYS -print0)
 
     log "Deleted $deleted_count old local backups"
 
@@ -194,7 +194,7 @@ cleanup_old_backups() {
 
         aws s3 ls "s3://$S3_BUCKET/$S3_PREFIX" | while read -r line; do
             local file=$(echo "$line" | awk '{print $4}')
-            if [[ $file =~ schlep_engine_backup_([0-9]{8})_ ]]; then
+            if [[ $file =~ igris_overture_backup_([0-9]{8})_ ]]; then
                 local backup_date="${BASH_REMATCH[1]}"
                 if [ "$backup_date" -lt "$cutoff_date" ]; then
                     aws s3 rm "s3://$S3_BUCKET/$S3_PREFIX$file"

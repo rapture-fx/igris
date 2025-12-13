@@ -172,7 +172,7 @@ Based on quality routing validation:
 
 ## 📁 Deliverables Location
 
-All files in: `/Users/wira/Desktop/schlep-engine/stability-tests/`
+All files in: `/Users/wira/Desktop/igris-inertial/stability-tests/`
 
 ### Documentation
 - ✅ `START_HERE.md` - Quick start guide (8.4KB)

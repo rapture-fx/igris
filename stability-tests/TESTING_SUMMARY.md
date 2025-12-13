@@ -75,7 +75,7 @@ Complete stability testing framework implemented for Schlep-Engine with focus on
 ### 1. Setup Environment (Benchmark Mode - No API Costs)
 
 ```bash
-cd /Users/wira/Desktop/schlep-engine
+cd /Users/wira/Desktop/igris-inertial
 
 # Configure for testing (no real API costs)
 export PROVIDER_MODE=benchmark
@@ -84,7 +84,7 @@ export OPTIMIZER_MODE=shadow  # or "full" for FFI testing
 export PORT=8080
 
 # Start API
-go run cmd/schlep-engine-api/main.go &
+go run cmd/igris-overture/main.go &
 
 # Wait for startup
 sleep 10
@@ -225,7 +225,7 @@ curl -X POST http://grafana:3000/api/dashboards/db \
 
 ```bash
 # Check alert rules loaded
-curl http://prometheus:9090/api/v1/rules | jq '.data.groups[] | select(.name=="schlep_engine_critical_alerts")'
+curl http://prometheus:9090/api/v1/rules | jq '.data.groups[] | select(.name=="igris_overture_critical_alerts")'
 ```
 
 ## Rollback Procedures
@@ -244,8 +244,8 @@ curl http://prometheus:9090/api/v1/rules | jq '.data.groups[] | select(.name=="s
 ### Manual Rollback (Kubernetes)
 
 ```bash
-kubectl rollout undo deployment/schlep-engine-api -n production
-kubectl rollout status deployment/schlep-engine-api -n production
+kubectl rollout undo deployment/igris-overture -n production
+kubectl rollout status deployment/igris-overture -n production
 ```
 
 ## Cost Safety with Benchmark Mode
@@ -352,7 +352,7 @@ This comprehensive stability testing framework ensures:
 
 ---
 
-**Questions?** Contact: platform-engineering@schlep-engine.com
+**Questions?** Contact: platform-engineering@igris-inertial.com
 
 **Documentation**: See `stability-tests/README.md` and `INCIDENT_RESPONSE_PLAYBOOK.md`
 

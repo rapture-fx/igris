@@ -24,19 +24,19 @@ Complete API documentation for the Schlep-engine Ruby SDK.
 Add to your Gemfile:
 
 ```ruby
-gem 'schlep_engine'
+gem 'igris_overture'
 ```
 
 Or install directly:
 
 ```bash
-gem install schlep_engine
+gem install igris_overture
 ```
 
 ## Quick Start
 
 ```ruby
-require 'schlep_engine'
+require 'igris_overture'
 
 # Initialize client with API key
 client = Schlep::Engine::Client.new('your-api-key')

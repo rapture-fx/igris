@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/schlep-engine/go-sdk/pkg/auth"
-	"github.com/schlep-engine/go-sdk/pkg/client"
-	"github.com/schlep-engine/go-sdk/pkg/config"
-	"github.com/schlep-engine/go-sdk/pkg/models/common"
+	"github.com/igris-inertial/go-sdk/pkg/auth"
+	"github.com/igris-inertial/go-sdk/pkg/client"
+	"github.com/igris-inertial/go-sdk/pkg/config"
+	"github.com/igris-inertial/go-sdk/pkg/models/common"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

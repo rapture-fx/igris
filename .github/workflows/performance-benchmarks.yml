@@ -79,7 +79,7 @@ jobs:
         python -c "
         import json
         import sys
-        from schlep_engine.benchmarks import run_comprehensive_benchmark, generate_benchmark_report
+        from igris_overture.benchmarks import run_comprehensive_benchmark, generate_benchmark_report
 
         # Determine benchmark size
         size_input = '${{ github.event.inputs.benchmark_size || 'medium' }}'

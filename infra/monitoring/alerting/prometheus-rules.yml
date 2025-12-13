@@ -26,7 +26,7 @@ groups:
           business_impact: "Complete service outage affecting all customers and revenue"
           estimated_revenue_loss: "$10000/hour"
           affected_users: "all_users"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/api-outage"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/api-outage"
 
       - alert: DatabaseConnectionFailure
         expr: |
@@ -42,7 +42,7 @@ groups:
           description: "PostgreSQL database has been down for more than 1 minute"
           business_impact: "Complete service outage - all data operations failed"
           affected_services: "api,auth,ml-pipeline,data-processing"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/database-down"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/database-down"
 
       - alert: AuthenticationSystemDown
         expr: |
@@ -61,7 +61,7 @@ groups:
           description: "More than 80% of login attempts are failing"
           business_impact: "Users cannot login - complete access denial"
           customer_impact: "100% of new sessions blocked"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/auth-down"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/auth-down"
 
       - alert: PaymentProcessingDown
         expr: |
@@ -80,7 +80,7 @@ groups:
           description: "{{ $value | humanizePercentage }} of payments are failing"
           business_impact: "Direct revenue loss - customers cannot pay for services"
           estimated_revenue_loss: "$5000/hour"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/payments-down"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/payments-down"
 
       - alert: SecurityBreachDetected
         expr: |
@@ -96,7 +96,7 @@ groups:
           description: "{{ $value }} security breach attempts detected in the last minute"
           business_impact: "Data security compromise - reputation and compliance risk"
           compliance_impact: "GDPR/SOC2 violation risk"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/security-incident"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/security-incident"
 
   # =====================================
   # HIGH BUSINESS IMPACT ALERTS
@@ -119,7 +119,7 @@ groups:
           business_impact: "Poor customer experience leading to potential churn"
           customer_impact: "Slow user experience affecting satisfaction"
           sla_impact: "Response time SLA breach (< 5s target)"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/slow-api"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/slow-api"
 
       - alert: MLPipelineFailures
         expr: |
@@ -138,7 +138,7 @@ groups:
           description: "{{ $value | humanizePercentage }} of ML pipeline jobs are failing"
           business_impact: "Core AI features unavailable - competitive disadvantage"
           feature_impact: "AI-enhanced data processing unavailable"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/ml-pipeline-failures"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/ml-pipeline-failures"
 
       - alert: HighMemoryUsage
         expr: |
@@ -157,7 +157,7 @@ groups:
           description: "Memory usage is at {{ $value | humanizePercentage }}"
           business_impact: "Risk of service instability and potential crashes"
           stability_risk: "high"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/high-memory"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/high-memory"
 
       - alert: DataProcessingBacklog
         expr: |
@@ -173,7 +173,7 @@ groups:
           description: "{{ $value }} jobs in processing queue"
           business_impact: "Delayed data processing affecting customer workflows"
           customer_impact: "Processing delays beyond SLA (< 1 hour)"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/processing-backlog"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/processing-backlog"
 
   # =====================================
   # MEDIUM BUSINESS IMPACT ALERTS
@@ -198,7 +198,7 @@ groups:
           description: "API error rate is {{ $value | humanizePercentage }}"
           business_impact: "Minor customer experience degradation"
           customer_impact: "Some users experiencing intermittent issues"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/elevated-errors"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/elevated-errors"
 
       - alert: OAuthProviderSlow
         expr: |
@@ -214,7 +214,7 @@ groups:
           description: "OAuth requests taking {{ $value }}s at 95th percentile"
           business_impact: "Login delays affecting user experience"
           customer_impact: "Slow social login experience"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/oauth-slow"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/oauth-slow"
 
       - alert: DiskSpaceWarning
         expr: |
@@ -233,7 +233,7 @@ groups:
           description: "Disk usage is {{ $value | humanizePercentage }}"
           business_impact: "Risk of service disruption if storage fills up"
           preventive_action: "required"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/disk-space"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/disk-space"
 
       - alert: BackgroundJobDelays
         expr: |
@@ -249,7 +249,7 @@ groups:
           description: "Oldest job in queue is {{ $value | humanizeDuration }} old"
           business_impact: "Delayed notifications and background processing"
           feature_impact: "Email notifications, reports, cleanup tasks delayed"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/job-delays"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/job-delays"
 
   # =====================================
   # LOW BUSINESS IMPACT ALERTS
@@ -274,7 +274,7 @@ groups:
           description: "Redis cache hit rate is {{ $value | humanizePercentage }}"
           business_impact: "Performance optimization opportunity"
           optimization_potential: "true"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cache-optimization"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cache-optimization"
 
       - alert: SSLCertificateExpiry
         expr: |
@@ -290,7 +290,7 @@ groups:
           description: "SSL certificate expires in {{ $value }} days"
           business_impact: "Future service disruption if not renewed"
           action_required: "certificate_renewal"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/cert-renewal"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/cert-renewal"
 
       - alert: LogIngestionSlow
         expr: |
@@ -306,7 +306,7 @@ groups:
           description: "Only {{ $value }} logs per second being ingested"
           business_impact: "Reduced monitoring and debugging capabilities"
           operational_impact: "true"
-          runbook_url: "https://docs.schlep-engine.com/runbooks/slow-logging"
+          runbook_url: "https://docs.igris-inertial.com/runbooks/slow-logging"
 
   # =====================================
   # BUSINESS METRICS ALERTS

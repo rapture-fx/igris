@@ -6,11 +6,11 @@ set -e
 # Configuration
 BACKUP_DIR="/root/backups"
 DB_CONTAINER="root-postgres-1"
-DB_NAME="schlep_engine"
+DB_NAME="igris_overture"
 DB_USER="postgres"
 RETENTION_DAYS=30
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-BACKUP_FILE="schlep_engine_backup_${TIMESTAMP}.sql"
+BACKUP_FILE="igris_overture_backup_${TIMESTAMP}.sql"
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
@@ -58,8 +58,8 @@ fi
 
 # Clean up old backups
 log "Cleaning up backups older than $RETENTION_DAYS days..."
-find "$BACKUP_DIR" -name "schlep_engine_backup_*.sql.gz" -mtime +$RETENTION_DAYS -delete
-REMAINING_BACKUPS=$(find "$BACKUP_DIR" -name "schlep_engine_backup_*.sql.gz" | wc -l)
+find "$BACKUP_DIR" -name "igris_overture_backup_*.sql.gz" -mtime +$RETENTION_DAYS -delete
+REMAINING_BACKUPS=$(find "$BACKUP_DIR" -name "igris_overture_backup_*.sql.gz" | wc -l)
 log "Cleanup completed. Remaining backups: $REMAINING_BACKUPS"
 
 # Verify backup integrity

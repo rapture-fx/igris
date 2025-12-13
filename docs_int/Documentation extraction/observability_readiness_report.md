@@ -59,7 +59,7 @@ The observability stack (Prometheus, Grafana, Jaeger) is currently **non-operati
 # 4. Verify with: docker info
 
 # 5. Restart monitoring stack
-cd /Users/wira/Desktop/schlep-engine/infra/vps
+cd /Users/wira/Desktop/igris-inertial/infra/vps
 docker-compose -f docker-compose.monitoring.yml up -d
 
 # 6. Verify services
@@ -106,7 +106,7 @@ docker run -d --name jaeger -p 16686:16686 -p 14268:14268 jaegertracing/all-in-o
 
 ### 🔍 Alternative Monitoring During Outage
 If Docker cannot be recovered quickly:
-- **Application Logs**: Check `/Users/wira/Desktop/schlep-engine/logs/`
+- **Application Logs**: Check `/Users/wira/Desktop/igris-inertial/logs/`
 - **Built-in Metrics**: Endpoint `/metrics` on localhost:8081
 - **Manual Cost Tracking**: Compare pre/post balances in provider dashboards
 

@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: schlep-engine-inference
+  name: igris-inertial-inference
   namespace: ml-platform
   labels:
-    app: schlep-engine
+    app: igris-inertial
     component: inference
     version: v1.0.0
 spec:
@@ -16,12 +16,12 @@ spec:
       maxUnavailable: 0
   selector:
     matchLabels:
-      app: schlep-engine
+      app: igris-inertial
       component: inference
   template:
     metadata:
       labels:
-        app: schlep-engine
+        app: igris-inertial
         component: inference
         version: v1.0.0
       annotations:
@@ -52,11 +52,11 @@ spec:
                 - key: app
                   operator: In
                   values:
-                  - schlep-engine
+                  - igris-inertial
               topologyKey: kubernetes.io/hostname
 
       # Service Account
-      serviceAccountName: schlep-engine-inference
+      serviceAccountName: igris-inertial-inference
 
       # Init Container - Model Download
       initContainers:
@@ -83,7 +83,7 @@ spec:
       containers:
       # Main Inference Container
       - name: inference-server
-        image: schlep-engine/inference:v1.0.0-gpu
+        image: igris-inertial/inference:v1.0.0-gpu
         imagePullPolicy: IfNotPresent
         ports:
         - name: http
@@ -145,7 +145,7 @@ spec:
           mountPath: /models
           readOnly: true
         - name: config
-          mountPath: /etc/schlep-engine
+          mountPath: /etc/igris-inertial
           readOnly: true
         - name: cache
           mountPath: /cache
@@ -207,7 +207,7 @@ spec:
           sizeLimit: 20Gi
       - name: config
         configMap:
-          name: schlep-engine-config
+          name: igris-inertial-config
       - name: cache
         emptyDir:
           sizeLimit: 5Gi
@@ -225,10 +225,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: schlep-engine-inference
+  name: igris-inertial-inference
   namespace: ml-platform
   labels:
-    app: schlep-engine
+    app: igris-inertial
     component: inference
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
@@ -236,7 +236,7 @@ metadata:
 spec:
   type: LoadBalancer
   selector:
-    app: schlep-engine
+    app: igris-inertial
     component: inference
   ports:
   - name: http
@@ -260,15 +260,15 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: schlep-engine-inference-headless
+  name: igris-inertial-inference-headless
   namespace: ml-platform
   labels:
-    app: schlep-engine
+    app: igris-inertial
     component: inference
 spec:
   clusterIP: None
   selector:
-    app: schlep-engine
+    app: igris-inertial
     component: inference
   ports:
   - name: http
@@ -282,26 +282,26 @@ spec:
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: schlep-engine-inference-pdb
+  name: igris-inertial-inference-pdb
   namespace: ml-platform
 spec:
   minAvailable: 2
   selector:
     matchLabels:
-      app: schlep-engine
+      app: igris-inertial
       component: inference
 
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: schlep-engine-inference-hpa
+  name: igris-inertial-inference-hpa
   namespace: ml-platform
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: schlep-engine-inference
+    name: igris-inertial-inference
   minReplicas: 3
   maxReplicas: 20
   metrics:
@@ -346,7 +346,7 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: schlep-engine-config
+  name: igris-inertial-config
   namespace: ml-platform
 data:
   config.yaml: |
@@ -396,7 +396,7 @@ data:
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: schlep-engine-inference
+  name: igris-inertial-inference
   namespace: ml-platform
   annotations:
-    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/schlep-engine-inference
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/igris-inertial-inference

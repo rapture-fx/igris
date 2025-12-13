@@ -1,12 +1,12 @@
 # Routing Policies & Strategies
 
-**TL;DR:** Schlep Engine automatically selects the best AI provider for each request using Thompson Sampling (a smart learning algorithm). Growth+ tiers unlock Speculative Execution (60% faster) and Council Mode (+15-20% better quality).
+**TL;DR:** Igris Overture automatically selects the best AI provider for each request using Thompson Sampling (a smart learning algorithm). Growth+ tiers unlock Speculative Execution (60% faster) and Council Mode (+15-20% better quality).
 
 ---
 
 ## Overview
 
-Schlep Engine uses intelligent routing to automatically select the best provider for each request based on:
+Igris Overture uses intelligent routing to automatically select the best provider for each request based on:
 
 - **Speed** - Which provider responds fastest
 - **Cost** - Which provider offers the best value
@@ -155,7 +155,7 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 ### How It Works
 
 1. Request comes in
-2. Schlep Engine races 2-3 providers simultaneously
+2. Igris Overture races 2-3 providers simultaneously
 3. Stream tokens from whoever responds first
 4. If the fastest provider fails mid-stream, seamlessly switch to backup
 5. Cancel slower providers to minimize waste
@@ -213,7 +213,7 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 
 ### How It Works
 
-Schlep Engine analyzes each prompt and classifies it into categories:
+Igris Overture analyzes each prompt and classifies it into categories:
 
 - **Creative** (stories, poetry) → Routes to Claude
 - **Analytical** (data, math) → Routes to GPT-4
