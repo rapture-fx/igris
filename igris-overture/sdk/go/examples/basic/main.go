@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/igris"
+	"github.com/Igris-inertial/system/igris-overture/sdk/go/igris"
 )
 
 func main() {
