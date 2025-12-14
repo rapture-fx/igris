@@ -86,7 +86,7 @@ func NewAdvancedPolicyEngine(db *sql.DB, redis *redis.Client) *AdvancedPolicyEng
 		db:           db,
 		redis:        redis,
 		activePolicy: make(map[string]*AdvancedTenantPolicy),
-		cachePrefix:  "schlep:policy:v2:",
+		cachePrefix:  "igris:policy:v2:",
 	}
 }
 

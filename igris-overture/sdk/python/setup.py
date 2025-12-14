@@ -1,5 +1,5 @@
 """
-Setup script for Schlep-engine Python SDK
+Setup script for Igris Overture Python SDK
 
 This setup.py provides compatibility for older build systems.
 The main configuration is in pyproject.toml.

@@ -30,7 +30,7 @@ func NewEscapeVectorMode() (*EscapeVectorMode, error) {
 	goldCodeMode := os.Getenv("BYOK_BYPASS_CONTROL_PLANE") == "true"
 
 	// Determine cache directory
-	cacheDir := os.Getenv("SCHLEP_CACHE_DIR")
+	cacheDir := os.Getenv("IGRIS_CACHE_DIR")
 	if cacheDir == "" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -40,7 +40,7 @@ func NewEscapeVectorMode() (*EscapeVectorMode, error) {
 	}
 
 	// Generate encryption key from API key or use default
-	apiKey := os.Getenv("SCHLEP_API_KEY")
+	apiKey := os.Getenv("IGRIS_API_KEY")
 	encryptionKey := deriveEncryptionKey(apiKey)
 
 	// Initialize cache

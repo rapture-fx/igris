@@ -130,7 +130,7 @@ func (be *BudgetEnforcer) EnforceMiddleware() fiber.Handler {
 // isBudgetExceeded checks if tenant has exceeded their monthly budget
 func (be *BudgetEnforcer) isBudgetExceeded(ctx context.Context, tenantID string) (bool, float64, float64, error) {
 	// Get current spend from Redis
-	currentSpendKey := fmt.Sprintf("schlep:billing:%s:current_spend", tenantID)
+	currentSpendKey := fmt.Sprintf("igris:billing:%s:current_spend", tenantID)
 	currentSpendStr, err := be.redis.Get(ctx, currentSpendKey).Result()
 	if err != nil && err != redis.Nil {
 		return false, 0, 0, err
@@ -142,7 +142,7 @@ func (be *BudgetEnforcer) isBudgetExceeded(ctx context.Context, tenantID string)
 	}
 
 	// Get monthly budget from tenant config
-	budgetKey := fmt.Sprintf("schlep:billing:%s:monthly_budget", tenantID)
+	budgetKey := fmt.Sprintf("igris:billing:%s:monthly_budget", tenantID)
 	budgetStr, err := be.redis.Get(ctx, budgetKey).Result()
 	if err != nil && err != redis.Nil {
 		return false, 0, 0, err
@@ -175,7 +175,7 @@ func (be *BudgetEnforcer) handleOverride(ctx context.Context, token string, tena
 
 // getTenantTier gets the tier for a tenant from Redis cache
 func (be *BudgetEnforcer) getTenantTier(ctx context.Context, tenantID string) (string, error) {
-	tierKey := fmt.Sprintf("schlep:billing:%s:tier", tenantID)
+	tierKey := fmt.Sprintf("igris:billing:%s:tier", tenantID)
 	tier, err := be.redis.Get(ctx, tierKey).Result()
 	if err == redis.Nil {
 		return "developer", nil // Default to developer
@@ -189,13 +189,13 @@ func (be *BudgetEnforcer) getTenantTier(ctx context.Context, tenantID string) (s
 
 // SetTenantBudget sets the monthly budget for a tenant (admin operation)
 func (be *BudgetEnforcer) SetTenantBudget(ctx context.Context, tenantID string, budgetUSD float64) error {
-	budgetKey := fmt.Sprintf("schlep:billing:%s:monthly_budget", tenantID)
+	budgetKey := fmt.Sprintf("igris:billing:%s:monthly_budget", tenantID)
 	return be.redis.Set(ctx, budgetKey, fmt.Sprintf("%.2f", budgetUSD), 0).Err()
 }
 
 // GetTenantBudget gets the monthly budget for a tenant
 func (be *BudgetEnforcer) GetTenantBudget(ctx context.Context, tenantID string) (float64, error) {
-	budgetKey := fmt.Sprintf("schlep:billing:%s:monthly_budget", tenantID)
+	budgetKey := fmt.Sprintf("igris:billing:%s:monthly_budget", tenantID)
 	budgetStr, err := be.redis.Get(ctx, budgetKey).Result()
 	if err == redis.Nil {
 		return 0, nil
@@ -214,19 +214,19 @@ func (be *BudgetEnforcer) GetTenantBudget(ctx context.Context, tenantID string) 
 
 // IncrementTenantSpend increments the current spend for a tenant
 func (be *BudgetEnforcer) IncrementTenantSpend(ctx context.Context, tenantID string, amountUSD float64) error {
-	currentSpendKey := fmt.Sprintf("schlep:billing:%s:current_spend", tenantID)
+	currentSpendKey := fmt.Sprintf("igris:billing:%s:current_spend", tenantID)
 	return be.redis.IncrByFloat(ctx, currentSpendKey, amountUSD).Err()
 }
 
 // ResetTenantSpend resets the current spend for a tenant (called at start of new billing period)
 func (be *BudgetEnforcer) ResetTenantSpend(ctx context.Context, tenantID string) error {
-	currentSpendKey := fmt.Sprintf("schlep:billing:%s:current_spend", tenantID)
+	currentSpendKey := fmt.Sprintf("igris:billing:%s:current_spend", tenantID)
 	return be.redis.Set(ctx, currentSpendKey, "0.00", 0).Err()
 }
 
 // GetTenantSpend gets the current spend for a tenant
 func (be *BudgetEnforcer) GetTenantSpend(ctx context.Context, tenantID string) (float64, error) {
-	currentSpendKey := fmt.Sprintf("schlep:billing:%s:current_spend", tenantID)
+	currentSpendKey := fmt.Sprintf("igris:billing:%s:current_spend", tenantID)
 	spendStr, err := be.redis.Get(ctx, currentSpendKey).Result()
 	if err == redis.Nil {
 		return 0, nil

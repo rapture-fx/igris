@@ -3,17 +3,17 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "schlep-cli"
+name = "igris-cli"
 version = "1.0.0-rc1"
-description = "Official Schlep-engine CLI for onboarding, key management, and inference testing"
+description = "Official Igris Overture CLI for onboarding, key management, and inference testing"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
-    {name = "Schlep-engine Team", email = "hello@schlep-engine.com"}
+    {name = "Igris Overture Team", email = "hello@igris-overture.com"}
 ]
 keywords = [
-    "schlep",
-    "schlep-engine",
+    "igris",
+    "igris-overture",
     "cli",
     "ai-routing",
     "llm",
@@ -48,16 +48,16 @@ dev = [
 ]
 
 [project.scripts]
-schlep = "schlep_cli.main:cli"
+igris = "igris_cli.main:cli"
 
 [project.urls]
-Homepage = "https://github.com/schlep-engine/schlep-engine"
-Documentation = "https://github.com/schlep-engine/schlep-engine/blob/main/internal/cli/README.md"
-Repository = "https://github.com/schlep-engine/schlep-engine"
+Homepage = "https://github.com/Schlep-engine/igris-inertial"
+Documentation = "https://github.com/Schlep-engine/igris-inertial/blob/main/igris-overture/cli/README.md"
+Repository = "https://github.com/Schlep-engine/igris-inertial"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["schlep_cli*"]
+include = ["igris_cli*"]
 
 [tool.black]
 line-length = 100

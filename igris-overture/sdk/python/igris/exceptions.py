@@ -1,12 +1,12 @@
-"""Exception classes for Schlep SDK"""
+"""Exception classes for Igris SDK"""
 
 
-class SchlepError(Exception):
-    """Base exception for Schlep SDK"""
+class IgrisError(Exception):
+    """Base exception for Igris SDK"""
     pass
 
 
-class APIError(SchlepError):
+class APIError(IgrisError):
     """API request failed"""
 
     def __init__(self, message: str, status_code: int = None, response: dict = None):
@@ -15,16 +15,16 @@ class APIError(SchlepError):
         self.response = response
 
 
-class AuthenticationError(SchlepError):
+class AuthenticationError(IgrisError):
     """Authentication failed"""
     pass
 
 
-class ConfigurationError(SchlepError):
+class ConfigurationError(IgrisError):
     """Configuration error"""
     pass
 
 
-class NetworkError(SchlepError):
+class NetworkError(IgrisError):
     """Network connection error"""
     pass

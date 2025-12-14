@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/schlep-ai/igris-inertial/igris-overture/emergency"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/emergency"
 )
 
 // EmergencyFetcher periodically checks for emergency policy updates
@@ -35,7 +35,7 @@ type EmergencyFetcher struct {
 
 // NewEmergencyFetcher creates a new emergency policy fetcher
 //
-// endpoint: URL of the emergency policy endpoint (e.g., "https://emergency.schlep.ai/v1/emergency/policy")
+// endpoint: URL of the emergency policy endpoint (e.g., "https://emergency.igris.ai/v1/emergency/policy")
 // checkInterval: How often to poll for updates (e.g., 30 seconds)
 // onPolicyUpdate: Callback function when a new policy is received
 func NewEmergencyFetcher(

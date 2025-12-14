@@ -1,8 +1,8 @@
-// Package schlep provides the official Go SDK for Schlep-engine.
+// Package igris provides the official Go SDK for Igris Overture.
 //
-// Schlep-engine is an intelligent AI routing and cost optimization platform
+// Igris Overture is an intelligent AI routing and cost optimization platform
 // that provides a unified interface to multiple LLM providers.
-package schlep
+package igris
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/schlep/escapevector"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/igris/escapevector"
 )
 
 const (
@@ -29,9 +29,9 @@ const (
 	SDKVersion = "1.0.0-rc1"
 )
 
-// Client is the main Schlep-engine SDK client.
+// Client is the main Igris Overture SDK client.
 //
-// It provides methods to interact with the Schlep-engine API including
+// It provides methods to interact with the Igris Overture API including
 // inference requests, model listing, and health checks.
 //
 // Features EscapeVector Mode - Thompson Sampling-powered resilience that
@@ -73,17 +73,17 @@ type Config struct {
 	HTTPClient *http.Client
 }
 
-// NewClient creates a new Schlep-engine client.
+// NewClient creates a new Igris Overture client.
 //
 // If cfg is nil, default configuration is used. The BaseURL defaults to
-// http://localhost:8081 and can be overridden with the SCHLEP_BASE_URL
-// environment variable. The API key can be set via SCHLEP_API_KEY.
+// http://localhost:8081 and can be overridden with the IGRIS_BASE_URL
+// environment variable. The API key can be set via IGRIS_API_KEY.
 //
 // Example:
 //
 //	client := schlep.NewClient(&schlep.Config{
 //		BaseURL: "http://localhost:8081",
-//		APIKey:  os.Getenv("SCHLEP_API_KEY"),
+//		APIKey:  os.Getenv("IGRIS_API_KEY"),
 //		Timeout: 60 * time.Second,
 //	})
 func NewClient(cfg *Config) *Client {
@@ -94,7 +94,7 @@ func NewClient(cfg *Config) *Client {
 	// Set defaults
 	baseURL := cfg.BaseURL
 	if baseURL == "" {
-		baseURL = os.Getenv("SCHLEP_BASE_URL")
+		baseURL = os.Getenv("IGRIS_BASE_URL")
 		if baseURL == "" {
 			baseURL = DefaultBaseURL
 		}
@@ -102,7 +102,7 @@ func NewClient(cfg *Config) *Client {
 
 	apiKey := cfg.APIKey
 	if apiKey == "" {
-		apiKey = os.Getenv("SCHLEP_API_KEY")
+		apiKey = os.Getenv("IGRIS_API_KEY")
 	}
 
 	timeout := cfg.Timeout
@@ -128,7 +128,7 @@ func NewClient(cfg *Config) *Client {
 		baseURL:      baseURL,
 		apiKey:       apiKey,
 		httpClient:   httpClient,
-		userAgent:    fmt.Sprintf("schlep-go-sdk/%s", SDKVersion),
+		userAgent:    fmt.Sprintf("igris-go-sdk/%s", SDKVersion),
 		escapeVector: escapeVectorMode,
 	}
 }
@@ -310,7 +310,7 @@ func (c *Client) parseResponse(resp *http.Response, v interface{}) error {
 	return nil
 }
 
-// Infer makes an inference request using Schlep-engine's intelligent routing.
+// Infer makes an inference request using Igris Overture's intelligent routing.
 //
 // This method sends a request to the /v1/infer endpoint and returns the
 // model's response. The request is automatically routed to the best available

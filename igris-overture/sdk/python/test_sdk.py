@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Simple test script for Schlep SDK"""
+"""Simple test script for Igris SDK"""
 
-from schlep import Client, SchlepError
+from igris import Client, IgrisError
 
 def test_sdk_import():
     """Test that SDK can be imported"""

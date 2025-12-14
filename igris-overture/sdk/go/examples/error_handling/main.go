@@ -1,4 +1,4 @@
-// Package main demonstrates error handling with the Schlep-engine Go SDK.
+// Package main demonstrates error handling with the Igris Overture Go SDK.
 package main
 
 import (
@@ -7,11 +7,11 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/igris-inertial/sdk-go/schlep"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/igris"
 )
 
 func main() {
-	client := schlep.NewClient(&schlep.Config{
+	client := igris.NewClient(&igris.Config{
 		BaseURL: "http://localhost:8081",
 	})
 
@@ -19,15 +19,15 @@ func main() {
 
 	// Example 1: Handling API errors
 	fmt.Println("Example 1: API Error Handling")
-	_, err := client.Infer(ctx, &schlep.InferRequest{
+	_, err := client.Infer(ctx, &igris.InferRequest{
 		Model: "invalid-model",
-		Messages: []schlep.Message{
+		Messages: []igris.Message{
 			{Role: "user", Content: "Hello"},
 		},
 	})
 
 	if err != nil {
-		var apiErr *schlep.APIError
+		var apiErr *igris.APIError
 		if errors.As(err, &apiErr) {
 			fmt.Printf("  API Error: %s (Status: %d)\n", apiErr.Message, apiErr.StatusCode)
 		} else {
@@ -38,12 +38,12 @@ func main() {
 
 	// Example 2: Successful request
 	fmt.Println("Example 2: Successful Request")
-	response, err := client.Infer(ctx, &schlep.InferRequest{
+	response, err := client.Infer(ctx, &igris.InferRequest{
 		Model: "gpt-4",
-		Messages: []schlep.Message{
+		Messages: []igris.Message{
 			{Role: "user", Content: "Say hello"},
 		},
-		MaxTokens: schlep.Int(50),
+		MaxTokens: igris.Int(50),
 	})
 
 	if err != nil {

@@ -1,10 +1,10 @@
 """
-Schlep-engine Python SDK
+Igris Overture Python SDK
 
-Official Python SDK for Schlep-engine - Intelligent AI routing and cost optimization.
+Official Python SDK for Igris Overture - Intelligent AI routing and cost optimization.
 
 Example usage:
-    from schlep import Client
+    from igris import Client
 
     # Initialize client
     client = Client(base_url="http://localhost:8081")
@@ -20,15 +20,15 @@ Example usage:
 """
 
 __version__ = "1.0.0-rc1"
-__author__ = "Schlep-engine"
+__author__ = "Igris Overture"
 __license__ = "MIT"
 
 from .client import Client
-from .exceptions import SchlepError, APIError, AuthenticationError
+from .exceptions import IgrisError, APIError, AuthenticationError
 
 __all__ = [
     "Client",
-    "SchlepError",
+    "IgrisError",
     "APIError",
     "AuthenticationError",
     "__version__",
