@@ -47,9 +47,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/Schlep-engine/igris-inertial"
-Documentation = "https://github.com/Schlep-engine/igris-inertial/blob/main/igris-overture/sdk/python/README.md"
-Repository = "https://github.com/Schlep-engine/igris-inertial"
+Homepage = "https://github.com/Igris-inertial/system"
+Documentation = "https://github.com/Igris-inertial/system/blob/main/igris-overture/sdk/python/README.md"
+Repository = "https://github.com/Igris-inertial/system"
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -39,13 +39,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Schlep-engine/igris-inertial.git",
+    "url": "https://github.com/Igris-inertial/system.git",
     "directory": "igris-overture/sdk/javascript"
   },
   "bugs": {
-    "url": "https://github.com/Schlep-engine/igris-inertial/issues"
+    "url": "https://github.com/Igris-inertial/system/issues"
   },
-  "homepage": "https://github.com/Schlep-engine/igris-inertial#readme",
+  "homepage": "https://github.com/Igris-inertial/system#readme",
   "dependencies": {
     "node-fetch": "^2.7.0"
   },

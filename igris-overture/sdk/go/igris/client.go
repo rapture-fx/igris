@@ -16,7 +16,7 @@ import (
 
 	"github.com/cenkalti/backoff/v4"
 
-	"github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/igris/escapevector"
+	"github.com/Igris-inertial/system/igris-overture/sdk/go/igris/escapevector"
 )
 
 const (
