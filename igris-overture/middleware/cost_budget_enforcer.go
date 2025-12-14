@@ -273,7 +273,7 @@ func (e *CostBudgetEnforcer) loadBudgetFromDB(ctx context.Context, tenantID stri
 func (e *CostBudgetEnforcer) incrementSpend(ctx context.Context, tenantID string, costUSD float64) error {
 	// Use Redis for atomic increment if available
 	if e.redisClient != nil {
-		key := fmt.Sprintf("schlep:budget:spend:%s", tenantID)
+		key := fmt.Sprintf("igris:budget:spend:%s", tenantID)
 		return e.redisClient.IncrByFloat(ctx, key, costUSD).Err()
 	}
 

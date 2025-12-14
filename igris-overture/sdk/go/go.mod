@@ -1,4 +1,4 @@
-module github.com/schlep-engine/sdk-go
+module github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/igris
 
 go 1.21
 

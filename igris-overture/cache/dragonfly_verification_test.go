@@ -419,8 +419,8 @@ func TestDragonfly_BudgetTracking(t *testing.T) {
 	tenantID := "tenant_budget_dragonfly_test"
 
 	// Simulate budget tracking (as done in billing/enforcer.go)
-	budgetKey := fmt.Sprintf("schlep:billing:%s:monthly_budget", tenantID)
-	spendKey := fmt.Sprintf("schlep:billing:%s:current_spend", tenantID)
+	budgetKey := fmt.Sprintf("igris:billing:%s:monthly_budget", tenantID)
+	spendKey := fmt.Sprintf("igris:billing:%s:current_spend", tenantID)
 
 	// Set budget
 	err := client.Set(ctx, budgetKey, "100.00", 0).Err()
@@ -453,7 +453,7 @@ func TestDragonfly_RateLimiting(t *testing.T) {
 	window := 60 // seconds
 
 	// Simulate rate limiting (sliding window)
-	key := fmt.Sprintf("schlep:ratelimit:%s:%d", tenantID, time.Now().Unix()/int64(window))
+	key := fmt.Sprintf("igris:ratelimit:%s:%d", tenantID, time.Now().Unix()/int64(window))
 
 	// Increment counter
 	count, err := client.Incr(ctx, key).Result()
@@ -480,7 +480,7 @@ func TestDragonfly_CachingClassification(t *testing.T) {
 
 	// Simulate classification cache (as used in semantic routing)
 	requestHash := "hash_12345"
-	cacheKey := fmt.Sprintf("schlep:cache:classification:%s", requestHash)
+	cacheKey := fmt.Sprintf("igris:cache:classification:%s", requestHash)
 
 	classification := `{"intent":"text_generation","confidence":0.95}`
 

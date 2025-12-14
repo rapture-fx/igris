@@ -1,7 +1,7 @@
 {
-  "name": "schlep",
+  "name": "igris",
   "version": "1.0.0-rc1",
-  "description": "Official Schlep-engine JavaScript SDK for intelligent AI routing and cost optimization",
+  "description": "Official Igris Overture JavaScript SDK for intelligent AI routing and cost optimization",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,8 +26,8 @@
     "prepublishOnly": "npm run build"
   },
   "keywords": [
-    "schlep",
-    "schlep-engine",
+    "igris",
+    "igris-overture",
     "ai-routing",
     "llm",
     "openai",
@@ -35,17 +35,17 @@
     "cost-optimization",
     "byok"
   ],
-  "author": "Schlep-engine Team <hello@schlep-engine.com>",
+  "author": "Igris Overture Team <hello@igris-overture.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/schlep-engine/schlep-engine.git",
-    "directory": "internal/sdk/javascript"
+    "url": "https://github.com/Schlep-engine/igris-inertial.git",
+    "directory": "igris-overture/sdk/javascript"
   },
   "bugs": {
-    "url": "https://github.com/schlep-engine/schlep-engine/issues"
+    "url": "https://github.com/Schlep-engine/igris-inertial/issues"
   },
-  "homepage": "https://github.com/schlep-engine/schlep-engine#readme",
+  "homepage": "https://github.com/Schlep-engine/igris-inertial#readme",
   "dependencies": {
     "node-fetch": "^2.7.0"
   },

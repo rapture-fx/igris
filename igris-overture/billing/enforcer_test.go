@@ -63,7 +63,7 @@ func TestHardBudgetCap_ScaleTier_Returns429(t *testing.T) {
 	tenantID := "tenant_scale_budget_test"
 
 	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("schlep:billing:%s:tier", tenantID), "scale", 0).Err()
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -102,7 +102,7 @@ func TestHardBudgetCap_GrowthTier_StillAllows(t *testing.T) {
 	tenantID := "tenant_growth_budget_test"
 
 	// Set tenant tier to Growth (not Scale)
-	err := redisClient.Set(ctx, fmt.Sprintf("schlep:billing:%s:tier", tenantID), "growth", 0).Err()
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "growth", 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -140,7 +140,7 @@ func TestHardBudgetCap_UnderBudget_Allows(t *testing.T) {
 	tenantID := "tenant_scale_under_budget"
 
 	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("schlep:billing:%s:tier", tenantID), "scale", 0).Err()
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -182,7 +182,7 @@ func TestEmergencyOverride_ValidToken_BypassesCap(t *testing.T) {
 	tenantID := "tenant_override_test"
 
 	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("schlep:billing:%s:tier", tenantID), "scale", 0).Err()
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -225,7 +225,7 @@ func TestEmergencyOverride_UsedToken_Denied(t *testing.T) {
 	tenantID := "tenant_used_token_test"
 
 	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("schlep:billing:%s:tier", tenantID), "scale", 0).Err()
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -275,7 +275,7 @@ func TestEmergencyOverride_ExpiredToken_Denied(t *testing.T) {
 	tenantID := "tenant_expired_token_test"
 
 	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("schlep:billing:%s:tier", tenantID), "scale", 0).Err()
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100
@@ -301,7 +301,7 @@ func TestEmergencyOverride_RequestLimitExceeded_Denied(t *testing.T) {
 	tenantID := "tenant_limit_test"
 
 	// Set tenant tier to Scale
-	err := redisClient.Set(ctx, fmt.Sprintf("schlep:billing:%s:tier", tenantID), "scale", 0).Err()
+	err := redisClient.Set(ctx, fmt.Sprintf("igris:billing:%s:tier", tenantID), "scale", 0).Err()
 	require.NoError(t, err)
 
 	// Set budget to $100

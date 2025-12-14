@@ -107,10 +107,10 @@ func NewAlertQueue(config *AlertQueueConfig) (*AlertQueue, error) {
 	}
 
 	if config.QueueName == "" {
-		config.QueueName = "schlep:alerts:queue"
+		config.QueueName = "igris:alerts:queue"
 	}
 	if config.DLQName == "" {
-		config.DLQName = "schlep:alerts:dlq"
+		config.DLQName = "igris:alerts:dlq"
 	}
 	if config.Workers == 0 {
 		config.Workers = 5

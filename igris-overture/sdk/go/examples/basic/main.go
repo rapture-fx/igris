@@ -1,4 +1,4 @@
-// Package main demonstrates basic usage of the Schlep-engine Go SDK.
+// Package main demonstrates basic usage of the Igris Overture Go SDK.
 package main
 
 import (
@@ -7,16 +7,16 @@ import (
 	"log"
 	"os"
 
-	"github.com/igris-inertial/sdk-go/schlep"
+	"github.com/Schlep-engine/igris-inertial/igris-overture/sdk/go/igris"
 )
 
 func main() {
 	// Create client with default configuration
 	// This will use http://localhost:8081 by default
-	// or SCHLEP_BASE_URL if set in environment
-	client := schlep.NewClient(&schlep.Config{
+	// or IGRIS_BASE_URL if set in environment
+	client := igris.NewClient(&igris.Config{
 		BaseURL: "http://localhost:8081",
-		APIKey:  os.Getenv("SCHLEP_API_KEY"), // Optional
+		APIKey:  os.Getenv("IGRIS_API_KEY"), // Optional
 	})
 
 	ctx := context.Background()
@@ -44,9 +44,9 @@ func main() {
 
 	// Make an inference request
 	fmt.Println("Making inference request...")
-	response, err := client.Infer(ctx, &schlep.InferRequest{
+	response, err := client.Infer(ctx, &igris.InferRequest{
 		Model: "gpt-4",
-		Messages: []schlep.Message{
+		Messages: []igris.Message{
 			{
 				Role:    "system",
 				Content: "You are a helpful assistant.",
@@ -56,8 +56,8 @@ func main() {
 				Content: "Explain what Schlep-engine does in one sentence.",
 			},
 		},
-		MaxTokens:   schlep.Int(100),
-		Temperature: schlep.Float64(0.7),
+		MaxTokens:   igris.Int(100),
+		Temperature: igris.Float64(0.7),
 	})
 
 	if err != nil {

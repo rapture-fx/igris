@@ -692,7 +692,7 @@ func (te *TierEnforcer) getTierPolicy(tierName string) (TierPolicy, bool) {
 
 // getRequestCounterKey generates Redis key for request counter
 func (te *TierEnforcer) getRequestCounterKey(tenantID string) string {
-	// Format: schlep:ratelimit:tenant_id:YYYY-MM:request_count
+	// Format: igris:ratelimit:tenant_id:YYYY-MM:request_count
 	now := time.Now()
 	monthKey := now.Format("2006-01")
 	return fmt.Sprintf("%s%s:%s:request_count",

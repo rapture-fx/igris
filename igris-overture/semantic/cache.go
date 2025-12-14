@@ -19,7 +19,7 @@ type RedisClassificationCache struct {
 func NewRedisClassificationCache(client *redis.Client) *RedisClassificationCache {
 	return &RedisClassificationCache{
 		client: client,
-		prefix: "schlep:semantic:class:",
+		prefix: "igris:semantic:class:",
 	}
 }
 

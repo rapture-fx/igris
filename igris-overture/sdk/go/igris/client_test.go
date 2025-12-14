@@ -1,4 +1,4 @@
-package schlep
+package igris
 
 import (
 	"context"
@@ -23,9 +23,9 @@ func TestNewClient(t *testing.T) {
 		{
 			name: "custom base URL",
 			config: &Config{
-				BaseURL: "https://api.schlep.com",
+				BaseURL: "https://api.igris.com",
 			},
-			want: "https://api.schlep.com",
+			want: "https://api.igris.com",
 		},
 	}
 

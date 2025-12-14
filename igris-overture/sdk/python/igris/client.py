@@ -1,4 +1,4 @@
-"""Schlep-engine Python SDK Client"""
+"""Igris Overture Python SDK Client"""
 
 import json
 from typing import Dict, List, Optional, Any
@@ -9,15 +9,15 @@ from .exceptions import APIError, AuthenticationError, NetworkError
 
 class Client:
     """
-    Schlep-engine client for intelligent AI routing and cost optimization.
+    Igris Overture client for intelligent AI routing and cost optimization.
 
     Args:
-        base_url: Base URL of the Schlep-engine API (default: http://localhost:8081)
+        base_url: Base URL of the Igris Overture API (default: http://localhost:8081)
         api_key: Optional API key for authentication
         timeout: Request timeout in seconds (default: 30)
 
     Example:
-        >>> from schlep import Client
+        >>> from igris import Client
         >>> client = Client(base_url="http://localhost:8081")
         >>> response = client.infer(
         ...     model="gpt-4",
@@ -39,7 +39,7 @@ class Client:
         # Set default headers
         self._session.headers.update({
             "Content-Type": "application/json",
-            "User-Agent": "schlep-python-sdk/0.1.0",
+            "User-Agent": "igris-python-sdk/0.1.0",
         })
 
         # Add authentication header if API key provided
@@ -105,7 +105,7 @@ class Client:
         **kwargs
     ) -> Dict[str, Any]:
         """
-        Make an inference request using Schlep-engine's intelligent routing.
+        Make an inference request using Igris Overture's intelligent routing.
 
         Args:
             model: The model to use (e.g., "gpt-4", "claude-3-opus")
