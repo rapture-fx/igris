@@ -10,12 +10,16 @@ use tracing::{debug, warn};
 /// Shell command tool
 pub struct ShellTool {
     allowed_commands: Vec<String>,
+    allowed_working_dirs: Vec<String>,
 }
 
 impl ShellTool {
     /// Create a new shell tool with command whitelist
-    pub fn new(allowed_commands: Vec<String>) -> Self {
-        Self { allowed_commands }
+    pub fn new(allowed_commands: Vec<String>, allowed_working_dirs: Vec<String>) -> Self {
+        Self {
+            allowed_commands,
+            allowed_working_dirs,
+        }
     }
 
     /// Check if command is allowed
@@ -27,6 +31,16 @@ impl ShellTool {
 
         let cmd_name = command.split_whitespace().next().unwrap_or("");
         self.allowed_commands.iter().any(|allowed| allowed == cmd_name)
+    }
+
+    fn is_working_dir_allowed(&self, wd: &str) -> bool {
+        if wd.is_empty() {
+            return false;
+        }
+        if self.allowed_working_dirs.is_empty() {
+            return false; // default deny if not configured
+        }
+        self.allowed_working_dirs.iter().any(|p| wd.starts_with(p))
     }
 }
 
@@ -72,6 +86,15 @@ impl Tool for ShellTool {
                 "Command not allowed. Allowed commands: {:?}",
                 self.allowed_commands
             );
+        }
+
+        if let Some(working_dir) = args["working_dir"].as_str() {
+            if !self.is_working_dir_allowed(working_dir) {
+                anyhow::bail!(
+                    "working_dir not allowed. Allowed working dirs: {:?}",
+                    self.allowed_working_dirs
+                );
+            }
         }
 
         Ok(())
@@ -176,7 +199,10 @@ mod tests {
 
     #[test]
     fn test_command_whitelist() {
-        let tool = ShellTool::new(vec!["ls".to_string(), "pwd".to_string(), "echo".to_string()]);
+        let tool = ShellTool::new(
+            vec!["ls".to_string(), "pwd".to_string(), "echo".to_string()],
+            vec!["/tmp".to_string()],
+        );
 
         assert!(tool.is_command_allowed("ls -la"));
         assert!(tool.is_command_allowed("pwd"));
@@ -187,13 +213,13 @@ mod tests {
 
     #[test]
     fn test_empty_whitelist() {
-        let tool = ShellTool::new(vec![]);
+        let tool = ShellTool::new(vec![], vec![]);
         assert!(!tool.is_command_allowed("any command"));
     }
 
     #[tokio::test]
     async fn test_validate_args() {
-        let tool = ShellTool::new(vec!["echo".to_string()]);
+        let tool = ShellTool::new(vec!["echo".to_string()], vec!["/tmp".to_string()]);
 
         let valid_args = json!({
             "command": "echo hello"

@@ -2,7 +2,7 @@
 use crate::{Tool, ToolResult};
 use anyhow::Result;
 use serde_json::json;
-use std::path::Path;
+use std::path::{Component, Path};
 use std::time::Instant;
 use tokio::fs;
 use tracing::debug;
@@ -24,10 +24,31 @@ impl FileSystemTool {
             return false; // Default deny
         }
 
-        self.allowed_paths
-            .iter()
-            .any(|allowed| path.starts_with(allowed))
+        let p = match normalize_no_parent(path) {
+            Some(p) => p,
+            None => return false,
+        };
+
+        self.allowed_paths.iter().any(|allowed| {
+            // Also ensure allowed entries don't include traversal.
+            if normalize_no_parent(allowed).is_none() {
+                return false;
+            }
+            p.starts_with(allowed)
+        })
     }
+}
+
+fn normalize_no_parent(p: &str) -> Option<&str> {
+    let path = Path::new(p);
+    for c in path.components() {
+        match c {
+            Component::ParentDir => return None,
+            Component::Prefix(_) => {}
+            _ => {}
+        }
+    }
+    Some(p)
 }
 
 #[async_trait::async_trait]

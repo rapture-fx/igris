@@ -22,7 +22,36 @@ impl HttpTool {
             return true; // No restrictions if whitelist is empty
         }
 
-        self.allowed_domains.iter().any(|domain| url.contains(domain))
+        let host = match extract_url_host(url) {
+            Some(h) => h,
+            None => return false,
+        };
+
+        self.allowed_domains.iter().any(|allowed| {
+            if allowed == &host {
+                return true;
+            }
+            host.ends_with(&format!(".{}", allowed))
+        })
+    }
+}
+
+fn extract_url_host(url: &str) -> Option<String> {
+    let u = url.trim();
+    let rest = u
+        .strip_prefix("https://")
+        .or_else(|| u.strip_prefix("http://"))?;
+    let authority = rest.split('/').next().unwrap_or("");
+    let authority = authority.split('@').last().unwrap_or(authority); // drop userinfo
+    if authority.starts_with('[') {
+        let end = authority.find(']')?;
+        return Some(authority[1..end].to_string());
+    }
+    let host = authority.split(':').next().unwrap_or(authority);
+    if host.is_empty() {
+        None
+    } else {
+        Some(host.to_string())
     }
 }
 
@@ -158,7 +187,10 @@ mod tests {
 
         assert!(tool.is_domain_allowed("https://example.com/api"));
         assert!(tool.is_domain_allowed("https://api.github.com/repos"));
+        assert!(tool.is_domain_allowed("https://sub.example.com/thing"));
+        assert!(!tool.is_domain_allowed("https://evil-example.com/"));
         assert!(!tool.is_domain_allowed("https://malicious.com"));
+        assert!(!tool.is_domain_allowed("not-a-url"));
     }
 
     #[test]

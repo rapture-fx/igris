@@ -141,12 +141,28 @@ impl Default for CouncilConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AuthConfig {
     pub api_key: String,
+    /// Optional JWT HS256 secret (base64 or raw string). If set, `Authorization: Bearer <jwt>` is accepted.
+    #[serde(default)]
+    pub jwt_hs256_secret: Option<String>,
+    /// Enable auth enforcement when `api_key` is set to a non-default value or JWT secret is present.
+    #[serde(default)]
+    pub enabled: bool,
+    /// Requests per minute per identity (API key or JWT subject). 0 disables rate limiting at auth layer.
+    #[serde(default)]
+    pub rate_limit_per_minute: u32,
+    /// Burst capacity for rate limiting (token bucket). Defaults to 0 => uses rate_limit_per_minute.
+    #[serde(default)]
+    pub rate_limit_burst: u32,
 }
 
 impl Default for AuthConfig {
     fn default() -> Self {
         Self {
             api_key: "default-api-key".to_string(),
+            jwt_hs256_secret: None,
+            enabled: false,
+            rate_limit_per_minute: 0,
+            rate_limit_burst: 0,
         }
     }
 }
@@ -346,6 +362,9 @@ pub struct ToolRuntimeConfig {
     pub allowed_http_domains: Vec<String>,
     #[serde(default)]
     pub allowed_shell_commands: Vec<String>,
+    /// Allowed working directories for shell tool (whitelist). If empty, `working_dir` is rejected.
+    #[serde(default)]
+    pub allowed_shell_working_dirs: Vec<String>,
     #[serde(default)]
     pub allowed_filesystem_paths: Vec<String>,
 
@@ -371,6 +390,7 @@ impl Default for ToolRuntimeConfig {
             enable_filesystem: false,
             allowed_http_domains: vec![],
             allowed_shell_commands: vec![],
+            allowed_shell_working_dirs: vec![],
             allowed_filesystem_paths: vec![],
             max_execution_time_ms: default_tool_max_execution_time(),
             max_concurrent_executions: default_tool_max_concurrent(),

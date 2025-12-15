@@ -44,10 +44,13 @@ use igris_tools::filesystem::FileSystemTool;
 mod lora_training;
 use lora_training::LoraTrainingManager;
 use igris_lora_trainer::{LoRATrainingConfig, TrainingDataStore};
+mod middleware;
+use axum::middleware::from_fn_with_state;
+use middleware::security::{security_middleware, RateLimiter};
 
 /// Application state shared across handlers
 #[derive(Clone)]
-struct AppState {
+pub(crate) struct AppState {
     config: Arc<IgrisConfig>,
     storage: Arc<RedbStorage>,
     speculative_router: Arc<SpeculativeRouter>,
@@ -64,6 +67,7 @@ struct AppState {
     swarm_config: Option<SwarmConfig>,
     swarm_peer_id: String,
     lora_training: Option<Arc<LoraTrainingManager>>,
+    rate_limiter: Option<middleware::security::RateLimiter>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -265,6 +269,25 @@ async fn chat_completions(
     // Validate request
     if req.messages.is_empty() {
         return Err(ApiError::BadRequest("messages array cannot be empty".to_string()));
+    }
+    if req.messages.len() > 64 {
+        return Err(ApiError::BadRequest("too many messages (max 64)".to_string()));
+    }
+    if req.model.len() > 128 {
+        return Err(ApiError::BadRequest("model identifier too long".to_string()));
+    }
+    let mut total_chars: usize = 0;
+    for m in &req.messages {
+        if m.role.len() > 32 {
+            return Err(ApiError::BadRequest("role too long".to_string()));
+        }
+        if m.content.len() > 16_384 {
+            return Err(ApiError::BadRequest("message content too long (max 16384 chars)".to_string()));
+        }
+        total_chars = total_chars.saturating_add(m.role.len() + m.content.len());
+        if total_chars > 65_536 {
+            return Err(ApiError::BadRequest("request too large (max 65536 chars total)".to_string()));
+        }
     }
 
     // Build prompt from messages
@@ -885,6 +908,7 @@ async fn main() -> anyhow::Result<()> {
         if tcfg.enable_shell {
             reg.register(Arc::new(ShellTool::new(
                 tcfg.allowed_shell_commands.clone(),
+                tcfg.allowed_shell_working_dirs.clone(),
             )));
         }
         if tcfg.enable_filesystem {
@@ -1061,6 +1085,17 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Create application state
+    let rate_limiter = if (config.auth.enabled || config.auth.api_key != "default-api-key" || config.auth.jwt_hs256_secret.is_some())
+        && config.auth.rate_limit_per_minute > 0
+    {
+        Some(RateLimiter::new(
+            config.auth.rate_limit_per_minute,
+            config.auth.rate_limit_burst,
+        ))
+    } else {
+        None
+    };
+
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -1078,6 +1113,7 @@ async fn main() -> anyhow::Result<()> {
         swarm_config,
         swarm_peer_id,
         lora_training,
+        rate_limiter,
     };
 
     // Build router
@@ -1086,6 +1122,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/v1/chat/completions", post(chat_completions))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(CorsLayer::permissive())
+        .layer(from_fn_with_state(state.clone(), security_middleware))
         .with_state(state);
 
     // Merge MCP router if enabled
