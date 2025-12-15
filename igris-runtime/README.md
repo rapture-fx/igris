@@ -1,23 +1,19 @@
-# Igris Runtime v1.1 - The Unkillable Edition
+# Igris Runtime v1.6 — Production Runtime (Offline + Streaming + Tools + Training)
 
-**Status**: Production Ready + Local LLM Fallback
+**Status**: Production-ready core with local inference, SSE streaming, tool calling, on-device LoRA training, security hardening, and observability.
 
-Pure Rust, offline-capable AI routing engine with automatic local LLM fallback. When ALL cloud providers fail or are unreachable, Igris Runtime continues serving real LLM responses using an on-device Phi-3 model.
+Pure Rust, offline-capable AI routing engine with automatic local LLM fallback. When cloud providers fail or are unreachable, Igris Runtime can continue serving **real** responses using on-device GGUF models via `llama.cpp` binaries.
 
 ---
 
-## What's New in v1.1
+## What's New (v1.6 highlights)
 
-### 🚀 Local LLM Fallback (NEW!)
+### **Local inference (llama.cpp CLI)**
 
-**The feature that makes Igris Runtime truly unkillable:**
-
-- **Automatic failover**: When all cloud providers timeout or fail, seamlessly switches to local Phi-3 model
-- **Zero external dependencies**: Model runs 100% on-device using llama.cpp (statically linked)
-- **Works offline**: Full LLM capabilities even with airplane mode on
-- **Free inference**: No API costs for fallback responses
-- **Small footprint**: Phi-3 Mini Q4 model is only ~2.3 GB
-- **Fast startup**: Model loads in 2-3 seconds on modern hardware
+- **Streaming**: Server-Sent Events via `POST /v1/chat/completions` with `"stream": true`
+- **GPU offload**: `n_gpu_layers` + `main_gpu` passed through to `llama-cli` when supported
+- **Prompt/KV caching**: `prompt_cache_dir` + `--prompt-cache-all` (when supported) for reuse across growing chat prompts
+- **Batch tuning**: optional `batch_size` passed as `--batch-size` when supported
 
 ### Architecture
 
@@ -53,12 +49,12 @@ Pure Rust, offline-capable AI routing engine with automatic local LLM fallback. 
 
 ---
 
-## Quick Start (3 Steps)
+## Quick Start (3 steps)
 
 ### 1. Download the Model
 
 ```bash
-cd runtime
+cd igris-runtime
 ./download-model.sh
 ```
 
@@ -79,6 +75,13 @@ Create or edit `config.json5`:
   local_fallback: {
     enabled: true,
     model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    // GPU offload (optional)
+    n_gpu_layers: 0,
+    main_gpu: null,
+    // Prompt/KV cache (optional)
+    prompt_cache_dir: "prompt_cache",
+    // Batch tuning (optional)
+    batch_size: null,
     context_size: 4096,
     threads: 4,
     max_tokens: 512,
@@ -106,6 +109,13 @@ Create or edit `config.json5`:
 ```bash
 cargo run --release
 ```
+
+## Endpoints
+
+- **health**: `GET /v1/health`
+- **chat completions**: `POST /v1/chat/completions` (OpenAI-compatible, supports `"stream": true`)
+- **metrics**: `GET /metrics` (Prometheus text format)
+- **LoRA training status**: `GET /v1/lora/status`
 
 ---
 

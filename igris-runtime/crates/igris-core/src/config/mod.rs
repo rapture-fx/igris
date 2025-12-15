@@ -183,6 +183,10 @@ pub struct LocalFallbackConfig {
     /// Optional directory for llama.cpp prompt-cache files (enables context caching between identical prompts).
     #[serde(default)]
     pub prompt_cache_dir: Option<String>,
+    /// Optional llama.cpp batch size (`--batch-size`). Higher can improve throughput at the cost of memory.
+    /// Backward compatible default: None (llama.cpp default).
+    #[serde(default)]
+    pub batch_size: Option<u32>,
     #[serde(default = "default_context_size")]
     pub context_size: u32,
     #[serde(default = "default_threads")]
@@ -528,6 +532,7 @@ impl Default for LocalFallbackConfig {
             n_gpu_layers: 0,
             main_gpu: None,
             prompt_cache_dir: None,
+            batch_size: None,
             context_size: 4096,
             threads: 4,
             max_tokens: 512,

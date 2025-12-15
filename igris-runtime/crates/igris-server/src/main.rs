@@ -50,6 +50,8 @@ use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
 mod metrics;
 use metrics::Metrics;
+#[cfg(test)]
+mod server_flow_tests;
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -188,6 +190,18 @@ struct ChatCompletionResponse {
     usage: Usage,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct LoraTrainingStatusResponse {
+    status: String,
+    last_started_at: Option<u64>,
+    last_finished_at: Option<u64>,
+    last_error: Option<String>,
+    total_examples: usize,
+    request_counter: u64,
+    should_trigger: bool,
+    last_result: Option<serde_json::Value>,
+}
+
 /// Error response
 #[derive(Debug, Serialize, Deserialize)]
 struct ErrorResponse {
@@ -248,6 +262,14 @@ async fn health() -> &'static str {
 }
 
 /// Prometheus metrics endpoint
+#[utoipa::path(
+    get,
+    path = "/metrics",
+    tag = "metrics",
+    responses(
+        (status = 200, description = "Prometheus metrics (text/plain)", body = String)
+    )
+)]
 async fn metrics_handler(State(state): State<AppState>) -> Response {
     let body = state.metrics.render_prometheus();
     (
@@ -256,6 +278,36 @@ async fn metrics_handler(State(state): State<AppState>) -> Response {
         body,
     )
         .into_response()
+}
+
+#[utoipa::path(
+    get,
+    path = "/v1/lora/status",
+    tag = "lora",
+    responses(
+        (status = 200, description = "LoRA training status", body = LoraTrainingStatusResponse)
+    )
+)]
+async fn lora_status(State(state): State<AppState>) -> Result<Response, ApiError> {
+    let Some(mgr) = &state.lora_training else {
+        return Ok((StatusCode::OK, Json(serde_json::json!({"enabled": false}))).into_response());
+    };
+    let snap = mgr.status_snapshot().await?;
+    let last_result = snap
+        .last_result
+        .as_ref()
+        .and_then(|r| serde_json::to_value(r).ok());
+    let resp = LoraTrainingStatusResponse {
+        status: format!("{:?}", snap.status),
+        last_started_at: snap.last_started_at,
+        last_finished_at: snap.last_finished_at,
+        last_error: snap.last_error,
+        total_examples: snap.total_examples,
+        request_counter: snap.request_counter,
+        should_trigger: snap.should_trigger,
+        last_result,
+    };
+    Ok((StatusCode::OK, Json(resp)).into_response())
 }
 
 /// Chat completions endpoint with local LLM fallback
@@ -867,6 +919,7 @@ async fn main() -> anyhow::Result<()> {
                 n_gpu_layers: local_config.n_gpu_layers,
                 main_gpu: local_config.main_gpu,
                 prompt_cache_dir: local_config.prompt_cache_dir.clone(),
+                batch_size: local_config.batch_size,
                 context_size: local_config.context_size,
                 threads: local_config.threads,
                 max_tokens: local_config.max_tokens,
@@ -1146,6 +1199,7 @@ async fn main() -> anyhow::Result<()> {
     let mut app = Router::new()
         .route("/v1/health", get(health))
         .route("/metrics", get(metrics_handler))
+        .route("/v1/lora/status", get(lora_status))
         .route("/v1/chat/completions", post(chat_completions))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
