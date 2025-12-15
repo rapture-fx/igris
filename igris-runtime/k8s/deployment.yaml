@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: igris-runtime
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: igris-runtime
+  template:
+    metadata:
+      labels:
+        app: igris-runtime
+    spec:
+      containers:
+        - name: igris-runtime
+          image: igris-runtime:local
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: RUST_LOG
+              value: info
+            - name: IGRIS_CONFIG
+              value: /app/config.json5
+            # Example: provide API keys as env vars or replace providers config.
+            # - name: OPENAI_API_KEY
+            #   valueFrom:
+            #     secretKeyRef:
+            #       name: igris-secrets
+            #       key: OPENAI_API_KEY
+          readinessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /v1/health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          volumeMounts:
+            - name: config
+              mountPath: /app/config.json5
+              subPath: config.json5
+              readOnly: true
+            - name: data
+              mountPath: /app/data
+            # If you run local inference, mount a models volume to /app/models.
+            # - name: models
+            #   mountPath: /app/models
+      volumes:
+        - name: config
+          configMap:
+            name: igris-runtime-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: igris-runtime-data
+        # - name: models
+        #   persistentVolumeClaim:
+        #     claimName: igris-runtime-models
+
+
