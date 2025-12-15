@@ -1,0 +1,161 @@
+/// Tool registry for managing and discovering available tools
+use crate::{Tool, ToolResult};
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::sync::Arc;
+
+/// Tool definition for LLM consumption
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolDefinition {
+    /// Tool name
+    pub name: String,
+
+    /// Human-readable description
+    pub description: String,
+
+    /// JSON Schema for parameters
+    pub parameters: serde_json::Value,
+}
+
+impl ToolDefinition {
+    /// Create from a Tool implementation
+    pub fn from_tool(tool: &dyn Tool) -> Self {
+        Self {
+            name: tool.name().to_string(),
+            description: tool.description().to_string(),
+            parameters: tool.parameters_schema(),
+        }
+    }
+}
+
+/// Registry of available tools
+pub struct ToolRegistry {
+    tools: HashMap<String, Arc<dyn Tool>>,
+}
+
+impl ToolRegistry {
+    /// Create a new empty registry
+    pub fn new() -> Self {
+        Self {
+            tools: HashMap::new(),
+        }
+    }
+
+    /// Register a tool
+    pub fn register(&mut self, tool: Arc<dyn Tool>) {
+        let name = tool.name().to_string();
+        self.tools.insert(name, tool);
+    }
+
+    /// Get all tool definitions (for LLM)
+    pub fn get_definitions(&self) -> Vec<ToolDefinition> {
+        self.tools
+            .values()
+            .map(|tool| ToolDefinition::from_tool(tool.as_ref()))
+            .collect()
+    }
+
+    /// Execute a tool by name
+    pub async fn execute(&self, tool_name: &str, args: serde_json::Value) -> Result<ToolResult> {
+        let tool = self
+            .tools
+            .get(tool_name)
+            .ok_or_else(|| anyhow::anyhow!("Tool not found: {}", tool_name))?;
+
+        tool.execute(args).await
+    }
+
+    /// Check if a tool is registered
+    pub fn has_tool(&self, name: &str) -> bool {
+        self.tools.contains_key(name)
+    }
+
+    /// Get count of registered tools
+    pub fn count(&self) -> usize {
+        self.tools.len()
+    }
+
+    /// List all tool names
+    pub fn list_tools(&self) -> Vec<String> {
+        self.tools.keys().cloned().collect()
+    }
+}
+
+impl Default for ToolRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::Tool;
+
+    // Mock tool for testing
+    struct MockTool;
+
+    #[async_trait::async_trait]
+    impl Tool for MockTool {
+        fn name(&self) -> &str {
+            "mock_tool"
+        }
+
+        fn description(&self) -> &str {
+            "A mock tool for testing"
+        }
+
+        fn parameters_schema(&self) -> serde_json::Value {
+            serde_json::json!({
+                "type": "object",
+                "properties": {
+                    "test": {"type": "string"}
+                }
+            })
+        }
+
+        async fn execute(&self, _args: serde_json::Value) -> Result<ToolResult> {
+            Ok(ToolResult::success(
+                "mock_tool".to_string(),
+                "success".to_string(),
+                0,
+            ))
+        }
+    }
+
+    #[test]
+    fn test_registry_register() {
+        let mut registry = ToolRegistry::new();
+        let tool: Arc<dyn Tool> = Arc::new(MockTool);
+
+        registry.register(tool);
+
+        assert_eq!(registry.count(), 1);
+        assert!(registry.has_tool("mock_tool"));
+    }
+
+    #[test]
+    fn test_registry_definitions() {
+        let mut registry = ToolRegistry::new();
+        registry.register(Arc::new(MockTool));
+
+        let definitions = registry.get_definitions();
+        assert_eq!(definitions.len(), 1);
+        assert_eq!(definitions[0].name, "mock_tool");
+    }
+
+    #[tokio::test]
+    async fn test_registry_execute() {
+        let mut registry = ToolRegistry::new();
+        registry.register(Arc::new(MockTool));
+
+        let result = registry
+            .execute("mock_tool", serde_json::json!({}))
+            .await
+            .unwrap();
+
+        assert!(result.success);
+        assert_eq!(result.output, "success");
+    }
+}
