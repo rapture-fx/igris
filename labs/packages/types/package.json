@@ -1,5 +1,5 @@
 {
-  "name": "@schlep-engine/types",
+  "name": "@igris-inertial/types",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",

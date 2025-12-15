@@ -1,5 +1,5 @@
 {
-  "name": "@schlep-engine/web-console",
+  "name": "@igris-inertial/web-console",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -9,9 +9,9 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@schlep-engine/javascript-sdk": "workspace:*",
-    "@schlep-engine/types": "workspace:*",
-    "@schlep-engine/ui": "workspace:*",
+    "@igris-inertial/javascript-sdk": "workspace:*",
+    "@igris-inertial/types": "workspace:*",
+    "@igris-inertial/ui": "workspace:*",
     "@tanstack/react-query": "^5.90.9",
     "@tanstack/react-query-devtools": "^5.90.9",
     "@tanstack/react-table": "^8.21.3",
@@ -38,7 +38,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@schlep-engine/config": "workspace:*",
+    "@igris-inertial/config": "workspace:*",
     "@types/js-cookie": "^3.0.6",
     "@types/node": "^20.14.0",
     "@types/react": "^19.0.7",
