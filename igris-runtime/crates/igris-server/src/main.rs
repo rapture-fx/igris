@@ -247,7 +247,7 @@ async fn health() -> &'static str {
 }
 
 /// Prometheus metrics endpoint
-async fn metrics(State(state): State<AppState>) -> Response {
+async fn metrics_handler(State(state): State<AppState>) -> Response {
     let body = state.metrics.render_prometheus();
     (
         StatusCode::OK,
@@ -1144,7 +1144,7 @@ async fn main() -> anyhow::Result<()> {
     // Build router
     let mut app = Router::new()
         .route("/v1/health", get(health))
-        .route("/metrics", get(metrics))
+        .route("/metrics", get(metrics_handler))
         .route("/v1/chat/completions", post(chat_completions))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(CorsLayer::permissive())
