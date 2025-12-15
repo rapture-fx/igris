@@ -1,6 +1,6 @@
 # Stage 1: static build (musl)
-# Updated to Rust 1.82 for edition2024 support (fixes base64ct dependency)
-FROM rust:1.82-alpine AS builder
+# Using latest Rust (1.83+) for edition2024 support (fixes base64ct dependency)
+FROM rust:alpine AS builder
 
 RUN apk add --no-cache musl-dev upx
 
