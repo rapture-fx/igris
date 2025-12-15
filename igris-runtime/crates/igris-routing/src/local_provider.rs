@@ -12,6 +12,28 @@ impl LocalProvider {
     pub fn new(adapter: LocalLLMProviderAdapter) -> Self {
         Self { adapter }
     }
+
+    /// Hot-swap the LoRA adapter used by the underlying local engine.
+    pub async fn load_lora_adapter(
+        &self,
+        adapter_path: Option<std::path::PathBuf>,
+    ) -> anyhow::Result<()> {
+        self.adapter.load_lora_adapter(adapter_path).await
+    }
+
+    /// Hot-swap the underlying local model without restarting the server.
+    pub async fn hot_swap(
+        &self,
+        new_model_path: std::path::PathBuf,
+        context_size: Option<u32>,
+        threads: Option<u32>,
+        n_gpu_layers: Option<u32>,
+        main_gpu: Option<Option<u32>>,
+    ) -> anyhow::Result<()> {
+        self.adapter
+            .hot_swap(new_model_path, context_size, threads, n_gpu_layers, main_gpu)
+            .await
+    }
 }
 
 impl Provider for LocalProvider {

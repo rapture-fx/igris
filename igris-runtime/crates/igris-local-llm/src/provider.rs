@@ -48,6 +48,25 @@ impl LocalLLMProviderAdapter {
         // Real streaming: forward stdout chunks from llama.cpp CLI.
         self.engine.stream(prompt).await
     }
+
+    /// Hot-swap the LoRA adapter used by the underlying local engine.
+    pub async fn load_lora_adapter(&self, adapter_path: Option<std::path::PathBuf>) -> anyhow::Result<()> {
+        self.engine.load_lora_adapter(adapter_path).await
+    }
+
+    /// Hot-swap the underlying local model without restarting.
+    pub async fn hot_swap(
+        &self,
+        new_model_path: std::path::PathBuf,
+        context_size: Option<u32>,
+        threads: Option<u32>,
+        n_gpu_layers: Option<u32>,
+        main_gpu: Option<Option<u32>>,
+    ) -> anyhow::Result<()> {
+        self.engine
+            .hot_swap(new_model_path, context_size, threads, n_gpu_layers, main_gpu)
+            .await
+    }
 }
 
 #[cfg(test)]

@@ -38,6 +38,7 @@ igris-mcp-client = { path = "../mcp-client" }
 igris-reflection = { path = "../igris-reflection" }
 igris-tools = { path = "../igris-tools" }
 igris-planning = { path = "../igris-planning" }
+igris-lora-trainer = { path = "../igris-lora-trainer" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

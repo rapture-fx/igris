@@ -63,6 +63,9 @@ impl ToolRegistry {
             .get(tool_name)
             .ok_or_else(|| anyhow::anyhow!("Tool not found: {}", tool_name))?;
 
+        // Enforce tool-level validation consistently (not only when a specific tool calls it).
+        tool.validate_args(&args).await?;
+
         tool.execute(args).await
     }
 

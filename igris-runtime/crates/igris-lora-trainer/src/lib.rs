@@ -2,7 +2,6 @@ pub mod config;
 pub mod storage;
 pub mod trainer;
 pub mod encryption;
-pub mod ffi;
 
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;

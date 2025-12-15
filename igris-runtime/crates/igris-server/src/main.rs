@@ -2,10 +2,13 @@ use axum::{
     extract::{Json, State},
     http::StatusCode,
     response::{IntoResponse, Response},
+    response::sse::{Event, KeepAlive, Sse},
     routing::{get, post},
     Router,
 };
+use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
@@ -38,6 +41,9 @@ use igris_tools::{ToolRegistry};
 use igris_tools::http::HttpTool;
 use igris_tools::shell::ShellTool;
 use igris_tools::filesystem::FileSystemTool;
+mod lora_training;
+use lora_training::LoraTrainingManager;
+use igris_lora_trainer::{LoRATrainingConfig, TrainingDataStore};
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -57,6 +63,7 @@ struct AppState {
     planning_config: Option<PlanningConfig>,
     swarm_config: Option<SwarmConfig>,
     swarm_peer_id: String,
+    lora_training: Option<Arc<LoraTrainingManager>>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -247,7 +254,7 @@ async fn health() -> &'static str {
 async fn chat_completions(
     State(state): State<AppState>,
     Json(req): Json<ChatCompletionRequest>,
-) -> Result<Json<ChatCompletionResponse>, ApiError> {
+) -> Result<Response, ApiError> {
     info!(
         "Chat completion request: model={}, messages={}, mode={:?}",
         req.model,
@@ -260,11 +267,6 @@ async fn chat_completions(
         return Err(ApiError::BadRequest("messages array cannot be empty".to_string()));
     }
 
-    // Check for streaming (not implemented yet)
-    if req.stream == Some(true) {
-        return Err(ApiError::NotImplemented("Streaming not yet implemented".to_string()));
-    }
-
     // Build prompt from messages
     let prompt = req
         .messages
@@ -274,6 +276,110 @@ async fn chat_completions(
         .join("\n");
 
     let est_prompt_tokens = (prompt.len() as u32) / 4;
+
+    // Streaming (SSE): only supported for base chat mode (no reflection/tools/planning/swarm).
+    if req.stream == Some(true) {
+        if req.mode.is_some() {
+            return Err(ApiError::NotImplemented(
+                "Streaming is currently only supported for base chat mode (omit `mode`)".to_string(),
+            ));
+        }
+
+        // 1) Try cloud providers first using speculative routing (stream winner).
+        if !state.cloud_providers.is_empty() {
+            let providers: Vec<CloudProviderWrapper> = state
+                .cloud_providers
+                .iter()
+                .take(3)
+                .map(|p| CloudProviderWrapper(p.clone()))
+                .collect();
+
+            match state.speculative_router.route_stream(&prompt, providers).await {
+                Ok(stream_result) => {
+                    let model = req.model.clone();
+                    let s = stream_result.stream.map(move |chunk| {
+                        let ev = match chunk {
+                            Ok(text) => {
+                                let payload = serde_json::json!({
+                                    "id": "chatcmpl-stream",
+                                    "object": "chat.completion.chunk",
+                                    "model": model.clone(),
+                                    "choices": [{
+                                        "index": 0,
+                                        "delta": { "content": text },
+                                        "finish_reason": null
+                                    }]
+                                });
+                                Event::default().data(payload.to_string())
+                            }
+                            Err(e) => {
+                                let payload = serde_json::json!({
+                                    "id": "chatcmpl-stream",
+                                    "object": "error",
+                                    "error": { "message": e.to_string(), "type": "stream_error" }
+                                });
+                                Event::default().data(payload.to_string())
+                            }
+                        };
+                        Ok::<Event, Infallible>(ev)
+                    });
+
+                    let done = futures::stream::once(async move {
+                        Ok::<Event, Infallible>(Event::default().data("[DONE]"))
+                    });
+
+                    let out = Sse::new(s.chain(done)).keep_alive(KeepAlive::default());
+                    return Ok(out.into_response());
+                }
+                Err(e) => {
+                    warn!("Cloud streaming failed, falling back to local if available: {}", e);
+                }
+            }
+        }
+
+        // 2) Fallback to local provider if available.
+        if let Some(local_provider) = &state.local_provider {
+            let model = "local".to_string();
+            let stream = local_provider.stream(&prompt).await?;
+            let s = stream.map(move |chunk| {
+                let ev = match chunk {
+                    Ok(text) => {
+                        let payload = serde_json::json!({
+                            "id": "chatcmpl-stream",
+                            "object": "chat.completion.chunk",
+                            "model": model.clone(),
+                            "choices": [{
+                                "index": 0,
+                                "delta": { "content": text },
+                                "finish_reason": null
+                            }]
+                        });
+                        Event::default().data(payload.to_string())
+                    }
+                    Err(e) => {
+                        let payload = serde_json::json!({
+                            "id": "chatcmpl-stream",
+                            "object": "error",
+                            "error": { "message": e.to_string(), "type": "stream_error" }
+                        });
+                        Event::default().data(payload.to_string())
+                    }
+                };
+                Ok::<Event, Infallible>(ev)
+            });
+
+            let done = futures::stream::once(async move {
+                Ok::<Event, Infallible>(Event::default().data("[DONE]"))
+            });
+
+            let out = Sse::new(s.chain(done)).keep_alive(KeepAlive::default());
+            return Ok(out.into_response());
+        }
+
+        return Err(ApiError::InternalError(
+            "Streaming requested but no providers are available".to_string(),
+        ));
+    }
 
     // Reflection mode (Phase 2): generate -> critique -> regenerate loops with real LLM calls.
     let reflection_enabled_by_config = state
@@ -305,6 +411,7 @@ async fn chat_completions(
 
         let agent = ReflectionAgent::new(reflection_cfg, provider);
         let result = agent.reflect(&prompt).await?;
+        let final_response_text = result.final_response.clone();
         let est_completion_tokens = (result.final_response.len() as u32) / 4;
 
         let response = ChatCompletionResponse {
@@ -319,7 +426,7 @@ async fn chat_completions(
                 index: 0,
                 message: ChatMessage {
                     role: "assistant".to_string(),
-                    content: result.final_response,
+                    content: final_response_text.clone(),
                 },
                 finish_reason: "stop".to_string(),
             }],
@@ -330,7 +437,12 @@ async fn chat_completions(
             },
         };
 
-        return Ok(Json(response));
+        if let Some(mgr) = &state.lora_training {
+            let _ = mgr.record_example(prompt.clone(), final_response_text, "reflection".to_string());
+            let _ = mgr.maybe_trigger_background_training().await;
+        }
+
+        return Ok(Json(response).into_response());
     }
 
     // Tool mode (Phase 3): LLM-driven tool calling loop.
@@ -375,7 +487,7 @@ async fn chat_completions(
                 index: 0,
                 message: ChatMessage {
                     role: "assistant".to_string(),
-                    content: final_text,
+                    content: final_text.clone(),
                 },
                 finish_reason: "stop".to_string(),
             }],
@@ -386,7 +498,12 @@ async fn chat_completions(
             },
         };
 
-        return Ok(Json(response));
+        if let Some(mgr) = &state.lora_training {
+            let _ = mgr.record_example(prompt.clone(), final_text, "tools".to_string());
+            let _ = mgr.maybe_trigger_background_training().await;
+        }
+
+        return Ok(Json(response).into_response());
     }
 
     // Planning mode (Phase 4): Plan -> Act -> Observe -> Reflect with optional tools.
@@ -417,6 +534,7 @@ async fn chat_completions(
 
         let agent = PlanningAgent::with_provider(cfg, provider, registry);
         let result = agent.execute_plan(&prompt).await?;
+        let final_answer_text = result.final_answer.clone();
         let est_completion_tokens = (result.final_answer.len() as u32) / 4;
 
         let response = ChatCompletionResponse {
@@ -431,7 +549,7 @@ async fn chat_completions(
                 index: 0,
                 message: ChatMessage {
                     role: "assistant".to_string(),
-                    content: result.final_answer,
+                    content: final_answer_text.clone(),
                 },
                 finish_reason: "stop".to_string(),
             }],
@@ -442,7 +560,12 @@ async fn chat_completions(
             },
         };
 
-        return Ok(Json(response));
+        if let Some(mgr) = &state.lora_training {
+            let _ = mgr.record_example(prompt.clone(), final_answer_text, "planning".to_string());
+            let _ = mgr.maybe_trigger_background_training().await;
+        }
+
+        return Ok(Json(response).into_response());
     }
 
     // Swarm mode (Phase 5): spawn multiple role agents, store to MCP context, synthesize.
@@ -460,6 +583,9 @@ async fn chat_completions(
             size: 10,
             max_concurrent: 4,
             agent_timeout_ms: 60_000,
+            dynamic_roles: false,
+            enable_bus: false,
+            consensus_candidates: 1,
         });
 
         let provider: Arc<dyn ReflectionLLMProvider> = if let Some(local) = &state.local_provider {
@@ -499,7 +625,7 @@ async fn chat_completions(
                 index: 0,
                 message: ChatMessage {
                     role: "assistant".to_string(),
-                    content: final_text,
+                    content: final_text.clone(),
                 },
                 finish_reason: "stop".to_string(),
             }],
@@ -510,12 +636,17 @@ async fn chat_completions(
             },
         };
 
-        return Ok(Json(response));
+        if let Some(mgr) = &state.lora_training {
+            let _ = mgr.record_example(prompt.clone(), final_text, "swarm".to_string());
+            let _ = mgr.maybe_trigger_background_training().await;
+        }
+
+        return Ok(Json(response).into_response());
     }
 
     // Try cloud providers first using speculative routing
     let mut response_text = None;
-    let mut used_provider = "unknown";
+    let mut used_provider = "unknown".to_string();
     let mut used_local_fallback = false;
 
     if !state.cloud_providers.is_empty() {
@@ -535,7 +666,7 @@ async fn chat_completions(
                 result.winner_id, result.total_latency_ms
             );
             response_text = Some(result.response);
-            used_provider = &result.winner_id;
+            used_provider = result.winner_id;
         } else {
             warn!("All cloud providers failed or timed out");
         }
@@ -551,7 +682,7 @@ async fn chat_completions(
                 Ok(result) => {
                     info!("Local LLM succeeded");
                     response_text = Some(result);
-                    used_provider = local_provider.id();
+                    used_provider = local_provider.id().to_string();
                 }
                 Err(e) => {
                     error!("Local LLM also failed: {}", e);
@@ -568,6 +699,7 @@ async fn chat_completions(
     let response_text = response_text.ok_or_else(|| {
         ApiError::InternalError("All providers unavailable".to_string())
     })?;
+    let response_text_for_record = response_text.clone();
 
     let completion_tokens_est = (response_text.len() as u32) / 4;
     let response = ChatCompletionResponse {
@@ -597,7 +729,12 @@ async fn chat_completions(
         },
     };
 
-    Ok(Json(response))
+    if let Some(mgr) = &state.lora_training {
+        let _ = mgr.record_example(prompt.clone(), response_text_for_record, used_provider.clone());
+        let _ = mgr.maybe_trigger_background_training().await;
+    }
+
+    Ok(Json(response).into_response())
 }
 
 // Wrapper to allow CloudProvider to be cloned in Box<dyn Provider>
@@ -681,6 +818,9 @@ async fn main() -> anyhow::Result<()> {
                 selected_model: None,
                 model_path: local_config.model_path.clone(),
                 lora_adapter_path: local_config.lora_adapter_path.clone(),
+                n_gpu_layers: local_config.n_gpu_layers,
+                main_gpu: local_config.main_gpu,
+                prompt_cache_dir: local_config.prompt_cache_dir.clone(),
                 context_size: local_config.context_size,
                 threads: local_config.threads,
                 max_tokens: local_config.max_tokens,
@@ -768,6 +908,61 @@ async fn main() -> anyhow::Result<()> {
         .map(|t| t.max_concurrent_executions)
         .unwrap_or(5);
 
+    // LoRA training (Phase 3): record conversations + background fine-tuning + hot-load adapter.
+    let lora_training: Option<Arc<LoraTrainingManager>> = config.lora_training.as_ref().and_then(|lc| {
+        if !lc.enabled {
+            return None;
+        }
+        let Some(local_cfg) = config.local_fallback.as_ref() else {
+            warn!("LoRA training enabled but local_fallback is missing; disabling LoRA training");
+            return None;
+        };
+        if !local_cfg.enabled {
+            warn!("LoRA training enabled but local_fallback.enabled=false; disabling LoRA training");
+            return None;
+        }
+
+        let store_path = std::path::PathBuf::from(&lc.adapter_dir).join("training.db");
+        let store = match TrainingDataStore::open(&store_path) {
+            Ok(s) => s,
+            Err(e) => {
+                warn!("Failed to open LoRA training store at {}: {}", store_path.display(), e);
+                return None;
+            }
+        };
+
+        let cfg = LoRATrainingConfig {
+            enabled: lc.enabled,
+            trigger_threshold: lc.trigger_threshold,
+            max_adapter_size_mb: lc.max_adapter_size_mb,
+            lora_rank: lc.lora_rank,
+            lora_alpha: lc.lora_alpha,
+            epochs: lc.epochs,
+            batch_size: lc.batch_size,
+            learning_rate: lc.learning_rate,
+            adapter_dir: lc.adapter_dir.clone(),
+            encrypt_adapters: lc.encrypt_adapters,
+            auto_load_adapter: lc.auto_load_adapter,
+            max_training_time_secs: lc.max_training_time_secs,
+            training_threads: lc.training_threads,
+        };
+
+        let manager = LoraTrainingManager::new(
+            cfg,
+            store,
+            std::path::PathBuf::from("llama.cpp"),
+            local_cfg.model_path.clone(),
+            local_provider.clone(),
+        );
+        Some(Arc::new(manager))
+    });
+
+    if let Some(mgr) = &lora_training {
+        if let Err(e) = mgr.maybe_auto_load_latest().await {
+            warn!("Failed to auto-load latest LoRA adapter: {}", e);
+        }
+    }
+
     // Planning config (optional)
     let planning_config = config.planning.as_ref().map(|p| PlanningConfig {
         max_steps: p.max_steps,
@@ -782,6 +977,9 @@ async fn main() -> anyhow::Result<()> {
         size: s.size,
         max_concurrent: s.max_concurrent,
         agent_timeout_ms: s.agent_timeout_ms,
+        dynamic_roles: s.dynamic_roles,
+        enable_bus: s.enable_bus,
+        consensus_candidates: s.consensus_candidates,
     });
     let swarm_peer_id = config
         .mcp
@@ -879,6 +1077,7 @@ async fn main() -> anyhow::Result<()> {
         planning_config,
         swarm_config,
         swarm_peer_id,
+        lora_training,
     };
 
     // Build router

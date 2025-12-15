@@ -3,7 +3,9 @@ pub mod provider;
 pub mod inference;
 
 use anyhow::Result;
+use base64::Engine;
 use futures::Stream;
+use sha2::{Digest, Sha256};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::pin::Pin;
@@ -33,6 +35,19 @@ pub struct LocalLLMConfig {
     /// Optional LoRA adapter path (for fine-tuned models)
     #[serde(default)]
     pub lora_adapter_path: Option<String>,
+
+    /// Number of GPU layers to offload (llama.cpp `-ngl` / `--n-gpu-layers`).
+    /// Default 0 keeps CPU-only behavior for backward compatibility.
+    #[serde(default)]
+    pub n_gpu_layers: u32,
+
+    /// Optional main GPU index (llama.cpp `--main-gpu`).
+    #[serde(default)]
+    pub main_gpu: Option<u32>,
+
+    /// Optional directory for llama.cpp prompt-cache files (enables context caching between identical prompts).
+    #[serde(default)]
+    pub prompt_cache_dir: Option<String>,
 
     /// Context size (default: auto-detected from selected_model or 4096)
     #[serde(default = "default_context_size")]
@@ -112,6 +127,9 @@ impl Default for LocalLLMConfig {
             selected_model: None, // Use model_path for backward compatibility
             model_path: "models/phi-3-mini-4k-instruct-q4.gguf".to_string(),
             lora_adapter_path: None,
+            n_gpu_layers: 0,
+            main_gpu: None,
+            prompt_cache_dir: None,
             context_size: 4096,
             threads: 4,
             max_tokens: 512,
@@ -128,7 +146,7 @@ impl Default for LocalLLMConfig {
 /// Without feature: falls back to stub for development.
 pub struct LocalLLMProvider {
     config: Arc<Mutex<LocalLLMConfig>>,
-    model_path: PathBuf,
+    model_path: Arc<Mutex<PathBuf>>,
     current_adapter: Arc<Mutex<Option<PathBuf>>>,
     // Real inference engine (lazy loaded)
     engine: Arc<Mutex<Option<RealInferenceEngine>>>,
@@ -173,10 +191,61 @@ impl LocalLLMProvider {
 
         Ok(Self {
             config: Arc::new(Mutex::new(config)),
-            model_path,
+            model_path: Arc::new(Mutex::new(model_path)),
             current_adapter: Arc::new(Mutex::new(adapter_path)),
             engine: Arc::new(Mutex::new(None)), // Lazy load on first generate()
         })
+    }
+
+    /// Hot-swap the base model and/or core inference parameters without restarting.
+    ///
+    /// Implementation detail: we update config + model path and clear the lazy-loaded engine;
+    /// the next call will load the new model with the updated settings.
+    pub async fn hot_swap(
+        &self,
+        new_model_path: PathBuf,
+        context_size: Option<u32>,
+        threads: Option<u32>,
+        n_gpu_layers: Option<u32>,
+        main_gpu: Option<Option<u32>>,
+    ) -> Result<()> {
+        if !new_model_path.exists() {
+            anyhow::bail!("Model file not found: {}", new_model_path.display());
+        }
+
+        // Update config first so future load uses the new params.
+        {
+            let mut cfg = self.config.lock().await;
+            cfg.selected_model = None; // explicit override
+            cfg.model_path = new_model_path.display().to_string();
+            if let Some(cs) = context_size {
+                cfg.context_size = cs;
+            }
+            if let Some(t) = threads {
+                cfg.threads = t;
+            }
+            if let Some(ngl) = n_gpu_layers {
+                cfg.n_gpu_layers = ngl;
+            }
+            if let Some(mg) = main_gpu {
+                cfg.main_gpu = mg;
+            }
+        }
+
+        // Swap the model path used by the loader.
+        {
+            let mut mp = self.model_path.lock().await;
+            *mp = new_model_path;
+        }
+
+        // Clear engine so it reloads on next request.
+        {
+            let mut eng = self.engine.lock().await;
+            *eng = None;
+        }
+
+        info!("Local LLM hot-swap staged successfully (reload on next request)");
+        Ok(())
     }
 
     /// Generate completion for a prompt
@@ -191,12 +260,19 @@ impl LocalLLMProvider {
 
         // Lazy load model on first generation
         if engine.is_none() {
-            info!("Lazy loading model: {}", self.model_path.display());
+            let model_path = self.model_path.lock().await.clone();
+            info!("Lazy loading model: {}", model_path.display());
 
             let resolved_context = config.resolve_context_size();
             let threads = config.threads;
 
-            match RealInferenceEngine::load(&self.model_path, resolved_context, threads) {
+            match RealInferenceEngine::load(
+                &model_path,
+                resolved_context,
+                threads,
+                config.n_gpu_layers,
+                config.main_gpu,
+            ) {
                 Ok(loaded_engine) => {
                     info!("Model loaded successfully");
                     *engine = Some(loaded_engine);
@@ -213,13 +289,79 @@ impl LocalLLMProvider {
         let model_name = config.model_display_name();
         let max_tokens = config.max_tokens;
         let temperature = config.temperature;
+        let adapter_path = self.current_adapter.lock().await.clone();
+        let n_ctx = config.resolve_context_size();
+        let prompt_cache_dir = config.prompt_cache_dir.clone();
 
         drop(config); // Release lock before potentially long inference
 
         if let Some(ref real_engine) = *engine {
+            // Context window management: only do the expensive accurate token count if we might overflow.
+            let est_tokens = (prompt.len() as u32) / 4;
+            let prompt_to_use = if est_tokens.saturating_add(max_tokens) > n_ctx {
+                // Accurate count + truncate from the left if needed (keep most recent suffix).
+                let mut best = prompt;
+
+                // Hard limit for prompt tokens.
+                let max_prompt_tokens = n_ctx.saturating_sub(max_tokens);
+                if max_prompt_tokens == 0 {
+                    anyhow::bail!("Context too small: n_ctx={} max_tokens={}", n_ctx, max_tokens);
+                }
+
+                // If full prompt already fits, use it.
+                let full_tokens = real_engine.count_tokens(prompt).await?;
+                if full_tokens <= max_prompt_tokens {
+                    prompt
+                } else {
+                    // Binary search on a char boundary start index for the smallest prefix to drop.
+                    // We search the start offset that makes the suffix fit.
+                    let chars: Vec<usize> = prompt.char_indices().map(|(i, _)| i).chain(std::iter::once(prompt.len())).collect();
+                    let mut lo = 0usize;
+                    let mut hi = chars.len().saturating_sub(1);
+                    while lo <= hi {
+                        let mid = (lo + hi) / 2;
+                        let start = chars[mid];
+                        let candidate = &prompt[start..];
+                        let toks = real_engine.count_tokens(candidate).await?;
+                        if toks <= max_prompt_tokens {
+                            best = candidate;
+                            // Try to drop less.
+                            if mid == 0 {
+                                break;
+                            }
+                            hi = mid.saturating_sub(1);
+                        } else {
+                            lo = mid + 1;
+                        }
+                    }
+                    best
+                }
+            } else {
+                prompt
+            };
+
+            let prompt_cache = prompt_cache_dir.as_ref().map(|dir| {
+                let _ = std::fs::create_dir_all(dir);
+                let mut h = Sha256::new();
+                h.update(prompt_to_use.as_bytes());
+                if let Some(ref ap) = adapter_path {
+                    h.update(ap.to_string_lossy().as_bytes());
+                }
+                let digest = h.finalize();
+                let name = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&digest[..12]);
+                PathBuf::from(dir).join(format!("prompt-cache-{}.bin", name))
+            });
+
             info!("Generating with local inference engine (model={})", model_name);
             let result = real_engine
-                .generate(prompt, max_tokens, temperature, 0.95)
+                .generate(
+                    prompt_to_use,
+                    max_tokens,
+                    temperature,
+                    0.95,
+                    adapter_path,
+                    prompt_cache,
+                )
                 .await?;
             Ok(result)
         } else {
@@ -236,15 +378,25 @@ impl LocalLLMProvider {
         let mut engine = self.engine.lock().await;
 
         if engine.is_none() {
-            info!("Lazy loading model for streaming: {}", self.model_path.display());
+            let model_path = self.model_path.lock().await.clone();
+            info!("Lazy loading model for streaming: {}", model_path.display());
             let resolved_context = config.resolve_context_size();
             let threads = config.threads;
-            let loaded_engine = RealInferenceEngine::load(&self.model_path, resolved_context, threads)?;
+            let loaded_engine = RealInferenceEngine::load(
+                &model_path,
+                resolved_context,
+                threads,
+                config.n_gpu_layers,
+                config.main_gpu,
+            )?;
             *engine = Some(loaded_engine);
         }
 
         let max_tokens = config.max_tokens;
         let temperature = config.temperature;
+        let adapter_path = self.current_adapter.lock().await.clone();
+        let n_ctx = config.resolve_context_size();
+        let prompt_cache_dir = config.prompt_cache_dir.clone();
         drop(config);
 
         let real_engine = engine
@@ -252,8 +404,69 @@ impl LocalLLMProvider {
             .ok_or_else(|| anyhow::anyhow!("Inference engine not initialized"))?
             .clone();
 
+        // Context window management (streaming): same policy as non-streaming.
+        let est_tokens = (prompt.len() as u32) / 4;
+        let prompt_to_use = if est_tokens.saturating_add(max_tokens) > n_ctx {
+            let max_prompt_tokens = n_ctx.saturating_sub(max_tokens);
+            if max_prompt_tokens == 0 {
+                anyhow::bail!("Context too small: n_ctx={} max_tokens={}", n_ctx, max_tokens);
+            }
+            let full_tokens = real_engine.count_tokens(prompt).await?;
+            if full_tokens <= max_prompt_tokens {
+                prompt
+            } else {
+                let mut best = prompt;
+                let chars: Vec<usize> = prompt
+                    .char_indices()
+                    .map(|(i, _)| i)
+                    .chain(std::iter::once(prompt.len()))
+                    .collect();
+                let mut lo = 0usize;
+                let mut hi = chars.len().saturating_sub(1);
+                while lo <= hi {
+                    let mid = (lo + hi) / 2;
+                    let start = chars[mid];
+                    let candidate = &prompt[start..];
+                    let toks = real_engine.count_tokens(candidate).await?;
+                    if toks <= max_prompt_tokens {
+                        best = candidate;
+                        if mid == 0 {
+                            break;
+                        }
+                        hi = mid.saturating_sub(1);
+                    } else {
+                        lo = mid + 1;
+                    }
+                }
+                best
+            }
+        } else {
+            prompt
+        };
+
+        let prompt_cache = prompt_cache_dir.as_ref().map(|dir| {
+            let _ = std::fs::create_dir_all(dir);
+            let mut h = Sha256::new();
+            h.update(prompt_to_use.as_bytes());
+            if let Some(ref ap) = adapter_path {
+                h.update(ap.to_string_lossy().as_bytes());
+            }
+            let digest = h.finalize();
+            let name = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&digest[..12]);
+            PathBuf::from(dir).join(format!("prompt-cache-{}.bin", name))
+        });
+
         // Engine streaming is async; return its stream directly.
-        real_engine.stream_generate(prompt, max_tokens, temperature, 0.95).await
+        real_engine
+            .stream_generate(
+                prompt_to_use,
+                max_tokens,
+                temperature,
+                0.95,
+                adapter_path,
+                prompt_cache,
+            )
+            .await
     }
 
     /// Hot-swap LoRA adapter at runtime
