@@ -1,10 +1,32 @@
 use anyhow::Result;
-use igris_lora_trainer::{LoRATrainer, LoRATrainingConfig, TrainingDataStore, TrainingExample};
+use igris_lora_trainer::{LoRATrainer, LoRATrainingConfig, TrainingDataStore, TrainingExample, TrainingResult, TrainingStatus};
 use igris_routing::local_provider::LocalProvider;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::sync::Semaphore;
+use tokio::sync::RwLock;
 use tracing::{info, warn};
+
+#[derive(Debug, Clone)]
+pub struct LoraTrainingStatusSnapshot {
+    pub status: TrainingStatus,
+    pub last_started_at: Option<u64>,
+    pub last_finished_at: Option<u64>,
+    pub last_error: Option<String>,
+    pub last_result: Option<TrainingResult>,
+    pub total_examples: usize,
+    pub request_counter: u64,
+    pub should_trigger: bool,
+}
+
+#[derive(Debug, Clone)]
+struct RuntimeTrainingState {
+    status: TrainingStatus,
+    last_started_at: Option<u64>,
+    last_finished_at: Option<u64>,
+    last_error: Option<String>,
+    last_result: Option<TrainingResult>,
+}
 
 pub struct LoraTrainingManager {
     base_model_path: String,
@@ -13,6 +35,7 @@ pub struct LoraTrainingManager {
     max_training_lock: Arc<Semaphore>,
     auto_load: bool,
     local_provider: Option<Arc<LocalProvider>>,
+    state: Arc<RwLock<RuntimeTrainingState>>,
 }
 
 impl LoraTrainingManager {
@@ -32,6 +55,13 @@ impl LoraTrainingManager {
             max_training_lock: Arc::new(Semaphore::new(1)),
             auto_load,
             local_provider,
+            state: Arc::new(RwLock::new(RuntimeTrainingState {
+                status: TrainingStatus::Idle,
+                last_started_at: None,
+                last_finished_at: None,
+                last_error: None,
+                last_result: None,
+            })),
         }
     }
 
@@ -47,6 +77,23 @@ impl LoraTrainingManager {
             local.load_lora_adapter(Some(path)).await?;
         }
         Ok(())
+    }
+
+    pub async fn status_snapshot(&self) -> Result<LoraTrainingStatusSnapshot> {
+        let state = self.state.read().await.clone();
+        let total_examples = self.store.get_total_examples()?;
+        let request_counter = self.store.get_request_counter()?;
+        let should_trigger = self.trainer.should_trigger_training().await.unwrap_or(false);
+        Ok(LoraTrainingStatusSnapshot {
+            status: state.status,
+            last_started_at: state.last_started_at,
+            last_finished_at: state.last_finished_at,
+            last_error: state.last_error,
+            last_result: state.last_result,
+            total_examples,
+            request_counter,
+            should_trigger,
+        })
     }
 
     pub fn record_example(&self, prompt: String, completion: String, model_used: String) -> Result<()> {
@@ -82,9 +129,21 @@ impl LoraTrainingManager {
         let base_model_path = self.base_model_path.clone();
         let local = self.local_provider.clone();
         let auto_load = self.auto_load;
+        let state = self.state.clone();
 
         tokio::spawn(async move {
             let _permit = permit;
+            let now = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs();
+            {
+                let mut st = state.write().await;
+                st.status = TrainingStatus::Training;
+                st.last_started_at = Some(now);
+                st.last_error = None;
+            }
+
             match trainer.train(&base_model_path).await {
                 Ok(res) => {
                     info!(
@@ -94,6 +153,17 @@ impl LoraTrainingManager {
                         res.training_time_secs,
                         res.encrypted_adapter_path.is_some()
                     );
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs();
+                    {
+                        let mut st = state.write().await;
+                        st.status = res.status;
+                        st.last_finished_at = Some(now);
+                        st.last_result = Some(res.clone());
+                        st.last_error = None;
+                    }
 
                     if auto_load {
                         if let Some(local) = &local {
@@ -109,7 +179,17 @@ impl LoraTrainingManager {
                         }
                     }
                 }
-                Err(e) => warn!("LoRA training failed: {}", e),
+                Err(e) => {
+                    warn!("LoRA training failed: {}", e);
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs();
+                    let mut st = state.write().await;
+                    st.status = TrainingStatus::Failed;
+                    st.last_finished_at = Some(now);
+                    st.last_error = Some(e.to_string());
+                }
             }
         });
 

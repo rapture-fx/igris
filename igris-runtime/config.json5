@@ -24,6 +24,16 @@
 
     lora_adapter_path: null,  // Optional: path to LoRA adapter (set automatically by training)
 
+    // GPU offload (llama.cpp, optional)
+    n_gpu_layers: 0,
+    main_gpu: null,
+
+    // Prompt/KV caching (optional)
+    prompt_cache_dir: "prompt_cache",
+
+    // Batch size tuning (optional, llama.cpp --batch-size)
+    batch_size: null,
+
     // Auto-detected from selected_model if not specified (Qwen3-8B default: 8192)
     context_size: 4096,
 
@@ -103,6 +113,10 @@
 
   // Authentication
   auth: {
-    api_key: "igris-dev-key-change-in-production"
+    enabled: false,
+    api_key: "igris-dev-key-change-in-production",
+    jwt_hs256_secret: null,
+    rate_limit_per_minute: 0,
+    rate_limit_burst: 0
   }
 }

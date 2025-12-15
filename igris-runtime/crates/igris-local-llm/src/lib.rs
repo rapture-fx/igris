@@ -49,6 +49,10 @@ pub struct LocalLLMConfig {
     #[serde(default)]
     pub prompt_cache_dir: Option<String>,
 
+    /// Optional llama.cpp batch size (`--batch-size`).
+    #[serde(default)]
+    pub batch_size: Option<u32>,
+
     /// Context size (default: auto-detected from selected_model or 4096)
     #[serde(default = "default_context_size")]
     pub context_size: u32,
@@ -130,6 +134,7 @@ impl Default for LocalLLMConfig {
             n_gpu_layers: 0,
             main_gpu: None,
             prompt_cache_dir: None,
+            batch_size: None,
             context_size: 4096,
             threads: 4,
             max_tokens: 512,
@@ -272,6 +277,7 @@ impl LocalLLMProvider {
                 threads,
                 config.n_gpu_layers,
                 config.main_gpu,
+                config.batch_size,
             ) {
                 Ok(loaded_engine) => {
                     info!("Model loaded successfully");
@@ -340,10 +346,16 @@ impl LocalLLMProvider {
                 prompt
             };
 
+            // Stable prompt-cache keying to enable KV reuse as chat prompts grow.
+            // We key on: model path + adapter path + prompt *prefix* (first 4096 bytes).
+            let model_path_for_hash = self.model_path.lock().await.clone();
+            let model_path_for_hash = model_path_for_hash.to_string_lossy().to_string();
             let prompt_cache = prompt_cache_dir.as_ref().map(|dir| {
                 let _ = std::fs::create_dir_all(dir);
                 let mut h = Sha256::new();
-                h.update(prompt_to_use.as_bytes());
+                h.update(model_path_for_hash.as_bytes());
+                let prefix_len = prompt_to_use.len().min(4096);
+                h.update(&prompt_to_use.as_bytes()[..prefix_len]);
                 if let Some(ref ap) = adapter_path {
                     h.update(ap.to_string_lossy().as_bytes());
                 }
@@ -388,6 +400,7 @@ impl LocalLLMProvider {
                 threads,
                 config.n_gpu_layers,
                 config.main_gpu,
+                config.batch_size,
             )?;
             *engine = Some(loaded_engine);
         }
@@ -444,10 +457,14 @@ impl LocalLLMProvider {
             prompt
         };
 
+        let model_path_for_hash = self.model_path.lock().await.clone();
+        let model_path_for_hash = model_path_for_hash.to_string_lossy().to_string();
         let prompt_cache = prompt_cache_dir.as_ref().map(|dir| {
             let _ = std::fs::create_dir_all(dir);
             let mut h = Sha256::new();
-            h.update(prompt_to_use.as_bytes());
+            h.update(model_path_for_hash.as_bytes());
+            let prefix_len = prompt_to_use.len().min(4096);
+            h.update(&prompt_to_use.as_bytes()[..prefix_len]);
             if let Some(ref ap) = adapter_path {
                 h.update(ap.to_string_lossy().as_bytes());
             }

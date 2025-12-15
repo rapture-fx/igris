@@ -50,6 +50,8 @@ struct LlamaCliCapabilities {
     supports_main_gpu: bool,
     supports_lora: bool,
     supports_prompt_cache: bool,
+    supports_prompt_cache_all: bool,
+    supports_batch_size: bool,
 }
 
 fn detect_llama_cli_capabilities(llama_cli_path: &Path) -> Result<LlamaCliCapabilities> {
@@ -76,12 +78,16 @@ fn detect_llama_cli_capabilities(llama_cli_path: &Path) -> Result<LlamaCliCapabi
     let supports_main_gpu = text.contains("--main-gpu");
     let supports_lora = text.contains("--lora");
     let supports_prompt_cache = text.contains("--prompt-cache");
+    let supports_prompt_cache_all = text.contains("--prompt-cache-all");
+    let supports_batch_size = text.contains("--batch-size");
 
     Ok(LlamaCliCapabilities {
         gpu_layers_flag,
         supports_main_gpu,
         supports_lora,
         supports_prompt_cache,
+        supports_prompt_cache_all,
+        supports_batch_size,
     })
 }
 
@@ -95,6 +101,7 @@ pub struct RealInferenceEngine {
     n_threads: u32,
     n_gpu_layers: u32,
     main_gpu: Option<u32>,
+    batch_size: Option<u32>,
     caps: Arc<LlamaCliCapabilities>,
 }
 
@@ -108,6 +115,7 @@ impl RealInferenceEngine {
         n_threads: u32,
         n_gpu_layers: u32,
         main_gpu: Option<u32>,
+        batch_size: Option<u32>,
     ) -> Result<Self> {
         if !model_path.exists() {
             anyhow::bail!("GGUF model file not found: {}", model_path.display());
@@ -161,6 +169,7 @@ impl RealInferenceEngine {
             n_threads,
             n_gpu_layers,
             main_gpu,
+            batch_size,
             caps: Arc::new(caps),
         })
     }
@@ -216,6 +225,23 @@ impl RealInferenceEngine {
                 );
             }
             cmd.arg("--prompt-cache").arg(cache_path);
+            if self.caps.supports_prompt_cache_all {
+                cmd.arg("--prompt-cache-all");
+            }
+        }
+        Ok(())
+    }
+
+    fn apply_optional_batch_args(&self, cmd: &mut Command) -> Result<()> {
+        if let Some(bs) = self.batch_size {
+            if !self.caps.supports_batch_size {
+                anyhow::bail!(
+                    "batch_size was set ({}), but {} does not advertise --batch-size support. Rebuild/upgrade llama.cpp or unset batch_size.",
+                    bs,
+                    self.llama_cli_path.display()
+                );
+            }
+            cmd.arg("--batch-size").arg(bs.to_string());
         }
         Ok(())
     }
@@ -334,6 +360,7 @@ impl RealInferenceEngine {
         self.apply_optional_gpu_args(&mut cmd);
         self.apply_optional_lora_args(&mut cmd, lora_adapter.as_deref())?;
         self.apply_optional_prompt_cache_args(&mut cmd, prompt_cache.as_deref())?;
+        self.apply_optional_batch_args(&mut cmd)?;
 
         let mut child = cmd
             .spawn()
@@ -415,6 +442,7 @@ impl RealInferenceEngine {
         self.apply_optional_gpu_args(&mut cmd);
         self.apply_optional_lora_args(&mut cmd, lora_adapter.as_deref())?;
         self.apply_optional_prompt_cache_args(&mut cmd, prompt_cache.as_deref())?;
+        self.apply_optional_batch_args(&mut cmd)?;
 
         let mut child = cmd
             .spawn()
@@ -497,7 +525,7 @@ mod tests {
 
     #[test]
     fn load_fails_if_model_missing() {
-        let engine = RealInferenceEngine::load(Path::new("does-not-exist.gguf"), 4096, 4, 0, None);
+        let engine = RealInferenceEngine::load(Path::new("does-not-exist.gguf"), 4096, 4, 0, None, None);
         assert!(engine.is_err());
     }
 }
