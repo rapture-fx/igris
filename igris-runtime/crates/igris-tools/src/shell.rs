@@ -108,18 +108,18 @@ impl Tool for ShellTool {
             parts[1..].iter().map(|s| s.to_string()).collect()
         };
 
-        let mut command = Command::new(cmd);
-        command
+        let mut tokio_cmd = Command::new(cmd);
+        tokio_cmd
             .args(&cmd_args)
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());
 
         if let Some(working_dir) = args["working_dir"].as_str() {
-            command.current_dir(working_dir);
+            tokio_cmd.current_dir(working_dir);
         }
 
         // Execute with timeout
-        let output_future = command.output();
+        let output_future = tokio_cmd.output();
         let timeout = tokio::time::timeout(std::time::Duration::from_secs(30), output_future).await;
 
         match timeout {
