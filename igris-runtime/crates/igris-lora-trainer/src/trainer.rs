@@ -9,6 +9,57 @@ use tokio::fs;
 use tokio::process::Command;
 use tracing::{error, info, warn};
 
+#[derive(Debug, Clone, Copy)]
+enum FinetuneOutMode {
+    /// llama-finetune can directly write a LoRA adapter artifact.
+    LoraOut,
+}
+
+#[derive(Debug, Clone)]
+struct FinetuneCaps {
+    out_mode: FinetuneOutMode,
+    /// Flag name used to specify the LoRA adapter output path.
+    lora_out_flag: &'static str,
+}
+
+async fn detect_finetune_caps(finetune_bin: &Path) -> Result<FinetuneCaps> {
+    let output = Command::new(finetune_bin)
+        .arg("--help")
+        .output()
+        .await
+        .context("Failed to run llama-finetune --help")?;
+
+    let mut text = String::new();
+    text.push_str(&String::from_utf8_lossy(&output.stdout));
+    text.push_str(&String::from_utf8_lossy(&output.stderr));
+
+    // We only accept modes where llama.cpp can output a LoRA adapter artifact directly.
+    // This avoids any fake/stub outputs and avoids relying on undocumented export steps.
+    //
+    // Known variants across llama.cpp versions:
+    // - --lora-out <path>
+    // - --lora-out-dir <dir> (less common)
+    // - --save-lora <path> (rare)
+    if text.contains("--lora-out") {
+        return Ok(FinetuneCaps {
+            out_mode: FinetuneOutMode::LoraOut,
+            lora_out_flag: "--lora-out",
+        });
+    }
+    if text.contains("--save-lora") {
+        return Ok(FinetuneCaps {
+            out_mode: FinetuneOutMode::LoraOut,
+            lora_out_flag: "--save-lora",
+        });
+    }
+
+    anyhow::bail!(
+        "llama-finetune at {} does not advertise a LoRA adapter output flag (e.g. --lora-out). \
+         Rebuild/upgrade llama.cpp with finetune+LoRA output support.",
+        finetune_bin.display()
+    );
+}
+
 /// LoRA trainer using llama.cpp's fine-tuning capabilities
 pub struct LoRATrainer {
     config: LoRATrainingConfig,
@@ -113,28 +164,31 @@ impl LoRATrainer {
 
         let adapter_path = adapter_dir.join(format!("lora_adapter_{}.gguf", timestamp));
 
-        // Build llama-finetune command
-        // Note: llama.cpp's finetune tool outputs a full fine-tuned model, not just a LoRA adapter
-        // For true LoRA-only output, we'd need to modify llama.cpp or use export-lora
-        // For now, we'll use a simplified approach: run finetune with LoRA params
         let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
 
         if !finetune_bin.exists() {
-            warn!(
-                "llama-finetune binary not found at {:?}, falling back to stub",
-                finetune_bin
+            anyhow::bail!(
+                "llama-finetune binary not found at {}. Build llama.cpp (training tools) first.",
+                finetune_bin.display()
             );
-            return self.create_stub_adapter(&adapter_path).await;
         }
+
+        let caps = detect_finetune_caps(&finetune_bin).await?;
 
         // Build command arguments
         let mut cmd = Command::new(&finetune_bin);
         cmd.arg("--model")
             .arg(base_model_path)
             .arg("--file")
-            .arg(&training_data_path)
-            .arg("--output")
-            .arg(&adapter_path)
+            .arg(&training_data_path);
+
+        match caps.out_mode {
+            FinetuneOutMode::LoraOut => {
+                cmd.arg(caps.lora_out_flag).arg(&adapter_path);
+            }
+        }
+
+        cmd
             .arg("--epochs")
             .arg(self.config.epochs.to_string())
             .arg("--batch")
@@ -158,10 +212,12 @@ impl LoRATrainer {
         .await
         .context("Training timeout")??;
 
+        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
+        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+
         if !output.status.success() {
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            error!("Training failed: {}", stderr);
-            anyhow::bail!("Training process failed: {}", stderr);
+            error!("Training failed: {}", stderr.trim());
+            anyhow::bail!("Training process failed: {}", stderr.trim());
         }
 
         let training_time = start_time.elapsed().as_secs_f64();
@@ -180,61 +236,33 @@ impl LoRATrainer {
         }
 
         // Encrypt adapter if configured
-        let encrypted_path = if let Some(ref encryption) = self.encryption {
+        let (adapter_path_for_result, encrypted_path) = if let Some(ref encryption) = self.encryption
+        {
             let encrypted = adapter_dir.join(format!("lora_adapter_{}.enc", timestamp));
             encryption.encrypt_file(&adapter_path, &encrypted)?;
-            Some(encrypted)
+            // Ensure "at rest" means encrypted: remove plaintext artifact.
+            let _ = fs::remove_file(&adapter_path).await;
+            (None, Some(encrypted))
         } else {
-            None
+            (Some(adapter_path.clone()), None)
         };
 
         // Mark training as completed
         self.store.mark_training_completed()?;
+        // Prevent immediately retriggering: reset request counter after a successful training run.
+        let _ = self.store.reset_request_counter();
 
         // Get training examples count
         let examples = self.store.get_history_since_last_training()?;
 
         Ok(TrainingResult {
             status: TrainingStatus::Completed,
-            adapter_path: Some(adapter_path),
+            adapter_path: adapter_path_for_result,
             encrypted_adapter_path: encrypted_path,
             training_samples: examples.len(),
             training_time_secs: training_time,
-            final_loss: None, // Would need to parse from training output
+            final_loss: parse_final_loss(&stdout).or_else(|| parse_final_loss(&stderr)),
             adapter_size_bytes: Some(adapter_size_bytes),
-        })
-    }
-
-    /// Create a stub adapter for development/testing when llama-finetune is not available
-    async fn create_stub_adapter(&self, adapter_path: &Path) -> Result<TrainingResult> {
-        info!("Creating stub adapter (llama-finetune not available)");
-
-        // Create a small stub GGUF file
-        let stub_data = b"STUB_LORA_ADAPTER_FOR_TESTING";
-        fs::write(adapter_path, stub_data).await?;
-
-        let encrypted_path = if let Some(ref encryption) = self.encryption {
-            let timestamp = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)?
-                .as_secs();
-            let encrypted = PathBuf::from(&self.config.adapter_dir)
-                .join(format!("lora_adapter_{}.enc", timestamp));
-            encryption.encrypt_file(adapter_path, &encrypted)?;
-            Some(encrypted)
-        } else {
-            None
-        };
-
-        self.store.mark_training_completed()?;
-
-        Ok(TrainingResult {
-            status: TrainingStatus::Completed,
-            adapter_path: Some(adapter_path.to_path_buf()),
-            encrypted_adapter_path: encrypted_path,
-            training_samples: 0,
-            training_time_secs: 0.0,
-            final_loss: None,
-            adapter_size_bytes: Some(stub_data.len() as u64),
         })
     }
 
@@ -250,7 +278,9 @@ impl LoRATrainer {
 
         while let Some(entry) = entries.next_entry().await? {
             let path = entry.path();
-            if path.extension().and_then(|s| s.to_str()) == Some("gguf") {
+            let is_plain = path.extension().and_then(|s| s.to_str()) == Some("gguf");
+            let is_enc = path.extension().and_then(|s| s.to_str()) == Some("enc");
+            if is_plain || is_enc {
                 let metadata = fs::metadata(&path).await?;
                 let modified = metadata.modified()?;
 
@@ -266,6 +296,61 @@ impl LoRATrainer {
 
         Ok(latest.map(|(path, _)| path))
     }
+
+    /// Materialize an encrypted adapter to a stable decrypted path for runtime loading.
+    ///
+    /// Returns a path to a `.gguf` adapter that can be passed to `llama-cli --lora`.
+    pub async fn materialize_latest_adapter_for_runtime(&self) -> Result<Option<PathBuf>> {
+        let Some(latest) = self.get_latest_adapter().await? else {
+            return Ok(None);
+        };
+
+        if latest.extension().and_then(|s| s.to_str()) == Some("gguf") {
+            return Ok(Some(latest));
+        }
+
+        if latest.extension().and_then(|s| s.to_str()) != Some("enc") {
+            return Ok(None);
+        }
+
+        let enc = self
+            .encryption
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Found encrypted adapter but encryption is disabled"))?;
+        let enc = enc.clone();
+
+        let adapter_dir = PathBuf::from(&self.config.adapter_dir);
+        fs::create_dir_all(&adapter_dir).await?;
+        let out = adapter_dir.join("current_adapter.gguf");
+        let out_for_task = out.clone();
+
+        // Decrypt (blocking IO inside encryption module; keep it small and explicit).
+        tokio::task::spawn_blocking(move || enc.decrypt_file(latest, &out_for_task))
+            .await
+            .context("Decryption task failed")??;
+
+        Ok(Some(out))
+    }
+}
+
+fn parse_final_loss(text: &str) -> Option<f64> {
+    // Best-effort parse: look for patterns like "loss=0.123" or "loss: 0.123".
+    let mut best: Option<f64> = None;
+    for line in text.lines() {
+        let l = line.to_lowercase();
+        if !l.contains("loss") {
+            continue;
+        }
+        for token in l
+            .split(|c: char| !(c.is_ascii_digit() || c == '.' || c == '-' || c == 'e'))
+            .filter(|t| !t.is_empty())
+        {
+            if let Ok(v) = token.parse::<f64>() {
+                best = Some(v);
+            }
+        }
+    }
+    best
 }
 
 #[cfg(test)]

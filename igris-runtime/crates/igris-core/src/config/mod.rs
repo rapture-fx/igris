@@ -9,6 +9,9 @@ pub struct IgrisConfig {
     pub routing: RoutingConfig,
     pub auth: AuthConfig,
     pub local_fallback: Option<LocalFallbackConfig>,
+    /// Optional on-device LoRA training configuration (v1.6)
+    #[serde(default)]
+    pub lora_training: Option<LoRATrainingRuntimeConfig>,
     pub mcp: Option<McpConfig>,
     /// Optional reflection mode configuration (v1.6)
     #[serde(default)]
@@ -33,6 +36,7 @@ impl Default for IgrisConfig {
             routing: RoutingConfig::default(),
             auth: AuthConfig::default(),
             local_fallback: Some(LocalFallbackConfig::default()),
+            lora_training: Some(LoRATrainingRuntimeConfig::default()),
             mcp: Some(McpConfig::default()),
             reflection: Some(ReflectionRuntimeConfig::default()),
             tools: Some(ToolRuntimeConfig::default()),
@@ -153,6 +157,16 @@ pub struct LocalFallbackConfig {
     pub model_path: String,
     #[serde(default)]
     pub lora_adapter_path: Option<String>,
+    /// Number of GPU layers to offload (llama.cpp `-ngl` / `--n-gpu-layers`).
+    /// Backward compatible: defaults to 0 (CPU-only).
+    #[serde(default)]
+    pub n_gpu_layers: u32,
+    /// Optional main GPU index (llama.cpp `--main-gpu`).
+    #[serde(default)]
+    pub main_gpu: Option<u32>,
+    /// Optional directory for llama.cpp prompt-cache files (enables context caching between identical prompts).
+    #[serde(default)]
+    pub prompt_cache_dir: Option<String>,
     #[serde(default = "default_context_size")]
     pub context_size: u32,
     #[serde(default = "default_threads")]
@@ -163,6 +177,96 @@ pub struct LocalFallbackConfig {
     pub temperature: f32,
     #[serde(default)]
     pub cost_per_1k_tokens: f64,
+}
+
+/// On-device LoRA training configuration (server-side).
+///
+/// Backward compatible: if missing or `enabled=false`, runtime behavior is unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoRATrainingRuntimeConfig {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default = "default_lora_trigger_threshold")]
+    pub trigger_threshold: usize,
+    #[serde(default = "default_lora_max_adapter_size_mb")]
+    pub max_adapter_size_mb: usize,
+    #[serde(default = "default_lora_rank")]
+    pub lora_rank: usize,
+    #[serde(default = "default_lora_alpha")]
+    pub lora_alpha: f32,
+    #[serde(default = "default_lora_epochs")]
+    pub epochs: usize,
+    #[serde(default = "default_lora_batch_size")]
+    pub batch_size: usize,
+    #[serde(default = "default_lora_learning_rate")]
+    pub learning_rate: f32,
+    #[serde(default = "default_lora_adapter_dir")]
+    pub adapter_dir: String,
+    #[serde(default = "default_lora_encrypt_adapters")]
+    pub encrypt_adapters: bool,
+    #[serde(default = "default_lora_auto_load_adapter")]
+    pub auto_load_adapter: bool,
+    #[serde(default = "default_lora_max_training_time_secs")]
+    pub max_training_time_secs: u64,
+    #[serde(default = "default_lora_training_threads")]
+    pub training_threads: usize,
+}
+
+fn default_lora_trigger_threshold() -> usize {
+    100
+}
+fn default_lora_max_adapter_size_mb() -> usize {
+    64
+}
+fn default_lora_rank() -> usize {
+    8
+}
+fn default_lora_alpha() -> f32 {
+    16.0
+}
+fn default_lora_epochs() -> usize {
+    1
+}
+fn default_lora_batch_size() -> usize {
+    4
+}
+fn default_lora_learning_rate() -> f32 {
+    0.0001
+}
+fn default_lora_adapter_dir() -> String {
+    "lora_adapters".to_string()
+}
+fn default_lora_encrypt_adapters() -> bool {
+    true
+}
+fn default_lora_auto_load_adapter() -> bool {
+    true
+}
+fn default_lora_max_training_time_secs() -> u64 {
+    1800
+}
+fn default_lora_training_threads() -> usize {
+    4
+}
+
+impl Default for LoRATrainingRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            trigger_threshold: default_lora_trigger_threshold(),
+            max_adapter_size_mb: default_lora_max_adapter_size_mb(),
+            lora_rank: default_lora_rank(),
+            lora_alpha: default_lora_alpha(),
+            epochs: default_lora_epochs(),
+            batch_size: default_lora_batch_size(),
+            learning_rate: default_lora_learning_rate(),
+            adapter_dir: default_lora_adapter_dir(),
+            encrypt_adapters: default_lora_encrypt_adapters(),
+            auto_load_adapter: default_lora_auto_load_adapter(),
+            max_training_time_secs: default_lora_max_training_time_secs(),
+            training_threads: default_lora_training_threads(),
+        }
+    }
 }
 
 /// Reflection mode configuration (server-side) for the `igris-reflection` crate.
@@ -335,6 +439,21 @@ pub struct SwarmRuntimeConfig {
     /// Per-agent timeout in milliseconds.
     #[serde(default = "default_swarm_agent_timeout_ms")]
     pub agent_timeout_ms: u64,
+
+    /// Enable dynamic role assignment (LLM selects roles based on the prompt).
+    /// Backward compatible default: false.
+    #[serde(default)]
+    pub dynamic_roles: bool,
+
+    /// Enable inter-agent communication via a shared message bus.
+    /// Backward compatible default: false.
+    #[serde(default)]
+    pub enable_bus: bool,
+
+    /// Number of consensus candidates to generate before selecting a winner.
+    /// Backward compatible default: 1 (single synthesis).
+    #[serde(default = "default_swarm_consensus_candidates")]
+    pub consensus_candidates: usize,
 }
 
 fn default_swarm_size() -> usize {
@@ -346,6 +465,9 @@ fn default_swarm_max_concurrent() -> usize {
 fn default_swarm_agent_timeout_ms() -> u64 {
     60_000
 }
+fn default_swarm_consensus_candidates() -> usize {
+    1
+}
 
 impl Default for SwarmRuntimeConfig {
     fn default() -> Self {
@@ -354,6 +476,9 @@ impl Default for SwarmRuntimeConfig {
             size: default_swarm_size(),
             max_concurrent: default_swarm_max_concurrent(),
             agent_timeout_ms: default_swarm_agent_timeout_ms(),
+            dynamic_roles: false,
+            enable_bus: false,
+            consensus_candidates: default_swarm_consensus_candidates(),
         }
     }
 }
@@ -380,6 +505,9 @@ impl Default for LocalFallbackConfig {
             enabled: false,
             model_path: "models/phi-3-mini-4k-instruct-q4.gguf".to_string(),
             lora_adapter_path: None,
+            n_gpu_layers: 0,
+            main_gpu: None,
+            prompt_cache_dir: None,
             context_size: 4096,
             threads: 4,
             max_tokens: 512,

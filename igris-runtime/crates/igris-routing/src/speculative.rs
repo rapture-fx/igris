@@ -29,6 +29,26 @@ pub struct SpeculativeResult {
     pub providers_attempted: usize,
 }
 
+/// Result of speculative routing when returning a live stream.
+pub struct SpeculativeStreamResult {
+    pub winner_id: String,
+    pub winner_name: String,
+    pub stream: Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>,
+    pub first_token_latency_ms: u64,
+    pub providers_attempted: usize,
+}
+
+impl std::fmt::Debug for SpeculativeStreamResult {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SpeculativeStreamResult")
+            .field("winner_id", &self.winner_id)
+            .field("winner_name", &self.winner_name)
+            .field("first_token_latency_ms", &self.first_token_latency_ms)
+            .field("providers_attempted", &self.providers_attempted)
+            .finish()
+    }
+}
+
 pub struct SpeculativeRouter {
     max_providers: usize,
     first_token_timeout: Duration,
@@ -165,6 +185,117 @@ impl SpeculativeRouter {
             provider_count,
             elapsed
         )
+    }
+
+    /// Execute speculative routing but return the winning provider's stream.
+    ///
+    /// This is used by the HTTP API when `stream=true` so the client can receive
+    /// tokens/chunks immediately, while still racing providers for first-token latency.
+    pub async fn route_stream<P>(
+        &self,
+        prompt: &str,
+        providers: Vec<P>,
+    ) -> anyhow::Result<SpeculativeStreamResult>
+    where
+        P: Provider + 'static,
+    {
+        if providers.is_empty() {
+            anyhow::bail!("No providers available for speculative routing");
+        }
+
+        let providers_to_use = providers
+            .into_iter()
+            .take(self.max_providers)
+            .collect::<Vec<_>>();
+        let provider_count = providers_to_use.len();
+
+        info!(
+            "Starting speculative *streaming* routing with {} providers (max_timeout={:?})",
+            provider_count, self.first_token_timeout
+        );
+
+        let mut futures = FuturesUnordered::new();
+        for provider in providers_to_use {
+            let prompt = prompt.to_string();
+            let timeout_duration = self.first_token_timeout;
+
+            futures.push(async move {
+                let provider_start = Instant::now();
+                let provider_id = provider.id().to_string();
+                let provider_name = provider.name().to_string();
+
+                debug!("Starting provider (streaming): {}", provider_id);
+
+                match timeout(timeout_duration, provider.stream(&prompt)).await {
+                    Ok(Ok(mut stream)) => match stream.next().await {
+                        Some(Ok(first_token)) => {
+                            let first_token_latency = provider_start.elapsed();
+
+                            // Reconstruct a stream that yields the first token, then the rest.
+                            let chained = futures::stream::once(async move { Ok(first_token) })
+                                .chain(stream);
+                            let chained: Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>> =
+                                Box::pin(chained);
+
+                            Ok((
+                                provider_id,
+                                provider_name,
+                                chained,
+                                first_token_latency.as_millis() as u64,
+                            ))
+                        }
+                        Some(Err(e)) => {
+                            warn!("Provider {} first token error: {}", provider_id, e);
+                            Err(anyhow::anyhow!(
+                                "Provider {} first token error: {}",
+                                provider_id,
+                                e
+                            ))
+                        }
+                        None => {
+                            warn!("Provider {} returned empty stream", provider_id);
+                            Err(anyhow::anyhow!("Provider {} returned empty stream", provider_id))
+                        }
+                    },
+                    Ok(Err(e)) => {
+                        warn!("Provider {} failed to start stream: {}", provider_id, e);
+                        Err(e)
+                    }
+                    Err(_) => Err(anyhow::anyhow!(
+                        "Provider {} timed out after {:?}",
+                        provider_id,
+                        timeout_duration
+                    )),
+                }
+            });
+        }
+
+        while let Some(result) = futures.next().await {
+            match result {
+                Ok((winner_id, winner_name, stream, first_token_latency_ms)) => {
+                    info!(
+                        "Speculative streaming routing winner={} (first_token={}ms)",
+                        winner_id, first_token_latency_ms
+                    );
+
+                    // Drop remaining futures to cancel other providers.
+                    drop(futures);
+
+                    return Ok(SpeculativeStreamResult {
+                        winner_id,
+                        winner_name,
+                        stream,
+                        first_token_latency_ms,
+                        providers_attempted: provider_count,
+                    });
+                }
+                Err(e) => {
+                    debug!("Provider failed (streaming): {}", e);
+                }
+            }
+        }
+
+        anyhow::bail!("All {} providers failed in speculative streaming routing", provider_count)
     }
 }
 

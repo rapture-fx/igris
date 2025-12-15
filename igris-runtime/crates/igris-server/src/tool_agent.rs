@@ -62,7 +62,8 @@ impl ToolAgent {
         for step in 1..=self.max_steps {
             info!("ToolAgent step {}/{}", step, self.max_steps);
             let raw = self.provider.generate(&current_prompt).await?;
-            debug!("ToolAgent model output (truncated): {}", &raw[..raw.len().min(200)]);
+            let truncated: String = raw.chars().take(200).collect();
+            debug!("ToolAgent model output (truncated): {}", truncated);
 
             if let Some(parsed) = parse_tool_agent_response(&raw) {
                 if let Some(final_answer) = parsed.final_answer {
@@ -171,7 +172,51 @@ fn format_tool_results(results: &[ToolResult]) -> String {
 /// for a JSON object in case of extra tokens.
 pub fn parse_tool_agent_response(s: &str) -> Option<ToolAgentResponse> {
     let json = extract_first_json_object(s)?;
-    serde_json::from_value::<ToolAgentResponse>(json).ok()
+
+    // final_answer: { "final_answer": "..." }
+    let final_answer = json
+        .get("final_answer")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+
+    // tool_calls: support both:
+    // 1) Simple format:
+    //    { "tool_calls": [ { "name": "...", "arguments": {...} } ] }
+    // 2) OpenAI-style function calling:
+    //    { "tool_calls": [ { "type":"function", "function": { "name":"...", "arguments":"{...json...}" } } ] }
+    let tool_calls = json.get("tool_calls").and_then(|v| v.as_array()).map(|arr| {
+        arr.iter()
+            .filter_map(|item| normalize_tool_call(item))
+            .collect::<Vec<_>>()
+    });
+
+    Some(ToolAgentResponse { tool_calls, final_answer })
+}
+
+fn normalize_tool_call(v: &Value) -> Option<ToolCall> {
+    // Simple format
+    if let Some(name) = v.get("name").and_then(|n| n.as_str()) {
+        let args = v.get("arguments").cloned().unwrap_or_else(|| serde_json::json!({}));
+        return Some(ToolCall {
+            name: name.to_string(),
+            arguments: args,
+        });
+    }
+
+    // OpenAI-style
+    let func = v.get("function")?;
+    let name = func.get("name")?.as_str()?;
+    let args_val = func.get("arguments").cloned().unwrap_or_else(|| Value::Null);
+    let args = match args_val {
+        Value::String(s) => serde_json::from_str::<Value>(&s).unwrap_or(Value::String(s)),
+        Value::Null => serde_json::json!({}),
+        other => other,
+    };
+
+    Some(ToolCall {
+        name: name.to_string(),
+        arguments: args,
+    })
 }
 
 fn extract_first_json_object(s: &str) -> Option<Value> {
@@ -258,6 +303,24 @@ mod tests {
         let s = "noise\n{\"final_answer\":\"ok\"}\nmore";
         let parsed = parse_tool_agent_response(s).unwrap();
         assert_eq!(parsed.final_answer.unwrap(), "ok");
+    }
+
+    #[tokio::test]
+    async fn parse_openai_style_tool_call() {
+        let s = r#"{
+            "tool_calls": [
+                {
+                    "id":"call_1",
+                    "type":"function",
+                    "function": { "name":"http_get", "arguments":"{\"url\":\"https://example.com\"}" }
+                }
+            ]
+        }"#;
+        let parsed = parse_tool_agent_response(s).unwrap();
+        let calls = parsed.tool_calls.unwrap();
+        assert_eq!(calls.len(), 1);
+        assert_eq!(calls[0].name, "http_get");
+        assert_eq!(calls[0].arguments["url"].as_str().unwrap(), "https://example.com");
     }
 
     #[tokio::test]

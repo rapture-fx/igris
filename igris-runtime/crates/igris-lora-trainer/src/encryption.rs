@@ -9,6 +9,7 @@ use std::path::Path;
 use tracing::{debug, info};
 
 /// Adapter encryption using AES-256-GCM
+#[derive(Clone)]
 pub struct AdapterEncryption {
     key: [u8; 32],
 }
