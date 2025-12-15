@@ -1,0 +1,188 @@
+/// HTTP tool provider for making web requests
+use crate::{Tool, ToolResult};
+use anyhow::Result;
+use serde_json::json;
+use std::time::Instant;
+use tracing::{debug, info};
+
+/// HTTP request tool
+pub struct HttpTool {
+    allowed_domains: Vec<String>,
+}
+
+impl HttpTool {
+    /// Create a new HTTP tool with domain whitelist
+    pub fn new(allowed_domains: Vec<String>) -> Self {
+        Self { allowed_domains }
+    }
+
+    /// Check if domain is allowed
+    fn is_domain_allowed(&self, url: &str) -> bool {
+        if self.allowed_domains.is_empty() {
+            return true; // No restrictions if whitelist is empty
+        }
+
+        self.allowed_domains.iter().any(|domain| url.contains(domain))
+    }
+}
+
+#[async_trait::async_trait]
+impl Tool for HttpTool {
+    fn name(&self) -> &str {
+        "http_request"
+    }
+
+    fn description(&self) -> &str {
+        "Make HTTP GET/POST requests to external APIs"
+    }
+
+    fn parameters_schema(&self) -> serde_json::Value {
+        json!({
+            "type": "object",
+            "properties": {
+                "method": {
+                    "type": "string",
+                    "enum": ["GET", "POST", "PUT", "DELETE"],
+                    "description": "HTTP method"
+                },
+                "url": {
+                    "type": "string",
+                    "description": "Target URL"
+                },
+                "headers": {
+                    "type": "object",
+                    "description": "HTTP headers (optional)",
+                    "additionalProperties": {"type": "string"}
+                },
+                "body": {
+                    "type": "string",
+                    "description": "Request body for POST/PUT (optional)"
+                }
+            },
+            "required": ["method", "url"]
+        })
+    }
+
+    async fn validate_args(&self, args: &serde_json::Value) -> Result<()> {
+        let url = args["url"]
+            .as_str()
+            .ok_or_else(|| anyhow::anyhow!("Missing 'url' field"))?;
+
+        if !self.is_domain_allowed(url) {
+            anyhow::bail!(
+                "Domain not allowed. Allowed domains: {:?}",
+                self.allowed_domains
+            );
+        }
+
+        Ok(())
+    }
+
+    async fn execute(&self, args: serde_json::Value) -> Result<ToolResult> {
+        let start = Instant::now();
+
+        self.validate_args(&args).await?;
+
+        let method = args["method"]
+            .as_str()
+            .ok_or_else(|| anyhow::anyhow!("Missing 'method' field"))?;
+        let url = args["url"]
+            .as_str()
+            .ok_or_else(|| anyhow::anyhow!("Missing 'url' field"))?;
+
+        debug!("HTTP request: {} {}", method, url);
+
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(30))
+            .build()?;
+
+        let mut request = match method {
+            "GET" => client.get(url),
+            "POST" => client.post(url),
+            "PUT" => client.put(url),
+            "DELETE" => client.delete(url),
+            _ => anyhow::bail!("Unsupported HTTP method: {}", method),
+        };
+
+        // Add headers if provided
+        if let Some(headers) = args["headers"].as_object() {
+            for (key, value) in headers {
+                if let Some(val_str) = value.as_str() {
+                    request = request.header(key, val_str);
+                }
+            }
+        }
+
+        // Add body for POST/PUT
+        if let Some(body) = args["body"].as_str() {
+            request = request.body(body.to_string());
+        }
+
+        // Execute request
+        match request.send().await {
+            Ok(response) => {
+                let status = response.status();
+                let body = response.text().await.unwrap_or_default();
+
+                info!("HTTP response: {} ({})", url, status);
+
+                let execution_time = start.elapsed().as_millis() as u64;
+
+                Ok(ToolResult::success(
+                    "http_request".to_string(),
+                    format!("Status: {}\nBody: {}", status, body),
+                    execution_time,
+                )
+                .with_metadata("status_code".to_string(), status.as_u16().to_string())
+                .with_metadata("url".to_string(), url.to_string()))
+            }
+            Err(e) => {
+                let execution_time = start.elapsed().as_millis() as u64;
+                Ok(ToolResult::failure(
+                    "http_request".to_string(),
+                    format!("HTTP request failed: {}", e),
+                    execution_time,
+                ))
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_domain_whitelist() {
+        let tool = HttpTool::new(vec!["example.com".to_string(), "api.github.com".to_string()]);
+
+        assert!(tool.is_domain_allowed("https://example.com/api"));
+        assert!(tool.is_domain_allowed("https://api.github.com/repos"));
+        assert!(!tool.is_domain_allowed("https://malicious.com"));
+    }
+
+    #[test]
+    fn test_empty_whitelist() {
+        let tool = HttpTool::new(vec![]);
+        assert!(tool.is_domain_allowed("https://any-domain.com"));
+    }
+
+    #[tokio::test]
+    async fn test_validate_args() {
+        let tool = HttpTool::new(vec!["example.com".to_string()]);
+
+        let valid_args = json!({
+            "method": "GET",
+            "url": "https://example.com/api"
+        });
+
+        assert!(tool.validate_args(&valid_args).await.is_ok());
+
+        let invalid_args = json!({
+            "method": "GET",
+            "url": "https://blocked.com"
+        });
+
+        assert!(tool.validate_args(&invalid_args).await.is_err());
+    }
+}
