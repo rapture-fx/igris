@@ -47,6 +47,8 @@ use igris_lora_trainer::{LoRATrainingConfig, TrainingDataStore};
 mod middleware;
 use axum::middleware::from_fn_with_state;
 use middleware::security::{security_middleware, RateLimiter};
+mod metrics;
+use metrics::Metrics;
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -68,6 +70,7 @@ pub(crate) struct AppState {
     swarm_peer_id: String,
     lora_training: Option<Arc<LoraTrainingManager>>,
     rate_limiter: Option<middleware::security::RateLimiter>,
+    metrics: Arc<Metrics>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -243,6 +246,17 @@ async fn health() -> &'static str {
     "OK"
 }
 
+/// Prometheus metrics endpoint
+async fn metrics(State(state): State<AppState>) -> Response {
+    let body = state.metrics.render_prometheus();
+    (
+        StatusCode::OK,
+        [("content-type", "text/plain; version=0.0.4")],
+        body,
+    )
+        .into_response()
+}
+
 /// Chat completions endpoint with local LLM fallback
 #[utoipa::path(
     post,
@@ -259,6 +273,10 @@ async fn chat_completions(
     State(state): State<AppState>,
     Json(req): Json<ChatCompletionRequest>,
 ) -> Result<Response, ApiError> {
+    state
+        .metrics
+        .chat_requests_total
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     info!(
         "Chat completion request: model={}, messages={}, mode={:?}",
         req.model,
@@ -302,6 +320,10 @@ async fn chat_completions(
 
     // Streaming (SSE): only supported for base chat mode (no reflection/tools/planning/swarm).
     if req.stream == Some(true) {
+        state
+            .metrics
+            .chat_stream_requests_total
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         if req.mode.is_some() {
             return Err(ApiError::NotImplemented(
                 "Streaming is currently only supported for base chat mode (omit `mode`)".to_string(),
@@ -1096,6 +1118,8 @@ async fn main() -> anyhow::Result<()> {
         None
     };
 
+    let metrics = Arc::new(Metrics::new());
+
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -1114,11 +1138,13 @@ async fn main() -> anyhow::Result<()> {
         swarm_peer_id,
         lora_training,
         rate_limiter,
+        metrics,
     };
 
     // Build router
     let mut app = Router::new()
         .route("/v1/health", get(health))
+        .route("/metrics", get(metrics))
         .route("/v1/chat/completions", post(chat_completions))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(CorsLayer::permissive())

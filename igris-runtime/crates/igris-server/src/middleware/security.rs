@@ -177,6 +177,10 @@ pub async fn security_middleware(
     next: Next,
 ) -> Response {
     let path = req.uri().path().to_string();
+    state
+        .metrics
+        .http_requests_total
+        .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
     if is_public_path(&path) {
         return next.run(req).await;
     }
@@ -226,6 +230,10 @@ pub async fn security_middleware(
     }
 
     let Some(identity) = identity else {
+        state
+            .metrics
+            .http_unauthorized_total
+            .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         warn!(path = %path, "auth_failed");
         return (StatusCode::UNAUTHORIZED, "unauthorized").into_response();
     };
@@ -233,6 +241,10 @@ pub async fn security_middleware(
     // Rate limiting (per identity)
     if let Some(rl) = &state.rate_limiter {
         if !rl.allow(&identity).await {
+            state
+                .metrics
+                .http_rate_limited_total
+                .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
             warn!(path = %path, identity = %identity, "rate_limited");
             return (StatusCode::TOO_MANY_REQUESTS, "rate_limited").into_response();
         }
