@@ -1,6 +1,5 @@
 /// Igris Planning - Planning Agents with Chain-of-Thought (v1.5)
 /// Plan → Act → Observe → Reflect loop with tool integration
-use anyhow::Result;
 use serde::{Deserialize, Serialize};
 
 pub mod agent;
