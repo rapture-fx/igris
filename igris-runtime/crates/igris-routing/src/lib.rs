@@ -1,6 +1,3 @@
-// External crate declarations
-extern crate schlep_kernel;
-
 pub mod circuit_breaker;
 pub mod rate_limit;
 pub mod cost_tracking;
@@ -11,9 +8,6 @@ pub mod cloud_provider;
 
 #[cfg(feature = "local-llm")]
 pub mod local_provider;
-
-// Re-export Thompson Sampling from existing Rust kernel
-pub use schlep_kernel::optimizer;
 
 pub use circuit_breaker::CircuitBreaker;
 pub use rate_limit::RateLimiter;

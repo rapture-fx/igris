@@ -3,8 +3,10 @@ pub mod provider;
 pub mod inference;
 
 use anyhow::Result;
+use futures::Stream;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::pin::Pin;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{debug, info, warn};
@@ -215,21 +217,43 @@ impl LocalLLMProvider {
         drop(config); // Release lock before potentially long inference
 
         if let Some(ref real_engine) = *engine {
-            info!("Generating with real inference engine");
-
-            // Run inference in blocking task to avoid blocking async runtime
-            let prompt_owned = prompt.to_string();
-            let result = tokio::task::spawn_blocking(move || {
-                real_engine.generate(&prompt_owned, max_tokens, temperature, 0.95)
-            })
-            .await
-            .map_err(|e| anyhow::anyhow!("Inference task failed: {}", e))??;
-
-            info!("Generation complete");
+            info!("Generating with local inference engine (model={})", model_name);
+            let result = real_engine
+                .generate(prompt, max_tokens, temperature, 0.95)
+                .await?;
             Ok(result)
         } else {
             anyhow::bail!("Inference engine not initialized");
         }
+    }
+
+    /// Stream completion output as it is produced by llama.cpp (stdout chunks).
+    pub async fn stream(
+        &self,
+        prompt: &str,
+    ) -> Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>> {
+        let config = self.config.lock().await;
+        let mut engine = self.engine.lock().await;
+
+        if engine.is_none() {
+            info!("Lazy loading model for streaming: {}", self.model_path.display());
+            let resolved_context = config.resolve_context_size();
+            let threads = config.threads;
+            let loaded_engine = RealInferenceEngine::load(&self.model_path, resolved_context, threads)?;
+            *engine = Some(loaded_engine);
+        }
+
+        let max_tokens = config.max_tokens;
+        let temperature = config.temperature;
+        drop(config);
+
+        let real_engine = engine
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Inference engine not initialized"))?
+            .clone();
+
+        // Engine streaming is async; return its stream directly.
+        real_engine.stream_generate(prompt, max_tokens, temperature, 0.95).await
     }
 
     /// Hot-swap LoRA adapter at runtime

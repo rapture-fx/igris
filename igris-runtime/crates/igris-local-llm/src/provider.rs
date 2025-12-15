@@ -1,5 +1,4 @@
 use crate::{LocalLLMConfig, LocalLLMProvider as LocalLLMEngine};
-use async_stream::stream;
 use futures::Stream;
 use std::pin::Pin;
 use std::sync::Arc;
@@ -46,19 +45,8 @@ impl LocalLLMProviderAdapter {
         &self,
         prompt: &str,
     ) -> anyhow::Result<Pin<Box<dyn Stream<Item = Result<String, anyhow::Error>> + Send>>> {
-        // For streaming, we'll generate the full response and stream it word by word
-        // This is a simple implementation; a real streaming impl would need
-        // token-by-token generation
-        let result = self.engine.generate(prompt).await?;
-
-        let s = stream! {
-            // Split by spaces and yield each word
-            for word in result.split_whitespace() {
-                yield Ok(format!("{} ", word));
-            }
-        };
-
-        Ok(Box::pin(s))
+        // Real streaming: forward stdout chunks from llama.cpp CLI.
+        self.engine.stream(prompt).await
     }
 }
 

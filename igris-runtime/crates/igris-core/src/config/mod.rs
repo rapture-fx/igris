@@ -10,6 +10,18 @@ pub struct IgrisConfig {
     pub auth: AuthConfig,
     pub local_fallback: Option<LocalFallbackConfig>,
     pub mcp: Option<McpConfig>,
+    /// Optional reflection mode configuration (v1.6)
+    #[serde(default)]
+    pub reflection: Option<ReflectionRuntimeConfig>,
+    /// Optional tool execution configuration (v1.6)
+    #[serde(default)]
+    pub tools: Option<ToolRuntimeConfig>,
+    /// Optional planning mode configuration (v1.6)
+    #[serde(default)]
+    pub planning: Option<PlanningRuntimeConfig>,
+    /// Optional swarm mode configuration (v1.6)
+    #[serde(default)]
+    pub swarm: Option<SwarmRuntimeConfig>,
 }
 
 impl Default for IgrisConfig {
@@ -22,6 +34,10 @@ impl Default for IgrisConfig {
             auth: AuthConfig::default(),
             local_fallback: Some(LocalFallbackConfig::default()),
             mcp: Some(McpConfig::default()),
+            reflection: Some(ReflectionRuntimeConfig::default()),
+            tools: Some(ToolRuntimeConfig::default()),
+            planning: Some(PlanningRuntimeConfig::default()),
+            swarm: Some(SwarmRuntimeConfig::default()),
         }
     }
 }
@@ -147,6 +163,199 @@ pub struct LocalFallbackConfig {
     pub temperature: f32,
     #[serde(default)]
     pub cost_per_1k_tokens: f64,
+}
+
+/// Reflection mode configuration (server-side) for the `igris-reflection` crate.
+///
+/// Backward compatible: if missing or `enabled=false`, runtime behavior is unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ReflectionRuntimeConfig {
+    /// Enable reflection by default (can also be enabled per-request via mode="reflection")
+    #[serde(default)]
+    pub enabled: bool,
+    /// Maximum number of reflection iterations
+    #[serde(default = "default_reflection_max_iterations")]
+    pub max_iterations: u32,
+    /// Minimum quality score to accept (0.0-1.0)
+    #[serde(default = "default_reflection_quality_threshold")]
+    pub quality_threshold: f32,
+    /// Enable verbose logging of reflection process
+    #[serde(default)]
+    pub verbose: bool,
+    /// Temperature for generation (0.0-2.0)
+    #[serde(default = "default_reflection_temperature")]
+    pub temperature: f32,
+    /// Early stopping if improvement is minimal
+    #[serde(default = "default_reflection_early_stopping")]
+    pub early_stopping: bool,
+    /// Minimum improvement delta for early stopping
+    #[serde(default = "default_reflection_min_improvement")]
+    pub min_improvement_delta: f32,
+}
+
+fn default_reflection_max_iterations() -> u32 {
+    3
+}
+fn default_reflection_quality_threshold() -> f32 {
+    0.7
+}
+fn default_reflection_temperature() -> f32 {
+    0.7
+}
+fn default_reflection_early_stopping() -> bool {
+    true
+}
+fn default_reflection_min_improvement() -> f32 {
+    0.05
+}
+
+impl Default for ReflectionRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            max_iterations: default_reflection_max_iterations(),
+            quality_threshold: default_reflection_quality_threshold(),
+            verbose: false,
+            temperature: default_reflection_temperature(),
+            early_stopping: default_reflection_early_stopping(),
+            min_improvement_delta: default_reflection_min_improvement(),
+        }
+    }
+}
+
+/// Tool execution configuration (server-side) for the `igris-tools` crate.
+///
+/// Backward compatible: if missing or disabled, runtime behavior is unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolRuntimeConfig {
+    #[serde(default)]
+    pub enabled: bool,
+
+    #[serde(default)]
+    pub enable_http: bool,
+    #[serde(default)]
+    pub enable_shell: bool,
+    #[serde(default)]
+    pub enable_filesystem: bool,
+
+    #[serde(default)]
+    pub allowed_http_domains: Vec<String>,
+    #[serde(default)]
+    pub allowed_shell_commands: Vec<String>,
+    #[serde(default)]
+    pub allowed_filesystem_paths: Vec<String>,
+
+    #[serde(default = "default_tool_max_execution_time")]
+    pub max_execution_time_ms: u64,
+    #[serde(default = "default_tool_max_concurrent")]
+    pub max_concurrent_executions: usize,
+}
+
+fn default_tool_max_execution_time() -> u64 {
+    30_000
+}
+fn default_tool_max_concurrent() -> usize {
+    5
+}
+
+impl Default for ToolRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            enable_http: false,
+            enable_shell: false,
+            enable_filesystem: false,
+            allowed_http_domains: vec![],
+            allowed_shell_commands: vec![],
+            allowed_filesystem_paths: vec![],
+            max_execution_time_ms: default_tool_max_execution_time(),
+            max_concurrent_executions: default_tool_max_concurrent(),
+        }
+    }
+}
+
+/// Planning mode configuration (server-side) for the `igris-planning` crate.
+///
+/// Backward compatible: if missing or `enabled=false`, runtime behavior is unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlanningRuntimeConfig {
+    /// Enable planning by default (can also be enabled per-request via mode="planning")
+    #[serde(default)]
+    pub enabled: bool,
+    /// Maximum planning steps
+    #[serde(default = "default_planning_max_steps")]
+    pub max_steps: u32,
+    /// Enable reflection after each step
+    #[serde(default = "default_planning_enable_reflection")]
+    pub enable_reflection: bool,
+    /// Enable tool use during planning (requires `tools.enabled=true`)
+    #[serde(default)]
+    pub enable_tools: bool,
+    /// Maximum total tool calls allowed during planning
+    #[serde(default = "default_planning_max_tool_calls")]
+    pub max_tool_calls: u32,
+}
+
+fn default_planning_max_steps() -> u32 {
+    10
+}
+fn default_planning_enable_reflection() -> bool {
+    true
+}
+fn default_planning_max_tool_calls() -> u32 {
+    20
+}
+
+impl Default for PlanningRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            max_steps: default_planning_max_steps(),
+            enable_reflection: default_planning_enable_reflection(),
+            enable_tools: false,
+            max_tool_calls: default_planning_max_tool_calls(),
+        }
+    }
+}
+
+/// Swarm mode configuration (server-side).
+///
+/// Backward compatible: if missing or `enabled=false`, runtime behavior is unchanged.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SwarmRuntimeConfig {
+    /// Enable swarm mode by default (can also be enabled per-request via mode="swarm")
+    #[serde(default)]
+    pub enabled: bool,
+    /// Number of agents to spawn (10-50 recommended).
+    #[serde(default = "default_swarm_size")]
+    pub size: usize,
+    /// Maximum concurrent agent executions (protects CPU/RAM).
+    #[serde(default = "default_swarm_max_concurrent")]
+    pub max_concurrent: usize,
+    /// Per-agent timeout in milliseconds.
+    #[serde(default = "default_swarm_agent_timeout_ms")]
+    pub agent_timeout_ms: u64,
+}
+
+fn default_swarm_size() -> usize {
+    10
+}
+fn default_swarm_max_concurrent() -> usize {
+    4
+}
+fn default_swarm_agent_timeout_ms() -> u64 {
+    60_000
+}
+
+impl Default for SwarmRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            size: default_swarm_size(),
+            max_concurrent: default_swarm_max_concurrent(),
+            agent_timeout_ms: default_swarm_agent_timeout_ms(),
+        }
+    }
 }
 
 fn default_context_size() -> u32 {

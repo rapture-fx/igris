@@ -23,11 +23,21 @@ use igris_routing::{
 };
 use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
 use igris_routing::local_provider::LocalProvider;
+use igris_reflection::{ReflectionAgent, ReflectionConfig as ReflectionLoopConfig, LLMProvider as ReflectionLLMProvider};
+use igris_planning::{PlanningAgent, PlanningConfig};
 use igris_mcp_server::{
     build_mcp_router, ContextStore, EncryptedStorage, McpState, PeerDiscovery,
     protocol::ServerInfo,
 };
 use igris_mcp_client::{ContextBroadcaster, McpClient};
+mod tool_agent;
+use tool_agent::ToolAgent;
+mod swarm_agent;
+use swarm_agent::{run_swarm, SwarmConfig};
+use igris_tools::{ToolRegistry};
+use igris_tools::http::HttpTool;
+use igris_tools::shell::ShellTool;
+use igris_tools::filesystem::FileSystemTool;
 
 /// Application state shared across handlers
 #[derive(Clone)]
@@ -39,6 +49,45 @@ struct AppState {
     cloud_providers: Arc<Vec<CloudProvider>>,
     local_provider: Option<Arc<LocalProvider>>,
     mcp_context_store: Option<Arc<ContextStore>>,
+    reflection_config: Option<ReflectionLoopConfig>,
+    tool_registry: Option<Arc<ToolRegistry>>,
+    tool_max_steps: u32,
+    tool_timeout_ms: u64,
+    tool_max_concurrent: usize,
+    planning_config: Option<PlanningConfig>,
+    swarm_config: Option<SwarmConfig>,
+    swarm_peer_id: String,
+}
+
+/// Reflection LLM provider backed by the local provider (real llama.cpp execution).
+struct LocalProviderReflectionLLM {
+    provider: Arc<LocalProvider>,
+}
+
+#[async_trait::async_trait]
+impl ReflectionLLMProvider for LocalProviderReflectionLLM {
+    async fn generate(&self, prompt: &str) -> anyhow::Result<String> {
+        self.provider.complete(prompt).await
+    }
+
+    fn name(&self) -> &str {
+        "local-llm"
+    }
+}
+
+/// Reflection LLM provider backed by a single cloud provider.
+#[derive(Clone)]
+struct CloudProviderReflectionLLM(CloudProvider);
+
+#[async_trait::async_trait]
+impl ReflectionLLMProvider for CloudProviderReflectionLLM {
+    async fn generate(&self, prompt: &str) -> anyhow::Result<String> {
+        self.0.complete(prompt).await
+    }
+
+    fn name(&self) -> &str {
+        self.0.name()
+    }
 }
 
 /// OpenAPI documentation
@@ -224,6 +273,246 @@ async fn chat_completions(
         .collect::<Vec<_>>()
         .join("\n");
 
+    let est_prompt_tokens = (prompt.len() as u32) / 4;
+
+    // Reflection mode (Phase 2): generate -> critique -> regenerate loops with real LLM calls.
+    let reflection_enabled_by_config = state
+        .config
+        .reflection
+        .as_ref()
+        .map(|r| r.enabled)
+        .unwrap_or(false);
+    let reflection_requested = matches!(req.mode.as_deref(), Some("reflection"));
+    let use_reflection = reflection_requested || reflection_enabled_by_config;
+
+    if use_reflection {
+        let reflection_cfg = state.reflection_config.clone().unwrap_or_default();
+
+        // Choose the provider for reflection:
+        // - Prefer local LLM if available (offline-capable, deterministic deployment).
+        // - Otherwise use the first configured cloud provider.
+        let provider: Arc<dyn ReflectionLLMProvider> = if let Some(local) = &state.local_provider {
+            Arc::new(LocalProviderReflectionLLM {
+                provider: local.clone(),
+            })
+        } else if let Some(first_cloud) = state.cloud_providers.first() {
+            Arc::new(CloudProviderReflectionLLM(first_cloud.clone()))
+        } else {
+            return Err(ApiError::InternalError(
+                "Reflection requested but no providers are available".to_string(),
+            ));
+        };
+
+        let agent = ReflectionAgent::new(reflection_cfg, provider);
+        let result = agent.reflect(&prompt).await?;
+        let est_completion_tokens = (result.final_response.len() as u32) / 4;
+
+        let response = ChatCompletionResponse {
+            id: format!("chatcmpl-{}", uuid::Uuid::new_v4()),
+            object: "chat.completion".to_string(),
+            created: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            model: req.model.clone(),
+            choices: vec![ChatCompletionChoice {
+                index: 0,
+                message: ChatMessage {
+                    role: "assistant".to_string(),
+                    content: result.final_response,
+                },
+                finish_reason: "stop".to_string(),
+            }],
+            usage: Usage {
+                prompt_tokens: est_prompt_tokens,
+                completion_tokens: est_completion_tokens,
+                total_tokens: est_prompt_tokens + est_completion_tokens,
+            },
+        };
+
+        return Ok(Json(response));
+    }
+
+    // Tool mode (Phase 3): LLM-driven tool calling loop.
+    if matches!(req.mode.as_deref(), Some("tools")) {
+        let registry = state.tool_registry.clone().ok_or_else(|| {
+            ApiError::BadRequest("Tool mode requested but tools are disabled in config".to_string())
+        })?;
+
+        // Prefer local provider for tool mode (offline); otherwise first cloud provider.
+        let provider: Arc<dyn ReflectionLLMProvider> = if let Some(local) = &state.local_provider {
+            Arc::new(LocalProviderReflectionLLM {
+                provider: local.clone(),
+            })
+        } else if let Some(first_cloud) = state.cloud_providers.first() {
+            Arc::new(CloudProviderReflectionLLM(first_cloud.clone()))
+        } else {
+            return Err(ApiError::InternalError(
+                "Tool mode requested but no providers are available".to_string(),
+            ));
+        };
+
+        let agent = ToolAgent::new(
+            provider,
+            registry,
+            state.tool_max_steps,
+            state.tool_max_concurrent,
+            state.tool_timeout_ms,
+        );
+
+        let final_text = agent.run(&prompt).await?;
+        let est_completion_tokens = (final_text.len() as u32) / 4;
+
+        let response = ChatCompletionResponse {
+            id: format!("chatcmpl-{}", uuid::Uuid::new_v4()),
+            object: "chat.completion".to_string(),
+            created: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            model: req.model.clone(),
+            choices: vec![ChatCompletionChoice {
+                index: 0,
+                message: ChatMessage {
+                    role: "assistant".to_string(),
+                    content: final_text,
+                },
+                finish_reason: "stop".to_string(),
+            }],
+            usage: Usage {
+                prompt_tokens: est_prompt_tokens,
+                completion_tokens: est_completion_tokens,
+                total_tokens: est_prompt_tokens + est_completion_tokens,
+            },
+        };
+
+        return Ok(Json(response));
+    }
+
+    // Planning mode (Phase 4): Plan -> Act -> Observe -> Reflect with optional tools.
+    let planning_enabled_by_config = state
+        .config
+        .planning
+        .as_ref()
+        .map(|p| p.enabled)
+        .unwrap_or(false);
+    let planning_requested = matches!(req.mode.as_deref(), Some("planning"));
+    let use_planning = planning_requested || planning_enabled_by_config;
+
+    if use_planning {
+        let cfg = state.planning_config.clone().unwrap_or_default();
+        let registry = state.tool_registry.clone();
+
+        let provider: Arc<dyn ReflectionLLMProvider> = if let Some(local) = &state.local_provider {
+            Arc::new(LocalProviderReflectionLLM {
+                provider: local.clone(),
+            })
+        } else if let Some(first_cloud) = state.cloud_providers.first() {
+            Arc::new(CloudProviderReflectionLLM(first_cloud.clone()))
+        } else {
+            return Err(ApiError::InternalError(
+                "Planning requested but no providers are available".to_string(),
+            ));
+        };
+
+        let agent = PlanningAgent::with_provider(cfg, provider, registry);
+        let result = agent.execute_plan(&prompt).await?;
+        let est_completion_tokens = (result.final_answer.len() as u32) / 4;
+
+        let response = ChatCompletionResponse {
+            id: format!("chatcmpl-{}", uuid::Uuid::new_v4()),
+            object: "chat.completion".to_string(),
+            created: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            model: req.model.clone(),
+            choices: vec![ChatCompletionChoice {
+                index: 0,
+                message: ChatMessage {
+                    role: "assistant".to_string(),
+                    content: result.final_answer,
+                },
+                finish_reason: "stop".to_string(),
+            }],
+            usage: Usage {
+                prompt_tokens: est_prompt_tokens,
+                completion_tokens: est_completion_tokens,
+                total_tokens: est_prompt_tokens + est_completion_tokens,
+            },
+        };
+
+        return Ok(Json(response));
+    }
+
+    // Swarm mode (Phase 5): spawn multiple role agents, store to MCP context, synthesize.
+    let swarm_enabled_by_config = state
+        .config
+        .swarm
+        .as_ref()
+        .map(|s| s.enabled)
+        .unwrap_or(false);
+    let swarm_requested = matches!(req.mode.as_deref(), Some("swarm"));
+    let use_swarm = swarm_requested || swarm_enabled_by_config;
+
+    if use_swarm {
+        let cfg = state.swarm_config.clone().unwrap_or(SwarmConfig {
+            size: 10,
+            max_concurrent: 4,
+            agent_timeout_ms: 60_000,
+        });
+
+        let provider: Arc<dyn ReflectionLLMProvider> = if let Some(local) = &state.local_provider {
+            Arc::new(LocalProviderReflectionLLM {
+                provider: local.clone(),
+            })
+        } else if let Some(first_cloud) = state.cloud_providers.first() {
+            Arc::new(CloudProviderReflectionLLM(first_cloud.clone()))
+        } else {
+            return Err(ApiError::InternalError(
+                "Swarm requested but no providers are available".to_string(),
+            ));
+        };
+
+        let conversation_id = format!("swarm-{}", uuid::Uuid::new_v4());
+        let final_text = run_swarm(
+            cfg,
+            provider,
+            state.mcp_context_store.clone(),
+            conversation_id,
+            state.swarm_peer_id.clone(),
+            &prompt,
+        )
+        .await?;
+
+        let est_completion_tokens = (final_text.len() as u32) / 4;
+
+        let response = ChatCompletionResponse {
+            id: format!("chatcmpl-{}", uuid::Uuid::new_v4()),
+            object: "chat.completion".to_string(),
+            created: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+            model: req.model.clone(),
+            choices: vec![ChatCompletionChoice {
+                index: 0,
+                message: ChatMessage {
+                    role: "assistant".to_string(),
+                    content: final_text,
+                },
+                finish_reason: "stop".to_string(),
+            }],
+            usage: Usage {
+                prompt_tokens: est_prompt_tokens,
+                completion_tokens: est_completion_tokens,
+                total_tokens: est_prompt_tokens + est_completion_tokens,
+            },
+        };
+
+        return Ok(Json(response));
+    }
+
     // Try cloud providers first using speculative routing
     let mut response_text = None;
     let mut used_provider = "unknown";
@@ -280,6 +569,7 @@ async fn chat_completions(
         ApiError::InternalError("All providers unavailable".to_string())
     })?;
 
+    let completion_tokens_est = (response_text.len() as u32) / 4;
     let response = ChatCompletionResponse {
         id: format!("chatcmpl-{}", uuid::Uuid::new_v4()),
         object: "chat.completion".to_string(),
@@ -301,9 +591,9 @@ async fn chat_completions(
             finish_reason: "stop".to_string(),
         }],
         usage: Usage {
-            prompt_tokens: prompt.len() as u32 / 4, // Rough estimate
-            completion_tokens: 50,
-            total_tokens: (prompt.len() as u32 / 4) + 50,
+            prompt_tokens: est_prompt_tokens, // Rough estimate
+            completion_tokens: completion_tokens_est,
+            total_tokens: est_prompt_tokens + completion_tokens_est,
         },
     };
 
@@ -388,6 +678,7 @@ async fn main() -> anyhow::Result<()> {
 
             let llm_config = LocalLLMConfig {
                 enabled: local_config.enabled,
+                selected_model: None,
                 model_path: local_config.model_path.clone(),
                 lora_adapter_path: local_config.lora_adapter_path.clone(),
                 context_size: local_config.context_size,
@@ -430,6 +721,73 @@ async fn main() -> anyhow::Result<()> {
 
     // Check if local provider is available
     let has_local_fallback = local_provider.is_some();
+
+    // Reflection config (optional)
+    let reflection_config = config.reflection.as_ref().map(|r| ReflectionLoopConfig {
+        max_iterations: r.max_iterations,
+        quality_threshold: r.quality_threshold,
+        verbose: r.verbose,
+        temperature: r.temperature,
+        early_stopping: r.early_stopping,
+        min_improvement_delta: r.min_improvement_delta,
+    });
+
+    // Tools config (optional)
+    let tool_registry: Option<Arc<ToolRegistry>> = config.tools.as_ref().and_then(|tcfg| {
+        if !tcfg.enabled {
+            return None;
+        }
+
+        let mut reg = ToolRegistry::new();
+        if tcfg.enable_http {
+            reg.register(Arc::new(HttpTool::new(tcfg.allowed_http_domains.clone())));
+        }
+        if tcfg.enable_shell {
+            reg.register(Arc::new(ShellTool::new(
+                tcfg.allowed_shell_commands.clone(),
+            )));
+        }
+        if tcfg.enable_filesystem {
+            reg.register(Arc::new(FileSystemTool::new(
+                tcfg.allowed_filesystem_paths.clone(),
+            )));
+        }
+
+        Some(Arc::new(reg))
+    });
+
+    let tool_max_steps: u32 = 8;
+    let tool_timeout_ms: u64 = config
+        .tools
+        .as_ref()
+        .map(|t| t.max_execution_time_ms)
+        .unwrap_or(30_000);
+    let tool_max_concurrent: usize = config
+        .tools
+        .as_ref()
+        .map(|t| t.max_concurrent_executions)
+        .unwrap_or(5);
+
+    // Planning config (optional)
+    let planning_config = config.planning.as_ref().map(|p| PlanningConfig {
+        max_steps: p.max_steps,
+        enable_reflection: p.enable_reflection,
+        // Only allow tools if both planning and tools config enable it.
+        enable_tools: p.enable_tools && config.tools.as_ref().map(|t| t.enabled).unwrap_or(false),
+        max_tool_calls: p.max_tool_calls,
+    });
+
+    // Swarm config (optional)
+    let swarm_config = config.swarm.as_ref().map(|s| SwarmConfig {
+        size: s.size,
+        max_concurrent: s.max_concurrent,
+        agent_timeout_ms: s.agent_timeout_ms,
+    });
+    let swarm_peer_id = config
+        .mcp
+        .as_ref()
+        .and_then(|m| m.peer_id.clone())
+        .unwrap_or_else(|| "igris-local".to_string());
 
     // Initialize MCP swarm if enabled
     let (mcp_context_store, mcp_router) = if let Some(mcp_config) = &config.mcp {
@@ -513,6 +871,14 @@ async fn main() -> anyhow::Result<()> {
         cloud_providers: Arc::new(cloud_providers),
         local_provider,
         mcp_context_store,
+        reflection_config,
+        tool_registry,
+        tool_max_steps,
+        tool_timeout_ms,
+        tool_max_concurrent,
+        planning_config,
+        swarm_config,
+        swarm_peer_id,
     };
 
     // Build router

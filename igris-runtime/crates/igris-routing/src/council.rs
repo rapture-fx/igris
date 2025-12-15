@@ -59,21 +59,29 @@ impl CouncilRouter {
             member_count, self.chairman_id
         );
 
-        // Find chairman in council members
-        let chairman_opt = council_members
-            .iter()
-            .find(|p| p.id() == self.chairman_id)
-            .map(|p| (p.id().to_string(), p.name().to_string()));
-
-        if chairman_opt.is_none() {
-            anyhow::bail!(
-                "Chairman '{}' not found in council members",
-                self.chairman_id
-            );
+        // Split chairman from members so we can always perform synthesis
+        let mut chairman: Option<P> = None;
+        let mut members: Vec<P> = Vec::with_capacity(council_members.len().saturating_sub(1));
+        for p in council_members {
+            if p.id() == self.chairman_id {
+                chairman = Some(p);
+            } else {
+                members.push(p);
+            }
         }
 
+        let chairman = match chairman {
+            Some(c) => c,
+            None => {
+                anyhow::bail!(
+                    "Chairman '{}' not found in council members",
+                    self.chairman_id
+                );
+            }
+        };
+
         // Execute all council members in parallel
-        let member_futures: Vec<_> = council_members
+        let member_futures: Vec<_> = members
             .into_iter()
             .map(|provider| {
                 let prompt = prompt.to_string();
@@ -110,33 +118,11 @@ impl CouncilRouter {
         // Wait for all members to complete
         let results = join_all(member_futures).await;
 
-        // Collect successful responses (excluding chairman for synthesis)
-        let mut member_responses: Vec<MemberResponse> = results
+        // Collect successful member responses (chairman will synthesize separately)
+        let member_responses: Vec<MemberResponse> = results
             .into_iter()
             .filter_map(|r| r.ok())
-            .filter(|r| r.provider_id != self.chairman_id)
             .collect();
-
-        // Find chairman's response
-        let chairman_response = member_responses
-            .iter()
-            .find(|r| r.provider_id == self.chairman_id)
-            .cloned();
-
-        let successful_count = member_responses.len() + chairman_response.is_some() as usize;
-
-        if successful_count < self.min_responses {
-            anyhow::bail!(
-                "Council mode failed: only {}/{} members succeeded (minimum required: {})",
-                successful_count,
-                member_count,
-                self.min_responses
-            );
-        }
-
-        if member_responses.is_empty() && chairman_response.is_none() {
-            anyhow::bail!("All council members failed");
-        }
 
         // Generate synthesis prompt for chairman
         let synthesis_prompt = if member_responses.is_empty() {
@@ -170,24 +156,25 @@ impl CouncilRouter {
             )
         };
 
-        // Get chairman's synthesis (or reuse if chairman already responded)
-        let final_response = if let Some(existing) = chairman_response {
-            info!(
-                "Using chairman's existing response from parallel execution (latency={}ms)",
-                existing.latency_ms
-            );
-            existing.response
-        } else {
-            // Chairman didn't participate in initial round, call separately for synthesis
-            info!("Calling chairman for synthesis");
+        // Chairman synthesis is required to produce a final answer.
+        info!("Calling chairman for synthesis");
+        let chairman_name = chairman.name().to_string();
+        let chairman_start = Instant::now();
+        let final_response = chairman.complete(&synthesis_prompt).await.map_err(|e| {
+            anyhow::anyhow!("Chairman '{}' failed during synthesis: {}", self.chairman_id, e)
+        })?;
+        let chairman_latency_ms = chairman_start.elapsed().as_millis() as u64;
 
-            // We need a chairman provider - since we filtered it out, we need to handle this case
-            // In a real implementation, we'd keep a reference to the chairman provider
-            // For now, return an error if chairman wasn't in the original members
+        let successful_count = member_responses.len() + 1;
+
+        if successful_count < self.min_responses {
             anyhow::bail!(
-                "Chairman synthesis requires chairman to be in council members list"
+                "Council mode failed: only {}/{} members succeeded (minimum required: {})",
+                successful_count,
+                member_count,
+                self.min_responses
             );
-        };
+        }
 
         let total_latency = start_time.elapsed();
 
@@ -200,11 +187,21 @@ impl CouncilRouter {
 
         Ok(CouncilResult {
             chairman_id: self.chairman_id.clone(),
-            response: final_response,
+            response: final_response.clone(),
             member_count,
             successful_members: successful_count,
             total_latency_ms: total_latency.as_millis() as u64,
-            member_responses,
+            member_responses: {
+                let mut mr = member_responses;
+                // Include the chairman's synthesis for audit/debugging.
+                mr.push(MemberResponse {
+                    provider_id: self.chairman_id.clone(),
+                    provider_name: chairman_name,
+                    response: final_response,
+                    latency_ms: chairman_latency_ms,
+                });
+                mr
+            },
         })
     }
 }

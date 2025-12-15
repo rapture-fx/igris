@@ -1,5 +1,6 @@
 use aes_gcm::{
     aead::{Aead, KeyInit, OsRng},
+    AeadCore,
     Aes256Gcm, Nonce,
 };
 use anyhow::Result;
@@ -12,6 +13,7 @@ use crate::context::SharedContext;
 
 const CONTEXT_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("mcp_contexts");
 const KEY_TABLE: TableDefinition<&str, &[u8]> = TableDefinition::new("mcp_keys");
+const NONCE_LEN: usize = 12;
 
 /// Encrypted persistent storage for MCP contexts
 pub struct EncryptedStorage {
@@ -92,17 +94,24 @@ impl EncryptedStorage {
         let json = serde_json::to_vec(context)?;
 
         // Encrypt
-        let nonce = Nonce::from_slice(b"unique nonce"); // In production, use unique nonces
+        // AES-GCM requires a unique nonce per message.
+        // For backward compatibility, we store the nonce alongside ciphertext:
+        // [12 bytes nonce][ciphertext...]
+        let nonce_bytes = Aes256Gcm::generate_nonce(&mut OsRng);
+        let nonce = Nonce::from_slice(nonce_bytes.as_slice());
         let ciphertext = self
             .cipher
             .encrypt(nonce, json.as_ref())
             .map_err(|_| anyhow::anyhow!("Encryption failed"))?;
+        let mut blob = Vec::with_capacity(NONCE_LEN + ciphertext.len());
+        blob.extend_from_slice(nonce.as_slice());
+        blob.extend_from_slice(&ciphertext);
 
         // Store
         let write_txn = self.db.begin_write()?;
         {
             let mut table = write_txn.open_table(CONTEXT_TABLE)?;
-            table.insert(context.conversation_id.as_str(), ciphertext.as_slice())?;
+            table.insert(context.conversation_id.as_str(), blob.as_slice())?;
         }
         write_txn.commit()?;
 
@@ -121,10 +130,19 @@ impl EncryptedStorage {
         let ciphertext = encrypted.value();
 
         // Decrypt
-        let nonce = Nonce::from_slice(b"unique nonce");
+        // Backward compatibility:
+        // - New format: [nonce||ciphertext]
+        // - Old format: ciphertext only (used a fixed nonce)
+        let (nonce, ct) = if ciphertext.len() > NONCE_LEN {
+            let (n, ct) = ciphertext.split_at(NONCE_LEN);
+            (Nonce::from_slice(n), ct)
+        } else {
+            // Legacy: fixed nonce (unsafe but preserved for reading old DBs).
+            (Nonce::from_slice(b"unique nonce"), ciphertext)
+        };
         let plaintext = self
             .cipher
-            .decrypt(nonce, ciphertext)
+            .decrypt(nonce, ct)
             .map_err(|_| anyhow::anyhow!("Decryption failed"))?;
 
         let context: SharedContext = serde_json::from_slice(&plaintext)?;
@@ -169,8 +187,13 @@ impl EncryptedStorage {
             let (_, encrypted) = item?;
             let ciphertext = encrypted.value();
 
-            let nonce = Nonce::from_slice(b"unique nonce");
-            match self.cipher.decrypt(nonce, ciphertext) {
+            let (nonce, ct) = if ciphertext.len() > NONCE_LEN {
+                let (n, ct) = ciphertext.split_at(NONCE_LEN);
+                (Nonce::from_slice(n), ct)
+            } else {
+                (Nonce::from_slice(b"unique nonce"), ciphertext)
+            };
+            match self.cipher.decrypt(nonce, ct) {
                 Ok(plaintext) => {
                     if let Ok(context) = serde_json::from_slice(&plaintext) {
                         contexts.push(context);
