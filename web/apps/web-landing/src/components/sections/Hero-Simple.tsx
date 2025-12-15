@@ -41,7 +41,7 @@ export default function Hero() {
                   </h1>
                 </div>
                 <p className="text-sm md:text-lg text-gray-700 max-w-md leading-relaxed text-left">
-      
+
                 </p>
               </div>
             </div>
@@ -83,7 +83,7 @@ export default function Hero() {
         {/* HERO diagram background - positioned below main box (desktop only) */}
         <div className="hidden md:block absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 bottom-8 pointer-events-none max-w-[1200px] mx-auto z-[5] h-[500px]">
           <div className="relative w-full h-full border border-gray-300 rounded-2xl bg-[#f6f6f4]">
-            {/* Schlep Engine diagram SVG */}
+            {/* Igris Inertial diagram SVG */}
             <div
               className="absolute inset-0 rounded-2xl"
               style={{

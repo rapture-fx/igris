@@ -12,7 +12,7 @@ export default function CookiesPage() {
   return (
     <>
       <Head>
-        <title>Schlep Engine Cookie Policy</title>
+        <title>Igris Inertial Cookie Policy</title>
         <meta name="description" content="Our minimal cookie usage — only necessary and anonymous analytics." />
       </Head>
       <div className="min-h-screen bg-[#f6f6f4]">

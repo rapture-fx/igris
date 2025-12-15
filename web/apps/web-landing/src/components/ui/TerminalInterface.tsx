@@ -105,7 +105,7 @@ export default function TerminalInterface() {
       if (commandIndex < realCommands.length) {
         setCommands(prev => [...prev, realCommands[commandIndex]])
         commandIndex++
-        
+
         // Update live metrics
         setLiveDemo(prev => ({
           ...prev,
@@ -127,10 +127,9 @@ export default function TerminalInterface() {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <div className={`w-2 h-2 rounded-full ${
-                liveDemo.healthStatus === 'healthy' ? 'bg-green-400' : 
-                liveDemo.healthStatus === 'degraded' ? 'bg-yellow-400' : 'bg-red-400'
-              }`}></div>
+              <div className={`w-2 h-2 rounded-full ${liveDemo.healthStatus === 'healthy' ? 'bg-green-400' :
+                  liveDemo.healthStatus === 'degraded' ? 'bg-yellow-400' : 'bg-red-400'
+                }`}></div>
               <span className="text-gray-300 text-sm">API Status: {liveDemo.healthStatus}</span>
             </div>
             <div className="flex items-center space-x-2">
@@ -154,7 +153,7 @@ export default function TerminalInterface() {
         <div className="bg-gray-800 px-4 py-3 flex items-center justify-between border-b border-gray-700">
           <div className="flex items-center space-x-2">
             <Terminal className="w-4 h-4 text-green-400" />
-            <span className="text-gray-300 text-sm font-medium">Schlep Engine Live API Demo</span>
+            <span className="text-gray-300 text-sm font-medium">Igris Inertial Live API Demo</span>
           </div>
           <div className="flex space-x-2">
             <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -188,7 +187,7 @@ export default function TerminalInterface() {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Output */}
                 <div className="ml-4 space-y-1">
                   {cmd.output.map((line, index) => (
@@ -211,7 +210,7 @@ export default function TerminalInterface() {
             <div className="flex items-center space-x-2 pt-4 border-t border-gray-800 mt-4">
               <span className="text-green-400">$</span>
               <span className="text-gray-200">Try it yourself:</span>
-              <Link 
+              <Link
                 href="/dashboard"
                 className="ml-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors inline-flex items-center space-x-1"
               >
