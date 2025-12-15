@@ -186,8 +186,8 @@ pub async fn security_middleware(
     }
 
     let auth = &state.config.auth;
-    let enabled = auth.enabled || auth.api_key != "default-api-key" || auth.jwt_hs256_secret.is_some();
-    if !enabled {
+    // FIX: Respect auth.enabled flag (previously checked api_key != "default-api-key" which broke config)
+    if !auth.enabled {
         return next.run(req).await;
     }
 
