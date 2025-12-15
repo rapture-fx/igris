@@ -1,3 +1,4 @@
+pub mod models;
 pub mod provider;
 
 use anyhow::Result;
@@ -7,30 +8,44 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 use tracing::{debug, info, warn};
 
+pub use models::ModelId;
 pub use provider::LocalLLMProviderAdapter;
 
-/// Configuration for local LLM fallback
+/// Configuration for local LLM fallback (v1.4 multi-model support)
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LocalLLMConfig {
     /// Enable local LLM fallback
     pub enabled: bool,
-    /// Path to GGUF model file
+
+    /// Selected model ID (NEW in v1.4)
+    /// If not specified, uses model_path for backward compatibility
+    #[serde(default)]
+    pub selected_model: Option<ModelId>,
+
+    /// Path to GGUF model file (v1.1-1.3 compatibility)
+    /// If selected_model is set, this is auto-generated from model registry
     pub model_path: String,
+
     /// Optional LoRA adapter path (for fine-tuned models)
     #[serde(default)]
     pub lora_adapter_path: Option<String>,
-    /// Context size (default: 4096)
+
+    /// Context size (default: auto-detected from selected_model or 4096)
     #[serde(default = "default_context_size")]
     pub context_size: u32,
+
     /// Number of threads for inference (default: 4)
     #[serde(default = "default_threads")]
     pub threads: u32,
+
     /// Maximum tokens to generate (default: 512)
     #[serde(default = "default_max_tokens")]
     pub max_tokens: u32,
+
     /// Temperature for sampling (default: 0.7)
     #[serde(default = "default_temperature")]
     pub temperature: f32,
+
     /// Cost per 1k tokens (for Thompson Sampling)
     #[serde(default)]
     pub cost_per_1k_tokens: f64,
@@ -52,10 +67,45 @@ fn default_temperature() -> f32 {
     0.7
 }
 
+impl LocalLLMConfig {
+    /// Resolve the actual model path (v1.4 auto-resolution)
+    pub fn resolve_model_path(&self) -> String {
+        if let Some(ref model_id) = self.selected_model {
+            format!("models/{}", model_id.default_filename())
+        } else {
+            self.model_path.clone()
+        }
+    }
+
+    /// Resolve the context size (v1.4 auto-detection)
+    pub fn resolve_context_size(&self) -> u32 {
+        if let Some(ref model_id) = self.selected_model {
+            if self.context_size == 4096 {
+                // Use model's recommended context size if user hasn't changed default
+                model_id.recommended_context_size()
+            } else {
+                self.context_size
+            }
+        } else {
+            self.context_size
+        }
+    }
+
+    /// Get the display name of the current model
+    pub fn model_display_name(&self) -> String {
+        if let Some(ref model_id) = self.selected_model {
+            model_id.display_name().to_string()
+        } else {
+            "Custom Model".to_string()
+        }
+    }
+}
+
 impl Default for LocalLLMConfig {
     fn default() -> Self {
         Self {
             enabled: false,
+            selected_model: None, // Use model_path for backward compatibility
             model_path: "models/phi-3-mini-4k-instruct-q4.gguf".to_string(),
             lora_adapter_path: None,
             context_size: 4096,
@@ -82,17 +132,21 @@ pub struct LocalLLMProvider {
 impl LocalLLMProvider {
     /// Create a new local LLM provider
     pub fn new(config: LocalLLMConfig) -> Result<Self> {
-        info!("Initializing local LLM provider from {}", config.model_path);
+        let resolved_path = config.resolve_model_path();
+        let model_name = config.model_display_name();
 
-        let model_path = PathBuf::from(&config.model_path);
+        info!("Initializing local LLM provider: {}", model_name);
+        info!("Model path: {}", resolved_path);
+
+        let model_path = PathBuf::from(&resolved_path);
         if !model_path.exists() {
             anyhow::bail!(
                 "Model file not found: {}. Run download-model.sh to download it.",
-                config.model_path
+                resolved_path
             );
         }
 
-        info!("Model file found: {}", config.model_path);
+        info!("Model file found: {}", resolved_path);
 
         let adapter_path = config.lora_adapter_path.as_ref().map(PathBuf::from);
         if let Some(ref adapter) = adapter_path {
@@ -103,9 +157,11 @@ impl LocalLLMProvider {
             }
         }
 
+        let resolved_context = config.resolve_context_size();
         info!(
-            "Local LLM initialized: context_size={}, threads={}, adapter={}",
-            config.context_size,
+            "Local LLM initialized: model={}, context_size={}, threads={}, adapter={}",
+            model_name,
+            resolved_context,
             config.threads,
             adapter_path.as_ref().map(|p| p.display().to_string()).unwrap_or_else(|| "None".to_string())
         );
@@ -135,18 +191,24 @@ impl LocalLLMProvider {
             String::from("\nLoRA Adapter: None")
         };
 
+        let model_name = config.model_display_name();
+        let resolved_context = config.resolve_context_size();
+        let resolved_path = config.resolve_model_path();
+
         let response = format!(
-            "[Local LLM Response - Phi-3 Mini 4K{}]\n\nReceived prompt: {}\n\n\
+            "[Local LLM Response - {}{}]\n\nReceived prompt: {}\n\n\
             This is a placeholder response. To enable actual local LLM inference:\n\
             1. Ensure llama_cpp_rs is properly configured with platform-specific features\n\
             2. Link against llama.cpp native library\n\
             3. Implement inference using LlamaModel, LlamaContext, and LlamaSampler\n\n\
-            Model: {}\nThreads: {}\nContext: {}{}",
+            Model: {}\nPath: {}\nThreads: {}\nContext: {}{}",
+            model_name,
             if adapter.is_some() { " + LoRA" } else { "" },
             prompt,
-            config.model_path,
+            model_name,
+            resolved_path,
             config.threads,
-            config.context_size,
+            resolved_context,
             adapter_info
         );
 
