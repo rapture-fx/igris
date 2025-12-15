@@ -27,8 +27,8 @@ export default function BuiltForEngineers() {
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f2f1ed',
-          minHeight: '750px'
+            backgroundColor: '#f2f1ed',
+            minHeight: '750px'
           }}>
             {/* Top left bleeding cross */}
             <div className="absolute -top-4 -left-4 w-8 h-8">
@@ -51,7 +51,7 @@ export default function BuiltForEngineers() {
                   <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
                 </p>
                 <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
-                  Most ML projects stall on infrastructure.<br /> Schlep-engine removes that bottleneck with simple APIs <br /> that take you from messy data to working models fast.
+                  Most ML projects stall on infrastructure.<br /> Igris Inertial removes that bottleneck with simple APIs <br /> that take you from messy data to working models fast.
                 </p>
               </div>
 
@@ -96,7 +96,7 @@ export default function BuiltForEngineers() {
                   className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl hover:bg-blue-100 transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg font-inter"
                   style={{ backgroundColor: '#e9eef9', color: '#1f53d0' }}
                 >
-                  Explore Schlep-engine
+                  Explore Igris Inertial
                   <ArrowUpRight className="ml-2 h-4 w-4" />
                 </Link>
               </div>

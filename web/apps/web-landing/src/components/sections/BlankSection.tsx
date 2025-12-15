@@ -53,7 +53,7 @@ export default function BlankSection() {
                   Every connected provider is validated for uptime, latency, and output integrity before it joins your routing network.
                 </p>
                 <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
-                  With the Open BYOK registry, you can onboard new providers while Schlep-engine automatically performs continuous trust checks, keeping your stack clean and stable.
+                  With the Open BYOK registry, you can onboard new providers while Igris Inertial automatically performs continuous trust checks, keeping your stack clean and stable.
                 </p>
               </div>
 

@@ -28,7 +28,7 @@ export default function RefundPolicyPage() {
                 </p>
 
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  At Schlep-engine, we want you to be completely satisfied. Here's our simple, no-surprises refund policy:
+                  At Igris Inertial, we want you to be completely satisfied. Here's our simple, no-surprises refund policy:
                 </p>
 
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Monthly Subscriptions</h2>
@@ -48,7 +48,7 @@ export default function RefundPolicyPage() {
 
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">How to Request a Refund</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  Email <a href="mailto:support@schlep-engine.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@schlep-engine.com</a> with your account details. Refunds are processed within 5–7 business days.
+                  Email <a href="mailto:support@igris-inertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igris-inertial.com</a> with your account details. Refunds are processed within 5–7 business days.
                 </p>
 
                 <p className="text-gray-700 dark:text-gray-300 mb-6">

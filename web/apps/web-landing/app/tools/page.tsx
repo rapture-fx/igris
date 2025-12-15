@@ -48,10 +48,10 @@ export default function SDKTools() {
       category: 'sdk',
       language: 'Python',
       version: '2.1.0',
-      downloadUrl: 'https://pypi.org/project/schlep-engine/',
+      downloadUrl: 'https://pypi.org/project/igris-inertial/',
       docsUrl: '/docs/python-sdk',
-      githubUrl: 'https://github.com/schlepengine/python-sdk',
-      installCommand: 'pip install schlep-engine',
+      githubUrl: 'https://github.com/igris-inertial/python-sdk',
+      installCommand: 'pip install igris-inertial',
       features: [
         'Async/await support',
         'Batch data processing',
@@ -60,11 +60,11 @@ export default function SDKTools() {
         'Pipeline orchestration',
         'Real-time monitoring'
       ],
-      codeExample: `from schlep_engine import SchlepClient
+      codeExample: `from igris_inertial import IgrisClient
 import asyncio
 
 # Initialize client
-client = SchlepClient(api_key="your_api_key")
+client = IgrisClient(api_key="your_api_key")
 
 # Upload and process data
 async def process_data():
@@ -96,10 +96,10 @@ asyncio.run(process_data())`
       category: 'sdk',
       language: 'JavaScript',
       version: '1.4.0',
-      downloadUrl: 'https://www.npmjs.com/package/@schlep-engine/sdk',
+      downloadUrl: 'https://www.npmjs.com/package/@igris-inertial/sdk',
       docsUrl: '/docs/javascript-sdk',
-      githubUrl: 'https://github.com/schlepengine/javascript-sdk',
-      installCommand: 'npm install @schlep-engine/sdk',
+      githubUrl: 'https://github.com/igris-inertial/javascript-sdk',
+      installCommand: 'npm install @igris-inertial/sdk',
       features: [
         'TypeScript definitions',
         'Promise-based API',
@@ -108,11 +108,11 @@ asyncio.run(process_data())`
         'Stream processing',
         'Real-time updates'
       ],
-      codeExample: `import { SchlepEngine } from '@schlep-engine/sdk';
+      codeExample: `import { IgrisClient } from '@igris-inertial/sdk';
 
 // Initialize client
-const client = new SchlepEngine({
-  apiKey: process.env.SCHLEP_API_KEY
+const client = new IgrisClient({
+  apiKey: process.env.IGRIS_API_KEY
 });
 
 // Upload and process data
@@ -150,10 +150,10 @@ processData();`
       description: 'Command-line interface for managing datasets, pipelines, and deployments',
       category: 'cli',
       version: '3.0.0',
-      downloadUrl: 'https://github.com/schlepengine/cli/releases',
+      downloadUrl: 'https://github.com/igris-inertial/cli/releases',
       docsUrl: '/docs/cli',
-      githubUrl: 'https://github.com/schlepengine/cli',
-      installCommand: 'curl -sSL https://install.schlepengine.com/cli | bash',
+      githubUrl: 'https://github.com/igris-inertial/cli',
+      installCommand: 'curl -sSL https://install.igris-inertial.com/cli | bash',
       features: [
         'Dataset management',
         'Pipeline orchestration',
@@ -163,27 +163,27 @@ processData();`
         'Batch operations'
       ],
       codeExample: `# Install Igris Inertial CLI
-curl -sSL https://install.schlepengine.com/cli | bash
+curl -sSL https://install.igris-inertial.com/cli | bash
 
 # Set up authentication
-schlep auth login
+igris auth login
 
 # Upload a dataset
-schlep data upload data.csv --name "Customer Data"
+igris data upload data.csv --name "Customer Data"
 
 # Create and run a pipeline
-schlep pipeline create processing_pipeline.yaml
-schlep pipeline run processing_pipeline --input dataset_123
+igris pipeline create processing_pipeline.yaml
+igris pipeline run processing_pipeline --input dataset_123
 
 # Monitor job status
-schlep jobs list --status running
-schlep jobs logs job_456
+igris jobs list --status running
+igris jobs logs job_456
 
 # Deploy a model
-schlep models deploy model_789 --name "production-classifier"
+igris models deploy model_789 --name "production-classifier"
 
 # Batch process multiple files
-schlep data batch-upload ./datasets/*.csv --parallel 4`
+igris data batch-upload ./datasets/*.csv --parallel 4`
     },
     {
       id: '4',
@@ -202,22 +202,22 @@ schlep data batch-upload ./datasets/*.csv --parallel 4`
         'Pagination'
       ],
       codeExample: `# Authentication
-curl -X POST "https://api.schlep-engine.com/v1/auth" \\
+curl -X POST "https://api.igris-inertial.com/v1/auth" \\
   -H "Content-Type: application/json" \\
   -d '{"api_key": "your_api_key"}'
 
 # Upload dataset
-curl -X POST "https://api.schlep-engine.com/v1/data/upload" \\
+curl -X POST "https://api.igris-inertial.com/v1/data/upload" \\
   -H "Authorization: Bearer $TOKEN" \\
   -F "file=@data.csv" \\
   -F "name=Customer Data"
 
 # Get dataset status
-curl -X GET "https://api.schlep-engine.com/v1/data/$DATASET_ID/status" \\
+curl -X GET "https://api.igris-inertial.com/v1/data/$DATASET_ID/status" \\
   -H "Authorization: Bearer $TOKEN"
 
 # Start ML auto-labeling
-curl -X POST "https://api.schlep-engine.com/v1/ml/auto-label" \\
+curl -X POST "https://api.igris-inertial.com/v1/ml/auto-label" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -227,11 +227,11 @@ curl -X POST "https://api.schlep-engine.com/v1/ml/auto-label" \\
   }'
 
 # Webhook endpoint example
-curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
+curl -X POST "https://api.igris-inertial.com/v1/webhooks" \\
   -H "Authorization: Bearer $TOKEN" \\
   -H "Content-Type: application/json" \\
   -d '{
-    "url": "https://your-app.com/webhooks/schlep",
+    "url": "https://your-app.com/webhooks/igris",
     "events": ["dataset.processed", "job.completed"]
   }'`
     },
@@ -242,9 +242,9 @@ curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
       category: 'example',
       language: 'Python',
       version: '1.0.0',
-      downloadUrl: 'https://github.com/schlepengine/examples',
+      downloadUrl: 'https://github.com/igris-inertial/examples',
       docsUrl: '/docs/notebooks',
-      githubUrl: 'https://github.com/schlepengine/examples',
+      githubUrl: 'https://github.com/igris-inertial/examples',
       features: [
         'Data exploration',
         'Model training workflows',
@@ -257,11 +257,11 @@ curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
 # This notebook demonstrates end-to-end data processing
 
 import pandas as pd
-from schlep_engine import SchlepClient
+from igris_inertial import IgrisClient
 import matplotlib.pyplot as plt
 
 # Initialize client
-client = SchlepClient(api_key="your_api_key")
+client = IgrisClient(api_key="your_api_key")
 
 # Load and explore data
 df = pd.read_csv("sample_data.csv")
@@ -300,9 +300,9 @@ labeled_data = client.datasets.download(result.output_dataset_id)`
       description: 'Containerized processing with Docker and Kubernetes deployment examples',
       category: 'integration',
       version: '1.2.0',
-      downloadUrl: 'https://hub.docker.com/r/schlepengine/processor',
+      downloadUrl: 'https://hub.docker.com/r/igris-inertial/processor',
       docsUrl: '/docs/docker',
-      githubUrl: 'https://github.com/schlepengine/docker',
+      githubUrl: 'https://github.com/igris-inertial/docker',
       features: [
         'Pre-built Docker images',
         'Kubernetes manifests',
@@ -312,7 +312,7 @@ labeled_data = client.datasets.download(result.output_dataset_id)`
         'Secret management'
       ],
       codeExample: `# Dockerfile for custom Igris Inertial processor
-FROM schlepengine/processor:latest
+FROM igris-inertial/processor:latest
 
 # Copy your custom processing scripts
 COPY ./processors /app/processors
@@ -322,7 +322,7 @@ COPY requirements.txt /app/
 RUN pip install -r requirements.txt
 
 # Set environment variables
-ENV SCHLEP_API_KEY=\${SCHLEP_API_KEY}
+ENV IGRIS_API_KEY=\${IGRIS_API_KEY}
 ENV PROCESSOR_TYPE=custom_nlp
 
 # Health check
@@ -336,24 +336,24 @@ CMD ["python", "/app/main.py"]
 # docker-compose.yml
 version: '3.8'
 services:
-  schlep-processor:
-    image: your-registry/schlep-processor:latest
+  igris-processor:
+    image: your-registry/igris-processor:latest
     environment:
-      - SCHLEP_API_KEY=\${SCHLEP_API_KEY}
+      - IGRIS_API_KEY=\${IGRIS_API_KEY}
       - PROCESSOR_TYPE=batch_processing
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
     restart: unless-stopped
     
-  schlep-monitor:
-    image: schlepengine/monitor:latest
+  igris-monitor:
+    image: igris-inertial/monitor:latest
     ports:
       - "3000:3000"
     environment:
-      - SCHLEP_API_KEY=\${SCHLEP_API_KEY}
+      - IGRIS_API_KEY=\${IGRIS_API_KEY}
     depends_on:
-      - schlep-processor`
+      - igris-processor`
     }
   ]
 
@@ -414,8 +414,8 @@ services:
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === category.id
-                    ? 'bg-[#468BE6] text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                  ? 'bg-[#468BE6] text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
                   }`}
               >
                 {getCategoryIcon(category.id)}

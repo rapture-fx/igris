@@ -39,7 +39,7 @@ export default function Header() {
             <Link href="/" className="flex items-center">
               <Image
                 src="/schlep-logo-34.png"
-                alt="Schlep-engine"
+                alt="Igris Inertial"
                 width={30}
                 height={30}
               />
@@ -65,13 +65,13 @@ export default function Header() {
             >
               Pricing
             </Link>
-                          <button
-                            onClick={openEarlyAccessModal}
-                            className="text-white px-3 py-1 md:px-4 md:py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md hover:shadow-lg font-inter"
-                            style={{ backgroundColor: '#000000' }}
-                          >
-                            Sign Up
-                          </button>          </div>
+            <button
+              onClick={openEarlyAccessModal}
+              className="text-white px-3 py-1 md:px-4 md:py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md hover:shadow-lg font-inter"
+              style={{ backgroundColor: '#000000' }}
+            >
+              Sign Up
+            </button>          </div>
 
           <div className="md:hidden flex items-center">
             <button

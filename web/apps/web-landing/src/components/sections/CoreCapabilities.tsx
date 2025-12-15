@@ -62,177 +62,177 @@ export default function CoreCapabilities() {
             {/* Content Container */}
             <div className="w-full px-0">
               {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
-            <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-            transform: 'translateX(-66.67%)'
-            }}></div>
+              <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                transform: 'translateX(-66.67%)'
+              }}></div>
 
-            {/* Title Section - Shows first on mobile, last on desktop */}
-            <div className="text-left mb-6 lg:mb-0 lg:hidden">
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                Smarter routing. Predictable performance.
-              </h3>
-              <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                Schlep-engine delivers adaptive, quality-aware routing with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
-              </p>
-            </div>
+              {/* Title Section - Shows first on mobile, last on desktop */}
+              <div className="text-left mb-6 lg:mb-0 lg:hidden">
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                  Smarter routing. Predictable performance.
+                </h3>
+                <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
+                  Igris Inertial delivers adaptive, quality-aware routing with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
+                </p>
+              </div>
 
-            {/* Two-column layout */}
+              {/* Two-column layout */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
 
-              {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
-              <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full">
+                {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
+                <div className="lg:col-span-2 relative flex items-center justify-center">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full">
                     {capabilities.map((capability, index) => {
                       const hasRightBorder = index % 2 === 0;
                       const hasBottomBorder = index < capabilities.length - 2;
 
                       return (
-                      <div
-                        key={capability.name}
-                        className="p-4 relative"
-                        style={{
-                          padding: '20px 24px',
-                          minHeight: '145px'
-                        }}
-                      >
-                        {/* Double dashed right border */}
-                        {hasRightBorder && (
-                          <>
-                            <div className="absolute top-0 bottom-0 right-[2px]" style={{
-                              borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
-                            }}></div>
-                            <div className="absolute top-0 bottom-0 right-[-2px]" style={{
-                              borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
-                            }}></div>
-                          </>
-                        )}
+                        <div
+                          key={capability.name}
+                          className="p-4 relative"
+                          style={{
+                            padding: '20px 24px',
+                            minHeight: '145px'
+                          }}
+                        >
+                          {/* Double dashed right border */}
+                          {hasRightBorder && (
+                            <>
+                              <div className="absolute top-0 bottom-0 right-[2px]" style={{
+                                borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
+                              }}></div>
+                              <div className="absolute top-0 bottom-0 right-[-2px]" style={{
+                                borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
+                              }}></div>
+                            </>
+                          )}
 
-                        {/* Double dashed bottom border */}
-                        {hasBottomBorder && (
-                          <>
-                            <div className="absolute left-0 right-0 bottom-[2px]" style={{
-                              borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
-                            }}></div>
-                            <div className="absolute left-0 right-0 bottom-[-2px]" style={{
-                              borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
-                            }}></div>
-                          </>
-                        )}
-                        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
-                          {capability.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                          {capability.description}
-                        </p>
-                      </div>
+                          {/* Double dashed bottom border */}
+                          {hasBottomBorder && (
+                            <>
+                              <div className="absolute left-0 right-0 bottom-[2px]" style={{
+                                borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
+                              }}></div>
+                              <div className="absolute left-0 right-0 bottom-[-2px]" style={{
+                                borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
+                              }}></div>
+                            </>
+                          )}
+                          <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
+                            {capability.name}
+                          </h3>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
+                            {capability.description}
+                          </p>
+                        </div>
                       )
                     })}
                   </div>
-              </div>
+                </div>
 
-              {/* Right Column - Section Title (Desktop only) */}
-              <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                  Smarter routing. Predictable performance.
-                </h3>
-                <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                  Schlep-engine optimizes every request with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational even during provider instability. Below, you can see how the platform enforces safety on every optimization.
-                </p>
+                {/* Right Column - Section Title (Desktop only) */}
+                <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
+                  <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    Smarter routing. Predictable performance.
+                  </h3>
+                  <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
+                    Igris Inertial optimizes every request with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational even during provider instability. Below, you can see how the platform enforces safety on every optimization.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    {/* New Section - Full Width Placeholder */}
-    <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-        <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
-          borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-          borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-          backgroundColor: '#f6f6f4'
-        }}>
-          {/* Top left bleeding cross */}
-          <div className="absolute -top-4 -left-4 w-8 h-8">
-            <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
-          </div>
-          {/* Bottom right bleeding cross */}
-          <div className="absolute -bottom-4 -right-4 w-8 h-8">
-            <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
-            <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
-          </div>
+      {/* New Section - Full Width Placeholder */}
+      <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
+        <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+          <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
+            borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+            borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+            backgroundColor: '#f6f6f4'
+          }}>
+            {/* Top left bleeding cross */}
+            <div className="absolute -top-4 -left-4 w-8 h-8">
+              <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
+              <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
+            </div>
+            {/* Bottom right bleeding cross */}
+            <div className="absolute -bottom-4 -right-4 w-8 h-8">
+              <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
+              <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
+            </div>
 
-          {/* Full Width Placeholder */}
-          <div
-            className="relative p-4 md:p-6 lg:p-8"
-            style={{
-              borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-              borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-              borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-              borderRadius: '16px',
-              backgroundColor: '#f6f6f4',
-              boxShadow: 'none',
+            {/* Full Width Placeholder */}
+            <div
+              className="relative p-4 md:p-6 lg:p-8"
+              style={{
+                borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
+                borderRadius: '16px',
+                backgroundColor: '#f6f6f4',
+                boxShadow: 'none',
 
-              backgroundImage: `
+                backgroundImage: `
                 repeating-linear-gradient(0deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px),
                 repeating-linear-gradient(90deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px)
               `,
-              backgroundSize: '15px 15px',
-              backgroundPosition: '5px 5px'
-            }}
-          >
-            <div className="max-w-5xl mx-auto">
-              <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
+                backgroundSize: '15px 15px',
+                backgroundPosition: '5px 5px'
+              }}
+            >
+              <div className="max-w-5xl mx-auto">
+                <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
 
-              <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
-                Schlep-engine applies automated safeguards to every optimization, verifies routing behavior in real time, and isolates failing providers before they affect live traffic. Your workloads stay reliable, predictable, and resilient.
-              </p>
+                <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
+                  Igris Inertial applies automated safeguards to every optimization, verifies routing behavior in real time, and isolates failing providers before they affect live traffic. Your workloads stay reliable, predictable, and resilient.
+                </p>
 
-              {/* 2x2 Grid Layout */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Card 1: EscapeVector Mode */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
-                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Stay online even if our control plane goes offline. Cached Bayesian routing keeps quality, performance, and resilience intact for 72 hours without interruption.
-                  </p>
-                </div>
+                {/* 2x2 Grid Layout */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Card 1: EscapeVector Mode */}
+                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
+                    <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                      Stay online even if our control plane goes offline. Cached Bayesian routing keeps quality, performance, and resilience intact for 72 hours without interruption.
+                    </p>
+                  </div>
 
-                {/* Card 2: Gold Code Override */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
-                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    One environment variable instantly bypasses the entire control plane. A required safety switch for enterprise security, audits, and regulated workloads.
-                  </p>
-                </div>
+                  {/* Card 2: Gold Code Override */}
+                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
+                    <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                      One environment variable instantly bypasses the entire control plane. A required safety switch for enterprise security, audits, and regulated workloads.
+                    </p>
+                  </div>
 
-                {/* Card 3: SLO Enforcer */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
-                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Automatic guardrails monitor latency, cost drift, and reliability. Traffic shifts to safer paths the moment thresholds are crossed.
-                  </p>
-                </div>
+                  {/* Card 3: SLO Enforcer */}
+                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
+                    <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                      Automatic guardrails monitor latency, cost drift, and reliability. Traffic shifts to safer paths the moment thresholds are crossed.
+                    </p>
+                  </div>
 
-                {/* Card 4: Resilient Provider Health Checks */}
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Provider Health Checks</h5>
-                  <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Continuous endpoint validation ensures only healthy providers receive traffic. Failed calls are detected and rerouted in real time.
-                  </p>
+                  {/* Card 4: Resilient Provider Health Checks */}
+                  <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Provider Health Checks</h5>
+                    <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
+                      Continuous endpoint validation ensures only healthy providers receive traffic. Failed calls are detected and rerouted in real time.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
     </>
   )
 }
