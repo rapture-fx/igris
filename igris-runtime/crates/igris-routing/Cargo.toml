@@ -7,10 +7,6 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-# Path dependency to existing Rust optimizer (Thompson Sampling)
-# CRITICAL: This reuses the production-ready Thompson Sampling implementation
-schlep-kernel = { path = "../../../rust-core/rust_kernel", default-features = false }
-
 # Workspace dependencies
 tokio = { workspace = true }
 futures = { workspace = true }
@@ -21,6 +17,7 @@ serde_json = { workspace = true }
 tracing = { workspace = true }
 reqwest = { workspace = true }
 async-stream = { workspace = true }
+rand = { workspace = true }
 
 # Core dependency
 igris-core = { path = "../igris-core" }

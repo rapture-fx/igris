@@ -50,7 +50,7 @@ export default function TerminalInterface() {
     const realCommands: TerminalCommand[] = [
       {
         id: '1',
-        command: 'curl -X GET "https://api.schlepengine.com/v1/health"',
+        command: 'curl -X GET "https://api.igris-inertial.com/v1/health"',
         status: 'completed',
         output: [
           '✓ API Status: Healthy',
@@ -67,7 +67,7 @@ export default function TerminalInterface() {
       },
       {
         id: '2',
-        command: 'curl -X POST "https://api.schlepengine.com/v1/industry/fraud-detection" \\',
+        command: 'curl -X POST "https://api.igris-inertial.com/v1/industry/fraud-detection" \\',
         status: 'running',
         output: [
           '⚡ Analyzing transaction patterns...',
@@ -83,7 +83,7 @@ export default function TerminalInterface() {
       },
       {
         id: '3',
-        command: 'curl -X POST "https://api.schlepengine.com/v1/data/smart-profiling" \\',
+        command: 'curl -X POST "https://api.igris-inertial.com/v1/data/smart-profiling" \\',
         status: 'completed',
         output: [
           '📈 Data quality score: 92.3%',
@@ -128,7 +128,7 @@ export default function TerminalInterface() {
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
               <div className={`w-2 h-2 rounded-full ${liveDemo.healthStatus === 'healthy' ? 'bg-green-400' :
-                  liveDemo.healthStatus === 'degraded' ? 'bg-yellow-400' : 'bg-red-400'
+                liveDemo.healthStatus === 'degraded' ? 'bg-yellow-400' : 'bg-red-400'
                 }`}></div>
               <span className="text-gray-300 text-sm">API Status: {liveDemo.healthStatus}</span>
             </div>

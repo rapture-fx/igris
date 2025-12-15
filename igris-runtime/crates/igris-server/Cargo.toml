@@ -26,6 +26,7 @@ tracing-subscriber = { workspace = true }
 reqwest = { workspace = true }
 uuid = { workspace = true }
 futures = { workspace = true }
+async-trait = "0.1"
 
 # Internal dependencies
 igris-core = { path = "../igris-core" }
@@ -34,6 +35,9 @@ igris-emergency = { path = "../igris-emergency" }
 igris-local-llm = { path = "../igris-local-llm" }
 igris-mcp-server = { path = "../mcp-server" }
 igris-mcp-client = { path = "../mcp-client" }
+igris-reflection = { path = "../igris-reflection" }
+igris-tools = { path = "../igris-tools" }
+igris-planning = { path = "../igris-planning" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
