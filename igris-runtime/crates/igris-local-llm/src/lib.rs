@@ -1,5 +1,6 @@
 pub mod models;
 pub mod provider;
+pub mod inference;
 
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -10,6 +11,7 @@ use tracing::{debug, info, warn};
 
 pub use models::ModelId;
 pub use provider::LocalLLMProviderAdapter;
+pub use inference::RealInferenceEngine;
 
 /// Configuration for local LLM fallback (v1.4 multi-model support)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -119,14 +121,15 @@ impl Default for LocalLLMConfig {
 
 /// Local LLM provider using llama.cpp with optional LoRA adapter support
 ///
-/// NOTE: This is a stub implementation. The actual llama.cpp integration
-/// requires platform-specific compilation and is configured via the
-/// llama_cpp_rs crate. For production use, ensure llama_cpp_rs is properly
-/// configured in Cargo.toml with the appropriate features for your platform.
+/// **Phase 1 Implementation**: Real inference using llama.cpp bindings.
+/// Enable `llama-inference` feature for actual model loading.
+/// Without feature: falls back to stub for development.
 pub struct LocalLLMProvider {
     config: Arc<Mutex<LocalLLMConfig>>,
-    _model_path: PathBuf,
+    model_path: PathBuf,
     current_adapter: Arc<Mutex<Option<PathBuf>>>,
+    // Real inference engine (lazy loaded)
+    engine: Arc<Mutex<Option<RealInferenceEngine>>>,
 }
 
 impl LocalLLMProvider {
@@ -168,53 +171,65 @@ impl LocalLLMProvider {
 
         Ok(Self {
             config: Arc::new(Mutex::new(config)),
-            _model_path: model_path,
+            model_path,
             current_adapter: Arc::new(Mutex::new(adapter_path)),
+            engine: Arc::new(Mutex::new(None)), // Lazy load on first generate()
         })
     }
 
     /// Generate completion for a prompt
     ///
-    /// NOTE: This is a stub implementation that will be replaced with actual
-    /// llama.cpp inference once the native library is properly linked.
+    /// **Phase 1**: Real inference with llama.cpp (when feature enabled)
+    /// Lazy loads model on first call.
     pub async fn generate(&self, prompt: &str) -> Result<String> {
         debug!("Local LLM generating response for prompt: {}", prompt);
 
         let config = self.config.lock().await;
-        let adapter = self.current_adapter.lock().await;
+        let mut engine = self.engine.lock().await;
 
-        // Stub implementation - returns a placeholder response
-        // In production, this would call llama.cpp for actual inference with optional LoRA adapter
-        let adapter_info = if let Some(ref adapter_path) = *adapter {
-            format!("\nLoRA Adapter: {} (ACTIVE)", adapter_path.display())
-        } else {
-            String::from("\nLoRA Adapter: None")
-        };
+        // Lazy load model on first generation
+        if engine.is_none() {
+            info!("Lazy loading model: {}", self.model_path.display());
 
+            let resolved_context = config.resolve_context_size();
+            let threads = config.threads;
+
+            match RealInferenceEngine::load(&self.model_path, resolved_context, threads) {
+                Ok(loaded_engine) => {
+                    info!("Model loaded successfully");
+                    *engine = Some(loaded_engine);
+                }
+                Err(e) => {
+                    warn!("Failed to load model: {}. Using fallback.", e);
+                    // Return error or fallback
+                    anyhow::bail!("Model loading failed: {}", e);
+                }
+            }
+        }
+
+        // Generate with real engine
         let model_name = config.model_display_name();
-        let resolved_context = config.resolve_context_size();
-        let resolved_path = config.resolve_model_path();
+        let max_tokens = config.max_tokens;
+        let temperature = config.temperature;
 
-        let response = format!(
-            "[Local LLM Response - {}{}]\n\nReceived prompt: {}\n\n\
-            This is a placeholder response. To enable actual local LLM inference:\n\
-            1. Ensure llama_cpp_rs is properly configured with platform-specific features\n\
-            2. Link against llama.cpp native library\n\
-            3. Implement inference using LlamaModel, LlamaContext, and LlamaSampler\n\n\
-            Model: {}\nPath: {}\nThreads: {}\nContext: {}{}",
-            model_name,
-            if adapter.is_some() { " + LoRA" } else { "" },
-            prompt,
-            model_name,
-            resolved_path,
-            config.threads,
-            resolved_context,
-            adapter_info
-        );
+        drop(config); // Release lock before potentially long inference
 
-        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
+        if let Some(ref real_engine) = *engine {
+            info!("Generating with real inference engine");
 
-        Ok(response)
+            // Run inference in blocking task to avoid blocking async runtime
+            let prompt_owned = prompt.to_string();
+            let result = tokio::task::spawn_blocking(move || {
+                real_engine.generate(&prompt_owned, max_tokens, temperature, 0.95)
+            })
+            .await
+            .map_err(|e| anyhow::anyhow!("Inference task failed: {}", e))??;
+
+            info!("Generation complete");
+            Ok(result)
+        } else {
+            anyhow::bail!("Inference engine not initialized");
+        }
     }
 
     /// Hot-swap LoRA adapter at runtime
