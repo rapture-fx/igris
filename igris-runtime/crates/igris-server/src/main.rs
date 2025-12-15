@@ -12,6 +12,7 @@ use std::convert::Infallible;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
+use tower_http::trace::TraceLayer;
 use tracing::{info, warn, error};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
@@ -53,24 +54,24 @@ use metrics::Metrics;
 /// Application state shared across handlers
 #[derive(Clone)]
 pub(crate) struct AppState {
-    config: Arc<IgrisConfig>,
-    storage: Arc<RedbStorage>,
-    speculative_router: Arc<SpeculativeRouter>,
-    council_router: Arc<CouncilRouter>,
-    cloud_providers: Arc<Vec<CloudProvider>>,
-    local_provider: Option<Arc<LocalProvider>>,
-    mcp_context_store: Option<Arc<ContextStore>>,
-    reflection_config: Option<ReflectionLoopConfig>,
-    tool_registry: Option<Arc<ToolRegistry>>,
-    tool_max_steps: u32,
-    tool_timeout_ms: u64,
-    tool_max_concurrent: usize,
-    planning_config: Option<PlanningConfig>,
-    swarm_config: Option<SwarmConfig>,
-    swarm_peer_id: String,
-    lora_training: Option<Arc<LoraTrainingManager>>,
-    rate_limiter: Option<middleware::security::RateLimiter>,
-    metrics: Arc<Metrics>,
+    pub(crate) config: Arc<IgrisConfig>,
+    pub(crate) storage: Arc<RedbStorage>,
+    pub(crate) speculative_router: Arc<SpeculativeRouter>,
+    pub(crate) council_router: Arc<CouncilRouter>,
+    pub(crate) cloud_providers: Arc<Vec<CloudProvider>>,
+    pub(crate) local_provider: Option<Arc<LocalProvider>>,
+    pub(crate) mcp_context_store: Option<Arc<ContextStore>>,
+    pub(crate) reflection_config: Option<ReflectionLoopConfig>,
+    pub(crate) tool_registry: Option<Arc<ToolRegistry>>,
+    pub(crate) tool_max_steps: u32,
+    pub(crate) tool_timeout_ms: u64,
+    pub(crate) tool_max_concurrent: usize,
+    pub(crate) planning_config: Option<PlanningConfig>,
+    pub(crate) swarm_config: Option<SwarmConfig>,
+    pub(crate) swarm_peer_id: String,
+    pub(crate) lora_training: Option<Arc<LoraTrainingManager>>,
+    pub(crate) rate_limiter: Option<middleware::security::RateLimiter>,
+    pub(crate) metrics: Arc<Metrics>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -1147,6 +1148,7 @@ async fn main() -> anyhow::Result<()> {
         .route("/metrics", get(metrics_handler))
         .route("/v1/chat/completions", post(chat_completions))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
+        .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())
         .layer(from_fn_with_state(state.clone(), security_middleware))
         .with_state(state);
