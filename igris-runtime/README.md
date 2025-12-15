@@ -117,6 +117,39 @@ cargo run --release
 - **metrics**: `GET /metrics` (Prometheus text format)
 - **LoRA training status**: `GET /v1/lora/status`
 
+## CLI (built into `igris-runtime`)
+
+The binary includes a small CLI (powered by `clap`) for common operations:
+
+```bash
+./target/release/igris-runtime serve
+./target/release/igris-runtime validate-config --config config.json5
+./target/release/igris-runtime health --url http://localhost:8080
+./target/release/igris-runtime metrics --url http://localhost:8080
+./target/release/igris-runtime status --url http://localhost:8080
+./target/release/igris-runtime chat "hello" --url http://localhost:8080 --model gpt-4
+./target/release/igris-runtime chat "stream this" --url http://localhost:8080 --stream
+./target/release/igris-runtime download-model
+```
+
+## Docker (scratch image)
+
+Build:
+
+```bash
+docker build -f Dockerfile.runtime -t igris-runtime:runtime .
+```
+
+Run (mount config + models if you use local inference):
+
+```bash
+docker run --rm -p 8080:8080 \
+  -e IGRIS_CONFIG=/app/config.json5 \
+  -v "$PWD/config.json5:/app/config.json5:ro" \
+  -v "$PWD/models:/app/models:ro" \
+  igris-runtime:runtime
+```
+
 ---
 
 ## Testing Offline Capability

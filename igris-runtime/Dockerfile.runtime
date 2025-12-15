@@ -1,4 +1,4 @@
-# Stage 1: Rust musl builder
+# Stage 1: static build (musl)
 FROM rust:1.75-alpine AS builder
 
 RUN apk add --no-cache musl-dev upx
@@ -6,14 +6,23 @@ RUN apk add --no-cache musl-dev upx
 WORKDIR /build
 COPY . .
 
-# Build static binary
-RUN cargo build --release --target x86_64-unknown-linux-musl
+# Ensure optional runtime paths exist (empty by default)
+RUN mkdir -p /build/models /build/prompt_cache
 
-# Compress with UPX
+# Provide an example config inside the image
+RUN cp /build/config.json5 /build/config.example.json5
+
+# Build static binary
+RUN cargo build --release --target x86_64-unknown-linux-musl -p igris-server --bin igris-runtime
+
+# Compress with UPX (keeps image small; binary remains functional)
 RUN upx --best --lzma /build/target/x86_64-unknown-linux-musl/release/igris-runtime
 
-# Stage 2: Scratch runtime
+# Stage 2: minimal scratch runtime
 FROM scratch
+
+# Runtime layout
+WORKDIR /app
 
 # Copy binary
 COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/igris-runtime /igris-runtime
@@ -21,8 +30,21 @@ COPY --from=builder /build/target/x86_64-unknown-linux-musl/release/igris-runtim
 # Copy CA certificates for HTTPS
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
+# Copy example config and create empty optional dirs (mount over them in production)
+COPY --from=builder /build/config.example.json5 /app/config.example.json5
+COPY --from=builder /build/config.json5 /app/config.json5
+COPY --from=builder /build/models /app/models
+COPY --from=builder /build/prompt_cache /app/prompt_cache
+
+# Default config path (override at runtime)
+ENV IGRIS_CONFIG=/app/config.json5
+
 # Expose port
 EXPOSE 8080
 
-# Run
-ENTRYPOINT ["/igris-runtime"]
+# Healthcheck uses the runtime binary itself (no shell/curl in scratch)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD ["/igris-runtime", "health", "--url", "http://localhost:8080"]
+
+# Run server by default
+ENTRYPOINT ["/igris-runtime", "serve"]
