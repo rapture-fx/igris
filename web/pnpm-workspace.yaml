@@ -2,20 +2,9 @@ packages:
   # Frontend applications
   - 'apps/*'
 
-  # Shared packages (reference labs monorepo)
-  # Note: These packages exist in /labs/packages/
-  # To fix workspace dependencies, create symlinks:
-  #   mkdir -p packages && cd packages
-  #   ln -s ../../labs/packages/types types
-  #   ln -s ../../labs/packages/ui ui
-  #   ln -s ../../labs/packages/pricing-config pricing-config
-  #   ln -s ../../labs/packages/config config
-  #   ln -s ../../labs/packages/javascript-sdk javascript-sdk
-  - 'packages/*'
-
-  # Or uncomment to reference labs packages directly:
-  # - '../labs/packages/types'
-  # - '../labs/packages/ui'
-  # - '../labs/packages/pricing-config'
-  # - '../labs/packages/config'
-  # - '../labs/packages/javascript-sdk'
+  # Shared packages from labs (direct reference)
+  - '../labs/packages/types'
+  - '../labs/packages/ui'
+  - '../labs/packages/pricing-config'
+  - '../labs/packages/config'
+  - '../labs/packages/javascript-sdk'
