@@ -1,5 +1,5 @@
 {
-  "name": "@schlep-engine/web-landing",
+  "name": "@igris-inertial/web-landing",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@cloudflare/next-on-pages": "^1.13.16",
-    "@schlep-engine/config": "workspace:*",
+    "@igris-inertial/config": "workspace:*",
     "@types/node": "^20.14.0",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.5",

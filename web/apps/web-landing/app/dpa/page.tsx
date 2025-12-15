@@ -12,8 +12,8 @@ export default function DPAPage() {
   return (
     <>
       <Head>
-        <title>Data Processing Agreement (DPA) — Schlep Engine</title>
-        <meta name="description" content="GDPR/CCPA-compliant DPA for Schlep Engine customers." />
+        <title>Data Processing Agreement (DPA) — Igris Inertial</title>
+        <meta name="description" content="GDPR/CCPA-compliant DPA for Igris Inertial customers." />
       </Head>
       <div className="min-h-screen bg-[#f6f6f4]">
         <Header />
@@ -28,12 +28,12 @@ export default function DPAPage() {
                 </p>
 
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  This Data Processing Agreement ("DPA") forms part of the Terms of Service between Schlep-engine Inc. ("Processor" and "Schlep Engine") and you ("Controller").
+                  This Data Processing Agreement ("DPA") forms part of the Terms of Service between Igris Inertial Inc. ("Processor" and "Igris Inertial") and you ("Controller").
                 </p>
 
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">1. Subject Matter</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  Schlep Engine acts as a Processor of personal data only when routing requests using your own API keys (BYOK). We do not store, log, or retain any prompts, outputs, or personal data beyond transient in-memory processing.
+                  Igris Inertial acts as a Processor of personal data only when routing requests using your own API keys (BYOK). We do not store, log, or retain any prompts, outputs, or personal data beyond transient in-memory processing.
                 </p>
 
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">2. Nature and Purpose of Processing</h2>
@@ -68,7 +68,7 @@ export default function DPAPage() {
 
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">8. Your Rights</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  You may request deletion or audit at any time: <a href="mailto:support@schlep-engine.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@schlep-engine.com</a>
+                  You may request deletion or audit at any time: <a href="mailto:support@igris-inertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igris-inertial.com</a>
                 </p>
 
                 <p className="text-gray-700 dark:text-gray-300 mb-6">

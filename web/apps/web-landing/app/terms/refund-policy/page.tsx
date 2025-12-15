@@ -12,8 +12,8 @@ export default function RefundPolicyPage() {
   return (
     <>
       <Head>
-        <title>Refund Policy — Schlep Engine</title>
-        <meta name="description" content="Refund and cancellation policy for Schlep Engine subscriptions." />
+        <title>Refund Policy — Igris Inertial</title>
+        <meta name="description" content="Refund and cancellation policy for Igris Inertial subscriptions." />
       </Head>
       <div className="min-h-screen bg-[#f6f6f4]">
         <Header />

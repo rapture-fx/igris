@@ -12,8 +12,8 @@ export default function CancellationPolicyPage() {
   return (
     <>
       <Head>
-        <title>Cancellation Policy — Schlep Engine</title>
-        <meta name="description" content="How to cancel your Schlep Engine subscription." />
+        <title>Cancellation Policy — Igris Inertial</title>
+        <meta name="description" content="How to cancel your Igris Inertial subscription." />
       </Head>
       <div className="min-h-screen bg-[#f6f6f4]">
         <Header />

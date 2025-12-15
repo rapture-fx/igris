@@ -8,21 +8,21 @@ export const viewport = {
 }
 
 export const metadata = {
-  metadataBase: new URL('https://schlep.engine'),
-  title: 'Schlep-engine — The Routing Engine and Control Plane for AI Inference',
-  description: 'Schlep-engine routes AI inference across providers for cost, latency, and reliability optimization using your own API keys.',
+  metadataBase: new URL('https://igris.inertial'),
+  title: 'Igris Inertial — The Routing Engine and Control Plane for AI Inference',
+  description: 'Igris Inertial routes AI inference across providers for cost, latency, and reliability optimization using your own API keys.',
   openGraph: {
-    title: 'Schlep-engine',
+    title: 'Igris Inertial',
     description: 'Unified routing layer for OpenAI, Anthropic, Gemini, Deepseek, and more.',
-    url: 'https://schlep.engine',
-    siteName: 'Schlep-engine',
-    images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'Schlep-engine diagram' }],
+    url: 'https://igris.inertial',
+    siteName: 'Igris Inertial',
+    images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'Igris Inertial diagram' }],
     locale: 'en_US',
     type: 'website'
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Schlep-engine',
+    title: 'Igris Inertial',
     description: 'The routing engine for AI inference.',
     images: ['/logo.svg']
   },

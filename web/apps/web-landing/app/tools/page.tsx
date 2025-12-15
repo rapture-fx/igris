@@ -1,13 +1,13 @@
 'use client'
 
 import { useState } from 'react'
-import { 
-  Terminal, 
-  Download, 
-  Code2, 
-  BookOpen, 
-  Copy, 
-  Check, 
+import {
+  Terminal,
+  Download,
+  Code2,
+  BookOpen,
+  Copy,
+  Check,
   ExternalLink,
   Package,
   Github,
@@ -44,7 +44,7 @@ export default function SDKTools() {
     {
       id: '1',
       name: 'Python SDK',
-      description: 'Official Python SDK for Schlep Engine with async support and batch processing',
+      description: 'Official Python SDK for Igris Inertial with async support and batch processing',
       category: 'sdk',
       language: 'Python',
       version: '2.1.0',
@@ -162,7 +162,7 @@ processData();`
         'Configuration profiles',
         'Batch operations'
       ],
-      codeExample: `# Install Schlep Engine CLI
+      codeExample: `# Install Igris Inertial CLI
 curl -sSL https://install.schlepengine.com/cli | bash
 
 # Set up authentication
@@ -253,7 +253,7 @@ curl -X POST "https://api.schlep-engine.com/v1/webhooks" \\
         'Performance optimization',
         'Error handling patterns'
       ],
-      codeExample: `# Schlep Engine - Data Processing Workflow
+      codeExample: `# Igris Inertial - Data Processing Workflow
 # This notebook demonstrates end-to-end data processing
 
 import pandas as pd
@@ -268,7 +268,7 @@ df = pd.read_csv("sample_data.csv")
 print(f"Dataset shape: {df.shape}")
 df.head()
 
-# Upload to Schlep Engine
+# Upload to Igris Inertial
 dataset = client.datasets.upload_dataframe(
     df, 
     name="Customer Analysis Dataset"
@@ -311,7 +311,7 @@ labeled_data = client.datasets.download(result.output_dataset_id)`
         'Logging configuration',
         'Secret management'
       ],
-      codeExample: `# Dockerfile for custom Schlep Engine processor
+      codeExample: `# Dockerfile for custom Igris Inertial processor
 FROM schlepengine/processor:latest
 
 # Copy your custom processing scripts
@@ -390,7 +390,7 @@ services:
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-white">SDK & CLI Tools</h1>
-              <p className="text-gray-400 mt-1">Developer tools and integrations for Schlep Engine</p>
+              <p className="text-gray-400 mt-1">Developer tools and integrations for Igris Inertial</p>
             </div>
             <div className="flex items-center space-x-4">
               <a
@@ -413,11 +413,10 @@ services:
               <button
                 key={category.id}
                 onClick={() => setActiveCategory(category.id)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeCategory === category.id
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeCategory === category.id
                     ? 'bg-[#468BE6] text-white'
                     : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
-                }`}
+                  }`}
               >
                 {getCategoryIcon(category.id)}
                 <span>{category.name}</span>
@@ -434,9 +433,8 @@ services:
               {filteredTools.map((tool) => (
                 <div
                   key={tool.id}
-                  className={`bg-[#161616] border rounded-xl p-6 cursor-pointer transition-all hover:border-[#468BE6]/50 ${
-                    selectedTool?.id === tool.id ? 'border-[#468BE6] ring-1 ring-[#468BE6]/50' : 'border-gray-800'
-                  }`}
+                  className={`bg-[#161616] border rounded-xl p-6 cursor-pointer transition-all hover:border-[#468BE6]/50 ${selectedTool?.id === tool.id ? 'border-[#468BE6] ring-1 ring-[#468BE6]/50' : 'border-gray-800'
+                    }`}
                   onClick={() => setSelectedTool(tool)}
                 >
                   <div className="flex items-start justify-between mb-4">
@@ -457,7 +455,7 @@ services:
                           )}
                         </div>
                         <p className="text-gray-400 text-sm mb-4">{tool.description}</p>
-                        
+
                         {/* Features */}
                         <div className="flex flex-wrap gap-2 mb-4">
                           {tool.features.slice(0, 3).map((feature, index) => (
@@ -555,7 +553,7 @@ services:
               <h3 className="text-lg font-semibold text-white mb-4">
                 {selectedTool ? 'Code Example' : 'Select a Tool'}
               </h3>
-              
+
               {selectedTool ? (
                 <div className="space-y-4">
                   {/* Tool Info */}

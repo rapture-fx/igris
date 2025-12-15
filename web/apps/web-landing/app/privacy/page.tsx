@@ -12,7 +12,7 @@ export default function PrivacyPage() {
   return (
     <>
       <Head>
-        <title>Schlep Engine Privacy Policy</title>
+        <title>Igris Inertial Privacy Policy</title>
         <meta name="description" content="We do not store your prompts, responses, or API keys. Full BYOK privacy." />
       </Head>
       <div className="min-h-screen bg-[#f6f6f4]">
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
               </p>
 
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Schlep-engine Inc. ("we", "us", "our") operates the service at www.schlep-engine.com.
+                Igris Inertial Inc. ("we", "us", "our") operates the service at www.igris-inertial.com.
               </p>
 
               <p className="text-gray-700 dark:text-gray-300 mb-6">
@@ -59,11 +59,11 @@ export default function PrivacyPage() {
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Your Rights</h2>
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Request access, deletion, or correction at any time: support@schlep-engine.com
+                Request access, deletion, or correction at any time: support@igris-inertial.com
               </p>
 
               <p className="text-gray-700 dark:text-gray-300 mt-8">
-                Questions? Contact us at <a href="mailto:support@schlep-engine.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@schlep-engine.com</a>
+                Questions? Contact us at <a href="mailto:support@igris-inertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igris-inertial.com</a>
               </p>
             </article>
           </div>
