@@ -66,7 +66,28 @@ impl ToolRegistry {
         // Enforce tool-level validation consistently (not only when a specific tool calls it).
         tool.validate_args(&args).await?;
 
-        tool.execute(args).await
+        let start = std::time::Instant::now();
+        let res = tool.execute(args).await;
+        let elapsed = start.elapsed().as_millis() as u64;
+        match &res {
+            Ok(r) => {
+                tracing::info!(
+                    tool = %tool_name,
+                    success = r.success,
+                    execution_time_ms = elapsed,
+                    "tool_executed"
+                );
+            }
+            Err(e) => {
+                tracing::warn!(
+                    tool = %tool_name,
+                    execution_time_ms = elapsed,
+                    error = %e,
+                    "tool_failed"
+                );
+            }
+        }
+        res
     }
 
     /// Check if a tool is registered
