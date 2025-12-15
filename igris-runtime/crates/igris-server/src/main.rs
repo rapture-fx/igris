@@ -862,6 +862,222 @@ impl Provider for CloudProviderWrapper {
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    // Lightweight CLI (no clap) to preserve binary size.
+    // Default behavior is `serve` (start the HTTP server).
+    let args: Vec<String> = std::env::args().collect();
+    if args.len() >= 2 {
+        match args[1].as_str() {
+            "serve" => {
+                // fall through to server startup
+            }
+            "validate-config" => {
+                let mut config_path =
+                    std::env::var("IGRIS_CONFIG").unwrap_or_else(|_| "config.json5".to_string());
+                let mut i = 2;
+                while i < args.len() {
+                    match args[i].as_str() {
+                        "--config" if i + 1 < args.len() => {
+                            config_path = args[i + 1].clone();
+                            i += 2;
+                        }
+                        _ => {
+                            eprintln!("Usage: igris-runtime validate-config [--config <path>]");
+                            std::process::exit(2);
+                        }
+                    }
+                }
+
+                match IgrisConfig::load_from_file(&config_path) {
+                    Ok(_) => {
+                        println!("OK: config valid ({})", config_path);
+                        return Ok(());
+                    }
+                    Err(e) => {
+                        eprintln!("ERROR: config invalid ({}): {}", config_path, e);
+                        std::process::exit(1);
+                    }
+                }
+            }
+            "status" => {
+                let mut base_url = "http://localhost:8080".to_string();
+                let mut i = 2;
+                while i < args.len() {
+                    match args[i].as_str() {
+                        "--url" if i + 1 < args.len() => {
+                            base_url = args[i + 1].clone();
+                            i += 2;
+                        }
+                        _ => {
+                            eprintln!("Usage: igris-runtime status [--url <base_url>]");
+                            std::process::exit(2);
+                        }
+                    }
+                }
+
+                let client = reqwest::Client::builder()
+                    .timeout(std::time::Duration::from_secs(10))
+                    .build()?;
+                let health = client
+                    .get(format!("{}/v1/health", base_url))
+                    .send()
+                    .await?;
+                println!("health: {}", health.status());
+
+                let lora = client
+                    .get(format!("{}/v1/lora/status", base_url))
+                    .send()
+                    .await;
+                match lora {
+                    Ok(resp) => {
+                        let text = resp.text().await.unwrap_or_default();
+                        println!("lora_status: {}", text);
+                    }
+                    Err(e) => {
+                        println!("lora_status: error: {}", e);
+                    }
+                }
+
+                let metrics = client.get(format!("{}/metrics", base_url)).send().await;
+                match metrics {
+                    Ok(resp) => {
+                        println!("metrics: {}", resp.status());
+                    }
+                    Err(e) => {
+                        println!("metrics: error: {}", e);
+                    }
+                }
+
+                return Ok(());
+            }
+            "chat" => {
+                let mut base_url = "http://localhost:8080".to_string();
+                let mut model = "gpt-4".to_string();
+                let mut stream = false;
+                let mut prompt: Option<String> = None;
+
+                let mut i = 2;
+                while i < args.len() {
+                    match args[i].as_str() {
+                        "--url" if i + 1 < args.len() => {
+                            base_url = args[i + 1].clone();
+                            i += 2;
+                        }
+                        "--model" if i + 1 < args.len() => {
+                            model = args[i + 1].clone();
+                            i += 2;
+                        }
+                        "--stream" => {
+                            stream = true;
+                            i += 1;
+                        }
+                        s => {
+                            prompt = Some(s.to_string());
+                            i += 1;
+                            if i < args.len() {
+                                let mut rest = vec![prompt.take().unwrap()];
+                                rest.extend_from_slice(&args[i..]);
+                                prompt = Some(rest.join(" "));
+                            }
+                            break;
+                        }
+                    }
+                }
+
+                let Some(prompt) = prompt else {
+                    eprintln!(
+                        "Usage: igris-runtime chat [--url <base_url>] [--model <id>] [--stream] <prompt>"
+                    );
+                    std::process::exit(2);
+                };
+
+                let client = reqwest::Client::builder()
+                    .timeout(std::time::Duration::from_secs(60))
+                    .build()?;
+
+                let body = serde_json::json!({
+                    "model": model,
+                    "messages": [{ "role": "user", "content": prompt }],
+                    "stream": stream
+                });
+
+                let resp = client
+                    .post(format!("{}/v1/chat/completions", base_url))
+                    .header("content-type", "application/json")
+                    .json(&body)
+                    .send()
+                    .await?;
+
+                if !resp.status().is_success() {
+                    let status = resp.status();
+                    let text = resp.text().await.unwrap_or_default();
+                    anyhow::bail!("request failed: {} {}", status, text);
+                }
+
+                if !stream {
+                    let v: serde_json::Value = resp.json().await?;
+                    let out = v["choices"][0]["message"]["content"]
+                        .as_str()
+                        .unwrap_or("")
+                        .to_string();
+                    println!("{}", out);
+                    return Ok(());
+                }
+
+                // SSE streaming: parse "data:" lines, stop at [DONE]
+                let mut bytes = resp.bytes_stream();
+                let mut buf: Vec<u8> = Vec::with_capacity(16 * 1024);
+                while let Some(next) = bytes.next().await {
+                    let chunk = next?;
+                    buf.extend_from_slice(&chunk);
+                    while let Some(pos) = buf.iter().position(|&b| b == b'\n') {
+                        let mut line = buf.drain(..=pos).collect::<Vec<u8>>();
+                        if line.last() == Some(&b'\n') {
+                            line.pop();
+                        }
+                        if line.last() == Some(&b'\r') {
+                            line.pop();
+                        }
+                        if line.is_empty() {
+                            continue;
+                        }
+                        let line = String::from_utf8_lossy(&line);
+                        let line = line.trim();
+                        if !line.starts_with("data:") {
+                            continue;
+                        }
+                        let data = line.trim_start_matches("data:").trim();
+                        if data == "[DONE]" {
+                            println!();
+                            return Ok(());
+                        }
+                        if let Ok(v) = serde_json::from_str::<serde_json::Value>(data) {
+                            if let Some(delta) = v
+                                .get("choices")
+                                .and_then(|c| c.get(0))
+                                .and_then(|c0| c0.get("delta"))
+                                .and_then(|d| d.get("content"))
+                                .and_then(|x| x.as_str())
+                            {
+                                print!("{}", delta);
+                                use std::io::Write;
+                                let _ = std::io::stdout().flush();
+                            }
+                        }
+                    }
+                }
+
+                println!();
+                return Ok(());
+            }
+            _ => {
+                eprintln!(
+                    "Usage:\n  igris-runtime serve\n  igris-runtime validate-config [--config <path>]\n  igris-runtime status [--url <base_url>]\n  igris-runtime chat [--url <base_url>] [--model <id>] [--stream] <prompt>"
+                );
+                std::process::exit(2);
+            }
+        }
+    }
+
     // Initialize tracing
     tracing_subscriber::registry()
         .with(
@@ -871,7 +1087,7 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    info!("Igris Runtime v1.1 starting...");
+    info!("Igris Runtime v1.6 starting...");
 
     // Load configuration
     let config_path = std::env::var("IGRIS_CONFIG").unwrap_or_else(|_| "config.json5".to_string());
