@@ -28,7 +28,7 @@ tokio-util = "0.7"
 
 # Web framework
 axum = { version = "0.7", features = ["macros"] }
-tower = { version = "0.4", features = ["timeout", "limit", "buffer"] }
+tower = { version = "0.4", features = ["timeout", "limit", "buffer", "util"] }
 tower-http = { version = "0.5", features = ["trace", "cors", "compression-gzip"] }
 
 # OpenAPI documentation
