@@ -27,7 +27,7 @@ export default function CallToAction() {
           {/* Content Container with Original Width */}
           <div className="max-w-[1300px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-2xl md:text-4xl lg:text-5xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Try Schlep-engine</h2>
+              <h2 className="text-2xl md:text-4xl lg:text-5xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Try Igris Inertial</h2>
 
               <div className="inline-block">
                 <button

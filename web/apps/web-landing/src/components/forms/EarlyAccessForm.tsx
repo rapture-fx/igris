@@ -102,7 +102,7 @@ export default function EarlyAccessForm() {
             Get Early Access
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400 font-inter">
-            Join the waitlist and be among the first to experience Schlep-engine
+            Join the waitlist and be among the first to experience Igris Inertial
           </p>
         </div>
 

@@ -22,21 +22,23 @@ export default function Footer() {
                 Cookie Policy
               </Link>
               <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                support@schlep-engine.com
+                support@igris-inertial.com
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                © 2025 Schlep-engine.
-              </p>
+              <span className="text-gray-500">
+                © 2025 Igris Inertial.
+              </span>
             </div>
 
             {/* Right side - Logo */}
-            <div className="flex items-center">
-              <Image
-                src="/schlep-logo-34.png"
-                alt="Schlep-engine"
-                width={20}
-                height={20}
-              />
+            <div className="flex items-center space-x-2 opacity-50 text-xs text-gray-400 font-mono">
+              <div className="flex items-center">
+                <img
+                  src="/schlep-logo-34.png"
+                  alt="Igris Inertial"
+                  width={20}
+                  height={20}
+                />
+              </div>
             </div>
           </div>
         </div>
