@@ -28,7 +28,7 @@ mod tests {
         let db_path = std::env::temp_dir().join(format!("igris-test-{}.db", uuid::Uuid::new_v4()));
         AppState {
             config: Arc::new(cfg),
-            storage: Arc::new(RedbStorage::new(db_path.to_string_lossy()).unwrap()),
+            storage: Arc::new(RedbStorage::new(db_path).unwrap()),
             speculative_router: Arc::new(SpeculativeRouter::new(1, std::time::Duration::from_secs(1))),
             council_router: Arc::new(CouncilRouter::new("x".to_string())),
             cloud_providers: Arc::new(vec![]),

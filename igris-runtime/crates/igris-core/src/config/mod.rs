@@ -593,6 +593,31 @@ impl IgrisConfig {
         if self.providers.is_empty() {
             anyhow::bail!("At least one provider must be configured");
         }
+
+        // Auth sanity checks
+        if self.auth.enabled {
+            let has_api_key = self.auth.api_key != "default-api-key";
+            let has_jwt = self.auth.jwt_hs256_secret.as_ref().map(|s| !s.trim().is_empty()).unwrap_or(false);
+            if !has_api_key && !has_jwt {
+                anyhow::bail!("auth.enabled=true but no auth method configured (set auth.api_key or auth.jwt_hs256_secret)");
+            }
+        }
+
+        // Tooling safety checks
+        if let Some(tools) = &self.tools {
+            if tools.enabled {
+                if tools.enable_shell {
+                    if tools.allowed_shell_commands.is_empty() {
+                        anyhow::bail!("tools.enable_shell=true requires tools.allowed_shell_commands to be non-empty");
+                    }
+                }
+                if tools.enable_filesystem {
+                    if tools.allowed_filesystem_paths.is_empty() {
+                        anyhow::bail!("tools.enable_filesystem=true requires tools.allowed_filesystem_paths to be non-empty");
+                    }
+                }
+            }
+        }
         Ok(())
     }
 }
