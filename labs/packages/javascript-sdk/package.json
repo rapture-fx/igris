@@ -1,5 +1,5 @@
 {
-  "name": "@schlep-engine/javascript-sdk",
+  "name": "@igris-inertial/javascript-sdk",
   "version": "1.0.0",
   "description": "Official JavaScript/TypeScript SDK for Schlep-engine - Advanced data processing, machine learning, and analytics platform",
   "keywords": [
