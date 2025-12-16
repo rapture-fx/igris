@@ -20249,3 +20249,5 @@ Cargo.lock
 config/.env
 *.env.local
 database_*.env
+*.gguf
+igris-runtime/models/
