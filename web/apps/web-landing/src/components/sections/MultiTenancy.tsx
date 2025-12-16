@@ -3,24 +3,24 @@ import { DollarSign, Shield, Database, KeyRound } from 'lucide-react';
 
 const features = [
   {
-    name: 'Per-Tenant Budgets',
-    description: 'Define usage caps per tenant with automatic enforcement. Prevent overspending without manual monitoring.',
-    icon: DollarSign,
-  },
-  {
-    name: 'Secure Key Storage',
-    description: 'AES-256 vault encryption ensures API keys are never stored in plaintext. Each tenant’s keys are isolated and independently secured.',
+    name: 'Bring Your Own Keys',
+    description: 'Full ownership of provider API keys and local models. AES-256 encrypted vaults for cloud credentials. Models stay on your devices. Zero vendor lock-in.',
     icon: KeyRound,
   },
   {
-    name: 'Data Isolation',
-    description: 'Every tenant’s data, logs, and policies are physically and logically separated at the database level. No cross-tenant access. Ever.',
+    name: 'Multi-Tenant Isolation',
+    description: 'Complete separation of tenant data, policies, and budgets at the database level. Each workspace operates independently with row-level security policies.',
     icon: Database,
   },
   {
-    name: 'JWT Authentication',
-    description: 'Robust, standards-based authentication with JSON Web Tokens. Every request validated within its tenant context for consistent, enterprise-grade security.',
+    name: 'Encrypted Model Storage',
+    description: 'Runtime encrypts on-device LoRA adapters and training data with AES-256-GCM. Device-specific keys ensure models trained on one edge device stay locked to that device.',
     icon: Shield,
+  },
+  {
+    name: 'Zero-Trust Architecture',
+    description: 'JWT-based authentication with per-request validation. Every API call verified within tenant context. Budget limits enforced automatically to prevent overspending.',
+    icon: DollarSign,
   },
 ];
 
@@ -65,7 +65,7 @@ export default function MultiTenancy() {
                   Secure by default. Built to scale.
                 </h3>
                 <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-12">
-                  Multi-tenant isolation, end-to-end encryption, and automated authentication are built in from day one so your workloads stay protected as you scale.
+                  Multi-tenant isolation, encrypted key storage, and zero-trust architecture are built in from day one. From cloud control planes to edge devices, your workloads stay protected as you scale.
                 </p>
 
                 {/* Features Grid */}

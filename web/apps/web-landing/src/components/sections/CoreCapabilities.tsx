@@ -4,35 +4,35 @@ import { Shield, Box } from 'lucide-react'
 const capabilities = [
   {
     name: 'Intelligent Quality Routing',
-    description: 'Automatically selects the best model for every request by analyzing performance, context, and historical outcomes. Optimizes for accuracy, speed, or cost based on your priorities with continuous learning built in.',
+    description: 'Thompson Sampling optimization selects the best model for every request across cloud and edge. Learns from performance, context, and outcomes to continuously improve accuracy, speed, and cost efficiency.',
   },
   {
-    name: 'Adaptive Optimization Engine',
-    description: 'Real-time quality scoring detects performance shifts across providers and dynamically adjusts routing to maintain your targets. Ensures consistent output quality and predictable latency without manual tuning.',
+    name: 'Automatic Fallback & Resilience',
+    description: 'Runtime activates local LLM fallback when cloud providers fail. Overture reroutes across healthy providers. Your workloads stay online through outages, network failures, and air-gapped deployments.',
   },
   {
-    name: 'Unified Control Plane',
-    description: 'One dashboard and API for cost governance, quotas, provider usage, and performance management. Multi-tenant isolation and automated failover ensure continuity even under provider outages.',
+    name: 'Secure BYOK',
+    description: 'Bring your own provider keys and local models. Full data ownership, zero lock-in. Encrypted key storage with AES-256 vaults ensures credentials never leave your control.',
   },
   {
-    name: 'Zero-Risk Rollouts (Shadow Mode)',
-    description: 'Test new routing strategies in parallel with production traffic without impacting end users. Automatically rolls back unsafe behaviors to maintain SLOs and operational stability.',
+    name: 'Adaptive Optimization',
+    description: 'Real-time quality scoring monitors cloud providers and edge models. Automatically adjusts routing when performance drifts. Maintains consistent output quality and predictable latency without manual tuning.',
   },
   {
-    name: 'Secure BYOK Architecture',
-    description: 'Bring your own provider keys with full data, security, and access control retained on your side. We handle routing and optimization; you keep ownership of all credentials and traffic.',
+    name: 'Fail-safe by Design',
+    description: 'EscapeVector mode caches routing intelligence for 72-hour offline operation. Gold Code override provides instant emergency control. SLO enforcer prevents drift before it affects production traffic.',
   },
   {
-    name: 'Parallel Execution for Speed',
-    description: 'Boost responsiveness by running multiple providers in parallel and streaming from the fastest result. Built-in fallback prevents interruptions and ensures no dropped tokens ever.',
+    name: 'Real-time Observability',
+    description: 'Unified metrics across cloud and edge. Track latency, cost, quality scores, and provider health in one dashboard. Prometheus-compatible endpoints and audit logs for compliance and debugging.',
   },
   {
-    name: 'Ensemble Intelligence (Council Mode)',
-    description: 'Upgrade accuracy for complex queries by running multiple models at once and synthesizing the best answer. Ideal for medical, legal, financial, and mission-critical decision workflows.',
+    name: 'Council Mode',
+    description: 'Multi-provider consensus for critical decisions. Runs queries through multiple models and synthesizes the best response. Works across cloud providers and local edge models for maximum accuracy.',
   },
   {
-    name: 'Cognitive Advisor',
-    description: 'A built-in intelligence layer that monitors intent patterns, detects degradation, predicts optimal routing strategies, and recommends configuration updates, all safely validated in shadow mode.',
+    name: 'Shadow Mode Testing',
+    description: 'Test routing strategies in parallel with production traffic without risk. Automatically validates new optimizations before rollout. Detects regressions and maintains SLOs through configuration changes.',
   },
 ]
 
@@ -73,7 +73,7 @@ export default function CoreCapabilities() {
                   Smarter routing. Predictable performance.
                 </h3>
                 <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                  Igris Inertial delivers adaptive, quality-aware routing with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
+                  Igris Inertial delivers adaptive, quality-aware routing across cloud and edge with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
                 </p>
               </div>
 
@@ -137,7 +137,7 @@ export default function CoreCapabilities() {
                     Smarter routing. Predictable performance.
                   </h3>
                   <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                    Igris Inertial optimizes every request with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational even during provider instability. Below, you can see how the platform enforces safety on every optimization.
+                    Igris Inertial optimizes every request across cloud and edge with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational from connected data centers to offline edge devices.
                   </p>
                 </div>
               </div>
@@ -191,7 +191,7 @@ export default function CoreCapabilities() {
                 <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
 
                 <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
-                  Igris Inertial applies automated safeguards to every optimization, verifies routing behavior in real time, and isolates failing providers before they affect live traffic. Your workloads stay reliable, predictable, and resilient.
+                  Igris Inertial applies automated safeguards across cloud and edge deployments, verifies routing behavior in real time, and ensures continuous operation through provider outages, network failures, and offline scenarios.
                 </p>
 
                 {/* 2x2 Grid Layout */}
@@ -200,15 +200,15 @@ export default function CoreCapabilities() {
                   <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                     <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">EscapeVector Mode</h5>
                     <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                      Stay online even if our control plane goes offline. Cached Bayesian routing keeps quality, performance, and resilience intact for 72 hours without interruption.
+                      Overture caches routing intelligence for 72-hour offline operation. Your cloud control plane stays functional even when disconnected. Thompson Sampling routing continues uninterrupted.
                     </p>
                   </div>
 
-                  {/* Card 2: Gold Code Override */}
+                  {/* Card 2: Local LLM Fallback */}
                   <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Local LLM Fallback</h5>
                     <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                      One environment variable instantly bypasses the entire control plane. A required safety switch for enterprise security, audits, and regulated workloads.
+                      Runtime automatically activates on-device models when cloud providers fail. Works 100% offline with Phi-3, Llama, and Mistral. Zero-downtime in air-gapped environments.
                     </p>
                   </div>
 
@@ -216,15 +216,15 @@ export default function CoreCapabilities() {
                   <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
                     <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">SLO Enforcer</h5>
                     <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                      Automatic guardrails monitor latency, cost drift, and reliability. Traffic shifts to safer paths the moment thresholds are crossed.
+                      Automatic guardrails monitor latency, cost drift, and reliability across cloud and edge. Traffic shifts to safer paths the moment thresholds are crossed.
                     </p>
                   </div>
 
-                  {/* Card 4: Resilient Provider Health Checks */}
+                  {/* Card 4: Gold Code Override */}
                   <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
-                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Resilient Provider Health Checks</h5>
+                    <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">Gold Code Override</h5>
                     <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                      Continuous endpoint validation ensures only healthy providers receive traffic. Failed calls are detected and rerouted in real time.
+                      One environment variable instantly bypasses the control plane. Required safety switch for enterprise security audits, compliance validation, and regulated workloads.
                     </p>
                   </div>
                 </div>

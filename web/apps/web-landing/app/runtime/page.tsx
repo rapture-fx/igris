@@ -13,28 +13,28 @@ export default function RuntimePage() {
 
   const features = [
     {
-      name: 'Local Inference',
-      description: 'On-device LLM inference using llama.cpp with GGUF models. Phi-3 Mini 4K Instruct (Q4 quantization) for offline operation.',
+      name: 'Multi-Model Support',
+      description: '6 production-ready models: Phi-3 Mini, Qwen3-8B/14B, DeepSeek-V3.2-7B, GLM-4-9B. Config-driven selection with automatic context size detection. 40-70% quality improvement over baseline.',
     },
     {
-      name: 'Automatic Fallback',
-      description: 'When all cloud providers fail or are unreachable, Runtime automatically switches to local inference. Zero-downtime operation without manual intervention.',
+      name: 'Automatic Local Fallback',
+      description: 'When cloud providers fail, Runtime instantly activates on-device models. Works 100% offline with Phi-3, Llama, Mistral. Zero-downtime in air-gapped environments.',
     },
     {
-      name: 'Streaming Support',
-      description: 'Server-Sent Events (SSE) streaming via OpenAI-compatible API. Real-time token streaming with first-token latency optimization.',
+      name: 'Agentic Capabilities',
+      description: 'Built-in planning agent, tool calling, and reflection loops. Generate → critique → regenerate cycle improves output quality by 15-30%. Autonomous task execution.',
     },
     {
-      name: 'GPU Acceleration',
-      description: 'Optional GPU offload with n_gpu_layers and main_gpu configuration. Supports CUDA and Metal backends for faster inference.',
+      name: 'MCP Swarm Mode',
+      description: 'Peer-to-peer AI coordination with zero configuration. Auto-discovery via mDNS/UDP. Real-time context sync across instances with AES-256-GCM encryption.',
     },
     {
-      name: 'Speculative Routing',
-      description: 'Race top 3 cloud providers in parallel, first response wins. Automatic cancellation of slower providers to minimize latency.',
+      name: 'On-Device QLoRA Training',
+      description: 'Automatic fine-tuning after N requests. Creates domain-specialized adapters (< 64 MB). Device-specific encryption prevents model theft. No data exfiltration.',
     },
     {
-      name: 'Binary Efficiency',
-      description: 'Pure Rust runtime with < 12 MB binary size (release build). UPX compression reduces to ~4 MB. Minimal resource footprint.',
+      name: 'Extreme Efficiency',
+      description: 'Pure Rust binary: 16 MB release, ~4 MB with UPX. 30-85 tokens/sec on laptop CPU. No external dependencies. Runs on Raspberry Pi, Jetson, x86, ARM64.',
     },
   ]
 
@@ -59,20 +59,20 @@ export default function RuntimePage() {
 
   const deploymentOptions = [
     {
-      name: 'Local Deployment',
-      description: 'Run as standalone binary on x86_64, ARM64, macOS, or Linux. No external dependencies except model files.',
+      name: 'Standalone Binary',
+      description: 'Single 16 MB executable (4 MB with UPX). Runs on x86_64, ARM64, macOS, Linux, Windows. No dependencies except model files. systemd service included.',
     },
     {
-      name: 'Docker Container',
-      description: 'Scratch-based Docker image for minimal footprint. Mount config and models as volumes for flexible deployment.',
+      name: 'Docker/Kubernetes',
+      description: 'Scratch-based image for minimal attack surface. Helm charts and K8s manifests included. ConfigMaps for configuration, PVCs for models. Production-ready.',
     },
     {
-      name: 'Edge Devices',
-      description: 'Optimized for Raspberry Pi, Jetson, and other edge hardware. ARM64 support with efficient CPU inference.',
+      name: 'Edge & Robotics',
+      description: 'Optimized for Raspberry Pi 5, Jetson Nano/Orin, autonomous vehicles, drones. 2-3 GB RAM, 4K-16K context. 15-30 tokens/sec on Pi 5.',
     },
     {
-      name: 'Offline Operation',
-      description: 'Complete offline capability with local model fallback. No internet required for inference after initial model download.',
+      name: 'Air-Gapped Environments',
+      description: '100% offline operation after model download. No telemetry, no phone-home. Encrypted local storage with AES-256-GCM. Perfect for secure facilities.',
     },
   ]
 
@@ -113,7 +113,7 @@ export default function RuntimePage() {
                           Execution Plane
                         </h2>
                         <p className="text-sm md:text-lg text-gray-700 max-w-2xl leading-relaxed text-left mt-6">
-                          Local, edge, and offline inference with automatic fallback. Pure Rust runtime with streaming, GPU support, and zero-downtime operation when cloud providers fail.
+                          Offline-capable edge runtime with automatic local LLM fallback, agentic features, peer-to-peer swarm intelligence, and on-device fine-tuning. Pure Rust with streaming, GPU acceleration, and zero-downtime when cloud fails.
                         </p>
                       </div>
                     </div>

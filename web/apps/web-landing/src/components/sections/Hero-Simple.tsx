@@ -2,7 +2,6 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { ChevronRight } from 'lucide-react'
 import { useModal } from '../../contexts/ModalContext'
 
 export default function Hero() {
@@ -49,11 +48,10 @@ export default function Hero() {
             <div className="flex justify-start gap-4 mb-6">
               <button
                 onClick={openEarlyAccessModal}
-                className="inline-flex items-center justify-center bg-black text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md md:rounded-lg hover:opacity-90 transition-all duration-200 text-xs md:text-sm shadow-sm md:shadow-md hover:shadow-lg"
-                style={{ minHeight: '32px' }}
+                className="inline-flex items-center justify-center bg-black text-white px-3 py-1.5 md:px-6 md:py-3 rounded-md md:rounded-xl hover:opacity-90 transition-all duration-200 text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg font-inter"
+                style={{ minHeight: '36px' }}
               >
-                Get Early Access
-                <ChevronRight className="ml-1 h-3 w-3 md:ml-1.5 md:h-4 md:w-4" />
+                Get Started
               </button>
             </div>
 
