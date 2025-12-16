@@ -16,6 +16,10 @@ const nextConfig = {
       },
     ],
   },
+  // Disable Turbopack to avoid chunk loading issues
+  experimental: {
+    turbo: false,
+  },
 }
 
 module.exports = nextConfig

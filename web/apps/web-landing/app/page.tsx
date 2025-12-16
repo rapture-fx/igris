@@ -5,12 +5,9 @@ import Hero from '../src/components/sections/Hero-Simple'
 import Footer from '../src/components/sections/Footer'
 import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
-import TechStack from '../src/components/sections/TechStack'
 import BlankSection from '../src/components/sections/BlankSection'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
-import Observability from '../src/components/sections/Observability'
 import Products from '../src/components/sections/Products'
-import ResilienceCore from '../src/components/sections/ResilienceCore'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
 import { useModal } from '../src/contexts/ModalContext'
 
@@ -24,11 +21,8 @@ export default function HomePage() {
         <main className="pt-[70px] space-y-1">
           <Hero />
           <Products />
-          <ResilienceCore />
           <CoreCapabilities />
-          <TechStack />
           <BlankSection />
-          <Observability />
           <MultiTenancy />
           <CallToAction />
         </main>

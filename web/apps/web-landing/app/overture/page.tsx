@@ -3,6 +3,8 @@
 import Header from '../../src/components/sections/Header'
 import Footer from '../../src/components/sections/Footer'
 import CallToAction from '../../src/components/sections/CallToAction'
+import TechStack from '../../src/components/sections/TechStack'
+import Observability from '../../src/components/sections/Observability'
 import EarlyAccessModal from '../../src/components/modals/EarlyAccessModal'
 import { useModal } from '../../src/contexts/ModalContext'
 import Link from 'next/link'
@@ -197,6 +199,12 @@ export default function OverturePage() {
               </div>
             </div>
           </section>
+
+          {/* How It Works */}
+          <TechStack />
+
+          {/* Observability */}
+          <Observability />
 
           {/* Integration with Runtime */}
           <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
