@@ -1,5 +1,6 @@
 import './globals.css'
 import { Providers } from '../src/components/providers/Providers'
+import React from 'react'
 
 export const viewport = {
   width: 'device-width',
