@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "pages:build": "npx @cloudflare/next-on-pages",
+    "pages:build": "npx @opennextjs/cloudflare",
     "start": "next start -p 3000",
     "lint": "next lint"
   },
@@ -13,14 +13,14 @@
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.294.0",
-    "next": "16.0.7",
+    "next": "^16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "recharts": "^2.8.0",
     "tailwind-merge": "^1.14.0"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1.13.16",
+    "@opennextjs/cloudflare": "^1.14.6",
     "@igris-inertial/config": "workspace:*",
     "@types/node": "^20.14.0",
     "@types/react": "^19.0.7",
