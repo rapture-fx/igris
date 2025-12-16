@@ -1,12 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Removed 'output: export' to enable server-side features (API routes, SSR)
-  // This is required for Cloudflare Pages Functions to work
   typescript: {
     ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true, // Keep this for Cloudflare compatibility
+    unoptimized: true, // Required for Cloudflare
     remotePatterns: [
       {
         protocol: 'https',
@@ -17,10 +15,6 @@ const nextConfig = {
         hostname: 'via.placeholder.com',
       },
     ],
-  },
-  // Configure Turbopack root for monorepo
-  turbopack: {
-    root: __dirname,
   },
 }
 
