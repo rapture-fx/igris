@@ -28,8 +28,8 @@
     n_gpu_layers: 0,
     main_gpu: null,
 
-    // Prompt/KV caching (optional)
-    prompt_cache_dir: "prompt_cache",
+    // Prompt/KV caching (optional) - disabled for compatibility
+    prompt_cache_dir: null,
 
     // Batch size tuning (optional, llama.cpp --batch-size)
     batch_size: null,

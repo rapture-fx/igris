@@ -34,10 +34,10 @@ export default function Hero() {
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
-                    Your unified control plane
+                    Control and execution platform
                   </h1>
                   <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2] mt-2">
-                    for smarter, optimized AI model allocation.
+                    for production LLM systems.
                   </h1>
                 </div>
                 <p className="text-sm md:text-lg text-gray-700 max-w-md leading-relaxed text-left">
