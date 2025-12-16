@@ -9,11 +9,11 @@ export const viewport = {
 
 export const metadata = {
   metadataBase: new URL('https://igris.inertial'),
-  title: 'Igris Inertial — The Routing Engine and Control Plane for AI Inference',
-  description: 'Igris Inertial routes AI inference across providers for cost, latency, and reliability optimization using your own API keys.',
+  title: 'Igris Inertial — Control and Execution Platform for Production LLM Systems',
+  description: 'Igris Inertial is a platform combining Overture (control plane) and Runtime (execution plane) for intelligent routing, cost governance, and resilient LLM operations.',
   openGraph: {
     title: 'Igris Inertial',
-    description: 'Unified routing layer for OpenAI, Anthropic, Gemini, Deepseek, and more.',
+    description: 'Control and execution platform for production LLM systems.',
     url: 'https://igris.inertial',
     siteName: 'Igris Inertial',
     images: [{ url: '/logo.svg', width: 1200, height: 630, alt: 'Igris Inertial diagram' }],
@@ -23,7 +23,7 @@ export const metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Igris Inertial',
-    description: 'The routing engine for AI inference.',
+    description: 'Control and execution platform for production LLM systems.',
     images: ['/logo.svg']
   },
   icons: { icon: '/logo.svg' }

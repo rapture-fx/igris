@@ -9,6 +9,8 @@ import TechStack from '../src/components/sections/TechStack'
 import BlankSection from '../src/components/sections/BlankSection'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Observability from '../src/components/sections/Observability'
+import Products from '../src/components/sections/Products'
+import ResilienceCore from '../src/components/sections/ResilienceCore'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
 import { useModal } from '../src/contexts/ModalContext'
 
@@ -21,6 +23,8 @@ export default function HomePage() {
         <Header />
         <main className="pt-[70px] space-y-1">
           <Hero />
+          <Products />
+          <ResilienceCore />
           <CoreCapabilities />
           <TechStack />
           <BlankSection />
