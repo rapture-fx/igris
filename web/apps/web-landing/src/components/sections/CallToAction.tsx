@@ -1,9 +1,8 @@
 'use client';
 
-import { useModal } from '../../contexts/ModalContext';
+import Link from 'next/link';
 
 export default function CallToAction() {
-  const { openEarlyAccessModal } = useModal();
   return (
     <div className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       {/* First Frame - CTA Content */}
@@ -27,16 +26,16 @@ export default function CallToAction() {
           {/* Content Container with Original Width */}
           <div className="max-w-[1300px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-2xl md:text-4xl lg:text-5xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Try Igris Inertial</h2>
+              <h2 className="text-2xl md:text-4xl lg:text-5xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Choose your deployment</h2>
 
               <div className="inline-block">
-                <button
-                  onClick={openEarlyAccessModal}
+                <Link
+                  href="/overture"
                   className="inline-flex items-center justify-center text-white px-3 py-1.5 md:px-6 md:py-3 rounded-md md:rounded-xl hover:opacity-90 transition-all duration-200 text-xs md:text-base shadow-sm md:shadow-md hover:shadow-lg font-inter"
                   style={{ backgroundColor: '#000000', minHeight: '36px' }}
                 >
-                  Get Early Access
-                </button>
+                  Get Started
+                </Link>
               </div>
             </div>
           </div>

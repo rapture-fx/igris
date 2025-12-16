@@ -40,7 +40,7 @@ export default function Products() {
               flexWrap: 'wrap',
               justifyContent: 'center'
             }}>
-              Igris Inertial designs systems for controlling and running LLM workloads across connected and disconnected environments.
+              Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer — two deployment models.
             </p>
 
             {/* Vertically stacked product layout */}
@@ -54,7 +54,7 @@ export default function Products() {
                       Control Plane
                     </p>
                     <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-tight font-inter mb-3 line-clamp-3">
-                      Intelligent routing and orchestration across cloud providers. Policy-driven cost governance, quality-aware optimization, and multi-tenant isolation for enterprise LLM operations.
+                      Cloud orchestration with intelligent routing, shadow mode testing, and multi-provider consensus. Automated cost governance, quality-aware optimization, and multi-tenant isolation for enterprise operations.
                     </p>
                   </div>
                   <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm">
@@ -73,7 +73,7 @@ export default function Products() {
                       Execution Plane
                     </p>
                     <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-tight font-inter mb-3 line-clamp-3">
-                      Local, edge, and offline inference with automatic fallback. Pure Rust runtime with streaming, GPU support, and zero-downtime operation when cloud providers fail.
+                      Offline-capable edge runtime with automatic local LLM fallback. Pure Rust with streaming, GPU acceleration, peer-to-peer swarm intelligence, and on-device fine-tuning. Zero-downtime when cloud fails.
                     </p>
                   </div>
                   <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm">
