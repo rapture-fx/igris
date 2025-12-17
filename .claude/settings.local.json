@@ -31,7 +31,9 @@
       "Bash(cargo test:*)",
       "Bash(cargo check:*)",
       "Bash(git commit:*)",
-      "Bash(export LC_ALL=C)"
+      "Bash(export LC_ALL=C)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm pages:build:*)"
     ],
     "deny": [],
     "ask": []
