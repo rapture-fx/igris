@@ -113,6 +113,13 @@ export default function Header() {
               {resourcesDropdownOpen && (
                 <div className="absolute top-full left-0 mt-2 w-48 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
                   <Link
+                    href="/use-cases"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
+                    onClick={() => setResourcesDropdownOpen(false)}
+                  >
+                    Use Cases
+                  </Link>
+                  <Link
                     href="/docs"
                     className="block px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
                     onClick={() => setResourcesDropdownOpen(false)}
@@ -211,6 +218,16 @@ export default function Header() {
                 </button>
                 {mobileResourcesOpen && (
                   <div className="ml-4 mt-2 space-y-2">
+                    <Link
+                      href="/use-cases"
+                      className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        setMobileResourcesOpen(false);
+                      }}
+                    >
+                      Use Cases
+                    </Link>
                     <Link
                       href="/docs"
                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"

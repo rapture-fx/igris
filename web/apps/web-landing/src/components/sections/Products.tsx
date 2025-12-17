@@ -53,7 +53,7 @@ export default function Products() {
                   <Link href="/overture" className="group">
                     <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[500px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
                       <div className="overflow-hidden">
-                        <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
+                        <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
                         <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
                           Control Plane
                         </p>
@@ -75,7 +75,7 @@ export default function Products() {
                   <Link href="/runtime" className="group">
                     <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[500px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
                       <div className="overflow-hidden">
-                        <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
+                        <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
                         <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
                           Execution Plane
                         </p>
