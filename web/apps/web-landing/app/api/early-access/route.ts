@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+// Runtime handled by Cloudflare Workers
 
 interface CloudflareEnv {
   DB: D1Database;

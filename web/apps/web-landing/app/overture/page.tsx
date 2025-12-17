@@ -41,22 +41,22 @@ export default function OverturePage() {
     },
   ]
 
-  const routingModes = [
+  const additionalFeatures = [
     {
-      name: 'Speculative Execution',
-      description: 'Launch top N providers in parallel, stream from first responder. Token-level switching with <12ms P99 overhead. Automatic cancellation of slower providers. First-token timeout: 5000ms.',
+      name: 'Provider Abstraction',
+      description: 'Unified interface for OpenAI, Anthropic, Gemini, Deepseek, Groq, and custom providers. Seamless provider switching without code changes. Automatic retry with exponential backoff.',
     },
     {
-      name: 'Thompson Sampling',
-      description: 'Bayesian optimization with Beta(α,β) distributions per provider. Learns latency, cost, and success patterns. 30% cost reduction, 40% latency improvement after 100 requests.',
+      name: 'Real-time Observability',
+      description: 'Request tracing, latency metrics, error tracking, and cost breakdowns. Prometheus metrics and OpenTelemetry integration. Grafana dashboards for visualization.',
     },
     {
-      name: 'Council Mode',
-      description: 'Multi-provider consensus with anonymous peer ranking. Chairman (GPT-4, Claude Opus) synthesizes final answer. 3-5 council members. Ideal for medical, legal, financial reasoning.',
+      name: 'Quality Scoring Engine',
+      description: 'Automated quality assessment based on intent classification. Detects performance shifts and routing degradation. Triggers automatic strategy adjustments to maintain SLOs.',
     },
     {
-      name: 'Cognitive Advisor',
-      description: 'Built-in intelligence layer monitors intent patterns, detects degradation, and recommends routing strategies. All changes validated in shadow mode before production.',
+      name: 'Circuit Breakers',
+      description: 'Per-provider health tracking with automatic failover. Exponential backoff on errors. Half-open state testing before full recovery. Prevents cascading failures.',
     },
   ]
 
@@ -157,148 +157,7 @@ export default function OverturePage() {
             </div>
           </section>
 
-          {/* Core Capabilities Section */}
-          <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-              <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
-                borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
-                backgroundColor: '#f6f6f4'
-              }}>
-                {/* Top left bleeding cross */}
-                <div className="absolute -top-4 -left-4 w-8 h-8">
-                  <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.3px solid #1a1e21' }}></div>
-                  <div className="absolute top-0 left-3.5 h-8" style={{ borderLeft: '0.3px solid #1a1e21' }}></div>
-                </div>
-                {/* Bottom right bleeding cross */}
-                <div className="absolute -bottom-4 -right-4 w-8 h-8">
-                  <div className="absolute bottom-3.5 right-0 w-8" style={{ borderBottom: '0.3px solid #1a1e21' }}></div>
-                  <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.3px solid #1a1e21' }}></div>
-                </div>
-
-                {/* Content Container */}
-                <div className="w-full px-0">
-                  {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
-                  <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
-                    borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
-                    transform: 'translateX(-66.67%)'
-                  }}></div>
-
-                  {/* Title Section - Shows first on mobile, last on desktop */}
-                  <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                      Smarter routing. Predictable performance.
-                    </h3>
-                    <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                      Igris Inertial delivers adaptive, quality-aware routing with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
-                    </p>
-                  </div>
-
-                  {/* Two-column layout */}
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
-
-                    {/* Left Column - 4x2 Grid (4 rows, 2 columns) */}
-                    <div className="lg:col-span-2 relative flex items-center justify-center">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full">
-                        {[
-                          {
-                            name: 'Intelligent Quality Routing',
-                            description: 'Automatically selects the best model for every request by analyzing performance, context, and historical outcomes. Optimizes for accuracy, speed, or cost based on your priorities with continuous learning built in.',
-                          },
-                          {
-                            name: 'Adaptive Optimization Engine',
-                            description: 'Real-time quality scoring detects performance shifts across providers and dynamically adjusts routing to maintain your targets. Ensures consistent output quality and predictable latency without manual tuning.',
-                          },
-                          {
-                            name: 'Unified Control Plane',
-                            description: 'One dashboard and API for cost governance, quotas, provider usage, and performance management. Multi-tenant isolation and automated failover ensure continuity even under provider outages.',
-                          },
-                          {
-                            name: 'Zero-Risk Rollouts (Shadow Mode)',
-                            description: 'Test new routing strategies in parallel with production traffic without impacting end users. Automatically rolls back unsafe behaviors to maintain SLOs and operational stability.',
-                          },
-                          {
-                            name: 'Secure BYOK Architecture',
-                            description: 'Bring your own provider keys with full data, security, and access control retained on your side. We handle routing and optimization; you keep ownership of all credentials and traffic.',
-                          },
-                          {
-                            name: 'Parallel Execution for Speed',
-                            description: 'Boost responsiveness by running multiple providers in parallel and streaming from the fastest result. Built-in fallback prevents interruptions and ensures no dropped tokens ever.',
-                          },
-                          {
-                            name: 'Ensemble Intelligence (Council Mode)',
-                            description: 'Upgrade accuracy for complex queries by running multiple models at once and synthesizing the best answer. Ideal for medical, legal, financial, and mission-critical decision workflows.',
-                          },
-                          {
-                            name: 'Cognitive Advisor',
-                            description: 'A built-in intelligence layer that monitors intent patterns, detects degradation, predicts optimal routing strategies, and recommends configuration updates, all safely validated in shadow mode.',
-                          },
-                        ].map((capability, index) => {
-                          const hasRightBorder = index % 2 === 0;
-                          const hasBottomBorder = index < 6;
-
-                          return (
-                            <div
-                              key={capability.name}
-                              className="p-4 relative"
-                              style={{
-                                padding: '20px 24px',
-                                minHeight: '145px'
-                              }}
-                            >
-                              {/* Double dashed right border */}
-                              {hasRightBorder && (
-                                <>
-                                  <div className="absolute top-0 bottom-0 right-[2px]" style={{
-                                    borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
-                                  }}></div>
-                                  <div className="absolute top-0 bottom-0 right-[-2px]" style={{
-                                    borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
-                                  }}></div>
-                                </>
-                              )}
-
-                              {/* Double dashed bottom border */}
-                              {hasBottomBorder && (
-                                <>
-                                  <div className="absolute left-0 right-0 bottom-[2px]" style={{
-                                    borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
-                                  }}></div>
-                                  <div className="absolute left-0 right-0 bottom-[-2px]" style={{
-                                    borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
-                                  }}></div>
-                                </>
-                              )}
-                              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 font-inter">
-                                {capability.name}
-                              </h3>
-                              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                                {capability.description}
-                              </p>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </div>
-
-                    {/* Right Column - Section Title (Desktop only) */}
-                    <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                        Smarter routing. Predictable performance.
-                      </h3>
-                      <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
-                        Igris Inertial optimizes every request with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational even during provider instability. Below, you can see how the platform enforces safety on every optimization.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Routing Modes */}
+          {/* Additional Features */}
           <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
               <div className="relative py-8 px-4 md:px-8 lg:px-12" style={{
@@ -320,19 +179,19 @@ export default function OverturePage() {
                 <div className="max-w-[1300px] mx-auto w-full">
                   <div className="text-center mb-12">
                     <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
-                      Routing modes
+                      Enterprise-grade infrastructure
                     </h3>
                     <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
-                      Multiple routing strategies optimized for different use cases and performance requirements.
+                      Production-ready observability, provider management, and reliability features for mission-critical operations.
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {routingModes.map((mode) => (
-                      <div key={mode.name} className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
-                        <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">{mode.name}</h5>
+                    {additionalFeatures.map((feature) => (
+                      <div key={feature.name} className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[180px]" style={{ backgroundColor: '#f6f6f4' }}>
+                        <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 md:mb-3 font-inter">{feature.name}</h5>
                         <p className="text-xs md:text-sm text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                          {mode.description}
+                          {feature.description}
                         </p>
                       </div>
                     ))}

@@ -5,14 +5,12 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, ChevronRight } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { useTheme } from "next-themes";
 import { useModal } from '../../contexts/ModalContext';
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
-  const { theme } = useTheme();
   const { openEarlyAccessModal } = useModal();
 
   // Scroll effect
