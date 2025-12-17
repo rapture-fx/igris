@@ -3,6 +3,7 @@ const path = require('path');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'export', // Enable static export for Cloudflare Pages
+  trailingSlash: true, // Add trailing slashes to routes for better static hosting
   typescript: {
     ignoreBuildErrors: true,
   },
