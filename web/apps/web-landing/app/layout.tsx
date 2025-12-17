@@ -27,7 +27,11 @@ export const metadata = {
     description: 'Control and execution platform for production LLM systems.',
     images: ['/logo.svg']
   },
-  icons: { icon: '/logo.svg' }
+  icons: { 
+    icon: '/schlep-logo-34.png',
+    shortcut: '/schlep-logo-34.png',
+    apple: '/schlep-logo-34.png'
+  }
 }
 
 export default function RootLayout({
