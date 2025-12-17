@@ -21,24 +21,28 @@ fi
 echo "🔧 Installing dependencies..."
 pnpm install
 
-# Build with standard Next.js
+# Build with standard Next.js (static export)
 echo "🏗️  Building Next.js application..."
 pnpm build
 
-# Check if build succeeded
-if [ -d ".next" ]; then
-    echo "✅ Build complete! Next.js bundle ready in .next/"
+# Check if build succeeded (static export outputs to 'out' directory)
+if [ -d "out" ]; then
+    echo "✅ Build complete! Static export ready in out/"
+    echo "📦 Output directory contents:"
+    ls -la out/ | head -20
+elif [ -d ".next" ]; then
+    echo "⚠️  Warning: .next directory found but 'out' expected for static export"
+    echo "✅ Falling back to .next directory"
 
     # Remove cache directory (exceeds Cloudflare Pages 25MB file size limit)
     if [ -d ".next/cache" ]; then
-        echo "🧹 Removing .next/cache directory (not needed for deployment)..."
+        echo "🧹 Removing .next/cache directory..."
         rm -rf .next/cache
         echo "✅ Cache removed"
     fi
 
-    echo "📦 Final .next directory contents:"
     ls -la .next/ | head -20
 else
-    echo "❌ Build failed - .next directory not found"
+    echo "❌ Build failed - no output directory found"
     exit 1
 fi

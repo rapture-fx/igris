@@ -2,6 +2,7 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'export', // Enable static export for Cloudflare Pages
   typescript: {
     ignoreBuildErrors: true,
   },
