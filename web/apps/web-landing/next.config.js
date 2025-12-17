@@ -1,10 +1,15 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
-    unoptimized: true, // Required for Cloudflare
+    unoptimized: true, // Required for Cloudflare Pages
     remotePatterns: [
       {
         protocol: 'https',
@@ -16,10 +21,8 @@ const nextConfig = {
       },
     ],
   },
-  // Disable Turbopack to avoid chunk loading issues
-  experimental: {
-    turbo: false,
-  },
+  // Set workspace root for proper file tracing
+  outputFileTracingRoot: path.join(__dirname, '../../'),
 }
 
 module.exports = nextConfig

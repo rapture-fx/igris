@@ -1,6 +1,26 @@
 # Igris Overture Landing Page
 
-A modern, elegant landing page built with Next.js 14, featuring Apple-inspired design with soft blue accents and smooth animations.
+A modern, elegant landing page built with Next.js 15, featuring Apple-inspired design with soft blue accents and smooth animations.
+
+## 🚀 Deployment
+
+This project is configured for deployment to **Cloudflare Pages**.
+
+**📖 [Complete Deployment Guide](./CLOUDFLARE_PAGES_DEPLOYMENT.md)**
+
+### Quick Deploy to Cloudflare Pages
+```bash
+# Build locally to test
+pnpm build
+
+# Push to main branch - Cloudflare Pages will auto-deploy
+git push origin main
+```
+
+### Build Configuration
+- **Framework**: Next.js 15.5.9
+- **Node.js**: 20.19.5 (auto-detected from .node-version)
+- **Package Manager**: pnpm 8.15.0
 
 ## Features
 

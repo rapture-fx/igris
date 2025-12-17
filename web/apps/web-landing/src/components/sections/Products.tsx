@@ -27,58 +27,56 @@ export default function Products() {
 
           {/* Content Container */}
           <div className="max-w-[1300px] mx-auto w-full">
-            <div className="text-center mb-4">
+            <div className="text-right mb-4">
               <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Two products. One platform.
               </h3>
             </div>
             
-            <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto mb-12" style={{
-              textAlign: 'center',
-              verticalAlign: 'top',
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'center'
-            }}>
-              Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer — two deployment models.
+            <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-3xl ml-auto mb-12 text-right leading-relaxed">
+              Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer, two deployment models.
             </p>
 
             {/* Vertically stacked product layout */}
-            <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="max-w-[1300px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Overture Card */}
               <Link href="/overture" className="group">
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm h-[280px] flex flex-col justify-end overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[400px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
                   <div className="overflow-hidden">
-                    <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-1 md:mb-2 font-inter">Overture</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-inter">
+                    <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
                       Control Plane
                     </p>
+                  </div>
+                  <div className="overflow-hidden">
                     <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-tight font-inter mb-3 line-clamp-3">
                       Cloud orchestration with intelligent routing, shadow mode testing, and multi-provider consensus. Automated cost governance, quality-aware optimization, and multi-tenant isolation for enterprise operations.
                     </p>
-                  </div>
-                  <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm">
-                    Learn more
-                    <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+                    <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
+                      Learn more
+                      <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+                    </div>
                   </div>
                 </div>
               </Link>
 
               {/* Runtime Card */}
               <Link href="/runtime" className="group">
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm h-[280px] flex flex-col justify-end overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
+                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[400px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
                   <div className="overflow-hidden">
-                    <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-1 md:mb-2 font-inter">Runtime</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 font-inter">
+                    <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
                       Execution Plane
                     </p>
+                  </div>
+                  <div className="overflow-hidden">
                     <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-tight font-inter mb-3 line-clamp-3">
                       Offline-capable edge runtime with automatic local LLM fallback. Pure Rust with streaming, GPU acceleration, peer-to-peer swarm intelligence, and on-device fine-tuning. Zero-downtime when cloud fails.
                     </p>
-                  </div>
-                  <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm">
-                    Learn more
-                    <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+                    <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
+                      Learn more
+                      <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+                    </div>
                   </div>
                 </div>
               </Link>

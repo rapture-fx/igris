@@ -1,4 +1,4 @@
-export const runtime = 'edge';
+// Runtime handled by Cloudflare Workers
 
 export async function GET() {
   return new Response(

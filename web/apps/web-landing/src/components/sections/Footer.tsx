@@ -30,9 +30,9 @@ export default function Footer() {
             </div>
 
             {/* Right side - Logo */}
-            <div className="flex items-center space-x-2 opacity-50 text-xs text-gray-400 font-mono">
+            <div className="flex items-center space-x-2">
               <div className="flex items-center">
-                <img
+                <Image
                   src="/schlep-logo-34.png"
                   alt="Igris Inertial"
                   width={20}
