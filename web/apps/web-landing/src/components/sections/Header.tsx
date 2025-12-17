@@ -245,6 +245,13 @@ export default function Header() {
                 )}
               </div>
 
+              <Link
+                href="/login"
+                className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
