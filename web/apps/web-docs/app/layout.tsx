@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Schlep-engine Documentation',
-  description: 'Documentation for Schlep-engine - We handle the schlep so you don\'t have to',
+  title: 'Igris Overture Documentation',
+  description: 'Documentation for Igris Overture - Intelligent AI routing and optimization platform',
 };
 
 export default function RootLayout({

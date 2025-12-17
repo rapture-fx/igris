@@ -54,10 +54,10 @@ All errors follow a consistent structure:
 
 ```bash
 # Wrong
-curl https://api.schlep-engine.com/v1/chat/completions
+curl https://api.igrisinertial.com/v1/chat/completions
 
 # Right
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -129,7 +129,7 @@ X-RateLimit-Reset: 1701234567
 1. **Add funds** in dashboard
 2. **Use Gold Code** (Scale tier):
    ```bash
-   curl https://api.schlep-engine.com/v1/chat/completions \
+   curl https://api.igrisinertial.com/v1/chat/completions \
      -H "Authorization: Bearer YOUR_API_KEY" \
      -d '{"model": "gpt-4", "messages": [...], "gold_code": "EMERGENCY-ABC123"}'
    ```
@@ -202,8 +202,8 @@ import random
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep-engine.com/v1",
-    api_key="YOUR_SCHLEP_API_KEY"
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="YOUR_IGRIS_API_KEY"
 )
 
 def exponential_backoff_retry(func, max_retries=5):
@@ -318,7 +318,7 @@ func isRetryableError(err error) bool {
 Igris Overture automatically handles provider failures:
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "model": "gpt-4",
@@ -353,7 +353,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ```python
 from openai import OpenAI, RateLimitError
 
-client = OpenAI(base_url="https://api.schlep-engine.com/v1", api_key="...")
+client = OpenAI(base_url="https://api.igrisinertial.com/v1", api_key="...")
 
 try:
     response = client.chat.completions.create(...)
@@ -370,7 +370,7 @@ except RateLimitError as e:
 ```python
 from openai import OpenAI
 
-client = OpenAI(base_url="https://api.schlep-engine.com/v1", api_key="...")
+client = OpenAI(base_url="https://api.igrisinertial.com/v1", api_key="...")
 
 try:
     response = client.chat.completions.create(

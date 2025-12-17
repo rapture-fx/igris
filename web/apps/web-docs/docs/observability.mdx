@@ -22,7 +22,7 @@ Igris Overture provides comprehensive observability:
 All metrics are exposed in Prometheus format at `/metrics`:
 
 ```bash
-curl https://api.schlep.cloud/metrics
+curl https://api.igrisinertial.com/metrics
 ```
 
 This endpoint is compatible with:
@@ -146,13 +146,13 @@ Track spending over time:
 
 ```bash
 # Get cost metrics by provider
-curl https://api.schlep.cloud/v1/metrics/cost?group_by=provider
+curl https://api.igrisinertial.com/v1/metrics/cost?group_by=provider
 
 # Get cost metrics by tenant
-curl https://api.schlep.cloud/v1/metrics/cost?group_by=tenant
+curl https://api.igrisinertial.com/v1/metrics/cost?group_by=tenant
 
 # Get cost metrics by model
-curl https://api.schlep.cloud/v1/metrics/cost?group_by=model
+curl https://api.igrisinertial.com/v1/metrics/cost?group_by=model
 ```
 
 **Response:**
@@ -203,7 +203,7 @@ If you're using cloud hosted Igris Overture, dashboards are built-in:
    - Provider selection distribution
    - Speculative execution wins
 
-[View Dashboard →](https://app.schlep.cloud/dashboard)
+[View Dashboard →](https://app.igrisinertial.com/dashboard)
 
 </details>
 
@@ -217,9 +217,9 @@ For self-hosted deployments, export metrics to your existing stack:
 ```yaml
 # prometheus.yml
 scrape_configs:
-  - job_name: 'schlep-engine'
+  - job_name: 'igris-overture'
     static_configs:
-      - targets: ['api.schlep.internal:8081']
+      - targets: ['api.igris.internal:8081']
     metrics_path: '/metrics'
     scrape_interval: 15s
 ```
@@ -229,8 +229,8 @@ scrape_configs:
 ```yaml
 # datadog.yaml
 instances:
-  - prometheus_url: http://api.schlep.internal:8081/metrics
-    namespace: schlep_engine
+  - prometheus_url: http://api.igris.internal:8081/metrics
+    namespace: igris
     metrics:
       - '*'
 ```

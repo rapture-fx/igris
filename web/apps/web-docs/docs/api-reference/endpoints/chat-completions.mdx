@@ -1,13 +1,13 @@
 # POST /v1/chat/completions
 
-Create a chat completion with automatic provider routing and optional Schlep superpowers.
+Create a chat completion with automatic provider routing and optional Igris Overture features.
 
 **Also available at:** `/v1/infer` (legacy endpoint, functionally identical)
 
 ## TL;DR
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -51,7 +51,7 @@ Content-Type: application/json
 | `n` | integer | 1 | Number of completions to generate |
 | `user` | string | null | User identifier for abuse detection |
 
-#### Schlep-Specific Parameters
+#### Igris Overture-Specific Parameters
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -124,7 +124,7 @@ data: [DONE]
 ### Basic Request
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -136,7 +136,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### With Temperature & Max Tokens
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -150,7 +150,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Streaming Response
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -163,7 +163,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Speculative Execution (Race Providers)
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -195,7 +195,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Council Mode (Consensus)
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -229,7 +229,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Force Specific Provider
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -242,7 +242,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Cost-Optimized Routing
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -255,7 +255,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Gold Code Budget Override
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
