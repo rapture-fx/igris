@@ -8,6 +8,8 @@ import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import BlankSection from '../src/components/sections/BlankSection'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
+import UseCasesTeaser from '../src/components/sections/UseCasesTeaser'
+import ForDevelopers from '../src/components/sections/ForDevelopers'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
 import { useModal } from '../src/contexts/ModalContext'
 
@@ -22,6 +24,8 @@ export default function HomePage() {
           <Hero />
           <Products />
           <CoreCapabilities />
+          <UseCasesTeaser />
+          <ForDevelopers />
           <BlankSection />
           <MultiTenancy />
           <CallToAction />
