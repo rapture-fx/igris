@@ -1,23 +1,13 @@
 // Cloudflare Pages Function for early access signup
 // Deployed at: /api/early-access
 
-interface Env {
-  DB: D1Database;
-}
-
-export async function onRequestPost(context: { request: Request; env: Env }) {
+export async function onRequestPost(context) {
   try {
     const { request, env } = context;
     const body = await request.json();
 
     // Validate required fields
-    const { name, email, company, planInterest } = body as {
-      name?: string;
-      email?: string;
-      company?: string;
-      planInterest?: string;
-      message?: string;
-    };
+    const { name, email, company, planInterest, message } = body;
 
     if (!name || !email || !company || !planInterest) {
       return new Response(
@@ -52,7 +42,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       const result = await env.DB.prepare(
         'INSERT INTO signups (name, email, company, plan_interest, message) VALUES (?, ?, ?, ?, ?)'
       )
-        .bind(name, email, company, planInterest, (body as any).message || null)
+        .bind(name, email, company, planInterest, message || null)
         .run();
 
       if (result.success) {
@@ -68,7 +58,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       } else {
         throw new Error('Database insertion failed');
       }
-    } catch (dbError: any) {
+    } catch (dbError) {
       // Check for unique constraint violation (duplicate email)
       if (dbError.message && dbError.message.includes('UNIQUE constraint failed')) {
         console.log('Duplicate email submission attempt:', email);
@@ -79,7 +69,7 @@ export async function onRequestPost(context: { request: Request; env: Env }) {
       }
       throw dbError;
     }
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error processing early access submission:', error);
     return new Response(
       JSON.stringify({
