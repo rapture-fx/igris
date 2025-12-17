@@ -26,60 +26,85 @@ export default function Products() {
           </div>
 
           {/* Content Container */}
-          <div className="max-w-[1300px] mx-auto w-full">
-            <div className="text-right mb-4">
+          <div className="w-full px-0">
+            {/* Vertical Divider positioned at center - full height from top to bottom of frame */}
+            <div className="absolute top-0 bottom-0 left-2/3 hidden lg:block" style={{
+              borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
+              transform: 'translateX(-66.67%)'
+            }}></div>
+
+            {/* Title Section - Shows first on mobile, last on desktop */}
+            <div className="text-left mb-6 lg:mb-0 lg:hidden">
               <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Two products. One platform.
               </h3>
+              <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer, two deployment models.
+              </p>
             </div>
-            
-            <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-3xl ml-auto mb-12 text-right leading-relaxed">
-              Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer, two deployment models.
-            </p>
 
-            {/* Vertically stacked product layout */}
-            <div className="max-w-[1300px] mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Overture Card */}
-              <Link href="/overture" className="group">
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[400px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
-                  <div className="overflow-hidden">
-                    <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
-                      Control Plane
-                    </p>
-                  </div>
-                  <div className="overflow-hidden">
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-tight font-inter mb-3 line-clamp-3">
-                      Cloud orchestration with intelligent routing, shadow mode testing, and multi-provider consensus. Automated cost governance, quality-aware optimization, and multi-tenant isolation for enterprise operations.
-                    </p>
-                    <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
-                      Learn more
-                      <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
-                    </div>
-                  </div>
-                </div>
-              </Link>
+            {/* Two-column layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
 
-              {/* Runtime Card */}
-              <Link href="/runtime" className="group">
-                <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[400px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
-                  <div className="overflow-hidden">
-                    <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
-                      Execution Plane
-                    </p>
-                  </div>
-                  <div className="overflow-hidden">
-                    <p className="text-xs md:text-sm text-gray-700 dark:text-gray-300 leading-tight font-inter mb-3 line-clamp-3">
-                      Offline-capable edge runtime with automatic local LLM fallback. Pure Rust with streaming, GPU acceleration, peer-to-peer swarm intelligence, and on-device fine-tuning. Zero-downtime when cloud fails.
-                    </p>
-                    <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
-                      Learn more
-                      <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+              {/* Left Column - Product Cards (stacked vertically) */}
+              <div className="lg:col-span-2 relative flex items-center justify-center">
+                <div className="flex flex-col gap-6 w-full">
+                  {/* Overture Card */}
+                  <Link href="/overture" className="group">
+                    <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[500px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
+                      <div className="overflow-hidden">
+                        <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
+                          Control Plane
+                        </p>
+                      </div>
+                      <div className="w-full">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-3 break-words whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                          Cloud orchestration with intelligent routing, shadow mode testing, and multi-provider consensus.<br />
+                          Automated cost governance, quality-aware optimization, and multi-tenant isolation for enterprise operations.
+                        </p>
+                        <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
+                          Learn more
+                          <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  </Link>
+
+                  {/* Runtime Card */}
+                  <Link href="/runtime" className="group">
+                    <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[500px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
+                      <div className="overflow-hidden">
+                        <h4 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
+                        <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
+                          Execution Plane
+                        </p>
+                      </div>
+                      <div className="w-full">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-3 break-words whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
+                          Offline-capable edge runtime with automatic local LLM fallback.<br />
+                          Pure Rust with streaming, GPU acceleration, peer-to-peer swarm intelligence, and on-device fine-tuning.<br />
+                          Zero-downtime when cloud fails.
+                        </p>
+                        <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
+                          Learn more
+                          <ChevronRight className="ml-1 h-3 w-3 md:h-4 md:w-4" />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
-              </Link>
+              </div>
+
+              {/* Right Column - Section Title (Desktop only) */}
+              <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
+                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                  Two products. One platform.
+                </h3>
+                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                  Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer, two deployment models.
+                </p>
+              </div>
             </div>
           </div>
         </div>
