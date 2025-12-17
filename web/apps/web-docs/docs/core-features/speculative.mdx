@@ -12,7 +12,7 @@ Race multiple AI providers in parallel and get the fastest high-quality response
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
+    base_url="https://api.igrisinertial.com/v1",
     api_key="your-key"
 )
 
@@ -143,7 +143,7 @@ This means **races get smarter over time**.
 Optimize for fastest response:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -d '{
     "model": "gpt-4",
     "messages": [...],
@@ -161,7 +161,7 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 Prioritize response quality:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -d '{
     "model": "gpt-4",
     "messages": [...],
@@ -179,7 +179,7 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 Equal weight on latency, quality, cost:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -d '{
     "model": "gpt-4",
     "messages": [...],
@@ -386,4 +386,4 @@ response = client.chat.completions.create(
 
 See 60% faster responses immediately.
 
-**Questions?** Email support@schlep-engine.com
+**Questions?** Email support@igrisinertial.com

@@ -45,7 +45,7 @@ Igris Overture supports **Bring Your Own Key (BYOK)** for multiple LLM providers
 ### 1. Add Your Provider Keys
 
 Via Dashboard:
-1. Log in to https://app.schlep.cloud
+1. Log in to https://app.igrisinertial.com
 2. Navigate to **Settings** → **Provider Keys**
 3. Click **Add Provider**
 4. Select provider and paste your API key
@@ -53,8 +53,8 @@ Via Dashboard:
 
 Via API:
 ```bash
-curl -X POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/openai/keys \
-  -H "Authorization: Bearer YOUR_SCHLEP_API_KEY" \
+curl -X POST https://api.igrisinertial.com/v1/tenants/{tenant_id}/providers/openai/keys \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "api_key": "sk-...",
@@ -72,8 +72,8 @@ from openai import OpenAI
 
 # Point to Igris Overture
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
-    api_key="sk-schlep-YOUR_KEY"
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="sk-igris-YOUR_KEY"
 )
 
 # Igris Overture automatically routes to the best provider
@@ -111,8 +111,8 @@ Rotate your API keys without any service interruption:
 
 **Via API:**
 ```bash
-curl -X POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/openai/keys/rotate \
-  -H "Authorization: Bearer YOUR_SCHLEP_API_KEY" \
+curl -X POST https://api.igrisinertial.com/v1/tenants/{tenant_id}/providers/openai/keys/rotate \
+  -H "Authorization: Bearer YOUR_IGRIS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "new_api_key": "sk-new-key...",
@@ -141,8 +141,8 @@ curl -X POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/openai/ke
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
-    api_key="sk-schlep-YOUR_KEY"
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="sk-igris-YOUR_KEY"
 )
 
 # Automatic provider selection
@@ -162,8 +162,8 @@ print(f"Cost: ${response.metadata.cost_usd}")
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'https://api.schlep.cloud/v1',
-  apiKey: 'sk-schlep-YOUR_KEY'
+  baseURL: 'https://api.igrisinertial.com/v1',
+  apiKey: 'sk-igris-YOUR_KEY'
 });
 
 const response = await client.chat.completions.create({
@@ -177,9 +177,9 @@ console.log(response.choices[0].message.content);
 ### cURL (HTTP)
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [
@@ -243,7 +243,7 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 - Igris Overture includes automatic retry logic
 - Add more providers for better redundancy
 - Check provider status pages for ongoing incidents
-- Contact support@schlep.cloud if issues persist
+- Contact support@igrisinertial.com if issues persist
 
 ---
 
@@ -279,7 +279,7 @@ View detailed cost analytics in your dashboard:
 ### List Your Providers
 
 ```bash
-GET https://api.schlep.cloud/v1/providers
+GET https://api.igrisinertial.com/v1/providers
 ```
 
 **Response:**
@@ -305,13 +305,13 @@ GET https://api.schlep.cloud/v1/providers
 ### Add Provider Key
 
 ```bash
-POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/{provider}/keys
+POST https://api.igrisinertial.com/v1/tenants/{tenant_id}/providers/{provider}/keys
 ```
 
 ### Rotate Provider Key
 
 ```bash
-POST https://api.schlep.cloud/v1/tenants/{tenant_id}/providers/{provider}/keys/rotate
+POST https://api.igrisinertial.com/v1/tenants/{tenant_id}/providers/{provider}/keys/rotate
 ```
 
 ---

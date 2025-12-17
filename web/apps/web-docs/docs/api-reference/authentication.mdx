@@ -5,7 +5,7 @@ All API requests require authentication via **Bearer token** in the `Authorizati
 ## TL;DR
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"model": "gpt-4", "messages": [...]}'
@@ -15,7 +15,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 
 ### Get Your API Key
 
-1. Visit [console.schlep-engine.com](https://console.schlep-engine.com)
+1. Visit [console.igrisinertial.com](https://console.igrisinertial.com)
 2. Navigate to **Settings → API Keys**
 3. Click **Create API Key**
 4. Copy and store securely (shown only once)
@@ -25,23 +25,23 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 All requests must include the `Authorization` header:
 
 ```bash
-Authorization: Bearer sk-schlep-abc123...
+Authorization: Bearer sk-igris-abc123...
 ```
 
 ### Key Format
 
 ```
-sk-schlep-[40+ alphanumeric characters]
+sk-igris-[40+ alphanumeric characters]
 ```
 
-Example: `sk-schlep-1234567890abcdefghijklmnopqrstuvwxyz`
+Example: `sk-igris-1234567890abcdefghijklmnopqrstuvwxyz`
 
 ## Key Rotation
 
 Rotate keys regularly for security:
 
 ```bash
-curl -X POST https://api.schlep-engine.com/v1/admin/api-keys \
+curl -X POST https://api.igrisinertial.com/v1/admin/api-keys \
   -H "Authorization: Bearer YOUR_CURRENT_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -54,7 +54,7 @@ curl -X POST https://api.schlep-engine.com/v1/admin/api-keys \
 
 ```json
 {
-  "new_key": "sk-schlep-NEW_KEY_HERE",
+  "new_key": "sk-igris-NEW_KEY_HERE",
   "old_key_expires_at": "2025-12-31T23:59:59Z",
   "key_id": "key_xyz789"
 }
@@ -69,7 +69,7 @@ For multi-tenant applications, use JWT tokens:
 ### 1. Login
 
 ```bash
-curl -X POST https://api.schlep-engine.com/v1/auth/login \
+curl -X POST https://api.igrisinertial.com/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -91,7 +91,7 @@ curl -X POST https://api.schlep-engine.com/v1/auth/login \
 ### 2. Use JWT in Requests
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   -H "Content-Type: application/json" \
   -d '{"model": "gpt-4", "messages": [...]}'
@@ -100,7 +100,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### 3. Refresh Token
 
 ```bash
-curl -X POST https://api.schlep-engine.com/v1/auth/refresh \
+curl -X POST https://api.igrisinertial.com/v1/auth/refresh \
   -H "Authorization: Bearer YOUR_JWT_TOKEN" \
   -H "Content-Type: application/json"
 ```
@@ -110,7 +110,7 @@ curl -X POST https://api.schlep-engine.com/v1/auth/refresh \
 Enable 2FA for enhanced security:
 
 ```bash
-curl -X POST https://api.schlep-engine.com/v1/auth/2fa/enable \
+curl -X POST https://api.igrisinertial.com/v1/auth/2fa/enable \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json"
 ```
@@ -132,7 +132,7 @@ curl -X POST https://api.schlep-engine.com/v1/auth/2fa/enable \
 Login with 2FA:
 
 ```bash
-curl -X POST https://api.schlep-engine.com/v1/auth/login \
+curl -X POST https://api.igrisinertial.com/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",
@@ -159,10 +159,10 @@ curl -X POST https://api.schlep-engine.com/v1/auth/login \
 1. **Missing Authorization header**
    ```bash
    # Wrong
-   curl https://api.schlep-engine.com/v1/chat/completions
+   curl https://api.igrisinertial.com/v1/chat/completions
 
    # Right
-   curl https://api.schlep-engine.com/v1/chat/completions \
+   curl https://api.igrisinertial.com/v1/chat/completions \
      -H "Authorization: Bearer YOUR_API_KEY"
    ```
 
@@ -187,10 +187,10 @@ curl -X POST https://api.schlep-engine.com/v1/auth/login \
 
 ```bash
 # Use environment variables
-export SCHLEP_API_KEY="sk-schlep-abc123..."
+export IGRIS_API_KEY="sk-igris-abc123..."
 
-curl https://api.schlep-engine.com/v1/chat/completions \
-  -H "Authorization: Bearer $SCHLEP_API_KEY"
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
 ```
 
 ### 2. Never Commit Keys to Git
@@ -205,9 +205,9 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### 3. Use Different Keys per Environment
 
 ```
-Production:  sk-schlep-prod-abc123...
-Staging:     sk-schlep-staging-xyz789...
-Development: sk-schlep-dev-def456...
+Production:  sk-igris-prod-abc123...
+Staging:     sk-igris-staging-xyz789...
+Development: sk-igris-dev-def456...
 ```
 
 ### 4. Rotate Keys Every 90 Days
@@ -219,7 +219,7 @@ Set a calendar reminder to rotate keys quarterly.
 Create read-only keys for analytics:
 
 ```bash
-curl -X POST https://api.schlep-engine.com/v1/admin/api-keys \
+curl -X POST https://api.igrisinertial.com/v1/admin/api-keys \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

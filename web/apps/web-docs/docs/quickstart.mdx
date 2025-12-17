@@ -10,7 +10,7 @@
 
 No credit card required. All features unlocked for 14 days.
 
-[Start Free Trial →](https://app.schlep.cloud/signup)
+[Start Free Trial →](https://app.igrisinertial.com/signup)
 
 ### Step 2: Get Your API Key
 
@@ -20,7 +20,7 @@ After signup, copy your API key from the dashboard:
 Dashboard → Settings → API Keys → Copy
 ```
 
-Your API key looks like: `sk-schlep-abc123...`
+Your API key looks like: `sk-igris-abc123...`
 
 ### Step 3: Make Your First Request
 
@@ -30,8 +30,8 @@ Your API key looks like: `sk-schlep-abc123...`
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
-    api_key="sk-schlep-YOUR_KEY"
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="sk-igris-YOUR_KEY"
 )
 
 response = client.chat.completions.create(
@@ -50,8 +50,8 @@ print(f"Provider: {response.metadata['provider']}")
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'https://api.schlep.cloud/v1',
-  apiKey: 'sk-schlep-YOUR_KEY'
+  baseURL: 'https://api.igrisinertial.com/v1',
+  apiKey: 'sk-igris-YOUR_KEY'
 });
 
 const response = await client.chat.completions.create({
@@ -67,8 +67,8 @@ console.log(`Provider: ${response.metadata.provider}`);
 **Using cURL:**
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -86,7 +86,7 @@ Check your dashboard to see:
 - Latency metrics
 - Token usage
 
-[View Dashboard →](https://app.schlep.cloud/dashboard)
+[View Dashboard →](https://app.igrisinertial.com/dashboard)
 
 ---
 
@@ -134,8 +134,8 @@ Every request includes metadata about routing:
 Request the cheapest provider that meets quality standards:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-3.5-turbo",
@@ -152,8 +152,8 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 Request the fastest provider:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -170,8 +170,8 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 Race multiple providers for 60% faster time-to-first-token:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+curl -X POST https://api.igrisinertial.com/v1/infer \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gpt-4",
@@ -191,8 +191,8 @@ Get tokens as they're generated:
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
-    api_key="sk-schlep-YOUR_KEY"
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="sk-igris-YOUR_KEY"
 )
 
 response = client.chat.completions.create(
@@ -236,7 +236,7 @@ Set up dashboards and alerts:
 
 ## Get Help
 
-- **Documentation:** [docs.schlep.cloud](https://docs.schlep.cloud)
-- **Discord:** [Join community](https://discord.gg/schlep-engine)
-- **GitHub Issues:** [Report a bug](https://github.com/schlep-engine/schlep-engine/issues)
-- **Email:** support@schlep-engine.com
+- **Documentation:** [docs.igrisinertial.com](https://docs.igrisinertial.com)
+- **Discord:** [Join community](https://discord.gg/igris-overture)
+- **GitHub Issues:** [Report a bug](https://github.com/igris-inertial/igris-overture/issues)
+- **Email:** support@igrisinertial.com

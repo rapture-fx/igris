@@ -4,12 +4,12 @@
 
 ## 1. Get Your API Key
 
-Visit [console.schlep-engine.com](https://console.schlep-engine.com) and copy your API key.
+Visit [console.igrisinertial.com](https://console.igrisinertial.com) and copy your API key.
 
 ## 2. Make Your First Request
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -65,8 +65,8 @@ Already using OpenAI? Just change the base URL:
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep-engine.com/v1",  # Changed
-    api_key="YOUR_SCHLEP_API_KEY"  # Your Schlep key
+    base_url="https://api.igrisinertial.com/v1",  # Changed
+    api_key="YOUR_IGRIS_API_KEY"  # Your Igris key
 )
 
 response = client.chat.completions.create(
@@ -83,8 +83,8 @@ response = client.chat.completions.create(
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'https://api.schlep-engine.com/v1',  // Changed
-  apiKey: process.env.SCHLEP_API_KEY  // Your Schlep key
+  baseURL: 'https://api.igrisinertial.com/v1',  // Changed
+  apiKey: process.env.IGRIS_API_KEY  // Your Igris key
 });
 
 const response = await client.chat.completions.create({
@@ -98,8 +98,8 @@ const response = await client.chat.completions.create({
 ```go
 import "github.com/sashabaranov/go-openai"
 
-config := openai.DefaultConfig("YOUR_SCHLEP_API_KEY")
-config.BaseURL = "https://api.schlep-engine.com/v1"  // Changed
+config := openai.DefaultConfig("YOUR_IGRIS_API_KEY")
+config.BaseURL = "https://api.igrisinertial.com/v1"  // Changed
 
 client := openai.NewClientWithConfig(config)
 
@@ -117,7 +117,7 @@ resp, err := client.CreateChatCompletion(
 ## Streaming Responses
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -143,14 +143,14 @@ data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":" 2"},"index":0}]}
 data: [DONE]
 ```
 
-## Using Schlep Superpowers
+## Using Igris Overture Features
 
 ### Thompson Sampling (Automatic)
 
 No config needed — Thompson Sampling is enabled by default:
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -163,7 +163,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Speculative Execution (Race Providers)
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -176,7 +176,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 ### Council Mode (Consensus from Multiple Models)
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

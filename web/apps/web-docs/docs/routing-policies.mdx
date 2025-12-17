@@ -49,8 +49,8 @@ Thompson Sampling is enabled by default. No configuration needed:
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
-    api_key="sk-schlep-YOUR_KEY"
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="sk-igris-YOUR_KEY"
 )
 
 # Automatic Thompson Sampling routing
@@ -132,9 +132,9 @@ Providers with higher scores are selected more frequently, but the system mainta
 Enable Speculative Execution in your request:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [{"role": "user", "content": "Hello!"}],
@@ -178,9 +178,9 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 ### Usage
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -d '{
     "model": "gpt-4",
     "messages": [{"role": "user", "content": "Complex reasoning task"}],
@@ -226,9 +226,9 @@ Igris Overture analyzes each prompt and classifies it into categories:
 Enable semantic routing:
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -d '{
     "model": "auto",
     "messages": [{"role": "user", "content": "Write a creative story"}],
@@ -251,9 +251,9 @@ curl -X POST https://api.schlep.cloud/v1/infer \
 ### Usage
 
 ```bash
-curl -X POST https://api.schlep.cloud/v1/infer \
+curl -X POST https://api.igrisinertial.com/v1/infer \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer sk-schlep-YOUR_KEY" \
+  -H "Authorization: Bearer sk-igris-YOUR_KEY" \
   -d '{
     "model": "auto",
     "messages": [{"role": "user", "content": "Simple Q&A"}],
@@ -304,7 +304,7 @@ All routing strategies include automatic failover:
 Preview which provider would be selected without actually making the request:
 
 ```bash
-POST https://api.schlep.cloud/v1/routing/preview
+POST https://api.igrisinertial.com/v1/routing/preview
 
 {
   "model": "gpt-4",

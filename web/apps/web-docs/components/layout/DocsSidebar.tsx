@@ -392,8 +392,8 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           <div className="h-20 flex items-center px-7 pt-6 pb-4">
             <Link href="/docs" className="flex items-center">
               <img
-                src="/img/schlep-logo-34.png"
-                alt="Schlep Logo"
+                src="/img/igris-logo-34.png"
+                alt="Igris Logo"
                 className="h-6 w-auto"
               />
             </Link>

@@ -1,4 +1,4 @@
-# Schlep-engine Documentation
+# Igris Overture Documentation
 
 Custom Next.js documentation site with the same design as the web-console dashboard.
 

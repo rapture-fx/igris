@@ -3,7 +3,7 @@
 **TL;DR:** Igris Overture is an OpenAI-compatible inference gateway with superpowers. One URL change, infinite providers.
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -16,7 +16,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 
 Igris Overture provides **100% OpenAI-compatible** endpoints with enterprise-grade enhancements:
 
-- **Drop-in replacement**: Change your base URL from `api.openai.com` to `api.schlep-engine.com`
+- **Drop-in replacement**: Change your base URL from `api.openai.com` to `api.igrisinertial.com`
 - **Multi-provider routing**: Automatic failover across OpenAI, Anthropic, and custom providers
 - **Thompson Sampling**: ML-powered routing that learns which provider works best
 - **Speculative Execution**: Race providers for ultra-low latency
@@ -26,22 +26,22 @@ Igris Overture provides **100% OpenAI-compatible** endpoints with enterprise-gra
 ## Base URLs
 
 ```
-Production:  https://api.schlep-engine.com/v1
-Staging:     https://api-staging.schlep-engine.com/v1
+Production:  https://api.igrisinertial.com/v1
+Staging:     https://api-staging.igrisinertial.com/v1
 Local:       http://localhost:8080/v1
 ```
 
 ## Quick Start
 
-1. **Get your API key** from the [dashboard](https://console.schlep-engine.com)
+1. **Get your API key** from the [dashboard](https://console.igrisinertial.com)
 2. **Change your base URL**:
    ```diff
    - https://api.openai.com/v1/chat/completions
-   + https://api.schlep-engine.com/v1/chat/completions
+   + https://api.igrisinertial.com/v1/chat/completions
    ```
 3. **You're live** — your existing OpenAI SDK code works unchanged
 
-## Schlep-Specific Extensions
+## Igris Overture-Specific Extensions
 
 While we're 100% OpenAI-compatible, we add optional superpowers:
 
@@ -54,7 +54,7 @@ While we're 100% OpenAI-compatible, we add optional superpowers:
   "temperature": 0.7,
   "max_tokens": 1000,
 
-  // Schlep superpowers (optional)
+  // Igris Overture features (optional)
   "routing_policy": "thompson-sampling",
   "speculative_mode": "latency",
   "council_mode": true,
@@ -63,7 +63,7 @@ While we're 100% OpenAI-compatible, we add optional superpowers:
 ```
 
 <details>
-<summary>Show all Schlep extensions</summary>
+<summary>Show all Igris Overture extensions</summary>
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
@@ -93,7 +93,7 @@ Standard OpenAI format with additional metadata:
     "total_tokens": 175
   },
 
-  // Schlep metadata
+  // Igris Overture metadata
   "metadata": {
     "provider": "openai",
     "latency_ms": 234,

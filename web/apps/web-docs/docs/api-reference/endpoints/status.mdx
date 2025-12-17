@@ -9,7 +9,7 @@ Monitor API health, uptime, and system metrics.
 Basic health check with version and service status.
 
 ```bash
-curl https://api.schlep-engine.com/v1/health \
+curl https://api.igrisinertial.com/v1/health \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -18,7 +18,7 @@ curl https://api.schlep-engine.com/v1/health \
 ```json
 {
   "status": "healthy",
-  "service": "schlep-engine-api",
+  "service": "igris-overture-api",
   "version": "1.2.1",
   "timestamp": 1701234567,
   "uptime_seconds": 86400,
@@ -45,7 +45,7 @@ curl https://api.schlep-engine.com/v1/health \
 Detailed system and performance metrics.
 
 ```bash
-curl https://api.schlep-engine.com/v1/health/metrics \
+curl https://api.igrisinertial.com/v1/health/metrics \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -120,7 +120,7 @@ curl https://api.schlep-engine.com/v1/health/metrics \
 Checks if the service is alive and should be restarted if failing.
 
 ```bash
-curl https://api.schlep-engine.com/healthz
+curl https://api.igrisinertial.com/healthz
 ```
 
 **Response (200 OK):**
@@ -145,7 +145,7 @@ curl https://api.schlep-engine.com/healthz
 Checks if the service is ready to accept traffic.
 
 ```bash
-curl https://api.schlep-engine.com/readyz
+curl https://api.igrisinertial.com/readyz
 ```
 
 **Response (200 OK):**
@@ -179,7 +179,7 @@ curl https://api.schlep-engine.com/readyz
 Checks if the service has completed initialization.
 
 ```bash
-curl https://api.schlep-engine.com/startupz
+curl https://api.igrisinertial.com/startupz
 ```
 
 **Response (200 OK):**
@@ -198,7 +198,7 @@ curl https://api.schlep-engine.com/startupz
 Prometheus-compatible metrics endpoint.
 
 ```bash
-curl https://api.schlep-engine.com/metrics
+curl https://api.igrisinertial.com/metrics
 ```
 
 **Response (Prometheus format):**
@@ -289,10 +289,10 @@ startupProbe:
 
 ```yaml
 scrape_configs:
-  - job_name: 'schlep-engine'
+  - job_name: 'igris-overture'
     scrape_interval: 15s
     static_configs:
-      - targets: ['api.schlep-engine.com:8080']
+      - targets: ['api.igrisinertial.com:8080']
     metrics_path: /metrics
 ```
 

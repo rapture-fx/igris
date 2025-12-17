@@ -12,7 +12,7 @@ When the control plane fails, Igris Overture automatically switches to intellige
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
+    base_url="https://api.igrisinertial.com/v1",
     api_key="your-key"
 )
 
@@ -163,7 +163,7 @@ EscapeVector is enabled by default. No configuration needed.
 ```python
 # Works automatically
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
+    base_url="https://api.igrisinertial.com/v1",
     api_key="your-key"
 )
 ```
@@ -174,7 +174,7 @@ For air-gapped deployments:
 
 ```bash
 export BYOK_BYPASS_CONTROL_PLANE=true
-export SCHLEP_CACHE_DIR="/custom/path"
+export IGRIS_CACHE_DIR="/custom/path"
 ```
 
 ```python
@@ -186,7 +186,7 @@ response = client.chat.completions.create(...)
 ### Custom Cache Location
 
 ```bash
-export SCHLEP_CACHE_DIR="/var/cache/schlep"
+export IGRIS_CACHE_DIR="/var/cache/igris"
 ```
 
 ---
@@ -308,7 +308,7 @@ EscapeVector is enabled by default. Just start using Igris Overture:
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="https://api.schlep.cloud/v1",
+    base_url="https://api.igrisinertial.com/v1",
     api_key="your-key"
 )
 
@@ -319,4 +319,4 @@ response = client.chat.completions.create(
 )
 ```
 
-**Questions?** Email support@schlep-engine.com
+**Questions?** Email support@igrisinertial.com

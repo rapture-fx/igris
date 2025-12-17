@@ -16,7 +16,7 @@ Understand per-tier rate limits, budget tracking, and how to handle 429 errors.
 Every response includes rate limit information:
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -i
 ```
@@ -69,8 +69,8 @@ import time
 from openai import OpenAI, RateLimitError
 
 client = OpenAI(
-    base_url="https://api.schlep-engine.com/v1",
-    api_key="YOUR_SCHLEP_API_KEY"
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="YOUR_IGRIS_API_KEY"
 )
 
 def handle_rate_limit(func):
@@ -95,8 +95,8 @@ response = handle_rate_limit(lambda: client.chat.completions.create(
 import OpenAI from 'openai';
 
 const client = new OpenAI({
-  baseURL: 'https://api.schlep-engine.com/v1',
-  apiKey: process.env.SCHLEP_API_KEY
+  baseURL: 'https://api.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY
 });
 
 async function handleRateLimit<T>(fn: () => Promise<T>): Promise<T> {
@@ -192,7 +192,7 @@ Every tier has a monthly budget limit.
 ### Check Budget Usage
 
 ```bash
-curl https://api.schlep-engine.com/v1/tenants/YOUR_TENANT_ID/usage \
+curl https://api.igrisinertial.com/v1/tenants/YOUR_TENANT_ID/usage \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -222,7 +222,7 @@ curl https://api.schlep-engine.com/v1/tenants/YOUR_TENANT_ID/usage \
 Set alerts to be notified before hitting limits:
 
 ```bash
-curl -X POST https://api.schlep-engine.com/v1/tenants/YOUR_TENANT_ID/budgets/alerts \
+curl -X POST https://api.igrisinertial.com/v1/tenants/YOUR_TENANT_ID/budgets/alerts \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -243,7 +243,7 @@ curl -X POST https://api.schlep-engine.com/v1/tenants/YOUR_TENANT_ID/budgets/ale
 Emergency bypass for budget limits:
 
 ```bash
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -277,7 +277,7 @@ curl https://api.schlep-engine.com/v1/chat/completions \
 **Get your Gold Code:**
 
 ```bash
-curl https://api.schlep-engine.com/v1/admin/gold-codes \
+curl https://api.igrisinertial.com/v1/admin/gold-codes \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
@@ -287,7 +287,7 @@ When budget is exhausted, Scale tier automatically falls back to benchmark provi
 
 ```bash
 # Normal request, but budget exhausted
-curl https://api.schlep-engine.com/v1/chat/completions \
+curl https://api.igrisinertial.com/v1/chat/completions \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{
     "model": "gpt-4",
@@ -414,7 +414,7 @@ if remaining == 0:
 
 ```bash
 # Get current usage
-curl https://api.schlep-engine.com/v1/tenants/YOUR_TENANT_ID/usage \
+curl https://api.igrisinertial.com/v1/tenants/YOUR_TENANT_ID/usage \
   -H "Authorization: Bearer YOUR_API_KEY"
 ```
 
