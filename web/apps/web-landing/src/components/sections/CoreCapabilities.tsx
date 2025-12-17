@@ -11,16 +11,8 @@ const capabilities = [
     description: 'Runtime activates local LLM fallback when cloud providers fail. Overture reroutes across healthy providers. Your workloads stay online through outages, network failures, and air-gapped deployments.',
   },
   {
-    name: 'Secure BYOK',
-    description: 'Bring your own provider keys and local models. Full data ownership, zero lock-in. Encrypted key storage with AES-256 vaults ensures credentials never leave your control.',
-  },
-  {
     name: 'Adaptive Optimization',
     description: 'Real-time quality scoring monitors cloud providers and edge models. Automatically adjusts routing when performance drifts. Maintains consistent output quality and predictable latency without manual tuning.',
-  },
-  {
-    name: 'Fail-safe by Design',
-    description: 'EscapeVector mode caches routing intelligence for 72-hour offline operation. Gold Code override provides instant emergency control. SLO enforcer prevents drift before it affects production traffic.',
   },
   {
     name: 'Real-time Observability',
@@ -177,14 +169,7 @@ export default function CoreCapabilities() {
                 borderRight: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderRadius: '16px',
                 backgroundColor: '#f6f6f4',
-                boxShadow: 'none',
-
-                backgroundImage: `
-                repeating-linear-gradient(0deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px),
-                repeating-linear-gradient(90deg, transparent 5px, rgba(209, 213, 219, 0.3) 5px, rgba(209, 213, 219, 0.3) 6px, transparent 6px, transparent 15px)
-              `,
-                backgroundSize: '15px 15px',
-                backgroundPosition: '5px 5px'
+                boxShadow: 'none'
               }}
             >
               <div className="max-w-5xl mx-auto">

@@ -1,29 +1,25 @@
 import React from 'react'
 import Link from 'next/link'
-import { ChevronRight, Building2, Cpu, Network, Shield } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 export default function UseCasesTeaser() {
   const useCases = [
     {
-      icon: Building2,
       title: 'Enterprise AI Operations',
       description: 'Multi-tenant cost control, quality monitoring, and intelligent routing for teams managing AI at scale.',
       product: 'Overture'
     },
     {
-      icon: Cpu,
       title: 'Autonomous Systems',
       description: 'Offline-capable AI for robotics, drones, and vehicles that need to keep working without connectivity.',
       product: 'Runtime'
     },
     {
-      icon: Network,
       title: 'Hybrid Deployments',
       description: 'Cloud routing with automatic local fallback. Keep your applications online when cloud providers fail.',
       product: 'Both'
     },
     {
-      icon: Shield,
       title: 'Regulated Environments',
       description: 'Completely offline operation after setup. Encrypted storage, no telemetry, ideal for secure facilities.',
       product: 'Runtime'
@@ -69,26 +65,22 @@ export default function UseCasesTeaser() {
               <div className="lg:col-span-2 relative flex items-center justify-center">
                 <div className="w-full">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    {useCases.map((useCase) => {
-                      const Icon = useCase.icon
-                      return (
-                        <Link href="/use-cases" key={useCase.title} className="group">
-                          <div className="rounded-3xl p-4 md:p-6 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[200px] flex flex-col group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
-                            <Icon className="h-8 w-8 text-gray-900 mb-3" />
-                            <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 font-inter">
-                              {useCase.title}
-                            </h5>
-                            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-3 font-inter flex-grow">
-                              {useCase.description}
-                            </p>
-                            <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs group-hover:translate-x-1 transition-transform">
-                              Learn more
-                              <ChevronRight className="ml-1 h-3 w-3" />
-                            </div>
+                    {useCases.map((useCase) => (
+                      <Link href="/use-cases" key={useCase.title} className="group">
+                        <div className="rounded-3xl p-4 md:p-6 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[200px] flex flex-col group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
+                          <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 font-inter">
+                            {useCase.title}
+                          </h5>
+                          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-3 font-inter flex-grow">
+                            {useCase.description}
+                          </p>
+                          <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs group-hover:translate-x-1 transition-transform">
+                            Learn more
+                            <ChevronRight className="ml-1 h-3 w-3" />
                           </div>
-                        </Link>
-                      )
-                    })}
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                   <div className="text-center">
                     <Link href="/use-cases" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm hover:translate-x-1 transition-transform">
