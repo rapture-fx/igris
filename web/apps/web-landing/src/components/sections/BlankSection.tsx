@@ -1,18 +1,5 @@
 import React from 'react'
 
-const providers = [
-  'OpenAI',
-  'Anthropic',
-  'xAI',
-  'Gemini',
-  'Kimi',
-  'Qwen',
-  'Mistral',
-  'DeepSeek',
-  'Zhipu AI',
-  'Meta'
-]
-
 export default function BlankSection() {
   return (
     <section className="py-2 bg-[#f6f6f4] text-gray-900">
@@ -57,18 +44,8 @@ export default function BlankSection() {
                 </p>
               </div>
 
-              {/* Right Column - Provider Cards */}
+              {/* Right Column - Empty */}
               <div className="lg:col-span-2 relative flex items-center justify-center pl-0 md:pl-4 lg:pl-8">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 w-full max-w-3xl">
-                  {providers.map((provider) => (
-                    <div
-                      key={provider}
-                      className="bg-[#f6f6f4] border border-gray-200 rounded-lg px-2 py-3 md:px-4 text-center shadow-sm hover:shadow-md transition-shadow flex items-center justify-center min-h-[60px]"
-                    >
-                      <p className="text-xs md:text-sm font-medium text-gray-800 break-words">{provider}</p>
-                    </div>
-                  ))}
-                </div>
               </div>
             </div>
           </div>
