@@ -144,6 +144,13 @@ export default function Header() {
               )}
             </div>
 
+            <Link
+              href="/login"
+              className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
+            >
+              Sign In
+            </Link>
+
             <button
               onClick={openEarlyAccessModal}
               className="text-white px-3 py-1 md:px-4 md:py-1 rounded-lg hover:opacity-90 transition-all duration-200 text-sm shadow-md hover:shadow-lg font-inter"
