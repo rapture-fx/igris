@@ -28,6 +28,15 @@ pnpm build
 # Check if build succeeded
 if [ -d ".next" ]; then
     echo "✅ Build complete! Next.js bundle ready in .next/"
+
+    # Remove cache directory (exceeds Cloudflare Pages 25MB file size limit)
+    if [ -d ".next/cache" ]; then
+        echo "🧹 Removing .next/cache directory (not needed for deployment)..."
+        rm -rf .next/cache
+        echo "✅ Cache removed"
+    fi
+
+    echo "📦 Final .next directory contents:"
     ls -la .next/ | head -20
 else
     echo "❌ Build failed - .next directory not found"
