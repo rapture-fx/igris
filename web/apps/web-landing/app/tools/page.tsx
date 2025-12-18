@@ -394,7 +394,9 @@ services:
             </div>
             <div className="flex items-center space-x-4">
               <a
-                href="/docs"
+                href="https://docs.igrisinertial.com/docs/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center px-4 py-2 bg-[#1a1a1a] text-gray-300 border border-gray-700 rounded-lg hover:bg-[#2a2a2a] transition-colors"
               >
                 <BookOpen className="w-4 h-4 mr-2" />

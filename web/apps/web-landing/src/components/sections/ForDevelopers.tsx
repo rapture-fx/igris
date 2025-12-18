@@ -72,9 +72,9 @@ export default function ForDevelopers() {
                 <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-6">
                   Open standards. Full control. Deploy anywhere.
                 </p>
-                <Link href="/docs" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm hover:opacity-70 transition-opacity">
+                <a href="https://docs.igrisinertial.com/docs/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm hover:opacity-70 transition-opacity">
                   View documentation →
-                </Link>
+                </a>
               </div>
 
               <div className="lg:col-span-2 relative flex items-center justify-center">
