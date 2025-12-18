@@ -2,8 +2,13 @@ import type { Metadata } from 'next';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Igris Overture Documentation',
+  title: 'igris docs',
   description: 'Documentation for Igris Overture - Intelligent AI routing and optimization platform',
+  icons: { 
+    icon: '/img/schlep-logo-34.png',
+    shortcut: '/img/schlep-logo-34.png',
+    apple: '/img/schlep-logo-34.png'
+  }
 };
 
 export default function RootLayout({
