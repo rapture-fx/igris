@@ -22,7 +22,7 @@ import {
   ChevronDown,
   Search
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../../lib/utils';
 
 interface DocsSidebarProps {
   open?: boolean;
