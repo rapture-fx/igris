@@ -169,35 +169,51 @@ export default function CoreCapabilities() {
               {/* Horizontal Stack Layout */}
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Card 1: EscapeVector Mode */}
-                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col justify-end" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter">EscapeVector Mode</h5>
-                  <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Overture caches routing intelligence for 72-hour offline operation. Your cloud control plane stays functional even when disconnected. Thompson Sampling routing continues uninterrupted.
-                  </p>
+                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
+                    <div className="h-full flex flex-col">
+                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter" style={{ height: '56px', display: 'flex', alignItems: 'flex-end' }}>EscapeVector Mode</h5>
+                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter flex-grow">
+                        Overture caches routing intelligence for 72-hour offline operation. Your cloud control plane stays functional even when disconnected. Thompson Sampling routing continues uninterrupted.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Card 2: Local LLM Fallback */}
-                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col justify-end" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter">Local LLM Fallback</h5>
-                  <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Runtime automatically activates on-device models when cloud providers fail. Works 100% offline with Phi-3, Llama, and Mistral. Zero-downtime in air-gapped environments.
-                  </p>
+                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
+                    <div className="h-full flex flex-col">
+                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter" style={{ height: '56px', display: 'flex', alignItems: 'flex-end' }}>Local LLM Fallback</h5>
+                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter flex-grow">
+                        Runtime automatically activates on-device models when cloud providers fail. Works 100% offline with Phi-3, Llama, and Mistral. Zero-downtime in air-gapped environments.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Card 3: SLO Enforcer */}
-                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col justify-end" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter">SLO Enforcer</h5>
-                  <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    Automatic guardrails monitor latency, cost drift, and reliability across cloud and edge. Traffic shifts to safer paths the moment thresholds are crossed.
-                  </p>
+                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
+                    <div className="h-full flex flex-col">
+                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter" style={{ height: '56px', display: 'flex', alignItems: 'flex-end' }}>SLO Enforcer</h5>
+                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter flex-grow">
+                        Automatic guardrails monitor latency, cost drift, and reliability across cloud and edge. Traffic shifts to safer paths the moment thresholds are crossed.
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Card 4: Gold Code Override */}
-                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col justify-end" style={{ backgroundColor: '#f6f6f4' }}>
-                  <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter">Gold Code Override</h5>
-                  <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter">
-                    One environment variable instantly bypasses the control plane. Required safety switch for enterprise security audits, compliance validation, and regulated workloads.
-                  </p>
+                <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
+                  <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
+                    <div className="h-full flex flex-col">
+                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white mb-3 md:mb-4 font-inter" style={{ height: '56px', display: 'flex', alignItems: 'flex-end' }}>Gold Code Override</h5>
+                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 mb-2 font-inter flex-grow">
+                        One environment variable instantly bypasses the control plane. Required safety switch for enterprise security audits, compliance validation, and regulated workloads.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
