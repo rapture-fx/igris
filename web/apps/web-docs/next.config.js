@@ -26,13 +26,10 @@ const nextConfig = {
   },
   // Set workspace root for proper file tracing in monorepo
   outputFileTracingRoot: path.join(__dirname, '../../'),
-  // Explicitly use webpack for MDX support
-  webpack: (config) => {
-    // Add path alias resolution
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': path.resolve(__dirname, './'),
-    };
+  // Explicitly use webpack for MDX support and path resolution
+  webpack: (config, options) => {
+    // Ensure @ alias is properly set
+    config.resolve.alias['@'] = path.resolve(__dirname);
     return config;
   },
 };
