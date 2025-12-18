@@ -28,6 +28,11 @@ const nextConfig = {
   outputFileTracingRoot: path.join(__dirname, '../../'),
   // Explicitly use webpack for MDX support
   webpack: (config) => {
+    // Add path alias resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.resolve(__dirname, './'),
+    };
     return config;
   },
 };
