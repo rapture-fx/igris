@@ -20251,3 +20251,4 @@ config/.env
 database_*.env
 *.gguf
 igris-runtime/models/
+!web/apps/web-docs/lib/
