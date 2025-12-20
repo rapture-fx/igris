@@ -32,7 +32,10 @@
       "Bash(git commit:*)",
       "Bash(export LC_ALL=C)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm pages:build:*)"
+      "Bash(pnpm pages:build:*)",
+      "Bash(git submodule:*)",
+      "Bash(cat:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
