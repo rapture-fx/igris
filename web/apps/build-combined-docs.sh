@@ -9,20 +9,40 @@
 set -e  # Exit on error
 
 echo "🚀 Building Combined Documentation Site..."
+echo "🔧 Current directory: $(pwd)"
 echo ""
 
+# Find the web directory (where package.json is located)
+# Cloudflare runs from repo root, so we need to navigate to web/
+if [ -f "web/package.json" ]; then
+  echo "✅ Found web/package.json (running from repo root)"
+  WEB_DIR="$(pwd)/web"
+elif [ -f "package.json" ]; then
+  echo "✅ Found package.json in current directory (already in web/)"
+  WEB_DIR="$(pwd)"
+else
+  echo "❌ Error: Could not find package.json"
+  echo "Current directory: $(pwd)"
+  echo "Contents: $(ls -la | head -10)"
+  exit 1
+fi
+
+echo "📦 Working directory: $WEB_DIR"
+echo ""
+
+# Install dependencies (from web directory - monorepo root for web apps)
+echo "📦 Installing dependencies from $WEB_DIR..."
+cd "$WEB_DIR"
+pnpm install
+
+# Navigate to apps directory
+cd "$WEB_DIR/apps"
+
 # Clean previous builds
+echo ""
 echo "🧹 Cleaning previous builds..."
 rm -rf combined-docs-output
 mkdir -p combined-docs-output
-
-# Install dependencies (from monorepo root)
-echo ""
-echo "📦 Installing dependencies..."
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$(dirname "$SCRIPT_DIR")"
-pnpm install
-cd "$SCRIPT_DIR"
 
 # Build Hub
 echo ""
