@@ -10,7 +10,9 @@ const withMDX = require('@next/mdx')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/overture',
+  // Only use basePath when building for production (Cloudflare Pages)
+  // In dev mode, basePath is empty so you can access http://localhost:3002 directly
+  basePath: process.env.NEXT_PUBLIC_USE_BASEPATH === 'true' ? '/overture' : '',
   output: 'export', // Enable static export for Cloudflare Pages
   trailingSlash: true,
   typescript: {
