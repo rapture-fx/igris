@@ -120,7 +120,7 @@ export default function Header() {
                     Use Cases
                   </Link>
                   <a
-                    href="https://docs.igrisinertial.com/docs/"
+                    href="https://docs.igrisinertial.com/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="block px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
@@ -238,7 +238,7 @@ export default function Header() {
                       Use Cases
                     </Link>
                     <a
-                      href="https://docs.igrisinertial.com/docs/"
+                      href="https://docs.igrisinertial.com/"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
