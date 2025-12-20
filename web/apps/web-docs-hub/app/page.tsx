@@ -65,7 +65,7 @@ export default function HomePage() {
                   {/* Overture Card */}
                   <a
                     href={overtureDocsUrl}
-                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 shadow-sm hover:shadow-sm transition-all duration-300"
                     style={{ backgroundColor: '#f6f6f4' }}
                   >
                     <div className="flex items-center justify-between">
@@ -87,7 +87,7 @@ export default function HomePage() {
                   {/* Runtime Card */}
                   <a
                     href={runtimeDocsUrl}
-                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 shadow-sm hover:shadow-md transition-all duration-300"
+                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 shadow-sm hover:shadow-sm transition-all duration-300"
                     style={{ backgroundColor: '#f6f6f4' }}
                   >
                     <div className="flex items-center justify-between">
@@ -144,8 +144,12 @@ export default function HomePage() {
           </div>
 
           {/* Right Column - Placeholder Box */}
-          <div className="w-full h-full min-h-screen rounded-xl border border-gray-300/60 shadow-sm py-6 sm:py-8 lg:py-12 pl-6 sm:pl-8 lg:pl-12 pr-3 sm:pr-4 lg:pr-6" style={{ backgroundColor: '#f6f6f4' }}>
-            {/* Placeholder content - ready for future content */}
+          <div className="w-full h-full min-h-screen rounded-xl border border-gray-300/60 shadow-sm overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
+            <img 
+              src="/img/rightcolumnfill.png" 
+              alt="Right column fill" 
+              className="w-full h-full object-cover"
+            />
           </div>
         </div>
       </div>
