@@ -14,7 +14,8 @@ const nextConfig = {
   // In dev mode, basePath is empty so you can access http://localhost:3002 directly
   basePath: process.env.NEXT_PUBLIC_USE_BASEPATH === 'true' ? '/overture' : '',
   // Only use static export for production builds, not in dev mode
-  ...(process.env.NEXT_PUBLIC_USE_BASEPATH === 'true' && { output: 'export' }),
+  // Static export doesn't work with dev server, so we conditionally set it
+  ...(process.env.NEXT_PUBLIC_USE_BASEPATH === 'true' ? { output: 'export' } : {}),
   trailingSlash: true,
   typescript: {
     ignoreBuildErrors: true,
