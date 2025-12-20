@@ -35,14 +35,14 @@ cd ..
 echo ""
 echo "📦 Building Overture Docs (/overture)..."
 cd web-docs
-pnpm run build
+NEXT_PUBLIC_USE_BASEPATH=true pnpm run build
 cd ..
 
 # Build Runtime Docs
 echo ""
 echo "📦 Building Runtime Docs (/runtime)..."
 cd web-docs-runtime
-pnpm run build
+NEXT_PUBLIC_USE_BASEPATH=true pnpm run build
 cd ..
 
 # Combine outputs
