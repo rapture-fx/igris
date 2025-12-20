@@ -38,6 +38,10 @@ venv.bak/
 *.swo
 *~
 
+# Conductor (old/unused tool)
+.conductor/
+conductor/
+
 # OS
 .DS_Store
 .DS_Store?
