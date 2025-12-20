@@ -17,6 +17,15 @@ export default function Header() {
   const productDropdownRef = useRef<HTMLDivElement>(null);
   const resourcesDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Set docs hub URL based on environment
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      setDocsHubUrl('http://localhost:3001');
+    } else {
+      setDocsHubUrl('https://docs.igrisinertial.com/');
+    }
+  }, []);
+
   // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -120,9 +129,7 @@ export default function Header() {
                     Use Cases
                   </Link>
                   <a
-                    href="https://docs.igrisinertial.com/"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={docsHubUrl}
                     className="block px-4 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 font-inter"
                     onClick={() => setResourcesDropdownOpen(false)}
                   >
@@ -238,9 +245,7 @@ export default function Header() {
                       Use Cases
                     </Link>
                     <a
-                      href="https://docs.igrisinertial.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
+                      href={docsHubUrl}
                       className="block text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
                       onClick={() => {
                         setMobileMenuOpen(false);
