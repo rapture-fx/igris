@@ -13,6 +13,7 @@ export default function Header() {
   const [resourcesDropdownOpen, setResourcesDropdownOpen] = useState(false);
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
+  const [docsHubUrl, setDocsHubUrl] = useState('https://docs.igrisinertial.com/');
   const { openEarlyAccessModal } = useModal();
   const productDropdownRef = useRef<HTMLDivElement>(null);
   const resourcesDropdownRef = useRef<HTMLDivElement>(null);
