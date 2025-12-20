@@ -141,7 +141,7 @@ export default function HomePage() {
                 <p className="text-sm text-gray-500 font-inter">
                   support@igris-inertial.com
                 </p>
-                <span className="text-gray-500">
+                <span className="text-sm text-gray-500 font-inter">
                   © 2025 Igris Inertial.
                 </span>
               </div>
