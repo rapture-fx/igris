@@ -419,6 +419,110 @@ importers:
         specifier: ^5.6.3
         version: 5.9.3
 
+  apps/web-docs-hub:
+    dependencies:
+      lucide-react:
+        specifier: ^0.294.0
+        version: 0.294.0(react@18.3.1)
+      next:
+        specifier: 15.5.9
+        version: 15.5.9(react-dom@18.3.1)(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.27
+      '@types/react':
+        specifier: ^18.3.24
+        version: 18.3.27
+      '@types/react-dom':
+        specifier: ^18.3.7
+        version: 18.3.7(@types/react@18.3.27)
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.4.23(postcss@8.5.6)
+      postcss:
+        specifier: ^8.4.49
+        version: 8.5.6
+      tailwindcss:
+        specifier: ^3.4.15
+        version: 3.4.19
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  apps/web-docs-runtime:
+    dependencies:
+      '@mdx-js/loader':
+        specifier: ^3.0.0
+        version: 3.1.1
+      '@mdx-js/react':
+        specifier: ^3.0.0
+        version: 3.1.1(@types/react@18.3.27)(react@18.3.1)
+      '@next/mdx':
+        specifier: ^15.1.8
+        version: 15.5.9(@mdx-js/loader@3.1.1)(@mdx-js/react@3.1.1)
+      clsx:
+        specifier: ^2.1.0
+        version: 2.1.1
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      lucide-react:
+        specifier: ^0.294.0
+        version: 0.294.0(react@18.3.1)
+      next:
+        specifier: 15.5.9
+        version: 15.5.9(react-dom@18.3.1)(react@18.3.1)
+      next-mdx-remote:
+        specifier: ^4.4.1
+        version: 4.4.1(react-dom@18.3.1)(react@18.3.1)
+      react:
+        specifier: ^18.3.1
+        version: 18.3.1
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@18.3.1)
+      remark-gfm:
+        specifier: ^4.0.1
+        version: 4.0.1
+      tailwind-merge:
+        specifier: ^2.2.0
+        version: 2.6.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.27
+      '@types/react':
+        specifier: ^18.3.24
+        version: 18.3.27
+      '@types/react-dom':
+        specifier: ^18.3.7
+        version: 18.3.7(@types/react@18.3.27)
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.4.23(postcss@8.5.6)
+      eslint:
+        specifier: ^8.57.1
+        version: 8.57.1
+      eslint-config-next:
+        specifier: 15.5.9
+        version: 15.5.9(eslint@8.57.1)(typescript@5.9.3)
+      postcss:
+        specifier: ^8.4.49
+        version: 8.5.6
+      tailwindcss:
+        specifier: ^3.4.15
+        version: 3.4.19
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
   apps/web-landing:
     dependencies:
       clsx:
@@ -7098,7 +7202,7 @@ packages:
       '@nolyfill/is-core-module': 1.0.39
       debug: 4.4.3
       eslint: 8.57.1
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@8.50.0)(eslint-import-resolver-typescript@3.10.1)(eslint@8.57.1)
       get-tsconfig: 4.13.0
       is-bun-module: 2.0.0
       stable-hash: 0.0.5
