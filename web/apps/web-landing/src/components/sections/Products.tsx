@@ -1,5 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { ChevronRight } from 'lucide-react'
 
 export default function Products() {
@@ -51,14 +52,26 @@ export default function Products() {
                 <div className="flex flex-col gap-6 w-full">
                   {/* Overture Card */}
                   <Link href="/overture" className="group">
-                    <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[500px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
-                      <div className="overflow-hidden">
-                        <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
-                          Control Plane
-                        </p>
+                    <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[550px] flex flex-col overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
+                      <div className="flex-[2.5] flex items-center justify-center min-h-0 mb-3 -mx-4 md:-mx-6 lg:-mx-8 overflow-hidden">
+                        <div className="w-full h-full px-4 md:px-6 lg:px-8 flex items-center justify-center">
+                          <Image 
+                            src="/ovtr.png" 
+                            alt="Overture" 
+                            width={2000} 
+                            height={500} 
+                            className="rounded-3xl"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full">
+                      <div className="flex-shrink-0 w-full">
+                        <div className="mb-2">
+                          <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
+                            Control Plane
+                          </p>
+                        </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-3 break-words whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                           Cloud orchestration with intelligent routing, shadow mode testing, and multi-provider consensus.<br />
                           Automated cost governance, quality-aware optimization, and multi-tenant isolation for enterprise operations.
@@ -73,14 +86,26 @@ export default function Products() {
 
                   {/* Runtime Card */}
                   <Link href="/runtime" className="group">
-                    <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[500px] flex flex-col justify-between overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
-                      <div className="overflow-hidden">
-                        <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
-                          Execution Plane
-                        </p>
+                    <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 h-[500px] flex flex-col overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
+                      <div className="flex-[2.5] flex items-center justify-center min-h-0 overflow-hidden mb-3 -mx-4 md:-mx-6 lg:-mx-8">
+                        <div className="w-full h-full px-4 md:px-6 lg:px-8 flex items-center justify-center">
+                          <Image 
+                            src="/runtim.png" 
+                            alt="Runtime" 
+                            width={2000} 
+                            height={500} 
+                            className="rounded-2xl"
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full">
+                      <div className="flex-shrink-0 w-full">
+                        <div className="mb-2">
+                          <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
+                          <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
+                            Execution Plane
+                          </p>
+                        </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-3 break-words whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
                           Offline-capable edge runtime with automatic local LLM fallback.<br />
                           Pure Rust with streaming, GPU acceleration, peer-to-peer swarm intelligence, and on-device fine-tuning.<br />
