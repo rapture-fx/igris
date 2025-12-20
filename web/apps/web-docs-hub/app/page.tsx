@@ -45,7 +45,7 @@ export default function HomePage() {
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Overture Card */}
           <a
-            href="http://localhost:3002/docs"
+            href="http://localhost:3002/overture/docs"
             className="group block rounded-3xl p-8 border border-gray-300/60 shadow-sm hover:shadow-md transition-all duration-300 hover:border-gray-400/80"
             style={{ backgroundColor: '#f6f6f4' }}
           >
@@ -73,7 +73,7 @@ export default function HomePage() {
 
           {/* Runtime Card */}
           <a
-            href="http://localhost:3004/docs"
+            href="http://localhost:3004/runtime/docs"
             className="group block rounded-3xl p-8 border border-gray-300/60 shadow-sm hover:shadow-md transition-all duration-300 hover:border-gray-400/80"
             style={{ backgroundColor: '#f6f6f4' }}
           >
