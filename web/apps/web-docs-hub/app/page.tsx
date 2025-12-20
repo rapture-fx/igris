@@ -145,7 +145,7 @@ export default function HomePage() {
 
           {/* Right Column - Placeholder Box */}
           <div className="w-full h-full min-h-screen p-3 sm:p-4 lg:p-6">
-            <div className="w-full h-full rounded-xl border border-gray-300/60 shadow-md overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#f6f6f4' }}>
+            <div className="w-full h-full rounded-xl border border-gray-300/60 overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#f6f6f4', boxShadow: '0 0 8px rgba(0, 0, 0, 0.1)' }}>
               <img 
                 src="/img/mnt.png" 
                 alt="Right column fill" 
