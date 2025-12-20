@@ -1,0 +1,483 @@
+# Errors & Retries
+
+How to handle errors, implement retries, and recover from failures.
+
+## Error Response Format
+
+All errors follow a consistent structure:
+
+```json
+{
+  "error": {
+    "message": "The API key provided is invalid",
+    "type": "authentication_error",
+    "code": 401
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## HTTP Status Codes
+
+| Code | Meaning | Action |
+|------|---------|--------|
+| 200 | Success | Request completed successfully |
+| 400 | Bad Request | Fix request parameters |
+| 401 | Unauthorized | Check API key |
+| 402 | Payment Required | Add funds or use Gold Code |
+| 403 | Forbidden | Upgrade tier or check permissions |
+| 404 | Not Found | Check endpoint URL |
+| 413 | Payload Too Large | Reduce request size |
+| 429 | Too Many Requests | Slow down or upgrade tier |
+| 500 | Internal Server Error | Retry with exponential backoff |
+| 502 | Bad Gateway | Provider issue, automatic fallback engaged |
+| 503 | Service Unavailable | All providers down, retry after delay |
+| 504 | Gateway Timeout | Request timed out, retry |
+
+## Error Types
+
+### authentication_error (401)
+
+**Cause:** Invalid or missing API key
+
+```json
+{
+  "error": {
+    "message": "Authentication required. Please provide valid credentials.",
+    "type": "authentication_error",
+    "code": 401
+  }
+}
+```
+
+**Fix:**
+
+```bash
+# Wrong
+curl https://api.igrisinertial.com/v1/chat/completions
+
+# Right
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### invalid_request_error (400)
+
+**Cause:** Malformed request or invalid parameters
+
+```json
+{
+  "error": {
+    "message": "Invalid request: missing required field 'messages'",
+    "type": "invalid_request_error",
+    "code": 400
+  }
+}
+```
+
+**Fix:** Check request body matches the [API spec](/docs/api-reference/endpoints/chat-completions)
+
+### rate_limit_error (429)
+
+**Cause:** Too many requests
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. Please try again later.",
+    "type": "rate_limit_error",
+    "code": 429
+  }
+}
+```
+
+**Response Headers:**
+
+```
+X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1701234567
+```
+
+**Fix:**
+
+- Wait until `X-RateLimit-Reset` timestamp
+- Implement exponential backoff
+- Upgrade to higher tier
+
+### budget_limit_error (402)
+
+**Cause:** Monthly budget exhausted
+
+```json
+{
+  "error": {
+    "message": "Monthly budget limit exceeded. Add funds or use Gold Code override.",
+    "type": "budget_limit_error",
+    "code": 402,
+    "details": {
+      "budget_used_usd": 100.0,
+      "budget_limit_usd": 100.0,
+      "remaining_usd": 0.0
+    }
+  }
+}
+```
+
+**Fix:**
+
+1. **Add funds** in dashboard
+2. **Use Gold Code** (Scale tier):
+   ```bash
+   curl https://api.igrisinertial.com/v1/chat/completions \
+     -H "Authorization: Bearer YOUR_API_KEY" \
+     -d '{"model": "gpt-4", "messages": [...], "gold_code": "EMERGENCY-ABC123"}'
+   ```
+3. **Automatic fallback** to benchmark provider (if configured)
+
+### service_unavailable (503)
+
+**Cause:** All providers unhealthy
+
+```json
+{
+  "error": {
+    "message": "Service temporarily unavailable. All providers unhealthy. Automatic fallback engaged.",
+    "type": "service_unavailable",
+    "code": 503
+  }
+}
+```
+
+**Fix:** Retry with exponential backoff. Igris Overture automatically falls back to healthy providers.
+
+### timeout_error (504)
+
+**Cause:** Request exceeded timeout
+
+```json
+{
+  "error": {
+    "message": "Request timeout. Please try again.",
+    "type": "timeout_error",
+    "code": 504
+  }
+}
+```
+
+**Fix:**
+
+- Reduce `max_tokens`
+- Simplify prompt
+- Retry request
+
+### circuit_breaker_error (503)
+
+**Cause:** Provider circuit breaker open due to repeated failures
+
+```json
+{
+  "error": {
+    "message": "Provider 'openai' temporarily unavailable due to circuit breaker. Automatic fallback engaged.",
+    "type": "circuit_breaker_error",
+    "code": 503,
+    "details": {
+      "provider": "openai",
+      "circuit_breaker_state": "open",
+      "retry_after_seconds": 60
+    }
+  }
+}
+```
+
+**Fix:** Igris Overture automatically routes to healthy providers. No action needed.
+
+## Retry Strategies
+
+### Exponential Backoff (Recommended)
+
+```python
+import time
+import random
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="YOUR_IGRIS_API_KEY"
+)
+
+def exponential_backoff_retry(func, max_retries=5):
+    for attempt in range(max_retries):
+        try:
+            return func()
+        except Exception as e:
+            if attempt == max_retries - 1:
+                raise
+
+            # Check if retryable error
+            if not is_retryable_error(e):
+                raise
+
+            # Exponential backoff: 1s, 2s, 4s, 8s, 16s
+            wait_time = (2 ** attempt) + random.uniform(0, 1)
+            print(f"Retry {attempt + 1}/{max_retries} after {wait_time:.2f}s")
+            time.sleep(wait_time)
+
+def is_retryable_error(e):
+    """Check if error should be retried"""
+    retryable_codes = [429, 500, 502, 503, 504]
+    if hasattr(e, 'status_code'):
+        return e.status_code in retryable_codes
+    return False
+
+# Usage
+response = exponential_backoff_retry(lambda: client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}]
+))
+```
+
+### TypeScript/JavaScript
+
+```typescript
+async function exponentialBackoffRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries: number = 5
+): Promise<T> {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (attempt === maxRetries - 1) throw error;
+
+      if (!isRetryableError(error)) throw error;
+
+      const waitTime = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+      console.log(`Retry ${attempt + 1}/${maxRetries} after ${waitTime}ms`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+  }
+  throw new Error('Max retries exceeded');
+}
+
+function isRetryableError(error: any): boolean {
+  const retryableCodes = [429, 500, 502, 503, 504];
+  return error?.response?.status && retryableCodes.includes(error.response.status);
+}
+
+// Usage
+const response = await exponentialBackoffRetry(() =>
+  client.chat.completions.create({
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: 'Hello!' }]
+  })
+);
+```
+
+### Go
+
+```go
+import (
+    "math"
+    "math/rand"
+    "time"
+)
+
+func ExponentialBackoffRetry(fn func() error, maxRetries int) error {
+    for attempt := 0; attempt < maxRetries; attempt++ {
+        err := fn()
+        if err == nil {
+            return nil
+        }
+
+        if attempt == maxRetries-1 {
+            return err
+        }
+
+        if !isRetryableError(err) {
+            return err
+        }
+
+        // Exponential backoff with jitter
+        waitTime := time.Duration(math.Pow(2, float64(attempt))) * time.Second
+        jitter := time.Duration(rand.Float64() * float64(time.Second))
+        time.Sleep(waitTime + jitter)
+    }
+    return fmt.Errorf("max retries exceeded")
+}
+
+func isRetryableError(err error) bool {
+    // Check if error has status code 429, 500, 502, 503, or 504
+    // Implementation depends on your HTTP client
+    return true
+}
+```
+
+## Automatic Failover
+
+Igris Overture automatically handles provider failures:
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+**Behind the scenes:**
+
+1. Routes to OpenAI (Thompson Sampling score: 0.87)
+2. OpenAI fails (503)
+3. **Automatic fallback** to Anthropic Claude (score: 0.82)
+4. Returns successful response
+
+**Response metadata:**
+
+```json
+{
+  "metadata": {
+    "provider": "anthropic",
+    "routing_decision": "thompson-sampling",
+    "fallback_count": 1,
+    "fallback_reason": "provider_unavailable"
+  }
+}
+```
+
+## Handling Specific Errors
+
+### 429: Rate Limit
+
+```python
+from openai import OpenAI, RateLimitError
+
+client = OpenAI(base_url="https://api.igrisinertial.com/v1", api_key="...")
+
+try:
+    response = client.chat.completions.create(...)
+except RateLimitError as e:
+    # Extract retry-after from headers
+    retry_after = int(e.response.headers.get('X-RateLimit-Reset', 60))
+    print(f"Rate limited. Retry after {retry_after} seconds")
+    time.sleep(retry_after)
+    response = client.chat.completions.create(...)  # Retry
+```
+
+### 402: Budget Exhausted
+
+```python
+from openai import OpenAI
+
+client = OpenAI(base_url="https://api.igrisinertial.com/v1", api_key="...")
+
+try:
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[...]
+    )
+except Exception as e:
+    if hasattr(e, 'status_code') and e.status_code == 402:
+        print("Budget exhausted! Using Gold Code override...")
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[...],
+            extra_body={"gold_code": "EMERGENCY-ABC123"}
+        )
+```
+
+### 503: Provider Down
+
+```python
+# Igris Overture automatically falls back to healthy providers
+# No special handling needed!
+
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[...]
+)
+
+# Check which provider was used
+print(f"Routed to: {response.metadata['provider']}")
+print(f"Fallback count: {response.metadata.get('fallback_count', 0)}")
+```
+
+## Debugging with Trace IDs
+
+Every error includes a `trace_id` for debugging:
+
+```json
+{
+  "error": {
+    "message": "Internal server error",
+    "type": "internal_error",
+    "code": 500
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Use trace ID to:**
+
+1. Search logs in dashboard
+2. Contact support for investigation
+3. Correlate errors across requests
+
+## Best Practices
+
+### 1. Always Implement Retry Logic
+
+```python
+# Wrong
+response = client.chat.completions.create(...)
+
+# Right
+response = exponential_backoff_retry(lambda: client.chat.completions.create(...))
+```
+
+### 2. Handle Specific Error Types
+
+```python
+try:
+    response = client.chat.completions.create(...)
+except RateLimitError:
+    # Wait and retry
+except AuthenticationError:
+    # Check API key
+except InvalidRequestError:
+    # Fix request parameters
+except Exception as e:
+    # Generic fallback
+```
+
+### 3. Log Trace IDs
+
+```python
+try:
+    response = client.chat.completions.create(...)
+except Exception as e:
+    trace_id = e.response.headers.get('X-Trace-ID')
+    logger.error(f"Request failed: {e}", extra={'trace_id': trace_id})
+```
+
+### 4. Monitor Error Rates
+
+```python
+from prometheus_client import Counter
+
+error_counter = Counter('api_errors_total', 'Total API errors', ['error_type'])
+
+try:
+    response = client.chat.completions.create(...)
+except Exception as e:
+    error_counter.labels(error_type=type(e).__name__).inc()
+    raise
+```
+
+## Related
+
+- [Rate Limits](/docs/api-reference/rate-limits-budgets) — Per-tier limits
+- [Gold Code](/docs/core-features/gold-code) — Emergency budget override
+- [Observability](/docs/observability) — Monitoring and tracing
+- [Status & Health](/docs/api-reference/endpoints/status) — Check API health

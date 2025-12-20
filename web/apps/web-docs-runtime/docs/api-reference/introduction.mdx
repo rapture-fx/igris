@@ -1,0 +1,109 @@
+# API Reference
+
+**TL;DR:** Igris Runtime is an offline-capable AI runtime with automatic local LLM fallback. OpenAI-compatible API with zero cloud dependency.
+
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+## Philosophy
+
+Igris Runtime provides **100% OpenAI-compatible** endpoints with offline-first capabilities:
+
+- **Offline-first**: Automatic fallback to local Phi-3 model when cloud providers fail
+- **Zero dependencies**: Embedded database (Redb), no PostgreSQL or Redis required
+- **Local LLM inference**: llama.cpp integration for on-device model serving
+- **Streaming support**: Server-Sent Events for real-time responses
+- **On-device training**: QLoRA fine-tuning without cloud dependencies
+- **Pure Rust**: Production-ready with minimal binary size (~12 MB)
+
+## Base URLs
+
+```
+Local:       http://localhost:8080/v1
+Docker:      http://localhost:8080/v1
+Production:  http://your-server:8080/v1
+```
+
+## Quick Start
+
+1. **Download a local model**: Run `./download-model.sh` to get Phi-3 Mini (~2.3 GB)
+2. **Configure local fallback**: Enable in `config.json5`
+3. **Start the server**: Run `cargo run --release`
+4. **Make requests**: Use the OpenAI-compatible API
+
+## Igris Runtime-Specific Extensions
+
+While we're 100% OpenAI-compatible, we add optional capabilities:
+
+```json
+{
+  "model": "gpt-4",
+  "messages": [...],
+
+  // Standard OpenAI params
+  "temperature": 0.7,
+  "max_tokens": 1000,
+  "stream": true,
+
+  // Igris Runtime features (optional)
+  "mode": "speculative",
+  "local_fallback_enabled": true
+}
+```
+
+<details>
+<summary>Show all Igris Runtime extensions</summary>
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `mode` | string | `"thompson"` | Routing mode: `"thompson"`, `"speculative"`, `"council"` |
+| `local_fallback_enabled` | boolean | `true` | Enable automatic local LLM fallback |
+| `provider` | string | auto | Force specific provider or use `"phi3"` for local model |
+| `n_gpu_layers` | integer | `0` | GPU offload layers for local inference |
+| `prompt_cache` | boolean | `true` | Enable prompt/KV caching for faster responses |
+
+</details>
+
+## Response Format
+
+Standard OpenAI format with additional metadata:
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1701234567,
+  "model": "gpt-4",
+  "choices": [...],
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 150,
+    "total_tokens": 175
+  },
+
+  // Igris Runtime metadata
+  "metadata": {
+    "provider": "openai",
+    "fallback_used": false,
+    "local_model_available": true,
+    "latency_ms": 234,
+    "cost_usd": 0.0,
+    "model_path": null,
+    "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+
+## Next Steps
+
+- [Quick Start](/docs/api-reference/quick-start) — First working curl in 60 seconds
+- [Authentication](/docs/api-reference/authentication) — Get your API key
+- [Chat Completions](/docs/api-reference/endpoints/chat-completions) — Main inference endpoint
+- [SDKs](/docs/api-reference/sdks) — TypeScript, Python, Go clients

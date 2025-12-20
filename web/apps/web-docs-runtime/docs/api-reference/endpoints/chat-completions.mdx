@@ -1,0 +1,365 @@
+# POST /v1/chat/completions
+
+Create a chat completion with automatic provider routing and optional Igris Overture features.
+
+**Also available at:** `/v1/infer` (legacy endpoint, functionally identical)
+
+## TL;DR
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "What is the capital of France?"}
+    ]
+  }'
+```
+
+## Request
+
+### Headers
+
+```
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+### Body Parameters
+
+#### Required
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `model` | string | Model identifier (e.g., `"gpt-4"`, `"claude-3-5-sonnet-20241022"`) |
+| `messages` | array | Array of message objects with `role` and `content` |
+
+#### Standard OpenAI Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `temperature` | float | 0.7 | Sampling temperature (0.0 - 2.0) |
+| `max_tokens` | integer | null | Maximum tokens to generate |
+| `top_p` | float | 1.0 | Nucleus sampling parameter (0.0 - 1.0) |
+| `frequency_penalty` | float | 0.0 | Penalize frequent tokens (-2.0 to 2.0) |
+| `presence_penalty` | float | 0.0 | Penalize repeated tokens (-2.0 to 2.0) |
+| `stop` | string\|array | null | Stop sequences |
+| `stream` | boolean | false | Enable Server-Sent Events streaming |
+| `n` | integer | 1 | Number of completions to generate |
+| `user` | string | null | User identifier for abuse detection |
+
+#### Igris Overture-Specific Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `routing_policy` | string | `"thompson-sampling"` | Routing strategy: `"thompson-sampling"`, `"cost-optimized"`, `"latency-optimized"`, `"quality-optimized"` |
+| `speculative_mode` | string | null | Race providers for speed: `"latency"`, `"balanced"`, `"quality"`, `"cost"` |
+| `council_mode` | boolean | false | Get consensus from multiple models (Growth+ tier) |
+| `provider` | string | null | Force specific provider: `"openai"`, `"anthropic"`, `"custom-provider-name"` |
+| `optimization` | string | `"balanced"` | Optimization goal: `"latency"`, `"cost"`, `"quality"`, `"balanced"` |
+| `enable_semantic_routing` | boolean | true | Use semantic classification for intelligent routing |
+| `gold_code` | string | null | Emergency budget override code (Scale tier) |
+
+## Response
+
+### Non-Streaming
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1701234567,
+  "model": "gpt-4",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The capital of France is Paris."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 25,
+    "completion_tokens": 8,
+    "total_tokens": 33
+  },
+  "metadata": {
+    "provider": "openai",
+    "model_used": "gpt-4-0613",
+    "latency_ms": 1234,
+    "cost_usd": 0.00099,
+    "routing_decision": "thompson-sampling",
+    "thompson_sampling_score": 0.87,
+    "trace_id": "550e8400-e29b-41d4-a716-446655440000",
+    "tenant_id": "tenant_abc123"
+  }
+}
+```
+
+### Streaming
+
+When `stream: true`, responses use Server-Sent Events (SSE):
+
+```
+data: {"id":"chatcmpl-abc","object":"chat.completion.chunk","created":1701234567,"model":"gpt-4","choices":[{"index":0,"delta":{"role":"assistant"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc","object":"chat.completion.chunk","created":1701234567,"model":"gpt-4","choices":[{"index":0,"delta":{"content":"The"},"finish_reason":null}]}
+
+data: {"id":"chatcmpl-abc","object":"chat.completion.chunk","created":1701234567,"model":"gpt-4","choices":[{"index":0,"delta":{"content":" capital"},"finish_reason":null}]}
+
+...
+
+data: {"id":"chatcmpl-abc","object":"chat.completion.chunk","created":1701234567,"model":"gpt-4","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}
+
+data: [DONE]
+```
+
+## Examples
+
+### Basic Request
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+### With Temperature & Max Tokens
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Write a haiku about code"}],
+    "temperature": 0.9,
+    "max_tokens": 50
+  }'
+```
+
+### Streaming Response
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Count to 5"}],
+    "stream": true
+  }'
+```
+
+### Speculative Execution (Race Providers)
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "What is 2+2?"}],
+    "speculative_mode": "latency"
+  }'
+```
+
+**Response includes speculative metadata:**
+
+```json
+{
+  "id": "chatcmpl-abc",
+  "choices": [...],
+  "metadata": {
+    "provider": "openai",
+    "routing_decision": "speculative_latency",
+    "speculative": {
+      "winner_provider": "openai",
+      "providers_raced": ["openai", "anthropic", "custom"],
+      "latency_saved_ms": 450,
+      "total_latency_ms": 1234
+    }
+  }
+}
+```
+
+### Council Mode (Consensus)
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Is this code safe?"}],
+    "council_mode": true
+  }'
+```
+
+**Response includes council metadata:**
+
+```json
+{
+  "id": "chatcmpl-abc",
+  "choices": [...],
+  "metadata": {
+    "provider": "openai",
+    "routing_decision": "council_mode",
+    "council": {
+      "chairman_provider": "openai",
+      "members": ["openai", "anthropic", "custom"],
+      "response_count": 3,
+      "winner_provider": "openai",
+      "total_latency_ms": 3456,
+      "cost_usd": 0.0312
+    }
+  }
+}
+```
+
+### Force Specific Provider
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-3-5-sonnet-20241022",
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "provider": "anthropic"
+  }'
+```
+
+### Cost-Optimized Routing
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Summarize this text"}],
+    "optimization": "cost"
+  }'
+```
+
+### Gold Code Budget Override
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Critical production request"}],
+    "gold_code": "EMERGENCY-BYPASS-ABC123"
+  }'
+```
+
+## Error Responses
+
+### 400 Bad Request
+
+```json
+{
+  "error": {
+    "message": "Invalid request: missing required field 'messages'",
+    "type": "invalid_request_error",
+    "code": 400
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### 401 Unauthorized
+
+```json
+{
+  "error": {
+    "message": "Authentication required. Please provide valid credentials.",
+    "type": "authentication_error",
+    "code": 401
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### 402 Payment Required (Budget Exhausted)
+
+```json
+{
+  "error": {
+    "message": "Monthly budget limit exceeded. Add funds or use Gold Code override.",
+    "type": "budget_limit_error",
+    "code": 402,
+    "details": {
+      "budget_used_usd": 100.0,
+      "budget_limit_usd": 100.0,
+      "remaining_usd": 0.0
+    }
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### 429 Rate Limit Exceeded
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. Please try again later.",
+    "type": "rate_limit_error",
+    "code": 429
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### 503 Service Unavailable (All Providers Down)
+
+```json
+{
+  "error": {
+    "message": "Service temporarily unavailable. All providers unhealthy. Automatic fallback engaged.",
+    "type": "service_unavailable",
+    "code": 503
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## Response Headers
+
+```
+X-Trace-ID: 550e8400-e29b-41d4-a716-446655440000
+X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 42
+X-RateLimit-Reset: 1701234567
+Content-Type: application/json
+```
+
+For streaming responses:
+
+```
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+Transfer-Encoding: chunked
+```
+
+## Related
+
+- [Errors & Retries](/docs/api-reference/errors-retries) — Handle failures
+- [Rate Limits](/docs/api-reference/rate-limits-budgets) — Per-tier limits
+- [Routing Policies](/docs/routing-policies) — Thompson Sampling explained
+- [Speculative Execution](/docs/core-features/speculative) — Race providers
+- [Council Mode](/docs/core-features/council-mode) — Consensus from multiple models

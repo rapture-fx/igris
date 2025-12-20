@@ -1,0 +1,360 @@
+# Frequently Asked Questions
+
+Common questions about Igris Runtime.
+
+---
+
+## General
+
+### What is Igris Runtime?
+
+Igris Runtime is an offline-first AI inference engine that runs local LLM models (Phi-3, Mistral, Llama) with automatic cloud fallback. It keeps your AI working even when the internet doesn't.
+
+### How is it different from Ollama or LM Studio?
+
+| Feature | Igris Runtime | Ollama | LM Studio |
+|---------|---------------|---------|-----------|
+| Cloud fallback | ✅ Automatic | ❌ No | ❌ No |
+| AI Agents | ✅ Reflection, Planning, Swarm | ❌ No | ❌ No |
+| Tool calling | ✅ HTTP, Shell, FS | ❌ No | ❌ No |
+| On-device training | ✅ QLoRA | ❌ No | ❌ No |
+| MCP Swarm | ✅ P2P context sync | ❌ No | ❌ No |
+
+---
+
+## Setup & Installation
+
+### What are the system requirements?
+
+**Minimum:**
+- 4 GB RAM
+- 4 CPU cores
+- 5 GB disk space (including model)
+- Rust 1.75+
+
+**Recommended:**
+- 8 GB RAM
+- 8 CPU cores
+- 10 GB disk space
+- GPU (optional, for acceleration)
+
+### Can I run this on a Raspberry Pi?
+
+Yes! Raspberry Pi 4/5 with 4GB+ RAM works well with Phi-3 Mini. Expect 10-15 tokens/sec.
+
+### What models are supported?
+
+Any GGUF model compatible with llama.cpp:
+- Phi-3 Mini (2.3 GB) - Recommended
+- Mistral 7B (4.1 GB)
+- Llama 3 8B (4.7 GB)
+- Gemma 7B (4.5 GB)
+
+See [Local Models](/docs/local-models) for complete list.
+
+---
+
+## Local LLM Fallback
+
+### How does the fallback work?
+
+1. Request comes in for "gpt-4"
+2. Runtime tries cloud provider (5 second timeout)
+3. If cloud fails/unreachable, automatically switches to local Phi-3
+4. You get a response either way
+
+It's completely transparent - no code changes needed.
+
+### Does it work 100% offline?
+
+Yes! Configure `providers: []` (empty) and Runtime works entirely offline using only the local model.
+
+### How fast is the local model?
+
+**Typical performance (Phi-3 Mini Q4):**
+- First token: 50-100ms
+- Throughput: 15-30 tokens/sec (CPU)
+- With GPU: 30-60 tokens/sec
+
+### Can I use multiple models?
+
+Currently one model at a time. Multi-model support is planned for future releases.
+
+---
+
+## Advanced Features
+
+### What are Reflection Agents?
+
+Self-improving AI that critiques and refines its own responses. The model generates an answer, scores it, and regenerates if quality is below threshold.
+
+**Use cases:** Content generation, code review, quality assurance.
+
+### What is MCP Swarm Mode?
+
+Peer-to-peer context sharing across multiple Runtime instances. All instances auto-discover each other and sync conversation context in real-time.
+
+**Use cases:** High availability, edge AI, distributed workloads.
+
+### Can I fine-tune the local model?
+
+Yes! QLoRA training enables on-device fine-tuning. After 100 requests (configurable), Runtime automatically trains a domain-specific adapter.
+
+**Benefits:**
+- Model specializes to your use case
+- No data leaves the device
+- Small adapters (< 64 MB)
+
+See [QLoRA Training](/docs/core-features/qlora) for details.
+
+---
+
+## Performance
+
+### Why is inference slow?
+
+**Common causes:**
+1. **Too few threads**: Increase `threads` in config
+2. **Large model**: Use Phi-3 instead of Llama 3
+3. **High quantization**: Use Q4 instead of Q8
+4. **Large context**: Reduce `context_size`
+
+See [Configuration](/docs/configuration#performance-tuning-guide) for optimization tips.
+
+### How can I make it faster?
+
+1. **Increase CPU threads**: Match your core count
+2. **Enable GPU layers**: Set `n_gpu_layers` if you have GPU
+3. **Use prompt caching**: Enable `prompt_cache_dir`
+4. **Reduce context**: Lower `context_size` to 2048
+5. **Smaller model**: Use Q4 quantization
+
+### Will GPU acceleration help?
+
+Yes! With NVIDIA GPU, expect 5-10x faster inference. Set `n_gpu_layers: 32` (or `-1` for all layers).
+
+---
+
+## Deployment
+
+### Can I run this in Docker?
+
+Yes! We provide official Dockerfiles. See [Deployment Guide](/docs/deployment#docker-recommended).
+
+### Does it work on Kubernetes?
+
+Yes! We provide example Kubernetes manifests. See [Deployment Guide](/docs/deployment#kubernetes).
+
+### Can I deploy to AWS/GCP/Azure?
+
+Yes! Runtime runs anywhere you can run a Docker container or Linux binary. Works on EC2, GCE, Azure VMs, etc.
+
+### What about edge devices?
+
+Runtime works great on edge:
+- Raspberry Pi 4/5
+- NVIDIA Jetson
+- Intel NUC
+- Other ARM64/x86_64 devices
+
+See [Deployment - Edge Devices](/docs/deployment#edge-devices).
+
+---
+
+## Security
+
+### Is my data safe?
+
+Yes:
+- Local inference keeps all data on device
+- LoRA adapters encrypted at rest (AES-256-GCM)
+- MCP context encrypted
+- No telemetry or data collection
+
+### Should I enable authentication?
+
+Yes for production! Enable API key authentication:
+```json5
+{
+  auth: {
+    enabled: true,
+    api_key: "${IGRIS_API_KEY}"
+  }
+}
+```
+
+### Can I use it in air-gapped environments?
+
+Absolutely! That's a core use case. Just:
+1. Download model offline
+2. Copy Runtime binary
+3. Run with `providers: []` (no cloud)
+
+Works 100% offline with zero network calls.
+
+---
+
+## Tool Use
+
+### Is tool calling safe?
+
+Tools are disabled by default and require explicit whitelisting:
+- HTTP: Domain whitelist
+- Shell: Command whitelist
+- Filesystem: Path whitelist
+
+Always use whitelisting in production.
+
+### Can I disable tools?
+
+Yes:
+```json5
+{
+  tools: {
+    enable_http: false,
+    enable_shell: false,
+    enable_filesystem: false
+  }
+}
+```
+
+### What tools are available?
+
+- **HTTP**: GET/POST requests to external APIs
+- **Shell**: Execute shell commands (sandboxed)
+- **Filesystem**: Read/write/list files (sandboxed)
+
+See [Tool Use](/docs/core-features/tools) for details.
+
+---
+
+## Troubleshooting
+
+### Model file not found
+
+```
+Error: Model file not found: models/phi-3-mini-4k-instruct-q4.gguf
+```
+
+**Solution:** Run `./download-model.sh` to download the model.
+
+### Out of memory
+
+```
+thread 'main' panicked at 'out of memory'
+```
+
+**Solutions:**
+1. Use smaller model (Phi-3 instead of Llama)
+2. Reduce `context_size` to 2048
+3. Reduce `threads` to 2
+4. Close other applications
+
+### Port already in use
+
+```
+Error: Address already in use (os error 48)
+```
+
+**Solutions:**
+1. Change port in config.json5
+2. Kill process using port: `lsof -ti:8080 | xargs kill -9`
+
+### Binary size too large
+
+**Solution:** Compress with UPX:
+```bash
+upx --best --lzma target/release/igris-runtime
+```
+
+Reduces from ~12 MB to ~4 MB.
+
+---
+
+## Costs
+
+### Is Igris Runtime free?
+
+Yes! It's open source (MIT/Apache-2.0 license).
+
+### What about inference costs?
+
+- **Local inference**: Free (electricity only)
+- **Cloud fallback**: You pay your cloud provider directly (OpenAI, Anthropic, etc.)
+
+### Do I need API keys?
+
+Only if you want cloud fallback. For pure offline mode, no API keys needed.
+
+---
+
+## Support
+
+### Where can I get help?
+
+- **Documentation**: You're reading it!
+- **GitHub Issues**: [Report bugs](https://github.com/igris-inertial/igris-runtime/issues)
+- **GitHub Discussions**: [Ask questions](https://github.com/igris-inertial/igris-runtime/discussions)
+
+### How do I report a bug?
+
+Open an issue on GitHub with:
+1. Runtime version (`./igris-runtime --version`)
+2. Config file (redact secrets!)
+3. Error logs
+4. Steps to reproduce
+
+### Can I contribute?
+
+Yes! Pull requests welcome. See [CONTRIBUTING.md](https://github.com/igris-inertial/igris-runtime/blob/main/CONTRIBUTING.md).
+
+---
+
+## Roadmap
+
+### What's coming next?
+
+- Model hot-swapping (no restart needed)
+- Multi-model support (run multiple models)
+- WebAssembly plugins
+- Distributed training across swarm
+- More agent types (code generation, research)
+
+### How often are releases?
+
+Approximately monthly for minor releases, quarterly for major features.
+
+---
+
+## Comparisons
+
+### Runtime vs Ollama?
+
+**Choose Runtime if you need:**
+- Cloud fallback for reliability
+- AI agents (reflection, planning, swarm)
+- Tool calling
+- On-device training
+- MCP context sharing
+
+**Choose Ollama if you need:**
+- Simpler setup
+- Just local inference
+- Community model library
+
+### Runtime vs LM Studio?
+
+**Runtime advantages:**
+- Production-ready server
+- Advanced agents
+- Cloud fallback
+- Rust performance
+- Smaller binary
+
+**LM Studio advantages:**
+- GUI interface
+- Easier for beginners
+
+---
+
+Still have questions? [Ask on GitHub Discussions](https://github.com/igris-inertial/igris-runtime/discussions)

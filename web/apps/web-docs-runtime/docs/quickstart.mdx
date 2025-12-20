@@ -1,0 +1,400 @@
+# Quick Start
+
+**TL;DR:** Get Igris Runtime up and running with local LLM fallback in 10 minutes. Download a model, configure the fallback, and start serving AI requests that work offline.
+
+---
+
+## Get Started in 3 Steps
+
+### Step 1: Download a Local Model
+
+Runtime uses GGUF models from Hugging Face. The included script downloads Phi-3-mini (recommended for getting started):
+
+```bash
+cd igris-runtime
+./download-model.sh
+```
+
+**What this does:**
+- Downloads `Phi-3-mini-4k-instruct-q4.gguf` (~2.3 GB)
+- Saves to `models/` directory
+- Takes 2-5 minutes depending on your connection
+
+**Alternative models:**
+You can use any GGUF model compatible with llama.cpp:
+- **Phi-3 Mini Q4** (2.3 GB) - Best for CPU, fast inference
+- **Mistral 7B Q4** (4.1 GB) - Better quality, slower
+- **Llama 3 8B Q4** (4.7 GB) - High quality, requires more RAM
+
+See [Local Models](/docs/local-models) for the full list.
+
+### Step 2: Configure Local Fallback
+
+Create a `config.json5` file in the project root:
+
+```json5
+{
+  // Server configuration
+  server: {
+    host: "0.0.0.0",
+    port: 8080
+  },
+
+  // Local LLM fallback (THE KEY FEATURE)
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    context_size: 4096,
+    threads: 4,              // Adjust based on your CPU cores
+    max_tokens: 512,
+    temperature: 0.7,
+    cost_per_1k_tokens: 0.0  // Free!
+  },
+
+  // Cloud providers (optional - works without them)
+  providers: [
+    // Add cloud providers if you want cloud+local hybrid mode
+    // Leave empty for pure offline operation
+  ],
+
+  // Routing configuration
+  routing: {
+    speculative: {
+      enabled: true,
+      max_providers: 3,
+      first_token_timeout_ms: 5000  // Fallback to local after 5s
+    }
+  }
+}
+```
+
+### Step 3: Run the Server
+
+**Development mode:**
+```bash
+cargo run
+```
+
+**Production mode:**
+```bash
+cargo run --release
+```
+
+**Expected output:**
+```
+Igris Runtime v1.6 starting...
+Local LLM provider initialized successfully
+  Model: models/phi-3-mini-4k-instruct-q4.gguf
+  Context size: 4096
+  Threads: 4
+Server listening on 0.0.0.0:8080
+Local LLM fallback: ENABLED ✓
+```
+
+That's it! Your Runtime is now serving requests.
+
+---
+
+## Make Your First Request
+
+### Using cURL
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "phi3",
+    "messages": [
+      {"role": "user", "content": "What is 2+2?"}
+    ]
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "model": "phi3",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "2+2 equals 4."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 8,
+    "completion_tokens": 6,
+    "total_tokens": 14
+  }
+}
+```
+
+### Using Python (OpenAI SDK)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-required"  # Auth is optional for local
+)
+
+response = client.chat.completions.create(
+    model="phi3",
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+### Using Node.js
+
+```javascript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/v1',
+  apiKey: 'not-required'  // Auth optional
+});
+
+const response = await client.chat.completions.create({
+  model: 'phi3',
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+---
+
+## Test Offline Capability
+
+**Enable airplane mode**, then make a request:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "What is machine learning?"}]
+  }'
+```
+
+**What happens:**
+1. Runtime tries to reach cloud provider for GPT-4
+2. Request times out after 5 seconds (no internet)
+3. Runtime automatically falls back to local Phi-3 model
+4. You get a response even with no internet connection
+
+This is the killer feature: **your AI keeps working offline.**
+
+---
+
+## Advanced Features
+
+### Streaming Responses
+
+Get tokens as they're generated:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "phi3",
+    "messages": [{"role": "user", "content": "Tell me a short story"}],
+    "stream": true
+  }'
+```
+
+**Python with streaming:**
+```python
+response = client.chat.completions.create(
+    model="phi3",
+    messages=[{"role": "user", "content": "Tell me a story"}],
+    stream=True
+)
+
+for chunk in response:
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end='', flush=True)
+```
+
+### Reflection Mode
+
+Self-improving responses with critique loops:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "mode": "reflection",
+    "messages": [{"role": "user", "content": "Write a professional email"}]
+  }'
+```
+
+The model will:
+1. Generate an initial draft
+2. Critique its own output
+3. Regenerate based on critique
+4. Repeat until quality threshold is met
+
+### Tool Use
+
+Let the LLM call external tools:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "mode": "tools",
+    "messages": [{"role": "user", "content": "Check the weather in SF"}]
+  }'
+```
+
+**Configure tools in config.json5:**
+```json5
+{
+  tools: {
+    enable_http: true,
+    allowed_http_domains: ["api.weather.com"],
+    max_execution_time_ms: 30000
+  }
+}
+```
+
+### Multi-Agent Swarm
+
+Multiple agents collaborate on complex tasks:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "mode": "swarm",
+    "messages": [{"role": "user", "content": "Design a REST API for a blog"}]
+  }'
+```
+
+**What happens:**
+- Researcher agent gathers requirements
+- Engineer agent proposes implementation
+- Critic agent finds potential issues
+- Synthesizer agent combines insights into final answer
+
+---
+
+## Health Check & Metrics
+
+### Check if Runtime is Running
+
+```bash
+curl http://localhost:8080/v1/health
+# => "OK"
+```
+
+### View Prometheus Metrics
+
+```bash
+curl http://localhost:8080/metrics
+```
+
+**Sample metrics:**
+```
+# HELP igris_requests_total Total number of requests
+igris_requests_total{provider="local",model="phi3"} 42
+
+# HELP igris_request_duration_seconds Request duration
+igris_request_duration_seconds_sum{provider="local"} 12.34
+
+# HELP igris_fallback_activations_total Fallback activations
+igris_fallback_activations_total 15
+```
+
+### Swagger UI
+
+Interactive API documentation:
+
+```
+http://localhost:8080/swagger-ui
+```
+
+---
+
+## Next Steps
+
+### 1. Try Different Models
+
+Download and configure alternative models:
+- [Local Models Guide](/docs/local-models)
+
+### 2. Enable MCP Swarm Mode
+
+Share context across multiple Runtime instances:
+- [MCP Swarm Mode](/docs/mcp-swarm)
+
+### 3. Set Up On-Device Training
+
+Fine-tune your local model based on usage:
+- [QLoRA Training](/docs/qlora-training)
+
+### 4. Deploy to Production
+
+Docker, Kubernetes, or bare metal:
+- [Deployment Guide](/docs/deployment)
+
+### 5. Configure Advanced Features
+
+Reflection, planning, tools, and more:
+- [Core Features](/docs/core-features)
+
+---
+
+## Troubleshooting
+
+### Model Not Found
+
+```
+Error: Model file not found: models/phi-3-mini-4k-instruct-q4.gguf
+```
+
+**Solution:** Run `./download-model.sh` to download the model.
+
+### Out of Memory
+
+```
+thread 'main' panicked at 'out of memory'
+```
+
+**Solution:** Reduce `context_size` to 2048 and `threads` to 2 in config.json5.
+
+### Slow Inference
+
+If responses take >5 seconds:
+
+1. **Increase threads:** Set `threads: 8` if you have 8+ CPU cores
+2. **Reduce max_tokens:** Set `max_tokens: 256` for faster responses
+3. **Use smaller model:** Try Phi-3 Q2 quantization (faster but lower quality)
+
+### Port Already in Use
+
+```
+Error: Address already in use (os error 48)
+```
+
+**Solution:** Change port in config.json5 or kill the process using port 8080:
+```bash
+lsof -ti:8080 | xargs kill -9
+```
+
+---
+
+## Get Help
+
+- **Documentation:** You're reading it!
+- **GitHub Issues:** [Report bugs and request features](https://github.com/igris-inertial/igris-runtime/issues)
+- **GitHub Discussions:** [Ask questions and share tips](https://github.com/igris-inertial/igris-runtime/discussions)

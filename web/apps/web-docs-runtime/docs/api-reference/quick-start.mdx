@@ -1,0 +1,214 @@
+# Quick Start
+
+**You're live in 3 minutes.** Make your first request to Igris Runtime.
+
+## 1. Download and Start Runtime
+
+```bash
+# Clone and build
+git clone https://github.com/your-org/igris-runtime
+cd igris-runtime
+./download-model.sh  # Download Phi-3 model (~2.3 GB)
+cargo run --release
+```
+
+## 2. Make Your First Request
+
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [
+      {"role": "system", "content": "You are a helpful assistant."},
+      {"role": "user", "content": "Explain quantum computing in 2 sentences."}
+    ],
+    "max_tokens": 100
+  }'
+```
+
+## 3. Success Response
+
+```json
+{
+  "id": "chatcmpl-abc123",
+  "object": "chat.completion",
+  "created": 1701234567,
+  "model": "gpt-4",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Quantum computing uses quantum bits (qubits) that can exist in multiple states simultaneously through superposition, allowing parallel processing of vast amounts of information. This enables solving certain complex problems exponentially faster than classical computers."
+      },
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 28,
+    "completion_tokens": 47,
+    "total_tokens": 75
+  },
+  "metadata": {
+    "provider": "openai",
+    "latency_ms": 1234,
+    "cost_usd": 0.0,
+    "fallback_used": false,
+    "local_model_available": true,
+    "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+
+## Use OpenAI SDKs (Drop-In Compatible)
+
+Already using OpenAI? Just change the base URL:
+
+### Python
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",  # Changed
+    api_key="not-needed"  # Optional if auth disabled
+)
+
+response = client.chat.completions.create(
+    model="gpt-4",  # Or "phi3" for local model
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+```
+
+### TypeScript/JavaScript
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/v1',  // Changed
+  apiKey: 'not-needed'  // Optional if auth disabled
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',  // Or 'phi3' for local model
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+```
+
+### Go
+
+```go
+import "github.com/sashabaranov/go-openai"
+
+config := openai.DefaultConfig("not-needed")
+config.BaseURL = "http://localhost:8080/v1"  // Changed
+
+client := openai.NewClientWithConfig(config)
+
+resp, err := client.CreateChatCompletion(
+    context.Background(),
+    openai.ChatCompletionRequest{
+        Model: "gpt-4",  // Or "phi3" for local model
+        Messages: []openai.ChatCompletionMessage{
+            {Role: "user", Content: "Hello!"},
+        },
+    },
+)
+```
+
+## Streaming Responses
+
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "phi3",
+    "messages": [{"role": "user", "content": "Count to 10"}],
+    "stream": true
+  }'
+```
+
+**Response (Server-Sent Events):**
+
+```
+data: {"id":"chatcmpl-abc","choices":[{"delta":{"role":"assistant"},"index":0}]}
+
+data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":"1"},"index":0}]}
+
+data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":","},"index":0}]}
+
+data: {"id":"chatcmpl-abc","choices":[{"delta":{"content":" 2"},"index":0}]}
+
+...
+
+data: [DONE]
+```
+
+## Using Igris Runtime Features
+
+### Local Model Fallback (Automatic)
+
+Automatic fallback to local Phi-3 model when cloud providers fail:
+
+```bash
+# Runtime automatically falls back to local model if cloud providers fail
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+### Use Local Model Directly
+
+```bash
+curl http://localhost:8080/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "phi3",  // Use local Phi-3 model directly
+    "messages": [{"role": "user", "content": "Hello!"}],
+    "max_tokens": 512
+  }'
+```
+
+### Test Offline Capability
+
+```bash
+# Turn on airplane mode, then make a request
+curl http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "messages": [{"role": "user", "content": "What is 2+2?"}]
+  }'
+
+# You get a real LLM response even with no internet
+```
+
+## Error Handling
+
+```json
+{
+  "error": {
+    "message": "Invalid request: missing required field 'messages'",
+    "type": "invalid_request_error",
+    "code": 400
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+Common errors:
+- `401`: Invalid API key → Check your `Authorization` header
+- `429`: Rate limit exceeded → Upgrade tier or wait
+- `402`: Budget exhausted → Add funds or use Gold Code override
+- `503`: All providers down → Automatic fallback engaged
+
+## Next Steps
+
+- [Authentication](/docs/api-reference/authentication) — Key rotation, JWT tokens
+- [Chat Completions](/docs/api-reference/endpoints/chat-completions) — Full endpoint reference
+- [Errors & Retries](/docs/api-reference/errors-retries) — Handle failures gracefully
+- [Rate Limits](/docs/api-reference/rate-limits-budgets) — Per-tier limits

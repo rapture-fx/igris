@@ -1,0 +1,580 @@
+# Deployment Guide
+
+Deploy Igris Runtime anywhere: Docker, Kubernetes, bare metal, or edge devices.
+
+---
+
+## Quick Deploy Options
+
+### Docker (Recommended)
+
+**Build the image:**
+```bash
+cd igris-runtime
+docker build -f Dockerfile -t igris-runtime:latest .
+```
+
+**Run with local model:**
+```bash
+docker run -d \
+  --name igris-runtime \
+  -p 8080:8080 \
+  -v $(pwd)/models:/app/models:ro \
+  -v $(pwd)/config.json5:/app/config.json5:ro \
+  -e RUST_LOG=info \
+  igris-runtime:latest
+```
+
+**With GPU support (NVIDIA):**
+```bash
+docker run -d \
+  --name igris-runtime \
+  --gpus all \
+  -p 8080:8080 \
+  -v $(pwd)/models:/app/models:ro \
+  -v $(pwd)/config.json5:/app/config.json5:ro \
+  igris-runtime:latest
+```
+
+---
+
+## Kubernetes
+
+### Using Deployment
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: igris-runtime
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: igris-runtime
+  template:
+    metadata:
+      labels:
+        app: igris-runtime
+    spec:
+      containers:
+      - name: runtime
+        image: igris-runtime:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: RUST_LOG
+          value: "info"
+        volumeMounts:
+        - name: models
+          mountPath: /app/models
+          readOnly: true
+        - name: config
+          mountPath: /app/config.json5
+          subPath: config.json5
+          readOnly: true
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+      volumes:
+      - name: models
+        persistentVolumeClaim:
+          claimName: igris-models-pvc
+      - name: config
+        configMap:
+          name: igris-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: igris-runtime
+spec:
+  selector:
+    app: igris-runtime
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: LoadBalancer
+```
+
+### ConfigMap for Configuration
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: igris-config
+data:
+  config.json5: |
+    {
+      server: {
+        host: "0.0.0.0",
+        port: 8080
+      },
+      local_fallback: {
+        enabled: true,
+        model_path: "/app/models/phi-3-mini-4k-instruct-q4.gguf",
+        context_size: 4096,
+        threads: 4
+      }
+    }
+```
+
+---
+
+## Bare Metal / VM
+
+### Production Setup with systemd
+
+**1. Build the binary:**
+```bash
+cargo build --release --target x86_64-unknown-linux-musl
+```
+
+**2. Copy files to server:**
+```bash
+# Copy binary
+sudo cp target/x86_64-unknown-linux-musl/release/igris-runtime /usr/local/bin/
+
+# Create directories
+sudo mkdir -p /opt/igris-runtime/{models,logs}
+
+# Copy model
+sudo cp models/phi-3-mini-4k-instruct-q4.gguf /opt/igris-runtime/models/
+
+# Create config
+sudo nano /opt/igris-runtime/config.json5
+```
+
+**3. Create systemd service:**
+```bash
+sudo nano /etc/systemd/system/igris-runtime.service
+```
+
+```ini
+[Unit]
+Description=Igris Runtime - Offline AI Inference
+After=network.target
+
+[Service]
+Type=simple
+User=igris
+Group=igris
+WorkingDirectory=/opt/igris-runtime
+ExecStart=/usr/local/bin/igris-runtime --config /opt/igris-runtime/config.json5
+Restart=always
+RestartSec=10
+
+# Environment
+Environment="RUST_LOG=info"
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/igris-runtime/logs
+
+[Install]
+WantedBy=multi-user.target
+```
+
+**4. Create user and set permissions:**
+```bash
+sudo useradd -r -s /bin/false igris
+sudo chown -R igris:igris /opt/igris-runtime
+sudo chmod +x /usr/local/bin/igris-runtime
+```
+
+**5. Start service:**
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable igris-runtime
+sudo systemctl start igris-runtime
+sudo systemctl status igris-runtime
+```
+
+**6. View logs:**
+```bash
+sudo journalctl -u igris-runtime -f
+```
+
+---
+
+## Edge Devices
+
+### Raspberry Pi 4/5
+
+**Requirements:**
+- Raspberry Pi 4/5 (4GB RAM minimum, 8GB recommended)
+- 64-bit OS (Raspberry Pi OS 64-bit)
+- 16GB+ SD card or USB drive
+
+**Setup:**
+```bash
+# Install Rust
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Clone and build
+git clone https://github.com/igris-inertial/igris-runtime.git
+cd igris-runtime
+
+# Build for ARM64
+cargo build --release --target aarch64-unknown-linux-gnu
+
+# Download model (use Phi-3 for best performance)
+./download-model.sh
+
+# Run
+./target/aarch64-unknown-linux-gnu/release/igris-runtime
+```
+
+**Performance tips:**
+- Use Phi-3 Mini Q4 (best for Pi)
+- Set `threads: 4` in config
+- Reduce `context_size` to 2048 if needed
+- Expected: 10-15 tokens/sec
+
+### NVIDIA Jetson
+
+**With GPU acceleration:**
+```bash
+# Build with CUDA support
+cargo build --release --features cuda
+
+# Configure GPU layers
+```
+
+```json5
+{
+  local_fallback: {
+    model_path: "models/mistral-7b-q4.gguf",
+    n_gpu_layers: 32,
+    main_gpu: 0
+  }
+}
+```
+
+Expected: 30-50 tokens/sec with GPU offload.
+
+---
+
+## Docker Compose
+
+For multi-instance deployments:
+
+```yaml
+version: '3.8'
+
+services:
+  runtime-1:
+    image: igris-runtime:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./models:/app/models:ro
+      - ./config.json5:/app/config.json5:ro
+      - ./logs-1:/app/logs
+    environment:
+      - RUST_LOG=info
+      - MCP_PEER_ID=runtime-1
+    networks:
+      - igris-network
+
+  runtime-2:
+    image: igris-runtime:latest
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./models:/app/models:ro
+      - ./config.json5:/app/config.json5:ro
+      - ./logs-2:/app/logs
+    environment:
+      - RUST_LOG=info
+      - MCP_PEER_ID=runtime-2
+    networks:
+      - igris-network
+
+  runtime-3:
+    image: igris-runtime:latest
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./models:/app/models:ro
+      - ./config.json5:/app/config.json5:ro
+      - ./logs-3:/app/logs
+    environment:
+      - RUST_LOG=info
+      - MCP_PEER_ID=runtime-3
+    networks:
+      - igris-network
+
+networks:
+  igris-network:
+    driver: bridge
+```
+
+**Start cluster:**
+```bash
+docker-compose up -d
+```
+
+All instances will auto-discover each other via MCP.
+
+---
+
+## Reverse Proxy (nginx)
+
+**nginx configuration:**
+```nginx
+upstream igris_runtime {
+    least_conn;
+    server 127.0.0.1:8080;
+    server 127.0.0.1:8081;
+    server 127.0.0.1:8082;
+}
+
+server {
+    listen 80;
+    server_name ai.example.com;
+
+    # Redirect to HTTPS
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name ai.example.com;
+
+    ssl_certificate /etc/ssl/certs/ai.example.com.crt;
+    ssl_certificate_key /etc/ssl/private/ai.example.com.key;
+
+    location / {
+        proxy_pass http://igris_runtime;
+        proxy_http_version 1.1;
+
+        # Headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts for long inference
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 60s;
+        proxy_read_timeout 300s;
+
+        # SSE streaming support
+        proxy_buffering off;
+        proxy_cache off;
+        chunked_transfer_encoding on;
+    }
+
+    # Health check endpoint
+    location /health {
+        proxy_pass http://igris_runtime/v1/health;
+        access_log off;
+    }
+}
+```
+
+---
+
+## Monitoring & Observability
+
+### Prometheus Scraping
+
+Add to `prometheus.yml`:
+```yaml
+scrape_configs:
+  - job_name: 'igris-runtime'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+        - 'localhost:8080'
+    metrics_path: '/metrics'
+```
+
+### Grafana Dashboard
+
+Key metrics to monitor:
+- `igris_requests_total` - Total requests
+- `igris_request_duration_seconds` - Latency
+- `igris_fallback_activations_total` - Fallback count
+- `igris_model_tokens_generated_total` - Token throughput
+
+---
+
+## Security Hardening
+
+### 1. Enable API Authentication
+
+```json5
+{
+  auth: {
+    enabled: true,
+    api_key: "${IGRIS_API_KEY}"
+  }
+}
+```
+
+```bash
+export IGRIS_API_KEY="your-secure-key"
+```
+
+### 2. Rate Limiting
+
+```json5
+{
+  rate_limit: {
+    enabled: true,
+    requests_per_minute: 60,
+    burst: 10
+  }
+}
+```
+
+### 3. TLS Configuration
+
+```json5
+{
+  server: {
+    tls: {
+      enabled: true,
+      cert_path: "/etc/ssl/certs/server.crt",
+      key_path: "/etc/ssl/private/server.key"
+    }
+  }
+}
+```
+
+### 4. Firewall Rules
+
+```bash
+# Allow only specific IPs
+sudo ufw allow from 192.168.1.0/24 to any port 8080
+
+# Or expose via reverse proxy only
+sudo ufw deny 8080
+```
+
+---
+
+## Scaling Strategies
+
+### Horizontal Scaling
+
+Deploy multiple instances with MCP swarm mode for context sharing:
+- Load balancer distributes requests
+- MCP syncs context across all instances
+- Any instance can handle any request
+
+### Vertical Scaling
+
+Increase resources per instance:
+- More CPU cores → increase `threads`
+- More RAM → use larger models (Mistral, Llama)
+- Add GPU → enable `n_gpu_layers`
+
+---
+
+## Health Checks
+
+### Kubernetes Liveness/Readiness
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /v1/health
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 30
+
+readinessProbe:
+  httpGet:
+    path: /v1/health
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+```
+
+### Docker Health Check
+
+```dockerfile
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost:8080/v1/health || exit 1
+```
+
+---
+
+## Backup & Recovery
+
+### What to Backup
+
+1. **Models**: `models/` directory
+2. **Config**: `config.json5`
+3. **LoRA adapters**: `lora_adapters/` directory
+4. **MCP context**: `mcp_contexts.db` (if enabled)
+
+### Backup Script
+
+```bash
+#!/bin/bash
+BACKUP_DIR="/backups/igris-runtime-$(date +%Y%m%d)"
+mkdir -p "$BACKUP_DIR"
+
+cp -r /opt/igris-runtime/models "$BACKUP_DIR/"
+cp /opt/igris-runtime/config.json5 "$BACKUP_DIR/"
+cp -r /opt/igris-runtime/lora_adapters "$BACKUP_DIR/"
+cp /opt/igris-runtime/mcp_contexts.db "$BACKUP_DIR/"
+
+tar -czf "$BACKUP_DIR.tar.gz" "$BACKUP_DIR"
+rm -rf "$BACKUP_DIR"
+```
+
+---
+
+## Troubleshooting
+
+### Container Won't Start
+
+```bash
+# Check logs
+docker logs igris-runtime
+
+# Common issues:
+# - Model not mounted correctly
+# - Config file missing
+# - Insufficient memory
+```
+
+### High Memory Usage
+
+```bash
+# Reduce context size in config
+# Use smaller model (Phi-3 instead of Llama)
+# Check for memory leaks: monitor over time
+```
+
+### Slow Performance
+
+```bash
+# Check CPU usage
+top
+
+# Increase threads if CPU not maxed
+# Add GPU layers if available
+# Use smaller quantization (Q4 instead of Q8)
+```
+
+---
+
+## Next Steps
+
+- [Configuration Guide](/docs/configuration) - Complete config reference
+- [Observability](/docs/observability) - Monitoring setup
+- [MCP Swarm Mode](/docs/core-features/mcp-swarm) - Multi-instance setup

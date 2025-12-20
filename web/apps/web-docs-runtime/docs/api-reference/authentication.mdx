@@ -1,0 +1,248 @@
+# Authentication
+
+All API requests require authentication via **Bearer token** in the `Authorization` header.
+
+## TL;DR
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gpt-4", "messages": [...]}'
+```
+
+## API Keys
+
+### Get Your API Key
+
+1. Visit [console.igrisinertial.com](https://console.igrisinertial.com)
+2. Navigate to **Settings → API Keys**
+3. Click **Create API Key**
+4. Copy and store securely (shown only once)
+
+### Using Your API Key
+
+All requests must include the `Authorization` header:
+
+```bash
+Authorization: Bearer sk-igris-abc123...
+```
+
+### Key Format
+
+```
+sk-igris-[40+ alphanumeric characters]
+```
+
+Example: `sk-igris-1234567890abcdefghijklmnopqrstuvwxyz`
+
+## Key Rotation
+
+Rotate keys regularly for security:
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/admin/api-keys \
+  -H "Authorization: Bearer YOUR_CURRENT_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "rotate",
+    "key_id": "key_abc123"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "new_key": "sk-igris-NEW_KEY_HERE",
+  "old_key_expires_at": "2025-12-31T23:59:59Z",
+  "key_id": "key_xyz789"
+}
+```
+
+The old key remains valid for 7 days to allow graceful migration.
+
+## JWT Authentication (Multi-Tenancy)
+
+For multi-tenant applications, use JWT tokens:
+
+### 1. Login
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "your_password"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_at": "2025-12-08T12:00:00Z",
+  "tenant_id": "tenant_abc123",
+  "tier": "growth"
+}
+```
+
+### 2. Use JWT in Requests
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
+  -H "Content-Type: application/json" \
+  -d '{"model": "gpt-4", "messages": [...]}'
+```
+
+### 3. Refresh Token
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/auth/refresh \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json"
+```
+
+## Two-Factor Authentication (2FA)
+
+Enable 2FA for enhanced security:
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/auth/2fa/enable \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json"
+```
+
+**Response:**
+
+```json
+{
+  "qr_code": "data:image/png;base64,...",
+  "secret": "ABCD1234EFGH5678",
+  "backup_codes": [
+    "12345-67890",
+    "abcde-fghij",
+    ...
+  ]
+}
+```
+
+Login with 2FA:
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "user@example.com",
+    "password": "your_password",
+    "otp": "123456"
+  }'
+```
+
+## Error: 401 Unauthorized
+
+```json
+{
+  "error": {
+    "message": "Authentication required. Please provide valid credentials.",
+    "type": "authentication_error",
+    "code": 401
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Common causes:**
+
+1. **Missing Authorization header**
+   ```bash
+   # Wrong
+   curl https://api.igrisinertial.com/v1/chat/completions
+
+   # Right
+   curl https://api.igrisinertial.com/v1/chat/completions \
+     -H "Authorization: Bearer YOUR_API_KEY"
+   ```
+
+2. **Invalid API key format**
+   ```bash
+   # Wrong
+   -H "Authorization: YOUR_API_KEY"
+
+   # Right
+   -H "Authorization: Bearer YOUR_API_KEY"
+   ```
+
+3. **Expired or revoked key**
+   - Generate a new API key from the console
+
+4. **Wrong environment**
+   - Production keys won't work in staging and vice versa
+
+## Security Best Practices
+
+### 1. Store Keys Securely
+
+```bash
+# Use environment variables
+export IGRIS_API_KEY="sk-igris-abc123..."
+
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer $IGRIS_API_KEY"
+```
+
+### 2. Never Commit Keys to Git
+
+```gitignore
+# .gitignore
+.env
+.env.local
+*.key
+```
+
+### 3. Use Different Keys per Environment
+
+```
+Production:  sk-igris-prod-abc123...
+Staging:     sk-igris-staging-xyz789...
+Development: sk-igris-dev-def456...
+```
+
+### 4. Rotate Keys Every 90 Days
+
+Set a calendar reminder to rotate keys quarterly.
+
+### 5. Restrict Key Permissions
+
+Create read-only keys for analytics:
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/admin/api-keys \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Analytics Dashboard",
+    "permissions": ["read:metrics", "read:usage"],
+    "expires_at": "2026-01-01T00:00:00Z"
+  }'
+```
+
+## Rate Limiting by Key
+
+Each API key has its own rate limits based on your tier:
+
+```
+X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 42
+X-RateLimit-Reset: 1701234567
+```
+
+See [Rate Limits](/docs/api-reference/rate-limits-budgets) for details.
+
+## Next Steps
+
+- [Quick Start](/docs/api-reference/quick-start) — Make your first request
+- [Errors & Retries](/docs/api-reference/errors-retries) — Handle auth failures
+- [Multi-Tenancy](/docs/multi-tenancy) — Tenant isolation with JWTs

@@ -1,0 +1,264 @@
+# Local Models
+
+Download and configure GGUF models for offline inference.
+
+---
+
+## Quick Start
+
+Download the recommended model (Phi-3 Mini):
+
+```bash
+cd igris-runtime
+./download-model.sh
+```
+
+This downloads `Phi-3-mini-4k-instruct-q4.gguf` (~2.3 GB) to the `models/` directory.
+
+---
+
+## Recommended Models
+
+### Phi-3 Mini 4K (Q4) ⭐ Recommended
+
+- **Size**: 2.3 GB
+- **Context**: 4K tokens
+- **Performance**: 15-30 tokens/sec (CPU)
+- **Use case**: Fast inference, low resource usage
+- **Download**: Included in `download-model.sh`
+
+```json5
+{
+  local_fallback: {
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf"
+  }
+}
+```
+
+### Mistral 7B (Q4)
+
+- **Size**: 4.1 GB
+- **Context**: 8K tokens
+- **Performance**: 10-20 tokens/sec (CPU)
+- **Use case**: Better quality, more RAM available
+
+**Download**:
+```bash
+wget https://huggingface.co/TheBloke/Mistral-7B-Instruct-v0.2-GGUF/resolve/main/mistral-7b-instruct-v0.2.Q4_K_M.gguf \
+  -O models/mistral-7b-q4.gguf
+```
+
+### Llama 3 8B (Q4)
+
+- **Size**: 4.7 GB
+- **Context**: 8K tokens
+- **Performance**: 8-18 tokens/sec (CPU)
+- **Use case**: High quality responses
+
+**Download**:
+```bash
+wget https://huggingface.co/QuantFactory/Meta-Llama-3-8B-Instruct-GGUF/resolve/main/Meta-Llama-3-8B-Instruct.Q4_K_M.gguf \
+  -O models/llama3-8b-q4.gguf
+```
+
+---
+
+## Quantization Levels
+
+GGUF models come in different quantization levels (quality vs size tradeoff):
+
+| Quantization | Size | Quality | Speed | Use Case |
+|--------------|------|---------|-------|----------|
+| Q2_K | Smallest | Lowest | Fastest | Testing only |
+| Q4_K_M | Small | Good | Fast | ⭐ Recommended |
+| Q5_K_M | Medium | Better | Moderate | Quality balance |
+| Q8_0 | Large | Best | Slower | Maximum quality |
+
+**Recommendation**: Start with Q4_K_M. It offers the best balance of quality and speed.
+
+---
+
+## Platform Support
+
+### x86_64 (Intel/AMD)
+
+All models supported. Performance depends on CPU cores and RAM.
+
+**Recommended**:
+- **4 CPU cores**: Phi-3 Mini Q4
+- **8 CPU cores**: Mistral 7B Q4
+- **16+ CPU cores**: Llama 3 8B Q4 or Q5
+
+### ARM64 (Raspberry Pi, Jetson, Apple Silicon)
+
+All models work, but performance varies:
+
+**Raspberry Pi 4/5**:
+- Phi-3 Mini Q4: ~10-15 tokens/sec ✅
+- Mistral 7B Q4: ~5-8 tokens/sec (slow but usable)
+- Llama 3 8B: Not recommended (too slow)
+
+**NVIDIA Jetson**:
+- All models work well with GPU acceleration
+
+**Apple Silicon (M1/M2/M3)**:
+- All models work excellently
+- 20-40 tokens/sec typical
+
+---
+
+## Memory Requirements
+
+| Model | Minimum RAM | Recommended RAM |
+|-------|-------------|-----------------|
+| Phi-3 Mini Q4 | 3 GB | 4 GB |
+| Mistral 7B Q4 | 5 GB | 8 GB |
+| Llama 3 8B Q4 | 6 GB | 10 GB |
+
+**Note**: These are for inference only. Add +2 GB if using QLoRA training.
+
+---
+
+## GPU Acceleration
+
+### Configure GPU Layers
+
+Offload layers to GPU for faster inference:
+
+```json5
+{
+  local_fallback: {
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    n_gpu_layers: 32,  // Number of layers to offload
+    main_gpu: 0        // GPU device ID
+  }
+}
+```
+
+**How many layers?**
+- **NVIDIA GPU (8GB)**: Try 32 layers for 7B models
+- **Apple Silicon**: Try -1 (all layers)
+- **CPU only**: Set to 0 (default)
+
+---
+
+## Finding More Models
+
+### Hugging Face
+
+Search for "GGUF" models: https://huggingface.co/models?search=gguf
+
+**Popular sources**:
+- **TheBloke**: High-quality quantizations
+- **QuantFactory**: Latest models
+- **bartowski**: Alternative quants
+
+### Model Requirements
+
+Models must be:
+- ✅ GGUF format
+- ✅ Compatible with llama.cpp
+- ✅ Instruction-tuned (for chat)
+
+---
+
+## Model Configuration
+
+```json5
+{
+  local_fallback: {
+    enabled: true,
+    model_path: "models/your-model.gguf",
+
+    // Context window (tokens)
+    context_size: 4096,  // Phi-3: 4096, Mistral/Llama: 8192
+
+    // CPU threads
+    threads: 4,  // Match your CPU cores
+
+    // Generation settings
+    max_tokens: 512,
+    temperature: 0.7,
+
+    // GPU (optional)
+    n_gpu_layers: 0,  // 0 = CPU only
+    main_gpu: 0,
+
+    // Performance (optional)
+    prompt_cache_dir: "prompt_cache",  // Reuse KV cache
+    batch_size: 512
+  }
+}
+```
+
+---
+
+## Testing Your Model
+
+```bash
+# Start Runtime
+cargo run --release
+
+# Test the model
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "messages": [{"role": "user", "content": "Hello! Can you count to 5?"}]
+  }'
+```
+
+**Expected**:
+- Response within 1-3 seconds
+- Coherent output
+- No errors in logs
+
+---
+
+## Troubleshooting
+
+### Model Not Loading
+
+```
+Error: Failed to load model
+```
+
+**Solutions**:
+1. Check file exists: `ls -lh models/`
+2. Verify GGUF format (not safetensors or pytorch)
+3. Check file isn't corrupted: re-download
+
+### Out of Memory
+
+```
+thread 'main' panicked at 'out of memory'
+```
+
+**Solutions**:
+1. Use smaller model (Phi-3 instead of Llama)
+2. Reduce `context_size` to 2048
+3. Reduce `threads` to 2
+
+### Slow Inference (>5 seconds)
+
+**Solutions**:
+1. Increase `threads` to match CPU cores
+2. Use smaller model (Q2 or Q4 instead of Q8)
+3. Enable GPU layers if available
+4. Reduce `context_size`
+
+---
+
+## Performance Tips
+
+1. **Match threads to cores**: Set `threads` to physical CPU cores
+2. **Use prompt caching**: Enable `prompt_cache_dir` for repeated queries
+3. **Reduce context size**: Lower `context_size` if you don't need long conversations
+4. **Choose right quant**: Q4_K_M is the sweet spot for most use cases
+
+---
+
+## Next Steps
+
+- [Quick Start](/docs/quickstart) - Configure and test your model
+- [Configuration](/docs/configuration) - Advanced tuning options
+- [QLoRA Training](/docs/core-features/qlora) - Fine-tune your model

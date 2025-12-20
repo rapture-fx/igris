@@ -1,0 +1,164 @@
+# MCP Swarm Mode
+
+Peer-to-peer context sharing across multiple Runtime instances.
+
+---
+
+## Overview
+
+MCP (Model Context Protocol) Swarm Mode enables multiple Igris Runtime instances to share conversation context in real-time, creating a distributed AI brain.
+
+**Key benefits:**
+- Zero-configuration peer discovery (mDNS)
+- Real-time context synchronization
+- Encrypted storage (AES-256-GCM)
+- Any instance can continue any conversation
+- Fault-tolerant and offline-first
+
+---
+
+## How It Works
+
+1. **Auto-discovery**: Instances find each other via mDNS + UDP multicast
+2. **Context sharing**: Full conversation history synced across all peers
+3. **Encrypted storage**: All context encrypted at rest
+4. **Query any node**: Any instance can answer using shared context
+
+---
+
+## Configuration
+
+```json5
+{
+  mcp: {
+    enabled: true,
+    mdns: true,              // Auto-discovery via mDNS
+    multicast: true,         // UDP fallback for restricted networks
+    persist: true,           // Store context encrypted on disk
+    storage_path: "mcp_contexts.db",
+    encryption_key: "${MCP_ENCRYPTION_KEY}"  // Optional custom key
+  }
+}
+```
+
+---
+
+## Quick Start
+
+1. **Enable MCP** on multiple instances with same config
+2. **Start instances** on the same network
+3. **They discover each other** automatically within 5 seconds
+4. **Share context** in real-time
+
+```bash
+# Instance 1
+./igris-runtime --config config.json5
+
+# Instance 2 (different machine, same network)
+./igris-runtime --config config.json5 --port 8081
+
+# They'll discover each other automatically
+```
+
+---
+
+## Testing
+
+```bash
+# Send request to Instance 1
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "messages": [{"role": "user", "content": "Remember: my name is Alice"}]
+  }'
+
+# Query Instance 2 - it knows about Alice!
+curl -X POST http://localhost:8081/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "messages": [{"role": "user", "content": "What is my name?"}]
+  }'
+# => "Your name is Alice"
+```
+
+---
+
+## Use Cases
+
+### High Availability
+
+Multiple instances share load. If one fails, others continue seamlessly.
+
+### Edge AI
+
+Deploy Runtime on multiple edge devices. They share context without needing central server.
+
+### Distributed Workloads
+
+Spread AI inference across multiple machines while maintaining context continuity.
+
+### Air-Gapped Networks
+
+Works in isolated networks where traditional synchronization isn't possible.
+
+---
+
+## Security
+
+- **Encryption at rest**: All stored context encrypted with AES-256-GCM
+- **Device-specific keys**: Default encryption keys derived from hostname
+- **Custom keys**: Set `MCP_ENCRYPTION_KEY` env var for shared key
+- **No network exposure**: Context never leaves your network
+
+---
+
+## Network Requirements
+
+- **mDNS**: Local network discovery (may be blocked in some corporate networks)
+- **UDP multicast**: Fallback for restricted networks
+- **Ports**: Configurable (default: 5353 for mDNS, 5354 for multicast)
+
+---
+
+## Monitoring
+
+```bash
+# Check peer status
+curl http://localhost:8080/v1/mcp/peers
+
+# Response:
+{
+  "peers": [
+    {"id": "runtime-1", "address": "192.168.1.10:8080", "last_seen": "2024-01-15T10:30:00Z"},
+    {"id": "runtime-2", "address": "192.168.1.11:8081", "last_seen": "2024-01-15T10:30:05Z"}
+  ],
+  "total_contexts": 42
+}
+```
+
+---
+
+## Performance
+
+- **Discovery time**: < 5 seconds
+- **Sync latency**: < 100ms within local network
+- **Storage overhead**: ~1 KB per message (encrypted)
+- **Network bandwidth**: Minimal (only context diffs synced)
+
+---
+
+## Troubleshooting
+
+### Peers not discovering
+
+- Check if mDNS is blocked (corporate firewalls)
+- Enable `multicast: true` for UDP fallback
+- Verify instances are on same network
+
+### Context not syncing
+
+- Check encryption keys match (if using custom key)
+- Verify `persist: true` is enabled
+- Check logs for sync errors
+
+See [MCP Guide](https://github.com/igris-inertial/igris-runtime/blob/main/MCP_GUIDE.md) for detailed troubleshooting.

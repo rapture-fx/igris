@@ -1,0 +1,426 @@
+# Rate Limits & Budgets
+
+Understand per-tier rate limits, budget tracking, and how to handle 429 errors.
+
+## Rate Limits by Tier
+
+| Tier | Requests/Second | Requests/Minute | Requests/Month | Burst |
+|------|----------------|-----------------|----------------|-------|
+| **Trial** | 10 | 300 | 50,000 | 20 |
+| **Developer** | 10 | 300 | 500,000 | 20 |
+| **Growth** | 50 | 1,500 | 2,000,000 | 100 |
+| **Scale** | 1,000 | 60,000 | Unlimited | 2,000 |
+
+## Rate Limit Headers
+
+Every response includes rate limit information:
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -i
+```
+
+**Headers:**
+
+```
+X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 42
+X-RateLimit-Reset: 1701234567
+X-RateLimit-Retry-After: 12
+```
+
+| Header | Description |
+|--------|-------------|
+| `X-RateLimit-Limit` | Maximum requests allowed in current window |
+| `X-RateLimit-Remaining` | Remaining requests in current window |
+| `X-RateLimit-Reset` | Unix timestamp when limit resets |
+| `X-RateLimit-Retry-After` | Seconds until you can retry (only on 429) |
+
+## 429: Rate Limit Exceeded
+
+```json
+{
+  "error": {
+    "message": "Rate limit exceeded. Please try again later.",
+    "type": "rate_limit_error",
+    "code": 429
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+**Response Headers:**
+
+```
+X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 0
+X-RateLimit-Reset: 1701234567
+X-RateLimit-Retry-After: 12
+Retry-After: 12
+```
+
+## Handling Rate Limits
+
+### Python
+
+```python
+import time
+from openai import OpenAI, RateLimitError
+
+client = OpenAI(
+    base_url="https://api.igrisinertial.com/v1",
+    api_key="YOUR_IGRIS_API_KEY"
+)
+
+def handle_rate_limit(func):
+    while True:
+        try:
+            return func()
+        except RateLimitError as e:
+            retry_after = int(e.response.headers.get('X-RateLimit-Retry-After', 60))
+            print(f"Rate limited. Retrying after {retry_after}s...")
+            time.sleep(retry_after)
+
+# Usage
+response = handle_rate_limit(lambda: client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Hello!"}]
+))
+```
+
+### TypeScript/JavaScript
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'https://api.igrisinertial.com/v1',
+  apiKey: process.env.IGRIS_API_KEY
+});
+
+async function handleRateLimit<T>(fn: () => Promise<T>): Promise<T> {
+  while (true) {
+    try {
+      return await fn();
+    } catch (error: any) {
+      if (error?.status === 429) {
+        const retryAfter = parseInt(error.headers?.['x-ratelimit-retry-after'] || '60');
+        console.log(`Rate limited. Retrying after ${retryAfter}s...`);
+        await new Promise(resolve => setTimeout(resolve, retryAfter * 1000));
+      } else {
+        throw error;
+      }
+    }
+  }
+}
+
+// Usage
+const response = await handleRateLimit(() =>
+  client.chat.completions.create({
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: 'Hello!' }]
+  })
+);
+```
+
+### Go
+
+```go
+import (
+    "strconv"
+    "time"
+)
+
+func HandleRateLimit(fn func() error) error {
+    for {
+        err := fn()
+        if err == nil {
+            return nil
+        }
+
+        // Check if 429 error
+        if httpErr, ok := err.(*HTTPError); ok && httpErr.StatusCode == 429 {
+            retryAfter := 60 // Default
+            if header := httpErr.Headers.Get("X-RateLimit-Retry-After"); header != "" {
+                if val, err := strconv.Atoi(header); err == nil {
+                    retryAfter = val
+                }
+            }
+
+            fmt.Printf("Rate limited. Retrying after %ds...\n", retryAfter)
+            time.Sleep(time.Duration(retryAfter) * time.Second)
+        } else {
+            return err
+        }
+    }
+}
+```
+
+## Budget Tracking
+
+Every tier has a monthly budget limit.
+
+### Budget Limits by Tier
+
+| Tier | Monthly Budget | Overage | Gold Code |
+|------|---------------|---------|-----------|
+| **Trial** | $10 | Hard cap | No |
+| **Developer** | $100 | Hard cap | No |
+| **Growth** | $1,000 | Soft cap | No |
+| **Scale** | Custom | Unlimited | Yes |
+
+### 402: Budget Exhausted
+
+```json
+{
+  "error": {
+    "message": "Monthly budget limit exceeded. Add funds or use Gold Code override.",
+    "type": "budget_limit_error",
+    "code": 402,
+    "details": {
+      "budget_used_usd": 100.0,
+      "budget_limit_usd": 100.0,
+      "remaining_usd": 0.0,
+      "reset_date": "2025-01-01T00:00:00Z"
+    }
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### Check Budget Usage
+
+```bash
+curl https://api.igrisinertial.com/v1/tenants/YOUR_TENANT_ID/usage \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "tenant_id": "tenant_abc123",
+  "period": "month",
+  "cost": {
+    "total_usd": 87.45,
+    "budget_limit_usd": 100.0,
+    "budget_used_percent": 87.45,
+    "remaining_usd": 12.55,
+    "reset_date": "2025-01-01T00:00:00Z"
+  },
+  "requests": {
+    "total": 125678,
+    "successful": 124891,
+    "failed": 787
+  }
+}
+```
+
+## Budget Alerts
+
+Set alerts to be notified before hitting limits:
+
+```bash
+curl -X POST https://api.igrisinertial.com/v1/tenants/YOUR_TENANT_ID/budgets/alerts \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "threshold_percent": 90,
+    "notification_channels": ["email", "webhook"],
+    "webhook_url": "https://example.com/webhook"
+  }'
+```
+
+**Alert triggers:**
+
+- 75% of budget used
+- 90% of budget used
+- 100% of budget used (hard cap)
+
+## Gold Code Override (Scale Tier Only)
+
+Emergency bypass for budget limits:
+
+```bash
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Critical production request"}],
+    "gold_code": "EMERGENCY-BYPASS-ABC123"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "chatcmpl-abc",
+  "choices": [...],
+  "metadata": {
+    "provider": "openai",
+    "gold_code_used": true,
+    "bypass_reason": "budget_override"
+  }
+}
+```
+
+**Gold Code features:**
+
+- Bypass budget limits
+- Bypass rate limits
+- Priority routing
+- Audit trail
+
+**Get your Gold Code:**
+
+```bash
+curl https://api.igrisinertial.com/v1/admin/gold-codes \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Benchmark Fallback (Automatic)
+
+When budget is exhausted, Scale tier automatically falls back to benchmark providers:
+
+```bash
+# Normal request, but budget exhausted
+curl https://api.igrisinertial.com/v1/chat/completions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "id": "chatcmpl-abc",
+  "choices": [...],
+  "metadata": {
+    "provider": "benchmark-openai",
+    "routing_decision": "budget_fallback",
+    "cost_usd": 0.0,
+    "warning": "Budget exhausted. Using simulated benchmark provider."
+  }
+}
+```
+
+## Per-Provider Rate Limits
+
+Each provider has its own limits:
+
+### OpenAI
+
+| Tier | RPM | TPM | TPD |
+|------|-----|-----|-----|
+| Free | 3 | 40,000 | - |
+| Pay-as-you-go | 3,500 | 90,000 | - |
+| Tier 1 | 500 | 200,000 | - |
+| Tier 2 | 5,000 | 2,000,000 | - |
+
+### Anthropic
+
+| Tier | RPM | TPM | TPD |
+|------|-----|-----|-----|
+| Free | 5 | 20,000 | 300,000 |
+| Build (Tier 1) | 50 | 40,000 | 1,000,000 |
+| Build (Tier 2) | 1,000 | 80,000 | 2,500,000 |
+| Scale | 2,000 | 160,000 | 5,000,000 |
+
+**Igris Overture automatically handles provider limits** with:
+
+- Per-provider rate limiting
+- Automatic queueing
+- Intelligent fallback
+
+## Concurrent Requests
+
+### Trial & Developer Tiers
+
+Max **5 concurrent requests** per tenant.
+
+### Growth Tier
+
+Max **50 concurrent requests** per tenant.
+
+### Scale Tier
+
+Max **1,000 concurrent requests** per tenant.
+
+## Rate Limit Best Practices
+
+### 1. Monitor Headers
+
+```python
+response = client.chat.completions.create(...)
+
+# Check rate limit headers
+remaining = int(response._headers.get('X-RateLimit-Remaining', 0))
+if remaining < 5:
+    print(f"Warning: Only {remaining} requests remaining")
+```
+
+### 2. Implement Backoff
+
+```python
+def adaptive_backoff():
+    """Slow down as you approach rate limit"""
+    remaining = get_rate_limit_remaining()
+    if remaining < 10:
+        time.sleep(2)  # Slow down
+    elif remaining < 50:
+        time.sleep(0.5)
+```
+
+### 3. Use Batch Requests
+
+```python
+# Wrong - 100 separate requests
+for text in texts:
+    response = client.embeddings.create(model="...", input=text)
+
+# Right - 1 batch request
+response = client.embeddings.create(model="...", input=texts)  # Up to 2048 inputs
+```
+
+### 4. Upgrade Tier When Needed
+
+```python
+response = client.chat.completions.create(...)
+remaining = int(response._headers.get('X-RateLimit-Remaining', 0))
+
+if remaining == 0:
+    print("Consider upgrading to Growth tier for 5x higher limits")
+```
+
+## Monitoring Budget Usage
+
+### Prometheus Metrics
+
+```promql
+# Budget utilization
+(tenant_cost_usd / tenant_budget_usd) * 100
+
+# Alert when > 90%
+(tenant_cost_usd / tenant_budget_usd) > 0.9
+```
+
+### Dashboard Widgets
+
+```bash
+# Get current usage
+curl https://api.igrisinertial.com/v1/tenants/YOUR_TENANT_ID/usage \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Related
+
+- [Pricing Tiers](/docs/pricing-tiers) — Compare tier limits
+- [Errors & Retries](/docs/api-reference/errors-retries) — Handle 429 errors
+- [Gold Code](/docs/core-features/gold-code) — Emergency override
+- [Multi-Tenancy](/docs/multi-tenancy) — Per-tenant isolation

@@ -1,0 +1,535 @@
+# Observability
+
+Monitor local inference performance, fallback activations, and system health with built-in Prometheus metrics and structured logging.
+
+---
+
+## What You Can Track
+
+Igris Runtime provides comprehensive observability for offline AI:
+
+- **Local Inference Performance**: Token generation speed, latency, throughput
+- **Fallback Activations**: When and why cloud-to-local fallback triggered
+- **Model Loading**: Startup times, memory usage
+- **Agent Execution**: Reflection iterations, planning steps, swarm consensus
+- **Tool Use**: Tool execution times, success rates
+- **MCP Swarm**: Peer discovery, context sync status
+- **QLoRA Training**: Training progress, adapter generation
+
+---
+
+## Metrics Endpoint
+
+All metrics are exposed in Prometheus format at `/metrics`:
+
+```bash
+curl http://localhost:8080/metrics
+```
+
+This endpoint is compatible with:
+- Prometheus
+- Grafana
+- Datadog
+- Victoria Metrics
+- Any Prometheus-compatible monitoring system
+
+---
+
+## Key Metrics Available
+
+### Inference Metrics
+
+Track local model performance:
+
+- **`igris_inference_requests_total`**: Total inference requests
+- **`igris_inference_duration_seconds`**: Inference latency histogram (p50, p95, p99)
+- **`igris_tokens_generated_total`**: Total tokens generated
+- **`igris_tokens_per_second`**: Current token generation speed
+- **`igris_model_load_duration_seconds`**: Model loading time at startup
+
+**Example metrics output:**
+```
+# HELP igris_inference_requests_total Total number of inference requests
+# TYPE igris_inference_requests_total counter
+igris_inference_requests_total{model="phi-3-mini",mode="standard"} 1234
+
+# HELP igris_inference_duration_seconds Inference request duration
+# TYPE igris_inference_duration_seconds histogram
+igris_inference_duration_seconds_bucket{le="0.1"} 45
+igris_inference_duration_seconds_bucket{le="0.5"} 234
+igris_inference_duration_seconds_bucket{le="1.0"} 456
+
+# HELP igris_tokens_per_second Current token generation speed
+# TYPE igris_tokens_per_second gauge
+igris_tokens_per_second 24.5
+```
+
+### Fallback Metrics
+
+Track cloud-to-local fallback behavior:
+
+- **`igris_fallback_activations_total`**: Number of times fallback triggered
+- **`igris_cloud_request_failures_total`**: Cloud provider failures by type
+- **`igris_fallback_duration_seconds`**: Time to switch from cloud to local
+
+**Why fallback activated:**
+- `timeout` - Cloud provider took too long
+- `unreachable` - Network connectivity issue
+- `error` - Cloud API returned error
+- `offline` - Intentional offline-only mode
+
+### Agent Metrics
+
+Track advanced agent execution:
+
+- **`igris_reflection_iterations_total`**: Total reflection loops executed
+- **`igris_reflection_quality_score`**: Quality scores before/after reflection
+- **`igris_planning_steps_total`**: Planning agent steps executed
+- **`igris_swarm_agents_active`**: Number of active agents in swarm
+- **`igris_swarm_consensus_votes`**: Consensus voting results
+
+### Tool Use Metrics
+
+Monitor tool execution:
+
+- **`igris_tool_executions_total`**: Tool calls by type (http, shell, filesystem)
+- **`igris_tool_duration_seconds`**: Tool execution time
+- **`igris_tool_failures_total`**: Failed tool executions by error type
+
+### MCP Swarm Metrics
+
+Track peer-to-peer context sharing:
+
+- **`igris_mcp_peers_discovered`**: Number of discovered peers
+- **`igris_mcp_contexts_synced_total`**: Contexts synchronized
+- **`igris_mcp_sync_duration_seconds`**: Context sync latency
+
+### QLoRA Training Metrics
+
+Monitor on-device training:
+
+- **`igris_lora_training_started_total`**: Training sessions started
+- **`igris_lora_training_duration_seconds`**: Training time per adapter
+- **`igris_lora_adapter_size_bytes`**: Generated adapter size
+
+---
+
+## Health Check Endpoint
+
+Runtime provides a health check endpoint at `/v1/health`:
+
+```bash
+curl http://localhost:8080/v1/health
+```
+
+**Response (healthy):**
+```json
+{
+  "status": "healthy",
+  "model_loaded": true,
+  "uptime_seconds": 3600,
+  "version": "1.6.0"
+}
+```
+
+**Response (unhealthy):**
+```json
+{
+  "status": "unhealthy",
+  "model_loaded": false,
+  "error": "Model file not found"
+}
+```
+
+Use this endpoint for:
+- Kubernetes liveness/readiness probes
+- Docker health checks
+- Load balancer health monitoring
+
+---
+
+## Structured Logging
+
+Runtime uses structured JSON logging via `RUST_LOG`:
+
+```bash
+export RUST_LOG=info
+./igris-runtime
+```
+
+**Log levels:**
+- `error` - Only errors
+- `warn` - Warnings and errors
+- `info` - General info (recommended)
+- `debug` - Detailed debugging
+- `trace` - Very verbose (development only)
+
+### JSON Log Format
+
+```json
+{
+  "timestamp": "2025-12-18T10:30:45Z",
+  "level": "info",
+  "target": "igris_server",
+  "message": "inference_completed",
+  "model": "phi-3-mini",
+  "mode": "reflection",
+  "tokens_generated": 128,
+  "duration_ms": 432,
+  "fallback_activated": false
+}
+```
+
+### Log Examples
+
+**Successful local inference:**
+```json
+{
+  "level": "info",
+  "message": "local_inference_completed",
+  "model": "phi-3-mini",
+  "tokens": 64,
+  "duration_ms": 234,
+  "tokens_per_sec": 27.3
+}
+```
+
+**Fallback activation:**
+```json
+{
+  "level": "warn",
+  "message": "cloud_fallback_triggered",
+  "provider": "openai",
+  "reason": "timeout",
+  "timeout_ms": 5000,
+  "switched_to": "local"
+}
+```
+
+**Reflection agent:**
+```json
+{
+  "level": "info",
+  "message": "reflection_iteration_completed",
+  "iteration": 2,
+  "quality_score": 0.85,
+  "threshold": 0.7,
+  "accepted": true
+}
+```
+
+**MCP peer discovered:**
+```json
+{
+  "level": "info",
+  "message": "mcp_peer_discovered",
+  "peer_id": "runtime-2",
+  "peer_address": "192.168.1.45:8080"
+}
+```
+
+---
+
+## Prometheus Integration
+
+### Scrape Configuration
+
+Add to `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'igris-runtime'
+    scrape_interval: 15s
+    static_configs:
+      - targets:
+        - 'localhost:8080'
+    metrics_path: '/metrics'
+```
+
+### Grafana Dashboards
+
+**Key panels to create:**
+
+1. **Inference Performance**
+   - Token generation speed (gauge)
+   - Request latency histogram
+   - Requests per second
+
+2. **Fallback Monitoring**
+   - Fallback activations over time
+   - Cloud vs local request ratio
+   - Fallback reasons breakdown
+
+3. **Resource Usage**
+   - CPU usage
+   - Memory usage
+   - Model memory footprint
+
+4. **Agent Activity**
+   - Reflection iterations
+   - Planning steps
+   - Swarm agent count
+
+### Example PromQL Queries
+
+**Tokens per second:**
+```promql
+igris_tokens_per_second
+```
+
+**P95 inference latency:**
+```promql
+histogram_quantile(0.95, rate(igris_inference_duration_seconds_bucket[5m]))
+```
+
+**Fallback rate:**
+```promql
+rate(igris_fallback_activations_total[5m])
+```
+
+**Reflection quality improvement:**
+```promql
+avg(igris_reflection_quality_score{stage="after"} - igris_reflection_quality_score{stage="before"})
+```
+
+---
+
+## Monitoring MCP Swarm
+
+### Multi-Instance Dashboards
+
+When running MCP swarm mode, monitor all instances:
+
+```yaml
+scrape_configs:
+  - job_name: 'igris-runtime-swarm'
+    static_configs:
+      - targets:
+        - 'runtime-1:8080'
+        - 'runtime-2:8080'
+        - 'runtime-3:8080'
+```
+
+**Track:**
+- Total peers discovered across cluster
+- Context sync latency between instances
+- Load distribution (requests per instance)
+
+### MCP-Specific Metrics
+
+```promql
+# Total peers in swarm
+sum(igris_mcp_peers_discovered)
+
+# Context sync success rate
+rate(igris_mcp_contexts_synced_total[5m])
+
+# Average sync latency
+avg(igris_mcp_sync_duration_seconds)
+```
+
+---
+
+## Log Aggregation
+
+### ELK Stack (Elasticsearch + Kibana)
+
+**Filebeat configuration:**
+```yaml
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/igris-runtime/*.log
+    json.keys_under_root: true
+    json.add_error_key: true
+
+output.elasticsearch:
+  hosts: ["localhost:9200"]
+```
+
+### Loki + Grafana
+
+**Promtail configuration:**
+```yaml
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: igris-runtime
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: igris-runtime
+          __path__: /var/log/igris-runtime/*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            message: message
+```
+
+---
+
+## Alerting
+
+### Recommended Alerts
+
+**High inference latency:**
+```yaml
+- alert: HighInferenceLatency
+  expr: histogram_quantile(0.95, rate(igris_inference_duration_seconds_bucket[5m])) > 2.0
+  for: 5m
+  annotations:
+    summary: "Inference latency above 2 seconds"
+```
+
+**Frequent fallback activations:**
+```yaml
+- alert: FrequentFallbacks
+  expr: rate(igris_fallback_activations_total[5m]) > 0.5
+  for: 10m
+  annotations:
+    summary: "Fallback activating more than 30 times per minute"
+```
+
+**Model not loaded:**
+```yaml
+- alert: ModelNotLoaded
+  expr: up{job="igris-runtime"} == 0
+  for: 1m
+  annotations:
+    summary: "Runtime instance is down"
+```
+
+**Low token throughput:**
+```yaml
+- alert: LowTokenThroughput
+  expr: igris_tokens_per_second < 5
+  for: 5m
+  annotations:
+    summary: "Token generation below 5 tokens/sec"
+```
+
+---
+
+## Performance Monitoring
+
+### Baseline Metrics
+
+Track these metrics to understand normal behavior:
+
+**Phi-3 Mini Q4 (4 CPU cores):**
+- Tokens/sec: 15-30
+- First token latency: 50-100ms
+- P95 request latency: &lt;1000ms
+
+**Mistral 7B Q4 (8 CPU cores):**
+- Tokens/sec: 10-20
+- First token latency: 100-200ms
+- P95 request latency: &lt;2000ms
+
+### Optimization Targets
+
+If metrics are outside expected ranges:
+
+**Low tokens/sec:**
+- Increase `threads` in config
+- Enable GPU layers (`n_gpu_layers`)
+- Use smaller quantization (Q4 instead of Q8)
+
+**High latency:**
+- Enable prompt caching (`prompt_cache_dir`)
+- Reduce `context_size`
+- Check CPU usage (should be near 100%)
+
+**High fallback rate:**
+- Increase cloud timeout (`first_token_timeout_ms`)
+- Check network connectivity
+- Verify cloud API keys
+
+---
+
+## Development vs Production
+
+### Development Logging
+
+Verbose logging for debugging:
+
+```bash
+export RUST_LOG=debug
+./igris-runtime
+```
+
+**Logs include:**
+- Request/response bodies
+- Detailed tool execution
+- Model inference steps
+
+### Production Logging
+
+Minimal logging for performance:
+
+```bash
+export RUST_LOG=info
+./igris-runtime
+```
+
+**Logs include:**
+- Request completion
+- Errors and warnings
+- Performance metrics
+
+---
+
+## Troubleshooting with Metrics
+
+### High Memory Usage
+
+**Check:**
+```promql
+process_resident_memory_bytes{job="igris-runtime"}
+```
+
+**Common causes:**
+- Large `context_size`
+- Multiple concurrent requests
+- Memory leak (restart needed)
+
+### Slow Inference
+
+**Check:**
+```promql
+igris_inference_duration_seconds
+igris_tokens_per_second
+```
+
+**Common causes:**
+- Too few threads
+- Model too large for hardware
+- High CPU usage from other processes
+
+### Fallback Not Working
+
+**Check logs for:**
+```json
+{
+  "level": "error",
+  "message": "local_model_not_loaded",
+  "error": "Model file not found"
+}
+```
+
+**Verify:**
+- Model file exists at `model_path`
+- Sufficient RAM available
+- File permissions correct
+
+---
+
+## Next Steps
+
+- [Configuration](/docs/configuration) - Tune performance settings
+- [Deployment](/docs/deployment) - Production monitoring setup
+- [Architecture](/docs/architecture) - Understand system internals
