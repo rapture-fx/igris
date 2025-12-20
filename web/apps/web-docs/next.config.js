@@ -10,6 +10,7 @@ const withMDX = require('@next/mdx')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  basePath: '/overture',
   output: 'export', // Enable static export for Cloudflare Pages
   trailingSlash: true,
   typescript: {
