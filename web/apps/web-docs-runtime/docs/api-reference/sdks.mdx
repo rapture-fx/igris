@@ -1,0 +1,463 @@
+# SDKs
+
+Use standard OpenAI SDKs with Igris Runtime. Since Runtime is 100% OpenAI-compatible, just change the base URL.
+
+## Quick Start
+
+### TypeScript/JavaScript
+
+```bash
+npm install openai
+```
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/v1',
+  apiKey: process.env.IGRIS_API_KEY || 'not-needed'  // Optional if auth disabled
+});
+
+const response = await client.chat.completions.create({
+  model: 'gpt-4',  // Or 'phi3' for local model
+  messages: [{ role: 'user', content: 'Hello!' }]
+});
+
+console.log(response.choices[0].message.content);
+```
+
+### Python
+
+```bash
+pip install openai
+```
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-needed"  # Optional if auth disabled
+)
+
+response = client.chat.completions.create(
+    model="gpt-4",  # Or "phi3" for local model
+    messages=[{"role": "user", "content": "Hello!"}]
+)
+
+print(response.choices[0].message.content)
+```
+
+### Go
+
+```bash
+go get github.com/sashabaranov/go-openai
+```
+
+```go
+import "github.com/sashabaranov/go-openai"
+
+config := openai.DefaultConfig("not-needed")
+config.BaseURL = "http://localhost:8080/v1"
+
+client := openai.NewClientWithConfig(config)
+
+resp, err := client.CreateChatCompletion(
+    context.Background(),
+    openai.ChatCompletionRequest{
+        Model: "gpt-4",  // Or "phi3" for local model
+        Messages: []openai.ChatCompletionMessage{
+            {Role: "user", Content: "Hello!"},
+        },
+    },
+)
+
+fmt.Println(resp.Choices[0].Message.Content)
+```
+
+## Why Use Standard OpenAI SDKs?
+
+Igris Runtime is 100% OpenAI-compatible, so you can:
+
+- Use existing code unchanged
+- Leverage mature SDKs with excellent documentation
+- Get automatic retries, streaming, and error handling
+- Switch between Igris Runtime and OpenAI seamlessly
+
+## Igris Runtime-Specific Features
+
+### Local Model Fallback
+
+```typescript
+const response = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'What is 2+2?' }],
+  // @ts-ignore - Igris Runtime extension
+  local_fallback_enabled: true
+});
+
+console.log('Fallback used:', response.metadata?.fallback_used);
+console.log('Provider:', response.metadata?.provider);
+```
+
+### Using Local Model Directly
+
+```typescript
+const response = await client.chat.completions.create({
+  model: 'phi3',  // Use local Phi-3 model directly
+  messages: [{ role: 'user', content: 'Hello!' }],
+  max_tokens: 512
+});
+```
+
+### Streaming Responses
+
+```typescript
+const stream = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [{ role: 'user', content: 'Count to 10' }],
+  stream: true
+});
+
+for await (const chunk of stream) {
+  const content = chunk.choices[0]?.delta?.content;
+  if (content) process.stdout.write(content);
+}
+```
+
+## Complete Examples
+
+### TypeScript with Streaming
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/v1',
+  apiKey: 'not-needed',  // If auth disabled
+  timeout: 30000,
+  maxRetries: 3
+});
+
+// Chat completions
+const chatResponse = await client.chat.completions.create({
+  model: 'gpt-4',
+  messages: [
+    { role: 'system', content: 'You are a helpful assistant.' },
+    { role: 'user', content: 'Explain quantum computing' }
+  ],
+  temperature: 0.7,
+  max_tokens: 500
+});
+
+// Streaming
+const stream = await client.chat.completions.create({
+  model: 'phi3',  // Use local model
+  messages: [{ role: 'user', content: 'Count to 10' }],
+  stream: true
+});
+
+for await (const chunk of stream) {
+  const content = chunk.choices[0]?.delta?.content;
+  if (content) process.stdout.write(content);
+}
+
+// Check health
+const healthResponse = await fetch('http://localhost:8080/v1/health');
+const health = await healthResponse.json();
+console.log('Runtime healthy:', health.status === 'ok');
+```
+
+### Error Handling
+
+```typescript
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  baseURL: 'http://localhost:8080/v1',
+  apiKey: 'not-needed'
+});
+
+try {
+  const response = await client.chat.completions.create({
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: 'Hello!' }]
+  });
+} catch (error: any) {
+  if (error.status === 429) {
+    console.log('Rate limited');
+  } else if (error.status === 503) {
+    console.log('All providers down, trying local fallback...');
+  } else {
+    console.error('Error:', error.message);
+  }
+}
+```
+
+## Python Examples
+
+### Installation
+
+```bash
+pip install openai
+```
+
+### Complete Example
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-needed",  # If auth disabled
+    timeout=30,
+    max_retries=3
+)
+
+# Chat completions
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": "Explain quantum computing"}
+    ],
+    temperature=0.7,
+    max_tokens=500
+)
+
+print(response.choices[0].message.content)
+
+# Streaming with local model
+stream = client.chat.completions.create(
+    model="phi3",  # Use local Phi-3 model
+    messages=[{"role": "user", "content": "Count to 10"}],
+    stream=True
+)
+
+for chunk in stream:
+    if chunk.choices[0].delta.content:
+        print(chunk.choices[0].delta.content, end='')
+
+# Check health
+import requests
+health = requests.get('http://localhost:8080/v1/health').json()
+print(f"Runtime healthy: {health['status'] == 'ok'}")
+print(f"Local model available: {health.get('local_llm_available', False)}")
+```
+
+### Error Handling
+
+```python
+from openai import OpenAI, APIError, RateLimitError
+
+client = OpenAI(
+    base_url="http://localhost:8080/v1",
+    api_key="not-needed"
+)
+
+try:
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": "Hello!"}]
+    )
+except RateLimitError as e:
+    print("Rate limited")
+except APIError as e:
+    if e.status_code == 503:
+        print("All providers down, falling back to local model...")
+    else:
+        print(f"API error: {e}")
+```
+
+### Async Support
+
+```python
+import asyncio
+from openai import AsyncOpenAI
+
+async def main():
+    client = AsyncOpenAI(
+        base_url="http://localhost:8080/v1",
+        api_key="not-needed"
+    )
+
+    response = await client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": "Hello!"}]
+    )
+
+    print(response.choices[0].message.content)
+
+asyncio.run(main())
+```
+
+## Go Examples
+
+### Installation
+
+```bash
+go get github.com/sashabaranov/go-openai
+```
+
+### Complete Example
+
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    "io"
+    "log"
+
+    "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+    config := openai.DefaultConfig("not-needed")
+    config.BaseURL = "http://localhost:8080/v1"
+
+    client := openai.NewClientWithConfig(config)
+
+    // Chat completions
+    resp, err := client.CreateChatCompletion(
+        context.Background(),
+        openai.ChatCompletionRequest{
+            Model: openai.GPT4,  // Or "phi3" for local model
+            Messages: []openai.ChatCompletionMessage{
+                {Role: "system", Content: "You are a helpful assistant."},
+                {Role: "user", Content: "Explain quantum computing"},
+            },
+            Temperature: 0.7,
+            MaxTokens:   500,
+        },
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Println(resp.Choices[0].Message.Content)
+
+    // Streaming
+    stream, err := client.CreateChatCompletionStream(
+        context.Background(),
+        openai.ChatCompletionRequest{
+            Model:    "phi3",  // Use local model
+            Messages: []openai.ChatCompletionMessage{
+                {Role: "user", Content: "Count to 10"},
+            },
+            Stream: true,
+        },
+    )
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer stream.Close()
+
+    for {
+        response, err := stream.Recv()
+        if err == io.EOF {
+            break
+        }
+        if err != nil {
+            log.Fatal(err)
+        }
+        fmt.Print(response.Choices[0].Delta.Content)
+    }
+}
+```
+
+### Error Handling
+
+```go
+import "github.com/sashabaranov/go-openai"
+
+resp, err := client.CreateChatCompletion(ctx, req)
+if err != nil {
+    // Check for specific error types
+    if apiErr, ok := err.(*openai.APIError); ok {
+        switch apiErr.HTTPStatusCode {
+        case 429:
+            fmt.Println("Rate limited")
+        case 503:
+            fmt.Println("All providers down, falling back to local model...")
+        default:
+            fmt.Printf("API error: %v\n", apiErr)
+        }
+    } else {
+        fmt.Printf("Error: %v\n", err)
+    }
+    return
+}
+```
+
+## Other Languages
+
+Use any OpenAI-compatible SDK by setting the base URL:
+
+### Rust
+
+```bash
+cargo add async-openai
+```
+
+```rust
+use async_openai::{Client, config::OpenAIConfig};
+
+#[tokio::main]
+async fn main() {
+    let config = OpenAIConfig::new()
+        .with_api_base("http://localhost:8080/v1");
+
+    let client = Client::with_config(config);
+
+    // Chat completions work as expected
+    let response = client
+        .chat()
+        .create(/* request */)
+        .await?;
+}
+```
+
+### Ruby
+
+```bash
+gem install ruby-openai
+```
+
+```ruby
+require 'openai'
+
+OpenAI.configure do |config|
+  config.uri_base = 'http://localhost:8080/v1'
+  config.access_token = 'not-needed'
+end
+
+client = OpenAI::Client.new
+
+response = client.chat(
+  parameters: {
+    model: 'gpt-4',
+    messages: [{ role: 'user', content: 'Hello!' }]
+  }
+)
+
+puts response.dig('choices', 0, 'message', 'content')
+```
+
+## SDK Comparison
+
+| Feature | TypeScript | Python | Go | Rust | Ruby |
+|---------|-----------|--------|-----|------|------|
+| Streaming | Yes | Yes | Yes | Yes | Yes |
+| Async | Yes | Yes | Yes | Yes | No |
+| Retries | Yes | Yes | Yes | Yes | Yes |
+| Timeouts | Yes | Yes | Yes | Yes | Yes |
+| Type Safety | Yes | Yes | Yes | Yes | No |
+
+## Related
+
+- [Quick Start](/docs/api-reference/quick-start) — First curl request
+- [Chat Completions](/docs/api-reference/endpoints/chat-completions) — Full API reference
+- [Errors & Retries](/docs/api-reference/errors-retries) — Handle failures
+- [Configuration](/docs/configuration) — Configure local fallback

@@ -1,0 +1,228 @@
+# GET /v1/models
+
+List all available models across all registered providers.
+
+## TL;DR
+
+```bash
+curl https://api.igrisinertial.com/v1/models \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Request
+
+### Headers
+
+```
+Authorization: Bearer YOUR_API_KEY
+```
+
+### Query Parameters
+
+All parameters are optional.
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `provider` | string | null | Filter by provider: `"openai"`, `"anthropic"`, etc. |
+| `capability` | string | null | Filter by capability: `"vision"`, `"tools"`, `"streaming"` |
+
+## Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "gpt-4-turbo",
+      "object": "model",
+      "created": 1687882411,
+      "owned_by": "openai",
+      "provider": "openai",
+      "capabilities": {
+        "vision": true,
+        "tools": true,
+        "streaming": true,
+        "max_tokens": 4096,
+        "max_context_window": 128000
+      },
+      "pricing": {
+        "prompt_tokens_per_1k": 0.01,
+        "completion_tokens_per_1k": 0.03
+      }
+    },
+    {
+      "id": "gpt-4",
+      "object": "model",
+      "created": 1687882411,
+      "owned_by": "openai",
+      "provider": "openai",
+      "capabilities": {
+        "vision": false,
+        "tools": true,
+        "streaming": true,
+        "max_tokens": 8192,
+        "max_context_window": 8192
+      },
+      "pricing": {
+        "prompt_tokens_per_1k": 0.03,
+        "completion_tokens_per_1k": 0.06
+      }
+    },
+    {
+      "id": "claude-3-5-sonnet-20241022",
+      "object": "model",
+      "created": 1709251200,
+      "owned_by": "anthropic",
+      "provider": "anthropic",
+      "capabilities": {
+        "vision": true,
+        "tools": true,
+        "streaming": true,
+        "max_tokens": 4096,
+        "max_context_window": 200000
+      },
+      "pricing": {
+        "prompt_tokens_per_1k": 0.003,
+        "completion_tokens_per_1k": 0.015
+      }
+    },
+    {
+      "id": "claude-3-opus-20240229",
+      "object": "model",
+      "created": 1709251200,
+      "owned_by": "anthropic",
+      "provider": "anthropic",
+      "capabilities": {
+        "vision": true,
+        "tools": true,
+        "streaming": true,
+        "max_tokens": 4096,
+        "max_context_window": 200000
+      },
+      "pricing": {
+        "prompt_tokens_per_1k": 0.015,
+        "completion_tokens_per_1k": 0.075
+      }
+    }
+  ],
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## Examples
+
+### List All Models
+
+```bash
+curl https://api.igrisinertial.com/v1/models \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+### Filter by Provider
+
+```bash
+curl "https://api.igrisinertial.com/v1/models?provider=anthropic" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:**
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "id": "claude-3-5-sonnet-20241022",
+      "object": "model",
+      "created": 1709251200,
+      "owned_by": "anthropic",
+      "provider": "anthropic"
+    },
+    {
+      "id": "claude-3-opus-20240229",
+      "object": "model",
+      "created": 1709251200,
+      "owned_by": "anthropic",
+      "provider": "anthropic"
+    }
+  ]
+}
+```
+
+### Filter by Capability
+
+```bash
+curl "https://api.igrisinertial.com/v1/models?capability=vision" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+**Response:** Only models with vision capability (GPT-4 Turbo, Claude 3.5 Sonnet, etc.)
+
+## Model Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | Model identifier (used in chat completions) |
+| `object` | string | Always `"model"` |
+| `created` | integer | Unix timestamp of model creation |
+| `owned_by` | string | Organization that owns the model |
+| `provider` | string | Igris Overture provider name |
+| `capabilities` | object | Model capabilities and limits |
+| `pricing` | object | Cost per 1K tokens |
+
+### Capabilities Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `vision` | boolean | Supports image input |
+| `tools` | boolean | Supports function calling |
+| `streaming` | boolean | Supports streaming responses |
+| `max_tokens` | integer | Maximum output tokens |
+| `max_context_window` | integer | Maximum total tokens (input + output) |
+
+### Pricing Object
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `prompt_tokens_per_1k` | float | USD per 1000 prompt tokens |
+| `completion_tokens_per_1k` | float | USD per 1000 completion tokens |
+
+## Common Models
+
+### OpenAI
+
+| Model ID | Context | Strengths |
+|----------|---------|-----------|
+| `gpt-4-turbo` | 128K | Latest, fastest GPT-4, vision |
+| `gpt-4` | 8K | Original GPT-4 |
+| `gpt-4-32k` | 32K | Extended context |
+| `gpt-3.5-turbo` | 16K | Fast, cost-effective |
+
+### Anthropic
+
+| Model ID | Context | Strengths |
+|----------|---------|-----------|
+| `claude-3-5-sonnet-20241022` | 200K | Best balance of speed/quality |
+| `claude-3-opus-20240229` | 200K | Highest quality, slow |
+| `claude-3-sonnet-20240229` | 200K | Balanced |
+| `claude-3-haiku-20240307` | 200K | Fastest, cheapest |
+
+## Error Responses
+
+### 401 Unauthorized
+
+```json
+{
+  "error": {
+    "message": "Authentication required. Please provide valid credentials.",
+    "type": "authentication_error",
+    "code": 401
+  }
+}
+```
+
+## Related
+
+- [Chat Completions](/docs/api-reference/endpoints/chat-completions) — Use models for inference
+- [Provider Management](/docs/providers-keys) — Add custom providers
+- [Pricing](/docs/pricing-tiers) — Model costs per tier

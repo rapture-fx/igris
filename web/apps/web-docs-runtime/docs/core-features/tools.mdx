@@ -1,0 +1,140 @@
+# Tool Use
+
+Let your local LLM call external tools: HTTP APIs, shell commands, and file operations.
+
+---
+
+## Overview
+
+Tool use enables your local models to interact with the outside world by calling HTTP APIs, executing shell commands, and performing file operations.
+
+**Available tools:**
+- **HTTP**: GET/POST requests to external APIs
+- **Shell**: Execute shell commands (sandboxed)
+- **Filesystem**: Read, write, and list files
+
+---
+
+## Security
+
+All tools are sandboxed with whitelisting:
+
+- **HTTP**: Domain whitelist
+- **Shell**: Command whitelist
+- **Filesystem**: Path whitelist
+- **Timeouts**: Per-tool execution limits
+- **Concurrency**: Max concurrent tool calls
+
+---
+
+## Configuration
+
+```json5
+{
+  tools: {
+    enable_http: true,
+    enable_shell: false,        // Disabled by default
+    enable_filesystem: true,
+
+    // HTTP whitelist
+    allowed_http_domains: [
+      "api.weather.com",
+      "api.github.com"
+    ],
+
+    // Shell whitelist (if enabled)
+    allowed_shell_commands: [
+      "ls", "cat", "grep"
+    ],
+
+    // Filesystem whitelist
+    allowed_filesystem_paths: [
+      "/tmp",
+      "/app/data"
+    ],
+
+    max_execution_time_ms: 30000,
+    max_concurrent_executions: 5
+  }
+}
+```
+
+---
+
+## Usage
+
+Enable tools mode:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "mode": "tools",
+    "messages": [{"role": "user", "content": "Check the weather in SF"}]
+  }'
+```
+
+---
+
+## How It Works
+
+1. **Model decides**: LLM determines if it needs to call a tool
+2. **Tool execution**: Runtime executes the tool with given arguments
+3. **Result feedback**: Tool output is fed back to the model
+4. **Iteration**: Model can call more tools or provide final answer
+5. **Max steps**: Prevents infinite loops (default: 10)
+
+---
+
+## Example: HTTP Tool
+
+The model can make HTTP requests:
+
+```json
+{
+  "tool_calls": [{
+    "name": "http_get",
+    "arguments": {
+      "url": "https://api.weather.com/v1/current?location=SF"
+    }
+  }]
+}
+```
+
+Runtime executes the request and returns the result.
+
+---
+
+## Example: Filesystem Tool
+
+Read and write files:
+
+```json
+{
+  "tool_calls": [{
+    "name": "file_read",
+    "arguments": {
+      "path": "/tmp/data.txt"
+    }
+  }]
+}
+```
+
+---
+
+## Use Cases
+
+- **API Integration**: Call external services
+- **Data Processing**: Read/write local files
+- **System Automation**: Execute commands
+- **Information Retrieval**: Fetch real-time data
+
+---
+
+## Safety Notes
+
+- Tools are disabled by default
+- Always use whitelisting in production
+- Monitor tool execution in logs
+- Set reasonable timeouts
+- Limit concurrent executions

@@ -1,0 +1,114 @@
+# Planning Agents
+
+Chain-of-thought reasoning with Plan → Act → Observe → Reflect loops.
+
+---
+
+## Overview
+
+Planning agents break down complex tasks into sequential steps, executing each one and adjusting the plan based on observations.
+
+**Key benefits:**
+- Better handling of multi-step tasks
+- Explicit reasoning process
+- Self-correction during execution
+- Transparent decision-making
+
+---
+
+## How It Works
+
+1. **Plan**: Agent creates step-by-step plan
+2. **Act**: Execute current step
+3. **Observe**: Analyze results
+4. **Reflect**: Adjust plan based on observations
+5. **Repeat**: Continue until goal achieved
+
+---
+
+## Configuration
+
+```json5
+{
+  planning: {
+    enabled: true,
+    max_steps: 10,
+    enable_reflection: true,
+    enable_tools: true,
+    max_tool_calls: 20
+  }
+}
+```
+
+---
+
+## Usage
+
+Enable planning mode:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "mode": "planning",
+    "messages": [{"role": "user", "content": "Design a REST API for a blog"}]
+  }'
+```
+
+---
+
+## Response Structure
+
+```json
+{
+  "choices": [{
+    "message": {
+      "content": "Final answer..."
+    }
+  }],
+  "planning_result": {
+    "goal": "Design REST API for blog",
+    "steps": [
+      {
+        "step_number": 1,
+        "thought": "Need to identify core entities",
+        "action": "List entities: posts, users, comments",
+        "observation": "Core entities identified",
+        "reflection": "Good start, need authentication"
+      }
+    ],
+    "total_steps": 5,
+    "success": true
+  }
+}
+```
+
+---
+
+## Use Cases
+
+- **System design**: Architecture planning
+- **Complex problem solving**: Multi-step reasoning
+- **Research tasks**: Information gathering and synthesis
+- **Debugging**: Root cause analysis
+
+---
+
+## With Tool Use
+
+Combine planning with tool calling for powerful automation:
+
+```json5
+{
+  planning: {
+    enabled: true,
+    enable_tools: true
+  },
+  tools: {
+    enable_http: true,
+    enable_filesystem: true
+  }
+}
+```
+
+The planner can now call APIs, read files, and execute shell commands as part of its plan.

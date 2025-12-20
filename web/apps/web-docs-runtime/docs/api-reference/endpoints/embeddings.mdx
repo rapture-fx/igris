@@ -1,0 +1,260 @@
+# POST /v1/embeddings
+
+Generate text embeddings for semantic search, clustering, and similarity comparisons.
+
+## TL;DR
+
+```bash
+curl https://api.igrisinertial.com/v1/embeddings \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "text-embedding-ada-002",
+    "input": "The quick brown fox jumps over the lazy dog"
+  }'
+```
+
+## Request
+
+### Headers
+
+```
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+### Body Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `model` | string | Yes | Embedding model identifier |
+| `input` | string\|array | Yes | Text(s) to embed (string or array of strings) |
+| `encoding_format` | string | No | Format: `"float"` (default) or `"base64"` |
+| `user` | string | No | User identifier for abuse detection |
+
+## Response
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "embedding": [
+        0.0023064255,
+        -0.009327292,
+        0.015797347,
+        ...
+        0.0028842222
+      ],
+      "index": 0
+    }
+  ],
+  "model": "text-embedding-ada-002",
+  "usage": {
+    "prompt_tokens": 8,
+    "total_tokens": 8
+  },
+  "metadata": {
+    "provider": "openai",
+    "latency_ms": 234,
+    "cost_usd": 0.0000008,
+    "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}
+```
+
+## Examples
+
+### Single Text Embedding
+
+```bash
+curl https://api.igrisinertial.com/v1/embeddings \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "text-embedding-ada-002",
+    "input": "Artificial intelligence is transforming the world"
+  }'
+```
+
+### Batch Embeddings
+
+```bash
+curl https://api.igrisinertial.com/v1/embeddings \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "text-embedding-ada-002",
+    "input": [
+      "First document to embed",
+      "Second document to embed",
+      "Third document to embed"
+    ]
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "embedding": [0.002, -0.009, ...],
+      "index": 0
+    },
+    {
+      "object": "embedding",
+      "embedding": [0.001, -0.008, ...],
+      "index": 1
+    },
+    {
+      "object": "embedding",
+      "embedding": [0.003, -0.007, ...],
+      "index": 2
+    }
+  ],
+  "model": "text-embedding-ada-002",
+  "usage": {
+    "prompt_tokens": 24,
+    "total_tokens": 24
+  }
+}
+```
+
+### Base64 Encoding
+
+```bash
+curl https://api.igrisinertial.com/v1/embeddings \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "text-embedding-ada-002",
+    "input": "Sample text",
+    "encoding_format": "base64"
+  }'
+```
+
+**Response:**
+
+```json
+{
+  "object": "list",
+  "data": [
+    {
+      "object": "embedding",
+      "embedding": "AAAAAAA...base64_encoded_data",
+      "index": 0
+    }
+  ],
+  "model": "text-embedding-ada-002"
+}
+```
+
+## Supported Models
+
+### OpenAI
+
+| Model | Dimensions | Context | Cost per 1K tokens |
+|-------|------------|---------|-------------------|
+| `text-embedding-ada-002` | 1536 | 8191 | $0.0001 |
+| `text-embedding-3-small` | 1536 | 8191 | $0.00002 |
+| `text-embedding-3-large` | 3072 | 8191 | $0.00013 |
+
+### Usage Recommendations
+
+- **General purpose**: `text-embedding-ada-002`
+- **Cost-optimized**: `text-embedding-3-small`
+- **High precision**: `text-embedding-3-large`
+
+## Use Cases
+
+### Semantic Search
+
+```python
+# 1. Embed documents
+docs = ["AI is powerful", "ML transforms industries", "Deep learning rocks"]
+embeddings = client.embeddings.create(model="text-embedding-ada-002", input=docs)
+
+# 2. Embed query
+query = "artificial intelligence applications"
+query_embedding = client.embeddings.create(model="text-embedding-ada-002", input=query)
+
+# 3. Compute cosine similarity
+from numpy import dot
+from numpy.linalg import norm
+
+def cosine_similarity(a, b):
+    return dot(a, b) / (norm(a) * norm(b))
+
+scores = [cosine_similarity(query_embedding.data[0].embedding, emb.embedding)
+          for emb in embeddings.data]
+```
+
+### Clustering
+
+```python
+from sklearn.cluster import KMeans
+
+# Get embeddings
+texts = [...]  # Your documents
+embeddings = client.embeddings.create(model="text-embedding-ada-002", input=texts)
+vectors = [e.embedding for e in embeddings.data]
+
+# Cluster
+kmeans = KMeans(n_clusters=5)
+labels = kmeans.fit_predict(vectors)
+```
+
+## Error Responses
+
+### 400 Bad Request
+
+```json
+{
+  "error": {
+    "message": "Invalid request: 'input' must be a non-empty string or array",
+    "type": "invalid_request_error",
+    "code": 400
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### 413 Payload Too Large
+
+```json
+{
+  "error": {
+    "message": "Input text exceeds maximum context length (8191 tokens)",
+    "type": "invalid_request_error",
+    "code": 413
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## Response Headers
+
+```
+X-Trace-ID: 550e8400-e29b-41d4-a716-446655440000
+X-RateLimit-Limit: 50
+X-RateLimit-Remaining: 42
+X-RateLimit-Reset: 1701234567
+Content-Type: application/json
+```
+
+## Best Practices
+
+1. **Batch requests** for better performance (up to 2048 inputs per request)
+2. **Cache embeddings** to avoid recomputing
+3. **Normalize vectors** before computing similarity
+4. **Use cosine similarity** (not Euclidean distance) for text embeddings
+
+## Related
+
+- [Chat Completions](/docs/api-reference/endpoints/chat-completions) — Text generation
+- [Errors & Retries](/docs/api-reference/errors-retries) — Handle failures
+- [Rate Limits](/docs/api-reference/rate-limits-budgets) — Per-tier limits

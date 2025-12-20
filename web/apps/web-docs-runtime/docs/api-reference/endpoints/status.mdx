@@ -1,0 +1,323 @@
+# Health & Status
+
+Monitor API health, uptime, and system metrics.
+
+## Endpoints
+
+### GET /v1/health
+
+Basic health check with version and service status.
+
+```bash
+curl http://localhost:8080/v1/health
+```
+
+**Response:**
+
+```json
+{
+  "status": "healthy",
+  "service": "igris-runtime",
+  "version": "1.6.0",
+  "timestamp": 1701234567,
+  "uptime_seconds": 86400,
+  "local_llm_available": true,
+  "model_loaded": true,
+  "providers": {
+    "total": 3,
+    "healthy": 3,
+    "degraded": 0,
+    "unhealthy": 0
+  },
+  "features": {
+    "local_fallback": true,
+    "streaming": true,
+    "lora_training": true,
+    "mcp_swarm": true,
+    "offline_capable": true
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+### GET /v1/health/metrics
+
+Detailed system and performance metrics.
+
+```bash
+curl http://localhost:8080/v1/health/metrics
+```
+
+**Response:**
+
+```json
+{
+  "system": {
+    "uptime_seconds": 86400,
+    "cpu_usage_percent": 45.2,
+    "memory_usage_mb": 2048,
+    "goroutines": 1247,
+    "rust_kernel_loaded": true,
+    "ml_service_available": true
+  },
+  "providers": {
+    "total": 5,
+    "healthy": 5,
+    "degraded": 0,
+    "unhealthy": 0,
+    "list": [
+      {
+        "name": "openai",
+        "status": "healthy",
+        "avg_latency_ms": 234,
+        "success_rate": 0.998,
+        "last_check": "2025-12-08T12:00:00Z"
+      },
+      {
+        "name": "anthropic",
+        "status": "healthy",
+        "avg_latency_ms": 278,
+        "success_rate": 0.996,
+        "last_check": "2025-12-08T12:00:00Z"
+      }
+    ]
+  },
+  "requests": {
+    "total": 125678,
+    "successful": 124891,
+    "failed": 787,
+    "success_rate": 0.994,
+    "requests_per_second": 12.3
+  },
+  "latency": {
+    "p50_ms": 234,
+    "p95_ms": 456,
+    "p99_ms": 678,
+    "avg_ms": 287
+  },
+  "costs": {
+    "total_usd_today": 123.45,
+    "total_usd_month": 2345.67
+  },
+  "database": {
+    "connected": true,
+    "connections_active": 5,
+    "connections_max": 20
+  },
+  "redis": {
+    "connected": true,
+    "used_memory_mb": 128
+  },
+  "trace_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
+## Kubernetes Health Checks
+
+### GET /healthz (Liveness Probe)
+
+Checks if the service is alive and should be restarted if failing.
+
+```bash
+curl https://api.igrisinertial.com/healthz
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "status": "ok"
+}
+```
+
+**Response (503 Service Unavailable):**
+
+```json
+{
+  "status": "unhealthy",
+  "reason": "database connection lost"
+}
+```
+
+### GET /readyz (Readiness Probe)
+
+Checks if the service is ready to accept traffic.
+
+```bash
+curl https://api.igrisinertial.com/readyz
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "status": "ready",
+  "checks": {
+    "database": "ok",
+    "redis": "ok",
+    "providers": "ok"
+  }
+}
+```
+
+**Response (503 Service Unavailable):**
+
+```json
+{
+  "status": "not_ready",
+  "checks": {
+    "database": "ok",
+    "redis": "failed",
+    "providers": "degraded"
+  }
+}
+```
+
+### GET /startupz (Startup Probe)
+
+Checks if the service has completed initialization.
+
+```bash
+curl https://api.igrisinertial.com/startupz
+```
+
+**Response (200 OK):**
+
+```json
+{
+  "status": "started",
+  "startup_time_seconds": 12.3
+}
+```
+
+## Prometheus Metrics
+
+### GET /metrics
+
+Prometheus-compatible metrics endpoint.
+
+```bash
+curl https://api.igrisinertial.com/metrics
+```
+
+**Response (Prometheus format):**
+
+```prometheus
+# HELP http_requests_total Total HTTP requests
+# TYPE http_requests_total counter
+http_requests_total{method="POST",path="/v1/chat/completions",status="200"} 125678
+
+# HELP http_request_duration_seconds HTTP request latency
+# TYPE http_request_duration_seconds histogram
+http_request_duration_seconds_bucket{method="POST",le="0.1"} 12000
+http_request_duration_seconds_bucket{method="POST",le="0.5"} 120000
+http_request_duration_seconds_bucket{method="POST",le="1.0"} 124000
+
+# HELP inference_requests_total Total inference requests by provider
+# TYPE inference_requests_total counter
+inference_requests_total{provider="openai",model="gpt-4"} 50234
+inference_requests_total{provider="anthropic",model="claude-3-5-sonnet"} 48123
+
+# HELP inference_latency_seconds Inference latency by provider
+# TYPE inference_latency_seconds histogram
+inference_latency_seconds_bucket{provider="openai",le="0.5"} 45000
+inference_latency_seconds_bucket{provider="openai",le="1.0"} 49000
+
+# HELP cost_usd_total Total cost in USD
+# TYPE cost_usd_total counter
+cost_usd_total{provider="openai",component="inference"} 1234.56
+cost_usd_total{provider="anthropic",component="inference"} 987.65
+
+# HELP routing_decisions_total Routing decisions by policy
+# TYPE routing_decisions_total counter
+routing_decisions_total{policy="thompson-sampling"} 98765
+routing_decisions_total{policy="speculative-execution"} 12345
+
+# HELP thompson_sampling_score Thompson Sampling score per provider
+# TYPE thompson_sampling_score gauge
+thompson_sampling_score{provider="openai"} 0.87
+thompson_sampling_score{provider="anthropic"} 0.82
+
+# HELP circuit_breaker_state Circuit breaker state (0=closed, 1=open, 2=half-open)
+# TYPE circuit_breaker_state gauge
+circuit_breaker_state{name="openai"} 0
+circuit_breaker_state{name="anthropic"} 0
+```
+
+## Status Codes
+
+| Code | Status | Meaning |
+|------|--------|---------|
+| 200 | OK | Service healthy and operational |
+| 503 | Service Unavailable | Service degraded or unhealthy |
+
+## Monitoring Recommendations
+
+### Kubernetes Probes
+
+```yaml
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /readyz
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 2
+
+startupProbe:
+  httpGet:
+    path: /startupz
+    port: 8080
+  initialDelaySeconds: 0
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 30
+```
+
+### Prometheus Scrape Config
+
+```yaml
+scrape_configs:
+  - job_name: 'igris-runtime'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['localhost:8080']
+    metrics_path: /metrics
+```
+
+### Key Metrics to Alert On
+
+```promql
+# High error rate
+rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+
+# High latency
+histogram_quantile(0.95, http_request_duration_seconds) > 1.0
+
+# Low success rate
+rate(inference_requests_total{success="true"}[5m])
+/
+rate(inference_requests_total[5m]) < 0.95
+
+# Circuit breaker open
+circuit_breaker_state > 0
+
+# Budget exhaustion
+(tenant_cost_usd / tenant_budget_usd) > 0.9
+```
+
+## Related
+
+- [Observability](/docs/observability) — Monitoring, logging, tracing
+- [SLO Enforcer](/docs/core-features/cognitive-advisor) — SLO-based optimization
+- [Errors & Retries](/docs/api-reference/errors-retries) — Handle failures

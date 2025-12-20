@@ -1,0 +1,227 @@
+# QLoRA Training
+
+On-device fine-tuning to specialize your local model.
+
+---
+
+## Overview
+
+QLoRA (Quantized Low-Rank Adaptation) enables fine-tuning your local model directly on the device based on actual usage patterns.
+
+**Key benefits:**
+- Model specializes to your domain automatically
+- Zero data exfiltration (all training is local)
+- Small adapters (< 64 MB)
+- Hot-swappable without restart
+- Works on Raspberry Pi and edge devices
+
+---
+
+## How It Works
+
+1. **Logging**: Runtime records prompts and responses locally
+2. **Trigger**: After N requests (default: 100), training starts automatically
+3. **Training**: Creates LoRA adapter specialized to your data
+4. **Encryption**: Adapter encrypted with device-specific key
+5. **Hot-swap**: New adapter loads automatically, improving responses
+
+---
+
+## Configuration
+
+```json5
+{
+  lora_training: {
+    enabled: true,
+    trigger_threshold: 100,      // Train after 100 requests
+    max_adapter_size_mb: 64,
+    lora_rank: 8,
+    lora_alpha: 16.0,
+    epochs: 1,
+    batch_size: 4,
+    learning_rate: 0.0001,
+    adapter_dir: "lora_adapters",
+    encrypt_adapters: true,       // Recommended
+    auto_load_adapter: true,
+    max_training_time_secs: 1800, // 30 minutes
+    training_threads: 4
+  }
+}
+```
+
+---
+
+## Usage
+
+### Automatic Training
+
+Just use Runtime normally. After 100 requests, training happens automatically in the background:
+
+```bash
+# Make requests as usual
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{"model": "phi3", "messages": [...]}'
+
+# After 100 requests, training starts automatically
+# Logs will show: "Training threshold reached, starting LoRA training..."
+```
+
+### Check Training Status
+
+```bash
+curl http://localhost:8080/v1/lora/status
+
+# Response:
+{
+  "status": "training",  # or "idle", "completed"
+  "total_examples": 100,
+  "current_adapter": "lora_adapters/adapter_20240115.gguf",
+  "last_training_started": "2024-01-15T10:00:00Z"
+}
+```
+
+---
+
+## Example: Domain Specialization
+
+**Before training** (base Phi-3):
+```
+User: "What's the SLA for P1 incidents?"
+Model: "I don't have specific SLA information..."
+```
+
+**After training** (100+ support desk conversations):
+```
+User: "What's the SLA for P1 incidents?"
+Model: "P1 incidents have a 1-hour response SLA and 4-hour resolution
+target based on your support tier..."
+```
+
+The model learned from your actual support conversations!
+
+---
+
+## Performance Tuning
+
+### Faster Training (Lower Quality)
+
+```json5
+{
+  lora_rank: 4,
+  epochs: 1,
+  batch_size: 8
+}
+```
+
+### Better Quality (Slower)
+
+```json5
+{
+  lora_rank: 16,
+  epochs: 2,
+  batch_size: 2
+}
+```
+
+### Resource-Constrained Devices
+
+```json5
+{
+  lora_rank: 4,
+  batch_size: 1,
+  training_threads: 2,
+  trigger_threshold: 50
+}
+```
+
+---
+
+## Training Times
+
+| Device | Training Time (100 samples) | Adapter Size |
+|--------|----------------------------|--------------|
+| Raspberry Pi 5 | ~25 minutes | ~32 MB |
+| Desktop (16 cores) | ~8 minutes | ~32 MB |
+| MacBook Pro M1 | ~5 minutes | ~32 MB |
+
+---
+
+## Security
+
+### Encryption at Rest
+
+All adapters encrypted using AES-256-GCM with device-specific keys:
+
+```
+Device Hostname → SHA-256 → Encryption Key
+```
+
+Adapters are tied to the device they were trained on.
+
+### No Data Exfiltration
+
+- Training data never leaves the device
+- No network calls during training
+- Can run in completely air-gapped environments
+
+---
+
+## Adapter Management
+
+### List Adapters
+
+```bash
+ls -lh lora_adapters/
+# adapter_20240115_123045.gguf.enc
+# adapter_20240116_150230.gguf.enc
+```
+
+### Manual Load
+
+```bash
+curl -X POST http://localhost:8080/v1/lora/load \
+  -d '{"adapter_path": "lora_adapters/adapter_20240115.gguf.enc"}'
+```
+
+### Reset to Base Model
+
+```json5
+{
+  local_fallback: {
+    lora_adapter_path: null  // Remove adapter, use base model only
+  }
+}
+```
+
+---
+
+## Troubleshooting
+
+### Training Never Triggers
+
+- Check `lora_training.enabled: true`
+- Verify llama-finetune binary exists
+- Check logs: `RUST_LOG=debug cargo run`
+
+### Training Times Out
+
+- Reduce `trigger_threshold` to 50
+- Increase `max_training_time_secs` to 3600
+- Use fewer epochs
+
+### Adapter Too Large
+
+- Reduce `lora_rank` to 4
+- Increase `max_adapter_size_mb` if you have space
+
+---
+
+## Best Practices
+
+1. **Start small**: Begin with `trigger_threshold: 50`
+2. **Monitor quality**: Test responses before/after training
+3. **Backup adapters**: Copy to safe location periodically
+4. **Clear bad data**: Delete training DB if model learns incorrect patterns
+5. **Version adapters**: Name them with dates for easy rollback
+
+See [FIELD_MANUAL.md](https://github.com/igris-inertial/igris-runtime/blob/main/FIELD_MANUAL.md#on-device-qlora-fine-tuning-v13) for complete guide.

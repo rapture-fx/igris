@@ -1,0 +1,88 @@
+# Local LLM Fallback
+
+Automatic failover to on-device models when cloud providers are unreachable.
+
+---
+
+## Overview
+
+The local LLM fallback is Runtime's killer feature. When all cloud providers fail or are unreachable, Runtime automatically switches to an on-device model (Phi-3, Mistral, Llama, etc.) to continue serving requests.
+
+**Key benefits:**
+- Zero downtime when internet is unavailable
+- Works in air-gapped environments
+- Free inference (no API costs)
+- Low latency (~50-200ms first token)
+
+---
+
+## How It Works
+
+1. **Cloud first**: Runtime tries configured cloud providers
+2. **Timeout detection**: If providers don't respond within 5 seconds (configurable)
+3. **Automatic fallback**: Runtime switches to local model
+4. **User gets response**: Works exactly the same from the API perspective
+
+---
+
+## Configuration
+
+```json5
+{
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    context_size: 4096,
+    threads: 4,              // CPU threads
+    max_tokens: 512,
+    temperature: 0.7,
+    cost_per_1k_tokens: 0.0  // Free!
+  }
+}
+```
+
+---
+
+## Supported Models
+
+Any GGUF model compatible with llama.cpp:
+- **Phi-3 Mini** (2.3 GB) - Fast, CPU-optimized
+- **Mistral 7B** (4.1 GB) - Better quality
+- **Llama 3 8B** (4.7 GB) - High quality
+- **Gemma 7B** (4.5 GB) - Google's model
+
+See [Local Models](/docs/local-models) for complete list.
+
+---
+
+## Performance
+
+| Metric | Typical Performance |
+|--------|---------------------|
+| First token latency | 50-100ms |
+| Tokens/second | 15-30 (CPU) |
+| Model load time | 2-3 seconds |
+| Memory usage | ~2.5 GB |
+
+---
+
+## Usage
+
+Fallback activates automatically - no code changes needed:
+
+```bash
+# This request will use cloud if available, local if not
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "gpt-4",
+    "messages": [{"role": "user", "content": "Hello"}]
+  }'
+```
+
+---
+
+## Testing Offline
+
+Enable airplane mode and make a request - you'll still get a response from the local model.
+
+See [Quick Start](/docs/quickstart#test-offline-capability) for details.

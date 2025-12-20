@@ -1,0 +1,545 @@
+# Configuration Reference
+
+Complete configuration guide for `config.json5`.
+
+---
+
+## Configuration File Format
+
+Runtime uses JSON5 format (JSON with comments and trailing commas):
+
+```json5
+{
+  // Server settings
+  server: {
+    host: "0.0.0.0",
+    port: 8080
+  },
+
+  // Local LLM fallback
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf"
+  }
+}
+```
+
+Save as `config.json5` in the project root.
+
+---
+
+## Complete Configuration
+
+```json5
+{
+  // ============================================
+  // SERVER CONFIGURATION
+  // ============================================
+  server: {
+    host: "0.0.0.0",        // Bind address (0.0.0.0 = all interfaces)
+    port: 8080,             // HTTP port
+
+    // Optional TLS configuration
+    tls: {
+      enabled: false,
+      cert_path: "/path/to/cert.pem",
+      key_path: "/path/to/key.pem"
+    }
+  },
+
+  // ============================================
+  // LOCAL LLM FALLBACK
+  // ============================================
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+
+    // Context window (tokens)
+    context_size: 4096,     // Phi-3: 4096, Mistral/Llama: 8192
+
+    // CPU threads (match your cores)
+    threads: 4,
+
+    // Generation parameters
+    max_tokens: 512,
+    temperature: 0.7,
+    top_p: 0.9,
+    top_k: 40,
+    repeat_penalty: 1.1,
+
+    // Cost tracking (for metrics)
+    cost_per_1k_tokens: 0.0,
+
+    // Optional: GPU acceleration
+    n_gpu_layers: 0,        // 0 = CPU only, -1 = all layers to GPU
+    main_gpu: 0,            // GPU device ID
+
+    // Optional: Performance tuning
+    prompt_cache_dir: null, // Enable KV cache: "prompt_cache"
+    batch_size: null,       // Override batch size: 512
+
+    // Optional: LoRA adapter
+    lora_adapter_path: null // Path to trained adapter
+  },
+
+  // ============================================
+  // CLOUD PROVIDERS (Optional)
+  // ============================================
+  providers: [
+    {
+      id: "openai-gpt4",
+      name: "OpenAI GPT-4",
+      endpoint: "https://api.openai.com/v1",
+      model: "gpt-4-turbo-preview",
+      api_key_env: "OPENAI_API_KEY",
+      cost_per_1k_input: 0.01,
+      cost_per_1k_output: 0.03,
+      capabilities: ["reasoning", "coding"]
+    },
+    {
+      id: "anthropic-sonnet",
+      name: "Anthropic Claude Sonnet",
+      endpoint: "https://api.anthropic.com/v1",
+      model: "claude-3-5-sonnet-20240620",
+      api_key_env: "ANTHROPIC_API_KEY",
+      cost_per_1k_input: 0.003,
+      cost_per_1k_output: 0.015,
+      capabilities: ["reasoning", "analysis"]
+    }
+  ],
+
+  // ============================================
+  // ROUTING CONFIGURATION
+  // ============================================
+  routing: {
+    // Thompson Sampling (Bayesian optimization)
+    thompson_sampling: {
+      enabled: true,
+      exploration_rate: 0.1
+    },
+
+    // Speculative Execution (race providers)
+    speculative: {
+      enabled: true,
+      max_providers: 3,
+      first_token_timeout_ms: 5000  // Fallback to local after 5s
+    },
+
+    // Council Mode (multi-provider consensus)
+    council: {
+      enabled: true,
+      chairman: "anthropic-sonnet"
+    }
+  },
+
+  // ============================================
+  // REFLECTION AGENTS
+  // ============================================
+  reflection: {
+    enabled: true,
+    max_iterations: 3,
+    quality_threshold: 0.7,
+    temperature: 0.7,
+    early_stopping: true,
+    min_improvement_delta: 0.05,
+    verbose: false
+  },
+
+  // ============================================
+  // PLANNING AGENTS
+  // ============================================
+  planning: {
+    enabled: true,
+    max_steps: 10,
+    enable_reflection: true,
+    enable_tools: false,
+    max_tool_calls: 20
+  },
+
+  // ============================================
+  // TOOL USE
+  // ============================================
+  tools: {
+    enable_http: false,
+    enable_shell: false,
+    enable_filesystem: false,
+
+    // HTTP tool whitelist
+    allowed_http_domains: [
+      "api.weather.com",
+      "api.github.com"
+    ],
+
+    // Shell tool whitelist
+    allowed_shell_commands: [
+      "ls", "cat", "grep", "find"
+    ],
+
+    // Filesystem tool whitelist
+    allowed_filesystem_paths: [
+      "/tmp",
+      "/app/data"
+    ],
+
+    max_execution_time_ms: 30000,
+    max_concurrent_executions: 5
+  },
+
+  // ============================================
+  // MULTI-AGENT SWARMS
+  // ============================================
+  swarm: {
+    enabled: true,
+    size: 4,
+    max_concurrent: 4,
+    agent_timeout_ms: 30000,
+    dynamic_roles: true,
+    enable_bus: false,
+    consensus_candidates: 3
+  },
+
+  // ============================================
+  // MCP SWARM MODE
+  // ============================================
+  mcp: {
+    enabled: false,
+    mdns: true,
+    multicast: true,
+    persist: true,
+    storage_path: "mcp_contexts.db",
+    encryption_key: "${MCP_ENCRYPTION_KEY}"  // Optional custom key
+  },
+
+  // ============================================
+  // QLORA TRAINING
+  // ============================================
+  lora_training: {
+    enabled: false,
+    trigger_threshold: 100,
+    max_adapter_size_mb: 64,
+    lora_rank: 8,
+    lora_alpha: 16.0,
+    epochs: 1,
+    batch_size: 4,
+    learning_rate: 0.0001,
+    adapter_dir: "lora_adapters",
+    encrypt_adapters: true,
+    auto_load_adapter: true,
+    max_training_time_secs: 1800,
+    training_threads: 4
+  },
+
+  // ============================================
+  // STORAGE
+  // ============================================
+  storage: {
+    path: "igris.db"
+  },
+
+  // ============================================
+  // AUTHENTICATION
+  // ============================================
+  auth: {
+    enabled: false,
+    api_key: "${IGRIS_API_KEY}"
+  },
+
+  // ============================================
+  // RATE LIMITING
+  // ============================================
+  rate_limit: {
+    enabled: false,
+    requests_per_minute: 60,
+    burst: 10
+  },
+
+  // ============================================
+  // OBSERVABILITY
+  // ============================================
+  observability: {
+    metrics: {
+      enabled: true,
+      port: 8080,
+      path: "/metrics"
+    },
+    logging: {
+      level: "info",  // debug, info, warn, error
+      format: "json"  // json or text
+    }
+  }
+}
+```
+
+---
+
+## Environment Variables
+
+Use environment variables for secrets:
+
+```bash
+# API keys (referenced in config as ${VAR_NAME})
+export OPENAI_API_KEY="sk-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+export GROQ_API_KEY="gsk_..."
+
+# Runtime auth
+export IGRIS_API_KEY="your-secret-key"
+
+# MCP encryption (optional)
+export MCP_ENCRYPTION_KEY="your-encryption-key"
+
+# Logging
+export RUST_LOG="info"  # or debug, warn, error
+```
+
+---
+
+## Configuration Profiles
+
+### Minimal (Local Only)
+
+```json5
+{
+  server: { host: "0.0.0.0", port: 8080 },
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    threads: 4
+  }
+}
+```
+
+### Hybrid (Cloud + Local)
+
+```json5
+{
+  server: { host: "0.0.0.0", port: 8080 },
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    threads: 4
+  },
+  providers: [
+    {
+      id: "openai-gpt4",
+      endpoint: "https://api.openai.com/v1",
+      model: "gpt-4-turbo-preview",
+      api_key_env: "OPENAI_API_KEY"
+    }
+  ],
+  routing: {
+    speculative: {
+      enabled: true,
+      first_token_timeout_ms: 5000
+    }
+  }
+}
+```
+
+### Full Features
+
+```json5
+{
+  server: { host: "0.0.0.0", port: 8080 },
+  local_fallback: {
+    enabled: true,
+    model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+    threads: 4
+  },
+  reflection: { enabled: true },
+  planning: { enabled: true },
+  tools: {
+    enable_http: true,
+    allowed_http_domains: ["api.example.com"]
+  },
+  swarm: { enabled: true, size: 4 },
+  mcp: { enabled: true },
+  lora_training: { enabled: true, trigger_threshold: 100 }
+}
+```
+
+---
+
+## Configuration Validation
+
+**Validate your config:**
+```bash
+./igris-runtime validate-config --config config.json5
+```
+
+**Common validation errors:**
+- Missing `model_path`
+- Invalid JSON5 syntax
+- Non-existent file paths
+- Invalid environment variable references
+
+---
+
+## Performance Tuning Guide
+
+### For Low-Latency
+
+```json5
+{
+  local_fallback: {
+    threads: 8,              // Max out CPU cores
+    batch_size: 512,
+    prompt_cache_dir: "prompt_cache",  // Enable caching
+    n_gpu_layers: -1         // Use GPU if available
+  },
+  routing: {
+    speculative: {
+      first_token_timeout_ms: 2000  // Aggressive fallback
+    }
+  }
+}
+```
+
+### For Low Memory
+
+```json5
+{
+  local_fallback: {
+    model_path: "models/phi-3-mini-q2.gguf",  // Smaller quant
+    context_size: 2048,      // Reduce context
+    threads: 2,              // Fewer threads
+    max_tokens: 256
+  }
+}
+```
+
+### For High Quality
+
+```json5
+{
+  local_fallback: {
+    model_path: "models/llama3-8b-q8.gguf",  // Best quant
+    context_size: 8192,
+    temperature: 0.7
+  },
+  reflection: {
+    enabled: true,
+    max_iterations: 5,
+    quality_threshold: 0.85
+  }
+}
+```
+
+---
+
+## Security Best Practices
+
+### 1. Never Commit Secrets
+
+Use environment variables:
+```json5
+{
+  auth: {
+    api_key: "${IGRIS_API_KEY}"  // ✅ Good
+  }
+}
+```
+
+Not:
+```json5
+{
+  auth: {
+    api_key: "sk-secret-key-123"  // ❌ Bad
+  }
+}
+```
+
+### 2. Restrict Tool Access
+
+```json5
+{
+  tools: {
+    enable_shell: false,  // Disable by default
+    allowed_http_domains: ["api.trusted-domain.com"],  // Whitelist only
+    allowed_filesystem_paths: ["/app/data"]  // Limit access
+  }
+}
+```
+
+### 3. Enable Rate Limiting
+
+```json5
+{
+  rate_limit: {
+    enabled: true,
+    requests_per_minute: 60
+  }
+}
+```
+
+### 4. Use TLS in Production
+
+```json5
+{
+  server: {
+    tls: {
+      enabled: true,
+      cert_path: "/etc/ssl/certs/server.crt",
+      key_path: "/etc/ssl/private/server.key"
+    }
+  }
+}
+```
+
+---
+
+## Configuration Hot Reload
+
+Runtime does **not** support hot reload. Restart required after config changes:
+
+```bash
+# systemd
+sudo systemctl restart igris-runtime
+
+# Docker
+docker restart igris-runtime
+
+# Direct
+pkill igris-runtime && ./igris-runtime
+```
+
+---
+
+## Troubleshooting
+
+### Config Not Loading
+
+```bash
+# Check file exists
+ls -l config.json5
+
+# Validate JSON5 syntax
+./igris-runtime validate-config --config config.json5
+
+# Check env vars are set
+env | grep API_KEY
+```
+
+### Environment Variables Not Substituted
+
+```bash
+# Ensure format is correct: ${VAR_NAME}
+# Ensure variable is exported before starting Runtime
+export OPENAI_API_KEY="sk-..."
+```
+
+### Model Path Issues
+
+```bash
+# Use absolute paths or relative to working directory
+model_path: "/opt/igris-runtime/models/phi-3.gguf"  # Absolute
+model_path: "models/phi-3.gguf"  # Relative to pwd
+```
+
+---
+
+## Next Steps
+
+- [Deployment Guide](/docs/deployment) - Production deployment
+- [Local Models](/docs/local-models) - Download and configure models
+- [Observability](/docs/observability) - Monitoring and metrics

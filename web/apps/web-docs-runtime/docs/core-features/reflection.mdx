@@ -1,0 +1,94 @@
+# Reflection Agents
+
+Self-improving AI that critiques and refines its own responses.
+
+---
+
+## Overview
+
+Reflection agents implement a Generate → Critique → Regenerate loop where the model evaluates and improves its own outputs.
+
+**Key benefits:**
+- Higher quality responses
+- Self-correction of mistakes
+- Minimal human intervention
+- Configurable quality thresholds
+
+---
+
+## How It Works
+
+1. **Generate**: Model produces initial response
+2. **Critique**: Reflection agent scores quality (0.0-1.0) and identifies weaknesses
+3. **Regenerate**: Model creates improved version based on critique
+4. **Repeat**: Continues until quality threshold met or max iterations reached
+
+---
+
+## Configuration
+
+```json5
+{
+  reflection: {
+    enabled: true,
+    max_iterations: 3,
+    quality_threshold: 0.7,
+    early_stopping: true,
+    min_improvement_delta: 0.05
+  }
+}
+```
+
+---
+
+## Usage
+
+Enable reflection mode in your request:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -d '{
+    "model": "phi3",
+    "mode": "reflection",
+    "messages": [{"role": "user", "content": "Write a professional email"}]
+  }'
+```
+
+---
+
+## Example Output
+
+The response includes reflection metadata:
+
+```json
+{
+  "choices": [{
+    "message": {
+      "content": "Final improved response..."
+    }
+  }],
+  "reflection_metadata": {
+    "total_iterations": 2,
+    "final_score": 0.85,
+    "improvement": 0.25,
+    "threshold_met": true
+  }
+}
+```
+
+---
+
+## Use Cases
+
+- **Content generation**: Articles, emails, documentation
+- **Code review**: Self-critique code before returning
+- **Complex reasoning**: Multi-step problems with verification
+- **Quality assurance**: Ensure responses meet standards
+
+---
+
+## Performance
+
+- **Additional latency**: 2-3x base latency (due to iterations)
+- **Token usage**: ~2-4x tokens consumed
+- **Quality improvement**: Typical 20-30% score increase
