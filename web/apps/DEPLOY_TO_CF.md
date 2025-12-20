@@ -10,9 +10,9 @@
    - Go to: **Settings** → **Builds & deployments**
    - Update:
      - **Framework preset**: `None` or `Other`
-     - **Build command**: `cd web/apps && chmod +x build-combined-docs.sh && ./build-combined-docs.sh`
-     - **Build output directory**: `web/apps/combined-docs-output`
-     - **Root directory**: `/` (or leave blank)
+     - **Root directory**: `web` ⚠️ **IMPORTANT: Set this to `web`**
+     - **Build command**: `cd apps && chmod +x build-combined-docs.sh && ./build-combined-docs.sh`
+     - **Build output directory**: `apps/combined-docs-output`
 
 3. **Environment Variables**
    - Add: `NODE_VERSION=18` (or `20`)
