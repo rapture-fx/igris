@@ -144,12 +144,14 @@ export default function HomePage() {
           </div>
 
           {/* Right Column - Placeholder Box */}
-          <div className="w-full h-full min-h-screen rounded-xl border border-gray-300/60 shadow-sm overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
-            <img 
-              src="/img/rightcolumnfill.png" 
-              alt="Right column fill" 
-              className="w-full h-full object-cover"
-            />
+          <div className="w-full h-full min-h-screen p-3 sm:p-4 lg:p-6">
+            <div className="w-full h-full rounded-xl border border-gray-300/60 shadow-md overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#f6f6f4' }}>
+              <img 
+                src="/img/mnt.png" 
+                alt="Right column fill" 
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
           </div>
         </div>
       </div>
