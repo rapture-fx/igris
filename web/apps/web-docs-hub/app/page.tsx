@@ -1,7 +1,21 @@
+'use client';
+
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 export default function HomePage() {
+  const [overtureDocsUrl, setOvertureDocsUrl] = useState('/overture/docs');
+  const [runtimeDocsUrl, setRuntimeDocsUrl] = useState('/runtime/docs');
+
+  useEffect(() => {
+    // Use localhost URLs in development, relative paths in production
+    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+      setOvertureDocsUrl('http://localhost:3002/overture/docs');
+      setRuntimeDocsUrl('http://localhost:3004/runtime/docs');
+    }
+  }, []);
+
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#f6f6f4' }}>
       {/* Header - matching landing page */}
@@ -45,7 +59,7 @@ export default function HomePage() {
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Overture Card */}
           <a
-            href="http://localhost:3002/overture/docs"
+            href={overtureDocsUrl}
             className="group block rounded-3xl p-8 border border-gray-300/60 shadow-sm hover:shadow-md transition-all duration-300 hover:border-gray-400/80"
             style={{ backgroundColor: '#f6f6f4' }}
           >
@@ -73,7 +87,7 @@ export default function HomePage() {
 
           {/* Runtime Card */}
           <a
-            href="http://localhost:3004/runtime/docs"
+            href={runtimeDocsUrl}
             className="group block rounded-3xl p-8 border border-gray-300/60 shadow-sm hover:shadow-md transition-all duration-300 hover:border-gray-400/80"
             style={{ backgroundColor: '#f6f6f4' }}
           >
