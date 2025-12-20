@@ -12,6 +12,9 @@ module.exports = {
         'beige-secondary': '#f2f1ed',
         'border-light': 'rgba(156, 163, 175, 0.3)',
       },
+      borderColor: {
+        'border-light': 'rgba(156, 163, 175, 0.3)',
+      },
       fontFamily: {
         inter: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['Space Mono', 'Inconsolata', 'monospace'],
