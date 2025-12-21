@@ -1,6 +1,8 @@
 pub mod models;
 pub mod provider;
 pub mod inference;
+pub mod gpu_detect;
+pub mod benchmark;
 
 use anyhow::Result;
 use base64::Engine;
@@ -16,6 +18,7 @@ use tracing::{debug, info, warn};
 pub use models::ModelId;
 pub use provider::LocalLLMProviderAdapter;
 pub use inference::RealInferenceEngine;
+pub use gpu_detect::{detect_hardware, AcceleratorType, HardwareInfo};
 
 /// Configuration for local LLM fallback (v1.4 multi-model support)
 #[derive(Debug, Clone, Serialize, Deserialize)]

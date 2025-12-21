@@ -17,6 +17,12 @@ serde_json.workspace = true
 sha2.workspace = true
 base64.workspace = true
 
+# Real-time execution support (Phase 1, Dev 1)
+igris-rt = { path = "../igris-rt" }
+
+# GPU detection (Phase 1, Dev 2)
+num_cpus = "1.16"
+
 # LLM inference using llama.cpp (static linking)
 # NOTE: llama_cpp_rs requires platform-specific configuration and native library linking.
 # For production use, configure with appropriate features for your platform.
