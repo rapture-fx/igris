@@ -1,0 +1,99 @@
+# Collaborative Learning Across Devices
+
+Train AI models across multiple devices without sharing your data.
+
+---
+
+## What Is Federated Learning?
+
+Imagine you have 10 robots in different warehouses. Each robot learns from its local environment, but you want them all to benefit from each other's experience **without sending sensitive data to the cloud**.
+
+That's federated learning: devices learn together while keeping data private.
+
+---
+
+## What You Can Do
+
+**Learn From Your Fleet**
+- 50 delivery robots improve navigation by sharing learnings
+- Each robot keeps its data local (customer addresses, routes stay private)
+- Models get better across the entire fleet
+
+**Privacy-Compliant Training**
+- Healthcare devices learn from patient data without HIPAA violations
+- Financial systems improve without exposing transaction details
+- Industrial equipment shares insights without revealing proprietary processes
+
+**Edge AI That Gets Smarter**
+- Robots learn collaboratively even in air-gapped environments
+- No cloud required—peer-to-peer learning
+- Works offline with periodic synchronization
+
+---
+
+## How It Works (Simple Version)
+
+1. **Each device trains locally** on its own data
+2. **Devices share only model updates** (not raw data)
+3. **Updates are combined** using privacy-preserving techniques
+4. **Improved model goes back** to all devices
+
+Your data never leaves your device. Only encrypted mathematical updates are shared.
+
+---
+
+## Quick Start
+
+```json5
+{
+  federated: {
+    enabled: true,
+    min_participants: 3,  // Need at least 3 devices
+    enable_differential_privacy: true  // Extra privacy protection
+  }
+}
+```
+
+Now your devices can learn together while keeping data private.
+
+---
+
+## Real-World Use Cases
+
+**Retail Robotics**
+- 100 store robots learn optimal shelf restocking patterns
+- Customer behavior insights stay in each store
+- Chain-wide improvements without centralized data collection
+
+**Healthcare Edge AI**
+- Medical devices improve diagnostics from multiple hospitals
+- Patient data never leaves the hospital
+- HIPAA-compliant collaborative learning
+
+**Manufacturing Quality Control**
+- Inspection systems across factories share defect detection improvements
+- Proprietary manufacturing data stays local
+- Better AI without industrial espionage risks
+
+---
+
+## Why Use Federated Learning?
+
+**Privacy by Design**
+Your data never leaves your control. Only encrypted model updates are shared.
+
+**Regulatory Compliance**
+Meet GDPR, HIPAA, and data sovereignty requirements automatically.
+
+**Better AI Faster**
+Learn from 100 devices' experience instead of just one.
+
+**Works Anywhere**
+No cloud required. Devices can learn together on local networks or air-gapped environments.
+
+---
+
+## Next Steps
+
+- [Configuration](/docs/configuration) - Federated learning settings
+- [Robotics](/docs/core-features/robotics) - Use with robot fleets

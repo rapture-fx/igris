@@ -1,0 +1,178 @@
+# Human-in-the-Loop AI
+
+Add human oversight to AI decisions that matter.
+
+---
+
+## The Problem
+
+Your AI is making decisions, but some are too important to fully automate:
+
+- "Should I approve this $50,000 purchase order?"
+- "Should I deploy this new model to production?"
+- "Should I execute this safety-critical action?"
+
+You need AI to help, but you want humans to approve the big stuff.
+
+---
+
+## What You Can Do
+
+**Smart Automation with Safety Nets**
+- AI handles routine decisions automatically
+- Important decisions escalate to humans for approval
+- You define what's "important" with confidence thresholds
+
+**Safety-Critical Systems**
+- Industrial robots ask permission before risky moves
+- Medical AI escalates uncertain diagnoses
+- Financial systems require approval for large transactions
+
+**Compliance & Audit Trails**
+- Every decision logged with approval status
+- Human approvers identified
+- Full audit trail for regulatory compliance
+
+---
+
+## How It Works
+
+1. **AI makes a decision** and calculates confidence (0-100%)
+2. **High confidence** (e.g., 90%+)? → Auto-approve, execute immediately
+3. **Low confidence**? → Pause and ask human for approval
+4. **Human approves or rejects** via dashboard/API
+5. **Action executes** or is cancelled based on approval
+
+---
+
+## Quick Start
+
+```json5
+{
+  hitl: {
+    enabled: true,
+    auto_approve_threshold: 0.9,  // Auto-approve if 90%+ confident
+    timeout_secs: 300  // Wait 5 minutes for human response
+  }
+}
+```
+
+Now your AI will:
+- Auto-approve decisions it's confident about
+- Escalate uncertain decisions to humans
+- Timeout and take safe default action if no response
+
+---
+
+## Real-World Examples
+
+### Manufacturing Quality Control
+
+```
+AI: "This part has a defect (confidence: 95%)"
+→ Auto-rejected, no human needed
+
+AI: "This part might have a defect (confidence: 65%)"
+→ Escalates to quality inspector
+→ Inspector reviews image
+→ Inspector approves/rejects
+```
+
+### Autonomous Delivery Robots
+
+```
+AI: "Navigate to loading dock (confidence: 98%)"
+→ Executes immediately
+
+AI: "Obstacle detected, should I take alternate route? (confidence: 60%)"
+→ Escalates to operator
+→ Operator reviews camera feed
+→ Operator approves new route
+```
+
+### Financial Trading System
+
+```
+AI: "Execute $500 trade (confidence: 95%)"
+→ Auto-approved, executes
+
+AI: "Execute $50,000 trade (confidence: 85%)"
+→ Escalates to trader
+→ Trader reviews market conditions
+→ Trader approves/rejects
+```
+
+---
+
+## Why Use Human-in-the-Loop?
+
+**Build Trust Gradually**
+Start with human approval for everything, then increase automation as confidence grows.
+
+**Regulatory Compliance**
+Many industries require human oversight for certain decisions. HITL gives you that.
+
+**Risk Management**
+High-stakes decisions get human review. Low-stakes decisions run automatically.
+
+**Explainable AI**
+Humans see the AI's reasoning and confidence before approving actions.
+
+---
+
+## Configuration Options
+
+### Auto-Approve Threshold
+
+```json5
+{
+  hitl: {
+    auto_approve_threshold: 0.9  // 90% confidence required for auto-approval
+  }
+}
+```
+
+Higher = more conservative (more human approvals)
+Lower = more automated (fewer escalations)
+
+### Timeout Behavior
+
+```json5
+{
+  hitl: {
+    timeout_secs: 300  // Wait 5 minutes for human
+  }
+}
+```
+
+What happens if human doesn't respond in time? You decide:
+- Take safe default action
+- Reject the decision
+- Retry later
+
+---
+
+## Integrations
+
+**Dashboard UI**
+- Web interface for approval requests
+- See AI's reasoning and confidence
+- Approve/reject with one click
+
+**Slack/Teams Notifications**
+- Get alerted when AI needs approval
+- Respond directly from chat
+- Track approval history
+
+**REST API**
+- Build custom approval workflows
+- Integrate with existing systems
+- Programmatic approval/rejection
+
+---
+
+## Next Steps
+
+- [Configuration](/docs/configuration) - Full HITL settings
+- [Safety](/docs/core-features/robotics#safety--compliance) - Safety-critical deployments
+- [API Reference](/docs/api-reference) - Approval API endpoints

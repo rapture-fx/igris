@@ -1,0 +1,261 @@
+# Test Before You Deploy
+
+Simulate chaos and test your AI systems before they go to production.
+
+---
+
+## The Problem
+
+You're deploying AI to robots, edge devices, or critical systems. Questions you need answered:
+
+- "What happens if 20% of my robots lose connectivity?"
+- "Can my swarm still function if the leader fails?"
+- "How does my AI perform under network delays?"
+
+**Testing in production is risky.** You need a safe way to break things first.
+
+---
+
+## What You Can Do
+
+**Virtual Testing Environments**
+- Simulate 100 AI agents without 100 physical devices
+- Test swarm behavior in a controlled environment
+- Find bugs before deployment
+
+**Chaos Engineering**
+- Inject random failures into your system
+- See how your AI handles problems
+- Build confidence in resilience
+
+**Performance Benchmarking**
+- Measure response times under load
+- Test scalability limits
+- Validate performance requirements
+
+---
+
+## Quick Start
+
+```json5
+{
+  simulation: {
+    enabled: true,
+    env_type: "virtual_swarm",  // Simulate multi-agent system
+    chaos_enabled: true,  // Inject random failures
+    failure_rate: 0.1  // 10% failure rate
+  }
+}
+```
+
+Now you can test your AI system with simulated chaos before deploying to real devices.
+
+---
+
+## Chaos Engineering
+
+### What It Does
+
+Randomly breaks things in your system to test resilience:
+
+- **Network failures**: Agents lose connectivity
+- **Process crashes**: Agents go offline unexpectedly
+- **Resource exhaustion**: Low memory, slow responses
+- **Leader failures**: Swarm leaders crash
+
+### Why It Matters
+
+```
+❌ Without chaos testing:
+Deploy to 50 robots → Leader fails → Entire fleet stops working
+
+✅ With chaos testing:
+Simulate 50 robots → Kill leader → Swarm elects new leader in 2s
+→ Deploy with confidence
+```
+
+### Example Test
+
+```rust
+// Simulate 50-robot warehouse fleet
+simulation.spawn_agents(50);
+
+// Enable chaos: 20% random failure rate
+simulation.enable_chaos(0.2);
+
+// Run for 1000 steps (simulated hours of operation)
+simulation.run(1000);
+
+// Check results
+assert!(simulation.active_agents > 40); // 80%+ uptime despite chaos
+```
+
+**What you learn:**
+- How many failures your system can tolerate
+- How quickly swarms recover from leader loss
+- Whether your system degrades gracefully
+
+---
+
+## Virtual Swarm Testing
+
+Test multi-agent systems without physical hardware.
+
+### Before: Physical Testing
+
+```
+Need: 10 robots ($50,000)
+Setup time: Days
+Test iteration: Slow (recharge, reset, redeploy)
+Risk: Damage expensive hardware
+```
+
+### After: Virtual Testing
+
+```
+Need: One laptop
+Setup time: Seconds
+Test iteration: Instant (reset simulation)
+Risk: Zero (it's just software)
+```
+
+### Example
+
+```bash
+# Create virtual swarm with 100 agents
+simulation = create_virtual_swarm(100);
+
+# Test leader election
+leader = simulation.elect_leader();
+
+# Kill leader
+simulation.kill_agent(leader);
+
+# Verify new leader elected
+assert!(simulation.has_leader());
+assert!(simulation.time_to_elect < 3_seconds);
+```
+
+**Test scenarios:**
+- Leader failure and recovery
+- Network partitions (split-brain)
+- Consensus voting under high load
+- Task distribution across agents
+
+---
+
+## Performance Benchmarking
+
+Measure what matters before you deploy.
+
+### Benchmark Examples
+
+**Swarm Leader Election**
+- Metric: Time to elect new leader
+- Target: < 2 seconds
+- Test: Kill leader, measure recovery time
+
+**Multi-Agent Consensus**
+- Metric: Time to reach consensus with N agents
+- Target: < 5 seconds for 100 agents
+- Test: Submit task, measure voting time
+
+**Inference Under Load**
+- Metric: Tokens/second with concurrent requests
+- Target: 50 tokens/s on Raspberry Pi 4
+- Test: Simulate 10 concurrent users
+
+### Run Benchmarks
+
+```bash
+# Run built-in benchmarks
+cargo run --release -- benchmark swarm_election
+
+Results:
+- Leader election: 1.8s (✅ under 2s target)
+- Consensus (100 agents): 4.2s (✅ under 5s target)
+- Inference throughput: 52 tok/s (✅ meets target)
+```
+
+---
+
+## ROS2 / Gazebo Integration
+
+Test real robot behaviors in simulation.
+
+**Gazebo Support:**
+- Simulate robot physics and sensors
+- Test navigation algorithms
+- Validate AI commands before physical deployment
+
+**Example workflow:**
+1. Develop AI navigation system
+2. Test in Gazebo simulation first
+3. Validate performance and safety
+4. Deploy to real robot with confidence
+
+---
+
+## Real-World Use Cases
+
+### Autonomous Vehicle Testing
+
+```
+Before physical deployment:
+→ Simulate 1000 hours of driving
+→ Inject sensor failures (10% failure rate)
+→ Test edge cases (bad weather, obstacles)
+→ Validate fail-safe behaviors
+→ Only then deploy to real vehicle
+```
+
+### Warehouse Robot Fleet
+
+```
+Before $500K fleet deployment:
+→ Simulate 50-robot warehouse
+→ Test task allocation algorithms
+→ Inject network failures
+→ Verify no deadlocks or race conditions
+→ Measure throughput under load
+→ Deploy confidently
+```
+
+### Industrial AI System
+
+```
+Before safety-critical deployment:
+→ Run chaos tests for 100+ hours
+→ Verify watchdog triggers correctly
+→ Test fail-safe modes
+→ Validate regulatory compliance
+→ Document test results for audit
+→ Deploy to production
+```
+
+---
+
+## Benefits
+
+**Catch Bugs Early**
+Find problems in simulation, not in production with real customers.
+
+**Build Confidence**
+Know your system can handle failures before they happen.
+
+**Faster Development**
+Test iterations in seconds, not hours/days with physical hardware.
+
+**Lower Costs**
+Don't buy 100 robots to test 100-agent scenarios.
+
+**Regulatory Compliance**
+Document testing for safety certifications (ISO 26262, etc.).
+
+---
+
+## Next Steps
+
+- [Robotics](/docs/core-features/robotics) - Deploy tested systems to real robots
+- [Safety & Compliance](/docs/core-features/robotics#safety--compliance) - Safety-critical testing
+- [Configuration](/docs/configuration) - Simulation settings

@@ -1,0 +1,181 @@
+# Robotics & Industrial AI
+
+Deploy AI on robots, autonomous vehicles, and industrial equipment.
+
+---
+
+## What You Can Build
+
+**Autonomous Mobile Robots (AMRs)**
+- Warehouse robots that navigate and respond to voice commands
+- Delivery robots that understand natural language instructions
+- Inspection robots with AI-powered visual analysis
+
+**Industrial Automation**
+- Manufacturing equipment with conversational interfaces
+- Quality control systems with AI decision-making
+- Predictive maintenance with human-in-the-loop approval
+
+**Multi-Robot Systems**
+- Coordinated robot fleets with shared AI knowledge
+- Distributed task allocation with consensus voting
+- Centralized monitoring of edge AI deployments
+
+---
+
+## Key Features
+
+### ROS2 Integration
+
+Connect your AI to the Robot Operating System 2 (ROS2) ecosystem.
+
+**What you get:**
+- Send navigation goals to robots via AI commands
+- Receive sensor data and robot status in real-time
+- Coordinate multiple robots in the same system
+
+**Example use case:**
+"Navigate to the loading dock" → AI converts to ROS2 navigation goal → Robot executes autonomously
+
+### Sensor & Actuator Control
+
+Let your AI interact with the physical world.
+
+**Supported hardware:**
+- Cameras (USB/CSI) for visual input
+- LIDAR for environment mapping
+- GPIO pins for custom sensors and actuators
+
+**Example use case:**
+AI analyzes camera feed → Detects anomaly → Triggers alert via GPIO
+
+### Safety & Compliance
+
+Deploy AI in safety-critical environments with confidence.
+
+**Built-in safety features:**
+- Watchdog timers that trigger fail-safe modes
+- Audit logging for regulatory compliance (ISO 26262, IEC 61508)
+- Emergency stop capabilities
+- Health monitoring and diagnostics
+
+**Example use case:**
+AI loses connectivity → Watchdog triggers → Robot enters fail-safe mode automatically
+
+### Fleet Management
+
+Monitor and control hundreds of edge AI devices from one place.
+
+**Centralized control:**
+- Register devices automatically
+- Push configuration updates fleet-wide
+- Collect telemetry in real-time
+- Monitor health and performance
+
+**Example use case:**
+Deploy new AI model to 50 warehouse robots simultaneously from central dashboard
+
+---
+
+## Quick Start
+
+### Enable ROS2 Integration
+
+```json5
+{
+  ros2: {
+    enabled: true,
+    node_name: "igris_runtime_node",
+    enable_nav2: true
+  }
+}
+```
+
+Now your AI can send navigation commands to ROS2-enabled robots.
+
+### Enable Safety Features
+
+```json5
+{
+  safety: {
+    enabled: true,
+    watchdog_timeout_secs: 5,
+    auto_failsafe: true,
+    enable_audit_log: true
+  }
+}
+```
+
+Your AI now has built-in safety monitoring and compliance logging.
+
+### Connect to Fleet Manager
+
+```json5
+{
+  fleet: {
+    enabled: true,
+    overture_endpoint: "https://your-fleet.example.com",
+    agent_id: "robot-warehouse-01"
+  }
+}
+```
+
+Your device now reports to central fleet management.
+
+---
+
+## Real-World Examples
+
+### Warehouse Automation
+
+Deploy AI on autonomous mobile robots (AMRs) for warehouse operations:
+
+- Voice-controlled navigation: "Move to aisle 5, shelf B"
+- Visual inspection: "Check if the pallet is properly stacked"
+- Multi-robot coordination: AI assigns tasks across fleet
+- Safety compliance: Automatic fail-safe when humans detected
+
+### Agricultural Robotics
+
+AI-powered farm equipment with edge processing:
+
+- Crop health monitoring via camera analysis
+- Autonomous navigation between fields
+- Privacy-preserving data: Training happens on-device
+- Works offline in remote locations
+
+### Industrial Quality Control
+
+AI inspection systems in manufacturing:
+
+- Visual defect detection with cameras
+- Human approval for critical decisions
+- Audit trail for compliance
+- Fleet-wide model updates
+
+---
+
+## Why Use Runtime for Robotics?
+
+**Works Offline**
+Robots often operate in areas with poor connectivity. Runtime works 100% offline.
+
+**Safety First**
+Built-in watchdog timers, fail-safe modes, and compliance logging for industrial use.
+
+**Edge Processing**
+All AI happens on the robot—no cloud latency, no privacy concerns.
+
+**ROS2 Compatible**
+Integrates seamlessly with existing ROS2 robotics infrastructure.
+
+**Fleet Scale**
+Manage thousands of robots from a central control plane.
+
+---
+
+## Next Steps
+
+- [Configuration](/docs/configuration) - Full robotics configuration options
+- [Deployment](/docs/deployment) - Deploy to Raspberry Pi, Jetson, etc.
+- [Safety & Compliance](/docs/core-features/safety) - Safety-critical deployments
