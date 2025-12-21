@@ -216,9 +216,21 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
   const [filteredResults, setFilteredResults] = useState<typeof searchIndex>([]);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [hubUrl, setHubUrl] = useState('/');
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const modalInputRef = useRef<HTMLInputElement>(null);
+
+  // Set hub URL based on environment
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (window.location.hostname === 'localhost') {
+        setHubUrl('http://localhost:3001');
+      } else {
+        setHubUrl('https://docs.igrisinertial.com/');
+      }
+    }
+  }, []);
 
   // Auto-expand parent if child is active
   useEffect(() => {
@@ -390,13 +402,13 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
         <div className="flex h-full flex-col bg-beige-primary rounded-2xl shadow-md border border-border-light">
           {/* Logo Section */}
           <div className="h-20 flex items-center px-7 pt-6 pb-4">
-            <Link href="/docs" className="flex items-center">
+            <a href={hubUrl} className="flex items-center">
               <img
                 src="/img/igris-logo-34.png"
                 alt="Igris Logo"
                 className="h-6 w-auto"
               />
-            </Link>
+            </a>
           </div>
 
           {/* Search Bar */}
