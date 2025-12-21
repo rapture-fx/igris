@@ -213,5 +213,53 @@
     auto_sync_config: true,  // Auto-sync configuration
     enable_telemetry: true,  // Enable telemetry upload
     telemetry_interval_secs: 60  // Telemetry upload interval (1 minute)
+  },
+
+  // Federated Learning (NEW in v1.9 - Phase 3, Dev 11)
+  federated: {
+    enabled: false,  // Enable federated learning
+    min_participants: 3,  // Minimum participants for aggregation
+    privacy_budget: 1.0,  // Epsilon for differential privacy
+    noise_scale: 0.1,  // Noise scale for DP
+    enable_differential_privacy: true,  // Enable DP noise
+    aggregation_strategy: "federated_averaging",  // Strategy: federated_averaging, weighted_averaging, median, trimmed_mean
+    max_update_size_mb: 100,  // Max update size in MB
+    update_timeout_secs: 300,  // Update timeout (5 minutes)
+    enable_secure_aggregation: false  // Enable secure aggregation (MPC)
+  },
+
+  // Dynamic Model Management (NEW in v1.9 - Phase 3, Dev 12)
+  model_manager: {
+    enabled: false,  // Enable dynamic model management
+    auto_select: true,  // Auto-select model based on task
+    auto_download: false,  // Auto-download missing models
+    max_loaded_models: 2,  // Max models to keep in memory
+    models: [
+      // Example model specifications
+      // {
+      //   id: "gpt-4-mini",
+      //   path: "models/gpt-4-mini.gguf",
+      //   task_types: ["reasoning", "coding"],
+      //   max_tokens: 4096,
+      //   priority: 10,
+      //   memory_mb: 2048
+      // }
+    ]
+  },
+
+  // Human-in-the-Loop (NEW in v1.9 - Phase 3, Dev 13)
+  hitl: {
+    enabled: false,  // Enable HITL framework
+    auto_approve_threshold: 0.9,  // Auto-approve if confidence >= this
+    escalation_endpoint: null,  // Optional webhook for escalations
+    timeout_secs: 300  // Human approval timeout (5 minutes)
+  },
+
+  // Simulation & Testing (NEW in v1.9 - Phase 3, Dev 14)
+  simulation: {
+    enabled: false,  // Enable simulation mode
+    env_type: "virtual_swarm",  // Environment: virtual_swarm, gazebo, isaac_sim
+    chaos_enabled: false,  // Enable chaos injection
+    failure_rate: 0.1  // Chaos failure rate (10%)
   }
 }
