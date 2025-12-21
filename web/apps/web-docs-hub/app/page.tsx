@@ -55,8 +55,8 @@ export default function HomePage() {
                   {/* Overture Card */}
                   <a
                     href={overtureDocsUrl}
-                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 shadow-sm hover:shadow-sm transition-all duration-300"
-                    style={{ backgroundColor: '#f6f6f4' }}
+                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 hover:shadow-sm transition-all duration-300"
+                    style={{ backgroundColor: '#f6f6f4', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -77,8 +77,8 @@ export default function HomePage() {
                   {/* Runtime Card */}
                   <a
                     href={runtimeDocsUrl}
-                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 shadow-sm hover:shadow-sm transition-all duration-300"
-                    style={{ backgroundColor: '#f6f6f4' }}
+                    className="group block w-full max-w-sm rounded-xl p-3 border border-gray-300/60 hover:shadow-sm transition-all duration-300"
+                    style={{ backgroundColor: '#f6f6f4', boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)' }}
                   >
                     <div className="flex items-center justify-between">
                       <div>
@@ -103,19 +103,10 @@ export default function HomePage() {
             <footer className="text-gray-900 font-inter pb-3 sm:pb-4 lg:pb-6">
               <div className="flex flex-col items-center gap-4 md:gap-6">
                 <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 text-center">
-                  <Link href="/terms" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                    Terms of Service
-                  </Link>
-                  <Link href="/privacy" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                    Privacy Policy
-                  </Link>
-                  <Link href="/cookies" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
-                    Cookie Policy
-                  </Link>
-                  <p className="text-sm text-gray-500 font-inter">
+                  <p className="text-xs text-gray-500 font-inter">
                     support@igris-inertial.com
                   </p>
-                  <span className="text-sm text-gray-500 font-inter">
+                  <span className="text-xs text-gray-500 font-inter">
                     © 2025 Igris Inertial.
                   </span>
                 </div>
