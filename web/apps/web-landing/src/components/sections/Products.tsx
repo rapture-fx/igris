@@ -48,7 +48,7 @@ export default function Products() {
 
               {/* Left Column - Product Cards (stacked vertically) */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div className="flex flex-col gap-6 w-full">
+                <div className="flex flex-col gap-6 w-full max-w-2xl">
                   {/* Overture Card */}
                   <Link href="/overture" className="group">
                     <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
