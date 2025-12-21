@@ -24,10 +24,9 @@ export default function HomePage() {
           {/* Left Column - Header, Content, Footer */}
           <div className="flex flex-col justify-between min-h-screen py-2 pr-6">
             {/* Header */}
-            <header className="font-inter pt-3 sm:pt-4 lg:pt-6">
-              <div className="flex items-center justify-between w-full">
-                <div className="flex items-center">
-                  <Link href="/" className="flex items-center">
+              <header className="font-inter pt-3 sm:pt-4 lg:pt-6">
+                <div className="flex items-center justify-start w-full">
+                  <Link href="https://igrisinertial.com" className="flex items-center">
                     <img
                       src="/img/igris-logo-34.png"
                       alt="Igris Inertial"
@@ -36,16 +35,7 @@ export default function HomePage() {
                     />
                   </Link>
                 </div>
-                <div className="flex items-center space-x-6">
-                  <Link
-                    href="https://igrisinertial.com"
-                    className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
-                  >
-                    Back to Home
-                  </Link>
-                </div>
-              </div>
-            </header>
+              </header>
 
             {/* Centered Content Section */}
             <div className="flex-1 flex items-center justify-center">
@@ -111,8 +101,8 @@ export default function HomePage() {
 
             {/* Footer */}
             <footer className="text-gray-900 font-inter pb-3 sm:pb-4 lg:pb-6">
-              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
-                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
+              <div className="flex flex-col items-center gap-4 md:gap-6">
+                <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6 text-center">
                   <Link href="/terms" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                     Terms of Service
                   </Link>
@@ -129,16 +119,6 @@ export default function HomePage() {
                     © 2025 Igris Inertial.
                   </span>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <div className="flex items-center">
-                    <img
-                      src="/img/igris-logo-34.png"
-                      alt="Igris Inertial"
-                      width={20}
-                      height={20}
-                    />
-                  </div>
-                </div>
               </div>
             </footer>
           </div>
@@ -149,7 +129,7 @@ export default function HomePage() {
               <img 
                 src="/img/mnt.png" 
                 alt="Right column fill" 
-                className="max-w-full max-h-full object-contain"
+                className="w-3/4 h-3/4 object-contain"
               />
             </div>
           </div>
