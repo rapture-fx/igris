@@ -1,0 +1,230 @@
+# Intelligent Model Selection
+
+Automatically choose the best AI model for each task.
+
+---
+
+## The Problem
+
+You have multiple AI models:
+- Small fast model for simple tasks
+- Large powerful model for complex reasoning
+- Specialized model for code generation
+
+**Manual approach:** You pick which model to use for each request
+
+**Smart approach:** Runtime picks the best model automatically
+
+---
+
+## What You Get
+
+**Automatic Model Selection**
+- "Write code" → Automatically uses code-specialized model
+- "Simple math" → Automatically uses fast small model
+- "Complex reasoning" → Automatically uses powerful large model
+
+**Hot-Swapping**
+- Switch models in < 200ms without restarting
+- Zero downtime when changing models
+- Users don't notice the switch
+
+**Memory-Efficient**
+- Only load models you're actually using
+- Automatically unload rarely-used models
+- Keep your fastest models in memory
+
+---
+
+## How It Works
+
+1. **You configure models** with their capabilities and priorities
+2. **User asks a question** → Runtime analyzes the task type
+3. **Runtime picks best model** based on task, priority, and what's loaded
+4. **Model executes** → Response returned
+5. **Usage tracked** → Popular models stay loaded, rare ones get unloaded
+
+---
+
+## Quick Start
+
+### Configure Your Models
+
+```json5
+{
+  model_manager: {
+    enabled: true,
+    auto_select: true,
+    max_loaded_models: 2,  // Keep 2 models in memory
+    models: [
+      {
+        id: "fast-model",
+        path: "models/phi-3-mini.gguf",
+        task_types: ["chat", "simple_qa"],
+        priority: 5,
+        memory_mb: 2048
+      },
+      {
+        id: "reasoning-model",
+        path: "models/llama-3-8b.gguf",
+        task_types: ["reasoning", "analysis"],
+        priority: 10,
+        memory_mb: 4096
+      },
+      {
+        id: "code-model",
+        path: "models/codellama-7b.gguf",
+        task_types: ["coding", "debugging"],
+        priority: 10,
+        memory_mb: 3584
+      }
+    ]
+  }
+}
+```
+
+Now Runtime automatically picks:
+- **fast-model** for chat and simple questions
+- **reasoning-model** for complex analysis
+- **code-model** for programming tasks
+
+---
+
+## Real-World Examples
+
+### Customer Support Chatbot
+
+```
+User: "What's your return policy?"
+→ Uses fast-model (simple FAQ)
+→ Response in 0.5 seconds
+
+User: "I got charged twice but only one item arrived, and I used a coupon code that expired. What should I do?"
+→ Uses reasoning-model (complex multi-part query)
+→ Response in 2 seconds with better quality
+```
+
+### Development Assistant
+
+```
+User: "Explain Docker in simple terms"
+→ Uses fast-model (simple explanation)
+
+User: "Write a Kubernetes deployment YAML for a microservice with health checks and auto-scaling"
+→ Uses code-model (specialized for code generation)
+```
+
+### Multi-Purpose AI Agent
+
+```
+Simple chat → fast-model (low latency)
+Complex reasoning → reasoning-model (better quality)
+Code generation → code-model (specialized)
+```
+
+**Memory limit:** Max 2 models loaded
+**Runtime manages:** Keeps popular models in memory, swaps out rarely-used ones
+
+---
+
+## Priority System
+
+Higher priority = chosen first when multiple models match
+
+```json5
+{
+  models: [
+    {
+      id: "model-a",
+      task_types: ["coding"],
+      priority: 5  // Lower priority
+    },
+    {
+      id: "model-b",
+      task_types: ["coding"],
+      priority: 10  // Higher priority - chosen first
+    }
+  ]
+}
+```
+
+Use priority to:
+- Favor higher-quality models over faster ones
+- Prefer newer model versions
+- Prioritize specialized models over generalists
+
+---
+
+## Memory Management
+
+**Problem:** You have 5 models configured but only 8 GB RAM
+
+**Solution:** Runtime keeps your most-used models loaded
+
+```json5
+{
+  model_manager: {
+    max_loaded_models: 2  // Only 2 in memory at once
+  }
+}
+```
+
+**Automatic unloading:**
+1. Load fast-model and code-model (both used frequently)
+2. User asks reasoning question → Need reasoning-model
+3. Runtime unloads least-recently-used model (make space)
+4. Runtime loads reasoning-model
+5. Responds to user
+
+You never run out of memory. Runtime manages it automatically.
+
+---
+
+## Hot-Swapping
+
+Switch models without restarting:
+
+```bash
+# Via API
+curl -X POST http://localhost:8080/v1/models/swap \
+  -d '{"model_id": "reasoning-model"}'
+
+# Next request uses the new model
+```
+
+**Use cases:**
+- Deploy new model version without downtime
+- Switch to specialized model for specific workflows
+- A/B test different models
+
+---
+
+## Benefits
+
+**Better User Experience**
+- Fast models for simple tasks (low latency)
+- Powerful models for complex tasks (better quality)
+- Users get best of both worlds
+
+**Cost Efficiency**
+- Don't waste GPU on simple tasks
+- Use powerful (expensive) models only when needed
+- Maximize hardware utilization
+
+**Operational Simplicity**
+- One endpoint, multiple models
+- Automatic selection—no manual routing
+- Self-managing memory
+
+**Flexibility**
+- Add new models without code changes
+- Update model priorities on the fly
+- Mix local and cloud models
+
+---
+
+## Next Steps
+
+- [Configuration](/docs/configuration) - Full model management options
+- [Local Models](/docs/local-models) - Download and configure models
+- [Performance Tuning](/docs/deployment#performance) - Optimize for your hardware

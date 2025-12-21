@@ -23,7 +23,7 @@ export default function Header() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
       setDocsHubUrl('http://localhost:3001');
-      setConsoleUrl('http://localhost:3004');
+      setConsoleUrl('http://localhost:3005');
     } else {
       setDocsHubUrl('https://docs.igrisinertial.com/');
       setConsoleUrl('https://admin.igris-inertial.com');

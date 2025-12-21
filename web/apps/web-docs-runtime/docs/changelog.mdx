@@ -4,6 +4,174 @@ All notable changes to Igris Runtime are documented here. The format is based on
 
 ---
 
+## [1.9.0] - 2025-12-21 ✨ Advanced Intelligence & Scale
+
+**What's New:** Train AI across devices, switch models automatically, add human oversight, and test with chaos engineering.
+
+### Multi-Device Learning (Federated Learning)
+
+Train your AI across multiple devices without sharing sensitive data.
+
+**What you can do:**
+- Improve AI across 50 robots without centralizing customer data
+- Privacy-compliant learning for healthcare, finance, retail
+- Works offline—devices learn together on local networks
+
+**Quick start:**
+```json5
+{ federated: { enabled: true, min_participants: 3 } }
+```
+
+### Smart Model Selection
+
+Let Runtime automatically pick the best model for each task.
+
+**What you get:**
+- Fast model for simple questions, powerful model for complex reasoning
+- Switch models in < 200ms without restart
+- Keep only your most-used models in memory
+
+**Example:** Chat uses fast-model, code generation uses specialized code-model automatically.
+
+### Human Oversight for Critical Decisions
+
+Add approval workflows for AI decisions that matter.
+
+**Use cases:**
+- Industrial robots ask permission before risky moves
+- Financial systems require approval for large transactions
+- Medical AI escalates uncertain diagnoses
+
+**How it works:** AI auto-approves when confident (90%+), escalates uncertain decisions to humans.
+
+### Test Before You Deploy
+
+Break things safely with chaos testing and virtual swarms.
+
+**What you can test:**
+- Simulate 100 robots without buying 100 robots
+- Inject random failures to test resilience
+- Benchmark performance under load
+
+**Example:** Test leader election by killing the leader—verify new leader elected in < 2s.
+
+---
+
+## [1.8.0] - 2025-12-20 🤖 Robotics & Industrial AI
+
+**What's New:** Control robots, connect to ROS2, deploy in safety-critical environments, manage device fleets.
+
+### Robot Control (ROS2 Integration)
+
+Connect your AI to robots and autonomous systems.
+
+**What you can do:**
+- "Navigate to loading dock" → AI sends ROS2 navigation command
+- Multi-robot coordination in warehouses
+- Works with existing ROS2 infrastructure
+
+**Quick start:**
+```json5
+{ ros2: { enabled: true, enable_nav2: true } }
+```
+
+### Hardware Integration (Sensors & Actuators)
+
+Let your AI see, hear, and control hardware.
+
+**Supported hardware:**
+- Cameras (USB/CSI) for visual input
+- LIDAR for environment mapping
+- GPIO pins for custom sensors/actuators
+
+**Example:** AI analyzes camera feed → Detects issue → Triggers alert via GPIO.
+
+### Safety for Critical Systems
+
+Deploy AI where safety matters.
+
+**Features:**
+- Watchdog timers trigger fail-safe if AI freezes
+- ISO 26262 / IEC 61508 compliance hooks
+- Audit logging for regulatory requirements
+
+**Use cases:** Autonomous vehicles, industrial robots, medical devices.
+
+### Fleet Management
+
+Control hundreds of edge devices from one dashboard.
+
+**What you get:**
+- Register devices automatically
+- Push updates to entire fleet
+- Monitor health and performance in real-time
+
+**Example:** Deploy new AI model to 50 warehouse robots simultaneously.
+
+---
+
+## [1.7.0] - 2025-12-18 ⚡ Core Reliability & Performance
+
+**What's New:** Faster inference, persistent memory, better error handling, multi-modal support.
+
+### Guaranteed Response Times
+
+Execute critical AI tasks with latency guarantees.
+
+**Priority levels:**
+- Critical: < 50ms response time
+- High: < 200ms
+- Normal: < 1s
+- Low: < 5s
+
+**Use case:** Safety-critical systems where timing matters.
+
+### Automatic GPU Optimization
+
+Runtime detects your hardware and configures itself for best performance.
+
+**What happens:**
+- Detects NVIDIA/AMD GPU or Apple Silicon
+- Recommends optimal settings for your hardware
+- Benchmarks performance automatically
+
+**Result:** 2-5x faster inference without manual tuning.
+
+### Persistent Agent Memory
+
+Your AI remembers conversations across restarts.
+
+**Features:**
+- Semantic search over past interactions
+- Long-term context retention
+- Cache frequently-used responses
+
+**Example:** AI remembers customer preferences from last week's conversation.
+
+### Intelligent Error Recovery
+
+AI automatically retries failed operations with smart backoff.
+
+**What it handles:**
+- Network timeouts (retry with exponential backoff)
+- Rate limits (wait 60s, then retry)
+- Fatal errors (fail immediately, don't waste time)
+
+**Result:** More reliable AI in production.
+
+### Vision & Audio Input (Beta)
+
+Send images and audio to your AI.
+
+**Early support for:**
+- Image analysis (ready for OpenCV integration)
+- Audio transcription (ready for Whisper integration)
+- Base64 encoding for API transmission
+
+**Status:** Foundation in place, full integration coming soon.
+
+---
+
 ## [1.6.0] - 2025-12-15
 
 ### Added
@@ -382,14 +550,14 @@ All notable changes to Igris Runtime are documented here. The format is based on
 
 ## Upcoming Releases
 
-### [1.7.0] - Q1 2026 (Planned)
+### [1.10.0] - Q1 2026 (Planned)
 
 #### Features
-- [ ] Model hot-swapping (no restart needed)
-- [ ] Multi-model support (run multiple models concurrently)
-- [ ] Distributed training across MCP swarm
-- [ ] Enhanced agent types (code generation, research)
 - [ ] WebAssembly plugins for extensibility
+- [ ] Enhanced agent types (code generation, research)
+- [ ] Distributed training across MCP swarm
+- [ ] Embeddings API support
+- [ ] Vision model support (multimodal)
 
 #### Improvements
 - [ ] Faster MCP context sync
@@ -397,18 +565,127 @@ All notable changes to Igris Runtime are documented here. The format is based on
 - [ ] Improved reflection quality scoring
 - [ ] Enhanced tool sandboxing
 
-### [1.8.0] - Q2 2026 (Planned)
+### [1.11.0] - Q2 2026 (Planned)
 
 #### Features
-- [ ] Embeddings API support
-- [ ] Vision model support (multimodal)
 - [ ] Custom tool framework
 - [ ] Advanced caching strategies
 - [ ] Multi-language support (Python SDK, TypeScript SDK)
+- [ ] Enhanced ROS2 integration (ROS2 Humble/Iron)
+- [ ] Production-ready sensor integrations
 
 ---
 
 ## Migration Guides
+
+### Migrating to v1.9.0 (Phase 3: Advanced Intelligence)
+
+**No breaking changes.** All Phase 3 features are opt-in.
+
+**To enable Federated Learning:**
+```json5
+{
+  federated: {
+    enabled: true,
+    min_participants: 3,
+    enable_differential_privacy: true
+  }
+}
+```
+
+**To enable Dynamic Model Management:**
+```json5
+{
+  model_manager: {
+    enabled: true,
+    auto_select: true,
+    max_loaded_models: 2
+  }
+}
+```
+
+**To enable Human-in-the-Loop:**
+```json5
+{
+  hitl: {
+    enabled: true,
+    auto_approve_threshold: 0.9,
+    timeout_secs: 300
+  }
+}
+```
+
+**To enable Simulation & Testing:**
+```json5
+{
+  simulation: {
+    enabled: true,
+    chaos_enabled: true,
+    failure_rate: 0.1
+  }
+}
+```
+
+### Migrating to v1.8.0 (Phase 2: Robotics & Edge)
+
+**No breaking changes.** All Phase 2 features are opt-in.
+
+**To enable ROS2 Integration:**
+```json5
+{
+  ros2: {
+    enabled: true,
+    node_name: "igris_runtime_node",
+    enable_nav2: true
+  }
+}
+```
+
+**To enable Sensors & Actuators:**
+```json5
+{
+  sensors: {
+    enabled: true,
+    gpio_enabled: true,
+    camera_enabled: true,
+    allowed_gpio_pins: [17, 18, 27, 22]
+  }
+}
+```
+
+**To enable Safety & Certification:**
+```json5
+{
+  safety: {
+    enabled: true,
+    watchdog_timeout_secs: 5,
+    auto_failsafe: true,
+    enable_audit_log: true
+  }
+}
+```
+
+**To enable Swarm Coordination:**
+```json5
+{
+  swarm_coordination: {
+    enabled: true,
+    quorum_size: 3,
+    enable_voting: true
+  }
+}
+```
+
+**To enable Fleet Management:**
+```json5
+{
+  fleet: {
+    enabled: true,
+    overture_endpoint: "https://overture.example.com",
+    agent_id: "robot-1"
+  }
+}
+```
 
 ### Migrating to v1.6.0 (MCP Swarm + QLoRA)
 

@@ -74,6 +74,61 @@ Igris Runtime is built with Rust for maximum performance, reliability, and safet
 - Cost tracking
 - Circuit breakers
 
+### 5. Robotics & Edge Components (Phase 2)
+
+**ROS2 Integration** ([igris-ros2](https://github.com/igris-inertial/igris-runtime)):
+- DDS pub/sub messaging
+- Nav2 autonomous navigation
+- Multi-robot coordination
+
+**Sensor & Actuator Tooling** ([igris-sensors](https://github.com/igris-inertial/igris-runtime)):
+- GPIO control (Raspberry Pi)
+- Camera interfaces
+- LIDAR integration
+
+**Safety & Certification** ([igris-safety](https://github.com/igris-inertial/igris-runtime)):
+- Watchdog timers
+- Safety modes (Normal/FailSafe/EmergencyStop)
+- ISO 26262 / IEC 61508 hooks
+- Audit logging
+
+**Swarm Coordination** ([igris-swarm](https://github.com/igris-inertial/igris-runtime)):
+- Raft-style leader election
+- Distributed task voting
+- Conflict resolution
+
+**Fleet Management** ([igris-fleet](https://github.com/igris-inertial/igris-runtime)):
+- Centralized control via Overture
+- Agent registration
+- Real-time telemetry
+- Config synchronization
+
+### 6. Advanced Intelligence Components (Phase 3)
+
+**Federated Learning** ([igris-federated](https://github.com/igris-inertial/igris-runtime)):
+- Privacy-preserving collaborative learning
+- QLoRA aggregation (4 strategies)
+- Differential privacy
+- Secure aggregation
+
+**Dynamic Model Manager** ([igris-model-manager](https://github.com/igris-inertial/igris-runtime)):
+- Task-based model selection
+- Hot-swapping (< 200ms)
+- LRU unloading
+- Usage analytics
+
+**Human-in-the-Loop** ([igris-hitl](https://github.com/igris-inertial/igris-runtime)):
+- Approval workflows
+- Auto-approve thresholds
+- Context snapshots
+- REST API integration
+
+**Simulation & Testing** ([igris-simulation](https://github.com/igris-inertial/igris-runtime)):
+- Virtual swarm environments
+- Chaos engineering
+- Benchmarking suite
+- Gazebo/Isaac Sim integration
+
 ---
 
 ## Request Flow
@@ -334,18 +389,38 @@ Races multiple providers in parallel:
 - **Local inference**: llama.cpp (via llama-cpp-rs)
 - **Model format**: GGUF
 - **Fine-tuning**: QLoRA via llama-finetune
+- **Federated learning**: Custom implementation with differential privacy
+- **Model management**: Dynamic selection and hot-swapping
+
+### Robotics & Edge
+
+- **ROS2**: rclrs (Rust client library)
+- **Navigation**: Nav2 action client
+- **GPIO**: rppal (Raspberry Pi GPIO)
+- **Camera**: opencv-rust bindings
+- **LIDAR**: Custom point cloud processing
 
 ### Networking
 
 - **MCP discovery**: mDNS (mdns-sd)
 - **Context sync**: UDP multicast
 - **Metrics**: Prometheus (built-in)
+- **Fleet control**: TLS-secured HTTP/2
 
 ### Security
 
 - **Encryption**: AES-256-GCM (aes-gcm)
 - **TLS**: Rustls with AWS LC
 - **Hashing**: SHA-256
+- **Safety certification**: ISO 26262 / IEC 61508 hooks
+- **Audit logging**: Tamper-evident records
+
+### Simulation & Testing
+
+- **Virtual environments**: Custom simulation engine
+- **Chaos engineering**: Failure injection framework
+- **Benchmarking**: Performance testing suite
+- **ROS integration**: Gazebo / Isaac Sim support
 
 ---
 
