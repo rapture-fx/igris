@@ -158,7 +158,7 @@ export default function Header() {
             </div>
 
             <a
-              href={`${consoleUrl}/auth/login`}
+              href={consoleUrl ? `${consoleUrl}/auth/login` : '#'}
               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
             >
               Sign In
