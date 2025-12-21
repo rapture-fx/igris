@@ -56,7 +56,7 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex items-center justify-center px-8 py-12">
         <div className="w-full max-w-sm" style={{ backgroundColor: '#f6f6f4' }}>
           {/* Login Form */}
-          <div className="mb-6">
+          <div className="mb-8">
             <h2 className="text-xl font-inter mb-2" style={{ color: '#000000' }}>
               Welcome Back
             </h2>

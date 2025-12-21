@@ -238,13 +238,12 @@ export default function RegisterPage() {
       </div>
 
       {/* Right Side - Branding/Content */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center py-4 pr-4">
-        <div className="w-full h-full rounded-2xl border border-gray-300 flex items-center justify-center overflow-hidden shadow-lg" style={{ backgroundColor: '#f6f6f4' }}>
+      <div className="hidden lg:flex lg:w-1/2 items-center justify-center p-3 sm:p-4 lg:p-6">
+        <div className="w-full h-full rounded-xl border border-gray-300/60 overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#f6f6f4', boxShadow: '0 0 8px rgba(0, 0, 0, 0.1)' }}>
           <img
-            src="/schlep-logo-47.svg"
-            alt="Schlep Engine Diagram"
-            className="w-full h-full object-cover rotate-90 scale-150"
-            style={{ opacity: 0.5 }}
+            src="/mnt.png"
+            alt="Right column fill"
+            className="w-3/4 h-3/4 object-contain"
           />
         </div>
       </div>
