@@ -1,0 +1,28 @@
+[package]
+name = "igris-ros2"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Core async runtime
+tokio = { workspace = true }
+futures = { workspace = true }
+
+# Serialization
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+# Utilities
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+# ROS2 bindings (using rclrs - pure Rust ROS2 client library)
+# Note: In production, you'd use rclrs from crates.io when stable
+# For now, we'll create a minimal ROS2-compatible interface
+serde_derive = "1.0"
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["test-util"] }

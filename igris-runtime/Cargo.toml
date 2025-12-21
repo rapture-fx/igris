@@ -10,7 +10,7 @@ members = [
     "crates/igris-tools",
     "crates/igris-planning",
     "crates/mcp-server",
-    "crates/mcp-client", "crates/igris-rt", "crates/igris-memory", "crates/igris-recovery", "crates/igris-multimodal",
+    "crates/mcp-client", "crates/igris-rt", "crates/igris-memory", "crates/igris-recovery", "crates/igris-multimodal", "crates/igris-ros2", "crates/igris-sensors", "crates/igris-safety", "crates/igris-swarm", "crates/igris-fleet",
 ]
 resolver = "2"
 

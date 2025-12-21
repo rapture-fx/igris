@@ -150,5 +150,68 @@
     max_concurrent_tasks: 4,  // Maximum concurrent RT tasks
     enable_metrics: true,  // Track latency and deadline metrics
     warn_threshold_ms: 100  // Log warning if latency exceeds this
+  },
+
+  // ROS2 Integration (NEW in v1.8 - Phase 2, Dev 6)
+  ros2: {
+    enabled: false,  // Enable ROS2 integration
+    node_name: "igris_agent",  // ROS2 node name
+    namespace: "/igris",  // ROS2 namespace
+    domain_id: 0,  // ROS2 DDS domain ID
+    enable_nav2: false,  // Enable Nav2 integration
+    nav2_action_server: "/navigate_to_pose",  // Nav2 action server
+    qos_reliability: 1,  // 0=best_effort, 1=reliable
+    qos_depth: 10  // QoS history depth
+  },
+
+  // Sensors & Actuators (NEW in v1.8 - Phase 2, Dev 7)
+  sensors: {
+    enable_gpio: false,  // Enable GPIO support (Raspberry Pi, etc.)
+    enable_camera: false,  // Enable camera capture
+    enable_lidar: false,  // Enable LIDAR scanning
+    camera_device: "/dev/video0",  // Camera device path
+    camera_width: 640,  // Camera resolution width
+    camera_height: 480,  // Camera resolution height
+    lidar_connection: "serial",  // LIDAR connection type (serial, udp, tcp)
+    lidar_address: "/dev/ttyUSB0",  // LIDAR device/address
+    gpio_output_whitelist: [],  // Whitelisted GPIO pins for output
+    actuator_whitelist: [],  // Whitelisted actuator actions
+    safety_mode: true  // Require confirmation for actuators
+  },
+
+  // Safety & Certification (NEW in v1.8 - Phase 2, Dev 8)
+  safety: {
+    mode: "normal",  // Safety mode: normal, fail_safe, emergency_stop
+    enable_watchdog: false,  // Enable watchdog timer
+    watchdog_timeout_secs: 30,  // Watchdog timeout in seconds
+    auto_failsafe: true,  // Auto-transition to fail-safe on timeout
+    enable_audit_log: false,  // Enable audit logging
+    audit_log_path: "audit.log",  // Audit log file path
+    audit_log_max_entries: 10000,  // Max audit log entries in memory
+    iso26262_compliance: false,  // Enable ISO 26262 compliance hooks
+    machine_binding_id: null  // Machine binding ID for licensing
+  },
+
+  // Swarm Coordination (NEW in v1.8 - Phase 2, Dev 9)
+  swarm: {
+    enabled: false,  // Enable swarm coordination
+    election_timeout_secs: [5, 10],  // Election timeout range (min, max)
+    heartbeat_interval_secs: 2,  // Heartbeat interval
+    max_agents: 100,  // Maximum agents in swarm
+    enable_conflict_resolution: true,  // Enable conflict resolution
+    conflict_strategy: "voting"  // Strategy: leader_decides, voting, priority, consensus
+  },
+
+  // Fleet Management (NEW in v1.8 - Phase 2, Dev 10)
+  fleet: {
+    enabled: false,  // Enable fleet management
+    overture_endpoint: "https://overture.igris.dev",  // Overture endpoint URL
+    agent_id: null,  // Agent ID (auto-generated if null)
+    api_key_env: "FLEET_API_KEY",  // Fleet API key environment variable
+    enable_tls: true,  // Enable TLS for secure communication
+    sync_interval_secs: 300,  // Config sync interval (5 minutes)
+    auto_sync_config: true,  // Auto-sync configuration
+    enable_telemetry: true,  // Enable telemetry upload
+    telemetry_interval_secs: 60  // Telemetry upload interval (1 minute)
   }
 }
