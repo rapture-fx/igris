@@ -14,6 +14,7 @@ export default function Header() {
   const [mobileProductOpen, setMobileProductOpen] = useState(false);
   const [mobileResourcesOpen, setMobileResourcesOpen] = useState(false);
   const [docsHubUrl, setDocsHubUrl] = useState('https://docs.igrisinertial.com/');
+  const [consoleUrl, setConsoleUrl] = useState('https://admin.igris-inertial.com');
   const { openEarlyAccessModal } = useModal();
   const productDropdownRef = useRef<HTMLDivElement>(null);
   const resourcesDropdownRef = useRef<HTMLDivElement>(null);
@@ -22,8 +23,10 @@ export default function Header() {
   useEffect(() => {
     if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
       setDocsHubUrl('http://localhost:3001');
+      setConsoleUrl('http://localhost:3004');
     } else {
       setDocsHubUrl('https://docs.igrisinertial.com/');
+      setConsoleUrl('https://admin.igris-inertial.com');
     }
   }, []);
 
@@ -154,12 +157,12 @@ export default function Header() {
               )}
             </div>
 
-            <Link
-              href="/login"
+            <a
+              href={`${consoleUrl}/auth/login`}
               className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
             >
               Sign In
-            </Link>
+            </a>
 
             <button
               onClick={openEarlyAccessModal}
@@ -279,13 +282,13 @@ export default function Header() {
                 )}
               </div>
 
-              <Link
-                href="/login"
+              <a
+                href={`${consoleUrl}/auth/login`}
                 className="text-gray-700 hover:text-gray-900 transition-colors duration-200 font-medium text-sm font-inter"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Login
-              </Link>
+              </a>
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
