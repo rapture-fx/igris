@@ -141,5 +141,14 @@
     enable_reflection: true,
     enable_tools: true,
     max_tool_calls: 10
+  },
+
+  // Real-time execution (NEW in v1.7 - Phase 1, Dev 1)
+  rt: {
+    enabled: false,  // Enable real-time deterministic execution
+    priority_level: 1,  // 0=Low, 1=Normal, 2=High, 3=Critical
+    max_concurrent_tasks: 4,  // Maximum concurrent RT tasks
+    enable_metrics: true,  // Track latency and deadline metrics
+    warn_threshold_ms: 100  // Log warning if latency exceeds this
   }
 }

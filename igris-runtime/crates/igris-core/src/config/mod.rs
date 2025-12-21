@@ -25,6 +25,9 @@ pub struct IgrisConfig {
     /// Optional swarm mode configuration (v1.6)
     #[serde(default)]
     pub swarm: Option<SwarmRuntimeConfig>,
+    /// Optional real-time execution configuration (v1.7 - Phase 1, Dev 1)
+    #[serde(default)]
+    pub rt: Option<RtRuntimeConfig>,
 }
 
 impl Default for IgrisConfig {
@@ -42,6 +45,7 @@ impl Default for IgrisConfig {
             tools: Some(ToolRuntimeConfig::default()),
             planning: Some(PlanningRuntimeConfig::default()),
             swarm: Some(SwarmRuntimeConfig::default()),
+            rt: Some(RtRuntimeConfig::default()),
         }
     }
 }
@@ -503,6 +507,51 @@ impl Default for SwarmRuntimeConfig {
             dynamic_roles: false,
             enable_bus: false,
             consensus_candidates: default_swarm_consensus_candidates(),
+        }
+    }
+}
+
+/// Real-time execution configuration (v1.7 - Phase 1, Dev 1)
+/// Provides deterministic execution with bounded latency for critical AI inference tasks.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RtRuntimeConfig {
+    /// Enable real-time mode
+    #[serde(default)]
+    pub enabled: bool,
+    /// Default priority level (0=Low, 1=Normal, 2=High, 3=Critical)
+    #[serde(default = "default_rt_priority_level")]
+    pub priority_level: u8,
+    /// Maximum number of concurrent RT tasks
+    #[serde(default = "default_rt_max_concurrent_tasks")]
+    pub max_concurrent_tasks: usize,
+    /// Enable latency monitoring and metrics
+    #[serde(default = "default_true")]
+    pub enable_metrics: bool,
+    /// Warning threshold in milliseconds
+    #[serde(default = "default_rt_warn_threshold_ms")]
+    pub warn_threshold_ms: u64,
+}
+
+fn default_rt_priority_level() -> u8 {
+    1 // Normal priority
+}
+
+fn default_rt_max_concurrent_tasks() -> usize {
+    4
+}
+
+fn default_rt_warn_threshold_ms() -> u64 {
+    100
+}
+
+impl Default for RtRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            priority_level: default_rt_priority_level(),
+            max_concurrent_tasks: default_rt_max_concurrent_tasks(),
+            enable_metrics: true,
+            warn_threshold_ms: default_rt_warn_threshold_ms(),
         }
     }
 }

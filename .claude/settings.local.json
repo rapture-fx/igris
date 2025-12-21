@@ -35,7 +35,9 @@
       "Bash(pnpm pages:build:*)",
       "Bash(git submodule:*)",
       "Bash(cat:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(cargo new:*)",
+      "Bash(cargo build:*)"
     ],
     "deny": [],
     "ask": []
