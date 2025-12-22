@@ -196,7 +196,7 @@ export default function ProvidersPage() {
               Add your API keys for any model. One URL change and you're done.
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <code className="px-3 py-1.5 rounded-md bg-beige-secondary border border-border-light text-sm font-mono text-gray-900">
+              <code className="px-3 py-1.5 rounded-md bg-beige-primary border border-border-light text-sm font-mono text-gray-900">
                 {baseUrl}
               </code>
               <Button
