@@ -132,7 +132,7 @@ export default function TenantsPage() {
           </div>
           <Button
             variant="outline"
-            className="shadow-md"
+            className="shadow-sm"
             onClick={() => setShowCreateDialog(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -141,7 +141,7 @@ export default function TenantsPage() {
         </div>
 
         {/* Tenants Table */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle>Tenants</CardTitle>
             <CardDescription>
@@ -311,7 +311,7 @@ export default function TenantsPage() {
                 </p>
                 <Button
                   variant="outline"
-                  className="shadow-md"
+                  className="shadow-sm"
                   onClick={() => setShowCreateDialog(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -323,7 +323,7 @@ export default function TenantsPage() {
         </Card>
 
         {/* Info Card */}
-        <Card className="border-blue-200 bg-blue-50 shadow-md">
+        <Card className="border-blue-200 bg-blue-50 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
               <Building2 className="h-5 w-5 text-blue-700 flex-shrink-0 mt-0.5" />

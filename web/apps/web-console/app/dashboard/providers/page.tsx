@@ -225,7 +225,7 @@ export default function ProvidersPage() {
                 ))}
               </Select>
             )}
-            <Button variant="outline" className="shadow-md" onClick={() => setShowAddDialog(true)}>
+            <Button variant="outline" className="shadow-sm" onClick={() => setShowAddDialog(true)}>
               <Plus className="mr-2 h-4 w-4" />
               Add Provider
             </Button>
@@ -233,7 +233,7 @@ export default function ProvidersPage() {
         </div>
 
         {/* Providers Table */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               Your Providers
@@ -482,12 +482,12 @@ export default function ProvidersPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="shadow-md" onClick={() => setShowAddDialog(false)}>
+            <Button variant="outline" className="shadow-sm" onClick={() => setShowAddDialog(false)}>
               Cancel
             </Button>
             <Button
               variant="outline"
-              className="shadow-md"
+              className="shadow-sm"
               onClick={handleAddProvider}
               disabled={!newProvider || !newApiKey || addProviderMutation.isPending}
             >

@@ -927,7 +927,7 @@ export default function ObservabilityPage() {
                   >
                     <option>All tenants</option>
                   </Select>
-                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-beige-primary border border-border-light rounded-lg shadow-lg p-3 z-50">
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-beige-primary border border-border-light rounded-lg shadow-sm p-3 z-50">
                     <p className="text-xs text-gray-600">
                       Multi-tenant view available on Scale plan
                     </p>
@@ -950,7 +950,7 @@ export default function ObservabilityPage() {
                         <AlertCircle className="h-5 w-5 text-gray-600" />
                       </button>
                       {showTracingInfo && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-beige-primary border border-border-light rounded-lg shadow-lg p-4 z-50">
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-beige-primary border border-border-light rounded-lg shadow-sm p-4 z-50">
                           <div className="flex items-start gap-3">
                             <AlertCircle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
                             <div>
@@ -967,7 +967,7 @@ export default function ObservabilityPage() {
                     </div>
                     <Button
                       variant="outline"
-                      className="shadow-md text-red-600 border-red-300 hover:bg-red-50"
+                      className="shadow-sm text-red-600 border-red-300 hover:bg-red-50"
                       onClick={handleDeleteAllTraces}
                     >
                       Delete All Traces
@@ -975,7 +975,7 @@ export default function ObservabilityPage() {
                   </div>
                   <Button
                     variant="outline"
-                    className="shadow-md"
+                    className="shadow-sm"
                     onClick={() => setEnableFullTracing(false)}
                   >
                     Disable Full Tracing
@@ -984,7 +984,7 @@ export default function ObservabilityPage() {
               ) : (
                 <Button
                   variant="outline"
-                  className="shadow-md"
+                  className="shadow-sm"
                   onClick={() => setEnableFullTracing(true)}
                 >
                   Enable Full Tracing
@@ -992,11 +992,11 @@ export default function ObservabilityPage() {
               )}
               {tierConfig.fullFeatures && (
                 <>
-                  <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
+                  <Button variant="outline" className="shadow-sm" onClick={handleExportCSV}>
                     <Download className="h-4 w-4 mr-2" />
                     Export CSV
                   </Button>
-                  <Button variant="outline" className="shadow-md" onClick={handleExportJSON}>
+                  <Button variant="outline" className="shadow-sm" onClick={handleExportJSON}>
                     <Download className="h-4 w-4 mr-2" />
                     Export JSON
                   </Button>
@@ -1007,7 +1007,7 @@ export default function ObservabilityPage() {
         </div>
 
         {/* 1. REAL-TIME METRICS - Live updating every 5s */}
-        <Card className="border-border-light shadow-md bg-gradient-to-br from-beige-primary to-beige-primary">
+        <Card className="border-border-light shadow-sm bg-gradient-to-br from-beige-primary to-beige-primary">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-gray-900" />
@@ -1078,7 +1078,7 @@ export default function ObservabilityPage() {
 
         {/* Tier Upgrade Banner for Growth Users */}
         {!tierConfig.fullFeatures && (
-          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-md">
+          <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm">
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -1095,7 +1095,7 @@ export default function ObservabilityPage() {
                   </div>
                 </div>
                 <Button
-                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-md"
+                  className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                   onClick={() => router.push('/dashboard/settings?tab=billing')}
                 >
                   Upgrade to Scale
@@ -1107,7 +1107,7 @@ export default function ObservabilityPage() {
 
         {/* Metrics Grid */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6">
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Traces
@@ -1122,7 +1122,7 @@ export default function ObservabilityPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Avg Latency
@@ -1135,7 +1135,7 @@ export default function ObservabilityPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Cost
@@ -1148,7 +1148,7 @@ export default function ObservabilityPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Error Rate
@@ -1163,7 +1163,7 @@ export default function ObservabilityPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Speculative
@@ -1176,7 +1176,7 @@ export default function ObservabilityPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Retried
@@ -1191,7 +1191,7 @@ export default function ObservabilityPage() {
         </div>
 
         {/* Filters */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5 text-gray-900" />
@@ -1270,7 +1270,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.hasError ? 'bg-beige-primary shadow-md text-gray-900 border border-border-light' : ''}
+                className={filters.hasError ? 'bg-beige-primary shadow-sm text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, hasError: !prev.hasError }))}
               >
                 {filters.hasError && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1279,7 +1279,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.usedSpeculative ? 'bg-beige-primary shadow-md text-gray-900 border border-border-light' : ''}
+                className={filters.usedSpeculative ? 'bg-beige-primary shadow-sm text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, usedSpeculative: !prev.usedSpeculative }))}
               >
                 {filters.usedSpeculative && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1288,7 +1288,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.wasRetried ? 'bg-beige-primary shadow-md text-gray-900 border border-border-light' : ''}
+                className={filters.wasRetried ? 'bg-beige-primary shadow-sm text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, wasRetried: !prev.wasRetried }))}
               >
                 {filters.wasRetried && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1386,7 +1386,7 @@ export default function ObservabilityPage() {
         </Card>
 
         {/* Request Traces Table */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-5 w-5 text-gray-900" />
@@ -1415,7 +1415,7 @@ export default function ObservabilityPage() {
                 </div>
                 <div className="mt-8 max-w-2xl mx-auto">
                   <div className="relative group">
-                    <pre className="bg-beige-primary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-md">
+                    <pre className="bg-beige-primary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-sm">
 {`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
@@ -1559,7 +1559,7 @@ export default function ObservabilityPage() {
         </Card>
 
         {/* 3. PERFORMANCE MONITORING - Dedicated Section */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-gray-900" />
@@ -1614,7 +1614,7 @@ export default function ObservabilityPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-beige-primary border border-border-light rounded-md p-2 shadow-md">
+                            <div className="bg-beige-primary border border-border-light rounded-md p-2 shadow-sm">
                               <p className="text-xs text-gray-600">{payload[0].payload.day}</p>
                               <p className="text-sm font-semibold text-gray-900">{payload[0].value}%</p>
                             </div>
@@ -1787,7 +1787,7 @@ export default function ObservabilityPage() {
         </Card>
 
         {/* 4. COST INSIGHTS - 3-Panel Layout */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-gray-900" />
@@ -2395,7 +2395,7 @@ export default function ObservabilityPage() {
                                 }}
                               />
                               {/* Enhanced Tooltip */}
-                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-beige-primary border border-border-light rounded-lg shadow-lg z-50">
+                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-beige-primary border border-border-light rounded-lg shadow-sm z-50">
                                 <div className="space-y-1.5 text-xs">
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Provider:</span>
@@ -2483,7 +2483,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-primary shadow-md text-gray-900 border border-border-light')}
+                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-primary shadow-sm text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
                             // Optimistic update would go here
@@ -2495,7 +2495,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-primary shadow-md text-gray-900 border border-border-light')}
+                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-primary shadow-sm text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
                             // Optimistic update would go here

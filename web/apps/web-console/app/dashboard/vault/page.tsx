@@ -73,7 +73,7 @@ export default function VaultPage() {
         </div>
 
         {/* API Keys List */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Key className="h-5 w-5 text-gray-900" />

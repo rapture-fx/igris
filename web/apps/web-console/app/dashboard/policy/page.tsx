@@ -26,7 +26,7 @@ export default function PolicyPage() {
         </div>
 
         {/* Routing Mode Selection */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-medium">
               <Shield className="h-5 w-5 text-gray-900" />
@@ -41,7 +41,7 @@ export default function PolicyPage() {
             <div
               className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'cost'
-                  ? 'bg-beige-primary shadow-md border-border-light'
+                  ? 'bg-beige-primary shadow-sm border-border-light'
                   : 'border-border-light hover:bg-beige-primary'
               }`}
               onClick={() => setSelectedPolicy('cost')}
@@ -68,7 +68,7 @@ export default function PolicyPage() {
             <div
               className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'balanced'
-                  ? 'bg-beige-primary shadow-md border-border-light'
+                  ? 'bg-beige-primary shadow-sm border-border-light'
                   : 'border-border-light hover:bg-beige-primary'
               }`}
               onClick={() => setSelectedPolicy('balanced')}
@@ -95,7 +95,7 @@ export default function PolicyPage() {
             <div
               className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'quality'
-                  ? 'bg-beige-primary shadow-md border-border-light'
+                  ? 'bg-beige-primary shadow-sm border-border-light'
                   : 'border-border-light hover:bg-beige-primary'
               }`}
               onClick={() => setSelectedPolicy('quality')}
@@ -142,7 +142,7 @@ export default function PolicyPage() {
         </Card>
 
         {/* Advanced Features */}
-        <Card className="border-border-light shadow-md">
+        <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-medium">
               <Zap className="h-5 w-5 text-gray-900" />
@@ -216,7 +216,7 @@ export default function PolicyPage() {
         </Card>
 
         {/* EscapeVector Mode Notice */}
-        <Card className="border-border-light shadow-md bg-green-50">
+        <Card className="border-border-light shadow-sm bg-green-50">
           <CardContent className="pt-6">
             <div className="flex gap-3">
               <div className="flex-shrink-0">
@@ -236,7 +236,7 @@ export default function PolicyPage() {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button variant="outline" className="shadow-md">
+          <Button variant="outline" className="shadow-sm">
             Save Policy
           </Button>
         </div>
