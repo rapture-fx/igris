@@ -283,7 +283,7 @@ export default function ProvidersPage() {
                       return (
                         <tr
                           key={provider.id}
-                          className="border-b border-border-light hover:bg-beige-secondary transition-colors"
+                          className="border-b border-border-light hover:bg-beige-primary transition-colors"
                         >
                           <td className="py-3 px-4">
                             <div>

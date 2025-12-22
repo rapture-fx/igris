@@ -151,7 +151,7 @@ export default function TenantsPage() {
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-beige-secondary border-b border-border-light">
+                <thead className="bg-beige-primary border-b border-border-light">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                       Name
@@ -175,7 +175,7 @@ export default function TenantsPage() {
                 </thead>
                 <tbody className="bg-beige-primary divide-y divide-border-light">
                   {tenants.map((tenantItem) => (
-                    <tr key={tenantItem.id} className="hover:bg-beige-secondary transition-colors">
+                    <tr key={tenantItem.id} className="hover:bg-beige-primary transition-colors">
                       <td className="px-6 py-4">
                         <div>
                           <div className="font-medium text-gray-900 font-inter">

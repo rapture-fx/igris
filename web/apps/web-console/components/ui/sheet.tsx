@@ -92,7 +92,7 @@ const SheetClose = ({
 }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
   <button
     className={cn(
-      "rounded-md p-2 hover:bg-beige-secondary transition-colors",
+      "rounded-md p-2 hover:bg-beige-primary transition-colors",
       className
     )}
     onClick={onClick}
