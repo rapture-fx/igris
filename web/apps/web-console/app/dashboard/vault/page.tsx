@@ -93,7 +93,7 @@ export default function VaultPage() {
                 {keys.map((key) => (
                   <div
                     key={key.id}
-                    className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary hover:bg-beige-primary transition-colors"
+                    className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary hover:bg-beige-primary transition-colors"
                   >
                     <div className="flex items-center gap-4">
                       <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100 text-gray-900">
