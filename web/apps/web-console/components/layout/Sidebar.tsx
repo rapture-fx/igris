@@ -89,7 +89,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-beige-secondary rounded-2xl shadow-xl border border-border-light">
+        <div className="flex h-full flex-col bg-beige-primary rounded-2xl shadow-sm border border-border-light">
           {/* Logo Section */}
           <div className="h-20 flex items-center px-7 pt-6">
             <Link href="/dashboard" className="flex items-center">
@@ -112,8 +112,8 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       className={cn(
                         'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium font-inter transition-colors',
                         isActive
-                          ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light'
-                          : 'text-gray-700 hover:bg-beige-secondary hover:text-gray-900'
+                          ? 'bg-beige-secondary text-gray-900'
+                          : 'text-gray-700 hover:bg-beige-primary hover:text-gray-900'
                       )}
                       onClick={onClose}
                     >
@@ -128,7 +128,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
 
           {/* Footer Section */}
           <div className="p-4 flex-shrink-0">
-            <div className="bg-beige-secondary shadow-md border border-border-light rounded-xl p-4 space-y-4">
+            <div className="bg-beige-primary border border-border-light rounded-xl p-4 space-y-4">
               {/* Help Section */}
               <div>
                 <p className="text-xs font-medium font-inter text-gray-900 mb-1">
@@ -164,7 +164,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                   />
                   <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
                     <button
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-primary transition-colors text-left"
                       onClick={() => {
                         setShowProfileMenu(false);
                         // Billing logic will be implemented later
@@ -178,7 +178,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                     </button>
 
                     <button
-                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left border-t border-border-light mt-2 pt-4"
+                      className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-primary transition-colors text-left border-t border-border-light mt-2 pt-4"
                       onClick={() => {
                         setShowProfileMenu(false);
                         setShowLogoutDialog(true);
@@ -197,7 +197,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               <div className="flex items-center justify-between">
                 <button
                   onClick={() => setShowProfileMenu(true)}
-                  className="flex items-center gap-3 flex-1 hover:bg-beige-secondary rounded-lg p-2 transition-colors"
+                  className="flex items-center gap-3 flex-1 hover:bg-beige-primary rounded-lg p-2 transition-colors"
                 >
                   <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
                     {tenant ? getInitials(tenant.name) : 'U'}

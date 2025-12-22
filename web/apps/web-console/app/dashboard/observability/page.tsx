@@ -942,7 +942,7 @@ export default function ObservabilityPage() {
                   <div className="flex items-center gap-2">
                     <div className="relative">
                       <button
-                        className="p-1 hover:bg-beige-secondary rounded-md transition-colors"
+                        className="p-1 hover:bg-beige-primary rounded-md transition-colors"
                         onMouseEnter={() => setShowTracingInfo(true)}
                         onMouseLeave={() => setShowTracingInfo(false)}
                         onClick={() => setShowTracingInfo(!showTracingInfo)}
@@ -1007,7 +1007,7 @@ export default function ObservabilityPage() {
         </div>
 
         {/* 1. REAL-TIME METRICS - Live updating every 5s */}
-        <Card className="border-border-light shadow-md bg-gradient-to-br from-beige-primary to-beige-secondary">
+        <Card className="border-border-light shadow-md bg-gradient-to-br from-beige-primary to-beige-primary">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-gray-900" />
@@ -1270,7 +1270,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.hasError ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light' : ''}
+                className={filters.hasError ? 'bg-beige-primary shadow-md text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, hasError: !prev.hasError }))}
               >
                 {filters.hasError && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1279,7 +1279,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.usedSpeculative ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light' : ''}
+                className={filters.usedSpeculative ? 'bg-beige-primary shadow-md text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, usedSpeculative: !prev.usedSpeculative }))}
               >
                 {filters.usedSpeculative && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1288,7 +1288,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.wasRetried ? 'bg-beige-secondary shadow-md text-gray-900 border border-border-light' : ''}
+                className={filters.wasRetried ? 'bg-beige-primary shadow-md text-gray-900 border border-border-light' : ''}
                 onClick={() => setFilters(prev => ({ ...prev, wasRetried: !prev.wasRetried }))}
               >
                 {filters.wasRetried && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1353,7 +1353,7 @@ export default function ObservabilityPage() {
                 <h4 className="text-xs font-medium text-gray-600 mb-3">Saved Filter Presets</h4>
                 <div className="flex gap-2 flex-wrap mb-3">
                   {savedPresets.map((preset, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-beige-secondary border border-border-light rounded px-3 py-1">
+                    <div key={idx} className="flex items-center gap-2 bg-beige-primary border border-border-light rounded px-3 py-1">
                       <Button
                         variant="ghost"
                         size="sm"
@@ -1415,7 +1415,7 @@ export default function ObservabilityPage() {
                 </div>
                 <div className="mt-8 max-w-2xl mx-auto">
                   <div className="relative group">
-                    <pre className="bg-beige-secondary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-md">
+                    <pre className="bg-beige-primary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-md">
 {`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
@@ -1462,7 +1462,7 @@ export default function ObservabilityPage() {
                     {filteredTraces.map((trace) => (
                       <tr
                         key={trace.id}
-                        className="border-b border-border-light hover:bg-beige-secondary cursor-pointer transition-colors"
+                        className="border-b border-border-light hover:bg-beige-primary cursor-pointer transition-colors"
                         onClick={() => setSelectedTrace(trace)}
                       >
                         <td className="py-3 px-4 text-sm text-gray-900 font-inter">
@@ -1644,7 +1644,7 @@ export default function ObservabilityPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-border-light bg-beige-secondary">
+                      <tr className="border-b border-border-light bg-beige-primary">
                         <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
                         <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Reliability Score</th>
                         <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Status</th>
@@ -1652,7 +1652,7 @@ export default function ObservabilityPage() {
                     </thead>
                     <tbody>
                       {providerReliabilityMetrics.map((provider, index) => (
-                        <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                        <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
                           <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
                           <td className="text-right py-3 px-4">
                             <div className="flex items-center justify-end gap-2">
@@ -1696,7 +1696,7 @@ export default function ObservabilityPage() {
                   <div className="overflow-x-auto mb-6">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b border-border-light bg-beige-secondary">
+                        <tr className="border-b border-border-light bg-beige-primary">
                           <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
                           <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P50</th>
                           <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P75</th>
@@ -1708,7 +1708,7 @@ export default function ObservabilityPage() {
                       </thead>
                       <tbody>
                         {latencyCDFMetrics.percentileData.map((provider, index) => (
-                          <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                          <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
                             <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
                             <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p50}ms</td>
                             <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p75}ms</td>
@@ -1797,7 +1797,7 @@ export default function ObservabilityPage() {
           </CardHeader>
           <CardContent>
             {/* Total Spend Overview */}
-            <div className="mb-6 p-4 bg-beige-secondary rounded-lg border border-border-light">
+            <div className="mb-6 p-4 bg-beige-primary rounded-lg border border-border-light">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-600 mb-1">Total Spend (30 days)</p>
@@ -1986,7 +1986,7 @@ export default function ObservabilityPage() {
                     ))}
                   </select>
                 </div>
-                <div className="bg-beige-secondary rounded-lg p-4 border border-border-light">
+                <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <p className="text-xs text-gray-600 mb-1">Tenant Spend</p>
@@ -2042,7 +2042,7 @@ export default function ObservabilityPage() {
               <div className="space-y-6">
                 {/* Privacy Banner in Detail View when Full Tracing is OFF - Show First */}
                 {!enableFullTracing && (
-                  <div className="bg-beige-secondary border border-border-light rounded-md p-4">
+                  <div className="bg-beige-primary border border-border-light rounded-md p-4">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-gray-900 flex-shrink-0" />
                       <div>
@@ -2152,21 +2152,21 @@ export default function ObservabilityPage() {
                 <div>
                   <h3 className="text-sm font-medium text-gray-900 mb-3">Cost Breakdown</h3>
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                    <div className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
                       <span className="text-xs font-medium text-gray-900">Input</span>
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.input / selectedTrace.cost) * 100).toFixed(1)}%</span>
                         <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.input)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                    <div className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
                       <span className="text-xs font-medium text-gray-900">Output</span>
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.output / selectedTrace.cost) * 100).toFixed(1)}%</span>
                         <span className="text-xs font-medium text-gray-900">{formatCurrency(selectedTrace.cost_breakdown.output)}</span>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                    <div className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
                       <span className="text-xs font-medium text-gray-900">Overhead</span>
                       <div className="flex items-center gap-3">
                         <span className="text-xs text-gray-600">{((selectedTrace.cost_breakdown.overhead / selectedTrace.cost) * 100).toFixed(1)}%</span>
@@ -2189,7 +2189,7 @@ export default function ObservabilityPage() {
                             onClick={() => copyToClipboard(selectedTrace.prompt || '')}
                           />
                         </div>
-                        <div className="bg-beige-secondary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
+                        <div className="bg-beige-primary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
                           <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.prompt}</pre>
                         </div>
                       </div>
@@ -2201,7 +2201,7 @@ export default function ObservabilityPage() {
                             onClick={() => copyToClipboard(selectedTrace.completion || '')}
                           />
                         </div>
-                        <div className="bg-beige-secondary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
+                        <div className="bg-beige-primary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
                           <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.completion}</pre>
                         </div>
                       </div>
@@ -2213,7 +2213,7 @@ export default function ObservabilityPage() {
                 {enableFullTracing && selectedTrace.generation_params && tierConfig.fullFeatures && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 mb-3">Generation Parameters</h3>
-                    <div className="grid grid-cols-3 gap-4 bg-beige-secondary border border-border-light rounded-md p-4">
+                    <div className="grid grid-cols-3 gap-4 bg-beige-primary border border-border-light rounded-md p-4">
                       {selectedTrace.generation_params.temperature !== undefined && (
                         <div>
                           <p className="text-xs text-gray-600">Temperature</p>
@@ -2258,7 +2258,7 @@ export default function ObservabilityPage() {
                 {(selectedTrace.parent_request_id || selectedTrace.child_request_ids) && tierConfig.fullFeatures && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 mb-3">Request Chain</h3>
-                    <div className="bg-beige-secondary border border-border-light rounded-md p-4">
+                    <div className="bg-beige-primary border border-border-light rounded-md p-4">
                       <div className="flex items-center gap-3">
                         {selectedTrace.parent_request_id && (
                           <>
@@ -2297,7 +2297,7 @@ export default function ObservabilityPage() {
                     <h3 className="text-sm font-medium text-gray-900 mb-3">Timeline Markers</h3>
                     <div className="space-y-2">
                       {selectedTrace.timeline_markers.map((marker, idx) => (
-                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded border border-border-light">
+                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded border border-border-light">
                           <div className="flex items-center gap-3">
                             <span className="text-xs font-medium text-gray-900">{marker.name}</span>
                             <Badge variant="outline" className="text-xs">{marker.type.replace('_', ' ')}</Badge>
@@ -2385,7 +2385,7 @@ export default function ObservabilityPage() {
                         return (
                           <div key={idx} className="flex items-center gap-2 w-full group relative">
                             <span className="text-xs text-gray-600 w-20 flex-shrink-0">{trace.provider}</span>
-                            <div className="flex-1 relative h-5 bg-beige-secondary rounded min-w-0">
+                            <div className="flex-1 relative h-5 bg-beige-primary rounded min-w-0">
                               <div
                                 className="absolute h-full rounded border border-border-light"
                                 style={{
@@ -2446,7 +2446,7 @@ export default function ObservabilityPage() {
                     <h3 className="text-sm font-medium text-gray-900 mb-3">Retry Timeline</h3>
                     <div className="space-y-2">
                       {selectedTrace.retry_attempts.map((attempt, idx) => (
-                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-secondary rounded">
+                        <div key={idx} className="flex items-center justify-between py-2 px-3 bg-beige-primary rounded">
                           <div className="flex items-center gap-3">
                             <span className="text-xs font-medium text-gray-900">Try #{attempt.attempt_number}</span>
                             <span className="text-xs text-gray-600">{attempt.duration.toFixed(0)}ms</span>
@@ -2483,7 +2483,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-secondary shadow-md text-gray-900 border border-border-light')}
+                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-primary shadow-md text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
                             // Optimistic update would go here
@@ -2495,7 +2495,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-secondary shadow-md text-gray-900 border border-border-light')}
+                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-primary shadow-md text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
                             // Optimistic update would go here
@@ -2539,7 +2539,7 @@ export default function ObservabilityPage() {
                         {expandedSections.request ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                       </button>
                       {expandedSections.request && selectedTrace.request_body && (
-                        <pre className="bg-beige-secondary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
+                        <pre className="bg-beige-primary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
                           {JSON.stringify(selectedTrace.request_body, null, 2)}
                         </pre>
                       )}
@@ -2555,7 +2555,7 @@ export default function ObservabilityPage() {
                           {expandedSections.response ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
                         {expandedSections.response && (
-                          <pre className="bg-beige-secondary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
+                          <pre className="bg-beige-primary text-gray-900 p-3 rounded-md text-xs overflow-x-auto border border-border-light">
                             {JSON.stringify(selectedTrace.response_body, null, 2)}
                           </pre>
                         )}
@@ -2654,7 +2654,7 @@ export default function ObservabilityPage() {
                   {traceNotes[selectedTrace.id] && traceNotes[selectedTrace.id].length > 0 && (
                     <div className="space-y-3">
                       {traceNotes[selectedTrace.id].slice(-5).reverse().map((note, idx) => (
-                        <div key={note.id} className="bg-beige-secondary border border-border-light rounded-md p-3">
+                        <div key={note.id} className="bg-beige-primary border border-border-light rounded-md p-3">
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2">
                               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white font-semibold text-xs">

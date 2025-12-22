@@ -276,7 +276,7 @@ export default function UsagePage() {
                     </thead>
                     <tbody>
                       {(usage?.by_provider || []).map((provider) => (
-                        <tr key={provider.provider} className="border-b border-border-light hover:bg-beige-secondary">
+                        <tr key={provider.provider} className="border-b border-border-light hover:bg-beige-primary">
                           <td className="py-3 px-4 font-medium text-gray-900">
                             {provider.provider.charAt(0).toUpperCase() + provider.provider.slice(1)}
                           </td>
@@ -319,7 +319,7 @@ export default function UsagePage() {
                     </thead>
                     <tbody>
                       {((usage as any)?.top_models || []).map((model: any, index: number) => (
-                        <tr key={index} className="border-b border-border-light hover:bg-beige-secondary">
+                        <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
                           <td className="py-3 px-4 font-medium text-gray-900">
                             {model.model_name}
                           </td>
