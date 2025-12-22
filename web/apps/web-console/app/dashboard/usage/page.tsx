@@ -78,11 +78,11 @@ export default function UsagePage() {
             </p>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" className="shadow-md" onClick={handleExportCSV}>
+            <Button variant="outline" className="shadow-sm" onClick={handleExportCSV}>
               <Download className="mr-2 h-4 w-4" />
               Export CSV
             </Button>
-            <Button variant="outline" className="shadow-md" onClick={handleExportJSON}>
+            <Button variant="outline" className="shadow-sm" onClick={handleExportJSON}>
               <Download className="mr-2 h-4 w-4" />
               Export JSON
             </Button>
@@ -91,7 +91,7 @@ export default function UsagePage() {
 
         {/* Metrics Summary */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Requests
@@ -108,7 +108,7 @@ export default function UsagePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Cost
@@ -125,7 +125,7 @@ export default function UsagePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Avg Latency
@@ -142,7 +142,7 @@ export default function UsagePage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium text-gray-600">
                 Total Tokens
@@ -170,7 +170,7 @@ export default function UsagePage() {
 
           <TabsContent value={timeRange} className="space-y-6">
             {/* Requests & Cost Timeline */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle>Requests & Cost Over Time</CardTitle>
                 <CardDescription>Track your usage and spending</CardDescription>
@@ -208,7 +208,7 @@ export default function UsagePage() {
             {/* Provider Breakdown */}
             <div className="grid gap-6 md:grid-cols-2">
               {/* Cost by Provider */}
-              <Card className="border-border-light shadow-md">
+              <Card className="border-border-light shadow-sm">
                 <CardHeader>
                   <CardTitle>Cost by Provider</CardTitle>
                   <CardDescription>Spending distribution</CardDescription>
@@ -237,7 +237,7 @@ export default function UsagePage() {
               </Card>
 
               {/* Latency by Provider */}
-              <Card className="border-border-light shadow-md">
+              <Card className="border-border-light shadow-sm">
                 <CardHeader>
                   <CardTitle>Latency by Provider</CardTitle>
                   <CardDescription>Average response times</CardDescription>
@@ -257,7 +257,7 @@ export default function UsagePage() {
             </div>
 
             {/* Provider Table */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle>Provider Details</CardTitle>
                 <CardDescription>Detailed breakdown by provider</CardDescription>
@@ -301,7 +301,7 @@ export default function UsagePage() {
             </Card>
 
             {/* Top Models Table */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle>Top 10 Models by Spend</CardTitle>
                 <CardDescription>Most expensive models this period</CardDescription>

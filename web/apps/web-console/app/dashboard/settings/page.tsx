@@ -219,7 +219,7 @@ export default function SettingsPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="notifications">
-          <TabsList className="shadow-md border border-border-light mb-6">
+          <TabsList className="shadow-sm border border-border-light mb-6">
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
@@ -230,7 +230,7 @@ export default function SettingsPage() {
           {/* Team Tab */}
           <TabsContent value="team" className="space-y-6">
             {/* Invite Member */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5 text-gray-900" />
@@ -249,7 +249,7 @@ export default function SettingsPage() {
                     onChange={(e) => setInviteEmail(e.target.value)}
                     className="flex-1"
                   />
-                  <Button variant="outline" className="shadow-md">
+                  <Button variant="outline" className="shadow-sm">
                     Send Invite
                   </Button>
                 </div>
@@ -257,7 +257,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Team Members */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle>Team Members</CardTitle>
                 <CardDescription>Manage your team members and their roles</CardDescription>
@@ -285,7 +285,7 @@ export default function SettingsPage() {
 
           {/* Tenants Tab */}
           <TabsContent value="tenants" className="space-y-6">
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-gray-900" />
@@ -327,7 +327,7 @@ export default function SettingsPage() {
                         </div>
                         <Button
                           variant="outline"
-                          className="shadow-md"
+                          className="shadow-sm"
                           onClick={() => router.push('/dashboard/settings/tenants')}
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -353,7 +353,7 @@ export default function SettingsPage() {
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-6">
             {/* Current Plan */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5 text-gray-900" />
@@ -394,7 +394,7 @@ export default function SettingsPage() {
                         Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                       </p>
                     </div>
-                    <Button variant="outline" className="shadow-md" onClick={handlePlanUpgrade}>
+                    <Button variant="outline" className="shadow-sm" onClick={handlePlanUpgrade}>
                       {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
                     </Button>
                   </div>
@@ -414,7 +414,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Global Monthly Budget */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-gray-900" />
@@ -488,7 +488,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button variant="outline" className="shadow-md">
+                  <Button variant="outline" className="shadow-sm">
                     Save Budget Settings
                   </Button>
                 </div>
@@ -496,7 +496,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Payment Method */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle>Payment Method</CardTitle>
                 <CardDescription>Manage your payment methods</CardDescription>
@@ -507,7 +507,7 @@ export default function SettingsPage() {
                   <p className="text-gray-600 font-inter mb-4">
                     No payment method added
                   </p>
-                  <Button variant="outline" className="shadow-md">
+                  <Button variant="outline" className="shadow-sm">
                     Add Payment Method
                   </Button>
                 </div>
@@ -515,7 +515,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Invoices */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-gray-900" />
@@ -537,7 +537,7 @@ export default function SettingsPage() {
           {/* Security Tab */}
           <TabsContent value="security" className="space-y-6">
             {/* Two-Factor Authentication */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-gray-900" />
@@ -568,7 +568,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Active Sessions */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle>Active Sessions</CardTitle>
                 <CardDescription>Manage your active login sessions</CardDescription>
@@ -591,7 +591,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Danger Zone */}
-            <Card className="border-red-200 shadow-md">
+            <Card className="border-red-200 shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-red-700">
                   <Shield className="h-5 w-5" />
@@ -644,7 +644,7 @@ export default function SettingsPage() {
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">
             {/* Email Notifications */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-gray-900" />
@@ -690,7 +690,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Webhook Alerts */}
-            <Card className="border-border-light shadow-md">
+            <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Webhook className="h-5 w-5 text-gray-900" />
@@ -714,7 +714,7 @@ export default function SettingsPage() {
                     />
                     <Button
                       variant="outline"
-                      className="shadow-md"
+                      className="shadow-sm"
                       onClick={() => {
                         if (slackWebhook) {
                           alert('Test payload sent to webhook');
@@ -806,7 +806,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button variant="outline" className="shadow-md">
+                  <Button variant="outline" className="shadow-sm">
                     Save Alert Settings
                   </Button>
                 </div>

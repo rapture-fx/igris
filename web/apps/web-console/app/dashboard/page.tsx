@@ -26,7 +26,7 @@ function MetricCard({
   trend?: string;
 }) {
   return (
-    <Card className="border-border-light shadow-md hover:shadow-lg transition-shadow">
+    <Card className="border-border-light shadow-sm hover:shadow-sm transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-gray-600">
           {title}
@@ -163,7 +163,7 @@ export default function DashboardPage() {
 
         {/* Two Mini Charts: Requests/Cost last 7 days + Latency P95 last 24h */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="h-5 w-5 text-gray-900" />
@@ -197,7 +197,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-900" />
@@ -233,7 +233,7 @@ export default function DashboardPage() {
 
         {/* Top 5 Models by Spend and Provider Reliability */}
         <div className="grid gap-6 md:grid-cols-2">
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <DollarSign className="h-5 w-5 text-gray-900" />
@@ -256,7 +256,7 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border-light shadow-md">
+          <Card className="border-border-light shadow-sm">
             <CardHeader>
               <CardTitle>Provider Reliability</CardTitle>
               <CardDescription>Last 7 days uptime</CardDescription>
