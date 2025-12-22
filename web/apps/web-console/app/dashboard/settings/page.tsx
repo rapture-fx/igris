@@ -264,7 +264,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary">
                     <div className="flex items-center gap-3">
                       <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
                         {tenant ? getInitials(tenant.name) : 'U'}
@@ -297,7 +297,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-secondary border border-border-light">
+                  <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-primary border border-border-light">
                     <div className="flex items-start gap-4">
                       <Building2 className="h-8 w-8 text-gray-900 flex-shrink-0" />
                       <div className="flex-1">
@@ -459,7 +459,7 @@ export default function SettingsPage() {
                 </div>
 
                 {/* Current Usage Bar */}
-                <div className="space-y-3 p-4 rounded-lg bg-beige-secondary border border-border-light">
+                <div className="space-y-3 p-4 rounded-lg bg-beige-primary border border-border-light">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium text-gray-900">Current Month Usage</span>
                     <span className="font-medium text-gray-900">
@@ -575,7 +575,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-secondary">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary">
                     <div>
                       <h3 className="font-medium text-gray-900 font-inter">Current Session</h3>
                       <p className="text-sm text-gray-600 mt-1">
@@ -733,7 +733,7 @@ export default function SettingsPage() {
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Alert Events</Label>
 
-                  <div className="space-y-3 p-4 rounded-lg border border-border-light bg-beige-secondary">
+                  <div className="space-y-3 p-4 rounded-lg border border-border-light bg-beige-primary">
                     {/* Error Rate Alert */}
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
