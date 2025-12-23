@@ -56,21 +56,19 @@ export default function HowItWorks() {
 
               {/* Right Column - Diagram and Explanation */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div className="w-full">
-                  {/* Architecture Diagram Placeholder - Replace with rendered mermaid diagram image */}
-                  <div className="rounded-3xl p-6 md:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm mb-6" style={{ backgroundColor: '#ffffff' }}>
-                    <div className="w-full flex items-center justify-center min-h-[400px] text-gray-400">
-                      {/* TODO: Replace this with rendered architecture diagram image from architecture.mmd */}
-                      <p className="text-center text-sm">Architecture diagram will be rendered here from architecture.mmd</p>
-                    </div>
-                  </div>
-
-                  {/* Explanation Text */}
-                  <div className="rounded-3xl p-4 md:p-6 border border-gray-300/60 dark:border-gray-600/60 shadow-sm" style={{ backgroundColor: '#f6f6f4' }}>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter">
-                      Applications send OpenAI-compatible requests to <strong>Overture</strong>, which routes them through intelligent policy-based selection, shadow mode provider racing, and consensus voting. <strong>Runtime</strong> executes inference using cloud providers when available, or automatically falls back to local models when offline. Swarm instances coordinate via MCP for distributed resilience, while telemetry flows back to Overture for adaptive optimization.
-                    </p>
-                  </div>
+                {/* Background image layer */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: 'url("/architect.png")',
+                    backgroundSize: '100%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    borderRadius: '0',
+                    opacity: 0.7
+                  }}
+                />
+                <div className="w-full relative z-10">
                 </div>
               </div>
             </div>
