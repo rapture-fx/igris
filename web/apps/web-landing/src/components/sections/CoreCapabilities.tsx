@@ -85,19 +85,12 @@ export default function CoreCapabilities() {
                       backgroundPosition: 'center left',
                       backgroundRepeat: 'no-repeat',
                       borderRadius: '0',
-                      left: '-4rem',
+                      left: '-2rem',
                       right: 'auto',
-                      width: 'calc(100% + 4rem)',
-                      opacity: 0.7
+                      width: 'calc(100% + 2rem)',
+                      opacity: 0.25
                     }}
                   />
-                  {/* Glass morphism overlay */}
-                  <div className="absolute inset-0" style={{
-                    backgroundColor: 'rgba(246, 246, 244, 0.02)',
-                    backdropFilter: 'blur(1px)',
-                    WebkitBackdropFilter: 'blur(1px)',
-                    borderRadius: '0'
-                  }}></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full relative z-10">
                     {capabilities.map((capability, index) => {
                       const hasRightBorder = index % 2 === 0;
@@ -109,21 +102,17 @@ export default function CoreCapabilities() {
                           className="p-4 relative"
                           style={{
                             padding: '20px 24px',
-                            minHeight: '145px',
-                            backgroundColor: 'rgba(255, 255, 255, 0.3)',
-                            backdropFilter: 'blur(8px)',
-                            WebkitBackdropFilter: 'blur(8px)',
-                            border: '1px solid rgba(255, 255, 255, 0.2)'
+                            minHeight: '145px'
                           }}
                         >
                           {/* Double dashed right border */}
                           {hasRightBorder && (
                             <>
                               <div className="absolute top-0 bottom-0 right-[2px]" style={{
-                                borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
+                                borderRight: '1px dashed rgba(156, 163, 175, 0.4)'
                               }}></div>
                               <div className="absolute top-0 bottom-0 right-[-2px]" style={{
-                                borderRight: '1px dashed rgba(156, 163, 175, 0.25)'
+                                borderRight: '1px dashed rgba(156, 163, 175, 0.4)'
                               }}></div>
                             </>
                           )}
@@ -132,10 +121,10 @@ export default function CoreCapabilities() {
                           {hasBottomBorder && (
                             <>
                               <div className="absolute left-0 right-0 bottom-[2px]" style={{
-                                borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
+                                borderBottom: '1px dashed rgba(156, 163, 175, 0.4)'
                               }}></div>
                               <div className="absolute left-0 right-0 bottom-[-2px]" style={{
-                                borderBottom: '1px dashed rgba(156, 163, 175, 0.25)'
+                                borderBottom: '1px dashed rgba(156, 163, 175, 0.4)'
                               }}></div>
                             </>
                           )}

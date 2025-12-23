@@ -21,7 +21,7 @@ export default function CallToAction() {
               backgroundSize: 'contain',
               backgroundPosition: 'bottom',
               backgroundRepeat: 'no-repeat',
-              opacity: 0.25
+              opacity: 0.18
             }}
           />
           {/* Top left bleeding cross */}
