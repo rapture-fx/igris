@@ -7,12 +7,23 @@ export default function CallToAction() {
     <div className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       {/* First Frame - CTA Content */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-left py-16 md:py-24 lg:py-40 px-4 md:px-8 lg:px-12 relative min-h-[250px] flex items-center" style={{
+        <div className="text-left py-16 pt-16 md:py-24 md:pt-24 lg:py-40 lg:pt-32 px-4 md:px-8 lg:px-12 relative min-h-[800px] flex flex-col justify-center" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
         }}>
+          {/* Background image with opacity */}
+          <div 
+            className="absolute inset-0 rounded-none"
+            style={{
+              backgroundImage: 'url("/seven.png")',
+              backgroundSize: 'contain',
+              backgroundPosition: 'bottom',
+              backgroundRepeat: 'no-repeat',
+              opacity: 0.25
+            }}
+          />
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
             <div className="absolute top-3.5 left-0 w-8" style={{ borderTop: '0.5px solid #1a1e21' }}></div>

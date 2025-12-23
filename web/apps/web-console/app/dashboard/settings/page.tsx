@@ -251,7 +251,7 @@ export default function SettingsPage() {
                     onChange={(e) => setInviteEmail(e.target.value)}
                     className="flex-1"
                   />
-                  <Button variant="outline">">
+                  <Button variant="outline">
                     Send Invite
                   </Button>
                 </div>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
                         Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                       </p>
                     </div>
-                    <Button variant="outline">" onClick={handlePlanUpgrade}>
+                    <Button variant="outline" onClick={handlePlanUpgrade}>
                       {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
                     </Button>
                   </div>
@@ -490,9 +490,12 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button variant="outline">">
+                  <Button variant="outline" onClick={() => {
+                    console.log('Budget settings saved');
+                  }}>
                     Save Budget Settings
                   </Button>
+                </div>
                 </div>
               </CardContent>
             </Card>
@@ -716,7 +719,6 @@ export default function SettingsPage() {
                     />
                     <Button
                       variant="outline"
-                      className="shadow-sm"
                       onClick={() => {
                         if (slackWebhook) {
                           alert('Test payload sent to webhook');
@@ -808,7 +810,10 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button variant="outline">">
+                  <Button variant="outline" onClick={() => {
+                    console.log('Alert settings saved');
+                    alert('Alert settings saved successfully!');
+                  }}>
                     Save Alert Settings
                   </Button>
                 </div>
