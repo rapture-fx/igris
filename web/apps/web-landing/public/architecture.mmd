@@ -1,0 +1,42 @@
+flowchart TB
+    subgraph App["Application Layer"]
+        A1["Robot / Drone / App"]
+    end
+
+    subgraph Overture["Overture Control Plane (Cloud)"]
+        O1["Intelligent Routing"]
+        O2["Policy Engine"]
+        O3["Shadow Mode Racing"]
+        O4["Council Consensus"]
+        O5["Budget & Governance"]
+    end
+
+    subgraph Runtime["Runtime Execution Plane (Edge/Local)"]
+        R1["Local Inference Engine"]
+        R2["Automatic Fallback"]
+        R3["Tool Execution"]
+        R4["Swarm Coordination"]
+        R5["Planning & Reflection"]
+    end
+
+    subgraph Providers["External Resources"]
+        P1["Cloud Providers<br/>(OpenAI, Anthropic, etc.)"]
+        P2["Local Models<br/>(Phi-3, Llama, etc.)"]
+    end
+
+    A1 -->|"OpenAI-Compatible<br/>API Request"| Overture
+    Overture -->|"Provider Selection<br/>& Routing"| Runtime
+    Runtime -->|"Cloud Available"| P1
+    Runtime -->|"Offline/Fallback"| P2
+    Runtime -.->|"Telemetry & Metrics"| Overture
+    Overture -.->|"Config Updates"| Runtime
+    Runtime -->|"Streaming Response"| A1
+    P1 -->|"API Response"| Runtime
+    P2 -->|"Local Inference"| Runtime
+
+    R4 -.->|"MCP Discovery<br/>Context Sync"| R4
+
+    style Overture fill:#e8f4f8,stroke:#2d5f7a,stroke-width:2px
+    style Runtime fill:#fff4e6,stroke:#b8860b,stroke-width:2px
+    style App fill:#f0f0f0,stroke:#333,stroke-width:2px
+    style Providers fill:#f5f5f5,stroke:#666,stroke-width:1px

@@ -38,7 +38,9 @@
       "Bash(git push:*)",
       "Bash(cargo new:*)",
       "Bash(cargo build:*)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(ls:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []

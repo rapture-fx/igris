@@ -7,6 +7,7 @@ import CallToAction from '../src/components/sections/CallToAction'
 import CoreCapabilities from '../src/components/sections/CoreCapabilities'
 import MultiTenancy from '../src/components/sections/MultiTenancy'
 import Products from '../src/components/sections/Products'
+import HowItWorks from '../src/components/sections/HowItWorks'
 import UseCasesTeaser from '../src/components/sections/UseCasesTeaser'
 import ForDevelopers from '../src/components/sections/ForDevelopers'
 import EarlyAccessModal from '../src/components/modals/EarlyAccessModal'
@@ -22,6 +23,7 @@ export default function HomePage() {
         <main className="pt-[70px] space-y-1">
           <Hero />
           <Products />
+          <HowItWorks />
           <CoreCapabilities />
           <UseCasesTeaser />
           <ForDevelopers />

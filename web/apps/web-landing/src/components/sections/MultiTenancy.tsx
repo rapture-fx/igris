@@ -57,6 +57,21 @@ export default function MultiTenancy() {
 
               {/* Left Column - Image */}
               <div className="lg:col-span-2 relative flex items-center justify-start pl-0 md:pl-4 lg:pl-8">
+                {/* Background image layer */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: 'url("/human.png")',
+                    backgroundSize: '40%',
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    borderRadius: '0',
+                    left: '-2rem',
+                    right: 'auto',
+                    width: 'calc(100% + 2rem)',
+                    opacity: 1
+                  }}
+                />
               </div>
 
               {/* Right Column - Section Title and Features */}
