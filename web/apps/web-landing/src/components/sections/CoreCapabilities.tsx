@@ -76,21 +76,6 @@ export default function CoreCapabilities() {
                 <div className="lg:col-span-2 relative flex items-center justify-center overflow-hidden" style={{
                   borderRadius: '16px'
                 }}>
-                  {/* Background image layer */}
-                  <div 
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: 'url("/sevenof.png")',
-                      backgroundSize: 'cover',
-                      backgroundPosition: 'center left',
-                      backgroundRepeat: 'no-repeat',
-                      borderRadius: '0',
-                      left: '-2rem',
-                      right: 'auto',
-                      width: 'calc(100% + 2rem)',
-                      opacity: 0.25
-                    }}
-                  />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full relative z-10">
                     {capabilities.map((capability, index) => {
                       const hasRightBorder = index % 2 === 0;

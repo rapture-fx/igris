@@ -21,7 +21,7 @@ export default function Hero() {
             className="absolute inset-0"
             style={{
               backgroundImage: 'url("/heroputr.png")',
-              backgroundSize: 'cover',
+              backgroundSize: '100%',
               backgroundPosition: 'center top 100%',
               backgroundRepeat: 'no-repeat',
               opacity: 1
