@@ -41,6 +41,7 @@ import {
   CheckCircle,
   XCircle,
   Edit,
+  AlertCircle,
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -219,7 +220,7 @@ export default function SettingsPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="notifications">
-          <TabsList className="shadow-sm border border-border-light mb-6">
+          <TabsList className="border border-border-light mb-6">
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
             <TabsTrigger value="billing">Billing</TabsTrigger>
@@ -231,7 +232,7 @@ export default function SettingsPage() {
           {/* Team Tab */}
           <TabsContent value="team" className="space-y-6">
             {/* Invite Member */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <UserPlus className="h-5 w-5 text-gray-900" />
@@ -250,7 +251,7 @@ export default function SettingsPage() {
                     onChange={(e) => setInviteEmail(e.target.value)}
                     className="flex-1"
                   />
-                  <Button variant="outline" className="shadow-sm">
+                  <Button variant="outline">">
                     Send Invite
                   </Button>
                 </div>
@@ -258,7 +259,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Team Members */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle>Team Members</CardTitle>
                 <CardDescription>Manage your team members and their roles</CardDescription>
@@ -286,7 +287,7 @@ export default function SettingsPage() {
 
           {/* Tenants Tab */}
           <TabsContent value="tenants" className="space-y-6">
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5 text-gray-900" />
@@ -354,7 +355,7 @@ export default function SettingsPage() {
           {/* Billing Tab */}
           <TabsContent value="billing" className="space-y-6">
             {/* Current Plan */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CreditCard className="h-5 w-5 text-gray-900" />
@@ -395,7 +396,7 @@ export default function SettingsPage() {
                         Active since {tenant?.created_at ? formatDate(tenant.created_at) : 'N/A'}
                       </p>
                     </div>
-                    <Button variant="outline" className="shadow-sm" onClick={handlePlanUpgrade}>
+                    <Button variant="outline">" onClick={handlePlanUpgrade}>
                       {tenant?.metadata?.trial_active ? 'Upgrade Now' : 'Change Plan'}
                     </Button>
                   </div>
@@ -415,7 +416,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Global Monthly Budget */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-gray-900" />
@@ -489,7 +490,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button variant="outline" className="shadow-sm">
+                  <Button variant="outline">">
                     Save Budget Settings
                   </Button>
                 </div>
@@ -497,7 +498,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Payment Method */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle>Payment Method</CardTitle>
                 <CardDescription>Manage your payment methods</CardDescription>
@@ -508,7 +509,7 @@ export default function SettingsPage() {
                   <p className="text-gray-600 font-inter mb-4">
                     No payment method added
                   </p>
-                  <Button variant="outline" className="shadow-sm">
+                  <Button variant="outline">">
                     Add Payment Method
                   </Button>
                 </div>
@@ -516,7 +517,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Invoices */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Receipt className="h-5 w-5 text-gray-900" />
@@ -538,7 +539,7 @@ export default function SettingsPage() {
           {/* Security Tab */}
           <TabsContent value="security" className="space-y-6">
             {/* Two-Factor Authentication */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5 text-gray-900" />
@@ -569,7 +570,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Active Sessions */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle>Active Sessions</CardTitle>
                 <CardDescription>Manage your active login sessions</CardDescription>
@@ -592,7 +593,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Danger Zone */}
-            <Card className="border-red-200 shadow-sm">
+            <Card className="border-red-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-red-700">
                   <Shield className="h-5 w-5" />
@@ -645,7 +646,7 @@ export default function SettingsPage() {
           {/* Notifications Tab */}
           <TabsContent value="notifications" className="space-y-6">
             {/* Email Notifications */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Bell className="h-5 w-5 text-gray-900" />
@@ -691,7 +692,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Webhook Alerts */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Webhook className="h-5 w-5 text-gray-900" />
@@ -807,7 +808,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button variant="outline" className="shadow-sm">
+                  <Button variant="outline">">
                     Save Alert Settings
                   </Button>
                 </div>
@@ -818,7 +819,7 @@ export default function SettingsPage() {
           {/* Authority & Limits Tab */}
           <TabsContent value="authority" className="space-y-6">
             {/* Forbidden Actions */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <XCircle className="h-5 w-5 text-gray-900" />
@@ -890,10 +891,10 @@ export default function SettingsPage() {
             </Card>
 
             {/* Decision Authority Modes */}
-            <Card className="border-border-light shadow-sm">
+            <Card className="border-border-light">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-gray-900" />
+                  <SettingsIcon className="h-5 w-5 text-gray-900" />
                   Decision Authority Modes
                 </CardTitle>
                 <CardDescription>
@@ -983,7 +984,7 @@ export default function SettingsPage() {
             <Card className="border-border-light shadow-sm border-red-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-red-700">
-                  <AlertCircleIcon className="h-5 w-5" />
+                  <AlertCircle className="h-5 w-5 text-red-700" />
                   Emergency Kill Switches
                 </CardTitle>
                 <CardDescription>
@@ -1040,7 +1041,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* System Capabilities */}
-            <Card className="border-border-light shadow-sm bg-blue-50">
+            <Card className="border-border-light bg-blue-50">
               <CardHeader>
                 <CardTitle className="text-blue-900">What This System Cannot Do</CardTitle>
                 <CardDescription className="text-blue-800">

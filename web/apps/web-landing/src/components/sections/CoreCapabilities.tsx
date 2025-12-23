@@ -185,12 +185,12 @@ export default function CoreCapabilities() {
                 <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
-                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '140px', right: '24px' }}>
+                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
                       <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">EscapeVector Mode</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">
-                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 font-inter">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">
                         Overture caches routing intelligence for 72-hour offline operation. Your cloud control plane stays functional even when disconnected. Thompson Sampling routing continues uninterrupted.
                       </p>
                     </div>
@@ -201,12 +201,12 @@ export default function CoreCapabilities() {
                 <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
-                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '140px', right: '24px' }}>
+                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
                       <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">Local LLM Fallback</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">
-                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 font-inter">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">
                         Runtime automatically activates on-device models when cloud providers fail. Works 100% offline with Phi-3, Llama, and Mistral. Zero-downtime in air-gapped environments.
                       </p>
                     </div>
@@ -217,13 +217,13 @@ export default function CoreCapabilities() {
                 <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
-                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '140px', right: '24px' }}>
+                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
                       <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">SLO Enforcer</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">
-                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 font-inter">
-                        Automatic guardrails monitor latency, cost drift, and reliability across cloud and edge. Traffic shifts to safer paths the moment thresholds are crossed. Ensures consistent performance without manual intervention.
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">
+                        Automatic guardrails monitor latency, cost drift, and reliability. Traffic shifts to safer paths when thresholds are crossed. Ensures consistent performance without manual intervention.
                       </p>
                     </div>
                   </div>
@@ -233,12 +233,12 @@ export default function CoreCapabilities() {
                 <div className="rounded-3xl p-6 md:p-8 lg:p-10 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[480px] flex-1 flex flex-col relative" style={{ backgroundColor: '#f6f6f4' }}>
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
-                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '140px', right: '24px' }}>
+                    <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
                       <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">Gold Code Override</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">
-                      <p className="text-sm md:text-base text-gray-800 dark:text-gray-200 font-inter">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">
                         One environment variable instantly bypasses the control plane. Required safety switch for enterprise security audits, compliance validation, and regulated workloads.
                       </p>
                     </div>
