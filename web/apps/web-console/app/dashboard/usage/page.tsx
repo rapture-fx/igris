@@ -46,12 +46,12 @@ export default function UsagePage() {
       latency: item.latency,
     }));
 
-    downloadCSV(exportData, `schlep-usage-${Date.now()}`);
+    downloadCSV(exportData, `overture-usage-${Date.now()}`);
   };
 
   const handleExportJSON = () => {
     if (!usage) return;
-    downloadJSON(usage, `schlep-usage-${Date.now()}`);
+    downloadJSON(usage, `overture-usage-${Date.now()}`);
   };
 
   if (isLoading) {

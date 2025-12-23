@@ -65,7 +65,7 @@ export default function ProvidersPage() {
   const [editingNameValue, setEditingNameValue] = useState('');
   const [providerTenants, setProviderTenants] = useState<{ [key: string]: string }>({});
 
-  const baseUrl = 'https://api.schlepengine.com/v1';
+  const baseUrl = 'https://api.overture.com/v1';
 
   const handleTenantChange = (providerId: string, tenantId: string) => {
     setProviderTenants({ ...providerTenants, [providerId]: tenantId });

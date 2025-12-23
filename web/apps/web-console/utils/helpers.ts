@@ -43,6 +43,20 @@ export function formatLatency(ms: number): string {
   return `${(ms / 1000).toFixed(2)}s`;
 }
 
+export function formatDuration(seconds: number): string {
+  const days = Math.floor(seconds / 86400);
+  const hours = Math.floor((seconds % 86400) / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  
+  if (days > 0) {
+    return `${days}d ${hours}h`;
+  } else if (hours > 0) {
+    return `${hours}h ${minutes}m`;
+  } else {
+    return `${minutes}m`;
+  }
+}
+
 export function maskApiKey(key: string): string {
   if (key.length < 8) return '****';
   return `${key.slice(0, 7)}...${key.slice(-4)}`;

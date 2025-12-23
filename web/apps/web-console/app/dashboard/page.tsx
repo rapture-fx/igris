@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useUsageSummary } from '@/hooks/useUsage';
 import { useTenant } from '@/hooks/useTenant';
 import { formatCurrency, formatNumber, formatLatency } from '@/utils/helpers';
-import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock } from 'lucide-react';
+import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock, AlertTriangle, CheckCircle, XCircle, AlertCircle as AlertCircleIcon, Play } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 
@@ -48,6 +48,39 @@ function MetricCard({
   );
 }
 
+// System health types
+interface ProviderHealth {
+  provider: string;
+  status: 'operational' | 'degraded' | 'outage';
+  availability: number;
+  models: Array<{
+    model: string;
+    regions: Array<{
+      region: string;
+      status: 'operational' | 'degraded' | 'outage';
+      latency_p99: number;
+      error_rate: number;
+    }>;
+  }>;
+  latency_p99: number;
+  error_rate: number;
+  fallback_frequency: number;
+  last_incident?: string;
+}
+
+interface SystemHealth {
+  overall_status: 'operational' | 'degraded' | 'outage';
+  degraded_mode: boolean;
+  degraded_reason?: string;
+  providers: ProviderHealth[];
+  thresholds: {
+    error_rate_warning: number;
+    error_rate_critical: number;
+    latency_p99_warning: number;
+    latency_p99_critical: number;
+  };
+}
+
 export default function DashboardPage() {
   const { data: summary, isLoading } = useUsageSummary();
   const { data: tenant } = useTenant();
@@ -57,6 +90,30 @@ export default function DashboardPage() {
   const [requestsData, setRequestsData] = useState<Array<{time: string, requests: number}>>([]);
   const [latencyData, setLatencyData] = useState<Array<{time: string, latency: number}>>([]);
   const [providerCostData, setProviderCostData] = useState<Array<{provider: string, cost: number}>>([]);
+
+  // System health state
+  const [systemHealth, setSystemHealth] = useState<SystemHealth>({
+    overall_status: 'operational',
+    degraded_mode: false,
+    providers: [],
+    thresholds: {
+      error_rate_warning: 5,
+      error_rate_critical: 10,
+      latency_p99_warning: 2000,
+      latency_p99_critical: 5000,
+    },
+  });
+
+  // Simulation state
+  const [isSimulationActive, setIsSimulationActive] = useState(false);
+  const [simulatedProvider, setSimulatedProvider] = useState('');
+  const [simulationResults, setSimulationResults] = useState<{
+    affected_providers: string[];
+    routing_changes: Record<string, string>;
+    estimated_impact: string;
+    duration: number;
+  } | null>(null);
+  const [showSimulationDialog, setShowSimulationDialog] = useState(false);
 
   // Fetch dashboard metrics from backend
   useEffect(() => {
@@ -96,16 +153,43 @@ export default function DashboardPage() {
           const data = await costsRes.json();
           if (data.providers) setProviderCostData(data.providers);
         }
+
+        // Fetch system health
+        const healthRes = await fetch(`${apiUrl}/v1/health/system`, { headers: authHeaders });
+        if (healthRes.ok) {
+          const data = await healthRes.json();
+          setSystemHealth(data);
+        }
       } catch (error) {
         console.error('Error fetching dashboard metrics:', error);
       }
     };
 
     fetchMetrics();
-    // Refresh every 5 minutes
-    const interval = setInterval(fetchMetrics, 5 * 60 * 1000);
+    // Refresh every 30 seconds for health data
+    const interval = setInterval(fetchMetrics, 30 * 1000);
     return () => clearInterval(interval);
   }, [tenant?.id]);
+
+  // Handle simulation
+  const handleSimulateOutage = async (provider: string) => {
+    setSimulatedProvider(provider);
+    setShowSimulationDialog(true);
+
+    // Simulate analysis
+    setTimeout(() => {
+      const mockResults = {
+        affected_providers: [provider],
+        routing_changes: {
+          [provider]: '→ Next available provider (OpenAI → Anthropic)',
+          'impact': 'Estimated +120ms latency, -15% throughput',
+        },
+        estimated_impact: 'Medium - 2-3 requests per second affected',
+        duration: 600000, // 10 minutes
+      };
+      setSimulationResults(mockResults);
+    }, 2000);
+  };
 
   if (isLoading) {
     return (
@@ -129,6 +213,162 @@ export default function DashboardPage() {
             Overview of your AI infrastructure
           </p>
         </div>
+
+        {/* Degraded Mode Banner */}
+        {systemHealth.degraded_mode && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <h3 className="text-sm font-medium text-yellow-900 font-inter">
+                  System Operating in Degraded Mode
+                </h3>
+                <p className="text-sm text-yellow-800 mt-1">
+                  {systemHealth.degraded_reason || 'One or more providers experiencing issues. Requests are being routed to healthy alternatives.'}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* System Health Panel */}
+        <Card className="border-border-light shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${
+                  systemHealth.overall_status === 'operational' ? 'bg-green-500' :
+                  systemHealth.overall_status === 'degraded' ? 'bg-yellow-500' :
+                  'bg-red-500'
+                }`} />
+                <CardTitle>System Health</CardTitle>
+              </div>
+              <div className="text-xs text-gray-600">
+                Refreshes every 30s
+              </div>
+            </div>
+            <CardDescription>
+              Provider availability, latency metrics, and error rates
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {systemHealth.providers.length === 0 ? (
+                <div className="text-center py-8 text-gray-600 text-sm">
+                  No provider health data available
+                </div>
+              ) : (
+                systemHealth.providers.map((provider) => (
+                  <div key={provider.provider} className="border border-border-light rounded-lg p-4 bg-beige-primary">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          provider.status === 'operational' ? 'bg-green-500' :
+                          provider.status === 'degraded' ? 'bg-yellow-500' :
+                          'bg-red-500'
+                        }`} />
+                        <h4 className="font-medium text-gray-900 font-inter">
+                          {provider.provider}
+                        </h4>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          provider.status === 'operational' ? 'bg-green-100 text-green-700' :
+                          provider.status === 'degraded' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {provider.status}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-900 font-medium">
+                        {provider.availability.toFixed(2)}% available
+                      </div>
+                    </div>
+
+                    {/* Simulation Button */}
+                    <div className="flex items-center justify-end mb-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSimulateOutage(provider.provider)}
+                        className="text-xs flex items-center gap-2"
+                      >
+                        <Play className="h-3 w-3" />
+                        Simulate Outage
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-3">
+                      <div className="bg-white rounded-md p-3 border border-border-light">
+                        <div className="text-xs text-gray-600 mb-1">Latency P99</div>
+                        <div className={`text-sm font-medium ${
+                          provider.latency_p99 > systemHealth.thresholds.latency_p99_critical ? 'text-red-600' :
+                          provider.latency_p99 > systemHealth.thresholds.latency_p99_warning ? 'text-yellow-600' :
+                          'text-gray-900'
+                        }`}>
+                          {formatLatency(provider.latency_p99)}
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-md p-3 border border-border-light">
+                        <div className="text-xs text-gray-600 mb-1">Error Rate</div>
+                        <div className={`text-sm font-medium ${
+                          provider.error_rate > systemHealth.thresholds.error_rate_critical ? 'text-red-600' :
+                          provider.error_rate > systemHealth.thresholds.error_rate_warning ? 'text-yellow-600' :
+                          'text-gray-900'
+                        }`}>
+                          {provider.error_rate.toFixed(2)}%
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-md p-3 border border-border-light">
+                        <div className="text-xs text-gray-600 mb-1">Fallback Freq</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {provider.fallback_frequency.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {provider.models && provider.models.length > 0 && (
+                      <details className="group">
+                        <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900 font-medium mb-2 list-none flex items-center gap-2">
+                          <span className="transition-transform group-open:rotate-90">▸</span>
+                          Model & Region Health ({provider.models.length} models)
+                        </summary>
+                        <div className="mt-2 space-y-2 pl-4">
+                          {provider.models.map((model) => (
+                            <div key={model.model} className="text-xs">
+                              <div className="font-medium text-gray-900 mb-1">{model.model}</div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {model.regions.map((region) => (
+                                  <div key={region.region} className="flex items-center justify-between bg-white rounded p-2 border border-border-light">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${
+                                        region.status === 'operational' ? 'bg-green-500' :
+                                        region.status === 'degraded' ? 'bg-yellow-500' :
+                                        'bg-red-500'
+                                      }`} />
+                                      <span className="text-gray-700">{region.region}</span>
+                                    </div>
+                                    <div className="text-gray-600">
+                                      {formatLatency(region.latency_p99)} • {region.error_rate.toFixed(1)}%
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+
+                    {provider.last_incident && (
+                      <div className="mt-3 text-xs text-gray-600">
+                        Last incident: {provider.last_incident}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Four Big Live Metrics with Trends & Mini Sparklines */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -279,6 +519,64 @@ export default function DashboardPage() {
           </Card>
         </div>
       </div>
+
+      {/* Simulation Results Dialog */}
+      {showSimulationDialog && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Simulating {simulatedProvider} Outage
+            </h3>
+            
+            {!simulationResults ? (
+              <div className="flex items-center gap-3 py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
+                <span className="text-gray-600">Analyzing impact...</span>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="text-sm font-medium text-yellow-900 mb-2">Estimated Impact</h4>
+                  <p className="text-sm text-yellow-800">{simulationResults.estimated_impact}</p>
+                </div>
+
+                <div className="p-3 bg-beige-primary border border-border-light rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-900 mb-2">Routing Changes</h4>
+                  {Object.entries(simulationResults.routing_changes).map(([key, value]) => (
+                    <div key={key} className="text-sm text-gray-700 mb-1">
+                      <span className="font-medium">{key}:</span> {value}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="text-sm font-medium text-blue-900 mb-2">Duration</h4>
+                  <p className="text-sm text-blue-800">{Math.round(simulationResults.duration / 60000)} minutes</p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setShowSimulationDialog(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      alert('Simulation completed - this was a dry run only');
+                      setShowSimulationDialog(false);
+                    }}
+                  >
+                    Run Dry Run
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 }

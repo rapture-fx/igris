@@ -7,24 +7,24 @@ const capabilities = [
     description: 'Thompson Sampling optimization selects the best model for every request across cloud and edge. Learns from performance, context, and outcomes to continuously improve accuracy, speed, and cost efficiency.',
   },
   {
-    name: 'Automatic Fallback & Resilience',
-    description: 'Runtime activates local LLM fallback when cloud providers fail. Overture reroutes across healthy providers. Your workloads stay online through outages, network failures, and air-gapped deployments.',
+    name: 'Guaranteed Response Times',
+    description: 'Runtime executes critical AI tasks with latency guarantees down to 50ms. Priority-based scheduling ensures safety-critical operations complete on time. Perfect for real-time robotics and industrial automation.',
   },
   {
-    name: 'Adaptive Optimization',
-    description: 'Real-time quality scoring monitors cloud providers and edge models. Automatically adjusts routing when performance drifts. Maintains consistent output quality and predictable latency without manual tuning.',
+    name: 'Robot & Fleet Control',
+    description: 'Runtime controls robots via ROS2 integration with Nav2 navigation. Manages thousands of edge devices from one dashboard. GPIO, camera, and LIDAR support for industrial automation with ISO 26262 compliance.',
   },
   {
-    name: 'Real-time Observability',
-    description: 'Unified metrics across cloud and edge. Track latency, cost, quality scores, and provider health in one dashboard. Prometheus-compatible endpoints and audit logs for compliance and debugging.',
+    name: 'Privacy-Preserving Learning',
+    description: 'Train AI across your fleet without centralizing data. Federated learning with differential privacy keeps sensitive data local. Improve models collaboratively while maintaining regulatory compliance.',
   },
   {
-    name: 'Council Mode',
-    description: 'Multi-provider consensus for critical decisions. Runs queries through multiple models and synthesizes the best response. Works across cloud providers and local edge models for maximum accuracy.',
+    name: 'Human Oversight Workflows',
+    description: 'Add approval workflows for critical AI decisions. Auto-approve high-confidence tasks, escalate uncertain ones to humans. Perfect for safety-critical systems requiring human oversight and audit trails.',
   },
   {
-    name: 'Shadow Mode Testing',
-    description: 'Test routing strategies in parallel with production traffic without risk. Automatically validates new optimizations before rollout. Detects regressions and maintains SLOs through configuration changes.',
+    name: 'Chaos Testing & Simulation',
+    description: 'Test AI systems with virtual swarms and failure injection before deployment. Simulate 100 robots without hardware. Benchmark performance under load and validate resilience in production scenarios.',
   },
 ]
 
