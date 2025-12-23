@@ -329,7 +329,6 @@ export default function SettingsPage() {
                         </div>
                         <Button
                           variant="outline"
-                          className="shadow-sm"
                           onClick={() => router.push('/dashboard/settings/tenants')}
                         >
                           <Plus className="h-4 w-4 mr-2" />
@@ -496,7 +495,6 @@ export default function SettingsPage() {
                     Save Budget Settings
                   </Button>
                 </div>
-                </div>
               </CardContent>
             </Card>
 
@@ -512,7 +510,7 @@ export default function SettingsPage() {
                   <p className="text-gray-600 font-inter mb-4">
                     No payment method added
                   </p>
-                  <Button variant="outline">">
+                  <Button variant="outline">
                     Add Payment Method
                   </Button>
                 </div>
@@ -986,7 +984,7 @@ export default function SettingsPage() {
             </Card>
 
             {/* Kill Switches */}
-            <Card className="border-border-light shadow-sm border-red-200">
+            <Card className="border-border-light border-red-200">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-red-700">
                   <AlertCircle className="h-5 w-5 text-red-700" />
