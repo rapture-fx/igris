@@ -76,12 +76,27 @@ export default function CoreCapabilities() {
                 <div className="lg:col-span-2 relative flex items-center justify-center overflow-hidden" style={{
                   borderRadius: '16px'
                 }}>
+                  {/* Background image layer */}
+                  <div 
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: 'url("/sevenof.png")',
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center left',
+                      backgroundRepeat: 'no-repeat',
+                      borderRadius: '0',
+                      left: '-4rem',
+                      right: 'auto',
+                      width: 'calc(100% + 4rem)',
+                      opacity: 0.7
+                    }}
+                  />
                   {/* Glass morphism overlay */}
                   <div className="absolute inset-0" style={{
-                    backgroundColor: 'rgba(246, 246, 244, 0.6)',
-                    backdropFilter: 'blur(10px)',
-                    WebkitBackdropFilter: 'blur(10px)',
-                    borderRadius: '16px'
+                    backgroundColor: 'rgba(246, 246, 244, 0.02)',
+                    backdropFilter: 'blur(1px)',
+                    WebkitBackdropFilter: 'blur(1px)',
+                    borderRadius: '0'
                   }}></div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-0 w-full relative z-10">
                     {capabilities.map((capability, index) => {
