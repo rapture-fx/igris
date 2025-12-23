@@ -225,6 +225,7 @@ export default function SettingsPage() {
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="tenants">Clients & Tenants</TabsTrigger>
+            <TabsTrigger value="authority">Authority & Limits</TabsTrigger>
           </TabsList>
 
           {/* Team Tab */}
@@ -809,6 +810,273 @@ export default function SettingsPage() {
                   <Button variant="outline" className="shadow-sm">
                     Save Alert Settings
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Authority & Limits Tab */}
+          <TabsContent value="authority" className="space-y-6">
+            {/* Forbidden Actions */}
+            <Card className="border-border-light shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <XCircle className="h-5 w-5 text-gray-900" />
+                  Forbidden Actions
+                </CardTitle>
+                <CardDescription>
+                  Operations explicitly prohibited by system policy
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-red-900 font-inter mb-1">
+                          Direct API Key Exposure
+                        </h4>
+                        <p className="text-xs text-red-800">
+                          System will never expose full API keys in responses, logs, or traces. All keys are masked after creation.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-red-900 font-inter mb-1">
+                          Automatic Data Deletion
+                        </h4>
+                        <p className="text-xs text-red-800">
+                          System cannot autonomously delete user data, API keys, or tenants without explicit confirmation.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-red-900 font-inter mb-1">
+                          Policy Override Without Audit
+                        </h4>
+                        <p className="text-xs text-red-800">
+                          Routing policies cannot be modified without creating an audit trail. All changes are logged with timestamp and operator.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                    <div className="flex items-start gap-3">
+                      <XCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-red-900 font-inter mb-1">
+                          Cross-Tenant Data Access
+                        </h4>
+                        <p className="text-xs text-red-800">
+                          Database-level row-level security prevents any cross-tenant data leakage. Tenants cannot access each other's keys, traces, or configurations.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Decision Authority Modes */}
+            <Card className="border-border-light shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Settings className="h-5 w-5 text-gray-900" />
+                  Decision Authority Modes
+                </CardTitle>
+                <CardDescription>
+                  Configure system autonomy and operator control
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
+                        Automatic Failover
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        System can autonomously switch providers when primary fails (recommended)
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
+                        Decision Mode
+                      </span>
+                      <Switch defaultChecked />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
+                        Cost Optimization
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        System can automatically adjust routing to reduce costs within quality constraints
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
+                        Decision Mode
+                      </span>
+                      <Switch defaultChecked />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
+                        Provider Key Rotation
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        Requires operator approval before rotating API keys (advisory-only mode)
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
+                        Advisory Only
+                      </span>
+                      <Switch />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
+                        Model Selection
+                      </h4>
+                      <p className="text-xs text-gray-600">
+                        System can choose models based on request characteristics and policy constraints
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
+                        Decision Mode
+                      </span>
+                      <Switch defaultChecked />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Kill Switches */}
+            <Card className="border-border-light shadow-sm border-red-200">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-red-700">
+                  <AlertCircleIcon className="h-5 w-5" />
+                  Emergency Kill Switches
+                </CardTitle>
+                <CardDescription>
+                  Immediate system-wide control actions
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-red-900 font-inter mb-1">
+                        Emergency Stop All Requests
+                      </h4>
+                      <p className="text-xs text-red-800">
+                        Immediately halt all outgoing provider requests. Existing in-flight requests will complete.
+                      </p>
+                    </div>
+                    <Button variant="destructive" size="sm">
+                      Activate
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-yellow-900 font-inter mb-1">
+                        Disable Specific Provider
+                      </h4>
+                      <p className="text-xs text-yellow-800">
+                        Temporarily block requests to a specific provider. Routes to alternatives.
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      Configure
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium text-yellow-900 font-inter mb-1">
+                        Force Manual Approval Mode
+                      </h4>
+                      <p className="text-xs text-yellow-800">
+                        Require operator confirmation for all policy decisions. Disables autonomous optimization.
+                      </p>
+                    </div>
+                    <Switch />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* System Capabilities */}
+            <Card className="border-border-light shadow-sm bg-blue-50">
+              <CardHeader>
+                <CardTitle className="text-blue-900">What This System Cannot Do</CardTitle>
+                <CardDescription className="text-blue-800">
+                  Architectural limitations and boundaries
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 text-sm text-blue-900">
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Cannot read or modify data outside assigned tenant boundaries</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Cannot bypass authentication or authorization checks</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Cannot disable audit logging or tamper with historical records</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Cannot make billing changes or payment method modifications without confirmation</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Cannot share provider API keys between tenants</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Cannot execute arbitrary code or shell commands on infrastructure</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-blue-600 mt-1">•</span>
+                    <span>Cannot modify EscapeVector offline policy runtime without redeployment</span>
+                  </div>
                 </div>
               </CardContent>
             </Card>

@@ -4,8 +4,8 @@ import { Toaster } from '@/components/ui/toaster';
 import '@/styles/globals.css';
 
 export const metadata: Metadata = {
-  title: 'Schlep-engine Developer Console',
-  description: 'Manage your AI inference infrastructure with Schlep-engine',
+  title: 'Overture Developer Console',
+  description: 'Manage your AI inference infrastructure with Overture',
 };
 
 export default function RootLayout({

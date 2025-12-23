@@ -256,13 +256,13 @@ const generateMockTraces = (count: number): RequestTrace[] => {
       user_id: `user_${Math.floor(Math.random() * 100)}`,
       session_id: `session_${Math.floor(Math.random() * 50)}`,
       client_ip: `192.168.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}`,
-      user_agent: ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'schlep-sdk/1.0', 'python-requests/2.31.0'][Math.floor(Math.random() * 3)],
+      user_agent: ['Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 'overture-sdk/1.0', 'python-requests/2.31.0'][Math.floor(Math.random() * 3)],
       request_id: `req_${Date.now()}_${i}`,
       parent_request_id: hasParent ? `req_${Date.now()}_${i - 1}` : undefined,
       child_request_ids: hasChildren ? [`req_${Date.now()}_${i + 1}`, `req_${Date.now()}_${i + 2}`] : undefined,
       headers: {
         'content-type': 'application/json',
-        'user-agent': 'schlep-sdk/1.0',
+        'user-agent': 'overture-sdk/1.0',
       },
       request_body: {
         model,
@@ -290,7 +290,7 @@ const generateMockTraces = (count: number): RequestTrace[] => {
       retry_attempts: retryAttempts,
       retry_count: retryAttempts?.length || 0,
       tag,
-      shared_url: Math.random() > 0.8 ? `https://schlep.ai/traces/${i}?token=abc123` : undefined,
+      shared_url: Math.random() > 0.8 ? `https://overture.ai/traces/${i}?token=abc123` : undefined,
       curl_command: curlCommand,
       was_streamed: wasStreamed,
       used_speculative: usedSpeculative,
@@ -784,7 +784,7 @@ export default function ObservabilityPage() {
 
   const handleShareTrace = (trace: RequestTrace) => {
     // Generate a shareable URL (7-day expiry)
-    const sharedUrl = `https://schlep.ai/traces/${trace.id}?token=${btoa(Date.now().toString())}`;
+    const sharedUrl = `https://overture.ai/traces/${trace.id}?token=${btoa(Date.now().toString())}`;
     copyToClipboard(sharedUrl);
     // Optimistic update would go here with queryClient.setQueryData
     alert('Trace URL copied to clipboard! Valid for 7 days.');
@@ -1416,14 +1416,14 @@ export default function ObservabilityPage() {
                 <div className="mt-8 max-w-2xl mx-auto">
                   <div className="relative group">
                     <pre className="bg-beige-primary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-sm">
-{`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
+{`curl -X POST https://api.overture.com/v1/chat/completions \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
   -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}]}'`}
                     </pre>
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`curl -X POST https://api.schlep-engine.com/v1/chat/completions \\
+                        navigator.clipboard.writeText(`curl -X POST https://api.overture.com/v1/chat/completions \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
   -d '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}]}'`);
@@ -2564,9 +2564,110 @@ export default function ObservabilityPage() {
                   </>
                 )}
 
+                {/* Policy Decision Tree */}
+                <div className="border-t border-border-light pt-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    Policy Evaluation & Decision Tree
+                  </h3>
+                  <div className="bg-beige-primary border border-border-light rounded-lg p-4 space-y-3">
+                    {/* Decision Flow */}
+                    <div className="space-y-2">
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium flex-shrink-0">1</div>
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-900">Request Received</p>
+                          <p className="text-xs text-gray-600 mt-0.5">Model: {selectedTrace.model} • User: {selectedTrace.user_id || 'anonymous'}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium flex-shrink-0">2</div>
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-900">Policy Constraints Evaluated</p>
+                          <div className="mt-1 space-y-1">
+                            <div className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-border-light">
+                              ✓ Cost budget: Available
+                            </div>
+                            <div className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-border-light">
+                              ✓ Model access: Allowed
+                            </div>
+                            <div className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-border-light">
+                              ✓ Rate limit: Within threshold
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-medium flex-shrink-0">3</div>
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-900">Provider Selection</p>
+                          <p className="text-xs text-gray-600 mt-0.5">Selected: {selectedTrace.provider} (Bayesian optimization)</p>
+                        </div>
+                      </div>
+
+                      {selectedTrace.used_speculative && (
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-medium flex-shrink-0">4</div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-900">Speculative Execution</p>
+                            <p className="text-xs text-gray-600 mt-0.5">Parallel requests to {selectedTrace.speculative_traces?.length || 3} providers</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {selectedTrace.retry_count && selectedTrace.retry_count > 0 && (
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-full bg-yellow-100 text-yellow-700 flex items-center justify-center text-xs font-medium flex-shrink-0">⚠</div>
+                          <div className="flex-1">
+                            <p className="text-xs font-medium text-gray-900">Fallback Triggered</p>
+                            <p className="text-xs text-gray-600 mt-0.5">
+                              Reason: {selectedTrace.status === 429 ? 'Rate limit exceeded' : selectedTrace.status >= 500 ? 'Provider error' : 'Request failed'} •
+                              Retried {selectedTrace.retry_count} time(s) with exponential backoff
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="flex items-start gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 ${
+                          selectedTrace.status === 200 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        }`}>✓</div>
+                        <div className="flex-1">
+                          <p className="text-xs font-medium text-gray-900">Final Result</p>
+                          <p className="text-xs text-gray-600 mt-0.5">
+                            Status: {selectedTrace.status} •
+                            Latency: {formatLatency(selectedTrace.latency)} •
+                            Cost: {formatCurrency(selectedTrace.cost)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Fallback Reasons Highlight */}
+                    {(selectedTrace.retry_count && selectedTrace.retry_count > 0) && (
+                      <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                        <h4 className="text-xs font-medium text-yellow-900 mb-2 flex items-center gap-2">
+                          <AlertTriangle className="h-3 w-3" />
+                          Fallback Analysis
+                        </h4>
+                        <div className="space-y-1 text-xs text-yellow-800">
+                          {selectedTrace.retry_attempts?.map((attempt, idx) => (
+                            <div key={idx} className="flex items-start gap-2">
+                              <span className="text-yellow-600">•</span>
+                              <span>Attempt {attempt.attempt_number}: {attempt.error || `HTTP ${attempt.status}`} ({formatLatency(attempt.duration)})</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Error Details */}
                 {selectedTrace.error && (
-                  <div>
+                  <div className="border-t border-border-light pt-4">
                     <button
                       onClick={() => toggleSection('error')}
                       className="flex items-center justify-between w-full text-sm font-medium text-red-700 mb-2"

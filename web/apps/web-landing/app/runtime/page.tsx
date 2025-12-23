@@ -13,28 +13,40 @@ export default function RuntimePage() {
 
   const features = [
     {
-      name: 'Multiple Local Models',
-      description: 'Run Phi-3, Qwen, DeepSeek, GLM-4, Llama, and Mistral models locally. Choose the right model for your task. Switch models without changing code or restarting.',
+      name: 'Guaranteed Response Times',
+      description: 'Execute critical AI tasks with latency guarantees. Priority levels ensure safety-critical operations complete in < 50ms. Perfect for real-time robotics and industrial automation.',
     },
     {
-      name: 'Automatic Cloud Backup',
-      description: 'Seamlessly switches to local models when cloud providers fail or are unreachable. Works completely offline once models are downloaded. No interruption to your application.',
+      name: 'Auto GPU Optimization',
+      description: 'Detects your hardware and configures itself for 2-5x faster inference. Works with NVIDIA, AMD, and Apple Silicon. Benchmarks performance and recommends optimal settings automatically.',
     },
     {
-      name: 'AI Agents Built-In',
-      description: 'Built-in capabilities for planning, tool calling, and self-correction. Models can critique and improve their own outputs automatically. Better results with less manual prompt engineering.',
+      name: 'Persistent Memory',
+      description: 'Your AI remembers conversations across restarts. Semantic search over past interactions. Long-term context retention with encrypted storage. Never lose important context.',
     },
     {
-      name: 'Swarm Intelligence',
-      description: 'Connect multiple Runtime instances to share context automatically. No configuration needed—they find each other on your network. Encrypted communication keeps your data secure.',
+      name: 'Smart Model Selection',
+      description: 'Automatically picks the best model for each task. Fast model for simple questions, powerful model for complex reasoning. Switch models in < 200ms without restart.',
     },
     {
-      name: 'Learns From Usage',
-      description: 'Automatically fine-tunes local models based on your actual usage. Creates specialized versions that understand your domain. All training happens on-device with encrypted storage.',
+      name: 'Robot Control',
+      description: 'Control robots and autonomous systems with AI. Connect to ROS2 for navigation and coordination. GPIO, camera, and LIDAR integration. Deploy in safety-critical environments with ISO 26262 compliance.',
     },
     {
-      name: 'Runs Anywhere',
-      description: 'Single lightweight binary works on servers, laptops, edge devices, and embedded systems. Fast inference even on CPU. Supports x86, ARM, Raspberry Pi, and Jetson.',
+      name: 'Fleet Management',
+      description: 'Manage thousands of edge devices from one dashboard. Push updates fleet-wide. Monitor health and performance in real-time. Perfect for warehouse robots and industrial deployments.',
+    },
+    {
+      name: 'Privacy-Preserving Learning',
+      description: 'Train AI across multiple devices without sharing data. Federated learning with differential privacy. Improve models across your fleet while keeping sensitive data local.',
+    },
+    {
+      name: 'Human Oversight',
+      description: 'Add approval workflows for critical decisions. AI auto-approves when confident, escalates uncertain decisions to humans. Perfect for safety-critical systems and regulatory compliance.',
+    },
+    {
+      name: 'Chaos Testing',
+      description: 'Test your AI with virtual swarms and failure injection. Simulate 100 robots without buying hardware. Benchmark performance under load before deploying to production.',
     },
   ]
 
@@ -113,7 +125,7 @@ export default function RuntimePage() {
                           Execution Plane
                         </h2>
                         <p className="text-sm md:text-lg text-gray-700 max-w-2xl leading-relaxed text-left mt-6">
-                          Edge runtime that runs AI models locally with automatic cloud backup. Keeps working offline, learns from your usage, and coordinates with other instances. Built for environments where reliability matters.
+                          Edge runtime that runs AI locally with guaranteed response times. Controls robots, manages fleets, and learns across devices without sharing data. Built for safety-critical systems where reliability and performance matter.
                         </p>
                       </div>
                     </div>

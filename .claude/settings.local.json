@@ -37,7 +37,8 @@
       "Bash(cat:*)",
       "Bash(git push:*)",
       "Bash(cargo new:*)",
-      "Bash(cargo build:*)"
+      "Bash(cargo build:*)",
+      "Bash(xargs sed:*)"
     ],
     "deny": [],
     "ask": []

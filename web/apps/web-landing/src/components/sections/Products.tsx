@@ -81,7 +81,7 @@ export default function Products() {
                           </p>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mt-6 mb-6 break-words whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-                          Offline-capable edge runtime with automatic local LLM fallback. Pure Rust with streaming, GPU acceleration, peer-to-peer swarm intelligence, and on-device fine-tuning. Zero-downtime when cloud fails.
+                          Edge runtime with guaranteed latency, robot control, and fleet management. Privacy-preserving federated learning, human oversight for critical decisions, and chaos testing. Built for safety-critical systems.
                         </p>
                         <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
                           Learn more
