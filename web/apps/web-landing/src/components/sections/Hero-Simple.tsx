@@ -10,12 +10,44 @@ export default function Hero() {
     <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
       <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
         {/* Main Content Box with Border */}
-        <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-8 md:pb-20 bg-transparent z-10" style={{
+        <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-72 md:pb-96 lg:pb-[48rem] bg-transparent z-10" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
         }}>
+          {/* Background image layer */}
+          <div 
+            className="absolute inset-0"
+            style={{
+              backgroundImage: 'url("/heroputr.png")',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center top 100%',
+              backgroundRepeat: 'no-repeat',
+              opacity: 1
+            }}
+          />
+          {/* Bottom blur effect */}
+          <div 
+            className="absolute left-0 right-0 bottom-0 h-4"
+            style={{
+              background: 'linear-gradient(to top, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+            }}
+          />
+          {/* Left blur effect */}
+          <div 
+            className="absolute top-0 bottom-0 left-0 w-4"
+            style={{
+              background: 'linear-gradient(to right, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+            }}
+          />
+          {/* Right blur effect */}
+          <div 
+            className="absolute top-0 bottom-0 right-0 w-4"
+            style={{
+              background: 'linear-gradient(to left, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+            }}
+          />
           {/* Top left bleeding cross */}
           <div className="absolute -top-4 -left-4 w-8 h-8">
             <div className="absolute top-3.5 left-0 w-8 border-t-[0.5px] border-[#1a1e21]"></div>
@@ -54,45 +86,6 @@ export default function Hero() {
                 Get Started
               </button>
             </div>
-
-            {/* Hero diagram - visible on mobile, hidden on larger screens */}
-            <div className="block md:hidden">
-              <div className="relative w-full h-[400px] border border-gray-300 rounded-2xl bg-[#f6f6f4]">
-                <div
-                  className="absolute inset-0 rounded-2xl"
-                  style={{
-                    backgroundImage: 'url("/schlep-logo-47.svg")',
-                    backgroundPosition: 'center center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: 'cover',
-                    opacity: 0.8,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Hero content area - spacing for background on desktop */}
-            <div className="bg-transparent hidden md:block min-h-[500px]">
-              <div className="flex items-center justify-center h-full"></div>
-            </div>
-          </div>
-        </div>
-
-        {/* HERO diagram background - positioned below main box (desktop only) */}
-        <div className="hidden md:block absolute left-4 right-4 md:left-12 md:right-12 lg:left-24 lg:right-24 bottom-8 pointer-events-none max-w-[1200px] mx-auto z-[5] h-[500px]">
-          <div className="relative w-full h-full border border-gray-300 rounded-2xl bg-[#f6f6f4]">
-            {/* Igris Inertial diagram SVG */}
-            <div
-              className="absolute inset-0 rounded-2xl"
-              style={{
-                backgroundImage: 'url("/schlep-logo-47.svg")',
-                backgroundPosition: 'center center',
-                backgroundRepeat: 'no-repeat',
-                backgroundSize: 'cover',
-                opacity: 0.8,
-                zIndex: 5
-              }}
-            />
           </div>
         </div>
       </div>
