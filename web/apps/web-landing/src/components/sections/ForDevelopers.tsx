@@ -5,27 +5,27 @@ export default function ForDevelopers() {
   const features = [
     {
       title: 'OpenAI-Compatible API',
-      description: 'Standard REST API that works with existing OpenAI client libraries. Drop-in replacement for your current setup.',
+      description: 'Standard /v1/chat/completions endpoint works with existing client libraries. Drop-in replacement with streaming support and tool calling.',
     },
     {
-      title: 'Bring Your Own Keys',
-      description: 'Use your own API keys for OpenAI, Anthropic, and other providers. Full control over your accounts and billing.',
+      title: 'Bring Your Own Keys & Models',
+      description: 'Use your own API keys for OpenAI, Anthropic, Groq, and others. Add custom models via provider registry with health monitoring.',
     },
     {
       title: 'Automatic Fallback',
-      description: 'Local models activate automatically when cloud providers fail. No code changes needed for offline operation.',
+      description: 'Runtime falls back to local Phi-3 Mini models (llama.cpp) when all cloud providers fail. Guaranteed response even offline.',
     },
     {
       title: 'Swarm Coordination',
-      description: 'Multiple Runtime instances discover each other and share context automatically. Zero configuration required.',
+      description: 'Multiple Runtime instances auto-discover via mDNS/UDP multicast. Share encrypted context and coordinate failover without configuration.',
     },
     {
-      title: 'Tool Integration',
-      description: 'Built-in support for function calling and tool use. Models can plan, execute tools, and self-correct their outputs.',
+      title: 'Deployment Options',
+      description: 'Single 12MB Rust binary, Docker containers, or Kubernetes. Runs on x86_64, ARM64, Raspberry Pi, and NVIDIA Jetson with GPU offload.',
     },
     {
-      title: 'Deploy Anywhere',
-      description: 'Single binary, Docker containers, or Kubernetes. Runs on x86, ARM, Raspberry Pi, and NVIDIA Jetson.',
+      title: 'Policy-Driven Routing',
+      description: 'YAML-based policies control provider selection, retry chains, cost budgets, and region constraints. Hot-reload without downtime.',
     },
   ]
 
