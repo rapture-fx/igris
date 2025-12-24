@@ -82,7 +82,8 @@ export default function FleetPage() {
         availabilityZones.map((az, azIdx) => {
           const status = statuses[Math.floor(Math.random() * statuses.length)];
           const instanceId = `igris-runtime-${region}-${az}`;
-          
+          const syncStatus: 'in_sync' | 'out_of_sync' | 'syncing' = status === 'online' ? (Math.random() > 0.1 ? 'in_sync' : 'out_of_sync') : 'syncing';
+
           return {
             id: instanceId,
             name: `${region.toUpperCase()} ${az.toUpperCase()} Runtime`,
@@ -97,7 +98,7 @@ export default function FleetPage() {
             avg_latency: 50 + Math.random() * 200,
             cpu_usage: 20 + Math.random() * 60,
             memory_usage: 30 + Math.random() * 50,
-            sync_status: status === 'online' ? (Math.random() > 0.1 ? 'in_sync' : 'out_of_sync') : 'syncing',
+            sync_status: syncStatus,
             last_sync_time: new Date(Date.now() - Math.random() * 300000).toISOString(),
             capabilities: capabilities.slice(0, Math.floor(Math.random() * 3) + 1),
             provider_connections: 3 + Math.floor(Math.random() * 3),

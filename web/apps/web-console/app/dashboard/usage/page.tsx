@@ -36,14 +36,24 @@ export default function UsagePage() {
     granularity: timeRange === 'day' ? 'hour' : 'day',
   });
 
-  // Mock data for showcase
+  // Mock data for showcase (matching UsageMetrics type)
   const mockUsage = {
-    summary: {
-      total_requests: 2847,
-      total_cost: 523.47,
-      avg_latency: 156,
-      total_tokens: 142350,
-    },
+    total_requests: 2847,
+    total_cost: 523.47,
+    avg_latency: 156,
+    total_tokens: 142350,
+    by_provider: [
+      { provider: 'openai', requests: 1234, cost: 342.78, avg_latency: 145, tokens: 87456 },
+      { provider: 'anthropic', requests: 876, cost: 156.34, avg_latency: 178, tokens: 34876 },
+      { provider: 'google', requests: 523, cost: 89.23, avg_latency: 234, tokens: 15678 },
+      { provider: 'xai', requests: 214, cost: 45.12, avg_latency: 198, tokens: 4340 },
+    ],
+    by_model: [
+      { model: 'gpt-4-turbo', requests: 1456, cost: 289.67, tokens: 65432 },
+      { model: 'gpt-4', requests: 678, cost: 178.34, tokens: 22024 },
+      { model: 'claude-3-opus', requests: 423, cost: 123.45, tokens: 18876 },
+      { model: 'gemini-pro', requests: 290, cost: 67.89, tokens: 15678 },
+    ],
     timeline: [
       { timestamp: '00:00', requests: 89, cost: 12.34, latency: 142 },
       { timestamp: '04:00', requests: 45, cost: 6.78, latency: 98 },
@@ -52,27 +62,6 @@ export default function UsagePage() {
       { timestamp: '16:00', requests: 367, cost: 72.89, latency: 189 },
       { timestamp: '20:00', requests: 298, cost: 58.91, latency: 156 },
       { timestamp: '23:59', requests: 78, cost: 15.23, latency: 134 },
-    ],
-    provider_breakdown: [
-      { provider: 'OpenAI', requests: 1234, cost: 342.78, percentage: 65.5 },
-      { provider: 'Anthropic', requests: 876, cost: 156.34, percentage: 29.9 },
-      { provider: 'Google', requests: 523, cost: 89.23, percentage: 17.1 },
-      { provider: 'xAI', requests: 214, cost: 45.12, percentage: 8.6 },
-    ],
-    model_breakdown: [
-      { model: 'gpt-4-turbo', requests: 1456, cost: 289.67, percentage: 55.3 },
-      { model: 'gpt-4', requests: 678, cost: 178.34, percentage: 34.1 },
-      { model: 'claude-3-opus', requests: 423, cost: 123.45, percentage: 23.6 },
-      { model: 'gemini-pro', requests: 290, cost: 67.89, percentage: 13.0 },
-    ],
-    daily_breakdown: [
-      { date: 'Mon', requests: 2847, cost: 523.47 },
-      { date: 'Tue', requests: 3124, cost: 567.89 },
-      { date: 'Wed', requests: 2987, cost: 534.12 },
-      { date: 'Thu', requests: 3678, cost: 623.45 },
-      { date: 'Fri', requests: 3421, cost: 589.76 },
-      { date: 'Sat', requests: 1987, cost: 312.34 },
-      { date: 'Sun', requests: 2145, cost: 345.67 },
     ],
   };
 
@@ -260,7 +249,7 @@ export default function UsagePage() {
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={displayUsage?.provider_breakdown || []}
+                        data={displayUsage?.by_provider || []}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
@@ -269,7 +258,7 @@ export default function UsagePage() {
                         fill="#8884d8"
                         dataKey="cost"
                       >
-                        {(displayUsage?.provider_breakdown || []).map((entry, index) => (
+                        {(displayUsage?.by_provider || []).map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
@@ -287,7 +276,7 @@ export default function UsagePage() {
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={displayUsage?.provider_breakdown || []}>
+                    <BarChart data={displayUsage?.by_provider || []}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                       <XAxis dataKey="provider" stroke="#6b7280" />
                       <YAxis stroke="#6b7280" />
@@ -318,7 +307,7 @@ export default function UsagePage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {(displayUsage?.provider_breakdown || []).map((provider) => (
+                      {(displayUsage?.by_provider || []).map((provider) => (
                         <tr key={provider.provider} className="border-b border-border-light hover:bg-beige-primary">
                           <td className="py-3 px-4 font-medium text-gray-900">
                             {provider.provider.charAt(0).toUpperCase() + provider.provider.slice(1)}

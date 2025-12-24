@@ -16,7 +16,7 @@ import { formatCurrency, formatNumber, formatLatency, formatDateTime, downloadCS
 import {
   Activity, Download, Clock, Database, Filter, Search, X,
   ChevronDown, ChevronUp, Copy, Share2, AlertCircle, CheckCircle,
-  XCircle, Loader2, BarChart3, Zap, Tag, Code, Link2, Eye
+  XCircle, Loader2, BarChart3, Zap, Tag, Code, Link2, Eye, AlertTriangle
 } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
