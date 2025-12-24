@@ -41,7 +41,8 @@
       "Bash(xargs sed:*)",
       "Bash(ls:*)",
       "Bash(pnpm add:*)",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(git config:*)"
     ],
     "deny": [],
     "ask": []
