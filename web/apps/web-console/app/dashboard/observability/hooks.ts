@@ -205,6 +205,13 @@ export function useRealTimeMetrics() {
         if (!response.ok) throw new Error('Failed to fetch metrics');
         return response.json();
       } catch (error) {
+        // Generate sparkline data for the last 30 points (30 seconds at 1 second intervals)
+        const now = Date.now();
+        const requestsSparkline = Array.from({ length: 30 }, (_, i) => ({
+          time: now - (29 - i) * 1000,
+          value: 10 + Math.random() * 15 + Math.sin(i / 5) * 5, // Realistic varying pattern
+        }));
+
         // Return comprehensive mock metrics when API is unavailable
         return {
           requestsPerSecond: 12.5 + Math.random() * 5,
@@ -221,6 +228,7 @@ export function useRealTimeMetrics() {
             '429': 3 + Math.floor(Math.random() * 2),
             '500': 1 + Math.floor(Math.random() * 2),
           },
+          requestsSparkline,
         } as RealTimeMetrics;
       }
     },
