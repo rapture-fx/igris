@@ -65,6 +65,7 @@ interface RealTimeMetrics {
   cacheHitRate: number;
   activeProviders: string[];
   statusDistribution: Record<string, number>;
+  requestsSparkline?: Array<{ time: number; value: number }>;
 }
 
 const API_BASE_URL = typeof window !== 'undefined'
