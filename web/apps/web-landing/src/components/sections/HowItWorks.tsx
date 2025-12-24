@@ -56,19 +56,15 @@ export default function HowItWorks() {
 
               {/* Right Column - Diagram and Explanation */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
-                {/* Background image layer */}
-                <div 
-                  className="absolute inset-0"
-                  style={{
-                    backgroundImage: 'url("/architect.png")',
-                    backgroundSize: '100%',
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    borderRadius: '0',
-                    opacity: 0.7
-                  }}
-                />
                 <div className="w-full relative z-10">
+                  <Image
+                    src="/flow.png"
+                    alt="Igris Inertial Flow Diagram"
+                    width={800}
+                    height={600}
+                    className="w-full h-auto rounded-lg"
+                    style={{ maxHeight: '600px', objectFit: 'contain' }}
+                  />
                 </div>
               </div>
             </div>
