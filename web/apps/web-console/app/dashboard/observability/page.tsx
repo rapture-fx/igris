@@ -354,7 +354,7 @@ export default function ObservabilityPage() {
     p95Latency: metricsData?.avgLatency || 0,
     costPerHour: metricsData?.totalCost || 0,
     activeProviders: metricsData?.activeProviders?.length || 0,
-    requestsSparkline: [],
+    requestsSparkline: metricsData?.requestsSparkline || [],
   };
 
   // Tier-based access control
