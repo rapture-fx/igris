@@ -62,42 +62,40 @@ export default function UseCasesTeaser() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
-              <div className="lg:col-span-2 relative flex items-center justify-center">
-                <div className="w-full">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    {useCases.map((useCase) => (
-                      <Link href="/use-cases" key={useCase.title} className="group">
-                        <div className="rounded-3xl p-4 md:p-6 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 min-h-[200px] flex flex-col group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
-                          <h5 className="text-sm md:text-base font-medium text-gray-900 dark:text-white mb-2 font-inter">
-                            {useCase.title}
-                          </h5>
-                          <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-3 font-inter flex-grow">
-                            {useCase.description}
-                          </p>
-                          <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs group-hover:translate-x-1 transition-transform">
-                            Learn more
-                            <ChevronRight className="ml-1 h-3 w-3" />
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-                  <div className="text-center">
-                    <Link href="/use-cases" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm hover:translate-x-1 transition-transform">
-                      View all use cases
-                      <ChevronRight className="ml-2 h-4 w-4" />
-                    </Link>
-                  </div>
-                </div>
+              {/* Left Column - Empty */}
+              <div className="hidden lg:flex text-left lg:col-span-2 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
               </div>
 
-              <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
+              {/* Right Column - All Content */}
+              <div className="text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
                 <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Use Cases
                 </h3>
-                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-12">
                   How teams use Igris for AI workloads across cloud and edge.
                 </p>
+
+                {/* Use Cases List - without cards */}
+                <div className="flex flex-col gap-8">
+                  {useCases.map((useCase, index) => (
+                    <div key={useCase.title} className="text-left">
+                      <h3 className="text-base font-normal text-gray-900 dark:text-white mb-3 font-inter">
+                        {useCase.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mb-2">
+                        {useCase.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* View All Link */}
+                <div className="mt-8">
+                  <Link href="/use-cases" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm hover:translate-x-1 transition-transform">
+                    View all use cases
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
