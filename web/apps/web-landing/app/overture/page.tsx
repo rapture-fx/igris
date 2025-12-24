@@ -10,9 +10,11 @@ import EarlyAccessModal from '../../src/components/modals/EarlyAccessModal'
 import { useModal } from '../../src/contexts/ModalContext'
 import Link from 'next/link'
 import { ChevronRight } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function OverturePage() {
   const { isEarlyAccessModalOpen, closeEarlyAccessModal } = useModal();
+  const router = useRouter();
 
   const features = [
     {
@@ -68,7 +70,7 @@ export default function OverturePage() {
           {/* Hero Section */}
           <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-              <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-8 md:pb-20 bg-transparent z-10" style={{
+              <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-72 md:pb-96 lg:pb-[48rem] bg-transparent z-10" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -83,20 +85,58 @@ export default function OverturePage() {
                   <div className="absolute bottom-0 right-3.5 h-8 border-r-[0.5px] border-[#1a1e21]"></div>
                 </div>
 
+                {/* Background image layer */}
+                <div 
+                  className="absolute inset-0"
+                  style={{
+                    backgroundImage: 'url("/heroland.png")',
+                    backgroundSize: '100%',
+                    backgroundPosition: 'center top 100%',
+                    backgroundRepeat: 'no-repeat',
+                    opacity: 1
+                  }}
+                />
+                {/* Bottom blur effect */}
+                <div 
+                  className="absolute left-0 right-0 bottom-0 h-4"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+                  }}
+                />
+                {/* Left blur effect */}
+                <div 
+                  className="absolute top-0 bottom-0 left-0 w-4"
+                  style={{
+                    background: 'linear-gradient(to right, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+                  }}
+                />
+                {/* Right blur effect */}
+                <div 
+                  className="absolute top-0 bottom-0 right-0 w-4"
+                  style={{
+                    background: 'linear-gradient(to left, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+                  }}
+                />
+
                 <div className="max-w-[1300px] mx-auto pt-8 px-0 md:px-8 lg:px-16">
                   <div className="pt-8 mb-6">
-                    <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 mb-4 inline-flex items-center">
+                    <button 
+                      onClick={() => router.push('/')}
+                      className="text-sm text-gray-600 hover:text-gray-900 hover:underline mb-4 inline-flex items-center transition-colors cursor-pointer bg-transparent border-none p-0"
+                    >
                       ← Back to platform
-                    </Link>
+                    </button>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
-                      <div className="text-left">
+                      <div className="text-left md:w-2/3">
                         <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
                           Overture
                         </h1>
-                        <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
+                        <h2 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
                           Control Plane
                         </h2>
-                        <p className="text-sm md:text-lg text-gray-700 max-w-2xl leading-relaxed text-left mt-6">
+                      </div>
+                      <div className="text-left md:w-1/3">
+                        <p className="text-sm md:text-lg text-gray-700 max-w-3xl leading-relaxed text-left">
                           Cloud gateway that routes AI requests to the best provider for each task. Learns from every request to optimize speed, cost, and quality. Built for teams that need reliable AI at scale.
                         </p>
                       </div>
