@@ -44,10 +44,10 @@ export default function Hero() {
             <div className="pt-8 mb-6">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2]">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2]">
                     Control and execution platform
                   </h1>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2] mt-2">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2] mt-2">
                     for production LLM systems.
                   </h1>
                 </div>
