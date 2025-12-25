@@ -1,11 +1,33 @@
 use serde::{Deserialize, Serialize};
 
+/// Training backend to use
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum TrainingBackend {
+    /// Use llama.cpp's finetune binary (requires external dependency)
+    LlamaCpp,
+    /// Use native Rust training with metal-candle (recommended)
+    NativeRust,
+    /// Auto-detect: prefer native Rust, fallback to llama.cpp if available
+    Auto,
+}
+
+impl Default for TrainingBackend {
+    fn default() -> Self {
+        Self::Auto
+    }
+}
+
 /// Configuration for on-device QLoRA fine-tuning
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LoRATrainingConfig {
     /// Enable automatic LoRA training
     #[serde(default)]
     pub enabled: bool,
+
+    /// Training backend to use (default: auto)
+    #[serde(default)]
+    pub backend: TrainingBackend,
 
     /// Trigger training after N requests (default: 100)
     #[serde(default = "default_trigger_threshold")]
@@ -108,6 +130,7 @@ impl Default for LoRATrainingConfig {
     fn default() -> Self {
         Self {
             enabled: false,
+            backend: TrainingBackend::default(),
             trigger_threshold: default_trigger_threshold(),
             max_adapter_size_mb: default_max_adapter_size_mb(),
             lora_rank: default_lora_rank(),
