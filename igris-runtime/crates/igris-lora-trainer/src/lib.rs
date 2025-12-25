@@ -3,6 +3,10 @@ pub mod storage;
 pub mod trainer;
 pub mod encryption;
 
+// Native Rust training module (optional, enabled with 'native-training' feature)
+#[cfg(feature = "native-training")]
+pub mod metal_trainer;
+
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -10,6 +14,9 @@ pub use config::LoRATrainingConfig;
 pub use storage::{ConversationHistory, TrainingDataStore};
 pub use trainer::LoRATrainer;
 pub use encryption::AdapterEncryption;
+
+#[cfg(feature = "native-training")]
+pub use metal_trainer::MetalLoRATrainer;
 
 /// Represents a single training example (prompt + completion pair)
 #[derive(Debug, Clone, Serialize, Deserialize)]
