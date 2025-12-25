@@ -28,6 +28,9 @@ pub struct IgrisConfig {
     /// Optional real-time execution configuration (v1.7 - Phase 1, Dev 1)
     #[serde(default)]
     pub rt: Option<RtRuntimeConfig>,
+    /// Optional EscapeVector graceful degradation configuration (v1.9 - Phase 1)
+    #[serde(default)]
+    pub escapevector: Option<EscapeVectorConfig>,
 }
 
 impl Default for IgrisConfig {
@@ -46,6 +49,7 @@ impl Default for IgrisConfig {
             planning: Some(PlanningRuntimeConfig::default()),
             swarm: Some(SwarmRuntimeConfig::default()),
             rt: Some(RtRuntimeConfig::default()),
+            escapevector: Some(EscapeVectorConfig::default()),
         }
     }
 }
@@ -552,6 +556,51 @@ impl Default for RtRuntimeConfig {
             max_concurrent_tasks: default_rt_max_concurrent_tasks(),
             enable_metrics: true,
             warn_threshold_ms: default_rt_warn_threshold_ms(),
+        }
+    }
+}
+
+/// EscapeVector graceful degradation configuration (v1.9 - Phase 1)
+/// Provides 24-hour cached response fallback when all providers fail
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EscapeVectorConfig {
+    /// Enable EscapeVector response caching
+    #[serde(default)]
+    pub enabled: bool,
+    /// Cache directory path
+    #[serde(default = "default_escapevector_cache_dir")]
+    pub cache_dir: String,
+    /// Minimum quality score to cache response (0.0-1.0)
+    #[serde(default = "default_escapevector_min_quality")]
+    pub min_quality_score: f32,
+    /// Enable automatic response caching on successful requests
+    #[serde(default = "default_true")]
+    pub auto_cache: bool,
+    /// Fall back to cache after this many milliseconds of provider failures
+    #[serde(default = "default_escapevector_fallback_threshold_ms")]
+    pub fallback_threshold_ms: u64,
+}
+
+fn default_escapevector_cache_dir() -> String {
+    ".escapevector".to_string()
+}
+
+fn default_escapevector_min_quality() -> f32 {
+    0.7
+}
+
+fn default_escapevector_fallback_threshold_ms() -> u64 {
+    5000 // 5 seconds
+}
+
+impl Default for EscapeVectorConfig {
+    fn default() -> Self {
+        Self {
+            enabled: true, // Enable by default for resilience
+            cache_dir: default_escapevector_cache_dir(),
+            min_quality_score: default_escapevector_min_quality(),
+            auto_cache: true,
+            fallback_threshold_ms: default_escapevector_fallback_threshold_ms(),
         }
     }
 }

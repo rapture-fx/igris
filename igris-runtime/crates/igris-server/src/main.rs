@@ -18,6 +18,7 @@ use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use utoipa::OpenApi;
 use utoipa_swagger_ui::SwaggerUi;
 use clap::{Parser, Subcommand};
+use sha2::Digest;
 
 use igris_core::{config::IgrisConfig, storage::RedbStorage};
 use igris_routing::{
@@ -28,6 +29,7 @@ use igris_routing::{
 };
 use igris_local_llm::{LocalLLMConfig, LocalLLMProviderAdapter};
 use igris_routing::local_provider::LocalProvider;
+use igris_emergency::EscapeVectorCache;
 use igris_reflection::{ReflectionAgent, ReflectionConfig as ReflectionLoopConfig, LLMProvider as ReflectionLLMProvider};
 use igris_planning::{PlanningAgent, PlanningConfig};
 use igris_mcp_server::{
@@ -75,6 +77,7 @@ pub(crate) struct AppState {
     pub(crate) lora_training: Option<Arc<LoraTrainingManager>>,
     pub(crate) rate_limiter: Option<middleware::security::RateLimiter>,
     pub(crate) metrics: Arc<Metrics>,
+    pub(crate) escapevector_cache: Option<Arc<EscapeVectorCache>>,
 }
 
 /// Reflection LLM provider backed by the local provider (real llama.cpp execution).
@@ -221,6 +224,7 @@ enum ApiError {
     BadRequest(String),
     InternalError(String),
     NotImplemented(String),
+    ServiceUnavailable(String),
 }
 
 impl IntoResponse for ApiError {
@@ -229,6 +233,7 @@ impl IntoResponse for ApiError {
             ApiError::BadRequest(msg) => (StatusCode::BAD_REQUEST, msg, "bad_request"),
             ApiError::InternalError(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg, "internal_error"),
             ApiError::NotImplemented(msg) => (StatusCode::NOT_IMPLEMENTED, msg, "not_implemented"),
+            ApiError::ServiceUnavailable(msg) => (StatusCode::SERVICE_UNAVAILABLE, msg, "service_unavailable"),
         };
 
         let error_response = ErrorResponse {
@@ -794,10 +799,47 @@ async fn chat_completions(
         }
     }
 
-    // If we still don't have a response, fail
-    let response_text = response_text.ok_or_else(|| {
-        ApiError::InternalError("All providers unavailable".to_string())
-    })?;
+    // If we still don't have a response, try EscapeVector cache as final fallback
+    let response_text = if let Some(text) = response_text {
+        text
+    } else {
+        // All providers failed - check EscapeVector cache
+        if let Some(cache) = &state.escapevector_cache {
+            info!("All providers failed, checking EscapeVector cache for graceful degradation");
+            match cache.load_response(&prompt) {
+                Ok(Some(cached)) => {
+                    info!(
+                        "EscapeVector cache hit! Serving cached response (age: {}s, quality: {:.2}, hits: {})",
+                        std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_secs() - cached.cached_at,
+                        cached.quality_score,
+                        cached.hit_count
+                    );
+                    used_provider = format!("escapevector-cache:{}", cached.model);
+                    cached.response_text
+                }
+                Ok(None) => {
+                    error!("All providers failed and no cached response available");
+                    return Err(ApiError::ServiceUnavailable(
+                        "All AI providers are currently unavailable. Please try again in a few moments.".to_string()
+                    ));
+                }
+                Err(e) => {
+                    error!("Failed to load EscapeVector cache: {}", e);
+                    return Err(ApiError::ServiceUnavailable(
+                        "All AI providers are currently unavailable. Please try again in a few moments.".to_string()
+                    ));
+                }
+            }
+        } else {
+            error!("All providers failed and EscapeVector cache not available");
+            return Err(ApiError::ServiceUnavailable(
+                "All AI providers are currently unavailable. Please try again in a few moments.".to_string()
+            ));
+        }
+    };
     let response_text_for_record = response_text.clone();
 
     let completion_tokens_est = (response_text.len() as u32) / 4;
@@ -828,9 +870,36 @@ async fn chat_completions(
         },
     };
 
+    // Record for LoRA training if enabled
     if let Some(mgr) = &state.lora_training {
-        let _ = mgr.record_example(prompt.clone(), response_text_for_record, used_provider.clone());
+        let _ = mgr.record_example(prompt.clone(), response_text_for_record.clone(), used_provider.clone());
         let _ = mgr.maybe_trigger_background_training().await;
+    }
+
+    // Cache successful response for EscapeVector graceful degradation
+    if let Some(cache) = &state.escapevector_cache {
+        if let Some(ev_config) = &state.config.escapevector {
+            if ev_config.auto_cache && !used_local_fallback {
+                // Calculate quality score based on response characteristics
+                let quality_score = if used_provider.starts_with("escapevector-cache") {
+                    0.5 // Cached responses get lower quality for re-caching
+                } else {
+                    // Higher quality for cloud providers
+                    0.85
+                };
+
+                if quality_score >= ev_config.min_quality_score {
+                    match cache.save_response(&prompt, &response_text_for_record, &used_provider, quality_score) {
+                        Ok(_) => {
+                            info!("Cached response for EscapeVector (quality: {:.2})", quality_score);
+                        }
+                        Err(e) => {
+                            warn!("Failed to cache response: {}", e);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Ok(Json(response).into_response())
@@ -1377,6 +1446,52 @@ async fn main() -> anyhow::Result<()> {
 
     let metrics = Arc::new(Metrics::new());
 
+    // Initialize EscapeVector cache for graceful degradation (Phase 1, v1.9)
+    let escapevector_cache: Option<Arc<EscapeVectorCache>> = if let Some(ev_config) = &config.escapevector {
+        if ev_config.enabled {
+            info!("EscapeVector graceful degradation is ENABLED");
+            info!("Cache directory: {}", ev_config.cache_dir);
+
+            // Derive cache encryption key from a stable device identifier
+            // In production, this should be derived from a device-specific secret or config
+            let mut cache_key = [0u8; 32];
+            let key_material = format!("igris-runtime-{}", config.server.port);
+            let hash = sha2::Sha256::digest(key_material.as_bytes());
+            cache_key.copy_from_slice(&hash[..32]);
+
+            match EscapeVectorCache::new(&ev_config.cache_dir, cache_key) {
+                Ok(cache) => {
+                    info!("EscapeVector cache initialized successfully");
+                    Some(Arc::new(cache))
+                }
+                Err(e) => {
+                    warn!("Failed to initialize EscapeVector cache: {}", e);
+                    warn!("Graceful degradation will not be available");
+                    None
+                }
+            }
+        } else {
+            info!("EscapeVector graceful degradation is DISABLED in config");
+            None
+        }
+    } else {
+        info!("EscapeVector not configured (using default: enabled)");
+        // Default behavior: enable with default config
+        let cache_dir = ".escapevector";
+        let mut cache_key = [0u8; 32];
+        let key_material = format!("igris-runtime-{}", config.server.port);
+        let hash = sha2::Sha256::digest(key_material.as_bytes());
+        cache_key.copy_from_slice(&hash[..32]);
+
+        match EscapeVectorCache::new(cache_dir, cache_key) {
+            Ok(cache) => Some(Arc::new(cache)),
+            Err(e) => {
+                warn!("Failed to initialize default EscapeVector cache: {}", e);
+                None
+            }
+        }
+    };
+
     let state = AppState {
         config: Arc::new(config),
         storage: Arc::new(storage),
@@ -1396,6 +1511,7 @@ async fn main() -> anyhow::Result<()> {
         lora_training,
         rate_limiter,
         metrics,
+        escapevector_cache,
     };
 
     // Build router
