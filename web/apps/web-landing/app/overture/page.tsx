@@ -89,30 +89,30 @@ export default function OverturePage() {
                 <div 
                   className="absolute inset-0"
                   style={{
-                    backgroundImage: 'url("/overture.png")',
-                    backgroundSize: '60%',
-                    backgroundPosition: 'center bottom%',
+                    backgroundImage: 'url("/above.png")',
+                    backgroundSize: '100%',
+                    backgroundPosition: 'center top 100%',
                     backgroundRepeat: 'no-repeat',
                     opacity: 1
                   }}
                 />
                 {/* Bottom blur effect */}
                 <div 
-                  className="absolute left-0 right-0 bottom-0 h-4"
+                  className="absolute left-0 right-0 bottom-0 h-2"
                   style={{
                     background: 'linear-gradient(to top, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
                   }}
                 />
                 {/* Left blur effect */}
                 <div 
-                  className="absolute top-0 bottom-0 left-0 w-4"
+                  className="absolute top-0 bottom-0 left-0 w-2"
                   style={{
                     background: 'linear-gradient(to right, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
                   }}
                 />
                 {/* Right blur effect */}
                 <div 
-                  className="absolute top-0 bottom-0 right-0 w-4"
+                  className="absolute top-0 bottom-0 right-0 w-2"
                   style={{
                     background: 'linear-gradient(to left, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
                   }}
