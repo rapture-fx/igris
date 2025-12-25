@@ -108,40 +108,71 @@ impl LoRATrainer {
         Ok(should_trigger)
     }
 
-    /// Prepare training data from conversation history
-    async fn prepare_training_data(&self) -> Result<PathBuf> {
-        let examples = self.store.get_history_since_last_training()?;
+    /// Prepare training and validation data from conversation history with 80/20 split
+    async fn prepare_training_data(&self) -> Result<(PathBuf, Option<PathBuf>)> {
+        let mut examples = self.store.get_history_since_last_training()?;
 
         if examples.is_empty() {
             anyhow::bail!("No training examples available");
         }
 
-        info!("Preparing {} training examples", examples.len());
+        // Shuffle examples for random train/val split (deterministic based on timestamp)
+        use std::collections::hash_map::DefaultHasher;
+        use std::hash::{Hash, Hasher};
+        examples.sort_by_key(|ex| {
+            let mut hasher = DefaultHasher::new();
+            ex.timestamp.hash(&mut hasher);
+            hasher.finish()
+        });
 
-        // Create temporary training data file in llama.cpp format
-        // Format: Each line is a training example
+        // 80/20 split for train/validation
+        let split_idx = (examples.len() as f64 * 0.8).ceil() as usize;
+        let (train_examples, val_examples) = examples.split_at(split_idx);
+
+        info!(
+            "Preparing {} training examples, {} validation examples",
+            train_examples.len(),
+            val_examples.len()
+        );
+
+        // Create data directory
         let data_dir = PathBuf::from(&self.config.adapter_dir);
         fs::create_dir_all(&data_dir).await?;
 
         let timestamp = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)?
             .as_secs();
-        let data_file = data_dir.join(format!("training_data_{}.txt", timestamp));
 
+        // Prepare training data file
+        let train_file = data_dir.join(format!("training_data_{}.txt", timestamp));
         let mut training_text = String::new();
-        for example in &examples {
-            // Format: prompt + completion as a single training example
-            // This is a simple format; llama.cpp's finetune expects text data
+        for example in train_examples {
             training_text.push_str(&format!(
                 "### Instruction:\n{}\n\n### Response:\n{}\n\n",
                 example.prompt, example.completion
             ));
         }
+        fs::write(&train_file, training_text).await?;
+        info!("Training data prepared: {}", train_file.display());
 
-        fs::write(&data_file, training_text).await?;
-        info!("Training data prepared: {}", data_file.display());
+        // Prepare validation data file (if we have validation examples)
+        let val_file = if !val_examples.is_empty() {
+            let val_file = data_dir.join(format!("validation_data_{}.txt", timestamp));
+            let mut validation_text = String::new();
+            for example in val_examples {
+                validation_text.push_str(&format!(
+                    "### Instruction:\n{}\n\n### Response:\n{}\n\n",
+                    example.prompt, example.completion
+                ));
+            }
+            fs::write(&val_file, validation_text).await?;
+            info!("Validation data prepared: {}", val_file.display());
+            Some(val_file)
+        } else {
+            None
+        };
 
-        Ok(data_file)
+        Ok((train_file, val_file))
     }
 
     /// Run LoRA training using llama.cpp's finetune binary
@@ -149,8 +180,8 @@ impl LoRATrainer {
         let start_time = Instant::now();
         info!("Starting LoRA training with base model: {}", base_model_path);
 
-        // Prepare training data
-        let training_data_path = self
+        // Prepare training and validation data
+        let (training_data_path, _validation_data_path) = self
             .prepare_training_data()
             .await
             .context("Failed to prepare training data")?;
@@ -204,20 +235,101 @@ impl LoRATrainer {
 
         info!("Running training command: {:?}", cmd);
 
-        // Execute training (with timeout)
-        let output = tokio::time::timeout(
+        // Configure command to capture stdout/stderr for progress reporting
+        cmd.stdout(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+
+        // Execute training with real-time progress reporting
+        let mut child = cmd
+            .spawn()
+            .context("Failed to spawn training process")?;
+
+        let stdout = child.stdout.take().context("Failed to capture stdout")?;
+        let stderr = child.stderr.take().context("Failed to capture stderr")?;
+
+        // Stream and log training progress in real-time
+        use tokio::io::{AsyncBufReadExt, BufReader};
+        let stdout_reader = BufReader::new(stdout);
+        let stderr_reader = BufReader::new(stderr);
+
+        let mut stdout_lines = stdout_reader.lines();
+        let mut stderr_lines = stderr_reader.lines();
+
+        let mut stdout_text = String::new();
+        let mut stderr_text = String::new();
+        let mut last_loss: Option<f64> = None;
+        let mut epoch_count = 0;
+
+        // Monitor training progress with timeout
+        let result = tokio::time::timeout(
             std::time::Duration::from_secs(self.config.max_training_time_secs),
-            cmd.output(),
+            async {
+                loop {
+                    tokio::select! {
+                        line = stdout_lines.next_line() => {
+                            match line {
+                                Ok(Some(line)) => {
+                                    // Parse and report progress
+                                    if line.contains("loss") || line.contains("epoch") {
+                                        info!("Training progress: {}", line);
+                                        if let Some(loss) = extract_loss_from_line(&line) {
+                                            last_loss = Some(loss);
+                                        }
+                                        if line.contains("epoch") {
+                                            epoch_count += 1;
+                                        }
+                                    }
+                                    stdout_text.push_str(&line);
+                                    stdout_text.push('\n');
+                                }
+                                Ok(None) => break,
+                                Err(e) => {
+                                    warn!("Error reading stdout: {}", e);
+                                    break;
+                                }
+                            }
+                        }
+                        line = stderr_lines.next_line() => {
+                            match line {
+                                Ok(Some(line)) => {
+                                    if !line.trim().is_empty() {
+                                        warn!("Training stderr: {}", line);
+                                    }
+                                    stderr_text.push_str(&line);
+                                    stderr_text.push('\n');
+                                }
+                                Ok(None) => break,
+                                Err(e) => {
+                                    warn!("Error reading stderr: {}", e);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                child.wait().await
+            },
         )
-        .await
-        .context("Training timeout")??;
+        .await;
 
-        let stdout = String::from_utf8_lossy(&output.stdout).to_string();
-        let stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let output_status = match result {
+            Ok(status_result) => status_result.context("Training process failed")?,
+            Err(_) => {
+                let _ = child.kill().await;
+                anyhow::bail!("Training timeout after {} seconds", self.config.max_training_time_secs);
+            }
+        };
 
-        if !output.status.success() {
-            error!("Training failed: {}", stderr.trim());
-            anyhow::bail!("Training process failed: {}", stderr.trim());
+        if !output_status.success() {
+            error!("Training failed: {}", stderr_text.trim());
+            anyhow::bail!("Training process failed: {}", stderr_text.trim());
+        }
+
+        if epoch_count > 0 {
+            info!("Completed {} training epochs", epoch_count);
+        }
+        if let Some(loss) = last_loss {
+            info!("Final training loss: {:.6}", loss);
         }
 
         let training_time = start_time.elapsed().as_secs_f64();
@@ -261,7 +373,8 @@ impl LoRATrainer {
             encrypted_adapter_path: encrypted_path,
             training_samples: examples.len(),
             training_time_secs: training_time,
-            final_loss: parse_final_loss(&stdout).or_else(|| parse_final_loss(&stderr)),
+            final_loss: last_loss.or_else(|| parse_final_loss(&stdout_text))
+                .or_else(|| parse_final_loss(&stderr_text)),
             adapter_size_bytes: Some(adapter_size_bytes),
         })
     }
@@ -333,21 +446,39 @@ impl LoRATrainer {
     }
 }
 
-fn parse_final_loss(text: &str) -> Option<f64> {
-    // Best-effort parse: look for patterns like "loss=0.123" or "loss: 0.123".
-    let mut best: Option<f64> = None;
-    for line in text.lines() {
-        let l = line.to_lowercase();
-        if !l.contains("loss") {
-            continue;
-        }
-        for token in l
+/// Extract loss value from a single training log line
+fn extract_loss_from_line(line: &str) -> Option<f64> {
+    let l = line.to_lowercase();
+    if !l.contains("loss") {
+        return None;
+    }
+
+    // Find the position of "loss" and extract number after it
+    if let Some(loss_pos) = l.find("loss") {
+        let after_loss = &l[loss_pos + 4..]; // Skip "loss"
+
+        // Extract the first number after "loss"
+        for token in after_loss
             .split(|c: char| !(c.is_ascii_digit() || c == '.' || c == '-' || c == 'e'))
             .filter(|t| !t.is_empty())
         {
             if let Ok(v) = token.parse::<f64>() {
-                best = Some(v);
+                if v >= 0.0 && v < 1000.0 {
+                    // Sanity check: loss should be reasonable
+                    return Some(v);
+                }
             }
+        }
+    }
+    None
+}
+
+fn parse_final_loss(text: &str) -> Option<f64> {
+    // Best-effort parse: look for patterns like "loss=0.123" or "loss: 0.123".
+    let mut best: Option<f64> = None;
+    for line in text.lines() {
+        if let Some(loss) = extract_loss_from_line(line) {
+            best = Some(loss);
         }
     }
     best
@@ -356,6 +487,7 @@ fn parse_final_loss(text: &str) -> Option<f64> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::TrainingExample;
     use tempfile::tempdir;
 
     #[tokio::test]
@@ -381,6 +513,150 @@ mod tests {
 
         // Should trigger now
         assert!(trainer.should_trigger_training().await?);
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_training_data_preparation_with_validation_split() -> Result<()> {
+        let dir = tempdir()?;
+        let db_path = dir.path().join("test.db");
+        let adapter_dir = dir.path().join("adapters");
+        let store = TrainingDataStore::open(&db_path)?;
+
+        // Create 10 training examples
+        for i in 0..10 {
+            let example = TrainingExample {
+                prompt: format!("Question {}", i),
+                completion: format!("Answer {}", i),
+                timestamp: 1000 + i,
+                model_used: "test-model".to_string(),
+            };
+            store.store_example(&example)?;
+        }
+
+        let mut config = LoRATrainingConfig::default();
+        config.adapter_dir = adapter_dir.to_string_lossy().to_string();
+
+        let llama_cpp_dir = PathBuf::from("../../../llama.cpp");
+        let trainer = LoRATrainer::new(config, store.clone(), llama_cpp_dir);
+
+        // Prepare training data
+        let (train_file, val_file) = trainer.prepare_training_data().await?;
+
+        // Verify files were created
+        assert!(train_file.exists());
+        assert!(val_file.is_some());
+
+        let val_path = val_file.unwrap();
+        assert!(val_path.exists());
+
+        // Verify content (should have ~8 training examples, ~2 validation)
+        let train_content = tokio::fs::read_to_string(&train_file).await?;
+        let val_content = tokio::fs::read_to_string(&val_path).await?;
+
+        // Count instruction markers (each example has one)
+        let train_count = train_content.matches("### Instruction:").count();
+        let val_count = val_content.matches("### Instruction:").count();
+
+        assert_eq!(train_count + val_count, 10);
+        assert!(train_count >= 7 && train_count <= 9); // ~80%
+        assert!(val_count >= 1 && val_count <= 3); // ~20%
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_extract_loss_from_line() {
+        // Test various loss line formats
+        assert_eq!(extract_loss_from_line("loss: 0.5432"), Some(0.5432));
+        assert_eq!(extract_loss_from_line("loss=0.123"), Some(0.123));
+        assert_eq!(extract_loss_from_line("epoch 5: loss 1.234"), Some(1.234));
+        assert_eq!(extract_loss_from_line("train_loss: 2.5e-3"), Some(0.0025));
+        assert_eq!(extract_loss_from_line("no loss here"), None);
+        assert_eq!(extract_loss_from_line("loss: -0.1"), None); // Negative loss is invalid
+    }
+
+    #[tokio::test]
+    async fn test_parse_final_loss() {
+        let log = "Starting training\nepoch 1: loss 0.8\nepoch 2: loss 0.6\nepoch 3: loss 0.4\nDone";
+        assert_eq!(parse_final_loss(log), Some(0.4)); // Should return last loss
+
+        let empty_log = "No loss information here";
+        assert_eq!(parse_final_loss(empty_log), None);
+    }
+
+    #[tokio::test]
+    async fn test_get_latest_adapter() -> Result<()> {
+        let dir = tempdir()?;
+        let adapter_dir = dir.path().join("adapters");
+        tokio::fs::create_dir_all(&adapter_dir).await?;
+
+        let mut config = LoRATrainingConfig::default();
+        config.adapter_dir = adapter_dir.to_string_lossy().to_string();
+
+        let db_path = dir.path().join("test.db");
+        let store = TrainingDataStore::open(&db_path)?;
+        let llama_cpp_dir = PathBuf::from("../../../llama.cpp");
+        let trainer = LoRATrainer::new(config, store, llama_cpp_dir);
+
+        // No adapters initially
+        assert!(trainer.get_latest_adapter().await?.is_none());
+
+        // Create a mock adapter file
+        let adapter1 = adapter_dir.join("lora_adapter_1000.gguf");
+        tokio::fs::write(&adapter1, b"mock adapter 1").await?;
+
+        // Wait a bit to ensure different timestamps
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+
+        let adapter2 = adapter_dir.join("lora_adapter_2000.gguf");
+        tokio::fs::write(&adapter2, b"mock adapter 2").await?;
+
+        // Should return the most recent one
+        let latest = trainer.get_latest_adapter().await?.unwrap();
+        assert_eq!(latest.file_name().unwrap(), "lora_adapter_2000.gguf");
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_materialize_encrypted_adapter() -> Result<()> {
+        let dir = tempdir()?;
+        let adapter_dir = dir.path().join("adapters");
+        tokio::fs::create_dir_all(&adapter_dir).await?;
+
+        let mut config = LoRATrainingConfig::default();
+        config.adapter_dir = adapter_dir.to_string_lossy().to_string();
+        config.encrypt_adapters = true;
+
+        let db_path = dir.path().join("test.db");
+        let store = TrainingDataStore::open(&db_path)?;
+        let llama_cpp_dir = PathBuf::from("../../../llama.cpp");
+        let trainer = LoRATrainer::new(config, store, llama_cpp_dir);
+
+        // Create a mock encrypted adapter
+        let encrypted_path = adapter_dir.join("lora_adapter_1000.enc");
+        let plain_data = b"This is a mock LoRA adapter in GGUF format";
+
+        // Encrypt it
+        let encryption = trainer.encryption.as_ref().unwrap();
+        let temp_plain = adapter_dir.join("temp_plain.gguf");
+        tokio::fs::write(&temp_plain, plain_data).await?;
+        encryption.encrypt_file(&temp_plain, &encrypted_path)?;
+        tokio::fs::remove_file(&temp_plain).await?;
+
+        // Materialize should decrypt it
+        let materialized = trainer.materialize_latest_adapter_for_runtime().await?;
+        assert!(materialized.is_some());
+
+        let decrypted_path = materialized.unwrap();
+        assert!(decrypted_path.exists());
+        assert_eq!(decrypted_path.file_name().unwrap(), "current_adapter.gguf");
+
+        // Verify decrypted content matches original
+        let decrypted_data = tokio::fs::read(&decrypted_path).await?;
+        assert_eq!(decrypted_data, plain_data);
 
         Ok(())
     }
