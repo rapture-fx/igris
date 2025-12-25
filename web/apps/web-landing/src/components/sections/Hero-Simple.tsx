@@ -17,35 +17,15 @@ export default function Hero() {
           borderRight: '0.5px solid rgba(156, 163, 175, 0.3)'
         }}>
           {/* Background image layer */}
-          <div 
+          <div
             className="absolute inset-0"
             style={{
               backgroundImage: 'url("/heroland.png")',
               backgroundSize: '100%',
               backgroundPosition: 'center top 100%',
               backgroundRepeat: 'no-repeat',
-              opacity: 1
-            }}
-          />
-          {/* Bottom blur effect */}
-          <div 
-            className="absolute left-0 right-0 bottom-0 h-4"
-            style={{
-              background: 'linear-gradient(to top, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
-            }}
-          />
-          {/* Left blur effect */}
-          <div 
-            className="absolute top-0 bottom-0 left-0 w-4"
-            style={{
-              background: 'linear-gradient(to right, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
-            }}
-          />
-          {/* Right blur effect */}
-          <div 
-            className="absolute top-0 bottom-0 right-0 w-4"
-            style={{
-              background: 'linear-gradient(to left, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+              opacity: 1,
+              pointerEvents: 'none'
             }}
           />
           {/* Top left bleeding cross */}
@@ -64,10 +44,10 @@ export default function Hero() {
             <div className="pt-8 mb-6">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2]">
                     Control and execution platform
                   </h1>
-                  <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2] mt-2">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2] mt-2">
                     for production LLM systems.
                   </h1>
                 </div>

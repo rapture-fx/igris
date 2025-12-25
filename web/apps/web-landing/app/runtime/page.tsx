@@ -114,35 +114,15 @@ export default function RuntimePage() {
                 </div>
 
                 {/* Background image layer */}
-                <div 
+                <div
                   className="absolute inset-0"
                   style={{
                     backgroundImage: 'url("/runland.png")',
                     backgroundSize: '100%',
                     backgroundPosition: 'center top 100%',
                     backgroundRepeat: 'no-repeat',
-                    opacity: 1
-                  }}
-                />
-                {/* Bottom blur effect */}
-                <div 
-                  className="absolute left-0 right-0 bottom-0 h-4"
-                  style={{
-                    background: 'linear-gradient(to top, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
-                  }}
-                />
-                {/* Left blur effect */}
-                <div 
-                  className="absolute top-0 bottom-0 left-0 w-4"
-                  style={{
-                    background: 'linear-gradient(to right, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
-                  }}
-                />
-                {/* Right blur effect */}
-                <div 
-                  className="absolute top-0 bottom-0 right-0 w-4"
-                  style={{
-                    background: 'linear-gradient(to left, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+                    opacity: 1,
+                    pointerEvents: 'none'
                   }}
                 />
 
@@ -156,10 +136,10 @@ export default function RuntimePage() {
                     </button>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
                       <div className="text-left md:w-2/3">
-                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2]">
                           Runtime
                         </h1>
-                        <h2 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
+                        <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
                           Execution Plane
                         </h2>
                       </div>
