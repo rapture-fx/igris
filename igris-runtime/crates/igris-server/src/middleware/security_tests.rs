@@ -45,6 +45,7 @@ mod tests {
             lora_training: None,
             rate_limiter: Some(RateLimiter::new(60, 1)),
             metrics: Arc::new(Metrics::new()),
+            escapevector_cache: None, // Disable for tests
         }
     }
 
