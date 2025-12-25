@@ -89,9 +89,9 @@ export default function OverturePage() {
                 <div 
                   className="absolute inset-0"
                   style={{
-                    backgroundImage: 'url("/heroland.png")',
-                    backgroundSize: '100%',
-                    backgroundPosition: 'center top 100%',
+                    backgroundImage: 'url("/overture.png")',
+                    backgroundSize: '60%',
+                    backgroundPosition: 'center bottom%',
                     backgroundRepeat: 'no-repeat',
                     opacity: 1
                   }}
