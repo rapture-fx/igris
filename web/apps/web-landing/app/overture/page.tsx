@@ -70,7 +70,7 @@ export default function OverturePage() {
           {/* Hero Section */}
           <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-              <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-72 md:pb-96 lg:pb-[48rem] bg-transparent z-10" style={{
+              <div className="relative pt-16 px-8 md:px-12 lg:px-16 pb-72 md:pb-96 lg:pb-[48rem] bg-transparent z-10" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -86,41 +86,33 @@ export default function OverturePage() {
                 </div>
 
                 {/* Background image layer */}
-                <div 
+                <div
                   className="absolute inset-0"
                   style={{
-                    backgroundImage: 'url("/above.png")',
-                    backgroundSize: '100%',
-                    backgroundPosition: 'center top 100%',
+                    backgroundImage: 'url("/above%20theclouds.png")',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
                     backgroundRepeat: 'no-repeat',
-                    opacity: 1
-                  }}
-                />
-                {/* Bottom blur effect */}
-                <div 
-                  className="absolute left-0 right-0 bottom-0 h-2"
-                  style={{
-                    background: 'linear-gradient(to top, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
-                  }}
-                />
-                {/* Left blur effect */}
-                <div 
-                  className="absolute top-0 bottom-0 left-0 w-2"
-                  style={{
-                    background: 'linear-gradient(to right, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
-                  }}
-                />
-                {/* Right blur effect */}
-                <div 
-                  className="absolute top-0 bottom-0 right-0 w-2"
-                  style={{
-                    background: 'linear-gradient(to left, rgba(246, 246, 244, 1) 0%, rgba(246, 246, 244, 0) 100%)'
+                    opacity: 1,
+                    zIndex: 1
                   }}
                 />
 
-                <div className="max-w-[1300px] mx-auto pt-8 px-0 md:px-8 lg:px-16">
+                {/* Glass overlay covering top portion */}
+                <div
+                  className="absolute top-0 left-0 right-0"
+                  style={{
+                    height: '250px',
+                    background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 55%, rgba(255, 255, 255, 0) 100%)',
+                    backdropFilter: 'blur(8px)',
+                    WebkitBackdropFilter: 'blur(8px)',
+                    zIndex: 2
+                  }}
+                />
+
+                <div className="max-w-[1300px] mx-auto pt-8 px-0 md:px-8 lg:px-16 relative z-10">
                   <div className="pt-8 mb-6">
-                    <button 
+                    <button
                       onClick={() => router.push('/')}
                       className="text-sm text-gray-600 hover:text-gray-900 hover:underline mb-4 inline-flex items-center transition-colors cursor-pointer bg-transparent border-none p-0"
                     >
@@ -128,10 +120,10 @@ export default function OverturePage() {
                     </button>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
                       <div className="text-left md:w-2/3">
-                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
+                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2]">
                           Overture
                         </h1>
-                        <h2 className="text-lg md:text-xl lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
+                        <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
                           Control Plane
                         </h2>
                       </div>
