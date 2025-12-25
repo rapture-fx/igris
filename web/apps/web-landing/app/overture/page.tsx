@@ -98,14 +98,12 @@ export default function OverturePage() {
                   }}
                 />
 
-                {/* Glass overlay covering top portion */}
+                {/* White fade overlay covering top portion */}
                 <div
                   className="absolute top-0 left-0 right-0"
                   style={{
-                    height: '250px',
-                    background: 'linear-gradient(to bottom, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 55%, rgba(255, 255, 255, 0) 100%)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)',
+                    height: '350px',
+                    background: 'linear-gradient(to bottom, rgba(246, 246, 244, 0.9) 0%, rgba(246, 246, 244, 0.5) 40%, rgba(246, 246, 244, 0) 100%)',
                     zIndex: 2
                   }}
                 />
