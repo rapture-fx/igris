@@ -10,7 +10,7 @@ pub mod metal_trainer;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-pub use config::LoRATrainingConfig;
+pub use config::{LoRATrainingConfig, TrainingBackend};
 pub use storage::{ConversationHistory, TrainingDataStore};
 pub use trainer::LoRATrainer;
 pub use encryption::AdapterEncryption;

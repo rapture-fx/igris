@@ -1,5 +1,7 @@
 use crate::{
-    config::LoRATrainingConfig, encryption::AdapterEncryption, storage::TrainingDataStore,
+    config::{LoRATrainingConfig, TrainingBackend},
+    encryption::AdapterEncryption,
+    storage::TrainingDataStore,
     TrainingResult, TrainingStatus,
 };
 use anyhow::{Context, Result};
@@ -8,6 +10,9 @@ use std::time::Instant;
 use tokio::fs;
 use tokio::process::Command;
 use tracing::{error, info, warn};
+
+#[cfg(feature = "native-training")]
+use crate::metal_trainer::MetalLoRATrainer;
 
 #[derive(Debug, Clone, Copy)]
 enum FinetuneOutMode {
@@ -175,8 +180,108 @@ impl LoRATrainer {
         Ok((train_file, val_file))
     }
 
-    /// Run LoRA training using llama.cpp's finetune binary
+    /// Determine which training backend to use based on configuration and availability
+    async fn select_backend(&self) -> Result<TrainingBackend> {
+        match self.config.backend {
+            TrainingBackend::LlamaCpp => {
+                // User explicitly requested llama.cpp
+                let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
+                if !finetune_bin.exists() {
+                    anyhow::bail!(
+                        "llama.cpp backend requested but llama-finetune not found at {}",
+                        finetune_bin.display()
+                    );
+                }
+                Ok(TrainingBackend::LlamaCpp)
+            }
+            TrainingBackend::NativeRust => {
+                // User explicitly requested native Rust
+                #[cfg(feature = "native-training")]
+                {
+                    Ok(TrainingBackend::NativeRust)
+                }
+                #[cfg(not(feature = "native-training"))]
+                {
+                    anyhow::bail!(
+                        "Native Rust backend requested but not compiled. \
+                         Rebuild with --features native-training"
+                    );
+                }
+            }
+            TrainingBackend::Auto => {
+                // Auto-detect: prefer native Rust, fallback to llama.cpp
+                #[cfg(feature = "native-training")]
+                {
+                    info!("Auto-selected native Rust training backend");
+                    Ok(TrainingBackend::NativeRust)
+                }
+                #[cfg(not(feature = "native-training"))]
+                {
+                    // Native not available, try llama.cpp
+                    let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
+                    if finetune_bin.exists() {
+                        info!("Auto-selected llama.cpp training backend");
+                        Ok(TrainingBackend::LlamaCpp)
+                    } else {
+                        anyhow::bail!(
+                            "No training backend available. Either:\n\
+                             1. Rebuild with --features native-training (recommended), or\n\
+                             2. Build llama.cpp with finetune support at {}",
+                            finetune_bin.display()
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    /// Run LoRA training using the configured backend
     pub async fn train(&self, base_model_path: &str) -> Result<TrainingResult> {
+        let backend = self.select_backend().await?;
+
+        match backend {
+            TrainingBackend::NativeRust => {
+                #[cfg(feature = "native-training")]
+                {
+                    self.train_with_native_rust(base_model_path).await
+                }
+                #[cfg(not(feature = "native-training"))]
+                {
+                    unreachable!("Native Rust backend selected but feature not enabled")
+                }
+            }
+            TrainingBackend::LlamaCpp | TrainingBackend::Auto => {
+                self.train_with_llama_cpp(base_model_path).await
+            }
+        }
+    }
+
+    /// Run LoRA training using native Rust backend
+    #[cfg(feature = "native-training")]
+    async fn train_with_native_rust(&self, base_model_path: &str) -> Result<TrainingResult> {
+        info!("Using native Rust training backend (metal-candle)");
+
+        // Create MetalLoRATrainer with same configuration
+        let metal_trainer = MetalLoRATrainer::new(
+            self.config.clone(),
+            self.store.clone(),
+            None, // tokenizer_path - will auto-discover or use fallback
+        )?;
+
+        // Delegate to native trainer
+        let result = metal_trainer.train(base_model_path).await?;
+
+        // Mark training as completed in storage (same as llama.cpp path)
+        self.store.mark_training_completed()?;
+        let _ = self.store.reset_request_counter();
+
+        Ok(result)
+    }
+
+    /// Run LoRA training using llama.cpp's finetune binary
+    async fn train_with_llama_cpp(&self, base_model_path: &str) -> Result<TrainingResult> {
+        info!("Using llama.cpp training backend");
+
         let start_time = Instant::now();
         info!("Starting LoRA training with base model: {}", base_model_path);
 
@@ -379,7 +484,7 @@ impl LoRATrainer {
         })
     }
 
-    /// Get the latest trained adapter
+    /// Get the latest trained adapter (supports .gguf, .safetensors, and .enc)
     pub async fn get_latest_adapter(&self) -> Result<Option<PathBuf>> {
         let adapter_dir = PathBuf::from(&self.config.adapter_dir);
         if !adapter_dir.exists() {
@@ -391,9 +496,10 @@ impl LoRATrainer {
 
         while let Some(entry) = entries.next_entry().await? {
             let path = entry.path();
-            let is_plain = path.extension().and_then(|s| s.to_str()) == Some("gguf");
-            let is_enc = path.extension().and_then(|s| s.to_str()) == Some("enc");
-            if is_plain || is_enc {
+            let ext = path.extension().and_then(|s| s.to_str());
+            let is_adapter = matches!(ext, Some("gguf") | Some("safetensors") | Some("enc"));
+
+            if is_adapter {
                 let metadata = fs::metadata(&path).await?;
                 let modified = metadata.modified()?;
 
@@ -413,36 +519,102 @@ impl LoRATrainer {
     /// Materialize an encrypted adapter to a stable decrypted path for runtime loading.
     ///
     /// Returns a path to a `.gguf` adapter that can be passed to `llama-cli --lora`.
+    /// Handles .gguf, .safetensors (with conversion), and .enc (with decryption).
     pub async fn materialize_latest_adapter_for_runtime(&self) -> Result<Option<PathBuf>> {
         let Some(latest) = self.get_latest_adapter().await? else {
             return Ok(None);
         };
 
-        if latest.extension().and_then(|s| s.to_str()) == Some("gguf") {
-            return Ok(Some(latest));
-        }
-
-        if latest.extension().and_then(|s| s.to_str()) != Some("enc") {
-            return Ok(None);
-        }
-
-        let enc = self
-            .encryption
-            .as_ref()
-            .ok_or_else(|| anyhow::anyhow!("Found encrypted adapter but encryption is disabled"))?;
-        let enc = enc.clone();
-
         let adapter_dir = PathBuf::from(&self.config.adapter_dir);
         fs::create_dir_all(&adapter_dir).await?;
-        let out = adapter_dir.join("current_adapter.gguf");
-        let out_for_task = out.clone();
 
-        // Decrypt (blocking IO inside encryption module; keep it small and explicit).
-        tokio::task::spawn_blocking(move || enc.decrypt_file(latest, &out_for_task))
-            .await
-            .context("Decryption task failed")??;
+        let ext = latest.extension().and_then(|s| s.to_str());
 
-        Ok(Some(out))
+        match ext {
+            Some("gguf") => {
+                // Already in GGUF format, use directly
+                Ok(Some(latest))
+            }
+            Some("safetensors") => {
+                // Convert safetensors to GGUF for runtime loading
+                #[cfg(feature = "native-training")]
+                {
+                    info!("Converting safetensors adapter to GGUF for runtime loading...");
+                    let gguf_path = adapter_dir.join("current_adapter.gguf");
+
+                    // Use MetalLoRATrainer's conversion helper
+                    let metal_trainer = MetalLoRATrainer::new(
+                        self.config.clone(),
+                        self.store.clone(),
+                        None,
+                    )?;
+
+                    metal_trainer.convert_safetensors_to_gguf(&latest, &gguf_path).await?;
+
+                    if gguf_path.exists() {
+                        Ok(Some(gguf_path))
+                    } else {
+                        warn!("GGUF conversion failed. Runtime may not support safetensors.");
+                        Ok(Some(latest)) // Fallback to safetensors
+                    }
+                }
+                #[cfg(not(feature = "native-training"))]
+                {
+                    warn!(
+                        "Found safetensors adapter but native-training feature not enabled. \
+                         Cannot convert to GGUF. Runtime may not support this format."
+                    );
+                    Ok(Some(latest)) // Return as-is, runtime may or may not support it
+                }
+            }
+            Some("enc") => {
+                // Decrypt encrypted adapter
+                let enc = self
+                    .encryption
+                    .as_ref()
+                    .ok_or_else(|| anyhow::anyhow!("Found encrypted adapter but encryption is disabled"))?;
+                let enc = enc.clone();
+
+                let out = adapter_dir.join("current_adapter.gguf");
+                let out_for_task = out.clone();
+                let latest_for_task = latest.clone();
+
+                // Decrypt (blocking IO inside encryption module)
+                tokio::task::spawn_blocking(move || enc.decrypt_file(latest_for_task, &out_for_task))
+                    .await
+                    .context("Decryption task failed")??;
+
+                // After decryption, check if it's safetensors and needs conversion
+                if let Some(decrypted_ext) = out.extension().and_then(|s| s.to_str()) {
+                    if decrypted_ext == "safetensors" {
+                        // Recursively handle the decrypted safetensors
+                        #[cfg(feature = "native-training")]
+                        {
+                            let gguf_path = adapter_dir.join("current_adapter_converted.gguf");
+                            let metal_trainer = MetalLoRATrainer::new(
+                                self.config.clone(),
+                                self.store.clone(),
+                                None,
+                            )?;
+                            metal_trainer.convert_safetensors_to_gguf(&out, &gguf_path).await?;
+                            if gguf_path.exists() {
+                                return Ok(Some(gguf_path));
+                            }
+                        }
+                        #[cfg(not(feature = "native-training"))]
+                        {
+                            warn!("Decrypted adapter is safetensors but cannot convert without native-training feature");
+                        }
+                    }
+                }
+
+                Ok(Some(out))
+            }
+            _ => {
+                warn!("Unknown adapter format: {:?}", ext);
+                Ok(None)
+            }
+        }
     }
 }
 
