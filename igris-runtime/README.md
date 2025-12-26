@@ -63,7 +63,49 @@ Pure Rust, offline-capable AI routing engine with automatic local LLM fallback. 
 
 ---
 
-## Quick Start (3 steps)
+## Quick Start (4 steps)
+
+### 0. Build llama.cpp CLI
+
+**Required for local inference** - Initialize and build the llama.cpp submodule:
+
+```bash
+# Initialize submodule
+git submodule update --init --recursive
+
+# Install CMake (if not already installed)
+# macOS:
+brew install cmake
+
+# Ubuntu/Debian:
+sudo apt-get install cmake build-essential
+
+# Build llama.cpp
+cmake -S llama.cpp -B llama.cpp/build
+cmake --build llama.cpp/build -j
+
+# Verify binary exists
+ls llama.cpp/build/bin/llama-cli
+```
+
+**GPU Support (Optional):**
+
+For **Metal** (Apple Silicon):
+```bash
+cmake -S llama.cpp -B llama.cpp/build -DGGML_METAL=ON
+cmake --build llama.cpp/build -j
+```
+
+For **CUDA** (NVIDIA):
+```bash
+cmake -S llama.cpp -B llama.cpp/build -DGGML_CUDA=ON
+cmake --build llama.cpp/build -j
+```
+
+**Note:** If you skip this step, the server will fail to start with error:
+```
+llama.cpp CLI not found at llama.cpp/build/bin/llama-cli
+```
 
 ### 1. Download the Model
 
@@ -89,13 +131,20 @@ Create or edit `config.json5`:
   local_fallback: {
     enabled: true,
     model_path: "models/phi-3-mini-4k-instruct-q4.gguf",
+
     // GPU offload (optional)
+    // 0 = CPU only (default, works everywhere)
+    // 33 = offload all layers to GPU (Apple Silicon M1/M2/M3)
+    // 99 = let llama.cpp auto-detect (for larger models)
     n_gpu_layers: 0,
-    main_gpu: null,
-    // Prompt/KV cache (optional)
+    main_gpu: null,  // Set to 0 if you have multiple GPUs
+
+    // Prompt/KV cache (optional, speeds up repeated prompts)
     prompt_cache_dir: "prompt_cache",
-    // Batch tuning (optional)
-    batch_size: null,
+
+    // Batch tuning (optional, larger = faster but more VRAM)
+    batch_size: null,  // null = llama.cpp default (512)
+
     context_size: 4096,
     threads: 4,
     max_tokens: 512,
@@ -187,6 +236,50 @@ curl http://localhost:8080/v1/chat/completions -d '{
 
 ```bash
 ./test-local-fallback.sh
+```
+
+### Test GPU Offloading
+
+Enable GPU offload in `config.json5`:
+
+```json5
+local_fallback: {
+  enabled: true,
+  n_gpu_layers: 33,  // Offload all layers (Phi-3 has 32 layers)
+  // ...
+}
+```
+
+Then check logs for GPU confirmation:
+
+```bash
+cargo run --release 2>&1 | grep -i "gpu\|metal\|cuda"
+```
+
+You should see:
+- **Metal (Apple)**: `ggml_metal_init: loaded Metal framework`
+- **CUDA (NVIDIA)**: `CUDA device 0: ...`
+
+### Test LoRA Adapter Loading
+
+After training a LoRA adapter:
+
+```bash
+curl http://localhost:8080/v1/chat/completions -d '{
+  "model":"phi3",
+  "messages":[{"role":"user","content":"What is 2+2?"}],
+  "lora_adapter_path": "path/to/your/adapter.gguf"
+}'
+```
+
+Or configure it globally in `config.json5`:
+
+```json5
+local_fallback: {
+  enabled: true,
+  lora_adapter_path: "adapters/my-finetuned-adapter.gguf",
+  // ...
+}
 ```
 
 ---
@@ -472,13 +565,21 @@ If you get OOM errors with the local model:
 2. Reduce `threads` to 2
 3. Ensure you have at least 3 GB free RAM
 
+### llama.cpp CLI Not Found
+
+```
+Error: llama.cpp CLI not found at llama.cpp/build/bin/llama-cli
+```
+
+**Solution**: Follow [Step 0](#0-build-llamacpp-cli) in Quick Start to build llama.cpp
+
 ### Compilation Errors
 
-If llama-cpp-rs fails to compile:
+If you encounter build errors:
 
-1. Ensure git submodules are initialized: `git submodule update --init`
-2. Install CMake: `apt-get install cmake` or `brew install cmake`
-3. Check Rust version: `rustup update`
+1. Ensure llama.cpp submodule is built (see [Step 0](#0-build-llamacpp-cli))
+2. Check Rust version: `rustup update` (requires 1.75+)
+3. Install CMake: `apt-get install cmake` or `brew install cmake`
 
 ---
 

@@ -1,6 +1,8 @@
 pub mod models;
 pub mod provider;
 pub mod inference;
+// Candle inference disabled due to dependency issues - use llama.cpp CLI instead
+// pub mod candle_inference;
 pub mod gpu_detect;
 pub mod benchmark;
 
@@ -19,6 +21,9 @@ pub use models::ModelId;
 pub use provider::LocalLLMProviderAdapter;
 pub use inference::RealInferenceEngine;
 pub use gpu_detect::{detect_hardware, AcceleratorType, HardwareInfo};
+
+// Re-export LLMProvider trait for convenience
+pub use igris_reflection::LLMProvider;
 
 /// Configuration for local LLM fallback (v1.4 multi-model support)
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -538,6 +543,18 @@ impl LocalLLMProvider {
     /// Get config (async due to mutex)
     pub async fn config(&self) -> LocalLLMConfig {
         self.config.lock().await.clone()
+    }
+}
+
+/// Implement LLMProvider trait for reflection and planning agents
+#[async_trait::async_trait]
+impl LLMProvider for LocalLLMProvider {
+    async fn generate(&self, prompt: &str) -> Result<String> {
+        self.generate(prompt).await
+    }
+
+    fn name(&self) -> &str {
+        "local-llm"
     }
 }
 
