@@ -34,6 +34,8 @@ pub struct MetalLoRATrainer {
     encryption: Option<AdapterEncryption>,
     device: Device,
     tokenizer_path: Option<PathBuf>,
+    #[cfg(feature = "fleet-management")]
+    fleet_agent: Option<std::sync::Arc<igris_fleet::FleetAgent>>,
 }
 
 /// LoRA adapter configuration
@@ -137,7 +139,58 @@ impl MetalLoRATrainer {
             encryption,
             device,
             tokenizer_path,
+            #[cfg(feature = "fleet-management")]
+            fleet_agent: None,
         })
+    }
+
+    /// Set fleet agent for telemetry reporting
+    #[cfg(feature = "fleet-management")]
+    pub fn with_fleet_agent(mut self, agent: std::sync::Arc<igris_fleet::FleetAgent>) -> Self {
+        self.fleet_agent = Some(agent);
+        self
+    }
+
+    /// Report training metrics to fleet (if enabled)
+    #[cfg(feature = "fleet-management")]
+    async fn report_training_metrics(&self, epoch: usize, train_loss: f32, val_loss: f32) {
+        if let Some(agent) = &self.fleet_agent {
+            use std::collections::HashMap;
+            use igris_fleet::{TelemetryData, AgentStatus, SystemTime};
+
+            let mut metrics = HashMap::new();
+            metrics.insert("training_epoch".to_string(), epoch as f64);
+            metrics.insert("train_loss".to_string(), train_loss as f64);
+            metrics.insert("val_loss".to_string(), val_loss as f64);
+            metrics.insert("lora_rank".to_string(), self.config.lora_rank as f64);
+            metrics.insert("learning_rate".to_string(), self.config.learning_rate);
+
+            let telemetry = TelemetryData {
+                agent_id: "training".to_string(),
+                timestamp: SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_secs(),
+                metrics,
+                logs: vec![],
+                status: AgentStatus {
+                    health: "training".to_string(),
+                    uptime_secs: 0,
+                    cpu_usage_percent: 0.0,
+                    memory_usage_mb: 0,
+                    active_tasks: 1,
+                },
+            };
+
+            if let Err(e) = agent.upload_custom_telemetry(telemetry).await {
+                warn!("Failed to upload training telemetry to fleet: {}", e);
+            }
+        }
+    }
+
+    #[cfg(not(feature = "fleet-management"))]
+    async fn report_training_metrics(&self, _epoch: usize, _train_loss: f32, _val_loss: f32) {
+        // No-op when fleet management is disabled
     }
 
     fn detect_device() -> Result<Device> {
@@ -391,6 +444,9 @@ impl MetalLoRATrainer {
             );
 
             final_loss = Some(val_loss as f64);
+
+            // Report metrics to fleet (if enabled)
+            self.report_training_metrics(epoch + 1, train_loss, val_loss).await;
 
             // Early stopping logic
             if val_loss < best_val_loss {

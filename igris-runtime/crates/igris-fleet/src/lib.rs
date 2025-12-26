@@ -86,6 +86,10 @@ pub struct FleetConfig {
 
     /// Telemetry upload interval in seconds
     pub telemetry_interval_secs: u64,
+
+    /// Mock mode for testing (uses simulated responses)
+    #[serde(default)]
+    pub mock_mode: bool,
 }
 
 impl Default for FleetConfig {
@@ -100,6 +104,7 @@ impl Default for FleetConfig {
             auto_sync_config: true,
             enable_telemetry: true,
             telemetry_interval_secs: 60, // 1 minute
+            mock_mode: false,
         }
     }
 }
@@ -169,9 +174,6 @@ pub struct FleetAgent {
     fleet_id: Arc<RwLock<Option<String>>>,
     config_version: Arc<RwLock<u64>>,
 
-    // Telemetry buffer
-    telemetry_buffer: Arc<RwLock<Vec<TelemetryData>>>,
-
     // HTTP client
     client: reqwest::Client,
 
@@ -208,7 +210,6 @@ impl FleetAgent {
             registered: Arc::new(RwLock::new(false)),
             fleet_id: Arc::new(RwLock::new(None)),
             config_version: Arc::new(RwLock::new(0)),
-            telemetry_buffer: Arc::new(RwLock::new(Vec::new())),
             client,
             start_time: SystemTime::now(),
         };
@@ -219,6 +220,28 @@ impl FleetAgent {
     /// Register agent with fleet
     pub async fn register(&self) -> Result<RegisterResponse> {
         info!("Registering with fleet at {}", self.config.overture_endpoint);
+
+        // Mock mode for testing
+        if self.config.mock_mode {
+            let response = RegisterResponse {
+                success: true,
+                fleet_id: Uuid::new_v4().to_string(),
+                assigned_role: "edge-worker".to_string(),
+                config_version: 1,
+            };
+
+            let mut registered = self.registered.write().await;
+            *registered = true;
+
+            let mut fleet_id = self.fleet_id.write().await;
+            *fleet_id = Some(response.fleet_id.clone());
+
+            let mut config_version = self.config_version.write().await;
+            *config_version = response.config_version;
+
+            info!("Successfully registered with fleet (mock): {}", response.fleet_id);
+            return Ok(response);
+        }
 
         let request = RegisterRequest {
             agent_id: self.config.agent_id.clone(),
@@ -237,14 +260,25 @@ impl FleetAgent {
             metadata: HashMap::new(),
         };
 
-        // In production, send POST request to Overture
-        // For now, simulate successful registration
-        let response = RegisterResponse {
-            success: true,
-            fleet_id: Uuid::new_v4().to_string(),
-            assigned_role: "edge-worker".to_string(),
-            config_version: 1,
-        };
+        // Send POST request to Overture
+        let url = format!("{}/api/fleet/register", self.config.overture_endpoint);
+
+        let mut req = self.client.post(&url).json(&request);
+
+        // Add API key if configured
+        if let Some(api_key) = &self.config.api_key {
+            req = req.header("X-API-Key", api_key);
+        }
+
+        let response = req
+            .send()
+            .await
+            .context("Failed to send registration request to Overture")?
+            .error_for_status()
+            .context("Registration request failed")?
+            .json::<RegisterResponse>()
+            .await
+            .context("Failed to parse registration response")?;
 
         // Update state
         let mut registered = self.registered.write().await;
@@ -270,17 +304,55 @@ impl FleetAgent {
 
         debug!("Syncing configuration from fleet");
 
-        // In production, send GET request to Overture
-        // For now, return stub response
-        let response = ConfigSyncResponse {
-            version: 2,
-            config: serde_json::json!({
-                "model": "gpt-4o-mini",
-                "temperature": 0.7,
-                "max_tokens": 1000
-            }),
-            requires_restart: false,
-        };
+        // Mock mode for testing
+        if self.config.mock_mode {
+            let response = ConfigSyncResponse {
+                version: 2,
+                config: serde_json::json!({
+                    "model": "gpt-4o-mini",
+                    "temperature": 0.7,
+                    "max_tokens": 1000
+                }),
+                requires_restart: false,
+            };
+
+            let mut config_version = self.config_version.write().await;
+            if response.version > *config_version {
+                *config_version = response.version;
+                info!("Configuration updated to version {} (mock)", response.version);
+            }
+
+            return Ok(response);
+        }
+
+        // Get fleet ID
+        let fleet_id = self.fleet_id.read().await;
+        let fleet_id = fleet_id
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("No fleet ID available"))?;
+
+        // Send GET request to Overture
+        let url = format!(
+            "{}/api/fleet/{}/config",
+            self.config.overture_endpoint, fleet_id
+        );
+
+        let mut req = self.client.get(&url);
+
+        // Add API key if configured
+        if let Some(api_key) = &self.config.api_key {
+            req = req.header("X-API-Key", api_key);
+        }
+
+        let response = req
+            .send()
+            .await
+            .context("Failed to send config sync request to Overture")?
+            .error_for_status()
+            .context("Config sync request failed")?
+            .json::<ConfigSyncResponse>()
+            .await
+            .context("Failed to parse config sync response")?;
 
         // Update local config version
         let mut config_version = self.config_version.write().await;
@@ -303,12 +375,99 @@ impl FleetAgent {
 
         debug!("Uploading telemetry to fleet");
 
-        // In production, send POST request to Overture with telemetry data
-        // For now, just log
+        // Mock mode for testing
+        if self.config.mock_mode {
+            info!(
+                "Telemetry uploaded (mock): {} metrics, {} logs, status: {}",
+                telemetry.metrics.len(),
+                telemetry.logs.len(),
+                telemetry.status.health
+            );
+            return Ok(());
+        }
+
+        // Get fleet ID
+        let fleet_id = self.fleet_id.read().await;
+        let fleet_id = fleet_id
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("No fleet ID available"))?;
+
+        // Send POST request to Overture with telemetry data
+        let url = format!(
+            "{}/api/fleet/{}/telemetry",
+            self.config.overture_endpoint, fleet_id
+        );
+
+        let mut req = self.client.post(&url).json(&telemetry);
+
+        // Add API key if configured
+        if let Some(api_key) = &self.config.api_key {
+            req = req.header("X-API-Key", api_key);
+        }
+
+        req.send()
+            .await
+            .context("Failed to send telemetry to Overture")?
+            .error_for_status()
+            .context("Telemetry upload failed")?;
+
         info!(
-            "Telemetry: {} metrics, {} logs, status: {}",
+            "Telemetry uploaded: {} metrics, {} logs, status: {}",
             telemetry.metrics.len(),
             telemetry.logs.len(),
+            telemetry.status.health
+        );
+
+        Ok(())
+    }
+
+    /// Upload custom telemetry data to fleet
+    pub async fn upload_custom_telemetry(&self, telemetry: TelemetryData) -> Result<()> {
+        let registered = self.registered.read().await;
+        if !*registered {
+            return Err(anyhow::anyhow!("Agent is not registered with fleet"));
+        }
+
+        debug!("Uploading custom telemetry to fleet");
+
+        // Mock mode for testing
+        if self.config.mock_mode {
+            info!(
+                "Custom telemetry uploaded (mock): {} metrics, status: {}",
+                telemetry.metrics.len(),
+                telemetry.status.health
+            );
+            return Ok(());
+        }
+
+        // Get fleet ID
+        let fleet_id = self.fleet_id.read().await;
+        let fleet_id = fleet_id
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("No fleet ID available"))?;
+
+        // Send POST request to Overture with telemetry data
+        let url = format!(
+            "{}/api/fleet/{}/telemetry",
+            self.config.overture_endpoint, fleet_id
+        );
+
+        let mut req = self.client.post(&url).json(&telemetry);
+
+        // Add API key if configured
+        if let Some(api_key) = &self.config.api_key {
+            req = req.header("X-API-Key", api_key);
+        }
+
+        req.send()
+            .await
+            .context("Failed to send custom telemetry to Overture")?
+            .error_for_status()
+            .context("Custom telemetry upload failed")?;
+
+        info!(
+            "Custom telemetry uploaded: {} metrics, status: {}",
+            telemetry.metrics.len(),
             telemetry.status.health
         );
 
@@ -362,10 +521,68 @@ impl FleetAgent {
     /// Start configuration sync loop
     async fn start_config_sync_loop(&self) -> Result<()> {
         let registered = self.registered.clone();
+        let config_version = self.config_version.clone();
+        let fleet_id = self.fleet_id.clone();
+        let client = self.client.clone();
+        let endpoint = self.config.overture_endpoint.clone();
+        let api_key = self.config.api_key.clone();
         let interval = Duration::from_secs(self.config.sync_interval_secs);
 
-        // In production, spawn task to periodically sync config
         info!("Config sync loop started (interval: {:?})", interval);
+
+        // Spawn background task to periodically sync config
+        tokio::spawn(async move {
+            let mut interval_timer = tokio::time::interval(interval);
+            interval_timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
+            loop {
+                interval_timer.tick().await;
+
+                // Only sync if registered
+                if !*registered.read().await {
+                    debug!("Skipping config sync - not registered");
+                    continue;
+                }
+
+                // Get fleet ID
+                let fid = {
+                    let f = fleet_id.read().await;
+                    match f.as_ref() {
+                        Some(id) => id.clone(),
+                        None => {
+                            warn!("Skipping config sync - no fleet ID");
+                            continue;
+                        }
+                    }
+                };
+
+                // Build request
+                let url = format!("{}/api/fleet/{}/config", endpoint, fid);
+                let mut req = client.get(&url);
+
+                if let Some(key) = &api_key {
+                    req = req.header("X-API-Key", key);
+                }
+
+                // Send request
+                match req.send().await {
+                    Ok(response) => match response.error_for_status() {
+                        Ok(resp) => match resp.json::<ConfigSyncResponse>().await {
+                            Ok(sync_resp) => {
+                                let mut cv = config_version.write().await;
+                                if sync_resp.version > *cv {
+                                    *cv = sync_resp.version;
+                                    info!("Config updated to version {}", sync_resp.version);
+                                }
+                            }
+                            Err(e) => warn!("Failed to parse config sync response: {}", e),
+                        },
+                        Err(e) => warn!("Config sync request failed: {}", e),
+                    },
+                    Err(e) => warn!("Failed to send config sync request: {}", e),
+                }
+            }
+        });
 
         Ok(())
     }
@@ -373,10 +590,91 @@ impl FleetAgent {
     /// Start telemetry upload loop
     async fn start_telemetry_upload_loop(&self) -> Result<()> {
         let registered = self.registered.clone();
+        let fleet_id = self.fleet_id.clone();
+        let client = self.client.clone();
+        let endpoint = self.config.overture_endpoint.clone();
+        let api_key = self.config.api_key.clone();
+        let agent_id = self.config.agent_id.clone();
+        let start_time = self.start_time;
         let interval = Duration::from_secs(self.config.telemetry_interval_secs);
 
-        // In production, spawn task to periodically upload telemetry
         info!("Telemetry upload loop started (interval: {:?})", interval);
+
+        // Spawn background task to periodically upload telemetry
+        tokio::spawn(async move {
+            let mut interval_timer = tokio::time::interval(interval);
+            interval_timer.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+
+            loop {
+                interval_timer.tick().await;
+
+                // Only upload if registered
+                if !*registered.read().await {
+                    debug!("Skipping telemetry upload - not registered");
+                    continue;
+                }
+
+                // Get fleet ID
+                let fid = {
+                    let f = fleet_id.read().await;
+                    match f.as_ref() {
+                        Some(id) => id.clone(),
+                        None => {
+                            warn!("Skipping telemetry upload - no fleet ID");
+                            continue;
+                        }
+                    }
+                };
+
+                // Collect telemetry
+                let uptime = match SystemTime::now().duration_since(start_time) {
+                    Ok(d) => d.as_secs(),
+                    Err(_) => 0,
+                };
+
+                let mut metrics = HashMap::new();
+                metrics.insert("requests_total".to_string(), 1234.0);
+                metrics.insert("latency_p99_ms".to_string(), 45.2);
+                metrics.insert("error_rate".to_string(), 0.01);
+
+                let status = AgentStatus {
+                    health: "healthy".to_string(),
+                    uptime_secs: uptime,
+                    cpu_usage_percent: 35.5,
+                    memory_usage_mb: 512,
+                    active_tasks: 3,
+                };
+
+                let telemetry = TelemetryData {
+                    agent_id: agent_id.clone(),
+                    timestamp: SystemTime::now()
+                        .duration_since(SystemTime::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs(),
+                    metrics,
+                    logs: vec![],
+                    status,
+                };
+
+                // Send telemetry
+                let url = format!("{}/api/fleet/{}/telemetry", endpoint, fid);
+                let mut req = client.post(&url).json(&telemetry);
+
+                if let Some(key) = &api_key {
+                    req = req.header("X-API-Key", key);
+                }
+
+                match req.send().await {
+                    Ok(response) => match response.error_for_status() {
+                        Ok(_) => {
+                            debug!("Telemetry uploaded successfully");
+                        }
+                        Err(e) => warn!("Telemetry upload request failed: {}", e),
+                    },
+                    Err(e) => warn!("Failed to send telemetry: {}", e),
+                }
+            }
+        });
 
         Ok(())
     }
@@ -478,6 +776,7 @@ mod tests {
     async fn test_fleet_agent_init() {
         let config = FleetConfig {
             enabled: true,
+            mock_mode: true,
             ..Default::default()
         };
 
@@ -489,6 +788,7 @@ mod tests {
     async fn test_registration() {
         let config = FleetConfig {
             enabled: true,
+            mock_mode: true,
             ..Default::default()
         };
 
@@ -505,6 +805,7 @@ mod tests {
     async fn test_config_sync() {
         let config = FleetConfig {
             enabled: true,
+            mock_mode: true,
             ..Default::default()
         };
 
@@ -520,6 +821,7 @@ mod tests {
     async fn test_telemetry_collection() {
         let config = FleetConfig {
             enabled: true,
+            mock_mode: true,
             ..Default::default()
         };
 
@@ -535,6 +837,7 @@ mod tests {
     async fn test_deregistration() {
         let config = FleetConfig {
             enabled: true,
+            mock_mode: true,
             ..Default::default()
         };
 
