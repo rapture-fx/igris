@@ -14,8 +14,8 @@
 #![cfg(feature = "native-training")]
 
 use crate::{
-    config::LoRATrainingConfig, encryption::AdapterEncryption, storage::TrainingDataStore,
-    TrainingExample, TrainingResult, TrainingStatus,
+    config::LoRATrainingConfig, encryption::AdapterEncryption, gguf_metadata::GGUFMetadata,
+    storage::TrainingDataStore, TrainingExample, TrainingResult, TrainingStatus,
 };
 use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
@@ -34,6 +34,7 @@ pub struct MetalLoRATrainer {
     encryption: Option<AdapterEncryption>,
     device: Device,
     tokenizer_path: Option<PathBuf>,
+    hidden_size: Option<usize>,  // Cached model dimension (loaded from GGUF)
     #[cfg(feature = "fleet-management")]
     fleet_agent: Option<std::sync::Arc<igris_fleet::FleetAgent>>,
 }
@@ -139,6 +140,7 @@ impl MetalLoRATrainer {
             encryption,
             device,
             tokenizer_path,
+            hidden_size: None,
             #[cfg(feature = "fleet-management")]
             fleet_agent: None,
         })
@@ -399,10 +401,26 @@ impl MetalLoRATrainer {
         let mut varmap = VarMap::new();
         let vb = VarBuilder::from_varmap(&varmap, DType::F32, &self.device);
 
-        // Create LoRA layer (weights will be tracked in varmap)
-        // TODO: Load actual base model to get correct dimensions
-        // For now, using 768 (BERT/RoBERTa size) - will fail for LLaMA/Mistral
-        let hidden_size = 768; // FIXME: Extract from base_model_path
+        // Load model dimensions from GGUF metadata
+        let hidden_size = match GGUFMetadata::from_file(base_model_path) {
+            Ok(metadata) => {
+                if let Some(dim) = metadata.get_embedding_dim() {
+                    info!("Loaded embedding dimension from GGUF: {}", dim);
+                    if let Some(arch) = metadata.get_architecture() {
+                        info!("Model architecture: {}", arch);
+                    }
+                    dim
+                } else {
+                    warn!("Could not find embedding dimension in GGUF metadata, using default 768");
+                    768
+                }
+            }
+            Err(e) => {
+                warn!("Failed to load GGUF metadata: {}. Using default dimension 768", e);
+                768
+            }
+        };
+
         let lora_layer = LoRALayer::new(hidden_size, hidden_size, &lora_config, &vb)?;
 
         // Setup optimizer
@@ -433,10 +451,11 @@ impl MetalLoRATrainer {
                 &lora_layer,
                 &mut optimizer,
                 epoch,
+                hidden_size,
             )?;
 
             // Validation phase
-            let val_loss = self.validate(&val_dataset, &lora_layer)?;
+            let val_loss = self.validate(&val_dataset, &lora_layer, hidden_size)?;
 
             info!(
                 "Epoch {} completed - Train Loss: {:.6}, Val Loss: {:.6}",
@@ -491,14 +510,13 @@ impl MetalLoRATrainer {
         let examples = self.store.get_history_since_last_training()?;
         let training_samples = examples.len();
 
-        // Encrypt adapter if configured
-        let (adapter_path_for_result, encrypted_path) = if let Some(ref encryption) = self.encryption {
-            let encrypted = adapter_dir.join(format!("lora_adapter_{}.enc", timestamp));
-            encryption.encrypt_file(&final_adapter_path, &encrypted)?;
-            // Remove plaintext
-            let _ = fs::remove_file(&final_adapter_path).await;
+        // Determine final paths (encryption is handled in save methods)
+        let (adapter_path_for_result, encrypted_path) = if self.encryption.is_some() {
+            // Encryption enabled - adapter was saved as .enc
+            let encrypted = final_adapter_path.with_extension("safetensors.enc");
             (None, Some(encrypted))
         } else {
+            // No encryption - plaintext adapter
             (Some(final_adapter_path.clone()), None)
         };
 
@@ -523,6 +541,7 @@ impl MetalLoRATrainer {
         lora_layer: &LoRALayer,
         optimizer: &mut AdamW,
         epoch: usize,
+        hidden_size: usize,
     ) -> Result<f32> {
         let mut epoch_loss = 0.0;
         let batch_size = self.config.batch_size;
@@ -533,7 +552,7 @@ impl MetalLoRATrainer {
             let end_idx = ((batch_idx + 1) * batch_size).min(dataset.input_ids.len());
 
             // Forward pass with actual data through LoRA layer
-            let batch_loss = self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer)?;
+            let batch_loss = self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer, hidden_size)?;
 
             // Backward pass
             optimizer.backward_step(&batch_loss)?;
@@ -553,7 +572,7 @@ impl MetalLoRATrainer {
         Ok(epoch_loss / num_batches as f32)
     }
 
-    fn validate(&self, dataset: &Dataset, lora_layer: &LoRALayer) -> Result<f32> {
+    fn validate(&self, dataset: &Dataset, lora_layer: &LoRALayer, hidden_size: usize) -> Result<f32> {
         let mut total_loss = 0.0;
         let batch_size = self.config.batch_size;
         let num_batches = (dataset.input_ids.len() + batch_size - 1) / batch_size;
@@ -562,7 +581,7 @@ impl MetalLoRATrainer {
             let start_idx = batch_idx * batch_size;
             let end_idx = ((batch_idx + 1) * batch_size).min(dataset.input_ids.len());
 
-            let batch_loss = self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer)?;
+            let batch_loss = self.compute_batch_loss(dataset, start_idx, end_idx, lora_layer, hidden_size)?;
             total_loss += batch_loss.to_scalar::<f32>()?;
         }
 
@@ -575,6 +594,7 @@ impl MetalLoRATrainer {
         start_idx: usize,
         end_idx: usize,
         lora_layer: &LoRALayer,
+        hidden_size: usize,
     ) -> Result<Tensor> {
         // Real forward pass with actual data
         // For MVP: Simple embedding-based model (no full transformer yet)
@@ -608,10 +628,9 @@ impl MetalLoRATrainer {
             &self.device,
         )?;
 
-        // Simple embedding layer (mock for now, but uses real input)
+        // Simple embedding layer (uses real input data)
         // In production, this would be actual word embeddings from base model
-        // For now: simple projection to hidden_size
-        let hidden_size = 768;
+        // For now: simple projection to hidden_size (loaded from GGUF metadata)
 
         // Create a simple embedding: repeat mean of input tokens
         // Shape: [batch_size, hidden_size]
@@ -649,11 +668,12 @@ impl MetalLoRATrainer {
             &self.device,
         )?;
 
-        // Compute MSE loss (simplified from cross-entropy for MVP)
-        // This gives us real gradients that flow back through LoRA weights
-        let target_means = target_tensor.mean_keepdim(1)?;
+        // Compute loss
+        // For full production: Use cross-entropy with vocabulary projection
+        // For now: Use combination of MSE + cosine similarity for better convergence
 
-        // Repeat to create [batch_size, hidden_size]
+        // Target embeddings (same as before)
+        let target_means = target_tensor.mean_keepdim(1)?;
         let mut target_embedding_data = Vec::with_capacity(batch_size * hidden_size);
         let target_means_vec = target_means.flatten_all()?.to_vec1::<f32>()?;
         for &mean_val in &target_means_vec {
@@ -668,11 +688,30 @@ impl MetalLoRATrainer {
             &self.device,
         )?;
 
+        // MSE loss (reconstruction)
         let diff = lora_output.sub(&target_embeddings)?;
-        let squared = diff.sqr()?;
-        let loss = squared.mean_all()?;
+        let mse_loss = diff.sqr()?.mean_all()?;
 
-        Ok(loss)
+        // Cosine embedding loss (direction similarity)
+        // Encourages output to point in same direction as target
+        // loss = 1 - cos_sim = 1 - (x·y)/(||x||·||y||)
+        let lora_norm = lora_output.sqr()?.sum_all()?.sqrt()?;
+        let target_norm = target_embeddings.sqr()?.sum_all()?.sqrt()?;
+        let dot_product = (lora_output * target_embeddings)?.sum_all()?;
+
+        let eps = 1e-8;
+        let lora_norm_val = lora_norm.to_scalar::<f32>()? + eps;
+        let target_norm_val = target_norm.to_scalar::<f32>()? + eps;
+        let dot_val = dot_product.to_scalar::<f32>()?;
+
+        let cos_sim = dot_val / (lora_norm_val * target_norm_val);
+        let cosine_loss = Tensor::new(1.0 - cos_sim, &self.device)?;
+
+        // Combined loss: 0.7 * MSE + 0.3 * Cosine
+        // This balances magnitude (MSE) with direction (cosine)
+        let combined_loss = (mse_loss.affine(0.7, 0.0)? + cosine_loss.affine(0.3, 0.0)?)?;
+
+        Ok(combined_loss)
     }
 
     async fn save_checkpoint(&self, varmap: &VarMap, dir: &Path, name: &str) -> Result<()> {
@@ -690,8 +729,32 @@ impl MetalLoRATrainer {
     }
 
     async fn save_adapter_safetensors(&self, varmap: &VarMap, path: &Path) -> Result<()> {
-        varmap.save(path)?;
-        info!("Saved adapter to: {}", path.display());
+        // If encryption is enabled, save to temp file, encrypt in-memory, write encrypted
+        if let Some(ref encryption) = self.encryption {
+            // Save to temporary in-memory buffer via temp file
+            // (VarMap only supports file I/O, not byte buffers)
+            let temp_path = path.with_extension("tmp");
+            varmap.save(&temp_path)?;
+
+            // Read into memory
+            let plaintext = tokio::fs::read(&temp_path).await?;
+
+            // Remove temp file immediately
+            let _ = tokio::fs::remove_file(&temp_path).await;
+
+            // Encrypt in-memory (no plaintext hits disk after this point)
+            let encrypted_data = encryption.encrypt_bytes(&plaintext)?;
+
+            // Write encrypted data with .enc extension
+            let encrypted_path = path.with_extension("safetensors.enc");
+            tokio::fs::write(&encrypted_path, encrypted_data).await?;
+
+            info!("Saved encrypted adapter to: {}", encrypted_path.display());
+        } else {
+            // No encryption - save normally
+            varmap.save(path)?;
+            info!("Saved adapter to: {}", path.display());
+        }
         Ok(())
     }
 
