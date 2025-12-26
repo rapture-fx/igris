@@ -18,47 +18,47 @@ export default function OverturePage() {
 
   const features = [
     {
-      name: 'Intelligent Routing',
-      description: 'Automatically learns which AI providers deliver the best speed, cost, and quality for your workload. Continuously optimizes routing decisions based on real performance data.',
+      name: 'Learn From Every Request',
+      description: 'Automatically discovers which providers work best for each type of task. Routes based on real performance data, not vendor promises. Gets smarter over time without manual tuning.',
     },
     {
-      name: 'Shadow Mode Testing',
-      description: 'Test new routing strategies alongside production traffic without risk. Compare results side-by-side before rolling out changes. Automatic rollback if quality drops.',
+      name: 'Test Without Risk',
+      description: 'Try new routing strategies alongside production traffic. Compare results side-by-side before making changes. Automatic rollback prevents bad updates from affecting users.',
     },
     {
-      name: 'Offline Operation',
-      description: 'Keeps working even when disconnected from the control plane. Caches routing intelligence for 72 hours of autonomous operation. Encrypted local state ensures security.',
+      name: 'Work Offline',
+      description: 'Edge instances cache routing decisions locally. Keep operating for up to 72 hours without connecting to the control plane. Encrypted state ensures security even when disconnected.',
     },
     {
-      name: 'Council Consensus',
-      description: 'Get multiple AI models to collaborate on complex requests. One model synthesizes the best response from multiple perspectives. Improves quality for critical decisions.',
+      name: 'Combine Multiple Models',
+      description: 'Send complex requests to several AI providers at once. One model synthesizes the best aspects of each response. Higher quality answers when correctness matters more than cost.',
     },
     {
-      name: 'Cost Control',
-      description: 'Track spending in real-time across all AI providers. Set hard budget limits that automatically enforce. Get alerts before you exceed limits. Full audit trail for compliance.',
+      name: 'Control Your Spending',
+      description: 'Real-time cost tracking across every provider. Hard limits that actually enforce—requests fail instead of breaking your budget. Alerts before you hit thresholds, not after.',
     },
     {
-      name: 'Multi-Tenant Security',
-      description: 'Complete isolation between tenants with encrypted API keys. Secure authentication and granular permissions. Comprehensive audit logging for every operation.',
+      name: 'Enterprise Isolation',
+      description: 'Complete separation between tenants with encrypted API keys. Per-tenant authentication and granular permissions. Audit logs show exactly who did what and when.',
     },
   ]
 
   const additionalFeatures = [
     {
-      name: 'Universal Provider Support',
-      description: 'Works with OpenAI, Anthropic, Gemini, Deepseek, Groq, and custom providers through one unified API. Switch providers without changing code. Automatic retry on failures.',
+      name: 'One API, Every Provider',
+      description: 'OpenAI, Anthropic, Gemini, Deepseek, Groq, and custom models through a single interface. Switch providers by changing one line of config. Your code stays the same.',
     },
     {
-      name: 'Complete Visibility',
-      description: 'See exactly what is happening with every request. Track latency, costs, and errors in real-time. Detailed dashboards show performance across all providers.',
+      name: 'See Everything',
+      description: 'Real-time visibility into latency, cost, and errors for every request. Distributed tracing shows exactly where time is spent. Performance dashboards across all providers.',
     },
     {
-      name: 'Quality Monitoring',
-      description: 'Automatically tracks response quality for each provider. Detects when performance degrades. Adjusts routing to maintain your quality standards.',
+      name: 'Maintain Quality',
+      description: 'Automatic quality scoring for every response. Detects when providers start degrading. Shifts traffic away before your users notice problems.',
     },
     {
-      name: 'Automatic Failover',
-      description: 'Stops sending requests to failing providers automatically. Recovers gracefully when providers come back online. Prevents one failure from cascading to others.',
+      name: 'Handle Failures Gracefully',
+      description: 'Circuit breakers stop sending requests to failing providers. Automatic recovery when services come back. Prevents one provider outage from taking down your entire system.',
     },
   ]
 
@@ -70,7 +70,7 @@ export default function OverturePage() {
           {/* Hero Section */}
           <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-              <div className="relative pt-16 px-8 md:px-12 lg:px-16 pb-72 md:pb-96 lg:pb-[48rem] bg-transparent z-10" style={{
+              <div className="relative pt-16 px-8 md:px-12 lg:px-16 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -127,7 +127,7 @@ export default function OverturePage() {
                       </div>
                       <div className="text-left md:w-1/3">
                         <p className="text-sm md:text-lg text-gray-700 max-w-3xl leading-relaxed text-left">
-                          Cloud gateway that routes AI requests to the best provider for each task. Learns from every request to optimize speed, cost, and quality. Built for teams that need reliable AI at scale.
+                          Route requests to the best AI provider for each task. Test changes without risking production. Control costs with hard limits that actually enforce. Built for teams running AI at scale.
                         </p>
                       </div>
                     </div>

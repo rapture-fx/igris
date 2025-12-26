@@ -22,7 +22,7 @@ export default function Footer() {
                 Cookie Policy
               </Link>
               <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                support@igris-inertial.com
+                support@igrisinertial.com
               </p>
               <span className="text-sm text-gray-500 dark:text-gray-400 font-inter">
                 © 2025 Igris Inertial.

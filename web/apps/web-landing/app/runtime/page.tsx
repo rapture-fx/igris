@@ -15,78 +15,78 @@ export default function RuntimePage() {
 
   const features = [
     {
-      name: 'Guaranteed Response Times',
-      description: 'Execute critical AI tasks with latency guarantees. Priority levels ensure safety-critical operations complete in < 50ms. Perfect for real-time robotics and industrial automation.',
+      name: 'Real-Time Performance',
+      description: 'Critical operations complete in under 50ms. Priority-based task scheduling ensures your most important requests never wait. Built for robotics, drones, and industrial automation where milliseconds matter.',
     },
     {
-      name: 'Auto GPU Optimization',
-      description: 'Detects your hardware and configures itself for 2-5x faster inference. Works with NVIDIA, AMD, and Apple Silicon. Benchmarks performance and recommends optimal settings automatically.',
+      name: 'Hardware Acceleration',
+      description: 'Automatically detects and optimizes for your GPU. Works with NVIDIA, AMD, and Apple Silicon out of the box. Get 2-5x faster inference without manual configuration.',
     },
     {
-      name: 'Persistent Memory',
-      description: 'Your AI remembers conversations across restarts. Semantic search over past interactions. Long-term context retention with encrypted storage. Never lose important context.',
+      name: 'Continuous Learning',
+      description: 'Train models on-device from your own data. LoRA adapters improve performance without sending data to the cloud. Models get smarter with every interaction while keeping your information private.',
     },
     {
-      name: 'Smart Model Selection',
-      description: 'Automatically picks the best model for each task. Fast model for simple questions, powerful model for complex reasoning. Switch models in < 200ms without restart.',
+      name: 'Smart Tool Use',
+      description: 'AI can make HTTP requests, execute commands, and manipulate files when needed. Turns language models into action-taking agents. Sandboxed execution keeps your systems secure.',
     },
     {
-      name: 'Robot Control',
-      description: 'Control robots and autonomous systems with AI. Connect to ROS2 for navigation and coordination. GPIO, camera, and LIDAR integration. Deploy in safety-critical environments with ISO 26262 compliance.',
+      name: 'Robot & Drone Integration',
+      description: 'Native ROS2 support for autonomous navigation and coordination. Control fleets of robots with natural language. Deploy in safety-critical environments with deterministic latency guarantees.',
     },
     {
-      name: 'Fleet Management',
-      description: 'Manage thousands of edge devices from one dashboard. Push updates fleet-wide. Monitor health and performance in real-time. Perfect for warehouse robots and industrial deployments.',
+      name: 'Fleet Coordination',
+      description: 'Manage thousands of edge devices as one intelligent swarm. Automatic leader election and conflict resolution. Push updates fleet-wide and monitor health in real-time.',
     },
     {
-      name: 'Privacy-Preserving Learning',
-      description: 'Train AI across multiple devices without sharing data. Federated learning with differential privacy. Improve models across your fleet while keeping sensitive data local.',
+      name: 'Privacy-First Learning',
+      description: 'Improve models across your entire fleet without sharing raw data. Federated learning with differential privacy keeps sensitive information on-device. Compliant with GDPR and data sovereignty requirements.',
     },
     {
       name: 'Human Oversight',
-      description: 'Add approval workflows for critical decisions. AI auto-approves when confident, escalates uncertain decisions to humans. Perfect for safety-critical systems and regulatory compliance.',
+      description: 'Add approval workflows for decisions that need human judgment. AI handles routine requests automatically and escalates uncertain ones. Audit trail for every decision shows who approved what.',
     },
     {
-      name: 'Chaos Testing',
-      description: 'Test your AI with virtual swarms and failure injection. Simulate 100 robots without buying hardware. Benchmark performance under load before deploying to production.',
+      name: 'Test Before You Deploy',
+      description: 'Simulate hundreds of edge devices without buying hardware. Inject failures to see how your system responds. Find problems in testing instead of production.',
     },
   ]
 
   const routingModes = [
     {
-      name: 'Race Multiple Providers',
-      description: 'Send your request to multiple cloud providers at once and use whichever responds first. Automatically cancels the slower ones to save costs.',
+      name: 'Never Stop Working',
+      description: 'Automatically falls back to on-device models when the cloud is unreachable. Your applications keep running through network outages, API failures, or complete internet loss.',
     },
     {
-      name: 'Smart Provider Selection',
-      description: 'Learns which providers work best for different types of requests. Automatically improves routing decisions over time based on actual performance.',
+      name: 'Optimize Every Request',
+      description: 'Learns which providers deliver the best speed and quality for each type of task. Routes requests intelligently based on actual performance data, not static rules.',
     },
     {
-      name: 'Multi-Model Collaboration',
-      description: 'Get responses from multiple AI models, then have one synthesize the best answer. Improves quality for complex questions and important decisions.',
+      name: 'Get Multiple Perspectives',
+      description: 'Run the same request through different models and combine their insights. Higher quality responses for critical decisions where accuracy matters more than speed.',
     },
     {
-      name: 'Offline Capability',
-      description: 'Automatically switches to local models when cloud providers are unavailable. Keeps working completely offline with no API keys or internet required.',
+      name: 'Fastest Response Wins',
+      description: 'Race multiple providers simultaneously and use whoever responds first. Automatically cancels slower requests to avoid wasting money on responses you won\'t use.',
     },
   ]
 
   const deploymentOptions = [
     {
-      name: 'Simple Binary',
-      description: 'Single executable file that runs on Windows, Mac, and Linux. Works on Intel, AMD, and ARM processors. Just download and run—no installation needed.',
+      name: 'Run Anywhere',
+      description: 'Single binary works on Windows, Mac, and Linux. Compatible with Intel, AMD, and ARM chips. Download and start—no complex installation or dependencies.',
     },
     {
-      name: 'Containers',
-      description: 'Docker images ready for production deployment. Kubernetes configurations included for scaling. Mount your models as volumes for easy updates.',
+      name: 'Cloud Ready',
+      description: 'Pre-built Docker images and Kubernetes configs for instant deployment. Scale horizontally as your traffic grows. Update models without rebuilding containers.',
     },
     {
-      name: 'Edge Devices',
-      description: 'Runs on Raspberry Pi, NVIDIA Jetson, and other embedded hardware. Optimized for devices with limited memory and CPU. Perfect for robotics and IoT.',
+      name: 'Edge Optimized',
+      description: 'Deploy to Raspberry Pi, NVIDIA Jetson, or industrial edge devices. Runs efficiently on constrained hardware. Purpose-built for robotics, drones, and IoT.',
     },
     {
-      name: 'Secure Facilities',
-      description: 'Operates completely offline after initial setup. No data sent outside your environment. Encrypted storage for all sensitive information. Ideal for regulated industries.',
+      name: 'Air-Gap Compatible',
+      description: 'Works completely offline in secure or regulated environments. All data stays on your infrastructure. No phone-home requirements or external dependencies.',
     },
   ]
 
@@ -98,7 +98,7 @@ export default function RuntimePage() {
           {/* Hero Section */}
           <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
             <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
-              <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-72 md:pb-96 lg:pb-[48rem] bg-transparent z-10" style={{
+              <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -145,7 +145,7 @@ export default function RuntimePage() {
                       </div>
                       <div className="text-left md:w-1/3">
                         <p className="text-sm md:text-lg text-gray-700 max-w-3xl leading-relaxed text-left">
-                          Edge runtime that runs AI locally with guaranteed response times. Controls robots, manages fleets, and learns across devices without sharing data. Built for safety-critical systems where reliability and performance matter.
+                          Deploy AI at the edge with guaranteed response times. Runs completely offline when needed. Train models on your data without sending it anywhere. Built for robotics, drones, and systems where reliability isn't optional.
                         </p>
                       </div>
                     </div>
@@ -394,21 +394,21 @@ export default function RuntimePage() {
                     <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                       Works with Overture
                     </h3>
-                    <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                    <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-6">
                       Runtime provides local AI capabilities as backup for Overture's cloud routing. Together they ensure your AI applications stay online.
                     </p>
+                    <div className="text-left">
+                      <Link href="/overture" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm md:text-base hover:translate-x-1 transition-transform">
+                        Learn about Overture
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Link>
+                    </div>
                   </div>
 
                   {/* Two-column layout */}
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
-                    {/* Left Column - Content */}
+                    {/* Left Column - Empty space */}
                     <div className="lg:col-span-2 relative flex items-center justify-center">
-                      <div className="w-full text-center">
-                        <Link href="/overture" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm md:text-base hover:translate-x-1 transition-transform">
-                          Learn about Overture
-                          <ChevronRight className="ml-2 h-4 w-4" />
-                        </Link>
-                      </div>
                     </div>
 
                     {/* Right Column - Section Title (Desktop only) */}
@@ -416,9 +416,15 @@ export default function RuntimePage() {
                       <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                         Works with Overture
                       </h3>
-                      <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                      <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-6">
                         Runtime provides local AI capabilities as backup for Overture's cloud routing. Together they ensure your AI applications stay online.
                       </p>
+                      <div className="text-left">
+                        <Link href="/overture" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm md:text-base hover:translate-x-1 transition-transform">
+                          Learn about Overture
+                          <ChevronRight className="ml-2 h-4 w-4" />
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
