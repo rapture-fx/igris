@@ -59,11 +59,11 @@ export default function PrivacyPage() {
 
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Your Rights</h2>
               <p className="text-gray-700 dark:text-gray-300 mb-6">
-                Request access, deletion, or correction at any time: support@igris-inertial.com
+                Request access, deletion, or correction at any time: support@igrisinertial.com
               </p>
 
               <p className="text-gray-700 dark:text-gray-300 mt-8">
-                Questions? Contact us at <a href="mailto:support@igris-inertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igris-inertial.com</a>
+                Questions? Contact us at <a href="mailto:support@igrisinertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igrisinertial.com</a>
               </p>
             </article>
           </div>
