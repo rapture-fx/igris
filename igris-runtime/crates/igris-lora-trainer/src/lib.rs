@@ -7,6 +7,9 @@ pub mod encryption;
 #[cfg(feature = "native-training")]
 pub mod metal_trainer;
 
+#[cfg(feature = "native-training")]
+pub mod gguf_metadata;
+
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 

@@ -39,16 +39,9 @@ impl AdapterEncryption {
         Self::new(&passphrase)
     }
 
-    /// Encrypt a file and save it to a new location
-    pub fn encrypt_file<P: AsRef<Path>, Q: AsRef<Path>>(
-        &self,
-        input_path: P,
-        output_path: Q,
-    ) -> Result<()> {
-        // Read input file
-        let plaintext = fs::read(input_path.as_ref())
-            .context("Failed to read input file for encryption")?;
-
+    /// Encrypt bytes in-memory (no disk I/O)
+    /// Returns encrypted data with nonce prepended
+    pub fn encrypt_bytes(&self, plaintext: &[u8]) -> Result<Vec<u8>> {
         // Generate a random nonce (96 bits for GCM)
         let nonce_bytes = rand::random::<[u8; 12]>();
         let nonce = Nonce::from_slice(&nonce_bytes);
@@ -59,15 +52,55 @@ impl AdapterEncryption {
 
         // Encrypt
         let ciphertext = cipher
-            .encrypt(nonce, plaintext.as_ref())
+            .encrypt(nonce, plaintext)
             .map_err(|e| anyhow::anyhow!("Encryption failed: {}", e))?;
 
         // Prepend nonce to ciphertext (needed for decryption)
         let mut output = nonce.to_vec();
         output.extend_from_slice(&ciphertext);
 
+        debug!("Encrypted {} bytes in-memory", plaintext.len());
+        Ok(output)
+    }
+
+    /// Decrypt bytes in-memory (no disk I/O)
+    pub fn decrypt_bytes(&self, encrypted_data: &[u8]) -> Result<Vec<u8>> {
+        if encrypted_data.len() < 12 {
+            anyhow::bail!("Encrypted data is too small (< 12 bytes)");
+        }
+
+        // Extract nonce (first 12 bytes) and ciphertext
+        let (nonce_bytes, ciphertext) = encrypted_data.split_at(12);
+        let nonce = Nonce::from_slice(nonce_bytes);
+
+        // Create cipher
+        let cipher = Aes256Gcm::new_from_slice(&self.key)
+            .context("Failed to create AES-256-GCM cipher")?;
+
+        // Decrypt
+        let plaintext = cipher
+            .decrypt(nonce, ciphertext)
+            .map_err(|e| anyhow::anyhow!("Decryption failed: {}", e))?;
+
+        debug!("Decrypted {} bytes in-memory", plaintext.len());
+        Ok(plaintext)
+    }
+
+    /// Encrypt a file and save it to a new location
+    pub fn encrypt_file<P: AsRef<Path>, Q: AsRef<Path>>(
+        &self,
+        input_path: P,
+        output_path: Q,
+    ) -> Result<()> {
+        // Read input file
+        let plaintext = fs::read(input_path.as_ref())
+            .context("Failed to read input file for encryption")?;
+
+        // Encrypt in-memory
+        let encrypted_data = self.encrypt_bytes(&plaintext)?;
+
         // Write encrypted file
-        fs::write(output_path.as_ref(), output)
+        fs::write(output_path.as_ref(), encrypted_data)
             .context("Failed to write encrypted file")?;
 
         info!(
@@ -86,25 +119,11 @@ impl AdapterEncryption {
         output_path: Q,
     ) -> Result<()> {
         // Read encrypted file
-        let data = fs::read(input_path.as_ref())
+        let encrypted_data = fs::read(input_path.as_ref())
             .context("Failed to read encrypted file")?;
 
-        if data.len() < 12 {
-            anyhow::bail!("Encrypted file is too small (< 12 bytes)");
-        }
-
-        // Extract nonce (first 12 bytes) and ciphertext
-        let (nonce_bytes, ciphertext) = data.split_at(12);
-        let nonce = Nonce::from_slice(nonce_bytes);
-
-        // Create cipher
-        let cipher = Aes256Gcm::new_from_slice(&self.key)
-            .context("Failed to create AES-256-GCM cipher")?;
-
-        // Decrypt
-        let plaintext = cipher
-            .decrypt(nonce, ciphertext)
-            .map_err(|e| anyhow::anyhow!("Decryption failed: {}", e))?;
+        // Decrypt in-memory
+        let plaintext = self.decrypt_bytes(&encrypted_data)?;
 
         // Write decrypted file
         fs::write(output_path.as_ref(), plaintext)
@@ -175,6 +194,68 @@ mod tests {
 
         // Should fail
         assert!(result.is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_bytes_roundtrip() -> Result<()> {
+        // Test in-memory encryption/decryption
+        let encryption = AdapterEncryption::new("test-passphrase");
+        let test_data = b"This is sensitive LoRA adapter data that should never hit disk!";
+
+        // Encrypt in-memory
+        let encrypted = encryption.encrypt_bytes(test_data)?;
+
+        // Verify encrypted data is different
+        assert_ne!(encrypted.as_slice(), test_data);
+        assert!(encrypted.len() > test_data.len()); // Should be larger (nonce + ciphertext)
+
+        // Decrypt in-memory
+        let decrypted = encryption.decrypt_bytes(&encrypted)?;
+
+        // Verify decrypted matches original
+        assert_eq!(decrypted, test_data);
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_bytes_encryption_wrong_key_fails() -> Result<()> {
+        let encryption1 = AdapterEncryption::new("passphrase1");
+        let encryption2 = AdapterEncryption::new("passphrase2");
+
+        let test_data = b"Secret adapter weights";
+
+        // Encrypt with first key
+        let encrypted = encryption1.encrypt_bytes(test_data)?;
+
+        // Try to decrypt with second key
+        let result = encryption2.decrypt_bytes(&encrypted);
+
+        // Should fail
+        assert!(result.is_err());
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_bytes_encryption_preserves_data() -> Result<()> {
+        // Test that large data is preserved correctly
+        let encryption = AdapterEncryption::new("test-key");
+
+        // Create large test data (1 MB)
+        let large_data: Vec<u8> = (0..1_000_000).map(|i| (i % 256) as u8).collect();
+
+        // Encrypt
+        let encrypted = encryption.encrypt_bytes(&large_data)?;
+
+        // Decrypt
+        let decrypted = encryption.decrypt_bytes(&encrypted)?;
+
+        // Verify
+        assert_eq!(decrypted.len(), large_data.len());
+        assert_eq!(decrypted, large_data);
 
         Ok(())
     }
