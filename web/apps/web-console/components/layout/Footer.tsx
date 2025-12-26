@@ -33,7 +33,7 @@ export function Footer() {
               Cookie Policy
             </a>
             <span className="text-gray-500">
-              © 2025 Overture
+              © 2025 Igris Inertial
             </span>
           </div>
         </div>

@@ -48,7 +48,7 @@ export default function RefundPolicyPage() {
 
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">How to Request a Refund</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
-                  Email <a href="mailto:support@igris-inertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igris-inertial.com</a> with your account details. Refunds are processed within 5–7 business days.
+                  Email <a href="mailto:support@igrisinertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igrisinertial.com</a> with your account details. Refunds are processed within 5–7 business days.
                 </p>
 
                 <p className="text-gray-700 dark:text-gray-300 mb-6">

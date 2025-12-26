@@ -255,7 +255,7 @@ export default function TermsPage() {
                 </ul>
 
                 <p className="text-gray-700 dark:text-gray-300 mt-8">
-                  Contact us at <a href="mailto:support@igris-inertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igris-inertial.com</a>
+                  Contact us at <a href="mailto:support@igrisinertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igrisinertial.com</a>
                 </p>
               </article>
 

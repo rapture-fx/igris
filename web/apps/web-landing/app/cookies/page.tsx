@@ -30,7 +30,7 @@ export default function CookiesPage() {
               </p>
 
               <p className="text-gray-700 dark:text-gray-300 mt-8">
-                Contact: support@igris-inertial.com
+                Contact: support@igrisinertial.com
               </p>
             </article>
           </div>
