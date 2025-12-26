@@ -206,6 +206,54 @@ struct LoraTrainingStatusResponse {
     last_result: Option<serde_json::Value>,
 }
 
+/// Planning request
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct PlanningRequest {
+    /// Goal to accomplish
+    #[schema(example = "Find the weather in San Francisco")]
+    goal: String,
+    /// Enable tool usage
+    #[serde(default)]
+    enable_tools: Option<bool>,
+    /// Maximum planning steps
+    #[serde(default)]
+    max_steps: Option<u32>,
+}
+
+/// Planning response
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct PlanningResponse {
+    goal: String,
+    success: bool,
+    total_steps: u32,
+    final_answer: String,
+    steps: Vec<serde_json::Value>,
+}
+
+/// Reflection request
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct ReflectionRequest {
+    /// Prompt to generate and improve
+    #[schema(example = "Write a haiku about AI")]
+    prompt: String,
+    /// Maximum reflection iterations
+    #[serde(default)]
+    max_iterations: Option<u32>,
+    /// Quality threshold (0.0-1.0)
+    #[serde(default)]
+    quality_threshold: Option<f32>,
+}
+
+/// Reflection response
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct ReflectionResponse {
+    final_response: String,
+    total_iterations: u32,
+    final_score: f32,
+    threshold_met: bool,
+    iterations: Vec<serde_json::Value>,
+}
+
 /// Error response
 #[derive(Debug, Serialize, Deserialize)]
 struct ErrorResponse {
@@ -314,6 +362,136 @@ async fn lora_status(State(state): State<AppState>) -> Result<Response, ApiError
         last_result,
     };
     Ok((StatusCode::OK, Json(resp)).into_response())
+}
+
+/// Planning endpoint - execute multi-step tasks with optional tool usage
+#[utoipa::path(
+    post,
+    path = "/v1/plan",
+    tag = "planning",
+    request_body = PlanningRequest,
+    responses(
+        (status = 200, description = "Planning completed", body = PlanningResponse),
+        (status = 400, description = "Bad request", body = ErrorResponse),
+        (status = 503, description = "Service unavailable", body = ErrorResponse)
+    )
+)]
+async fn plan_endpoint(
+    State(state): State<AppState>,
+    Json(req): Json<PlanningRequest>,
+) -> Result<Response, ApiError> {
+    // Check if local provider is available
+    let Some(local_provider) = &state.local_provider else {
+        return Err(ApiError::ServiceUnavailable(
+            "Planning requires local LLM to be enabled".to_string()
+        ));
+    };
+
+    // Get planning config with user overrides
+    let mut config = state.planning_config.clone().unwrap_or_default();
+    if let Some(max_steps) = req.max_steps {
+        config.max_steps = max_steps;
+    }
+    if let Some(enable_tools) = req.enable_tools {
+        config.enable_tools = enable_tools;
+    }
+
+    // Create planning agent with local LLM provider
+    let llm_provider: Arc<dyn igris_reflection::LLMProvider> = Arc::new(LocalProviderReflectionLLM {
+        provider: local_provider.clone(),
+    });
+
+    let agent = if config.enable_tools {
+        PlanningAgent::with_provider(
+            config,
+            llm_provider,
+            state.tool_registry.clone(),
+        )
+    } else {
+        PlanningAgent::with_provider(
+            config,
+            llm_provider,
+            None,
+        )
+    };
+
+    info!("Executing planning task: {}", req.goal);
+    let result = agent.execute_plan(&req.goal).await?;
+
+    let steps_json: Vec<serde_json::Value> = result
+        .steps
+        .iter()
+        .map(|s| serde_json::to_value(s).unwrap_or(serde_json::json!({})))
+        .collect();
+
+    let response = PlanningResponse {
+        goal: result.goal,
+        success: result.success,
+        total_steps: result.total_steps,
+        final_answer: result.final_answer,
+        steps: steps_json,
+    };
+
+    Ok((StatusCode::OK, Json(response)).into_response())
+}
+
+/// Reflection endpoint - iteratively improve responses through self-critique
+#[utoipa::path(
+    post,
+    path = "/v1/reflect",
+    tag = "reflection",
+    request_body = ReflectionRequest,
+    responses(
+        (status = 200, description = "Reflection completed", body = ReflectionResponse),
+        (status = 400, description = "Bad request", body = ErrorResponse),
+        (status = 503, description = "Service unavailable", body = ErrorResponse)
+    )
+)]
+async fn reflect_endpoint(
+    State(state): State<AppState>,
+    Json(req): Json<ReflectionRequest>,
+) -> Result<Response, ApiError> {
+    // Check if local provider is available
+    let Some(local_provider) = &state.local_provider else {
+        return Err(ApiError::ServiceUnavailable(
+            "Reflection requires local LLM to be enabled".to_string()
+        ));
+    };
+
+    // Get reflection config with user overrides
+    let mut config = state.reflection_config.clone().unwrap_or_default();
+    if let Some(max_iterations) = req.max_iterations {
+        config.max_iterations = max_iterations;
+    }
+    if let Some(quality_threshold) = req.quality_threshold {
+        config.quality_threshold = quality_threshold;
+    }
+
+    // Create reflection agent with local LLM provider
+    let llm_provider: Arc<dyn igris_reflection::LLMProvider> = Arc::new(LocalProviderReflectionLLM {
+        provider: local_provider.clone(),
+    });
+
+    let agent = ReflectionAgent::with_provider(config, llm_provider);
+
+    info!("Executing reflection task: {} chars", req.prompt.len());
+    let result = agent.reflect(&req.prompt).await?;
+
+    let iterations_json: Vec<serde_json::Value> = result
+        .iterations
+        .iter()
+        .map(|i| serde_json::to_value(i).unwrap_or(serde_json::json!({})))
+        .collect();
+
+    let response = ReflectionResponse {
+        final_response: result.final_response,
+        total_iterations: result.total_iterations,
+        final_score: result.final_score,
+        threshold_met: result.threshold_met,
+        iterations: iterations_json,
+    };
+
+    Ok((StatusCode::OK, Json(response)).into_response())
 }
 
 /// Chat completions endpoint with local LLM fallback
@@ -1520,6 +1698,8 @@ async fn main() -> anyhow::Result<()> {
         .route("/metrics", get(metrics_handler))
         .route("/v1/lora/status", get(lora_status))
         .route("/v1/chat/completions", post(chat_completions))
+        .route("/v1/plan", post(plan_endpoint))
+        .route("/v1/reflect", post(reflect_endpoint))
         .merge(SwaggerUi::new("/swagger-ui").url("/api-docs/openapi.json", ApiDoc::openapi()))
         .layer(TraceLayer::new_for_http())
         .layer(CorsLayer::permissive())

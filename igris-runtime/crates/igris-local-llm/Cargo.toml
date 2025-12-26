@@ -20,16 +20,32 @@ base64.workspace = true
 # Real-time execution support (Phase 1, Dev 1)
 igris-rt = { path = "../igris-rt" }
 
+# Reflection/planning support (integrate with LLMProvider trait)
+igris-reflection = { path = "../igris-reflection" }
+
 # GPU detection (Phase 1, Dev 2)
 num_cpus = "1.16"
 
-# LLM inference using llama.cpp (static linking)
-# NOTE: llama_cpp_rs requires platform-specific configuration and native library linking.
-# For production use, configure with appropriate features for your platform.
-# llama_cpp_rs = { version = "0.5", default-features = false }
+# Pure Rust LLM inference using candle (disabled - use llama.cpp CLI instead)
+# candle-core = { version = "0.7", features = ["metal", "accelerate"] }
+# candle-nn = "0.7"
+# candle-transformers = "0.7"
+#
+# # Tokenizers
+# tokenizers = { version = "0.20", features = ["http"] }
+#
+# # GGUF loading
+# safetensors = "0.4"
+#
+# # HuggingFace Hub for tokenizer download
+# hf-hub = { version = "0.3", features = ["tokio"] }
+#
+# # Random number generation for sampling
+# rand = "0.8"
 
 # Async utilities
 futures.workspace = true
+async-trait = "0.1"
 
 # For streaming
 async-stream = "0.3"
