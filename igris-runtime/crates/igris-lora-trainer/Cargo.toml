@@ -33,10 +33,15 @@ candle-nn = { version = "0.9", optional = true }
 tokenizers = { version = "0.15", optional = true }
 safetensors = { version = "0.4", optional = true }
 
+# Fleet management integration (Phase 3)
+igris-fleet = { path = "../igris-fleet", optional = true }
+
 [features]
 default = []
 # Enable native Rust training with metal-candle (recommended for Apple Silicon)
 native-training = ["metal-candle", "candle-core", "candle-nn", "tokenizers", "safetensors"]
+# Enable fleet management integration for Overture coordination
+fleet-management = ["igris-fleet"]
 
 [dev-dependencies]
 tempfile = "3.8"
