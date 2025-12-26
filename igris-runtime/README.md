@@ -175,10 +175,15 @@ cargo run --release
 
 ## Endpoints
 
+### Core Endpoints
 - **health**: `GET /v1/health`
 - **chat completions**: `POST /v1/chat/completions` (OpenAI-compatible, supports `"stream": true`)
 - **metrics**: `GET /metrics` (Prometheus text format)
 - **LoRA training status**: `GET /v1/lora/status`
+
+### AI Agent Endpoints (NEW)
+- **planning**: `POST /v1/plan` - Execute multi-step tasks with optional tool usage
+- **reflection**: `POST /v1/reflect` - Iteratively improve responses through self-critique
 
 ## CLI (built into `igris-runtime`)
 
@@ -279,6 +284,197 @@ local_fallback: {
   enabled: true,
   lora_adapter_path: "adapters/my-finetuned-adapter.gguf",
   // ...
+}
+```
+
+---
+
+## AI Agent Endpoints
+
+### Planning Agent
+
+Execute multi-step tasks with optional tool usage (HTTP, shell, filesystem):
+
+```bash
+curl -X POST http://localhost:8080/v1/plan \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "goal": "Check if port 8080 is listening and return the process name",
+    "enable_tools": true,
+    "max_steps": 5
+  }'
+```
+
+**Response:**
+```json
+{
+  "goal": "Check if port 8080 is listening...",
+  "success": true,
+  "total_steps": 2,
+  "final_answer": "Port 8080 is being used by igris-runtime",
+  "steps": [
+    {
+      "step_number": 1,
+      "thought": "I need to check which process is using port 8080",
+      "action": "tool:shell",
+      "observation": "Tool shell succeeded (45ms)\nigris-runtime 12345",
+      "reflection": "Successfully found the process"
+    },
+    {
+      "step_number": 2,
+      "thought": "I have the answer",
+      "action": "final",
+      "observation": "completed",
+      "reflection": null
+    }
+  ]
+}
+```
+
+**Without tools** (pure LLM reasoning):
+```bash
+curl -X POST http://localhost:8080/v1/plan \
+  -d '{"goal": "Explain quantum computing in 3 steps"}'
+```
+
+### Reflection Agent
+
+Iteratively improve responses through self-critique:
+
+```bash
+curl -X POST http://localhost:8080/v1/reflect \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "prompt": "Write a haiku about AI",
+    "max_iterations": 3,
+    "quality_threshold": 0.8
+  }'
+```
+
+**Response:**
+```json
+{
+  "final_response": "Silicon thoughts wake\nPatterns dance in neural nets\nFuture learning here",
+  "total_iterations": 2,
+  "final_score": 0.85,
+  "threshold_met": true,
+  "iterations": [
+    {
+      "iteration": 1,
+      "response": "Computers think fast...",
+      "critique": {
+        "overall_score": 0.6,
+        "strengths": ["Uses correct syllable count"],
+        "weaknesses": ["Lacks poetic imagery", "Too literal"],
+        "suggestions": ["Add natural imagery", "Use metaphor"]
+      },
+      "accepted": false,
+      "reason": "Score 0.6 below threshold 0.8"
+    },
+    {
+      "iteration": 2,
+      "response": "Silicon thoughts wake...",
+      "critique": {
+        "overall_score": 0.85,
+        "strengths": ["Beautiful imagery", "Correct form", "Meaningful"],
+        "weaknesses": [],
+        "suggestions": []
+      },
+      "accepted": true,
+      "reason": "Threshold met (0.85 >= 0.8)"
+    }
+  ]
+}
+```
+
+**Configuration:**
+
+Both agents use the local LLM when enabled in `config.json5`:
+
+```json5
+{
+  local_fallback: {
+    enabled: true,  // Required for /v1/plan and /v1/reflect
+    // ...
+  },
+
+  // Optional: configure planning behavior
+  planning: {
+    max_steps: 10,
+    enable_tools: false,
+    max_tool_calls: 20
+  },
+
+  // Optional: configure reflection behavior
+  reflection: {
+    max_iterations: 3,
+    quality_threshold: 0.7,
+    early_stopping: true
+  }
+}
+```
+
+### Tool Mode in Chat Completions
+
+Use `mode: "tools"` in chat completions for LLM-driven tool execution:
+
+```bash
+curl -X POST http://localhost:8080/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "gpt-4",
+    "messages": [
+      {"role": "user", "content": "Check if port 8080 is listening"}
+    ],
+    "mode": "tools"
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": "chatcmpl-...",
+  "object": "chat.completion",
+  "model": "gpt-4",
+  "choices": [{
+    "index": 0,
+    "message": {
+      "role": "assistant",
+      "content": "Port 8080 is listening and being used by igris-runtime (PID 12345)"
+    },
+    "finish_reason": "stop"
+  }],
+  "usage": {
+    "prompt_tokens": 45,
+    "completion_tokens": 23,
+    "total_tokens": 68
+  }
+}
+```
+
+**How it works:**
+1. LLM decides which tools to call based on the prompt
+2. Tools are executed securely (HTTP, shell, filesystem)
+3. Results are fed back to the LLM
+4. Process repeats until LLM provides a final answer
+5. Maximum steps and timeout protection
+
+**Available modes for chat completions:**
+- `"speculative"` - Try multiple cloud providers in parallel (default)
+- `"reflection"` - Self-critique and improve responses
+- `"tools"` - LLM-driven tool execution
+- `"planning"` - Multi-step reasoning with optional tools
+
+**Enable tools in config:**
+```json5
+{
+  tools: {
+    enabled: true,
+    max_steps: 10,
+    max_concurrent: 3,
+    timeout_ms: 5000,
+    allowed_commands: ["ls", "pwd", "date", "lsof"]
+  }
 }
 ```
 

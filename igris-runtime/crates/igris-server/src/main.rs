@@ -472,7 +472,7 @@ async fn reflect_endpoint(
         provider: local_provider.clone(),
     });
 
-    let agent = ReflectionAgent::with_provider(config, llm_provider);
+    let agent = ReflectionAgent::new(config, llm_provider);
 
     info!("Executing reflection task: {} chars", req.prompt.len());
     let result = agent.reflect(&req.prompt).await?;
@@ -1483,6 +1483,7 @@ async fn main() -> anyhow::Result<()> {
 
         let cfg = LoRATrainingConfig {
             enabled: lc.enabled,
+            backend: igris_lora_trainer::TrainingBackend::default(),
             trigger_threshold: lc.trigger_threshold,
             max_adapter_size_mb: lc.max_adapter_size_mb,
             lora_rank: lc.lora_rank,
