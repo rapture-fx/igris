@@ -39,7 +39,7 @@ export default function Products() {
                 Two products. One platform.
               </h3>
               <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
-                Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer, two deployment models.
+                Deploy AI where you need it. Overture routes cloud requests intelligently. Runtime executes at the edge with guaranteed latency. Use them together or independently.
               </p>
             </div>
 
@@ -60,7 +60,7 @@ export default function Products() {
                           </p>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mt-6 mb-6 break-words whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-                          Cloud orchestration with intelligent routing, shadow mode testing, and multi-provider consensus. Automated cost governance, quality-aware optimization, and multi-tenant isolation for enterprise operations.
+                          Route requests to the best AI provider automatically. Test changes without risk. Control costs with hard limits. Complete visibility into latency, quality, and spending across all providers.
                         </p>
                         <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
                           Learn more
@@ -81,7 +81,7 @@ export default function Products() {
                           </p>
                         </div>
                         <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed font-inter mt-6 mb-6 break-words whitespace-normal" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>
-                          Edge runtime with guaranteed latency, robot control, and fleet management. Privacy-preserving federated learning, human oversight for critical decisions, and chaos testing. Built for safety-critical systems.
+                          Deploy AI at the edge with guaranteed response times. Train models on your data without sending it anywhere. Control robots and drones. Works completely offline when needed. Built for systems where reliability matters.
                         </p>
                         <div className="flex items-center text-gray-900 dark:text-white font-inter text-xs md:text-sm group-hover:translate-x-1 transition-transform">
                           Learn more
@@ -99,7 +99,7 @@ export default function Products() {
                   Two products. One platform.
                 </h3>
                 <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
-                  Igris Inertial delivers resilient LLM orchestration across cloud and edge environments. One intelligence layer, two deployment models.
+                  Deploy AI where you need it. Overture routes cloud requests intelligently. Runtime executes at the edge with guaranteed latency. Use them together or independently.
                 </p>
               </div>
             </div>

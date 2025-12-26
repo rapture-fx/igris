@@ -7,7 +7,7 @@ export default function CallToAction() {
     <div className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       {/* First Frame - CTA Content */}
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-left py-16 pt-16 md:py-24 md:pt-24 lg:py-40 lg:pt-32 px-4 md:px-8 lg:px-12 relative min-h-[800px] flex flex-col justify-center" style={{
+        <div className="text-left py-12 pt-12 md:py-16 md:pt-16 lg:py-24 lg:pt-24 px-4 md:px-8 lg:px-12 relative min-h-[500px] flex flex-col justify-center" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderLeft: '0.5px solid rgba(156, 163, 175, 0.3)',
