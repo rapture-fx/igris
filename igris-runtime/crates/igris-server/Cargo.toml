@@ -42,6 +42,7 @@ igris-reflection = { path = "../igris-reflection" }
 igris-tools = { path = "../igris-tools" }
 igris-planning = { path = "../igris-planning" }
 igris-lora-trainer = { path = "../igris-lora-trainer" }
+igris-fleet = { path = "../igris-fleet" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }

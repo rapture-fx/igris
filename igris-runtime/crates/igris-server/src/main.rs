@@ -1718,13 +1718,28 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // Initialize Fleet Management (Phase 2, Dev 10)
-    if let Some(fleet_config) = &config.fleet {
-        if fleet_config.enabled {
+    if let Some(fleet_runtime_config) = &config.fleet {
+        if fleet_runtime_config.enabled {
             info!("Fleet Management is ENABLED");
-            info!("Overture endpoint: {}", fleet_config.overture_endpoint);
-            info!("Agent ID: {}", fleet_config.agent_id);
+            info!("Overture endpoint: {}", fleet_runtime_config.overture_endpoint);
+            info!("Agent ID: {}", fleet_runtime_config.agent_id);
 
-            match igris_fleet::FleetAgent::new(fleet_config.clone()).await {
+            // Convert RuntimeConfig to FleetConfig
+            let api_key = std::env::var(&fleet_runtime_config.api_key_env).ok();
+            let fleet_config = igris_fleet::FleetConfig {
+                enabled: fleet_runtime_config.enabled,
+                overture_endpoint: fleet_runtime_config.overture_endpoint.clone(),
+                agent_id: fleet_runtime_config.agent_id.clone(),
+                api_key,
+                enable_tls: fleet_runtime_config.enable_tls,
+                sync_interval_secs: fleet_runtime_config.sync_interval_secs,
+                auto_sync_config: fleet_runtime_config.auto_sync_config,
+                enable_telemetry: fleet_runtime_config.enable_telemetry,
+                telemetry_interval_secs: fleet_runtime_config.telemetry_interval_secs,
+                mock_mode: false,  // Never use mock mode in production
+            };
+
+            match igris_fleet::FleetAgent::new(fleet_config).await {
                 Ok(agent) => {
                     // Register with fleet control plane
                     match agent.register().await {
