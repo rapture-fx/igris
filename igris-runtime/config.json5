@@ -215,6 +215,16 @@
     telemetry_interval_secs: 60  // Telemetry upload interval (1 minute)
   },
 
+  // EscapeVector Graceful Degradation (NEW in v1.9 - Phase 1, P0)
+  // Provides 24-hour cached response fallback when all providers fail
+  escapevector: {
+    enabled: true,  // Enable EscapeVector response caching
+    cache_dir: ".escapevector",  // Cache directory path
+    min_quality_score: 0.7,  // Minimum quality score to cache response (0.0-1.0)
+    auto_cache: true,  // Enable automatic response caching on successful requests
+    fallback_threshold_ms: 5000  // Fall back to cache after this many ms of provider failures
+  },
+
   // Federated Learning (NEW in v1.9 - Phase 3, Dev 11)
   federated: {
     enabled: false,  // Enable federated learning
