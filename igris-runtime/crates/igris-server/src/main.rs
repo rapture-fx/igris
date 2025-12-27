@@ -61,8 +61,10 @@ mod server_flow_tests;
 #[derive(Clone)]
 pub(crate) struct AppState {
     pub(crate) config: Arc<IgrisConfig>,
+    #[allow(dead_code)]
     pub(crate) storage: Arc<RedbStorage>,
     pub(crate) speculative_router: Arc<SpeculativeRouter>,
+    #[allow(dead_code)]
     pub(crate) council_router: Arc<CouncilRouter>,
     pub(crate) cloud_providers: Arc<Vec<CloudProvider>>,
     pub(crate) local_provider: Option<Arc<LocalProvider>>,
