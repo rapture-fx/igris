@@ -19,10 +19,18 @@ anyhow = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
-# ROS2 bindings (using rclrs - pure Rust ROS2 client library)
-# Note: In production, you'd use rclrs from crates.io when stable
-# For now, we'll create a minimal ROS2-compatible interface
+# ROS2 bindings - feature-gated for optional ROS2 support
+# Using r2r (Rust ROS2 client library) as it's stable on crates.io
+# Falls back to stub implementation when feature not enabled
 serde_derive = "1.0"
+
+[dependencies.r2r]
+version = "0.9"
+optional = true
+
+[features]
+default = []
+ros2 = ["r2r"]
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
