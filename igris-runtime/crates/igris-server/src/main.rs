@@ -32,6 +32,7 @@ use igris_routing::local_provider::LocalProvider;
 use igris_emergency::EscapeVectorCache;
 use igris_reflection::{ReflectionAgent, ReflectionConfig as ReflectionLoopConfig, LLMProvider as ReflectionLLMProvider};
 use igris_planning::{PlanningAgent, PlanningConfig};
+use igris_fleet;
 use igris_mcp_server::{
     build_mcp_router, ContextStore, EncryptedStorage, McpState, PeerDiscovery,
     protocol::ServerInfo,
@@ -192,6 +193,24 @@ struct ChatCompletionResponse {
     model: String,
     choices: Vec<ChatCompletionChoice>,
     usage: Usage,
+    /// Optional metadata for degraded mode and caching
+    #[serde(skip_serializing_if = "Option::is_none")]
+    metadata: Option<ResponseMetadata>,
+}
+
+/// Response metadata for degraded mode and cache information
+#[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+struct ResponseMetadata {
+    /// Whether this response was served in degraded mode (from cache)
+    degraded: bool,
+    /// Source of the response (e.g., "cache", "local", "openai-gpt4o-mini")
+    source: String,
+    /// Optional cache age in seconds (only present when served from cache)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    cache_age_seconds: Option<u64>,
+    /// Optional quality score (0.0-1.0, only present when served from cache)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    quality_score: Option<f32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
@@ -717,6 +736,7 @@ async fn chat_completions(
                 completion_tokens: est_completion_tokens,
                 total_tokens: est_prompt_tokens + est_completion_tokens,
             },
+            metadata: None,
         };
 
         if let Some(mgr) = &state.lora_training {
@@ -778,6 +798,7 @@ async fn chat_completions(
                 completion_tokens: est_completion_tokens,
                 total_tokens: est_prompt_tokens + est_completion_tokens,
             },
+            metadata: None,
         };
 
         if let Some(mgr) = &state.lora_training {
@@ -840,6 +861,7 @@ async fn chat_completions(
                 completion_tokens: est_completion_tokens,
                 total_tokens: est_prompt_tokens + est_completion_tokens,
             },
+            metadata: None,
         };
 
         if let Some(mgr) = &state.lora_training {
@@ -916,6 +938,7 @@ async fn chat_completions(
                 completion_tokens: est_completion_tokens,
                 total_tokens: est_prompt_tokens + est_completion_tokens,
             },
+            metadata: None,
         };
 
         if let Some(mgr) = &state.lora_training {
@@ -978,6 +1001,9 @@ async fn chat_completions(
     }
 
     // If we still don't have a response, try EscapeVector cache as final fallback
+    let mut from_cache = false;
+    let mut cache_metadata: Option<(u64, f32)> = None; // (age, quality_score)
+
     let response_text = if let Some(text) = response_text {
         text
     } else {
@@ -986,15 +1012,21 @@ async fn chat_completions(
             info!("All providers failed, checking EscapeVector cache for graceful degradation");
             match cache.load_response(&prompt) {
                 Ok(Some(cached)) => {
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    let cache_age = now - cached.cached_at;
+
                     info!(
                         "EscapeVector cache hit! Serving cached response (age: {}s, quality: {:.2}, hits: {})",
-                        std::time::SystemTime::now()
-                            .duration_since(std::time::UNIX_EPOCH)
-                            .unwrap()
-                            .as_secs() - cached.cached_at,
+                        cache_age,
                         cached.quality_score,
                         cached.hit_count
                     );
+
+                    from_cache = true;
+                    cache_metadata = Some((cache_age, cached.quality_score));
                     used_provider = format!("escapevector-cache:{}", cached.model);
                     cached.response_text
                 }
@@ -1021,6 +1053,19 @@ async fn chat_completions(
     let response_text_for_record = response_text.clone();
 
     let completion_tokens_est = (response_text.len() as u32) / 4;
+
+    // Build metadata if serving from cache or in degraded mode
+    let metadata = if from_cache {
+        Some(ResponseMetadata {
+            degraded: true,
+            source: used_provider.clone(),
+            cache_age_seconds: cache_metadata.map(|(age, _)| age),
+            quality_score: cache_metadata.map(|(_, quality)| quality),
+        })
+    } else {
+        None
+    };
+
     let response = ChatCompletionResponse {
         id: format!("chatcmpl-{}", uuid::Uuid::new_v4()),
         object: "chat.completion".to_string(),
@@ -1046,6 +1091,7 @@ async fn chat_completions(
             completion_tokens: completion_tokens_est,
             total_tokens: est_prompt_tokens + completion_tokens_est,
         },
+        metadata,
     };
 
     // Record for LoRA training if enabled
@@ -1670,6 +1716,48 @@ async fn main() -> anyhow::Result<()> {
             }
         }
     };
+
+    // Initialize Fleet Management (Phase 2, Dev 10)
+    if let Some(fleet_config) = &config.fleet {
+        if fleet_config.enabled {
+            info!("Fleet Management is ENABLED");
+            info!("Overture endpoint: {}", fleet_config.overture_endpoint);
+            info!("Agent ID: {}", fleet_config.agent_id);
+
+            match igris_fleet::FleetAgent::new(fleet_config.clone()).await {
+                Ok(agent) => {
+                    // Register with fleet control plane
+                    match agent.register().await {
+                        Ok(response) => {
+                            info!(
+                                "Successfully registered with fleet: {} (role: {}, config_version: {})",
+                                response.fleet_id, response.assigned_role, response.config_version
+                            );
+
+                            // Start background sync loops for config and telemetry
+                            if let Err(e) = agent.start_sync_loops().await {
+                                warn!("Failed to start fleet sync loops: {}", e);
+                            } else {
+                                info!("Fleet sync loops started (config + telemetry)");
+                            }
+                        }
+                        Err(e) => {
+                            warn!("Failed to register with fleet: {}", e);
+                            warn!("Fleet management will continue in degraded mode");
+                        }
+                    }
+                }
+                Err(e) => {
+                    warn!("Failed to initialize fleet agent: {}", e);
+                    warn!("Fleet management will not be available");
+                }
+            }
+        } else {
+            info!("Fleet Management is DISABLED in config");
+        }
+    } else {
+        info!("Fleet Management not configured");
+    }
 
     let state = AppState {
         config: Arc::new(config),
