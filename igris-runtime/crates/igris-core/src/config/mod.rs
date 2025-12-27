@@ -31,6 +31,9 @@ pub struct IgrisConfig {
     /// Optional EscapeVector graceful degradation configuration (v1.9 - Phase 1)
     #[serde(default)]
     pub escapevector: Option<EscapeVectorConfig>,
+    /// Optional Fleet Management configuration (v1.8 - Phase 2, Dev 10)
+    #[serde(default)]
+    pub fleet: Option<FleetRuntimeConfig>,
 }
 
 impl Default for IgrisConfig {
@@ -50,6 +53,7 @@ impl Default for IgrisConfig {
             swarm: Some(SwarmRuntimeConfig::default()),
             rt: Some(RtRuntimeConfig::default()),
             escapevector: Some(EscapeVectorConfig::default()),
+            fleet: None,  // Fleet management disabled by default
         }
     }
 }
@@ -722,6 +726,75 @@ impl IgrisConfig {
             }
         }
         Ok(())
+    }
+}
+
+/// Fleet Management configuration (v1.8 - Phase 2, Dev 10)
+/// Provides centralized control and monitoring for distributed Runtime instances.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FleetRuntimeConfig {
+    /// Enable fleet management
+    #[serde(default)]
+    pub enabled: bool,
+    /// Overture endpoint URL
+    #[serde(default = "default_fleet_overture_endpoint")]
+    pub overture_endpoint: String,
+    /// Agent ID (auto-generated if empty)
+    #[serde(default = "default_fleet_agent_id")]
+    pub agent_id: String,
+    /// API key environment variable name
+    #[serde(default = "default_fleet_api_key_env")]
+    pub api_key_env: String,
+    /// Enable TLS for secure communication
+    #[serde(default = "default_true")]
+    pub enable_tls: bool,
+    /// Config sync interval in seconds
+    #[serde(default = "default_fleet_sync_interval_secs")]
+    pub sync_interval_secs: u64,
+    /// Auto-sync configuration
+    #[serde(default = "default_true")]
+    pub auto_sync_config: bool,
+    /// Enable telemetry upload
+    #[serde(default = "default_true")]
+    pub enable_telemetry: bool,
+    /// Telemetry upload interval in seconds
+    #[serde(default = "default_fleet_telemetry_interval_secs")]
+    pub telemetry_interval_secs: u64,
+}
+
+fn default_fleet_overture_endpoint() -> String {
+    "https://overture.igris.dev".to_string()
+}
+
+fn default_fleet_agent_id() -> String {
+    format!("igris-{}", uuid::Uuid::new_v4())
+}
+
+fn default_fleet_api_key_env() -> String {
+    "FLEET_API_KEY".to_string()
+}
+
+fn default_fleet_sync_interval_secs() -> u64 {
+    300 // 5 minutes
+}
+
+fn default_fleet_telemetry_interval_secs() -> u64 {
+    60 // 1 minute
+}
+
+impl Default for FleetRuntimeConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            overture_endpoint: default_fleet_overture_endpoint(),
+            agent_id: default_fleet_agent_id(),
+            api_key_env: default_fleet_api_key_env(),
+            enable_tls: true,
+            sync_interval_secs: default_fleet_sync_interval_secs(),
+            auto_sync_config: true,
+            enable_telemetry: true,
+            telemetry_interval_secs: default_fleet_telemetry_interval_secs(),
+        }
     }
 }
 
