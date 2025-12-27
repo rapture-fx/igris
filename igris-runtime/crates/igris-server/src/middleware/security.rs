@@ -68,7 +68,9 @@ impl RateLimiter {
 #[derive(Debug)]
 struct JwtClaims {
     sub: Option<String>,
+    #[allow(dead_code)]
     exp: Option<u64>,
+    #[allow(dead_code)]
     nbf: Option<u64>,
 }
 
