@@ -2,6 +2,7 @@ pub mod config;
 pub mod storage;
 pub mod trainer;
 pub mod encryption;
+pub mod embedded_bins;
 
 // Native Rust training module (optional, enabled with 'native-training' feature)
 #[cfg(feature = "native-training")]

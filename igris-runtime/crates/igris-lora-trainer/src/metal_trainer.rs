@@ -34,6 +34,7 @@ pub struct MetalLoRATrainer {
     encryption: Option<AdapterEncryption>,
     device: Device,
     tokenizer_path: Option<PathBuf>,
+    #[allow(dead_code)]
     hidden_size: Option<usize>,  // Cached model dimension (loaded from GGUF)
     #[cfg(feature = "fleet-management")]
     fleet_agent: Option<std::sync::Arc<igris_fleet::FleetAgent>>,
@@ -44,7 +45,9 @@ pub struct MetalLoRATrainer {
 struct LoRAConfig {
     rank: usize,
     alpha: f32,
+    #[allow(dead_code)]
     dropout: f32,
+    #[allow(dead_code)]
     target_modules: Vec<String>,
 }
 
@@ -114,6 +117,7 @@ impl LoRALayer {
 /// Training dataset
 struct Dataset {
     input_ids: Vec<Vec<u32>>,
+    #[allow(dead_code)]
     attention_mask: Vec<Vec<u32>>,
     labels: Vec<Vec<i64>>,
 }
@@ -204,13 +208,14 @@ impl MetalLoRATrainer {
             }
         }
 
-        // Try CUDA (NVIDIA GPUs)
-        #[cfg(feature = "cuda")]
-        {
-            if let Ok(device) = Device::new_cuda(0) {
-                return Ok(device);
-            }
-        }
+        // Try CUDA (NVIDIA GPUs) - not currently enabled as a feature
+        // Uncomment if you add cuda support to Cargo.toml
+        // #[cfg(feature = "cuda")]
+        // {
+        //     if let Ok(device) = Device::new_cuda(0) {
+        //         return Ok(device);
+        //     }
+        // }
 
         // Fallback to CPU
         Ok(Device::Cpu)
