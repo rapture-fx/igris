@@ -185,14 +185,23 @@ impl LoRATrainer {
         match self.config.backend {
             TrainingBackend::LlamaCpp => {
                 // User explicitly requested llama.cpp
-                let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
-                if !finetune_bin.exists() {
-                    anyhow::bail!(
-                        "llama.cpp backend requested but llama-finetune not found at {}",
-                        finetune_bin.display()
-                    );
+                // Try embedded/extracted binary first, then fallback to build directory
+                match crate::embedded_bins::get_finetune_binary().await {
+                    Ok(_) => {
+                        info!("Using llama.cpp backend (embedded or extracted binary)");
+                        Ok(TrainingBackend::LlamaCpp)
+                    }
+                    Err(e) => {
+                        // Fallback to checking build directory
+                        let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
+                        if !finetune_bin.exists() {
+                            anyhow::bail!(
+                                "llama.cpp backend requested but llama-finetune not found.\n{}", e
+                            );
+                        }
+                        Ok(TrainingBackend::LlamaCpp)
+                    }
                 }
-                Ok(TrainingBackend::LlamaCpp)
             }
             TrainingBackend::NativeRust => {
                 // User explicitly requested native Rust
@@ -217,18 +226,19 @@ impl LoRATrainer {
                 }
                 #[cfg(not(feature = "native-training"))]
                 {
-                    // Native not available, try llama.cpp
-                    let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
-                    if finetune_bin.exists() {
-                        info!("Auto-selected llama.cpp training backend");
-                        Ok(TrainingBackend::LlamaCpp)
-                    } else {
-                        anyhow::bail!(
-                            "No training backend available. Either:\n\
-                             1. Rebuild with --features native-training (recommended), or\n\
-                             2. Build llama.cpp with finetune support at {}",
-                            finetune_bin.display()
-                        )
+                    // Native not available, try llama.cpp (embedded or build directory)
+                    match crate::embedded_bins::get_finetune_binary().await {
+                        Ok(path) => {
+                            info!("Auto-selected llama.cpp training backend at {}", path.display());
+                            Ok(TrainingBackend::LlamaCpp)
+                        }
+                        Err(e) => {
+                            anyhow::bail!(
+                                "No training backend available.\n{}\n\n\
+                                 Alternative: Rebuild with --features native-training for native Rust backend.",
+                                e
+                            )
+                        }
                     }
                 }
             }
@@ -300,14 +310,22 @@ impl LoRATrainer {
 
         let adapter_path = adapter_dir.join(format!("lora_adapter_{}.gguf", timestamp));
 
-        let finetune_bin = self.llama_cpp_dir.join("build/bin/llama-finetune");
-
-        if !finetune_bin.exists() {
-            anyhow::bail!(
-                "llama-finetune binary not found at {}. Build llama.cpp (training tools) first.",
-                finetune_bin.display()
-            );
-        }
+        // Get llama-finetune binary (embedded, extracted, or from build directory)
+        let finetune_bin = match crate::embedded_bins::get_finetune_binary().await {
+            Ok(path) => {
+                info!("Using llama-finetune binary from: {}", path.display());
+                path
+            }
+            Err(_) => {
+                // Fallback to build directory
+                let fallback = self.llama_cpp_dir.join("build/bin/llama-finetune");
+                if !fallback.exists() {
+                    return Err(crate::embedded_bins::get_finetune_binary().await.unwrap_err());
+                }
+                info!("Using llama-finetune binary from build directory: {}", fallback.display());
+                fallback
+            }
+        };
 
         let caps = detect_finetune_caps(&finetune_bin).await?;
 
