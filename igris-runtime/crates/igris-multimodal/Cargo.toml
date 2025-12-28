@@ -13,5 +13,18 @@ anyhow = { workspace = true }
 serde = { workspace = true }
 base64 = { workspace = true }
 
+# Image processing (feature-gated)
+image = { version = "0.25", optional = true }
+imageproc = { version = "0.25", optional = true }
+
+# Audio processing (feature-gated)
+hound = { version = "3.5", optional = true }
+
+[features]
+default = []
+vision = ["image", "imageproc"]
+audio = ["hound"]
+multimodal = ["vision", "audio"]
+
 [dev-dependencies]
 tokio-test = "0.4"
