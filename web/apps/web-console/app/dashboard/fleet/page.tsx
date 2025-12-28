@@ -2,59 +2,34 @@
 
 export const dynamic = 'force-dynamic';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTenant } from '@/hooks/useTenant';
 import { formatDateTime, formatDuration } from '@/utils/helpers';
+import { useFleetInstances, useFleetMetrics, EdgeRuntimeInstance, FleetMetrics } from './hooks';
 import {
-  Server, Activity, CheckCircle, XCircle, AlertCircle, RefreshCw, 
+  Server, Activity, CheckCircle, XCircle, AlertCircle, RefreshCw,
   Clock, Database, Wifi, WifiOff, MapPin, Users, Settings, Eye,
   Zap, TrendingUp, TrendingDown, Signal
 } from 'lucide-react';
 
-interface EdgeRuntimeInstance {
-  id: string;
-  name: string;
-  region: string;
-  availability_zone: string;
-  status: 'online' | 'offline' | 'maintenance' | 'syncing';
-  version: string;
-  last_heartbeat: string;
-  uptime_seconds: number;
-  requests_processed: number;
-  error_rate: number;
-  avg_latency: number;
-  cpu_usage: number;
-  memory_usage: number;
-  sync_status: 'in_sync' | 'out_of_sync' | 'syncing';
-  last_sync_time: string;
-  capabilities: string[];
-  provider_connections: number;
-  active_requests: number;
-}
-
-interface FleetMetrics {
-  total_instances: number;
-  online_instances: number;
-  offline_instances: number;
-  maintenance_instances: number;
-  avg_uptime_percentage: number;
-  total_requests_served: number;
-  fleet_error_rate: number;
-  regions_covered: number;
-  total_capacity: number;
-  used_capacity: number;
-}
-
 export default function FleetPage() {
   const { data: tenant } = useTenant();
 
-  // State for fleet data
-  const [fleetInstances, setFleetInstances] = useState<EdgeRuntimeInstance[]>([]);
-  const [fleetMetrics, setFleetMetrics] = useState<FleetMetrics>({
+  // Use React Query hooks instead of mock data
+  const { data: fleetInstances = [], isLoading: instancesLoading, refetch: refetchInstances } = useFleetInstances();
+  const { data: fleetMetrics, isLoading: metricsLoading } = useFleetMetrics();
+
+  const isLoading = instancesLoading || metricsLoading;
+
+  const [selectedInstance, setSelectedInstance] = useState<EdgeRuntimeInstance | null>(null);
+  const [showInstanceDialog, setShowInstanceDialog] = useState(false);
+
+  // Default metrics if not loaded yet
+  const metrics: FleetMetrics = fleetMetrics || {
     total_instances: 0,
     online_instances: 0,
     offline_instances: 0,
@@ -65,78 +40,7 @@ export default function FleetPage() {
     regions_covered: 0,
     total_capacity: 0,
     used_capacity: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedInstance, setSelectedInstance] = useState<EdgeRuntimeInstance | null>(null);
-  const [showInstanceDialog, setShowInstanceDialog] = useState(false);
-
-  // Mock fleet data generation
-  useEffect(() => {
-    const generateMockFleetData = () => {
-      const regions = ['us-east-1', 'us-west-2', 'eu-west-1', 'eu-central-1', 'ap-southeast-1'];
-      const availabilityZones = ['a', 'b', 'c'];
-      const statuses: Array<'online' | 'offline' | 'maintenance' | 'syncing'> = ['online', 'online', 'online', 'offline', 'maintenance', 'syncing'];
-      const capabilities = ['speculative_execution', 'council_mode', 'cache_optimization', 'auto_scaling'];
-
-      const instances: EdgeRuntimeInstance[] = regions.flatMap((region, regionIdx) =>
-        availabilityZones.map((az, azIdx) => {
-          const status = statuses[Math.floor(Math.random() * statuses.length)];
-          const instanceId = `igris-runtime-${region}-${az}`;
-          const syncStatus: 'in_sync' | 'out_of_sync' | 'syncing' = status === 'online' ? (Math.random() > 0.1 ? 'in_sync' : 'out_of_sync') : 'syncing';
-
-          return {
-            id: instanceId,
-            name: `${region.toUpperCase()} ${az.toUpperCase()} Runtime`,
-            region: region,
-            availability_zone: az,
-            status,
-            version: 'v2.1.3',
-            last_heartbeat: new Date(Date.now() - Math.random() * 60000).toISOString(),
-            uptime_seconds: Math.floor(Math.random() * 2592000), // Up to 30 days
-            requests_processed: Math.floor(Math.random() * 1000000),
-            error_rate: Math.random() * 5,
-            avg_latency: 50 + Math.random() * 200,
-            cpu_usage: 20 + Math.random() * 60,
-            memory_usage: 30 + Math.random() * 50,
-            sync_status: syncStatus,
-            last_sync_time: new Date(Date.now() - Math.random() * 300000).toISOString(),
-            capabilities: capabilities.slice(0, Math.floor(Math.random() * 3) + 1),
-            provider_connections: 3 + Math.floor(Math.random() * 3),
-            active_requests: Math.floor(Math.random() * 50),
-          };
-        }).slice(0, 2) // 2 instances per region for demo
-      ).slice(0, 12); // Total of 12 instances
-
-      setFleetInstances(instances);
-
-      // Calculate fleet metrics
-      const onlineCount = instances.filter(i => i.status === 'online').length;
-      const offlineCount = instances.filter(i => i.status === 'offline').length;
-      const maintenanceCount = instances.filter(i => i.status === 'maintenance').length;
-      const avgUptime = instances.reduce((sum, i) => sum + (i.uptime_seconds / 86400), 0) / instances.length;
-      
-      setFleetMetrics({
-        total_instances: instances.length,
-        online_instances: onlineCount,
-        offline_instances: offlineCount,
-        maintenance_instances: maintenanceCount,
-        avg_uptime_percentage: Math.min((avgUptime / 30) * 100, 100),
-        total_requests_served: instances.reduce((sum, i) => sum + i.requests_processed, 0),
-        fleet_error_rate: instances.reduce((sum, i) => sum + i.error_rate, 0) / instances.length,
-        regions_covered: new Set(instances.map(i => i.region)).size,
-        total_capacity: instances.length * 100, // 100 req/s per instance
-        used_capacity: instances.reduce((sum, i) => sum + i.active_requests, 0),
-      });
-      
-      setIsLoading(false);
-    };
-
-    generateMockFleetData();
-    
-    // Refresh data every 30 seconds
-    const interval = setInterval(generateMockFleetData, 30000);
-    return () => clearInterval(interval);
-  }, []);
+  };
 
   // Handle instance actions
   const handleInstanceAction = (action: string, instanceId: string) => {
@@ -145,10 +49,7 @@ export default function FleetPage() {
   };
 
   const handleRefreshFleet = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    refetchInstances();
   };
 
   const getStatusBadge = (status: EdgeRuntimeInstance['status']) => {
@@ -218,11 +119,11 @@ export default function FleetPage() {
               <Server className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{fleetMetrics.total_instances}</div>
+              <div className="text-2xl font-bold text-gray-900">{metrics.total_instances}</div>
               <div className="flex gap-2 mt-1">
-                <span className="text-xs text-green-600">{fleetMetrics.online_instances} online</span>
+                <span className="text-xs text-green-600">{metrics.online_instances} online</span>
                 <span className="text-xs text-gray-400">•</span>
-                <span className="text-xs text-red-600">{fleetMetrics.offline_instances} offline</span>
+                <span className="text-xs text-red-600">{metrics.offline_instances} offline</span>
               </div>
             </CardContent>
           </Card>
@@ -235,7 +136,7 @@ export default function FleetPage() {
               <MapPin className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{fleetMetrics.regions_covered}</div>
+              <div className="text-2xl font-bold text-gray-900">{metrics.regions_covered}</div>
               <p className="text-xs text-gray-600 mt-1">
                 Global distribution
               </p>
@@ -250,8 +151,8 @@ export default function FleetPage() {
               <AlertCircle className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{fleetMetrics.fleet_error_rate.toFixed(2)}%</div>
-              {fleetMetrics.fleet_error_rate > 3 ? (
+              <div className="text-2xl font-bold text-gray-900">{metrics.fleet_error_rate.toFixed(2)}%</div>
+              {metrics.fleet_error_rate > 3 ? (
                 <div className="flex items-center gap-1 mt-1">
                   <TrendingUp className="h-3 w-3 text-red-600" />
                   <span className="text-xs text-red-600">Above threshold</span>
@@ -274,19 +175,19 @@ export default function FleetPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">
-                {fleetMetrics.used_capacity}/{fleetMetrics.total_capacity}
+                {metrics.used_capacity}/{metrics.total_capacity}
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div
                   className={`h-2 rounded-full ${
-                    (fleetMetrics.used_capacity / fleetMetrics.total_capacity) > 0.8
+                    (metrics.used_capacity / metrics.total_capacity) > 0.8
                       ? 'bg-red-500'
-                      : (fleetMetrics.used_capacity / fleetMetrics.total_capacity) > 0.6
+                      : (metrics.used_capacity / metrics.total_capacity) > 0.6
                       ? 'bg-yellow-500'
                       : 'bg-green-500'
                   }`}
                   style={{
-                    width: `${Math.min((fleetMetrics.used_capacity / fleetMetrics.total_capacity) * 100, 100)}%`
+                    width: `${Math.min((metrics.used_capacity / metrics.total_capacity) * 100, 100)}%`
                   }}
                 />
               </div>
