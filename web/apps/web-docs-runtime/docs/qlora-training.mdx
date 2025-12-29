@@ -103,49 +103,49 @@ curl http://localhost:8081/v1/training/status
 ┌─────────────────────────────────────────────┐
 │  Igris Runtime                              │
 │                                             │
-│  ┌────────────────────────────────────────┐│
-│  │ TrainingDataStore (ReDB)               ││
-│  │  - Collects prompts + completions      ││
-│  │  - Request counter                     ││
-│  │  - Training history                    ││
-│  └──────────────┬─────────────────────────┘│
+│  ┌────────────────────────────────────────┐ │
+│  │ TrainingDataStore (ReDB)               │ │
+│  │  - Collects prompts + completions      │ │
+│  │  - Request counter                     │ │
+│  │  - Training history                    │ │
+│  └──────────────┬─────────────────────────┘ │
 │                 │                           │
-│      Threshold reached (100 requests)      │
+│      Threshold reached (100 requests)       │
 │                 │                           │
 │                 ▼                           │
-│  ┌────────────────────────────────────────┐│
-│  │ MetalLoRATrainer                       ││
-│  │  ┌──────────────────────────────────┐ ││
-│  │  │ 1. Load GGUF metadata            │ ││
-│  │  │    - Auto-detect model dimension │ ││
-│  │  │    - Load architecture info      │ ││
-│  │  └──────────────────────────────────┘ ││
-│  │  ┌──────────────────────────────────┐ ││
-│  │  │ 2. Prepare datasets              │ ││
-│  │  │    - 80/20 train/val split       │ ││
-│  │  │    - Tokenization                │ ││
-│  │  │    - Shuffling                   │ ││
-│  │  └──────────────────────────────────┘ ││
-│  │  ┌──────────────────────────────────┐ ││
-│  │  │ 3. Initialize LoRA layers        │ ││
-│  │  │    - lora_a: [rank × hidden]     │ ││
-│  │  │    - lora_b: [hidden × rank]     │ ││
-│  │  │    - Tracked in VarMap           │ ││
-│  │  └──────────────────────────────────┘ ││
-│  │  ┌──────────────────────────────────┐ ││
-│  │  │ 4. Training loop                 │ ││
-│  │  │    - Forward pass                │ ││
-│  │  │    - MSE + Cosine loss           │ ││
-│  │  │    - AdamW optimizer             │ ││
-│  │  │    - Early stopping (patience=3) │ ││
-│  │  └──────────────────────────────────┘ ││
-│  │  ┌──────────────────────────────────┐ ││
-│  │  │ 5. Save adapter                  │ ││
-│  │  │    - Safetensors format          │ ││
-│  │  │    - In-memory AES-256 encryption││
-│  │  │    - GGUF conversion (optional)  │ ││
-│  │  └──────────────────────────────────┘ ││
-│  └────────────────────────────────────────┘│
+│  ┌────────────────────────────────────────┐ │
+│  │ MetalLoRATrainer                       │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │ 1. Load GGUF metadata            │  │ │
+│  │  │    - Auto-detect model dimension │  │ │
+│  │  │    - Load architecture info      │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │ 2. Prepare datasets              │  │ │
+│  │  │    - 80/20 train/val split       │  │ │
+│  │  │    - Tokenization                │  │ │
+│  │  │    - Shuffling                   │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │ 3. Initialize LoRA layers        │  │ │
+│  │  │    - lora_a: [rank × hidden]     │  │ │
+│  │  │    - lora_b: [hidden × rank]     │  │ │
+│  │  │    - Tracked in VarMap           │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │ 4. Training loop                 │  │ │
+│  │  │    - Forward pass                │  │ │
+│  │  │    - MSE + Cosine loss           │  │ │
+│  │  │    - AdamW optimizer             │  │ │
+│  │  │    - Early stopping (patience=3) │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  │  ┌──────────────────────────────────┐  │ │
+│  │  │ 5. Save adapter                  │  │ │
+│  │  │    - Safetensors format          │  │ │
+│  │  │    - In-memory AES-256 encryption│  │ │
+│  │  │    - GGUF conversion (optional)  │  │ │
+│  │  └──────────────────────────────────┘  │ │
+│  └────────────────────────────────────────┘ │
 │                                             │
 │  Device Support:                            │
 │  ✅ Metal (Apple Silicon) - Optimized       │
@@ -442,16 +442,16 @@ async fn save_adapter_safetensors(&self, varmap: &VarMap, path: &Path) -> Result
 ### Data Privacy
 
 **What is stored:**
-- ✅ Prompts (for training)
-- ✅ Completions (for training)
-- ✅ Timestamps
-- ✅ Model names
+- Prompts (for training)
+- Completions (for training)
+- Timestamps
+- Model names
 
 **What is NOT stored:**
-- ❌ API keys
-- ❌ User identifiers (unless in prompt)
-- ❌ IP addresses
-- ❌ Authentication tokens
+- API keys
+- User identifiers (unless in prompt)
+- IP addresses
+- Authentication tokens
 
 **Clear training data:**
 ```bash
@@ -477,9 +477,9 @@ curl -X DELETE http://localhost:8081/v1/training/data
 | **CPU usage** | 80-100% | During training only |
 
 **Model support:**
-- ✅ **Phi-3 Mini 4K** (768 dim) - 45 sec training
-- ✅ **LLaMA-7B** (4096 dim) - 120 sec training
-- ✅ **Mistral-7B** (4096 dim) - 115 sec training
+- **Phi-3 Mini 4K** (768 dim) - 45 sec training
+- **LLaMA-7B** (4096 dim) - 120 sec training
+- **Mistral-7B** (4096 dim) - 115 sec training
 
 ### Adapter Loading
 
