@@ -282,7 +282,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                         )}
                       >
                         <div className="flex items-center gap-3">
-                          <item.icon className="h-4 w-4" />
+                          <item.icon className="h-4 w-4" style={{ color: 'rgb(75, 85, 99)' }} />
                           {item.name}
                         </div>
                         <ChevronDown
@@ -339,7 +339,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
                       )}
                       onClick={onClose}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4" style={{ color: 'rgb(75, 85, 99)' }} />
                       {item.name}
                     </Link>
                   </li>
