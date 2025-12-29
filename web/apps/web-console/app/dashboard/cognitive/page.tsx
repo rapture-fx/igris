@@ -197,7 +197,7 @@ export default function CognitiveAdvisorPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <CardTitle className="text-base">{proposal.title}</CardTitle>
+                        <CardTitle className="text-sm text-base">{proposal.title}</CardTitle>
                         <Badge className={`${getStatusColor(proposal.status)} border text-xs`}>
                           {proposal.status}
                         </Badge>
@@ -205,7 +205,7 @@ export default function CognitiveAdvisorPage() {
                           {proposal.category}
                         </Badge>
                       </div>
-                      <CardDescription className="text-sm">
+                      <CardDescription className="text-xs text-sm">
                         {proposal.description}
                       </CardDescription>
                     </div>

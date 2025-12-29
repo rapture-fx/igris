@@ -76,9 +76,9 @@ export default function RuntimeSwarmPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Radio className="h-5 w-5 text-gray-900" />
-              <CardTitle>Swarm Nodes</CardTitle>
+              <CardTitle className="text-sm">Swarm Nodes</CardTitle>
             </div>
-            <CardDescription>Distributed consensus network</CardDescription>
+            <CardDescription className="text-xs">Distributed consensus network</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -112,8 +112,8 @@ export default function RuntimeSwarmPage() {
 
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle>Partition Tolerance</CardTitle>
-            <CardDescription>Network resilience and fault tolerance</CardDescription>
+            <CardTitle className="text-sm">Partition Tolerance</CardTitle>
+            <CardDescription className="text-xs">Network resilience and fault tolerance</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">

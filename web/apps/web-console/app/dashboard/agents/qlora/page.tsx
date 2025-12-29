@@ -140,8 +140,8 @@ export default function AgentsQLoRAPage() {
                   <div className="flex items-center gap-3">
                     <GraduationCap className="h-5 w-5 text-gray-900" />
                     <div>
-                      <CardTitle className="text-base">{job.model_name}</CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardTitle className="text-sm text-base">{job.model_name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">
                         Base: {job.base_model} • Started {job.started_at}
                       </CardDescription>
                     </div>

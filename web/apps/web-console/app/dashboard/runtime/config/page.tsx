@@ -92,8 +92,8 @@ export default function RuntimeConfigPage() {
                   <div className="flex items-center gap-3">
                     <Sliders className="h-5 w-5 text-gray-900" />
                     <div>
-                      <CardTitle className="text-base">{push.name}</CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardTitle className="text-sm text-base">{push.name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">
                         Target: {push.target} • Created {push.created_at}
                       </CardDescription>
                     </div>

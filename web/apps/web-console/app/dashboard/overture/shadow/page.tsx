@@ -84,8 +84,8 @@ export default function OvertureShadowPage() {
 
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle>Configuration</CardTitle>
-            <CardDescription>Primary and shadow provider settings</CardDescription>
+            <CardTitle className="text-sm">Configuration</CardTitle>
+            <CardDescription className="text-xs">Primary and shadow provider settings</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

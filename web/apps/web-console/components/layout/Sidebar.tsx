@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, KeyRound, Network, Settings, X, Activity, Eye, Wrench, FileText, Server, ChevronDown, DollarSign, Shield, Lightbulb, CloudCog, Cpu, Sliders, Radio, Zap, Brain, GraduationCap, Lock, Search } from 'lucide-react';
+import { Home, KeyRound, Network, Settings, X, Activity, Eye, Wrench, FileText, Server, ChevronDown, DollarSign, Shield, Lightbulb, CloudCog, Cpu, Sliders, Radio, Zap, Brain, GraduationCap, Lock, Search, HelpCircle, ExternalLink, Mail, FileText as ChangeLogIcon, Activity as StatusIcon, BookOpen } from 'lucide-react';
 import { cn } from '@/utils/helpers';
 
 interface SidebarProps {
@@ -165,6 +165,7 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
   const pathname = usePathname();
   const tier = 'scale'; // Temporarily default to 'scale' for development
   const [searchQuery, setSearchQuery] = useState('');
+  const [showHelpMenu, setShowHelpMenu] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     Overture: true,
     Runtime: true,
@@ -327,6 +328,103 @@ export function Sidebar({ open = true, onClose }: SidebarProps) {
               })}
             </ul>
           </nav>
+
+          {/* Help Button */}
+          <div className="p-4 flex-shrink-0">
+            <div className="relative">
+              {/* Help Menu Dropdown */}
+              {showHelpMenu && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setShowHelpMenu(false)}
+                  />
+                  <div className="absolute bottom-full left-0 right-0 mb-2 z-40 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
+                    {/* Docs Section */}
+                    <div className="px-2 py-1.5">
+                      <p className="text-[0.65rem] font-medium text-gray-600 mb-1.5">Documentation</p>
+                      <a
+                        href="https://docs.igrisinertial.com/overture"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                        onClick={() => setShowHelpMenu(false)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-3.5 w-3.5 text-gray-700" />
+                          <span className="text-xs font-inter text-gray-900">Overture Docs</span>
+                        </div>
+                        <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                      </a>
+                      <a
+                        href="https://docs.igrisinertial.com/runtime"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                        onClick={() => setShowHelpMenu(false)}
+                      >
+                        <div className="flex items-center gap-2">
+                          <BookOpen className="h-3.5 w-3.5 text-gray-700" />
+                          <span className="text-xs font-inter text-gray-900">Runtime Docs</span>
+                        </div>
+                        <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                      </a>
+                    </div>
+
+                    <div className="border-t border-border-light my-1"></div>
+
+                    {/* Support Email */}
+                    <a
+                      href="mailto:support@igrisinertial.com"
+                      className="flex items-center gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      onClick={() => setShowHelpMenu(false)}
+                    >
+                      <Mail className="h-3.5 w-3.5 text-gray-700" />
+                      <span className="text-xs font-inter text-gray-900">Contact Support</span>
+                    </a>
+
+                    {/* Change Log */}
+                    <a
+                      href="https://changelog.igrisinertial.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      onClick={() => setShowHelpMenu(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <ChangeLogIcon className="h-3.5 w-3.5 text-gray-700" />
+                        <span className="text-xs font-inter text-gray-900">Change Log</span>
+                      </div>
+                      <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                    </a>
+
+                    {/* System Status */}
+                    <a
+                      href="https://status.igrisinertial.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-between gap-2 w-full px-2 py-1.5 rounded-lg hover:bg-beige-secondary transition-colors text-left"
+                      onClick={() => setShowHelpMenu(false)}
+                    >
+                      <div className="flex items-center gap-2">
+                        <StatusIcon className="h-3.5 w-3.5 text-gray-700" />
+                        <span className="text-xs font-inter text-gray-900">System Status</span>
+                      </div>
+                      <ExternalLink className="h-2.5 w-2.5 text-gray-600" />
+                    </a>
+                  </div>
+                </>
+              )}
+
+              {/* Help Button */}
+              <button
+                onClick={() => setShowHelpMenu(!showHelpMenu)}
+                className="flex items-center justify-center w-10 h-10 rounded-full border border-border-light hover:bg-beige-secondary transition-colors"
+              >
+                <span className="text-gray-500 text-lg font-semibold">?</span>
+              </button>
+            </div>
+          </div>
         </div>
       </aside>
     </>
