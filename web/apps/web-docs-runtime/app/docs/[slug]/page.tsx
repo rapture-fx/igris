@@ -21,6 +21,10 @@ const slugToFile: Record<string, string> = {
   pricing: 'pricing-tiers',
   faq: 'faq',
   changelog: 'changelog',
+  'fleet-management': 'fleet-management',
+  'ros2-integration': 'ros2-integration',
+  multimodal: 'multimodal',
+  'qlora-training': 'qlora-training',
 };
 
 export async function generateStaticParams() {
