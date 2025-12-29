@@ -196,19 +196,19 @@ export default function ProvidersPage() {
               Add your API keys for any model. One URL change and you're done.
             </p>
             <div className="flex items-center gap-2 mt-3">
-              <code className="px-3 py-1.5 rounded-md bg-beige-primary border border-border-light text-sm font-mono text-gray-900">
+              <code className="px-2.5 py-1 rounded-md bg-beige-primary border border-border-light text-xs font-mono text-gray-900">
                 {baseUrl}
               </code>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={handleCopyUrl}
-                className="h-8"
+                className="h-7"
               >
                 {copiedUrl ? (
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-3.5 w-3.5 text-green-600" />
                 ) : (
-                  <Copy className="h-4 w-4" />
+                  <Copy className="h-3.5 w-3.5" />
                 )}
               </Button>
             </div>
@@ -285,17 +285,17 @@ export default function ProvidersPage() {
                           key={provider.id}
                           className="border-b border-border-light hover:bg-beige-primary transition-colors"
                         >
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-3">
                             <div>
-                              <p className="font-medium text-gray-900 font-inter">
+                              <p className="font-medium text-xs text-gray-900 font-inter">
                                 {providerInfo?.name || provider.provider.charAt(0).toUpperCase() + provider.provider.slice(1)}
                               </p>
-                              <p className="text-xs text-gray-600 font-mono">
+                              <p className="text-[0.65rem] text-gray-600 font-mono">
                                 {provider.masked_key}
                               </p>
                             </div>
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-3">
                             {editingNameId === provider.id ? (
                               <div className="flex items-center gap-2">
                                 <Input
@@ -323,11 +323,11 @@ export default function ProvidersPage() {
                             )}
                           </td>
                           {tier === 'scale' && (
-                            <td className="py-3 px-4">
+                            <td className="py-2 px-3">
                               <Select
                                 value={providerTenants[provider.id] || 'all'}
                                 onChange={(e) => handleTenantChange(provider.id, e.target.value)}
-                                className="w-48 h-8 text-sm"
+                                className="w-40 h-7 text-xs"
                               >
                                 <option value="all">All tenants</option>
                                 {mockTenants.slice(1).map((t) => (
@@ -342,10 +342,10 @@ export default function ProvidersPage() {
                           <td className="py-2 px-3 text-xs text-gray-600">
                             {provider.last_used ? formatDate(provider.last_used) : 'Never'}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-3">
                             {getStatusBadge(provider)}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-3">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="icon">
@@ -403,11 +403,11 @@ export default function ProvidersPage() {
                 </table>
               </div>
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-900 font-inter font-medium mb-2">
+              <div className="text-center py-10">
+                <p className="text-xs text-gray-900 font-inter font-medium mb-1.5">
                   No providers added yet
                 </p>
-                <p className="text-gray-600 font-inter text-sm">
+                <p className="text-[0.65rem] text-gray-600 font-inter">
                   Add your first one to get started.
                 </p>
               </div>
@@ -420,19 +420,19 @@ export default function ProvidersPage() {
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add Provider</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-sm">Add Provider</DialogTitle>
+            <DialogDescription className="text-xs">
               Add your API key for any LLM provider
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="provider">
+          <div className="space-y-3 py-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="provider" className="text-xs">
                 Provider <span className="text-red-600">*</span>
               </Label>
               <select
                 id="provider"
-                className="flex h-10 w-full rounded-lg border border-border-light bg-beige-primary px-3 py-2 text-sm font-inter focus-visible:outline-none"
+                className="flex h-8 w-full rounded-lg border border-border-light bg-beige-primary px-2.5 py-1.5 text-xs font-inter focus-visible:outline-none"
                 value={newProvider}
                 onChange={(e) => setNewProvider(e.target.value)}
               >
@@ -444,8 +444,8 @@ export default function ProvidersPage() {
                 ))}
               </select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="apiKey">
+            <div className="space-y-1.5">
+              <Label htmlFor="apiKey" className="text-xs">
                 API Key <span className="text-red-600">*</span>
               </Label>
               <div className="relative">
@@ -455,44 +455,46 @@ export default function ProvidersPage() {
                   placeholder="sk-..."
                   value={newApiKey}
                   onChange={(e) => setNewApiKey(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 h-8 text-xs"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2"
                   onClick={() => setShowApiKey(!showApiKey)}
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-3.5 w-3.5 text-gray-400" />
                   ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
+                    <Eye className="h-3.5 w-3.5 text-gray-400" />
                   )}
                 </button>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="name">Name (optional)</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="name" className="text-xs">Name (optional)</Label>
               <Input
                 id="name"
                 type="text"
                 placeholder="My OpenAI Key"
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
+                className="h-8 text-xs"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" className="shadow-sm" onClick={() => setShowAddDialog(false)}>
+            <Button variant="outline" size="sm" className="shadow-sm text-xs" onClick={() => setShowAddDialog(false)}>
               Cancel
             </Button>
             <Button
               variant="outline"
-              className="shadow-sm"
+              size="sm"
+              className="shadow-sm text-xs"
               onClick={handleAddProvider}
               disabled={!newProvider || !newApiKey || addProviderMutation.isPending}
             >
               {addProviderMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               )}
               Save Provider
             </Button>
@@ -504,14 +506,14 @@ export default function ProvidersPage() {
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Provider</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-sm">Edit Provider</DialogTitle>
+            <DialogDescription className="text-xs">
               Update API key for {selectedProvider?.provider}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="editApiKey">
+          <div className="space-y-3 py-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="editApiKey" className="text-xs">
                 New API Key <span className="text-red-600">*</span>
               </Label>
               <div className="relative">
@@ -521,28 +523,30 @@ export default function ProvidersPage() {
                   placeholder="sk-..."
                   value={newApiKey}
                   onChange={(e) => setNewApiKey(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 h-8 text-xs"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2"
                   onClick={() => setShowApiKey(!showApiKey)}
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-3.5 w-3.5 text-gray-400" />
                   ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
+                    <Eye className="h-3.5 w-3.5 text-gray-400" />
                   )}
                 </button>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => setShowEditDialog(false)}>
               Cancel
             </Button>
             <Button
               variant="outline"
+              size="sm"
+              className="text-xs"
               onClick={handleEditProvider}
               disabled={!newApiKey}
             >
@@ -556,19 +560,19 @@ export default function ProvidersPage() {
       <Dialog open={showRotateDialog} onOpenChange={setShowRotateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rotate API Key</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-sm">Rotate API Key</DialogTitle>
+            <DialogDescription className="text-xs">
               Add a new API key for {selectedProvider?.provider}. The old key will remain valid for 24 hours.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="p-3 rounded-lg bg-blue-50 border border-blue-200">
-              <p className="text-xs text-blue-900">
+          <div className="space-y-3 py-3">
+            <div className="p-2.5 rounded-lg bg-blue-50 border border-blue-200">
+              <p className="text-[0.65rem] text-blue-900">
                 During the 24-hour transition period, both keys will work. This gives you time to update your applications.
               </p>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="rotateApiKey">
+            <div className="space-y-1.5">
+              <Label htmlFor="rotateApiKey" className="text-xs">
                 New API Key <span className="text-red-600">*</span>
               </Label>
               <div className="relative">
@@ -578,32 +582,34 @@ export default function ProvidersPage() {
                   placeholder="sk-..."
                   value={rotateApiKey}
                   onChange={(e) => setRotateApiKey(e.target.value)}
-                  className="pr-10"
+                  className="pr-10 h-8 text-xs"
                 />
                 <button
                   type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2"
                   onClick={() => setShowApiKey(!showApiKey)}
                 >
                   {showApiKey ? (
-                    <EyeOff className="h-4 w-4 text-gray-400" />
+                    <EyeOff className="h-3.5 w-3.5 text-gray-400" />
                   ) : (
-                    <Eye className="h-4 w-4 text-gray-400" />
+                    <Eye className="h-3.5 w-3.5 text-gray-400" />
                   )}
                 </button>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowRotateDialog(false)}>
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => setShowRotateDialog(false)}>
               Cancel
             </Button>
             <Button
               variant="outline"
+              size="sm"
+              className="text-xs"
               onClick={handleRotateKey}
               disabled={!rotateApiKey}
             >
-              <RotateCw className="mr-2 h-4 w-4" />
+              <RotateCw className="mr-1.5 h-3.5 w-3.5" />
               Rotate Key
             </Button>
           </DialogFooter>
@@ -614,36 +620,36 @@ export default function ProvidersPage() {
       <Dialog open={showTestDialog} onOpenChange={setShowTestDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Test Connection</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-sm">Test Connection</DialogTitle>
+            <DialogDescription className="text-xs">
               Testing connection to {selectedProvider?.provider}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-6">
+          <div className="py-5">
             {isTesting ? (
-              <div className="flex flex-col items-center justify-center py-8">
-                <Loader2 className="h-12 w-12 animate-spin text-gray-900 mb-4" />
-                <p className="text-sm text-gray-600">Testing connection...</p>
+              <div className="flex flex-col items-center justify-center py-6">
+                <Loader2 className="h-10 w-10 animate-spin text-gray-900 mb-3" />
+                <p className="text-xs text-gray-600">Testing connection...</p>
               </div>
             ) : testResult ? (
-              <div className={`p-4 rounded-lg border ${
+              <div className={`p-3 rounded-lg border ${
                 testResult.success
                   ? 'bg-green-50 border-green-200'
                   : 'bg-red-50 border-red-200'
               }`}>
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-2">
                   {testResult.success ? (
-                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                    <CheckCircle className="h-4 w-4 text-green-600 mt-0.5" />
                   ) : (
-                    <XCircle className="h-5 w-5 text-red-600 mt-0.5" />
+                    <XCircle className="h-4 w-4 text-red-600 mt-0.5" />
                   )}
                   <div>
-                    <p className={`font-medium ${
+                    <p className={`font-medium text-xs ${
                       testResult.success ? 'text-green-900' : 'text-red-900'
                     }`}>
                       {testResult.success ? 'Connection Successful' : 'Connection Failed'}
                     </p>
-                    <p className={`text-sm mt-1 ${
+                    <p className={`text-[0.65rem] mt-1 ${
                       testResult.success ? 'text-green-700' : 'text-red-700'
                     }`}>
                       {testResult.message}
@@ -652,28 +658,32 @@ export default function ProvidersPage() {
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <Plug className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm text-gray-600 mb-4">
+              <div className="text-center py-6">
+                <Plug className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                <p className="text-xs text-gray-600 mb-3">
                   Click the button below to test the connection
                 </p>
                 <Button
                   variant="outline"
+                  size="sm"
+                  className="text-xs"
                   onClick={handleTestConnection}
                 >
-                  <Plug className="mr-2 h-4 w-4" />
+                  <Plug className="mr-1.5 h-3.5 w-3.5" />
                   Test Connection
                 </Button>
               </div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowTestDialog(false)}>
+            <Button variant="outline" size="sm" className="text-xs" onClick={() => setShowTestDialog(false)}>
               Close
             </Button>
             {testResult && !testResult.success && (
               <Button
                 variant="outline"
+                size="sm"
+                className="text-xs"
                 onClick={handleTestConnection}
               >
                 Try Again
@@ -687,25 +697,29 @@ export default function ProvidersPage() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Provider</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-sm">Delete Provider</DialogTitle>
+            <DialogDescription className="text-xs">
               Are you sure you want to delete this provider? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
+              size="sm"
+              className="text-xs"
               onClick={() => setShowDeleteDialog(false)}
             >
               Cancel
             </Button>
             <Button
               variant="destructive"
+              size="sm"
+              className="text-xs"
               onClick={handleDeleteProvider}
               disabled={deleteProviderMutation.isPending}
             >
               {deleteProviderMutation.isPending && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
               )}
               Delete
             </Button>

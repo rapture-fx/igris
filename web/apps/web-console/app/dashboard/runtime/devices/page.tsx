@@ -89,7 +89,7 @@ export default function RuntimeDevicesPage() {
                       <CardDescription className="text-xs mt-1">{device.id}</CardDescription>
                     </div>
                   </div>
-                  <Badge className={`${device.status === 'online' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} border`}>
+                  <Badge className="bg-gray-50 text-gray-700 border">
                     {device.status}
                   </Badge>
                 </div>
@@ -121,13 +121,13 @@ export default function RuntimeDevicesPage() {
                     <div>
                       <div className="flex justify-between text-xs mb-1">
                         <span className="text-gray-600">CPU</span>
-                        <span className={`font-medium ${device.cpu_usage > 80 ? 'text-red-600' : device.cpu_usage > 60 ? 'text-yellow-600' : 'text-gray-900'}`}>
+                        <span className="font-medium text-gray-900">
                           {device.cpu_usage.toFixed(1)}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${device.cpu_usage > 80 ? 'bg-red-500' : device.cpu_usage > 60 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                          className="h-2 rounded-full bg-gray-900"
                           style={{ width: `${device.cpu_usage}%` }}
                         />
                       </div>
@@ -136,13 +136,13 @@ export default function RuntimeDevicesPage() {
                     <div>
                       <div className="flex justify-between text-xs mb-1">
                         <span className="text-gray-600">Memory</span>
-                        <span className={`font-medium ${device.memory_usage > 80 ? 'text-red-600' : device.memory_usage > 60 ? 'text-yellow-600' : 'text-gray-900'}`}>
+                        <span className="font-medium text-gray-900">
                           {device.memory_usage.toFixed(1)}%
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${device.memory_usage > 80 ? 'bg-red-500' : device.memory_usage > 60 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                          className="h-2 rounded-full bg-gray-900"
                           style={{ width: `${device.memory_usage}%` }}
                         />
                       </div>

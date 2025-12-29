@@ -226,7 +226,7 @@ export default function PolicyPage() {
           <CardContent className="space-y-4">
             {/* Cost Mode */}
             <div
-              className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
+              className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'cost'
                   ? 'bg-beige-primary shadow-sm border-border-light'
                   : 'border-border-light hover:bg-beige-primary'
@@ -239,13 +239,13 @@ export default function PolicyPage() {
                 value="cost"
                 checked={selectedPolicy === 'cost'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-1 accent-gray-900"
+                className="mt-0.5 accent-gray-900"
               />
               <div className="flex-1">
-                <Label className="text-base font-medium text-gray-900 cursor-pointer">
+                <Label className="text-xs font-medium text-gray-900 cursor-pointer">
                   Cost
                 </Label>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-[0.65rem] text-gray-600 mt-0.5">
                   Minimize spend while maintaining acceptable quality
                 </p>
               </div>
@@ -253,7 +253,7 @@ export default function PolicyPage() {
 
             {/* Balanced Mode (Default) */}
             <div
-              className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
+              className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'balanced'
                   ? 'bg-beige-primary shadow-sm border-border-light'
                   : 'border-border-light hover:bg-beige-primary'
@@ -266,13 +266,13 @@ export default function PolicyPage() {
                 value="balanced"
                 checked={selectedPolicy === 'balanced'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-1 accent-gray-900"
+                className="mt-0.5 accent-gray-900"
               />
               <div className="flex-1">
-                <Label className="text-base font-medium text-gray-900 cursor-pointer">
-                  Balanced <span className="text-xs text-gray-600">(recommended)</span>
+                <Label className="text-xs font-medium text-gray-900 cursor-pointer">
+                  Balanced <span className="text-[0.65rem] text-gray-600">(recommended)</span>
                 </Label>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-[0.65rem] text-gray-600 mt-0.5">
                   Optimal mix of cost efficiency and response quality
                 </p>
               </div>
@@ -280,7 +280,7 @@ export default function PolicyPage() {
 
             {/* Quality Mode */}
             <div
-              className={`flex items-start gap-4 p-4 rounded-lg border cursor-pointer transition-all ${
+              className={`flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all ${
                 selectedPolicy === 'quality'
                   ? 'bg-beige-primary shadow-sm border-border-light'
                   : 'border-border-light hover:bg-beige-primary'
@@ -293,13 +293,13 @@ export default function PolicyPage() {
                 value="quality"
                 checked={selectedPolicy === 'quality'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-1 accent-gray-900"
+                className="mt-0.5 accent-gray-900"
               />
               <div className="flex-1">
-                <Label className="text-base font-medium text-gray-900 cursor-pointer">
+                <Label className="text-xs font-medium text-gray-900 cursor-pointer">
                   Quality
                 </Label>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-[0.65rem] text-gray-600 mt-0.5">
                   Prioritize best possible output, cost is secondary
                 </p>
               </div>
@@ -307,20 +307,20 @@ export default function PolicyPage() {
 
             {/* Custom Mode (Coming Soon) */}
             <div
-              className="flex items-start gap-4 p-4 rounded-lg border border-border-light bg-beige-primary opacity-60 cursor-not-allowed"
+              className="flex items-start gap-3 p-3 rounded-lg border border-border-light bg-beige-primary opacity-60 cursor-not-allowed"
             >
               <input
                 type="radio"
                 name="policy"
                 value="custom"
                 disabled
-                className="mt-1"
+                className="mt-0.5"
               />
               <div className="flex-1">
-                <Label className="text-base font-medium text-gray-600 cursor-not-allowed">
-                  Custom <span className="text-xs">(coming soon)</span>
+                <Label className="text-xs font-medium text-gray-600 cursor-not-allowed">
+                  Custom <span className="text-[0.65rem]">(coming soon)</span>
                 </Label>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-[0.65rem] text-gray-500 mt-0.5">
                   Fine-tune parameters for your specific use case
                 </p>
               </div>
@@ -339,16 +339,16 @@ export default function PolicyPage() {
               Unlock premium capabilities
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-3">
             {/* Speculative Execution */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light bg-beige-primary">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Label className="text-base font-medium text-gray-900">
+                  <Label className="text-xs font-medium text-gray-900">
                     Speculative Execution
                   </Label>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-[0.65rem] text-gray-600 mt-0.5">
                   -60% time-to-first-token through parallel execution
                 </p>
               </div>
@@ -356,14 +356,14 @@ export default function PolicyPage() {
             </div>
 
             {/* Council Mode */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light bg-beige-primary">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Label className="text-base font-medium text-gray-900">
+                  <Label className="text-xs font-medium text-gray-900">
                     Council Mode
                   </Label>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-[0.65rem] text-gray-600 mt-0.5">
                   +15-20% answer quality through multi-model consensus
                 </p>
               </div>
@@ -371,14 +371,14 @@ export default function PolicyPage() {
             </div>
 
             {/* Cognitive Advisor */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light bg-beige-primary">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Label className="text-base font-medium text-gray-900">
+                  <Label className="text-xs font-medium text-gray-900">
                     Cognitive Advisor
                   </Label>
                 </div>
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-[0.65rem] text-gray-600 mt-0.5">
                   Auto-tuning ML layer for continuous optimization
                 </p>
               </div>
@@ -386,14 +386,14 @@ export default function PolicyPage() {
             </div>
 
             {/* Advanced Routing Rules */}
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary opacity-60">
+            <div className="flex items-center justify-between p-3 rounded-lg border border-border-light bg-beige-primary opacity-60">
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <Label className="text-base font-medium text-gray-600 cursor-not-allowed">
-                    Advanced routing rules <span className="text-xs">(coming soon)</span>
+                  <Label className="text-xs font-medium text-gray-600 cursor-not-allowed">
+                    Advanced routing rules <span className="text-[0.65rem]">(coming soon)</span>
                   </Label>
                 </div>
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-[0.65rem] text-gray-500 mt-0.5">
                   Custom routing logic and conditional forwarding
                 </p>
               </div>
@@ -415,7 +415,7 @@ export default function PolicyPage() {
           </CardHeader>
           <CardContent>
             {activePolicy.constraints.length === 0 ? (
-              <div className="text-center py-8 text-gray-600 text-sm">
+              <div className="text-center py-6 text-gray-600 text-xs">
                 No explicit constraints configured. Using default {selectedPolicy} mode heuristics.
               </div>
             ) : (
@@ -424,10 +424,10 @@ export default function PolicyPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border-light">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Priority</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Type</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Constraint</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Value</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Priority</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Type</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Constraint</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Value</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -435,8 +435,8 @@ export default function PolicyPage() {
                         .sort((a, b) => a.priority - b.priority)
                         .map((constraint, index) => (
                           <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                            <td className="py-3 px-4 text-gray-900">{constraint.priority}</td>
-                            <td className="py-3 px-4">
+                            <td className="py-2 px-3 text-xs text-gray-900">{constraint.priority}</td>
+                            <td className="py-2 px-3">
                               <span className={`px-2 py-1 rounded text-xs font-medium ${
                                 constraint.type === 'cost' ? 'bg-green-100 text-green-700' :
                                 constraint.type === 'latency' ? 'bg-blue-100 text-blue-700' :
@@ -445,10 +445,10 @@ export default function PolicyPage() {
                                 {constraint.type}
                               </span>
                             </td>
-                            <td className="py-3 px-4 text-gray-900">
+                            <td className="py-2 px-3 text-xs text-gray-900">
                               {constraint.type} {constraint.operator} {constraint.value}
                             </td>
-                            <td className="py-3 px-4 text-gray-600">{constraint.unit}</td>
+                            <td className="py-2 px-3 text-xs text-gray-600">{constraint.unit}</td>
                           </tr>
                         ))}
                     </tbody>
@@ -490,7 +490,7 @@ export default function PolicyPage() {
           </CardHeader>
           <CardContent>
             {activePolicy.model_lists.length === 0 ? (
-              <div className="text-center py-8 text-gray-600 text-sm">
+              <div className="text-center py-6 text-gray-600 text-xs">
                 No model restrictions configured. All provider models are available.
               </div>
             ) : (
@@ -554,7 +554,7 @@ export default function PolicyPage() {
           </CardHeader>
           <CardContent>
             {activePolicy.escalation_rules.length === 0 ? (
-              <div className="text-center py-8 text-gray-600 text-sm">
+              <div className="text-center py-6 text-gray-600 text-xs">
                 Using default escalation: retry with exponential backoff, then fallback to alternative providers.
               </div>
             ) : (
@@ -563,9 +563,9 @@ export default function PolicyPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border-light">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Priority</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Condition</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Action</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Priority</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Condition</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -573,9 +573,9 @@ export default function PolicyPage() {
                         .sort((a, b) => a.priority - b.priority)
                         .map((rule, index) => (
                           <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                            <td className="py-3 px-4 text-gray-900">{rule.priority}</td>
-                            <td className="py-3 px-4 text-gray-900 font-mono text-xs">{rule.condition}</td>
-                            <td className="py-3 px-4 text-gray-900">{rule.action}</td>
+                            <td className="py-2 px-3 text-xs text-gray-900">{rule.priority}</td>
+                            <td className="py-2 px-3 text-xs text-gray-900 font-mono text-xs">{rule.condition}</td>
+                            <td className="py-2 px-3 text-xs text-gray-900">{rule.action}</td>
                           </tr>
                         ))}
                     </tbody>
@@ -599,7 +599,7 @@ export default function PolicyPage() {
           </CardHeader>
           <CardContent>
             {policyHistory.length === 0 ? (
-              <div className="text-center py-8 text-gray-600 text-sm">
+              <div className="text-center py-6 text-gray-600 text-xs">
                 No policy history available yet
               </div>
             ) : (
@@ -608,32 +608,32 @@ export default function PolicyPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border-light">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Version</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Changed</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Changed By</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Summary</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Actions</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Version</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Changed</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Changed By</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Summary</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {policyHistory.map((history) => (
                         <tr key={history.id} className="border-b border-border-light hover:bg-beige-primary">
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-3">
                             <span className="px-2 py-1 bg-beige-primary rounded text-xs font-medium text-gray-900">
                               v{history.version}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-gray-600 text-xs">
+                          <td className="py-2 px-3 text-xs text-gray-600 text-xs">
                             <div className="flex items-center gap-2">
                               <Clock className="h-3 w-3" />
                               {new Date(history.timestamp).toLocaleDateString()}
                             </div>
                           </td>
-                          <td className="py-3 px-4 text-gray-900 text">{history.changed_by}</td>
-                          <td className="py-3 px-4 text-gray-600 text-xs">
+                          <td className="py-2 px-3 text-xs text-gray-900 text">{history.changed_by}</td>
+                          <td className="py-2 px-3 text-xs text-gray-600 text-xs">
                             {history.change_summary}
                           </td>
-                          <td className="py-3 px-4">
+                          <td className="py-2 px-3">
                             <Button
                               variant="outline"
                               size="sm"
@@ -656,16 +656,16 @@ export default function PolicyPage() {
 
         {/* EscapeVector Mode Notice */}
         <Card className="border-border-light shadow-sm bg-green-50">
-          <CardContent className="pt-6">
-            <div className="flex gap-3">
+          <CardContent className="pt-5">
+            <div className="flex gap-2.5">
               <div className="flex-shrink-0">
-                <Shield className="h-5 w-5 text-green-600" />
+                <Shield className="h-4 w-4 text-green-600" />
               </div>
               <div>
-                <h3 className="font-medium text-green-900 font-inter mb-1">
+                <h3 className="font-medium text-xs text-green-900 font-inter mb-0.5">
                   EscapeVector Mode Active
                 </h3>
-                <p className="text-sm text-green-700 font-inter">
+                <p className="text-[0.65rem] text-green-700 font-inter">
                   Even if our control plane is down for 72+ hours, EscapeVector Mode keeps this exact policy running offline.
                 </p>
               </div>
@@ -675,7 +675,7 @@ export default function PolicyPage() {
 
         {/* Save Button */}
         <div className="flex justify-end">
-          <Button variant="outline" className="shadow-sm">
+          <Button variant="outline" size="sm" className="shadow-sm text-xs">
             Save Policy
           </Button>
         </div>
@@ -684,9 +684,9 @@ export default function PolicyPage() {
       {/* Policy Diff Dialog */}
       {showDiffDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">
+          <div className="bg-white rounded-lg p-5 max-w-4xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-gray-900">
                 Policy Comparison: Current vs Version {policyHistory.find(h => h.id === selectedPolicyVersion)?.version}
               </h3>
               <Button
@@ -698,18 +698,18 @@ export default function PolicyPage() {
               </Button>
             </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {policyDiff.length === 0 ? (
-              <div className="text-center py-8 text-gray-600">
-                <GitBranch className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-sm">No differences found between these versions</p>
+              <div className="text-center py-6 text-gray-600">
+                <GitBranch className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                <p className="text-xs">No differences found between these versions</p>
               </div>
             ) : (
               <>
                 {policyDiff.map((diff, index) => (
-                  <div key={index} className="border border-border-light rounded-lg p-4 bg-beige-primary">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className={`px-2 py-1 rounded text-xs font-medium ${
+                  <div key={index} className="border border-border-light rounded-lg p-3 bg-beige-primary">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`px-1.5 py-0.5 rounded text-[0.65rem] font-medium ${
                         diff.change_type === 'added' ? 'bg-green-100 text-green-700' :
                         diff.change_type === 'removed' ? 'bg-red-100 text-red-700' :
                         'bg-yellow-100 text-yellow-700'
@@ -719,22 +719,22 @@ export default function PolicyPage() {
                         {diff.change_type === 'modified' && '~'}
                         {diff.change_type}
                       </div>
-                      <span className="font-medium text-gray-900 capitalize">{diff.field}</span>
+                      <span className="font-medium text-xs text-gray-900 capitalize">{diff.field}</span>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid md:grid-cols-2 gap-3">
                       <div>
-                        <h4 className="text-xs font-medium text-red-700 mb-2">Previous Version</h4>
-                        <div className="bg-red-50 border border-red-200 rounded p-3">
-                          <pre className="text-xs text-red-800 whitespace-pre-wrap">
+                        <h4 className="text-[0.65rem] font-medium text-red-700 mb-1.5">Previous Version</h4>
+                        <div className="bg-red-50 border border-red-200 rounded p-2">
+                          <pre className="text-[0.65rem] text-red-800 whitespace-pre-wrap">
                             {JSON.stringify(diff.old_value, null, 2)}
                           </pre>
                         </div>
                       </div>
                       <div>
-                        <h4 className="text-xs font-medium text-green-700 mb-2">Current Version</h4>
-                        <div className="bg-green-50 border border-green-200 rounded p-3">
-                          <pre className="text-xs text-green-800 whitespace-pre-wrap">
+                        <h4 className="text-[0.65rem] font-medium text-green-700 mb-1.5">Current Version</h4>
+                        <div className="bg-green-50 border border-green-200 rounded p-2">
+                          <pre className="text-[0.65rem] text-green-800 whitespace-pre-wrap">
                             {JSON.stringify(diff.new_value, null, 2)}
                           </pre>
                         </div>
@@ -745,11 +745,12 @@ export default function PolicyPage() {
               </>
             )}
 
-            <div className="flex pt-4 border-t border-border-light">
+            <div className="flex pt-3 border-t border-border-light">
               <Button
                 variant="outline"
+                size="sm"
+                className="ml-auto text-xs"
                 onClick={() => setShowDiffDialog(false)}
-                className="ml-auto"
               >
                 Close
               </Button>

@@ -35,13 +35,13 @@ export default function RuntimeFleetPage() {
 
   const getStatusBadge = (status: 'online' | 'offline' | 'maintenance' | 'syncing') => {
     const config = {
-      online: { bg: 'bg-green-50', text: 'text-green-700', label: 'Online' },
-      offline: { bg: 'bg-red-50', text: 'text-red-700', label: 'Offline' },
-      maintenance: { bg: 'bg-yellow-50', text: 'text-yellow-700', label: 'Maintenance' },
-      syncing: { bg: 'bg-blue-50', text: 'text-blue-700', label: 'Syncing' },
+      online: { label: 'Online' },
+      offline: { label: 'Offline' },
+      maintenance: { label: 'Maintenance' },
+      syncing: { label: 'Syncing' },
     };
-    const { bg, text, label } = config[status];
-    return <Badge className={`${bg} ${text} border`}>{label}</Badge>;
+    const { label } = config[status];
+    return <Badge className="bg-gray-50 text-gray-700 border">{label}</Badge>;
   };
 
   if (isLoading) {
@@ -82,9 +82,9 @@ export default function RuntimeFleetPage() {
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{metrics.total_instances}</div>
               <div className="flex gap-2 mt-1">
-                <span className="text-xs text-green-600">{metrics.online_instances} online</span>
+                <span className="text-xs text-gray-600">{metrics.online_instances} online</span>
                 <span className="text-xs text-gray-400">•</span>
-                <span className="text-xs text-red-600">{metrics.offline_instances} offline</span>
+                <span className="text-xs text-gray-600">{metrics.offline_instances} offline</span>
               </div>
             </CardContent>
           </Card>
@@ -109,13 +109,13 @@ export default function RuntimeFleetPage() {
               <div className="text-2xl font-bold text-gray-900">{metrics.fleet_error_rate.toFixed(2)}%</div>
               {metrics.fleet_error_rate > 3 ? (
                 <div className="flex items-center gap-1 mt-1">
-                  <TrendingUp className="h-3 w-3 text-red-600" />
-                  <span className="text-xs text-red-600">Above threshold</span>
+                  <TrendingUp className="h-3 w-3 text-gray-600" />
+                  <span className="text-xs text-gray-600">Above threshold</span>
                 </div>
               ) : (
                 <div className="flex items-center gap-1 mt-1">
-                  <TrendingDown className="h-3 w-3 text-green-600" />
-                  <span className="text-xs text-green-600">Healthy</span>
+                  <TrendingDown className="h-3 w-3 text-gray-600" />
+                  <span className="text-xs text-gray-600">Healthy</span>
                 </div>
               )}
             </CardContent>
@@ -133,9 +133,9 @@ export default function RuntimeFleetPage() {
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
                 <div
                   className={`h-2 rounded-full ${
-                    (metrics.used_capacity / metrics.total_capacity) > 0.8 ? 'bg-red-500' :
-                    (metrics.used_capacity / metrics.total_capacity) > 0.6 ? 'bg-yellow-500' :
-                    'bg-green-500'
+                    (metrics.used_capacity / metrics.total_capacity) > 0.8 ? 'bg-gray-900' :
+                    (metrics.used_capacity / metrics.total_capacity) > 0.6 ? 'bg-gray-900' :
+                    'bg-gray-900'
                   }`}
                   style={{ width: `${Math.min((metrics.used_capacity / metrics.total_capacity) * 100, 100)}%` }}
                 />
@@ -180,9 +180,9 @@ export default function RuntimeFleetPage() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full ${
-                              instance.error_rate < 1 ? 'bg-green-500' :
-                              instance.error_rate < 3 ? 'bg-yellow-500' :
-                              'bg-red-500'
+                              instance.error_rate < 1 ? 'bg-gray-900' :
+                              instance.error_rate < 3 ? 'bg-gray-900' :
+                              'bg-gray-900'
                             }`} />
                             <span className="text-xs text-gray-900">{instance.error_rate.toFixed(1)}% errors</span>
                           </div>
@@ -204,9 +204,9 @@ export default function RuntimeFleetPage() {
                             <div className="w-16 bg-gray-200 rounded-full h-1">
                               <div
                                 className={`h-1 rounded-full ${
-                                  instance.cpu_usage > 80 ? 'bg-red-500' :
-                                  instance.cpu_usage > 60 ? 'bg-yellow-500' :
-                                  'bg-green-500'
+                                  instance.cpu_usage > 80 ? 'bg-gray-900' :
+                                  instance.cpu_usage > 60 ? 'bg-gray-900' :
+                                  'bg-gray-900'
                                 }`}
                                 style={{ width: `${instance.cpu_usage}%` }}
                               />
@@ -217,9 +217,9 @@ export default function RuntimeFleetPage() {
                             <div className="w-16 bg-gray-200 rounded-full h-1">
                               <div
                                 className={`h-1 rounded-full ${
-                                  instance.memory_usage > 80 ? 'bg-red-500' :
-                                  instance.memory_usage > 60 ? 'bg-yellow-500' :
-                                  'bg-green-500'
+                                  instance.memory_usage > 80 ? 'bg-gray-900' :
+                                  instance.memory_usage > 60 ? 'bg-gray-900' :
+                                  'bg-gray-900'
                                 }`}
                                 style={{ width: `${instance.memory_usage}%` }}
                               />
