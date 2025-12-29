@@ -57,6 +57,26 @@ export const ROUTES = {
   LOGIN: '/auth/login',
   REGISTER: '/auth/register',
   DASHBOARD: '/dashboard',
+
+  // Overture (Cloud Gateway)
+  OVERTURE_PROVIDERS: '/dashboard/overture/providers',
+  OVERTURE_ROUTING: '/dashboard/overture/routing',
+  OVERTURE_COST: '/dashboard/overture/cost',
+  OVERTURE_SHADOW: '/dashboard/overture/shadow',
+  OVERTURE_ESCAPE: '/dashboard/overture/escape',
+
+  // Runtime (Edge Execution)
+  RUNTIME_FLEET: '/dashboard/runtime/fleet',
+  RUNTIME_DEVICES: '/dashboard/runtime/devices',
+  RUNTIME_CONFIG: '/dashboard/runtime/config',
+  RUNTIME_SWARM: '/dashboard/runtime/swarm',
+
+  // Agents
+  AGENTS_PLANNING: '/dashboard/agents/planning',
+  AGENTS_TOOLS: '/dashboard/agents/tools',
+  AGENTS_QLORA: '/dashboard/agents/qlora',
+
+  // Legacy routes (kept for backwards compatibility)
   USAGE: '/dashboard/usage',
   VAULT: '/dashboard/vault',
   PROVIDERS: '/dashboard/providers',

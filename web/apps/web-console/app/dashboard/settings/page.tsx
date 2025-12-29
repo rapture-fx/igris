@@ -226,6 +226,7 @@ export default function SettingsPage() {
             <TabsTrigger value="billing">Billing</TabsTrigger>
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="tenants">Clients & Tenants</TabsTrigger>
+            <TabsTrigger value="vault">Vault (BYOK)</TabsTrigger>
             <TabsTrigger value="authority">Authority & Limits</TabsTrigger>
           </TabsList>
 
@@ -814,6 +815,145 @@ export default function SettingsPage() {
                   }}>
                     Save Alert Settings
                   </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Vault (BYOK) Tab */}
+          <TabsContent value="vault" className="space-y-6">
+            {/* Encryption Keys */}
+            <Card className="border-border-light">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Key className="h-5 w-5 text-gray-900" />
+                  Bring Your Own Key (BYOK)
+                </CardTitle>
+                <CardDescription>
+                  Manage encryption keys for securing cached responses and sensitive data
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
+                    <div className="flex items-start gap-3">
+                      <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-blue-900 font-inter mb-1">
+                          EscapeVector Cache Encryption
+                        </h4>
+                        <p className="text-xs text-blue-800">
+                          All cached LLM responses in EscapeVector are encrypted using AES-256-GCM. You can provide your own encryption key or use system-managed keys.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="border border-border-light rounded-lg p-4 bg-beige-primary">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
+                          Current Key Status
+                        </h4>
+                        <p className="text-xs text-gray-600">
+                          System-managed key (rotated monthly)
+                        </p>
+                      </div>
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                        Active
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                      <div>
+                        <div className="text-xs text-gray-600 mb-1">Key Type</div>
+                        <div className="font-medium text-gray-900">System-Managed</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-600 mb-1">Algorithm</div>
+                        <div className="font-medium text-gray-900">AES-256-GCM</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-600 mb-1">Last Rotation</div>
+                        <div className="font-medium text-gray-900">15 days ago</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-600 mb-1">Next Rotation</div>
+                        <div className="font-medium text-gray-900">In 15 days</div>
+                      </div>
+                    </div>
+
+                    <Button variant="outline" size="sm" className="w-full">
+                      <Key className="h-4 w-4 mr-2" />
+                      Upload Custom Key
+                    </Button>
+                  </div>
+
+                  <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-medium text-yellow-900 font-inter mb-1">
+                          Important: Key Management
+                        </h4>
+                        <p className="text-xs text-yellow-800 mb-2">
+                          If you upload a custom encryption key:
+                        </p>
+                        <ul className="text-xs text-yellow-800 space-y-1 list-disc list-inside">
+                          <li>You are responsible for key backup and recovery</li>
+                          <li>Lost keys mean permanent data loss - cached responses cannot be decrypted</li>
+                          <li>Key rotation is manual and must be performed by you</li>
+                          <li>Keys must be 256-bit (32 bytes) for AES-256-GCM</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Key Rotation Policy */}
+            <Card className="border-border-light">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-gray-900" />
+                  Automatic Key Rotation
+                </CardTitle>
+                <CardDescription>
+                  Configure automatic encryption key rotation schedule
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between p-4 rounded-lg border border-border-light">
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
+                      Enable Auto-Rotation
+                    </h4>
+                    <p className="text-xs text-gray-600">
+                      Automatically rotate encryption keys every 30 days (system-managed keys only)
+                    </p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+
+                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                  <h4 className="text-sm font-medium text-gray-900 font-inter mb-3">
+                    Rotation Schedule
+                  </h4>
+                  <div className="space-y-2 text-xs text-gray-600">
+                    <div className="flex justify-between">
+                      <span>Frequency:</span>
+                      <span className="font-medium text-gray-900">Every 30 days</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Next rotation:</span>
+                      <span className="font-medium text-gray-900">Jan 29, 2024</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Rotation window:</span>
+                      <span className="font-medium text-gray-900">02:00 - 04:00 UTC</span>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
