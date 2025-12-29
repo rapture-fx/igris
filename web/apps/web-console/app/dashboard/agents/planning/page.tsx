@@ -38,9 +38,9 @@ export default function AgentsPlanningPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-medium text-gray-900 font-inter">Planning & Reflection</h1>
-            <p className="text-gray-600 mt-1 font-inter">
+          <div className="pb-4 border-b border-border-light">
+            <h1 className="text-base font-medium text-gray-900 font-inter">Planning & Reflection</h1>
+            <p className="text-gray-600 mt-1 font-inter text-xs">
               Test agent reasoning, planning, and self-reflection capabilities
             </p>
           </div>

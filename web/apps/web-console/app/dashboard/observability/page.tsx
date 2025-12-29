@@ -2038,11 +2038,10 @@ export default function ObservabilityPage() {
             )}
           </CardContent>
         </Card>
-      </div>
-        </TabsContent>
+          </TabsContent>
 
-        {/* Audit Logs Tab Content */}
-        <TabsContent value="audit" className="space-y-6">
+          {/* Audit Logs Tab Content */}
+          <TabsContent value="audit" className="space-y-6">
             <Card className="border-border-light shadow-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -2193,6 +2192,7 @@ export default function ObservabilityPage() {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
 
       {/* Request Detail Sheet - CONTINUED IN NEXT PART */}
       <Sheet open={!!selectedTrace} onOpenChange={(open) => !open && setSelectedTrace(null)}>

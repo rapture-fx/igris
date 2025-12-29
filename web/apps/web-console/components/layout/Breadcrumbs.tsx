@@ -44,17 +44,17 @@ export function Breadcrumbs() {
 
   return (
     <Breadcrumb>
-      <BreadcrumbList>
+      <BreadcrumbList className="text-[0.75rem]">
         {breadcrumbItems.map((item, index) => (
           <div key={item.path} className="flex items-center gap-1.5">
             <BreadcrumbItem>
               {item.isLast ? (
-                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                <BreadcrumbPage className="text-[0.75rem]">{item.label}</BreadcrumbPage>
               ) : (
-                <BreadcrumbLink href={item.path}>{item.label}</BreadcrumbLink>
+                <BreadcrumbLink href={item.path} className="text-[0.75rem]">{item.label}</BreadcrumbLink>
               )}
             </BreadcrumbItem>
-            {!item.isLast && <BreadcrumbSeparator />}
+            {!item.isLast && <BreadcrumbSeparator className="text-[0.75rem]" />}
           </div>
         ))}
       </BreadcrumbList>

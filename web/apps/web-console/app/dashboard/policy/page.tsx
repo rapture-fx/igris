@@ -203,11 +203,11 @@ export default function PolicyPage() {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-xl font-medium text-gray-900 font-inter">
+        <div className="pb-4 border-b border-border-light">
+          <h1 className="text-base font-medium text-gray-900 font-inter">
             Your Global Routing Policy
           </h1>
-          <p className="text-gray-600 mt-1 font-inter">
+          <p className="text-gray-600 mt-1 font-inter text-xs">
             Overture runs Thompson Sampling Bayesian optimization under the hood — always.
           </p>
         </div>

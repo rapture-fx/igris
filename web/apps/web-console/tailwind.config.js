@@ -16,7 +16,7 @@ module.exports = {
         'schlep-blue': '#114dcd',
         'schlep-blue-dark': '#1f53d0',
         'schlep-teal': '#299a93',
-        'border-light': 'rgba(156, 163, 175, 0.3)',
+        'border-light': 'rgb(229, 231, 235)',
         'border-dark': '#1a1e21',
         primary: {
           50: '#eff6ff',

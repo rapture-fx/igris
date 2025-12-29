@@ -84,9 +84,9 @@ export default function AgentsQLoRAPage() {
     <DashboardLayout>
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-medium text-gray-900 font-inter">QLoRA Training</h1>
-            <p className="text-gray-600 mt-1 font-inter">
+          <div className="pb-4 border-b border-border-light">
+            <h1 className="text-base font-medium text-gray-900 font-inter">QLoRA Training</h1>
+            <p className="text-gray-600 mt-1 font-inter text-xs">
               Train and fine-tune models using Quantized Low-Rank Adaptation
             </p>
           </div>

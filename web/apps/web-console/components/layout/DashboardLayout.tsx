@@ -33,7 +33,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <main className="flex-1 md:ml-64 md:pl-12 md:pr-2 overflow-x-hidden">
           {/* Trial Banner */}
           {showTrialBanner && (
-            <div className="bg-blue-600 text-white px-4 sm:px-6 lg:px-8 py-3">
+            <div className="bg-blue-600 text-white px-4 sm:px-6 lg:px-8 py-3 border-b border-border-light">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <AlertCircle className="h-5 w-5 flex-shrink-0" />

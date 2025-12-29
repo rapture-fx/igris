@@ -101,11 +101,11 @@ export default function UsagePage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-medium text-gray-900 font-inter">
+          <div className="pb-4 border-b border-border-light">
+            <h1 className="text-base font-medium text-gray-900 font-inter">
               Usage & Analytics
             </h1>
-            <p className="text-gray-600 mt-1 font-inter">
+            <p className="text-gray-600 mt-1 font-inter text-xs">
               Detailed insights into your API usage
             </p>
           </div>

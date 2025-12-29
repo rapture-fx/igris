@@ -1,9 +1,21 @@
 'use client';
 
 import { useState } from 'react';
-import { Menu, Bell } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Menu, Bell, LogOut, CreditCard, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Breadcrumbs } from './Breadcrumbs';
+import { useTenant } from '@/hooks/useTenant';
+import { logout } from '@/lib/auth';
+import { getInitials } from '@/utils/helpers';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface NavbarProps {
   onMenuClick?: () => void;
@@ -19,7 +31,11 @@ interface Notification {
 }
 
 export function Navbar({ onMenuClick }: NavbarProps) {
+  const router = useRouter();
+  const { data: tenant } = useTenant();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [notifications] = useState<Notification[]>([
     {
       id: '1',
@@ -49,9 +65,15 @@ export function Navbar({ onMenuClick }: NavbarProps) {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const handleLogout = async () => {
+    await logout();
+    router.push('/auth/login');
+  };
+
   return (
-    <nav className="fixed top-0 left-0 md:left-64 right-0 z-40 h-12 bg-beige-primary md:pl-2 md:pr-2 border-b border-gray-200">
-        <div className="h-full px-4 sm:px-6 lg:px-8">
+    <>
+    <nav className="fixed top-0 left-0 md:left-64 right-0 z-40 h-12 bg-beige-primary border-b border-border-light md:pl-12 md:pr-2">
+        <div className="h-full px-4 sm:px-6 lg:px-8 md:px-0">
           <div className="flex h-full items-center justify-between">
             {/* Left side - Menu button (mobile only) and Breadcrumbs */}
             <div className="flex items-center gap-4 md:gap-0">
@@ -66,21 +88,23 @@ export function Navbar({ onMenuClick }: NavbarProps) {
               <Breadcrumbs />
             </div>
 
-            {/* Right side - Notifications */}
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative"
-              >
-                <Bell className="h-5 w-5" />
-                {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[0.6rem] font-medium text-white">
-                    {unreadCount}
-                  </span>
-                )}
-              </Button>
+            {/* Right side - Notifications and Profile */}
+            <div className="flex items-center gap-2">
+              {/* Notifications */}
+              <div className="relative">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setShowNotifications(!showNotifications)}
+                  className="relative"
+                >
+                  <Bell className="h-5 w-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[0.6rem] font-medium text-white">
+                      {unreadCount}
+                    </span>
+                  )}
+                </Button>
 
               {/* Notifications Dropdown */}
               {showNotifications && (
@@ -126,9 +150,95 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                   </div>
                 </>
               )}
+              </div>
+
+              {/* Profile */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowProfileMenu(!showProfileMenu)}
+                  className="flex items-center gap-2 hover:bg-beige-secondary rounded-lg p-1.5 pr-2.5 transition-colors"
+                >
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white font-semibold text-[0.65rem]">
+                    {tenant ? getInitials(tenant.name) : 'U'}
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-gray-600" />
+                </button>
+
+                {/* Profile Menu Dropdown */}
+                {showProfileMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-40"
+                      onClick={() => setShowProfileMenu(false)}
+                    />
+                    <div className="absolute right-0 top-full mt-2 w-64 z-50 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
+                      <div className="px-4 py-3 border-b border-border-light">
+                        <p className="text-sm font-medium font-inter text-gray-900">
+                          {tenant?.name || 'Profile'}
+                        </p>
+                        <p className="text-xs text-gray-600 font-inter mt-0.5">
+                          {tenant?.email || 'user@example.com'}
+                        </p>
+                      </div>
+
+                      <button
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left mt-1"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          // Billing logic will be implemented later
+                        }}
+                      >
+                        <CreditCard className="h-5 w-5 text-gray-700" />
+                        <div>
+                          <p className="text-sm font-medium font-inter text-gray-900">Billing</p>
+                          <p className="text-xs text-gray-600 font-inter">Manage your subscription</p>
+                        </div>
+                      </button>
+
+                      <button
+                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left border-t border-border-light mt-1 pt-3"
+                        onClick={() => {
+                          setShowProfileMenu(false);
+                          setShowLogoutDialog(true);
+                        }}
+                      >
+                        <LogOut className="h-5 w-5 text-gray-900" />
+                        <div>
+                          <p className="text-sm font-medium font-inter text-gray-900">Logout</p>
+                          <p className="text-xs text-gray-600 font-inter">Sign out of your account</p>
+                        </div>
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
       </nav>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Logout</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to log out of your account?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleLogout}>
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
