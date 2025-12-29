@@ -188,11 +188,11 @@ export default function ProvidersPage() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h1 className="text-xl font-medium text-gray-900 font-inter">
+          <div className="flex-1 pb-4 border-b border-border-light">
+            <h1 className="text-base font-medium text-gray-900 font-inter">
               Providers & Keys
             </h1>
-            <p className="text-gray-600 mt-1 font-inter">
+            <p className="text-gray-600 mt-1 font-inter text-xs">
               Add your API keys for any model. One URL change and you're done.
             </p>
             <div className="flex items-center gap-2 mt-3">
