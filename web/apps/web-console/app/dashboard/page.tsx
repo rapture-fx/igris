@@ -462,145 +462,6 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* System Health Panel */}
-        <Card className="border-border-light shadow-sm">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${
-                  systemHealth.overall_status === 'operational' ? 'bg-green-500' :
-                  systemHealth.overall_status === 'degraded' ? 'bg-yellow-500' :
-                  'bg-red-500'
-                }`} />
-                <CardTitle>System Health</CardTitle>
-              </div>
-              <div className="text-xs text-gray-600">
-                Refreshes every 30s
-              </div>
-            </div>
-            <CardDescription>
-              Provider availability, latency metrics, and error rates
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {systemHealth.providers.length === 0 ? (
-                <div className="text-center py-8 text-gray-600 text-sm">
-                  No provider health data available
-                </div>
-              ) : (
-                systemHealth.providers.map((provider) => (
-                  <div key={provider.provider} className="border border-border-light rounded-lg p-4 bg-beige-primary">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-2 h-2 rounded-full ${
-                          provider.status === 'operational' ? 'bg-green-500' :
-                          provider.status === 'degraded' ? 'bg-yellow-500' :
-                          'bg-red-500'
-                        }`} />
-                        <h4 className="font-medium text-gray-900 font-inter">
-                          {provider.provider}
-                        </h4>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                          provider.status === 'operational' ? 'bg-green-100 text-green-700' :
-                          provider.status === 'degraded' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {provider.status}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-900 font-medium">
-                        {provider.availability.toFixed(2)}% available
-                      </div>
-                    </div>
-
-                    {/* Simulation Button */}
-                    <div className="flex items-center justify-end mb-3">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleSimulateOutage(provider.provider)}
-                        className="text-xs flex items-center gap-2"
-                      >
-                        <Play className="h-3 w-3" />
-                        Simulate Outage
-                      </Button>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4 mb-3">
-                      <div className="bg-white rounded-md p-3 border border-border-light">
-                        <div className="text-xs text-gray-600 mb-1">Latency P99</div>
-                        <div className={`text-sm font-medium ${
-                          provider.latency_p99 > systemHealth.thresholds.latency_p99_critical ? 'text-red-600' :
-                          provider.latency_p99 > systemHealth.thresholds.latency_p99_warning ? 'text-yellow-600' :
-                          'text-gray-900'
-                        }`}>
-                          {formatLatency(provider.latency_p99)}
-                        </div>
-                      </div>
-                      <div className="bg-white rounded-md p-3 border border-border-light">
-                        <div className="text-xs text-gray-600 mb-1">Error Rate</div>
-                        <div className={`text-sm font-medium ${
-                          provider.error_rate > systemHealth.thresholds.error_rate_critical ? 'text-red-600' :
-                          provider.error_rate > systemHealth.thresholds.error_rate_warning ? 'text-yellow-600' :
-                          'text-gray-900'
-                        }`}>
-                          {provider.error_rate.toFixed(2)}%
-                        </div>
-                      </div>
-                      <div className="bg-white rounded-md p-3 border border-border-light">
-                        <div className="text-xs text-gray-600 mb-1">Fallback Freq</div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {provider.fallback_frequency.toFixed(1)}%
-                        </div>
-                      </div>
-                    </div>
-
-                    {provider.models && provider.models.length > 0 && (
-                      <details className="group">
-                        <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900 font-medium mb-2 list-none flex items-center gap-2">
-                          <span className="transition-transform group-open:rotate-90">▸</span>
-                          Model & Region Health ({provider.models.length} models)
-                        </summary>
-                        <div className="mt-2 space-y-2 pl-4">
-                          {provider.models.map((model) => (
-                            <div key={model.model} className="text-xs">
-                              <div className="font-medium text-gray-900 mb-1">{model.model}</div>
-                              <div className="grid grid-cols-2 gap-2">
-                                {model.regions.map((region) => (
-                                  <div key={region.region} className="flex items-center justify-between bg-white rounded p-2 border border-border-light">
-                                    <div className="flex items-center gap-2">
-                                      <div className={`w-1.5 h-1.5 rounded-full ${
-                                        region.status === 'operational' ? 'bg-green-500' :
-                                        region.status === 'degraded' ? 'bg-yellow-500' :
-                                        'bg-red-500'
-                                      }`} />
-                                      <span className="text-gray-700">{region.region}</span>
-                                    </div>
-                                    <div className="text-gray-600">
-                                      {formatLatency(region.latency_p99)} • {region.error_rate.toFixed(1)}%
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    )}
-
-                    {provider.last_incident && (
-                      <div className="mt-3 text-xs text-gray-600">
-                        Last incident: {provider.last_incident}
-                      </div>
-                    )}
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Quick Actions */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
@@ -828,6 +689,145 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* System Health Panel */}
+        <Card className="border-border-light shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${
+                  systemHealth.overall_status === 'operational' ? 'bg-green-500' :
+                  systemHealth.overall_status === 'degraded' ? 'bg-yellow-500' :
+                  'bg-red-500'
+                }`} />
+                <CardTitle>System Health</CardTitle>
+              </div>
+              <div className="text-xs text-gray-600">
+                Refreshes every 30s
+              </div>
+            </div>
+            <CardDescription>
+              Provider availability, latency metrics, and error rates
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {systemHealth.providers.length === 0 ? (
+                <div className="text-center py-8 text-gray-600 text-sm">
+                  No provider health data available
+                </div>
+              ) : (
+                systemHealth.providers.map((provider) => (
+                  <div key={provider.provider} className="border border-border-light rounded-lg p-4 bg-beige-primary">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${
+                          provider.status === 'operational' ? 'bg-green-500' :
+                          provider.status === 'degraded' ? 'bg-yellow-500' :
+                          'bg-red-500'
+                        }`} />
+                        <h4 className="font-medium text-gray-900 font-inter">
+                          {provider.provider}
+                        </h4>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                          provider.status === 'operational' ? 'bg-green-100 text-green-700' :
+                          provider.status === 'degraded' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {provider.status}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-900 font-medium">
+                        {provider.availability.toFixed(2)}% available
+                      </div>
+                    </div>
+
+                    {/* Simulation Button */}
+                    <div className="flex items-center justify-end mb-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSimulateOutage(provider.provider)}
+                        className="text-xs flex items-center gap-2"
+                      >
+                        <Play className="h-3 w-3" />
+                        Simulate Outage
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-3">
+                      <div className="bg-white rounded-md p-3 border border-border-light">
+                        <div className="text-xs text-gray-600 mb-1">Latency P99</div>
+                        <div className={`text-sm font-medium ${
+                          provider.latency_p99 > systemHealth.thresholds.latency_p99_critical ? 'text-red-600' :
+                          provider.latency_p99 > systemHealth.thresholds.latency_p99_warning ? 'text-yellow-600' :
+                          'text-gray-900'
+                        }`}>
+                          {formatLatency(provider.latency_p99)}
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-md p-3 border border-border-light">
+                        <div className="text-xs text-gray-600 mb-1">Error Rate</div>
+                        <div className={`text-sm font-medium ${
+                          provider.error_rate > systemHealth.thresholds.error_rate_critical ? 'text-red-600' :
+                          provider.error_rate > systemHealth.thresholds.error_rate_warning ? 'text-yellow-600' :
+                          'text-gray-900'
+                        }`}>
+                          {provider.error_rate.toFixed(2)}%
+                        </div>
+                      </div>
+                      <div className="bg-white rounded-md p-3 border border-border-light">
+                        <div className="text-xs text-gray-600 mb-1">Fallback Freq</div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {provider.fallback_frequency.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {provider.models && provider.models.length > 0 && (
+                      <details className="group">
+                        <summary className="cursor-pointer text-xs text-gray-600 hover:text-gray-900 font-medium mb-2 list-none flex items-center gap-2">
+                          <span className="transition-transform group-open:rotate-90">▸</span>
+                          Model & Region Health ({provider.models.length} models)
+                        </summary>
+                        <div className="mt-2 space-y-2 pl-4">
+                          {provider.models.map((model) => (
+                            <div key={model.model} className="text-xs">
+                              <div className="font-medium text-gray-900 mb-1">{model.model}</div>
+                              <div className="grid grid-cols-2 gap-2">
+                                {model.regions.map((region) => (
+                                  <div key={region.region} className="flex items-center justify-between bg-white rounded p-2 border border-border-light">
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${
+                                        region.status === 'operational' ? 'bg-green-500' :
+                                        region.status === 'degraded' ? 'bg-yellow-500' :
+                                        'bg-red-500'
+                                      }`} />
+                                      <span className="text-gray-700">{region.region}</span>
+                                    </div>
+                                    <div className="text-gray-600">
+                                      {formatLatency(region.latency_p99)} • {region.error_rate.toFixed(1)}%
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    )}
+
+                    {provider.last_incident && (
+                      <div className="mt-3 text-xs text-gray-600">
+                        Last incident: {provider.last_incident}
+                      </div>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Recent Activity */}
         <Card className="border-border-light shadow-sm">

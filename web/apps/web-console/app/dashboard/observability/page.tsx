@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose, SheetBody } from '@/components/ui/sheet';
 import { useTenant } from '@/hooks/useTenant';
 import { formatCurrency, formatNumber, formatLatency, formatDateTime, downloadCSV, downloadJSON, cn } from '@/utils/helpers';
@@ -1006,6 +1007,15 @@ export default function ObservabilityPage() {
           </div>
         </div>
 
+        {/* Tabs: Traces and Audit Logs */}
+        <Tabs defaultValue="traces" className="w-full">
+          <TabsList className="border border-border-light mb-6">
+            <TabsTrigger value="traces">Traces</TabsTrigger>
+            <TabsTrigger value="audit">Audit Logs</TabsTrigger>
+          </TabsList>
+
+          {/* Traces Tab Content */}
+          <TabsContent value="traces" className="space-y-6">
         {/* 1. REAL-TIME METRICS - Live updating every 5s */}
         <Card className="border-border-light shadow-sm bg-gradient-to-br from-beige-primary to-beige-primary">
           <CardHeader>
@@ -2029,6 +2039,160 @@ export default function ObservabilityPage() {
           </CardContent>
         </Card>
       </div>
+        </TabsContent>
+
+        {/* Audit Logs Tab Content */}
+        <TabsContent value="audit" className="space-y-6">
+            <Card className="border-border-light shadow-sm">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Database className="h-5 w-5 text-gray-900" />
+                  Audit Logs
+                </CardTitle>
+                <CardDescription>
+                  System events, configuration changes, and access logs
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {/* Filters */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Input
+                      placeholder="Search logs..."
+                      className="max-w-xs"
+                    />
+                    <Button variant="outline" size="sm">
+                      <Filter className="h-4 w-4 mr-2" />
+                      Filter
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Download className="h-4 w-4 mr-2" />
+                      Export
+                    </Button>
+                  </div>
+
+                  {/* Audit Log Entries */}
+                  <div className="space-y-3">
+                    {[
+                      {
+                        id: '1',
+                        timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+                        user: tenant?.name || 'System',
+                        action: 'Provider API Key Updated',
+                        resource: 'OpenAI',
+                        category: 'configuration',
+                        ip: '192.168.1.100',
+                        status: 'success',
+                      },
+                      {
+                        id: '2',
+                        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+                        user: tenant?.name || 'System',
+                        action: 'Routing Policy Modified',
+                        resource: 'Policy: fallback-to-anthropic',
+                        category: 'configuration',
+                        ip: '192.168.1.100',
+                        status: 'success',
+                      },
+                      {
+                        id: '3',
+                        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+                        user: 'Admin',
+                        action: 'Runtime Instance Added',
+                        resource: 'edge-node-47',
+                        category: 'infrastructure',
+                        ip: '10.0.0.5',
+                        status: 'success',
+                      },
+                      {
+                        id: '4',
+                        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+                        user: tenant?.name || 'System',
+                        action: 'Failed Login Attempt',
+                        resource: 'Authentication',
+                        category: 'security',
+                        ip: '203.0.113.42',
+                        status: 'failed',
+                      },
+                      {
+                        id: '5',
+                        timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+                        user: 'System',
+                        action: 'QLoRA Training Completed',
+                        resource: 'Job: custom-agent-v3',
+                        category: 'agents',
+                        ip: 'internal',
+                        status: 'success',
+                      },
+                    ].map((log) => {
+                      const categoryColors = {
+                        configuration: 'bg-blue-50 text-blue-700 border-blue-200',
+                        infrastructure: 'bg-purple-50 text-purple-700 border-purple-200',
+                        security: 'bg-red-50 text-red-700 border-red-200',
+                        agents: 'bg-green-50 text-green-700 border-green-200',
+                      };
+
+                      return (
+                        <div
+                          key={log.id}
+                          className="p-4 rounded-lg border border-border-light bg-beige-primary hover:bg-beige-secondary transition-colors"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-3 mb-2">
+                                <h4 className="text-sm font-medium text-gray-900">
+                                  {log.action}
+                                </h4>
+                                <Badge className={`${categoryColors[log.category as keyof typeof categoryColors]} border text-xs`}>
+                                  {log.category}
+                                </Badge>
+                                {log.status === 'success' ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <XCircle className="h-4 w-4 text-red-600" />
+                                )}
+                              </div>
+                              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
+                                <div>
+                                  <span className="font-medium">User:</span> {log.user}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Resource:</span> {log.resource}
+                                </div>
+                                <div>
+                                  <span className="font-medium">IP:</span> {log.ip}
+                                </div>
+                                <div>
+                                  <span className="font-medium">Time:</span> {formatDateTime(log.timestamp)}
+                                </div>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="sm">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Pagination */}
+                  <div className="flex items-center justify-between pt-4 border-t border-border-light">
+                    <p className="text-sm text-gray-600">Showing 1-5 of 127 entries</p>
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" disabled>
+                        Previous
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Next
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
 
       {/* Request Detail Sheet - CONTINUED IN NEXT PART */}
       <Sheet open={!!selectedTrace} onOpenChange={(open) => !open && setSelectedTrace(null)}>
