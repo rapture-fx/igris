@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useTenant } from '@/hooks/useTenant';
@@ -111,46 +110,46 @@ export default function FleetPage() {
 
         {/* Fleet Overview Metrics */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+          <div className="border border-border-light shadow-sm rounded-lg p-4">
+            <div className="flex flex-row items-center justify-between pb-2">
+              <div className="text-sm font-medium text-gray-600">
                 Total Instances
-              </CardTitle>
+              </div>
               <Server className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div>
               <div className="text-2xl font-bold text-gray-900">{metrics.total_instances}</div>
               <div className="flex gap-2 mt-1">
                 <span className="text-xs text-green-600">{metrics.online_instances} online</span>
                 <span className="text-xs text-gray-400">•</span>
                 <span className="text-xs text-red-600">{metrics.offline_instances} offline</span>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+          <div className="border border-border-light shadow-sm rounded-lg p-4">
+            <div className="flex flex-row items-center justify-between pb-2">
+              <div className="text-sm font-medium text-gray-600">
                 Regions Covered
-              </CardTitle>
+              </div>
               <MapPin className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div>
               <div className="text-2xl font-bold text-gray-900">{metrics.regions_covered}</div>
               <p className="text-xs text-gray-600 mt-1">
                 Global distribution
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+          <div className="border border-border-light shadow-sm rounded-lg p-4">
+            <div className="flex flex-row items-center justify-between pb-2">
+              <div className="text-sm font-medium text-gray-600">
                 Fleet Error Rate
-              </CardTitle>
+              </div>
               <AlertCircle className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div>
               <div className="text-2xl font-bold text-gray-900">{metrics.fleet_error_rate.toFixed(2)}%</div>
               {metrics.fleet_error_rate > 3 ? (
                 <div className="flex items-center gap-1 mt-1">
@@ -163,17 +162,17 @@ export default function FleetPage() {
                   <span className="text-xs text-green-600">Healthy</span>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
+          <div className="border border-border-light shadow-sm rounded-lg p-4">
+            <div className="flex flex-row items-center justify-between pb-2">
+              <div className="text-sm font-medium text-gray-600">
                 Fleet Capacity
-              </CardTitle>
+              </div>
               <Activity className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div>
               <div className="text-2xl font-bold text-gray-900">
                 {metrics.used_capacity}/{metrics.total_capacity}
               </div>
@@ -191,22 +190,24 @@ export default function FleetPage() {
                   }}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Fleet Instances Table */}
-        <Card className="border-border-light shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className="border border-border-light shadow-sm rounded-lg">
+          <div className="p-6 pb-0">
+            <div className="flex items-center gap-2">
               <Server className="h-5 w-5 text-gray-900" />
-              Runtime Instances
-            </CardTitle>
-            <CardDescription>
+              <h2 className="text-lg font-semibold text-gray-900">
+                Runtime Instances
+              </h2>
+            </div>
+            <p className="text-gray-600 mt-1 font-inter">
               Live status of distributed edge runtime nodes
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div className="p-6 pt-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
@@ -332,8 +333,8 @@ export default function FleetPage() {
                 </tbody>
               </table>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Instance Details Dialog */}
         {showInstanceDialog && selectedInstance && (

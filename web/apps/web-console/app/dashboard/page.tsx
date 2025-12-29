@@ -6,12 +6,14 @@ import { useState, useEffect } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useUsageSummary } from '@/hooks/useUsage';
 import { useTenant } from '@/hooks/useTenant';
-import { formatCurrency, formatNumber, formatLatency } from '@/utils/helpers';
-import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock, AlertTriangle, CheckCircle, XCircle, AlertCircle as AlertCircleIcon, Play } from 'lucide-react';
+import { formatCurrency, formatNumber, formatLatency, formatDateTime } from '@/utils/helpers';
+import { DollarSign, Activity, Zap, TrendingUp, BarChart3, Clock, AlertTriangle, CheckCircle, XCircle, AlertCircle as AlertCircleIcon, Play, Server, Brain, Plus, Cpu, ArrowRight } from 'lucide-react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
+import { useRouter } from 'next/navigation';
 
 function MetricCard({
   title,
@@ -85,6 +87,7 @@ interface SystemHealth {
 export default function DashboardPage() {
   const { data: summary, isLoading } = useUsageSummary();
   const { data: tenant } = useTenant();
+  const router = useRouter();
 
   // Real data from APIs
   const [providerUptime, setProviderUptime] = useState<Array<{provider: string, uptime: string, status: string}>>([]);
@@ -115,6 +118,25 @@ export default function DashboardPage() {
     duration: number;
   } | null>(null);
   const [showSimulationDialog, setShowSimulationDialog] = useState(false);
+
+  // Recent activity and Runtime fleet metrics
+  const [recentActivity, setRecentActivity] = useState<Array<{
+    id: string;
+    type: 'alert' | 'info' | 'success' | 'warning';
+    category: 'overture' | 'runtime' | 'agents' | 'system';
+    title: string;
+    description: string;
+    timestamp: string;
+  }>>([]);
+
+  const [runtimeFleetMetrics, setRuntimeFleetMetrics] = useState({
+    total_instances: 0,
+    online_instances: 0,
+    offline_instances: 0,
+    avg_cpu_usage: 0,
+    total_inference_requests: 0,
+    active_training_jobs: 0,
+  });
 
   // Fetch dashboard metrics from backend
   useEffect(() => {
@@ -269,6 +291,56 @@ export default function DashboardPage() {
           requests_trend: '+12%',
           spend_trend: '+8%',
           latency_trend: '-5%',
+        },
+        recentActivity: [
+          {
+            id: '1',
+            type: 'alert' as 'alert',
+            category: 'overture' as 'overture',
+            title: 'Google fallback triggered',
+            description: 'High error rate in eu-west-1, requests routed to Anthropic',
+            timestamp: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+          },
+          {
+            id: '2',
+            type: 'warning' as 'warning',
+            category: 'runtime' as 'runtime',
+            title: 'Device offline: edge-node-47',
+            description: 'Instance in us-west-2 lost heartbeat, marked offline',
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: '3',
+            type: 'success' as 'success',
+            category: 'agents' as 'agents',
+            title: 'QLoRA training completed',
+            description: 'Model fine-tuning job "customer-support-v2" finished successfully',
+            timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: '4',
+            type: 'info' as 'info',
+            category: 'system' as 'system',
+            title: 'Monthly budget alert',
+            description: 'Current spend at 78% of budget limit',
+            timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: '5',
+            type: 'success' as 'success',
+            category: 'overture' as 'overture',
+            title: 'Rate limit increased',
+            description: 'Tenant acme-corp limit updated to 250 req/min',
+            timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
+          },
+        ],
+        runtimeFleetMetrics: {
+          total_instances: 12,
+          online_instances: 10,
+          offline_instances: 2,
+          avg_cpu_usage: 45.3,
+          total_inference_requests: 8234,
+          active_training_jobs: 2,
         }
       };
 
@@ -278,6 +350,8 @@ export default function DashboardPage() {
       setLatencyData(mockInitialData.latencyData);
       setProviderCostData(mockInitialData.providerCostData);
       setSystemHealth(mockInitialData.systemHealth);
+      setRecentActivity(mockInitialData.recentActivity);
+      setRuntimeFleetMetrics(mockInitialData.runtimeFleetMetrics);
       // Update summary if needed (the summary object is read-only, so we don't set it)
 
       try {
@@ -527,12 +601,79 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Four Big Live Metrics with Trends & Mini Sparklines */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Quick Actions */}
+        <Card className="border-border-light shadow-sm">
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+            <CardDescription>Common operations across Overture, Runtime, and Agents</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+              <Button
+                variant="outline"
+                className="flex items-center justify-start gap-3 h-auto p-4"
+                onClick={() => router.push('/dashboard/runtime/fleet')}
+              >
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
+                  <Server className="h-5 w-5 text-gray-900" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium text-gray-900">Add Runtime Instance</div>
+                  <div className="text-xs text-gray-600">Deploy edge node</div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex items-center justify-start gap-3 h-auto p-4"
+                onClick={() => router.push('/dashboard/agents/qlora')}
+              >
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
+                  <Brain className="h-5 w-5 text-gray-900" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium text-gray-900">Start QLoRA Job</div>
+                  <div className="text-xs text-gray-600">Fine-tune model</div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex items-center justify-start gap-3 h-auto p-4"
+                onClick={() => router.push('/dashboard/providers')}
+              >
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
+                  <Plus className="h-5 w-5 text-gray-900" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium text-gray-900">Add Provider</div>
+                  <div className="text-xs text-gray-600">Configure API key</div>
+                </div>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="flex items-center justify-start gap-3 h-auto p-4"
+                onClick={() => router.push('/dashboard/observability')}
+              >
+                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
+                  <Activity className="h-5 w-5 text-gray-900" />
+                </div>
+                <div className="flex-1 text-left">
+                  <div className="text-sm font-medium text-gray-900">View Traces</div>
+                  <div className="text-xs text-gray-600">Debug requests</div>
+                </div>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Six Metrics: Overture + Runtime */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           <MetricCard
             title="Requests Today"
             value={formatNumber(summary?.total_requests || 0)}
-            description="Last 24 hours"
+            description="Last 24 hours (Overture)"
             icon={Activity}
             trend={(summary as any)?.requests_trend}
           />
@@ -546,15 +687,27 @@ export default function DashboardPage() {
           <MetricCard
             title="Avg Latency"
             value={formatLatency(summary?.avg_latency || 0)}
-            description="P50 response time"
+            description="P50 response time (Overture)"
             icon={Zap}
             trend={(summary as any)?.latency_trend}
           />
           <MetricCard
-            title="Active Providers"
-            value={String(providerUptime.length || 0)}
-            description="Currently configured"
-            icon={TrendingUp}
+            title="Runtime Instances"
+            value={`${runtimeFleetMetrics.online_instances}/${runtimeFleetMetrics.total_instances}`}
+            description="Online edge nodes"
+            icon={Server}
+          />
+          <MetricCard
+            title="Inference Requests"
+            value={formatNumber(runtimeFleetMetrics.total_inference_requests)}
+            description="Runtime edge processing"
+            icon={Cpu}
+          />
+          <MetricCard
+            title="Training Jobs"
+            value={String(runtimeFleetMetrics.active_training_jobs)}
+            description="Active QLoRA fine-tuning"
+            icon={Brain}
           />
         </div>
 
@@ -675,6 +828,74 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Recent Activity */}
+        <Card className="border-border-light shadow-sm">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Recent Activity</CardTitle>
+                <CardDescription>Events from Overture, Runtime, and Agents</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/observability')}>
+                View All
+                <ArrowRight className="h-4 w-4 ml-2" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {recentActivity.slice(0, 5).map((activity) => {
+                const typeConfig = {
+                  alert: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: XCircle },
+                  warning: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', icon: AlertCircleIcon },
+                  success: { bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200', icon: CheckCircle },
+                  info: { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200', icon: AlertCircleIcon },
+                };
+                const config = typeConfig[activity.type];
+                const Icon = config.icon;
+
+                const categoryConfig = {
+                  overture: { label: 'Overture', color: 'bg-purple-100 text-purple-700' },
+                  runtime: { label: 'Runtime', color: 'bg-blue-100 text-blue-700' },
+                  agents: { label: 'Agents', color: 'bg-green-100 text-green-700' },
+                  system: { label: 'System', color: 'bg-gray-100 text-gray-700' },
+                };
+                const categoryStyle = categoryConfig[activity.category];
+
+                return (
+                  <div
+                    key={activity.id}
+                    className={`p-4 rounded-lg border ${config.border} ${config.bg}`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Icon className={`h-5 w-5 ${config.text} flex-shrink-0 mt-0.5`} />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className={`text-sm font-medium ${config.text} font-inter`}>
+                            {activity.title}
+                          </h4>
+                          <Badge className={`${categoryStyle.color} border text-xs`}>
+                            {categoryStyle.label}
+                          </Badge>
+                        </div>
+                        <p className={`text-xs ${config.text} opacity-90`}>
+                          {activity.description}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Clock className="h-3 w-3 text-gray-600" />
+                          <span className="text-xs text-gray-600">
+                            {formatDateTime(activity.timestamp)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Simulation Results Dialog */}
