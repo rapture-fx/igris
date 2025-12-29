@@ -54,14 +54,14 @@ export default function RuntimeConfigPage() {
 
   const getStatusBadge = (status: ConfigPush['status']) => {
     const config = {
-      pending: { bg: 'bg-blue-50', text: 'text-blue-700', icon: Clock },
-      in_progress: { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
-      completed: { bg: 'bg-green-50', text: 'text-green-700', icon: CheckCircle },
-      failed: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle },
+      pending: { icon: Clock },
+      in_progress: { icon: Clock },
+      completed: { icon: CheckCircle },
+      failed: { icon: XCircle },
     };
-    const { bg, text, icon: Icon } = config[status];
+    const { icon: Icon } = config[status];
     return (
-      <Badge className={`${bg} ${text} border flex items-center gap-1`}>
+      <Badge className="bg-gray-50 text-gray-700 border flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {status.replace('_', ' ')}
       </Badge>
@@ -78,7 +78,7 @@ export default function RuntimeConfigPage() {
               Deploy configuration updates to runtime instances
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button variant="outline" className="shadow-sm flex items-center gap-2">
             <Send className="h-4 w-4" />
             New Config Push
           </Button>
@@ -112,12 +112,7 @@ export default function RuntimeConfigPage() {
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div
-                        className={`h-2 rounded-full ${
-                          push.status === 'completed' ? 'bg-green-500' :
-                          push.status === 'failed' ? 'bg-red-500' :
-                          push.status === 'in_progress' ? 'bg-yellow-500' :
-                          'bg-blue-500'
-                        }`}
+                        className="h-2 rounded-full bg-gray-900"
                         style={{ width: `${(push.devices_completed / push.devices_targeted) * 100}%` }}
                       />
                     </div>
@@ -135,15 +130,15 @@ export default function RuntimeConfigPage() {
                         <Button variant="outline" size="sm" className="flex-1 text-xs">
                           Cancel
                         </Button>
-                        <Button size="sm" className="flex-1 text-xs">
+                        <Button variant="outline" size="sm" className="flex-1 text-xs">
                           <Send className="h-3 w-3 mr-1" />
                           Deploy Now
                         </Button>
                       </>
                     )}
                     {push.status === 'in_progress' && (
-                      <Button variant="destructive" size="sm" className="flex-1 text-xs">
-                        Stop Deployment
+                      <Button variant="outline" size="sm" className="flex-1 text-xs">
+                        Stop Deploy
                       </Button>
                     )}
                     {(push.status === 'completed' || push.status === 'failed') && (

@@ -34,7 +34,6 @@ function MetricCard({
         <CardTitle className="text-xs font-medium text-gray-600">
           {title}
         </CardTitle>
-        <Icon className="h-3.5 w-3.5 text-gray-900" />
       </CardHeader>
       <CardContent>
         <div className="text-lg font-bold text-gray-900">{value}</div>
@@ -446,59 +445,45 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions */}
-        <Card className="border-border-light shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-sm">Quick Actions</CardTitle>
-            <CardDescription className="text-xs">Common operations across Overture, Runtime, and Agents</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-2 h-auto p-3"
-                onClick={() => router.push('/dashboard/runtime/fleet')}
-              >
-                <div className="flex-1 text-left">
-                  <div className="text-xs font-medium text-gray-900">Add Runtime Instance</div>
-                  <div className="text-[0.65rem] text-gray-600">Deploy edge node</div>
-                </div>
-              </Button>
+        <div>
+          <div className="pb-3">
+            <h2 className="text-sm font-medium text-gray-900">Quick Actions</h2>
+            <p className="text-xs text-gray-600 mt-1">Common operations across Overture, Runtime, and Agents</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              className="h-8 px-3"
+              onClick={() => router.push('/dashboard/runtime/fleet')}
+            >
+              Add Runtime Instance
+            </Button>
 
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-2 h-auto p-3"
-                onClick={() => router.push('/dashboard/agents/qlora')}
-              >
-                <div className="flex-1 text-left">
-                  <div className="text-xs font-medium text-gray-900">Start QLoRA Job</div>
-                  <div className="text-[0.65rem] text-gray-600">Fine-tune model</div>
-                </div>
-              </Button>
+            <Button
+              variant="outline"
+              className="h-8 px-3"
+              onClick={() => router.push('/dashboard/agents/qlora')}
+            >
+              Start QLoRA Job
+            </Button>
 
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-2 h-auto p-3"
-                onClick={() => router.push('/dashboard/providers')}
-              >
-                <div className="flex-1 text-left">
-                  <div className="text-xs font-medium text-gray-900">Add Provider</div>
-                  <div className="text-[0.65rem] text-gray-600">Configure API key</div>
-                </div>
-              </Button>
+            <Button
+              variant="outline"
+              className="h-8 px-3"
+              onClick={() => router.push('/dashboard/providers')}
+            >
+              Add Provider
+            </Button>
 
-              <Button
-                variant="outline"
-                className="flex items-center justify-start gap-2 h-auto p-3"
-                onClick={() => router.push('/dashboard/observability')}
-              >
-                <div className="flex-1 text-left">
-                  <div className="text-xs font-medium text-gray-900">View Traces</div>
-                  <div className="text-[0.65rem] text-gray-600">Debug requests</div>
-                </div>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+            <Button
+              variant="outline"
+              className="h-8 px-3"
+              onClick={() => router.push('/dashboard/observability')}
+            >
+              View Traces
+            </Button>
+          </div>
+        </div>
 
         {/* Six Metrics: Overture + Runtime */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -571,7 +556,7 @@ export default function DashboardPage() {
                     type="monotone"
                     dataKey="requests"
                     stroke="#000000"
-                    strokeWidth={1.5}
+                    strokeWidth={0.5}
                     dot={false}
                     activeDot={{ r: 2.5, fill: "#000000" }}
                   />
@@ -606,7 +591,7 @@ export default function DashboardPage() {
                     type="monotone"
                     dataKey="latency"
                     stroke="#000000"
-                    strokeWidth={1.5}
+                    strokeWidth={0.5}
                     fill="#000000"
                     fillOpacity={0.1}
                   />
@@ -668,8 +653,8 @@ export default function DashboardPage() {
         <Card className="border-border-light shadow-sm">
           <CardHeader>
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${
+              <div className="flex items-center gap-2">
+                <div className={`w-2 h-2 rounded-full ${
                   systemHealth.overall_status === 'operational' ? 'bg-green-500' :
                   systemHealth.overall_status === 'degraded' ? 'bg-yellow-500' :
                   'bg-red-500'
@@ -684,17 +669,17 @@ export default function DashboardPage() {
               Provider availability, latency metrics, and error rates
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-4">
             {/* Degraded Mode Banner */}
             {systemHealth.degraded_mode && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <div className="border border-border-light rounded-lg p-4 mb-4 bg-beige-primary">
                 <div className="flex items-start gap-3">
-                  <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <AlertTriangle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
                   <div className="flex-1">
-                    <h3 className="text-sm font-medium text-yellow-900 font-inter">
+                    <h3 className="text-sm font-medium text-gray-900 font-inter">
                       System Operating in Degraded Mode
                     </h3>
-                    <p className="text-sm text-yellow-800 mt-1">
+                    <p className="text-sm text-gray-900 mt-1">
                       {systemHealth.degraded_reason || 'One or more providers experiencing issues. Requests are being routed to healthy alternatives.'}
                     </p>
                   </div>
@@ -702,13 +687,14 @@ export default function DashboardPage() {
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
               {systemHealth.providers.length === 0 ? (
                 <div className="text-center py-8 text-gray-600 text-sm">
                   No provider health data available
                 </div>
               ) : (
-                systemHealth.providers.map((provider) => (
+                <div className="space-y-4">
+                  {systemHealth.providers.map((provider) => (
                   <div key={provider.provider} className="border border-border-light rounded-lg p-3 bg-beige-primary">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
@@ -747,7 +733,7 @@ export default function DashboardPage() {
                     </div>
 
                     <div className="grid grid-cols-3 gap-3 mb-2">
-                      <div className="bg-white rounded-md p-2 border border-border-light">
+                      <div className="bg-beige-primary rounded-md p-2 border border-border-light">
                         <div className="text-[0.65rem] text-gray-600 mb-0.5">Latency P99</div>
                         <div className={`text-xs font-medium ${
                           provider.latency_p99 > systemHealth.thresholds.latency_p99_critical ? 'text-red-600' :
@@ -757,7 +743,7 @@ export default function DashboardPage() {
                           {formatLatency(provider.latency_p99)}
                         </div>
                       </div>
-                      <div className="bg-white rounded-md p-2 border border-border-light">
+                      <div className="bg-beige-primary rounded-md p-2 border border-border-light">
                         <div className="text-[0.65rem] text-gray-600 mb-0.5">Error Rate</div>
                         <div className={`text-xs font-medium ${
                           provider.error_rate > systemHealth.thresholds.error_rate_critical ? 'text-red-600' :
@@ -767,7 +753,7 @@ export default function DashboardPage() {
                           {provider.error_rate.toFixed(2)}%
                         </div>
                       </div>
-                      <div className="bg-white rounded-md p-2 border border-border-light">
+                      <div className="bg-beige-primary rounded-md p-2 border border-border-light">
                         <div className="text-[0.65rem] text-gray-600 mb-0.5">Fallback Freq</div>
                         <div className="text-xs font-medium text-gray-900">
                           {provider.fallback_frequency.toFixed(1)}%
@@ -787,7 +773,7 @@ export default function DashboardPage() {
                               <div className="font-medium text-gray-900 mb-1">{model.model}</div>
                               <div className="grid grid-cols-2 gap-2">
                                 {model.regions.map((region) => (
-                                  <div key={region.region} className="flex items-center justify-between bg-white rounded p-2 border border-border-light">
+                                  <div key={region.region} className="flex items-center justify-between bg-beige-primary rounded p-2 border border-border-light">
                                     <div className="flex items-center gap-2">
                                       <div className={`w-1.5 h-1.5 rounded-full ${
                                         region.status === 'operational' ? 'bg-green-500' :
@@ -814,7 +800,8 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
-                ))
+                  ))}
+                </div>
               )}
             </div>
           </CardContent>
@@ -834,9 +821,10 @@ export default function DashboardPage() {
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {recentActivity.slice(0, 5).map((activity) => {
+          <CardContent className="p-4">
+            <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
+              <div className="space-y-3">
+                {recentActivity.slice(0, 5).map((activity) => {
                 const typeConfig = {
                   alert: { bg: 'bg-red-50', text: 'text-red-700', border: 'border-red-200', icon: XCircle },
                   warning: { bg: 'bg-yellow-50', text: 'text-yellow-700', border: 'border-yellow-200', icon: AlertCircleIcon },
@@ -857,20 +845,20 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={activity.id}
-                    className={`p-3 rounded-lg border ${config.border} ${config.bg}`}
+                    className="p-3 rounded-lg border border-border-light bg-beige-primary"
                   >
                     <div className="flex items-start gap-2">
-                      <Icon className={`h-4 w-4 ${config.text} flex-shrink-0 mt-0.5`} />
+                      <Icon className="h-4 w-4 text-gray-900 flex-shrink-0 mt-0.5" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className={`text-xs font-medium ${config.text} font-inter`}>
+                          <h4 className="text-xs font-medium text-gray-900 font-inter">
                             {activity.title}
                           </h4>
                           <Badge className={`${categoryStyle.color} border text-[0.65rem]`}>
                             {categoryStyle.label}
                           </Badge>
                         </div>
-                        <p className={`text-[0.65rem] ${config.text} opacity-90`}>
+                        <p className="text-[0.65rem] text-gray-900 opacity-90">
                           {activity.description}
                         </p>
                         <div className="flex items-center gap-1.5 mt-1.5">
@@ -884,6 +872,7 @@ export default function DashboardPage() {
                   </div>
                 );
               })}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -892,47 +881,49 @@ export default function DashboardPage() {
       {/* Simulation Results Dialog */}
       {showSimulationDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-white rounded-lg p-5 max-w-md w-full mx-4">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3">
               Simulating {simulatedProvider} Outage
             </h3>
-            
+
             {!simulationResults ? (
-              <div className="flex items-center gap-3 py-8">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-gray-900"></div>
-                <span className="text-gray-600">Analyzing impact...</span>
+              <div className="flex items-center gap-2 py-6">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-gray-900"></div>
+                <span className="text-xs text-gray-600">Analyzing impact...</span>
               </div>
             ) : (
-              <div className="space-y-4">
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <h4 className="text-sm font-medium text-yellow-900 mb-2">Estimated Impact</h4>
-                  <p className="text-sm text-yellow-800">{simulationResults.estimated_impact}</p>
+              <div className="space-y-3">
+                <div className="p-2.5 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <h4 className="text-xs font-medium text-yellow-900 mb-1.5">Estimated Impact</h4>
+                  <p className="text-[0.65rem] text-yellow-800">{simulationResults.estimated_impact}</p>
                 </div>
 
-                <div className="p-3 bg-beige-primary border border-border-light rounded-lg">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Routing Changes</h4>
+                <div className="p-2.5 bg-beige-primary border border-border-light rounded-lg">
+                  <h4 className="text-xs font-medium text-gray-900 mb-1.5">Routing Changes</h4>
                   {Object.entries(simulationResults.routing_changes).map(([key, value]) => (
-                    <div key={key} className="text-sm text-gray-700 mb-1">
+                    <div key={key} className="text-[0.65rem] text-gray-700 mb-1">
                       <span className="font-medium">{key}:</span> {value}
                     </div>
                   ))}
                 </div>
 
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="text-sm font-medium text-blue-900 mb-2">Duration</h4>
-                  <p className="text-sm text-blue-800">{Math.round(simulationResults.duration / 60000)} minutes</p>
+                <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
+                  <h4 className="text-xs font-medium text-blue-900 mb-1.5">Duration</h4>
+                  <p className="text-[0.65rem] text-blue-800">{Math.round(simulationResults.duration / 60000)} minutes</p>
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-2 pt-3">
                   <Button
                     variant="outline"
-                    className="flex-1"
+                    size="sm"
+                    className="flex-1 text-xs"
                     onClick={() => setShowSimulationDialog(false)}
                   >
                     Close
                   </Button>
                   <Button
-                    className="flex-1"
+                    size="sm"
+                    className="flex-1 text-xs"
                     onClick={() => {
                       alert('Simulation completed - this was a dry run only');
                       setShowSimulationDialog(false);

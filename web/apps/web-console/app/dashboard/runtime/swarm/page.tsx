@@ -54,8 +54,8 @@ export default function RuntimeSwarmPage() {
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{swarmMetrics.consensus_health}%</div>
               <div className="flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3 text-green-600" />
-                <span className="text-xs text-green-600">Excellent</span>
+                <TrendingUp className="h-3 w-3 text-gray-600" />
+                <span className="text-xs text-gray-600">Excellent</span>
               </div>
             </CardContent>
           </Card>
@@ -87,7 +87,7 @@ export default function RuntimeSwarmPage() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                       <div className="font-medium text-gray-900">{node.id}</div>
-                      <Badge className={`${node.status === 'leader' ? 'bg-blue-50 text-blue-700' : 'bg-gray-50 text-gray-700'} border text-xs`}>
+                      <Badge className={`${node.status === 'leader' ? 'bg-gray-50 text-gray-700' : 'bg-gray-50 text-gray-700'} border text-xs`}>
                         {node.status}
                       </Badge>
                     </div>
@@ -116,12 +116,12 @@ export default function RuntimeSwarmPage() {
             <CardDescription className="text-xs">Network resilience and fault tolerance</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
-                <Activity className="h-5 w-5 text-green-600" />
-                <h4 className="text-sm font-medium text-green-900">Healthy State</h4>
+                <Activity className="h-5 w-5 text-gray-600" />
+                <h4 className="text-sm font-medium text-gray-900">Healthy State</h4>
               </div>
-              <ul className="text-xs text-green-800 space-y-1 list-disc list-inside">
+              <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
                 <li>All nodes can reach consensus within 45ms</li>
                 <li>No network partitions detected in last 7 days</li>
                 <li>Automatic failover tested and operational</li>
