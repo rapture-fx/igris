@@ -204,8 +204,8 @@ export default function UsagePage() {
             {/* Requests & Cost Timeline */}
             <Card className="border-border-light shadow-sm">
               <CardHeader>
-                <CardTitle>Requests & Cost Over Time</CardTitle>
-                <CardDescription>Track your usage and spending</CardDescription>
+                <CardTitle className="text-sm">Requests & Cost Over Time</CardTitle>
+                <CardDescription className="text-xs">Track your usage and spending</CardDescription>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={350}>
@@ -242,8 +242,8 @@ export default function UsagePage() {
               {/* Cost by Provider */}
               <Card className="border-border-light shadow-sm">
                 <CardHeader>
-                  <CardTitle>Cost by Provider</CardTitle>
-                  <CardDescription>Spending distribution</CardDescription>
+                  <CardTitle className="text-sm">Cost by Provider</CardTitle>
+                  <CardDescription className="text-xs">Spending distribution</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -271,8 +271,8 @@ export default function UsagePage() {
               {/* Latency by Provider */}
               <Card className="border-border-light shadow-sm">
                 <CardHeader>
-                  <CardTitle>Latency by Provider</CardTitle>
-                  <CardDescription>Average response times</CardDescription>
+                  <CardTitle className="text-sm">Latency by Provider</CardTitle>
+                  <CardDescription className="text-xs">Average response times</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ResponsiveContainer width="100%" height={300}>
@@ -291,8 +291,8 @@ export default function UsagePage() {
             {/* Provider Table */}
             <Card className="border-border-light shadow-sm">
               <CardHeader>
-                <CardTitle>Provider Details</CardTitle>
-                <CardDescription>Detailed breakdown by provider</CardDescription>
+                <CardTitle className="text-sm">Provider Details</CardTitle>
+                <CardDescription className="text-xs">Detailed breakdown by provider</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -335,8 +335,8 @@ export default function UsagePage() {
             {/* Top Models Table */}
             <Card className="border-border-light shadow-sm">
               <CardHeader>
-                <CardTitle>Top 10 Models by Spend</CardTitle>
-                <CardDescription>Most expensive models this period</CardDescription>
+                <CardTitle className="text-sm">Top 10 Models by Spend</CardTitle>
+                <CardDescription className="text-xs">Most expensive models this period</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">

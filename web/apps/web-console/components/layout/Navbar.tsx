@@ -171,41 +171,41 @@ export function Navbar({ onMenuClick }: NavbarProps) {
                       className="fixed inset-0 z-40"
                       onClick={() => setShowProfileMenu(false)}
                     />
-                    <div className="absolute right-0 top-full mt-2 w-64 z-50 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
-                      <div className="px-4 py-3 border-b border-border-light">
-                        <p className="text-sm font-medium font-inter text-gray-900">
+                    <div className="absolute right-0 top-full mt-2 w-56 z-50 bg-beige-primary border border-border-light rounded-lg shadow-lg p-2">
+                      <div className="px-3 py-2 border-b border-border-light">
+                        <p className="text-xs font-medium font-inter text-gray-900">
                           {tenant?.name || 'Profile'}
                         </p>
-                        <p className="text-xs text-gray-600 font-inter mt-0.5">
+                        <p className="text-[0.65rem] text-gray-600 font-inter mt-0.5">
                           {tenant?.email || 'user@example.com'}
                         </p>
                       </div>
 
                       <button
-                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left mt-1"
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-beige-secondary transition-colors text-left mt-1"
                         onClick={() => {
                           setShowProfileMenu(false);
                           // Billing logic will be implemented later
                         }}
                       >
-                        <CreditCard className="h-5 w-5 text-gray-700" />
+                        <CreditCard className="h-3.5 w-3.5 text-gray-700" />
                         <div>
-                          <p className="text-sm font-medium font-inter text-gray-900">Billing</p>
-                          <p className="text-xs text-gray-600 font-inter">Manage your subscription</p>
+                          <p className="text-xs font-medium font-inter text-gray-900">Billing</p>
+                          <p className="text-[0.65rem] text-gray-600 font-inter">Manage your subscription</p>
                         </div>
                       </button>
 
                       <button
-                        className="flex items-center gap-3 w-full px-4 py-3 rounded-lg hover:bg-beige-secondary transition-colors text-left border-t border-border-light mt-1 pt-3"
+                        className="flex items-center gap-2 w-full px-3 py-2 rounded-lg hover:bg-beige-secondary transition-colors text-left border-t border-border-light mt-1 pt-2"
                         onClick={() => {
                           setShowProfileMenu(false);
                           setShowLogoutDialog(true);
                         }}
                       >
-                        <LogOut className="h-5 w-5 text-gray-900" />
+                        <LogOut className="h-3.5 w-3.5 text-gray-900" />
                         <div>
-                          <p className="text-sm font-medium font-inter text-gray-900">Logout</p>
-                          <p className="text-xs text-gray-600 font-inter">Sign out of your account</p>
+                          <p className="text-xs font-medium font-inter text-gray-900">Logout</p>
+                          <p className="text-[0.65rem] text-gray-600 font-inter">Sign out of your account</p>
                         </div>
                       </button>
                     </div>

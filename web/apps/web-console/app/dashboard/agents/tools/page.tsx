@@ -109,8 +109,8 @@ export default function AgentsToolsPage() {
                   <div className="flex items-center gap-3">
                     <Wrench className="h-5 w-5 text-gray-900" />
                     <div>
-                      <CardTitle className="text-base">{tool.name}</CardTitle>
-                      <CardDescription className="mt-1">
+                      <CardTitle className="text-sm text-base">{tool.name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">
                         {tool.category} • {tool.usage_count.toLocaleString()} uses
                       </CardDescription>
                     </div>
@@ -164,8 +164,8 @@ export default function AgentsToolsPage() {
 
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle>Tool Usage Insights</CardTitle>
-            <CardDescription>Last 30 days</CardDescription>
+            <CardTitle className="text-sm">Tool Usage Insights</CardTitle>
+            <CardDescription className="text-xs">Last 30 days</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

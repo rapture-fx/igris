@@ -85,8 +85,8 @@ export default function RuntimeDevicesPage() {
                   <div className="flex items-center gap-3">
                     <Cpu className="h-5 w-5 text-gray-900" />
                     <div>
-                      <CardTitle className="text-base">{device.name}</CardTitle>
-                      <CardDescription className="mt-1">{device.id}</CardDescription>
+                      <CardTitle className="text-sm text-base">{device.name}</CardTitle>
+                      <CardDescription className="text-xs mt-1">{device.id}</CardDescription>
                     </div>
                   </div>
                   <Badge className={`${device.status === 'online' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'} border`}>

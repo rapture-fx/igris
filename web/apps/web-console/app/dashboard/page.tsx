@@ -31,14 +31,14 @@ function MetricCard({
   return (
     <Card className="border-border-light shadow-sm hover:shadow-sm transition-shadow">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600">
+        <CardTitle className="text-xs font-medium text-gray-600">
           {title}
         </CardTitle>
-        <Icon className="h-4 w-4 text-gray-900" />
+        <Icon className="h-3.5 w-3.5 text-gray-900" />
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-gray-900">{value}</div>
-        <p className="text-xs text-gray-600 mt-1">
+        <div className="text-lg font-bold text-gray-900">{value}</div>
+        <p className="text-[0.65rem] text-gray-600 mt-1">
           {description}
           {trend && (
             <span className="ml-2 text-green-600 font-medium">
@@ -445,84 +445,55 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        {/* Degraded Mode Banner */}
-        {systemHealth.degraded_mode && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-yellow-900 font-inter">
-                  System Operating in Degraded Mode
-                </h3>
-                <p className="text-sm text-yellow-800 mt-1">
-                  {systemHealth.degraded_reason || 'One or more providers experiencing issues. Requests are being routed to healthy alternatives.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Quick Actions */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common operations across Overture, Runtime, and Agents</CardDescription>
+            <CardTitle className="text-sm">Quick Actions</CardTitle>
+            <CardDescription className="text-xs">Common operations across Overture, Runtime, and Agents</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-4">
               <Button
                 variant="outline"
-                className="flex items-center justify-start gap-3 h-auto p-4"
+                className="flex items-center justify-start gap-2 h-auto p-3"
                 onClick={() => router.push('/dashboard/runtime/fleet')}
               >
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
-                  <Server className="h-5 w-5 text-gray-900" />
-                </div>
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-gray-900">Add Runtime Instance</div>
-                  <div className="text-xs text-gray-600">Deploy edge node</div>
+                  <div className="text-xs font-medium text-gray-900">Add Runtime Instance</div>
+                  <div className="text-[0.65rem] text-gray-600">Deploy edge node</div>
                 </div>
               </Button>
 
               <Button
                 variant="outline"
-                className="flex items-center justify-start gap-3 h-auto p-4"
+                className="flex items-center justify-start gap-2 h-auto p-3"
                 onClick={() => router.push('/dashboard/agents/qlora')}
               >
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
-                  <Brain className="h-5 w-5 text-gray-900" />
-                </div>
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-gray-900">Start QLoRA Job</div>
-                  <div className="text-xs text-gray-600">Fine-tune model</div>
+                  <div className="text-xs font-medium text-gray-900">Start QLoRA Job</div>
+                  <div className="text-[0.65rem] text-gray-600">Fine-tune model</div>
                 </div>
               </Button>
 
               <Button
                 variant="outline"
-                className="flex items-center justify-start gap-3 h-auto p-4"
+                className="flex items-center justify-start gap-2 h-auto p-3"
                 onClick={() => router.push('/dashboard/providers')}
               >
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
-                  <Plus className="h-5 w-5 text-gray-900" />
-                </div>
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-gray-900">Add Provider</div>
-                  <div className="text-xs text-gray-600">Configure API key</div>
+                  <div className="text-xs font-medium text-gray-900">Add Provider</div>
+                  <div className="text-[0.65rem] text-gray-600">Configure API key</div>
                 </div>
               </Button>
 
               <Button
                 variant="outline"
-                className="flex items-center justify-start gap-3 h-auto p-4"
+                className="flex items-center justify-start gap-2 h-auto p-3"
                 onClick={() => router.push('/dashboard/observability')}
               >
-                <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-beige-primary">
-                  <Activity className="h-5 w-5 text-gray-900" />
-                </div>
                 <div className="flex-1 text-left">
-                  <div className="text-sm font-medium text-gray-900">View Traces</div>
-                  <div className="text-xs text-gray-600">Debug requests</div>
+                  <div className="text-xs font-medium text-gray-900">View Traces</div>
+                  <div className="text-[0.65rem] text-gray-600">Debug requests</div>
                 </div>
               </Button>
             </div>
@@ -576,32 +547,33 @@ export default function DashboardPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="border-border-light shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-gray-900" />
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <BarChart3 className="h-4 w-4 text-gray-900" />
                 Requests & Cost
               </CardTitle>
-              <CardDescription>Last 7 days</CardDescription>
+              <CardDescription className="text-xs">Last 7 days</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={160}>
                 <LineChart data={requestsData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="time" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
+                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                  <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#f8f6f3',
                       border: '1px solid #e5e1d8',
-                      borderRadius: '6px'
+                      borderRadius: '6px',
+                      fontSize: '11px'
                     }}
                   />
                   <Line
                     type="monotone"
                     dataKey="requests"
                     stroke="#000000"
-                    strokeWidth={1}
+                    strokeWidth={1.5}
                     dot={false}
-                    activeDot={{ r: 3, fill: "#000000" }}
+                    activeDot={{ r: 2.5, fill: "#000000" }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -610,29 +582,31 @@ export default function DashboardPage() {
 
           <Card className="border-border-light shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5 text-gray-900" />
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <Clock className="h-4 w-4 text-gray-900" />
                 Latency P95
               </CardTitle>
-              <CardDescription>Last 24 hours</CardDescription>
+              <CardDescription className="text-xs">Last 24 hours</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={200}>
+              <ResponsiveContainer width="100%" height={160}>
                 <AreaChart data={latencyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                  <XAxis dataKey="time" stroke="#6b7280" />
-                  <YAxis stroke="#6b7280" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
+                  <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                  <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
                   <Tooltip
                     contentStyle={{
                       backgroundColor: '#f8f6f3',
                       border: '1px solid #e5e1d8',
-                      borderRadius: '6px'
+                      borderRadius: '6px',
+                      fontSize: '11px'
                     }}
                   />
                   <Area
                     type="monotone"
                     dataKey="latency"
                     stroke="#000000"
+                    strokeWidth={1.5}
                     fill="#000000"
                     fillOpacity={0.1}
                   />
@@ -646,21 +620,21 @@ export default function DashboardPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <Card className="border-border-light shadow-sm">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <DollarSign className="h-5 w-5 text-gray-900" />
+              <CardTitle className="flex items-center gap-2 text-sm">
+                <DollarSign className="h-4 w-4 text-gray-900" />
                 Top Models by Spend
               </CardTitle>
-              <CardDescription>This month</CardDescription>
+              <CardDescription className="text-xs">This month</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {providerCostData.slice(0, 5).map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-beige-primary">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-gray-900">{i + 1}.</span>
-                      <span className="text-sm text-gray-900">{item.provider}</span>
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-beige-primary">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-gray-900">{i + 1}.</span>
+                      <span className="text-xs text-gray-900">{item.provider}</span>
                     </div>
-                    <span className="text-sm font-medium text-gray-900">{formatCurrency(item.cost)}</span>
+                    <span className="text-xs font-medium text-gray-900">{formatCurrency(item.cost)}</span>
                   </div>
                 ))}
               </div>
@@ -669,16 +643,16 @@ export default function DashboardPage() {
 
           <Card className="border-border-light shadow-sm">
             <CardHeader>
-              <CardTitle>Provider Reliability</CardTitle>
-              <CardDescription>Last 7 days uptime</CardDescription>
+              <CardTitle className="text-sm">Provider Reliability</CardTitle>
+              <CardDescription className="text-xs">Last 7 days uptime</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {providerUptime.map((item, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 rounded-lg border border-border-light">
-                    <span className="text-sm font-medium text-gray-900">{item.provider}</span>
+                  <div key={i} className="flex items-center justify-between p-2 rounded-lg border border-border-light">
+                    <span className="text-xs font-medium text-gray-900">{item.provider}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">{item.uptime}</span>
+                      <span className="text-xs text-gray-600">{item.uptime}</span>
                       <div className={`w-2 h-2 rounded-full ${
                         item.status === 'success' ? 'bg-green-500' : 'bg-yellow-500'
                       }`} />
@@ -700,17 +674,34 @@ export default function DashboardPage() {
                   systemHealth.overall_status === 'degraded' ? 'bg-yellow-500' :
                   'bg-red-500'
                 }`} />
-                <CardTitle>System Health</CardTitle>
+                <CardTitle className="text-sm">System Health</CardTitle>
               </div>
               <div className="text-xs text-gray-600">
                 Refreshes every 30s
               </div>
             </div>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Provider availability, latency metrics, and error rates
             </CardDescription>
           </CardHeader>
           <CardContent>
+            {/* Degraded Mode Banner */}
+            {systemHealth.degraded_mode && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="text-sm font-medium text-yellow-900 font-inter">
+                      System Operating in Degraded Mode
+                    </h3>
+                    <p className="text-sm text-yellow-800 mt-1">
+                      {systemHealth.degraded_reason || 'One or more providers experiencing issues. Requests are being routed to healthy alternatives.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-4">
               {systemHealth.providers.length === 0 ? (
                 <div className="text-center py-8 text-gray-600 text-sm">
@@ -718,18 +709,18 @@ export default function DashboardPage() {
                 </div>
               ) : (
                 systemHealth.providers.map((provider) => (
-                  <div key={provider.provider} className="border border-border-light rounded-lg p-4 bg-beige-primary">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
+                  <div key={provider.provider} className="border border-border-light rounded-lg p-3 bg-beige-primary">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${
                           provider.status === 'operational' ? 'bg-green-500' :
                           provider.status === 'degraded' ? 'bg-yellow-500' :
                           'bg-red-500'
                         }`} />
-                        <h4 className="font-medium text-gray-900 font-inter">
+                        <h4 className="font-medium text-gray-900 font-inter text-xs">
                           {provider.provider}
                         </h4>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        <span className={`px-1.5 py-0.5 rounded-full text-[0.65rem] font-medium ${
                           provider.status === 'operational' ? 'bg-green-100 text-green-700' :
                           provider.status === 'degraded' ? 'bg-yellow-100 text-yellow-700' :
                           'bg-red-100 text-red-700'
@@ -737,7 +728,7 @@ export default function DashboardPage() {
                           {provider.status}
                         </span>
                       </div>
-                      <div className="text-sm text-gray-900 font-medium">
+                      <div className="text-xs text-gray-900 font-medium">
                         {provider.availability.toFixed(2)}% available
                       </div>
                     </div>
@@ -755,10 +746,10 @@ export default function DashboardPage() {
                       </Button>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4 mb-3">
-                      <div className="bg-white rounded-md p-3 border border-border-light">
-                        <div className="text-xs text-gray-600 mb-1">Latency P99</div>
-                        <div className={`text-sm font-medium ${
+                    <div className="grid grid-cols-3 gap-3 mb-2">
+                      <div className="bg-white rounded-md p-2 border border-border-light">
+                        <div className="text-[0.65rem] text-gray-600 mb-0.5">Latency P99</div>
+                        <div className={`text-xs font-medium ${
                           provider.latency_p99 > systemHealth.thresholds.latency_p99_critical ? 'text-red-600' :
                           provider.latency_p99 > systemHealth.thresholds.latency_p99_warning ? 'text-yellow-600' :
                           'text-gray-900'
@@ -766,9 +757,9 @@ export default function DashboardPage() {
                           {formatLatency(provider.latency_p99)}
                         </div>
                       </div>
-                      <div className="bg-white rounded-md p-3 border border-border-light">
-                        <div className="text-xs text-gray-600 mb-1">Error Rate</div>
-                        <div className={`text-sm font-medium ${
+                      <div className="bg-white rounded-md p-2 border border-border-light">
+                        <div className="text-[0.65rem] text-gray-600 mb-0.5">Error Rate</div>
+                        <div className={`text-xs font-medium ${
                           provider.error_rate > systemHealth.thresholds.error_rate_critical ? 'text-red-600' :
                           provider.error_rate > systemHealth.thresholds.error_rate_warning ? 'text-yellow-600' :
                           'text-gray-900'
@@ -776,9 +767,9 @@ export default function DashboardPage() {
                           {provider.error_rate.toFixed(2)}%
                         </div>
                       </div>
-                      <div className="bg-white rounded-md p-3 border border-border-light">
-                        <div className="text-xs text-gray-600 mb-1">Fallback Freq</div>
-                        <div className="text-sm font-medium text-gray-900">
+                      <div className="bg-white rounded-md p-2 border border-border-light">
+                        <div className="text-[0.65rem] text-gray-600 mb-0.5">Fallback Freq</div>
+                        <div className="text-xs font-medium text-gray-900">
                           {provider.fallback_frequency.toFixed(1)}%
                         </div>
                       </div>
@@ -834,8 +825,8 @@ export default function DashboardPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Events from Overture, Runtime, and Agents</CardDescription>
+                <CardTitle className="text-sm">Recent Activity</CardTitle>
+                <CardDescription className="text-xs">Events from Overture, Runtime, and Agents</CardDescription>
               </div>
               <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/observability')}>
                 View All
@@ -866,25 +857,25 @@ export default function DashboardPage() {
                 return (
                   <div
                     key={activity.id}
-                    className={`p-4 rounded-lg border ${config.border} ${config.bg}`}
+                    className={`p-3 rounded-lg border ${config.border} ${config.bg}`}
                   >
-                    <div className="flex items-start gap-3">
-                      <Icon className={`h-5 w-5 ${config.text} flex-shrink-0 mt-0.5`} />
+                    <div className="flex items-start gap-2">
+                      <Icon className={`h-4 w-4 ${config.text} flex-shrink-0 mt-0.5`} />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className={`text-sm font-medium ${config.text} font-inter`}>
+                          <h4 className={`text-xs font-medium ${config.text} font-inter`}>
                             {activity.title}
                           </h4>
-                          <Badge className={`${categoryStyle.color} border text-xs`}>
+                          <Badge className={`${categoryStyle.color} border text-[0.65rem]`}>
                             {categoryStyle.label}
                           </Badge>
                         </div>
-                        <p className={`text-xs ${config.text} opacity-90`}>
+                        <p className={`text-[0.65rem] ${config.text} opacity-90`}>
                           {activity.description}
                         </p>
-                        <div className="flex items-center gap-2 mt-2">
+                        <div className="flex items-center gap-1.5 mt-1.5">
                           <Clock className="h-3 w-3 text-gray-600" />
-                          <span className="text-xs text-gray-600">
+                          <span className="text-[0.65rem] text-gray-600">
                             {formatDateTime(activity.timestamp)}
                           </span>
                         </div>

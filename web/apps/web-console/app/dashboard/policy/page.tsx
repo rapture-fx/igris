@@ -215,11 +215,11 @@ export default function PolicyPage() {
         {/* Routing Mode Selection */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-medium">
+            <CardTitle className="flex items-center gap-2 font-medium text-sm">
               <Shield className="h-5 w-5 text-gray-900" />
               Routing Strategy
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Choose how Overture optimizes your requests
             </CardDescription>
           </CardHeader>
@@ -331,11 +331,11 @@ export default function PolicyPage() {
         {/* Advanced Features */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-medium">
+            <CardTitle className="flex items-center gap-2 font-medium text-sm">
               <Zap className="h-5 w-5 text-gray-900" />
               Advanced Features
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Unlock premium capabilities
             </CardDescription>
           </CardHeader>
@@ -405,11 +405,11 @@ export default function PolicyPage() {
         {/* Active Routing Rules & Constraints */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-medium">
+            <CardTitle className="flex items-center gap-2 font-medium text-sm">
               <List className="h-5 w-5 text-gray-900" />
               Active Routing Rules
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Current constraints and evaluation logic
             </CardDescription>
           </CardHeader>
@@ -480,11 +480,11 @@ export default function PolicyPage() {
         {/* Model Allow/Deny Lists */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-medium">
+            <CardTitle className="flex items-center gap-2 font-medium text-sm">
               <Filter className="h-5 w-5 text-gray-900" />
               Model Access Control
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Allowed and denied models per provider
             </CardDescription>
           </CardHeader>
@@ -544,11 +544,11 @@ export default function PolicyPage() {
         {/* Escalation Logic */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-medium">
+            <CardTitle className="flex items-center gap-2 font-medium text-sm">
               <AlertCircle className="h-5 w-5 text-gray-900" />
               Escalation & Fallback Logic
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Automated responses to failure conditions
             </CardDescription>
           </CardHeader>
@@ -589,11 +589,11 @@ export default function PolicyPage() {
         {/* Policy Diffing */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 font-medium">
+            <CardTitle className="flex items-center gap-2 font-medium text-sm">
               <GitBranch className="h-5 w-5 text-gray-900" />
               Policy History & Diffing
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Compare current policy with previous versions
             </CardDescription>
           </CardHeader>

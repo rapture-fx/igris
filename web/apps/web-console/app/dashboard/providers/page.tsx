@@ -235,10 +235,10 @@ export default function ProvidersPage() {
         {/* Providers Table */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-sm">
               Your Providers
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               Manage API keys for all your LLM providers
             </CardDescription>
           </CardHeader>
@@ -252,27 +252,27 @@ export default function ProvidersPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border-light">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
                         Provider
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
                         Name
                       </th>
                       {tier === 'scale' && (
-                        <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 font-inter">
+                        <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
                           Tenant
                         </th>
                       )}
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
                         Models
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
                         Last Used
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
                         Status
                       </th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-600 font-inter">
+                      <th className="text-left py-2 px-3 text-xs font-medium text-gray-600 font-inter">
                         Actions
                       </th>
                     </tr>
@@ -315,7 +315,7 @@ export default function ProvidersPage() {
                                 className="flex items-center gap-2 cursor-pointer group"
                                 onClick={() => handleNameEdit(provider)}
                               >
-                                <span className="text-sm text-gray-900">
+                                <span className="text-xs text-gray-900">
                                   {provider.key_id || 'Click to add name'}
                                 </span>
                                 <Edit className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100" />
@@ -336,10 +336,10 @@ export default function ProvidersPage() {
                               </Select>
                             </td>
                           )}
-                          <td className="py-3 px-4 text-sm text-gray-900">
+                          <td className="py-2 px-3 text-xs text-gray-900">
                             All
                           </td>
-                          <td className="py-3 px-4 text-sm text-gray-600">
+                          <td className="py-2 px-3 text-xs text-gray-600">
                             {provider.last_used ? formatDate(provider.last_used) : 'Never'}
                           </td>
                           <td className="py-3 px-4">

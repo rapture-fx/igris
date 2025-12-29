@@ -1019,11 +1019,11 @@ export default function ObservabilityPage() {
         {/* 1. REAL-TIME METRICS - Live updating every 5s */}
         <Card className="border-border-light shadow-sm bg-gradient-to-br from-beige-primary to-beige-primary">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2">
               <Activity className="h-5 w-5 text-gray-900" />
               Real-Time Metrics
             </CardTitle>
-            <CardDescription>Updates every 5 seconds</CardDescription>
+            <CardDescription className="text-xs">Updates every 5 seconds</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -1203,7 +1203,7 @@ export default function ObservabilityPage() {
         {/* Filters */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2">
               <Filter className="h-5 w-5 text-gray-900" />
               Filters & Search
             </CardTitle>
@@ -1398,11 +1398,11 @@ export default function ObservabilityPage() {
         {/* Request Traces Table */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2">
               <Database className="h-5 w-5 text-gray-900" />
               Request Traces
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-xs">
               {filteredTraces.length} of {traces.length} requests
               {tier === 'growth' && ' (Limited to 1,000 requests)'}
               {tier === 'scale' && ' (Up to 100,000 requests)'}
@@ -1571,11 +1571,11 @@ export default function ObservabilityPage() {
         {/* 3. PERFORMANCE MONITORING - Dedicated Section */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2">
               <BarChart3 className="h-5 w-5 text-gray-900" />
               Performance Monitoring
             </CardTitle>
-            <CardDescription>Provider reliability and performance metrics</CardDescription>
+            <CardDescription className="text-xs">Provider reliability and performance metrics</CardDescription>
           </CardHeader>
           <CardContent>
             {/* Error Rate - Main Metric with 7-day rolling */}
@@ -1799,11 +1799,11 @@ export default function ObservabilityPage() {
         {/* 4. COST INSIGHTS - 3-Panel Layout */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="text-sm flex items-center gap-2">
               <Activity className="h-5 w-5 text-gray-900" />
               Cost Insights
             </CardTitle>
-            <CardDescription>30-day spend analysis across providers and models</CardDescription>
+            <CardDescription className="text-xs">30-day spend analysis across providers and models</CardDescription>
           </CardHeader>
           <CardContent>
             {/* Total Spend Overview */}
@@ -2044,11 +2044,11 @@ export default function ObservabilityPage() {
           <TabsContent value="audit" className="space-y-6">
             <Card className="border-border-light shadow-sm">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="text-sm flex items-center gap-2">
                   <Database className="h-5 w-5 text-gray-900" />
                   Audit Logs
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-xs">
                   System events, configuration changes, and access logs
                 </CardDescription>
               </CardHeader>

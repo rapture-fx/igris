@@ -86,8 +86,8 @@ export default function RuntimeEscapePage() {
 
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle>How EscapeVector Works</CardTitle>
-            <CardDescription>AES-256-GCM encrypted emergency cache for Runtime</CardDescription>
+            <CardTitle className="text-sm">How EscapeVector Works</CardTitle>
+            <CardDescription className="text-xs">AES-256-GCM encrypted emergency cache for Runtime</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">

@@ -148,9 +148,9 @@ export default function RuntimeFleetPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Server className="h-5 w-5 text-gray-900" />
-              <CardTitle>Runtime Instances</CardTitle>
+              <CardTitle className="text-sm">Runtime Instances</CardTitle>
             </div>
-            <CardDescription>Live status of distributed edge runtime nodes</CardDescription>
+            <CardDescription className="text-xs">Live status of distributed edge runtime nodes</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
