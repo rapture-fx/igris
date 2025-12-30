@@ -2048,27 +2048,21 @@ export default function ObservabilityPage() {
                     <ResponsiveContainer width="100%" height={180}>
                       <PieChart>
                         <defs>
-                          {/* Super thin, compact diagonal stripe patterns */}
-                          <pattern id="stripe-0" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#000000" />
+                          <pattern id="obs-stripe-0" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                            <rect width="2" height="3" fill="#114dcd" />
+                            <rect x="2" width="1" height="3" fill="#ffffff" />
                           </pattern>
-                          <pattern id="stripe-1" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#1a1a1a" />
+                          <pattern id="obs-stripe-1" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                            <rect width="2" height="3" fill="#299a93" />
+                            <rect x="2" width="1" height="3" fill="#ffffff" />
                           </pattern>
-                          <pattern id="stripe-2" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#333333" />
+                          <pattern id="obs-stripe-2" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                            <rect width="2" height="3" fill="#1f53d0" />
+                            <rect x="2" width="1" height="3" fill="#ffffff" />
                           </pattern>
-                          <pattern id="stripe-3" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#4d4d4d" />
-                          </pattern>
-                          <pattern id="stripe-4" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#666666" />
-                          </pattern>
-                          <pattern id="stripe-5" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#808080" />
-                          </pattern>
-                          <pattern id="stripe-6" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                            <rect width="1" height="2" fill="#999999" />
+                          <pattern id="obs-stripe-3" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                            <rect width="2" height="3" fill="#6b7280" />
+                            <rect x="2" width="1" height="3" fill="#ffffff" />
                           </pattern>
                         </defs>
                         <Pie
@@ -2079,25 +2073,27 @@ export default function ObservabilityPage() {
                           cy="50%"
                           outerRadius={60}
                           label={(entry) => `${entry.percentage}%`}
+                          labelLine={false}
+                          style={{ fontSize: '8px' }}
                         >
                           {costInsightsMetrics.spendByProvider.map((entry, index) => {
-                            return <Cell key={`cell-${index}`} fill={`url(#stripe-${index % 7})`} stroke="#000" strokeWidth={1} />;
+                            return <Cell key={`cell-${index}`} fill={`url(#obs-stripe-${index % 4})`} />;
                           })}
                         </Pie>
                         <Tooltip
                           formatter={(value: any) => `$${value.toFixed(2)}`}
                           contentStyle={{
-                            backgroundColor: '#f2f1ed',
-                            border: '1px solid #e5e4e0',
-                            borderRadius: '8px',
-                            fontSize: '10px'
+                            backgroundColor: '#faf9f7',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '6px',
+                            fontSize: '9px'
                           }}
                         />
                       </PieChart>
                     </ResponsiveContainer>
                     <div className="mt-12 space-y-1.5">
                       {costInsightsMetrics.spendByProvider.map((provider, index) => {
-                        const gradientColors = ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999'];
+                        const gradientColors = ['#114dcd', '#299a93', '#1f53d0', '#6b7280'];
                         return (
                           <div key={index} className="flex items-center justify-between text-[0.65rem]">
                             <div className="flex items-center gap-1.5">

@@ -1,5 +1,4 @@
 import React from 'react'
-import Image from 'next/image'
 
 export default function HowItWorks() {
   return (
@@ -95,7 +94,7 @@ export default function HowItWorks() {
               {/* Right Column - Diagram and Explanation */}
               <div className="lg:col-span-2 relative flex items-center justify-center">
                 <div className="w-full relative z-10">
-                  <Image
+                  <img
                     src="/flow.png"
                     alt="Igris Inertial Flow Diagram"
                     width={700}

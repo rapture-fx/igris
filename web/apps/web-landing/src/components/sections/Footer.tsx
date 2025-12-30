@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 
 export default function Footer() {
 
@@ -32,11 +31,12 @@ export default function Footer() {
             {/* Right side - Logo */}
             <div className="flex items-center space-x-2">
               <div className="flex items-center">
-                <Image
+                <img
                   src="/schlep-logo-34.png"
                   alt="Igris Inertial"
                   width={20}
                   height={20}
+                  style={{ width: '20px', height: '20px' }}
                 />
               </div>
             </div>

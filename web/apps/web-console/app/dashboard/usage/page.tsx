@@ -98,7 +98,7 @@ export default function UsagePage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="pb-4 border-b border-border-light">
@@ -214,8 +214,8 @@ export default function UsagePage() {
                     <XAxis dataKey="timestamp" stroke="#6b7280" style={{ fontSize: '10px' }} />
                     <YAxis yAxisId="left" stroke="#6b7280" style={{ fontSize: '10px' }} />
                     <YAxis yAxisId="right" orientation="right" stroke="#6b7280" style={{ fontSize: '10px' }} />
-                    <Tooltip contentStyle={{ fontSize: '11px' }} />
-                    <Legend 
+                    <Tooltip contentStyle={{ fontSize: '11px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
+                    <Legend
                     wrapperStyle={{ fontSize: '11px' }}
                   />
                     <Line
@@ -226,15 +226,17 @@ export default function UsagePage() {
                       strokeWidth={0.5}
                       strokeDasharray=""
                       name="Requests (—)"
+                      dot={false}
                     />
                     <Line
                       yAxisId="right"
                       type="monotone"
                       dataKey="cost"
-                      stroke="#000000"
+                      stroke="#114dcd"
                       strokeWidth={0.5}
                       strokeDasharray="5,5"
                       name="Cost - - ($)"
+                      dot={false}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -253,18 +255,21 @@ export default function UsagePage() {
                   <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
                       <defs>
-                        {/* Super thin, compact diagonal stripe patterns */}
-                        <pattern id="stripe-0" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                          <rect width="1" height="2" fill="#000000" />
+                        <pattern id="stripe-0" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#114dcd" />
+                          <rect x="2" width="1" height="3" fill="#ffffff" />
                         </pattern>
-                        <pattern id="stripe-1" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                          <rect width="1" height="2" fill="#6b7280" />
+                        <pattern id="stripe-1" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#299a93" />
+                          <rect x="2" width="1" height="3" fill="#ffffff" />
                         </pattern>
-                        <pattern id="stripe-2" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                          <rect width="1" height="2" fill="#374151" />
+                        <pattern id="stripe-2" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#1f53d0" />
+                          <rect x="2" width="1" height="3" fill="#ffffff" />
                         </pattern>
-                        <pattern id="stripe-3" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                          <rect width="1" height="2" fill="#4b5563" />
+                        <pattern id="stripe-3" patternUnits="userSpaceOnUse" width="3" height="3" patternTransform="rotate(45)">
+                          <rect width="2" height="3" fill="#6b7280" />
+                          <rect x="2" width="1" height="3" fill="#ffffff" />
                         </pattern>
                       </defs>
                       <Pie
@@ -276,13 +281,13 @@ export default function UsagePage() {
                         outerRadius={60}
                         fill="#8884d8"
                         dataKey="cost"
-                        style={{ fontSize: '10px' }}
+                        style={{ fontSize: '8px' }}
                       >
                         {(displayUsage?.by_provider || []).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={`url(#stripe-${index % 4})`} stroke="#000" strokeWidth={1} />
+                          <Cell key={`cell-${index}`} fill={`url(#stripe-${index % 4})`} />
                         ))}
                       </Pie>
-                      <Tooltip contentStyle={{ fontSize: '11px' }} />
+                      <Tooltip contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>

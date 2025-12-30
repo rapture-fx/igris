@@ -38,6 +38,29 @@ export const API_ENDPOINTS = {
   ESCAPEVECTOR_ANALYTICS: '/v1/escapevector/analytics',
   ESCAPEVECTOR_REFRESH: '/v1/escapevector/refresh',
   ESCAPEVECTOR_CACHE: '/v1/escapevector/cache',
+
+  // Shadow Mode
+  SHADOW_STATUS: '/v1/shadow/status',
+  SHADOW_CONFIG: '/v1/shadow/config',
+  SHADOW_ANALYTICS: '/v1/shadow/analytics',
+  SHADOW_LOGS: '/v1/shadow/logs',
+  SHADOW_START: '/v1/shadow/start',
+  SHADOW_STOP: '/v1/shadow/stop',
+  SHADOW_PROMOTE: '/v1/shadow/promote',
+
+  // Speculative Router
+  SPECULATIVE_STATUS: '/v1/routing/speculative/status',
+  SPECULATIVE_CONFIG: '/v1/routing/speculative/config',
+  SPECULATIVE_ANALYTICS: '/v1/routing/speculative/analytics',
+  SPECULATIVE_RACES: '/v1/routing/speculative/races',
+  SPECULATIVE_SIMULATE: '/v1/routing/speculative/simulate',
+
+  // Cognitive Advisor
+  COGNITIVE_STATUS: '/v1/cognitive/status',
+  COGNITIVE_OBSERVATIONS: '/v1/cognitive/observations',
+  COGNITIVE_RECOMMENDATIONS: '/v1/cognitive/recommendations',
+  COGNITIVE_HISTORY: '/v1/cognitive/history',
+  COGNITIVE_CONFIG: '/v1/cognitive/config',
 };
 
 export const COOKIE_KEYS = {
@@ -62,6 +85,19 @@ export const QUERY_KEYS = {
   ESCAPEVECTOR_CONFIG: 'escapevector_config',
   ESCAPEVECTOR_HISTORY: 'escapevector_history',
   ESCAPEVECTOR_ANALYTICS: 'escapevector_analytics',
+  SHADOW_STATUS: 'shadow_status',
+  SHADOW_CONFIG: 'shadow_config',
+  SHADOW_ANALYTICS: 'shadow_analytics',
+  SHADOW_LOGS: 'shadow_logs',
+  SPECULATIVE_STATUS: 'speculative_status',
+  SPECULATIVE_CONFIG: 'speculative_config',
+  SPECULATIVE_ANALYTICS: 'speculative_analytics',
+  SPECULATIVE_RACES: 'speculative_races',
+  COGNITIVE_STATUS: 'cognitive_status',
+  COGNITIVE_OBSERVATIONS: 'cognitive_observations',
+  COGNITIVE_RECOMMENDATIONS: 'cognitive_recommendations',
+  COGNITIVE_HISTORY: 'cognitive_history',
+  COGNITIVE_CONFIG: 'cognitive_config',
 };
 
 export const ROUTES = {
