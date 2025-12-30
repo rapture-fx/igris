@@ -47,7 +47,7 @@ export default function RuntimeFleetPage() {
   if (isLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-64">
+        <div className="max-w-5xl mx-auto flex items-center justify-center h-64">
           <RefreshCw className="h-8 w-8 animate-spin text-gray-900 mr-3" />
           <span className="text-gray-600">Loading fleet status...</span>
         </div>
@@ -57,7 +57,7 @@ export default function RuntimeFleetPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div className="pb-4 border-b border-border-light">
             <h1 className="text-base font-medium text-gray-900 font-inter">Fleet Overview</h1>
