@@ -831,13 +831,13 @@ export default function ObservabilityPage() {
 
   const getStatusBadge = (status: number) => {
     if (status === 200) {
-      return <Badge className="bg-gray-50 text-gray-700 border-gray-200">200 OK</Badge>;
+      return <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">200 OK</Badge>;
     } else if (status === 429) {
-      return <Badge style={{ backgroundColor: '#ffc2c2', color: '#991b1b', borderColor: '#ffc2c2' }}>429 Rate Limit</Badge>;
+      return <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 text-xs">429 Rate Limit</Badge>;
     } else if (status === 500) {
-      return <Badge style={{ backgroundColor: '#ffc2c2', color: '#991b1b', borderColor: '#ffc2c2' }}>{status} Error</Badge>;
+      return <Badge className="bg-red-50 text-red-700 border-red-200 text-xs">{status} Error</Badge>;
     } else {
-      return <Badge className="bg-red-50 text-red-700 border-red-200">{status} Error</Badge>;
+      return <Badge className="bg-red-50 text-red-700 border-red-200 text-xs">{status} Error</Badge>;
     }
   };
 
@@ -873,7 +873,7 @@ export default function ObservabilityPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-lg font-semibold text-gray-900 font-inter">
+                <h1 className="text-base font-medium text-gray-900 font-inter">
                   Observability
                 </h1>
                 {tier === 'growth' && (
@@ -887,7 +887,7 @@ export default function ObservabilityPage() {
                   </Badge>
                 )}
               </div>
-              <p className="text-gray-700 mt-1 font-inter font-medium">
+              <p className="text-gray-600 mt-1 font-inter text-xs">
                 Monitor and debug LLM requests in real-time
               </p>
             </div>
@@ -928,7 +928,7 @@ export default function ObservabilityPage() {
                   >
                     <option>All tenants</option>
                   </Select>
-                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-beige-primary border border-border-light rounded-lg shadow-sm p-3 z-50">
+                  <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block w-64 bg-beige-primary border border-gray-200/20 rounded-lg p-3 z-50">
                     <p className="text-xs text-gray-600">
                       Multi-tenant view available on Scale plan
                     </p>
@@ -951,7 +951,7 @@ export default function ObservabilityPage() {
                         <AlertCircle className="h-5 w-5 text-gray-600" />
                       </button>
                       {showTracingInfo && (
-                        <div className="absolute top-full right-0 mt-2 w-80 bg-beige-primary border border-border-light rounded-lg shadow-sm p-4 z-50">
+                        <div className="absolute top-full right-0 mt-2 w-80 bg-beige-primary border border-gray-200/20 rounded-lg p-4 z-50">
                           <div className="flex items-start gap-3">
                             <AlertCircle className="h-5 w-5 text-gray-900 flex-shrink-0 mt-0.5" />
                             <div>
@@ -985,7 +985,8 @@ export default function ObservabilityPage() {
               ) : (
                 <Button
                   variant="outline"
-                  className="shadow-sm"
+                  size="sm"
+                  className="shadow-sm text-xs"
                   onClick={() => setEnableFullTracing(true)}
                 >
                   Enable Full Tracing
@@ -993,11 +994,11 @@ export default function ObservabilityPage() {
               )}
               {tierConfig.fullFeatures && (
                 <>
-                  <Button variant="outline" className="shadow-sm" onClick={handleExportCSV}>
+                  <Button variant="outline" size="sm" className="shadow-sm text-xs" onClick={handleExportCSV}>
                     <Download className="h-4 w-4 mr-2" />
                     Export CSV
                   </Button>
-                  <Button variant="outline" className="shadow-sm" onClick={handleExportJSON}>
+                  <Button variant="outline" size="sm" className="shadow-sm text-xs" onClick={handleExportJSON}>
                     <Download className="h-4 w-4 mr-2" />
                     Export JSON
                   </Button>
@@ -1010,8 +1011,8 @@ export default function ObservabilityPage() {
         {/* Tabs: Traces and Audit Logs */}
         <Tabs defaultValue="traces" className="w-full">
           <TabsList className="border border-border-light mb-6">
-            <TabsTrigger value="traces">Traces</TabsTrigger>
-            <TabsTrigger value="audit">Audit Logs</TabsTrigger>
+            <TabsTrigger value="traces" className="text-xs">Traces</TabsTrigger>
+            <TabsTrigger value="audit" className="text-xs">Audit Logs</TabsTrigger>
           </TabsList>
 
           {/* Traces Tab Content */}
@@ -1020,7 +1021,7 @@ export default function ObservabilityPage() {
         <Card className="border-border-light shadow-sm bg-gradient-to-br from-beige-primary to-beige-primary">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="h-5 w-5 text-gray-900" />
+              <Activity className="h-4 w-4 text-gray-900" />
               Real-Time Metrics
             </CardTitle>
             <CardDescription className="text-xs">Updates every 5 seconds</CardDescription>
@@ -1031,11 +1032,11 @@ export default function ObservabilityPage() {
               <div className="space-y-2">
                 <p className="text-xs font-medium text-gray-600">Requests / Second</p>
                 <div className="flex items-end gap-3">
-                  <p className="text-3xl font-bold text-gray-900">{realTimeMetrics.requestsPerSecond.toFixed(1)}</p>
+                  <p className="text-lg font-bold text-gray-900">{realTimeMetrics.requestsPerSecond.toFixed(1)}</p>
                   <div className="flex-1 h-8">
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={realTimeMetrics.requestsSparkline}>
-                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={1} dot={false} />
+                        <Line type="monotone" dataKey="value" stroke="#000000" strokeWidth={0.5} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -1063,7 +1064,7 @@ export default function ObservabilityPage() {
               <div className="space-y-2">
                 <p className="text-xs font-medium text-gray-600">Cost / Hour</p>
                 <div className="space-y-1">
-                  <p className="text-3xl font-bold text-gray-900">${realTimeMetrics.costPerHour.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-gray-900">${realTimeMetrics.costPerHour.toFixed(2)}</p>
                   <div className="flex items-center gap-2 text-xs text-gray-600">
                     <span>Projected: ${(realTimeMetrics.costPerHour * 24).toFixed(2)}/day</span>
                   </div>
@@ -1074,7 +1075,7 @@ export default function ObservabilityPage() {
               {/* Active Providers */}
               <div className="space-y-2">
                 <p className="text-xs font-medium text-gray-600">Active Providers</p>
-                <p className="text-3xl font-bold text-gray-900">{realTimeMetrics.activeProviders}</p>
+                <p className="text-lg font-bold text-gray-900">{realTimeMetrics.activeProviders}</p>
                 <div className="flex gap-1 mt-2">
                   {['OpenAI', 'Anthropic', 'Google', 'xAI', 'Cohere'].slice(0, realTimeMetrics.activeProviders).map((provider, i) => (
                     <Badge key={i} variant="outline" className="text-xs">{provider}</Badge>
@@ -1204,7 +1205,7 @@ export default function ObservabilityPage() {
         <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <Filter className="h-5 w-5 text-gray-900" />
+              <Filter className="h-4 w-4 text-gray-900" />
               Filters & Search
             </CardTitle>
           </CardHeader>
@@ -1218,7 +1219,7 @@ export default function ObservabilityPage() {
                     placeholder="Search requests..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                    className="pl-10 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
                   />
                 </div>
               </div>
@@ -1227,7 +1228,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.provider}
                 onChange={(e) => setFilters(prev => ({ ...prev, provider: e.target.value }))}
-                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="">All Providers</option>
                 <option value="OpenAI">OpenAI</option>
@@ -1240,7 +1241,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.status}
                 onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
-                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="">All Status</option>
                 <option value="200">200 OK</option>
@@ -1252,7 +1253,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.tag || ''}
                 onChange={(e) => setFilters(prev => ({ ...prev, tag: e.target.value as RequestTag | '' }))}
-                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="">All Tags</option>
                 <option value="expected">Expected</option>
@@ -1266,7 +1267,7 @@ export default function ObservabilityPage() {
               <Select
                 value={filters.timeRange}
                 onChange={(e) => setFilters(prev => ({ ...prev, timeRange: e.target.value }))}
-                className="focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                className="text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
               >
                 <option value="1h">Last Hour</option>
                 <option value="24h">Last 24h</option>
@@ -1280,7 +1281,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.hasError ? 'bg-beige-primary shadow-sm text-gray-900 border border-border-light' : ''}
+                className={filters.hasError ? 'bg-beige-primary text-gray-900 border border-border-light text-xs' : 'text-xs'}
                 onClick={() => setFilters(prev => ({ ...prev, hasError: !prev.hasError }))}
               >
                 {filters.hasError && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1289,7 +1290,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.usedSpeculative ? 'bg-beige-primary shadow-sm text-gray-900 border border-border-light' : ''}
+                className={filters.usedSpeculative ? 'bg-beige-primary text-gray-900 border border-border-light text-xs' : 'text-xs'}
                 onClick={() => setFilters(prev => ({ ...prev, usedSpeculative: !prev.usedSpeculative }))}
               >
                 {filters.usedSpeculative && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1298,7 +1299,7 @@ export default function ObservabilityPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className={filters.wasRetried ? 'bg-beige-primary shadow-sm text-gray-900 border border-border-light' : ''}
+                className={filters.wasRetried ? 'bg-beige-primary text-gray-900 border border-border-light text-xs' : 'text-xs'}
                 onClick={() => setFilters(prev => ({ ...prev, wasRetried: !prev.wasRetried }))}
               >
                 {filters.wasRetried && <CheckCircle className="h-3 w-3 mr-1" />}
@@ -1368,7 +1369,7 @@ export default function ObservabilityPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => handleLoadPreset(preset)}
-                        className="h-auto p-0 text-sm font-medium text-gray-900 hover:text-gray-700"
+                        className="h-auto p-0 text-xs font-medium text-gray-900 hover:text-gray-700"
                       >
                         {preset.name}
                       </Button>
@@ -1384,9 +1385,9 @@ export default function ObservabilityPage() {
                     placeholder="Preset name..."
                     value={presetName}
                     onChange={(e) => setPresetName(e.target.value)}
-                    className="flex-1 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
+                    className="flex-1 text-xs focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none focus:border-border-light"
                   />
-                  <Button variant="outline" size="sm" onClick={handleSavePreset}>
+                  <Button variant="outline" size="sm" className="text-xs" onClick={handleSavePreset}>
                     Save Current Filters
                   </Button>
                 </div>
@@ -1399,7 +1400,7 @@ export default function ObservabilityPage() {
         <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <Database className="h-5 w-5 text-gray-900" />
+              <Database className="h-4 w-4 text-gray-900" />
               Request Traces
             </CardTitle>
             <CardDescription className="text-xs">
@@ -1425,7 +1426,7 @@ export default function ObservabilityPage() {
                 </div>
                 <div className="mt-8 max-w-2xl mx-auto">
                   <div className="relative group">
-                    <pre className="bg-beige-primary border border-border-light text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto shadow-sm">
+                    <pre className="bg-beige-primary border border-gray-200/20 text-gray-700 p-4 rounded-lg text-left text-xs font-mono overflow-x-auto">
 {`curl -X POST https://api.overture.com/v1/chat/completions \\
   -H "Authorization: Bearer sk-..." \\
   -H "Content-Type: application/json" \\
@@ -1475,16 +1476,16 @@ export default function ObservabilityPage() {
                         className="border-b border-border-light hover:bg-beige-primary cursor-pointer transition-colors"
                         onClick={() => setSelectedTrace(trace)}
                       >
-                        <td className="py-2 px-3 text-sm text-gray-900 font-inter">
+                        <td className="py-2 px-3 text-xs text-gray-900 font-inter">
                           {new Date(trace.timestamp).toLocaleTimeString()}
                         </td>
-                        <td className="py-2 px-3 text-sm font-medium text-gray-900">
+                        <td className="py-2 px-3 text-xs font-medium text-gray-900">
                           <div className="flex flex-col">
                             <span>{trace.model}</span>
-                            {trace.model_version && <span className="text-xs text-gray-600">{trace.model_version}</span>}
+                            {trace.model_version && <span className="text-[0.65rem] text-gray-600">{trace.model_version}</span>}
                           </div>
                         </td>
-                        <td className="py-2 px-3 text-sm text-gray-900">
+                        <td className="py-2 px-3 text-xs text-gray-900">
                           {trace.provider}
                         </td>
                         <td className="py-2 px-3">
@@ -1494,32 +1495,32 @@ export default function ObservabilityPage() {
                             {trace.retry_count && trace.retry_count > 0 && <Badge variant="outline" className="text-xs">{trace.retry_count}x</Badge>}
                           </div>
                         </td>
-                        <td className="text-right py-2 px-3 text-sm text-gray-900">
+                        <td className="text-right py-2 px-3 text-xs text-gray-900">
                           {formatLatency(trace.latency)}
                         </td>
-                        <td className="text-right py-2 px-3 text-sm text-gray-900">
+                        <td className="text-right py-2 px-3 text-xs text-gray-900">
                           {formatCurrency(trace.cost)}
                         </td>
-                        <td className="text-right py-2 px-3 text-sm text-gray-900">
+                        <td className="text-right py-2 px-3 text-xs text-gray-900">
                           {formatNumber(trace.tokens.total)}
                         </td>
                         <td className="py-2 px-3">
                           {trace.cache_hit ? (
                             <div className="flex flex-col">
-                              <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs">HIT</Badge>
+                              <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">HIT</Badge>
                               {trace.cache_savings && trace.cache_savings > 0 && (
-                                <span className="text-xs text-gray-600 mt-1">-{formatCurrency(trace.cache_savings)}</span>
+                                <span className="text-xs text-green-600 mt-1">-{formatCurrency(trace.cache_savings)}</span>
                               )}
                             </div>
                           ) : (
                             <Badge variant="outline" className="text-xs text-gray-600">MISS</Badge>
                           )}
                         </td>
-                        <td className="py-2 px-3 text-sm text-gray-900">
+                        <td className="py-2 px-3 text-xs text-gray-900">
                           {trace.user_id && (
                             <div className="flex flex-col">
                               <span className="text-xs">{trace.user_id}</span>
-                              {trace.session_id && <span className="text-xs text-gray-600">{trace.session_id}</span>}
+                              {trace.session_id && <span className="text-[0.65rem] text-gray-600">{trace.session_id}</span>}
                             </div>
                           )}
                         </td>
@@ -1572,7 +1573,7 @@ export default function ObservabilityPage() {
         <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-gray-900" />
+              <BarChart3 className="h-4 w-4 text-gray-900" />
               Performance Monitoring
             </CardTitle>
             <CardDescription className="text-xs">Provider reliability and performance metrics</CardDescription>
@@ -1584,7 +1585,7 @@ export default function ObservabilityPage() {
                 <div className="flex-1">
                   <h3 className="text-sm font-medium text-gray-900 mb-2">Error Rate (7-day rolling)</h3>
                   <div className="flex items-center gap-3">
-                    <span className="text-4xl font-bold text-gray-900">{errorRateMetrics.sevenDayErrorRate}%</span>
+                    <span className="text-lg font-bold text-gray-900">{errorRateMetrics.sevenDayErrorRate}%</span>
                     <div className="flex items-center gap-1">
                       {errorRateMetrics.trendDirection === 'up' && (
                         <>
@@ -1624,7 +1625,7 @@ export default function ObservabilityPage() {
                       content={({ active, payload }) => {
                         if (active && payload && payload.length) {
                           return (
-                            <div className="bg-beige-primary border border-border-light rounded-md p-2 shadow-sm">
+                            <div className="bg-beige-primary border border-gray-200/20 rounded-md p-2">
                               <p className="text-xs text-gray-600">{payload[0].payload.day}</p>
                               <p className="text-sm font-semibold text-gray-900">{payload[0].value}%</p>
                             </div>
@@ -1637,7 +1638,7 @@ export default function ObservabilityPage() {
                       type="monotone"
                       dataKey="rate"
                       stroke="#000000"
-                      strokeWidth={1}
+                      strokeWidth={0.5}
                       fill="url(#errorRateGradient)"
                       dot={false}
                     />
@@ -1746,12 +1747,12 @@ export default function ObservabilityPage() {
                         <XAxis
                           dataKey="latency"
                           stroke="#6b7280"
-                          fontSize={11}
+                          style={{ fontSize: '10px' }}
                           label={{ value: 'Latency (ms)', position: 'insideBottom', offset: -10 }}
                         />
                         <YAxis
                           stroke="#6b7280"
-                          fontSize={11}
+                          style={{ fontSize: '10px' }}
                           domain={[0, 100]}
                           label={{ value: '% of Requests', angle: -90, position: 'insideLeft' }}
                         />
@@ -1774,7 +1775,7 @@ export default function ObservabilityPage() {
                               type="monotone"
                               dataKey={provider}
                               stroke={colors[idx % colors.length]}
-                              strokeWidth={1}
+                              strokeWidth={0.5}
                               dot={false}
                               activeDot={{ r: 3 }}
                             />
@@ -1800,7 +1801,7 @@ export default function ObservabilityPage() {
         <Card className="border-border-light shadow-sm">
           <CardHeader>
             <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="h-5 w-5 text-gray-900" />
+              <Activity className="h-4 w-4 text-gray-900" />
               Cost Insights
             </CardTitle>
             <CardDescription className="text-xs">30-day spend analysis across providers and models</CardDescription>
@@ -1811,7 +1812,7 @@ export default function ObservabilityPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-gray-600 mb-1">Total Spend (30 days)</p>
-                  <p className="text-3xl font-bold text-gray-900">${costInsightsMetrics.totalSpend.toFixed(2)}</p>
+                  <p className="text-lg font-bold text-gray-900">${costInsightsMetrics.totalSpend.toFixed(2)}</p>
                 </div>
                 <div className="flex items-center gap-2">
                   {costInsightsMetrics.totalTrend > 0 ? (
@@ -1848,7 +1849,7 @@ export default function ObservabilityPage() {
                           nameKey="provider"
                           cx="50%"
                           cy="50%"
-                          outerRadius={110}
+                          outerRadius={60}
                           label={(entry) => `${entry.percentage}%`}
                         >
                           {costInsightsMetrics.spendByProvider.map((entry, index) => {
@@ -1919,12 +1920,12 @@ export default function ObservabilityPage() {
                     <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={costInsightsMetrics.spendByModel} layout="vertical" margin={{ left: 80 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis type="number" stroke="#6b7280" fontSize={11} />
+                        <XAxis type="number" stroke="#6b7280" style={{ fontSize: '10px' }} />
                         <YAxis
                           type="category"
                           dataKey="model"
                           stroke="#6b7280"
-                          fontSize={11}
+                          style={{ fontSize: '10px' }}
                           width={70}
                         />
                         <Tooltip
@@ -2206,11 +2207,11 @@ export default function ObservabilityPage() {
               <div className="space-y-6">
                 {/* Privacy Banner in Detail View when Full Tracing is OFF - Show First */}
                 {!enableFullTracing && (
-                  <div className="bg-beige-primary border border-border-light rounded-md p-4">
+                  <div className="bg-beige-primary border border-gray-200/20 rounded-md p-4">
                     <div className="flex items-center gap-3">
-                      <CheckCircle className="h-5 w-5 text-gray-900 flex-shrink-0" />
+                      <CheckCircle className="h-4 w-4 text-gray-900 flex-shrink-0" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">Full tracing is disabled</p>
+                        <p className="text-xs font-medium text-gray-900">Full tracing is disabled</p>
                         <p className="text-xs text-gray-600 mt-1">
                           Enable full tracing in the banner above to see prompts, completions, and detailed traces. Metadata-only mode protects your privacy.
                         </p>
@@ -2245,7 +2246,7 @@ export default function ObservabilityPage() {
                       <p className="text-xs text-gray-600">Cost</p>
                       <p className="text-sm font-medium text-gray-900">{formatCurrency(selectedTrace.cost)}</p>
                       {selectedTrace.cache_hit && selectedTrace.cache_savings && selectedTrace.cache_savings > 0 && (
-                        <p className="text-xs text-gray-600 mt-1">Saved: {formatCurrency(selectedTrace.cache_savings)}</p>
+                        <p className="text-xs text-green-600 mt-1">Saved: {formatCurrency(selectedTrace.cache_savings)}</p>
                       )}
                     </div>
                     <div>
@@ -2258,7 +2259,7 @@ export default function ObservabilityPage() {
                       <p className="text-xs text-gray-600">Status</p>
                       <div className="mt-1 flex items-center gap-2">
                         {getStatusBadge(selectedTrace.status)}
-                        {selectedTrace.cache_hit && <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs">CACHE HIT</Badge>}
+                        {selectedTrace.cache_hit && <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">CACHE HIT</Badge>}
                       </div>
                     </div>
                     {selectedTrace.user_id && (
@@ -2353,7 +2354,7 @@ export default function ObservabilityPage() {
                             onClick={() => copyToClipboard(selectedTrace.prompt || '')}
                           />
                         </div>
-                        <div className="bg-beige-primary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
+                        <div className="bg-beige-primary border border-gray-200/20 rounded-md p-3 max-h-64 overflow-y-auto">
                           <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.prompt}</pre>
                         </div>
                       </div>
@@ -2365,7 +2366,7 @@ export default function ObservabilityPage() {
                             onClick={() => copyToClipboard(selectedTrace.completion || '')}
                           />
                         </div>
-                        <div className="bg-beige-primary border border-border-light rounded-md p-3 max-h-64 overflow-y-auto">
+                        <div className="bg-beige-primary border border-gray-200/20 rounded-md p-3 max-h-64 overflow-y-auto">
                           <pre className="text-xs text-gray-900 whitespace-pre-wrap font-mono">{selectedTrace.completion}</pre>
                         </div>
                       </div>
@@ -2377,7 +2378,7 @@ export default function ObservabilityPage() {
                 {enableFullTracing && selectedTrace.generation_params && tierConfig.fullFeatures && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 mb-3">Generation Parameters</h3>
-                    <div className="grid grid-cols-3 gap-4 bg-beige-primary border border-border-light rounded-md p-4">
+                    <div className="grid grid-cols-3 gap-4 bg-beige-primary border border-gray-200/20 rounded-md p-4">
                       {selectedTrace.generation_params.temperature !== undefined && (
                         <div>
                           <p className="text-xs text-gray-600">Temperature</p>
@@ -2422,7 +2423,7 @@ export default function ObservabilityPage() {
                 {(selectedTrace.parent_request_id || selectedTrace.child_request_ids) && tierConfig.fullFeatures && (
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 mb-3">Request Chain</h3>
-                    <div className="bg-beige-primary border border-border-light rounded-md p-4">
+                    <div className="bg-beige-primary border border-gray-200/20 rounded-md p-4">
                       <div className="flex items-center gap-3">
                         {selectedTrace.parent_request_id && (
                           <>
@@ -2485,19 +2486,19 @@ export default function ObservabilityPage() {
                             dataKey="token_index"
                             stroke="#6b7280"
                             label={{ value: 'Token #', position: 'insideBottom', offset: -10 }}
-                            style={{ fontSize: '11px' }}
+                            style={{ fontSize: '10px' }}
                           />
                           <YAxis
                             stroke="#6b7280"
                             width={50}
-                            style={{ fontSize: '11px' }}
+                            style={{ fontSize: '10px' }}
                           />
                           <Tooltip />
                           <Line
                             type="monotone"
                             dataKey="timestamp"
                             stroke="#004aad"
-                            strokeWidth={1}
+                            strokeWidth={0.5}
                             dot={(props: any) => {
                               const point = selectedTrace.token_timeline?.[props.index];
                               if (point?.is_first || point?.is_last) {
@@ -2559,7 +2560,7 @@ export default function ObservabilityPage() {
                                 }}
                               />
                               {/* Enhanced Tooltip */}
-                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-beige-primary border border-border-light rounded-lg shadow-sm z-50">
+                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block w-56 p-3 bg-beige-primary border border-gray-200/20 rounded-lg z-50">
                                 <div className="space-y-1.5 text-xs">
                                   <div className="flex justify-between">
                                     <span className="text-gray-600">Provider:</span>
@@ -2647,7 +2648,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-primary shadow-sm text-gray-900 border border-border-light')}
+                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-primary text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
                             // Optimistic update would go here
@@ -2659,7 +2660,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-primary shadow-sm text-gray-900 border border-border-light')}
+                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-primary text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
                             // Optimistic update would go here
@@ -2734,7 +2735,7 @@ export default function ObservabilityPage() {
                     <Filter className="h-4 w-4" />
                     Policy Evaluation & Decision Tree
                   </h3>
-                  <div className="bg-beige-primary border border-border-light rounded-lg p-4 space-y-3">
+                  <div className="bg-beige-primary border border-gray-200/20 rounded-lg p-4 space-y-3">
                     {/* Decision Flow */}
                     <div className="space-y-2">
                       <div className="flex items-start gap-3">
@@ -2919,7 +2920,7 @@ export default function ObservabilityPage() {
                   {traceNotes[selectedTrace.id] && traceNotes[selectedTrace.id].length > 0 && (
                     <div className="space-y-3">
                       {traceNotes[selectedTrace.id].slice(-5).reverse().map((note, idx) => (
-                        <div key={note.id} className="bg-beige-primary border border-border-light rounded-md p-3">
+                        <div key={note.id} className="bg-beige-primary border border-gray-200/20 rounded-md p-3">
                           <div className="flex items-start justify-between gap-2 mb-2">
                             <div className="flex items-center gap-2">
                               <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-900 text-white font-semibold text-xs">

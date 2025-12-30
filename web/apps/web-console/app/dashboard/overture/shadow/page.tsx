@@ -67,7 +67,7 @@ export default function OvertureShadowPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Traffic</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{shadowMode.traffic_percentage}%</div>
+              <div className="text-lg font-bold text-gray-900">{shadowMode.traffic_percentage}%</div>
               <p className="text-xs text-gray-600 mt-1">of requests shadowed</p>
             </CardContent>
           </Card>
@@ -77,7 +77,7 @@ export default function OvertureShadowPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Discrepancies</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{shadowMode.discrepancies_found}</div>
+              <div className="text-lg font-bold text-gray-900">{shadowMode.discrepancies_found}</div>
               <p className="text-xs text-gray-600 mt-1">found in {shadowMode.requests_shadowed} requests</p>
             </CardContent>
           </Card>
@@ -92,14 +92,14 @@ export default function OvertureShadowPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-beige-primary border border-border-light rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-600 mb-2">Primary Provider</div>
-                  <div className="text-lg font-medium text-gray-900">{shadowMode.primary_provider}</div>
-                  <div className="text-xs text-gray-600 mt-1">Serves production traffic</div>
+                  <div className="text-xs font-medium text-gray-600 mb-2">Primary Provider</div>
+                  <div className="text-sm font-medium text-gray-900">{shadowMode.primary_provider}</div>
+                  <div className="text-[0.65rem] text-gray-600 mt-1">Serves production traffic</div>
                 </div>
                 <div className="bg-beige-primary border border-border-light rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-600 mb-2">Shadow Provider</div>
-                  <div className="text-lg font-medium text-gray-900">{shadowMode.shadow_provider}</div>
-                  <div className="text-xs text-gray-600 mt-1">Receives duplicate requests</div>
+                  <div className="text-xs font-medium text-gray-600 mb-2">Shadow Provider</div>
+                  <div className="text-sm font-medium text-gray-900">{shadowMode.shadow_provider}</div>
+                  <div className="text-[0.65rem] text-gray-600 mt-1">Receives duplicate requests</div>
                 </div>
               </div>
 

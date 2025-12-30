@@ -57,7 +57,7 @@ export default function AgentsPlanningPage() {
               <Brain className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">147</div>
+              <div className="text-lg font-bold text-gray-900">147</div>
               <p className="text-xs text-gray-600 mt-1">Last 30 days</p>
             </CardContent>
           </Card>
@@ -67,7 +67,7 @@ export default function AgentsPlanningPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Avg Reflection Score</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">8.4/10</div>
+              <div className="text-lg font-bold text-gray-900">8.4/10</div>
               <p className="text-xs text-gray-600 mt-1">+0.3 from last week</p>
             </CardContent>
           </Card>
@@ -77,7 +77,7 @@ export default function AgentsPlanningPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">94.2%</div>
+              <div className="text-lg font-bold text-gray-900">94.2%</div>
               <p className="text-xs text-gray-600 mt-1">142/147 tests passed</p>
             </CardContent>
           </Card>
@@ -89,9 +89,9 @@ export default function AgentsPlanningPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Brain className="h-5 w-5 text-gray-900" />
+                    <Brain className="h-4 w-4 text-gray-900" />
                     <div>
-                      <CardTitle className="text-sm text-base">{test.task}</CardTitle>
+                      <CardTitle className="text-sm">{test.task}</CardTitle>
                       <CardDescription className="text-xs mt-1">
                         {test.timestamp}
                       </CardDescription>
@@ -99,11 +99,11 @@ export default function AgentsPlanningPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {test.status === 'completed' ? (
-                      <CheckCircle className="h-5 w-5 text-gray-600" />
+                      <CheckCircle className="h-4 w-4 text-gray-600" />
                     ) : test.status === 'in_progress' ? (
-                      <Clock className="h-5 w-5 text-gray-600" />
+                      <Clock className="h-4 w-4 text-gray-600" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-gray-600" />
+                      <XCircle className="h-4 w-4 text-gray-600" />
                     )}
                   </div>
                 </div>

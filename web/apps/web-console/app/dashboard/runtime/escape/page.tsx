@@ -40,7 +40,7 @@ export default function RuntimeEscapePage() {
               <TrendingUp className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{cacheStats.hit_rate}%</div>
+              <div className="text-lg font-bold text-gray-900">{cacheStats.hit_rate}%</div>
               <p className="text-xs text-gray-600 mt-1">Excellent performance</p>
             </CardContent>
           </Card>
@@ -51,7 +51,7 @@ export default function RuntimeEscapePage() {
               <Zap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{cacheStats.avg_response_time}ms</div>
+              <div className="text-lg font-bold text-gray-900">{cacheStats.avg_response_time}ms</div>
               <p className="text-xs text-gray-600 mt-1">From cache</p>
             </CardContent>
           </Card>
@@ -62,7 +62,7 @@ export default function RuntimeEscapePage() {
               <Database className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {(cacheStats.total_entries / 1000).toFixed(1)}K
               </div>
               <p className="text-xs text-gray-600 mt-1">{cacheStats.cache_size_mb} MB</p>
@@ -74,7 +74,7 @@ export default function RuntimeEscapePage() {
               <CardTitle className="text-sm font-medium text-gray-600">Cache Hits Today</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {(cacheStats.cache_hits_today / 1000).toFixed(1)}K
               </div>
               <p className="text-xs text-gray-600 mt-1">

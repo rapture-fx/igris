@@ -80,7 +80,7 @@ export default function RuntimeFleetPage() {
               <Server className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{metrics.total_instances}</div>
+              <div className="text-lg font-bold text-gray-900">{metrics.total_instances}</div>
               <div className="flex gap-2 mt-1">
                 <span className="text-xs text-gray-600">{metrics.online_instances} online</span>
                 <span className="text-xs text-gray-400">•</span>
@@ -95,7 +95,7 @@ export default function RuntimeFleetPage() {
               <MapPin className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{metrics.regions_covered}</div>
+              <div className="text-lg font-bold text-gray-900">{metrics.regions_covered}</div>
               <p className="text-xs text-gray-600 mt-1">Global distribution</p>
             </CardContent>
           </Card>
@@ -106,7 +106,7 @@ export default function RuntimeFleetPage() {
               <AlertCircle className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{metrics.fleet_error_rate.toFixed(2)}%</div>
+              <div className="text-lg font-bold text-gray-900">{metrics.fleet_error_rate.toFixed(2)}%</div>
               {metrics.fleet_error_rate > 3 ? (
                 <div className="flex items-center gap-1 mt-1">
                   <TrendingUp className="h-3 w-3 text-gray-600" />
@@ -127,7 +127,7 @@ export default function RuntimeFleetPage() {
               <Activity className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {metrics.used_capacity}/{metrics.total_capacity}
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">

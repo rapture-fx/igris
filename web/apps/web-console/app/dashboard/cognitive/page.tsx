@@ -123,7 +123,7 @@ export default function CognitiveAdvisorPage() {
               <Clock className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{pendingCount}</div>
+              <div className="text-lg font-bold text-gray-900">{pendingCount}</div>
               <p className="text-xs text-gray-600 mt-1">
                 Awaiting approval
               </p>
@@ -136,7 +136,7 @@ export default function CognitiveAdvisorPage() {
               <CheckCircle className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{appliedCount}</div>
+              <div className="text-lg font-bold text-gray-900">{appliedCount}</div>
               <p className="text-xs text-gray-600 mt-1">
                 Successfully implemented
               </p>
@@ -149,7 +149,7 @@ export default function CognitiveAdvisorPage() {
               <Lightbulb className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {(proposals.reduce((acc, p) => acc + p.confidence, 0) / proposals.length * 100).toFixed(0)}%
               </div>
               <p className="text-xs text-gray-600 mt-1">
@@ -186,7 +186,7 @@ export default function CognitiveAdvisorPage() {
                     </div>
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <CardTitle className="text-sm text-base">{proposal.title}</CardTitle>
+                        <CardTitle className="text-sm">{proposal.title}</CardTitle>
                         <Badge className={`${getStatusColor(proposal.status)} border text-xs`}>
                           {proposal.status}
                         </Badge>
@@ -194,7 +194,7 @@ export default function CognitiveAdvisorPage() {
                           {proposal.category}
                         </Badge>
                       </div>
-                      <CardDescription className="text-xs text-sm">
+                      <CardDescription className="text-xs">
                         {proposal.description}
                       </CardDescription>
                     </div>
