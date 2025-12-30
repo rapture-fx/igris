@@ -59,13 +59,19 @@ const navigation: NavigationItem[] = [
         modes: ['architect'] as ViewMode[],
       },
       {
-        name: 'Cognitive Advisor',
-        href: '/dashboard/cognitive',
+        name: 'Speculative Router',
+        href: '/dashboard/overture/speculative',
         icon: Home,
         modes: ['architect'] as ViewMode[],
       },
       {
-        name: 'EscapeVector',
+        name: 'Cognitive Advisor',
+        href: '/dashboard/overture/cognitive',
+        icon: Home,
+        modes: ['architect'] as ViewMode[],
+      },
+      {
+        name: 'EscapeVector (Cloud)',
         href: '/dashboard/overture/escapevector',
         icon: Home,
         modes: ['operator', 'architect'] as ViewMode[],
@@ -102,7 +108,7 @@ const navigation: NavigationItem[] = [
         modes: ['operator', 'audit'] as ViewMode[],
       },
       {
-        name: 'EscapeVector',
+        name: 'EscapeVector (Edge)',
         href: '/dashboard/runtime/escape',
         icon: Home,
         modes: ['architect', 'operator'] as ViewMode[],

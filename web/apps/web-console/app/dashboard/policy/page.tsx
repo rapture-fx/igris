@@ -60,10 +60,35 @@ export default function PolicyPage() {
   const [activePolicy, setActivePolicy] = useState<ActivePolicy>({
     name: 'Default Balanced Policy',
     mode: 'balanced',
-    constraints: [],
-    model_lists: [],
-    escalation_rules: [],
-    evaluation_order: [],
+    constraints: [
+      { type: 'cost', operator: '<', value: 0.05, unit: '$ per 1K tokens', priority: 1 },
+      { type: 'latency', operator: '<', value: 500, unit: 'ms (p99)', priority: 2 },
+      { type: 'quality', operator: '>=', value: 85, unit: '% quality score', priority: 3 },
+    ],
+    model_lists: [
+      {
+        provider: 'OpenAI',
+        allowed_models: ['gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
+        denied_models: ['gpt-4-32k'],
+      },
+      {
+        provider: 'Anthropic',
+        allowed_models: ['claude-3-opus', 'claude-3-sonnet', 'claude-3-haiku'],
+        denied_models: [],
+      },
+      {
+        provider: 'Google',
+        allowed_models: ['gemini-pro', 'gemini-pro-vision'],
+        denied_models: ['gemini-ultra'],
+      },
+    ],
+    escalation_rules: [
+      { condition: 'error.rate > 10%', action: 'Switch to backup provider', priority: 1 },
+      { condition: 'latency.p99 > 2000ms', action: 'Route to faster model tier', priority: 2 },
+      { condition: 'provider.status == "down"', action: 'Activate EscapeVector cache', priority: 3 },
+      { condition: 'retry.count > 3', action: 'Escalate to premium provider', priority: 4 },
+    ],
+    evaluation_order: ['Cost Filter', 'Latency Check', 'Quality Score', 'Model Availability', 'Load Balancing'],
   });
 
   // Policy diffing state
@@ -352,7 +377,7 @@ export default function PolicyPage() {
                   -60% time-to-first-token through parallel execution
                 </p>
               </div>
-              <Switch />
+              <Switch className="scale-50" />
             </div>
 
             {/* Council Mode */}
@@ -367,7 +392,7 @@ export default function PolicyPage() {
                   +15-20% answer quality through multi-model consensus
                 </p>
               </div>
-              <Switch />
+              <Switch className="scale-50" />
             </div>
 
             {/* Cognitive Advisor */}
@@ -382,7 +407,7 @@ export default function PolicyPage() {
                   Auto-tuning ML layer for continuous optimization
                 </p>
               </div>
-              <Switch />
+              <Switch className="scale-50" />
             </div>
 
             {/* Advanced Routing Rules */}
@@ -397,7 +422,7 @@ export default function PolicyPage() {
                   Custom routing logic and conditional forwarding
                 </p>
               </div>
-              <Switch disabled className="cursor-not-allowed" />
+              <Switch disabled className="cursor-not-allowed scale-50" />
             </div>
           </CardContent>
         </Card>
@@ -463,7 +488,7 @@ export default function PolicyPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   {activePolicy.evaluation_order.map((step, index) => (
                     <div key={index} className="flex items-center gap-2">
-                      <span className="px-3 py-1 bg-white rounded border border-border-light text-xs text-gray-900">
+                      <span className="px-3 py-1 bg-beige-secondary rounded border border-border-light text-xs text-gray-900">
                         {index + 1}. {step}
                       </span>
                       {index < activePolicy.evaluation_order.length - 1 && (
@@ -509,7 +534,7 @@ export default function PolicyPage() {
                             <div className="text-xs text-gray-500 italic">All models allowed</div>
                           ) : (
                             modelList.allowed_models.map((model, idx) => (
-                              <div key={idx} className="text-xs text-gray-900 bg-white rounded px-3 py-2 border border-border-light">
+                              <div key={idx} className="text-xs text-gray-900 bg-beige-secondary rounded px-3 py-2 border border-border-light">
                                 {model}
                               </div>
                             ))
@@ -526,7 +551,7 @@ export default function PolicyPage() {
                             <div className="text-xs text-gray-500 italic">No models denied</div>
                           ) : (
                             modelList.denied_models.map((model, idx) => (
-                              <div key={idx} className="text-xs text-gray-900 bg-white rounded px-3 py-2 border border-border-light line-through opacity-60">
+                              <div key={idx} className="text-xs text-gray-900 bg-beige-secondary rounded px-3 py-2 border border-border-light line-through opacity-60">
                                 {model}
                               </div>
                             ))

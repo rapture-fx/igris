@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { Menu, X, ChevronDown } from 'lucide-react';
 import { useModal } from '../../contexts/ModalContext';
 
@@ -69,11 +68,12 @@ export default function Header() {
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <Image
+              <img
                 src="/schlep-logo-34.png"
                 alt="Igris Inertial"
                 width={30}
                 height={30}
+                style={{ width: '30px', height: '30px' }}
               />
             </Link>
           </div>

@@ -155,12 +155,12 @@ export default function EscapeVectorPage() {
 
         {/* Overview Cards */}
         <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <Card className="border-border-light shadow-sm bg-beige-primary">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-transparent">
               <CardTitle className="text-xs font-medium text-gray-600">Cache Status</CardTitle>
               <Shield className="h-4 w-4 text-gray-900" />
             </CardHeader>
-            <CardContent>
+            <CardContent className="bg-transparent">
               {getStatusBadge()}
             </CardContent>
           </Card>
@@ -215,6 +215,7 @@ export default function EscapeVectorPage() {
                       id="enabled"
                       checked={editableConfig.enabled}
                       onCheckedChange={(checked) => handleConfigChange('enabled', checked)}
+                      className="scale-50"
                     />
                   </div>
                   <p className="text-[0.65rem] text-gray-600">Activate cached routing fallback</p>
