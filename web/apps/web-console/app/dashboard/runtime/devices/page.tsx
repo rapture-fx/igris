@@ -126,10 +126,23 @@ export default function RuntimeDevicesPage() {
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="h-2 rounded-full bg-gray-900"
-                          style={{ width: `${device.cpu_usage}%` }}
-                        />
+                        <svg width="100%" height="8" className="overflow-visible">
+                          <defs>
+                            <pattern id={`cpu-stripe-${device.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                              <rect width="1" height="2" fill={
+                                device.cpu_usage > 80 ? '#ef4444' : device.cpu_usage > 60 ? '#eab308' : '#22c55e'
+                              } />
+                            </pattern>
+                          </defs>
+                          <rect
+                            x="0"
+                            y="0"
+                            width={`${device.cpu_usage}%`}
+                            height="8"
+                            fill={`url(#cpu-stripe-${device.id})`}
+                            rx="4"
+                          />
+                        </svg>
                       </div>
                     </div>
 
@@ -141,10 +154,23 @@ export default function RuntimeDevicesPage() {
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="h-2 rounded-full bg-gray-900"
-                          style={{ width: `${device.memory_usage}%` }}
-                        />
+                        <svg width="100%" height="8" className="overflow-visible">
+                          <defs>
+                            <pattern id={`memory-stripe-${device.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                              <rect width="1" height="2" fill={
+                                device.memory_usage > 80 ? '#ef4444' : device.memory_usage > 60 ? '#eab308' : '#22c55e'
+                              } />
+                            </pattern>
+                          </defs>
+                          <rect
+                            x="0"
+                            y="0"
+                            width={`${device.memory_usage}%`}
+                            height="8"
+                            fill={`url(#memory-stripe-${device.id})`}
+                            rx="4"
+                          />
+                        </svg>
                       </div>
                     </div>
 
@@ -154,7 +180,23 @@ export default function RuntimeDevicesPage() {
                         <span className="font-medium text-gray-900">{device.disk_usage.toFixed(1)}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-gray-900 h-2 rounded-full" style={{ width: `${device.disk_usage}%` }} />
+                        <svg width="100%" height="8" className="overflow-visible">
+                          <defs>
+                            <pattern id={`disk-stripe-${device.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                              <rect width="1" height="2" fill={
+                                device.disk_usage > 80 ? '#ef4444' : device.disk_usage > 60 ? '#eab308' : '#22c55e'
+                              } />
+                            </pattern>
+                          </defs>
+                          <rect
+                            x="0"
+                            y="0"
+                            width={`${device.disk_usage}%`}
+                            height="8"
+                            fill={`url(#disk-stripe-${device.id})`}
+                            rx="4"
+                          />
+                        </svg>
                       </div>
                     </div>
                   </div>

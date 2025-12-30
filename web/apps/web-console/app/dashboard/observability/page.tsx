@@ -22,6 +22,19 @@ import {
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { CHART_COLORS } from '@/utils/constants';
 import { useTraces, useRealTimeMetrics, useInvalidateTraces } from './hooks';
+import {
+  useOvertureUsage,
+  useOvertureUsageHistory,
+  useOvertureCostAnalytics,
+  useOvertureProviderStats,
+  useOvertureCostTrend,
+  useOvertureRoutingStats,
+  useOvertureProviderLeaderboard,
+  useOvertureAuditLogs,
+  useRuntimeFleetInstances,
+  useRuntimeFleetMetrics,
+} from '@/hooks/useCostInsights';
+import { usePolicy } from '@/hooks/usePolicy';
 
 // Types
 type RequestTag = 'expected' | 'bug' | 'reviewed' | 'spam' | 'golden' | null;
@@ -312,6 +325,21 @@ export default function ObservabilityPage() {
   const { data: traces = [], isLoading: isLoadingTraces } = useTraces();
   const { data: metricsData } = useRealTimeMetrics();
   const invalidateTraces = useInvalidateTraces();
+
+  // Cost Insights hooks - Overture (Cloud Gateway)
+  const { data: overtureUsage, isLoading: isLoadingOvertureUsage } = useOvertureUsage();
+  const { data: overtureHistory } = useOvertureUsageHistory(6);
+  const { data: overtureCostAnalytics } = useOvertureCostAnalytics('24h');
+  const { data: overtureProviderStats } = useOvertureProviderStats('24h');
+  const { data: overtureCostTrend } = useOvertureCostTrend('24h', '1h');
+  const { data: overtureRoutingStats } = useOvertureRoutingStats(24);
+  const { data: overtureLeaderboard } = useOvertureProviderLeaderboard();
+  const { data: overtureAuditLogs } = useOvertureAuditLogs({ limit: 100, since_hours: 24 });
+  const { data: policy } = usePolicy();
+
+  // Cost Insights hooks - Runtime (Edge Execution)
+  const { data: runtimeFleetInstances, isLoading: isLoadingRuntimeFleet } = useRuntimeFleetInstances();
+  const { data: runtimeFleetMetrics } = useRuntimeFleetMetrics();
 
   // State
   const [selectedTrace, setSelectedTrace] = useState<RequestTrace | null>(null);
@@ -670,91 +698,51 @@ export default function ObservabilityPage() {
     };
   }, [traces]);
 
-  // Cost Insights - 30-day calculations
+  // Cost Insights - Real data from Overture API
   const costInsightsMetrics = useMemo(() => {
-    const now = Date.now();
-    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
-    const sixtyDaysAgo = now - (60 * 24 * 60 * 60 * 1000);
-
-    // Last 30 days
-    const last30DayTraces = traces.filter(t => {
-      const traceTime = new Date(t.timestamp).getTime();
-      return traceTime >= thirtyDaysAgo && traceTime <= now;
-    });
-
-    // Previous 30 days (30-60 days ago)
-    const prev30DayTraces = traces.filter(t => {
-      const traceTime = new Date(t.timestamp).getTime();
-      return traceTime >= sixtyDaysAgo && traceTime < thirtyDaysAgo;
-    });
-
-    // Spend by provider (last 30 days)
-    const providerSpend: Record<string, number> = {};
-    const prevProviderSpend: Record<string, number> = {};
-
-    last30DayTraces.forEach(trace => {
-      providerSpend[trace.provider] = (providerSpend[trace.provider] || 0) + trace.cost;
-    });
-
-    prev30DayTraces.forEach(trace => {
-      prevProviderSpend[trace.provider] = (prevProviderSpend[trace.provider] || 0) + trace.cost;
-    });
-
-    const totalSpend = Object.values(providerSpend).reduce((sum, cost) => sum + cost, 0);
-    const prevTotalSpend = Object.values(prevProviderSpend).reduce((sum, cost) => sum + cost, 0);
-
-    const spendByProvider = Object.entries(providerSpend).map(([provider, spend]) => {
-      const percentage = totalSpend > 0 ? (spend / totalSpend) * 100 : 0;
-      const prevSpend = prevProviderSpend[provider] || 0;
-      const trend = prevSpend > 0 ? ((spend - prevSpend) / prevSpend) * 100 : 0;
-
+    if (!overtureUsage || !overtureHistory) {
+      // Fallback to empty structure
       return {
-        provider,
-        spend: parseFloat(spend.toFixed(2)),
-        percentage: parseFloat(percentage.toFixed(1)),
-        trend: parseFloat(trend.toFixed(1))
+        spendByProvider: [],
+        spendByModel: [],
+        totalSpend: 0,
+        prevTotalSpend: 0,
+        totalTrend: 0
       };
-    }).sort((a, b) => b.spend - a.spend);
+    }
 
-    // Spend by model (last 30 days, top 10)
-    const modelSpend: Record<string, { spend: number; provider: string; requests: number }> = {};
-    const prevModelSpend: Record<string, number> = {};
+    // Calculate trend from history (compare current month to previous month)
+    const currentMonthSpend = overtureUsage.total_spend_usd;
+    const previousMonth = overtureHistory.history.length >= 2 ? overtureHistory.history[overtureHistory.history.length - 2] : null;
+    const prevMonthSpend = previousMonth ? previousMonth.total_spend_usd : 0;
+    const totalTrend = prevMonthSpend > 0 ? ((currentMonthSpend - prevMonthSpend) / prevMonthSpend) * 100 : 0;
 
-    last30DayTraces.forEach(trace => {
-      if (!modelSpend[trace.model]) {
-        modelSpend[trace.model] = { spend: 0, provider: trace.provider, requests: 0 };
-      }
-      modelSpend[trace.model].spend += trace.cost;
-      modelSpend[trace.model].requests++;
-    });
+    // Transform provider data to match existing structure
+    const spendByProvider = overtureUsage.by_provider.map(p => ({
+      provider: p.provider,
+      spend: p.total_cost_usd,
+      percentage: overtureUsage.total_spend_usd > 0 ? parseFloat(((p.total_cost_usd / overtureUsage.total_spend_usd) * 100).toFixed(1)) : 0,
+      trend: 0, // We don't have per-provider trend from this endpoint
+    }));
 
-    prev30DayTraces.forEach(trace => {
-      prevModelSpend[trace.model] = (prevModelSpend[trace.model] || 0) + trace.cost;
-    });
-
-    const spendByModel = Object.entries(modelSpend).map(([model, data]) => {
-      const percentage = totalSpend > 0 ? (data.spend / totalSpend) * 100 : 0;
-      const prevSpend = prevModelSpend[model] || 0;
-      const trend = prevSpend > 0 ? ((data.spend - prevSpend) / prevSpend) * 100 : 0;
-
-      return {
-        model,
-        provider: data.provider,
-        spend: parseFloat(data.spend.toFixed(2)),
-        percentage: parseFloat(percentage.toFixed(1)),
-        requests: data.requests,
-        trend: parseFloat(trend.toFixed(1))
-      };
-    }).sort((a, b) => b.spend - a.spend).slice(0, 10);
+    // Transform model data to match existing structure
+    const spendByModel = overtureUsage.by_model.slice(0, 10).map(m => ({
+      model: m.model,
+      provider: m.provider,
+      spend: m.total_cost_usd,
+      percentage: overtureUsage.total_spend_usd > 0 ? parseFloat(((m.total_cost_usd / overtureUsage.total_spend_usd) * 100).toFixed(1)) : 0,
+      requests: m.request_count,
+      trend: 0, // We don't have per-model trend from this endpoint
+    }));
 
     return {
       spendByProvider,
       spendByModel,
-      totalSpend: parseFloat(totalSpend.toFixed(2)),
-      prevTotalSpend: parseFloat(prevTotalSpend.toFixed(2)),
-      totalTrend: prevTotalSpend > 0 ? parseFloat((((totalSpend - prevTotalSpend) / prevTotalSpend) * 100).toFixed(1)) : 0
+      totalSpend: currentMonthSpend,
+      prevTotalSpend: prevMonthSpend,
+      totalTrend: parseFloat(totalTrend.toFixed(1))
     };
-  }, [traces]);
+  }, [overtureUsage, overtureHistory]);
 
   // Export handlers
   const handleExportCSV = () => {
@@ -1008,11 +996,12 @@ export default function ObservabilityPage() {
           </div>
         </div>
 
-        {/* Tabs: Traces and Audit Logs */}
+        {/* Tabs: Traces, Audit Logs, and Cost Insights */}
         <Tabs defaultValue="traces" className="w-full">
           <TabsList className="border border-border-light mb-6">
             <TabsTrigger value="traces" className="text-xs">Traces</TabsTrigger>
             <TabsTrigger value="audit" className="text-xs">Audit Logs</TabsTrigger>
+            <TabsTrigger value="cost" className="text-xs">Cost Insights</TabsTrigger>
           </TabsList>
 
           {/* Traces Tab Content */}
@@ -1666,15 +1655,7 @@ export default function ObservabilityPage() {
                         <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
                           <td className="py-2 px-3 text-sm font-medium text-gray-900">{provider.provider}</td>
                           <td className="text-right py-2 px-3">
-                            <div className="flex items-center justify-end gap-2">
-                              <div className="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
-                                <div
-                                  className="h-full bg-gray-500 transition-all duration-300"
-                                  style={{ width: `${provider.reliabilityScore}%` }}
-                                />
-                              </div>
-                              <span className="text-sm font-semibold text-gray-900 min-w-[50px]">{provider.reliabilityScore}%</span>
-                            </div>
+                            <span className="text-sm font-semibold text-gray-900">{provider.reliabilityScore}%</span>
                           </td>
                           <td className="text-right py-2 px-3">
                             <Badge className={cn(
@@ -1763,7 +1744,7 @@ export default function ObservabilityPage() {
                             backgroundColor: '#f2f1ed',
                             border: '1px solid #e5e4e0',
                             borderRadius: '8px',
-                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                            fontSize: '10px'
                           }}
                         />
                         <Legend wrapperStyle={{ paddingTop: '20px' }} />
@@ -1796,53 +1777,300 @@ export default function ObservabilityPage() {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
 
-        {/* 4. COST INSIGHTS - 3-Panel Layout */}
+          {/* Cost Insights Tab Content */}
+          <TabsContent value="cost" className="space-y-6">
+        {/* COST INSIGHTS - 3-Panel Layout */}
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="text-sm flex items-center gap-2">
-              <Activity className="h-4 w-4 text-gray-900" />
-              Cost Insights
-            </CardTitle>
-            <CardDescription className="text-xs">30-day spend analysis across providers and models</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {/* Total Spend Overview */}
-            <div className="mb-6 p-4 bg-beige-primary rounded-lg border border-border-light">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs text-gray-600 mb-1">Total Spend (30 days)</p>
-                  <p className="text-lg font-bold text-gray-900">${costInsightsMetrics.totalSpend.toFixed(2)}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {costInsightsMetrics.totalTrend > 0 ? (
-                    <>
-                      <ChevronUp className="h-5 w-5 text-gray-900" />
-                      <span className="text-sm font-semibold text-gray-900">+{costInsightsMetrics.totalTrend}%</span>
-                    </>
-                  ) : costInsightsMetrics.totalTrend < 0 ? (
-                    <>
-                      <ChevronDown className="h-5 w-5" style={{ color: '#299a93' }} />
-                      <span className="text-sm font-semibold" style={{ color: '#299a93' }}>
-                        {costInsightsMetrics.totalTrend}%
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-sm font-semibold text-gray-600">0%</span>
-                  )}
-                  <span className="text-xs text-gray-600">vs prev 30d</span>
-                </div>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-gray-900" />
+                  Cost Insights
+                </CardTitle>
+                <CardDescription className="text-xs">30-day spend analysis across providers and models</CardDescription>
               </div>
             </div>
+          </CardHeader>
+          <CardContent>
+            {/* Loading state */}
+            {isLoadingOvertureUsage || isLoadingRuntimeFleet ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <span className="ml-3 text-sm text-gray-600">Loading cost insights...</span>
+              </div>
+            ) : (
+              <>
+            {/* Blended Total Cost Overview (Overture + Runtime) */}
+            <div className="mb-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+                {/* Overture (Cloud) Cost */}
+                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                  <p className="text-xs text-gray-600 mb-1">Overture (Cloud) Cost</p>
+                  <p className="text-lg font-bold text-gray-900">${costInsightsMetrics.totalSpend.toFixed(2)}</p>
+                  <div className="flex items-center gap-1 mt-1">
+                    {costInsightsMetrics.totalTrend > 0 ? (
+                      <>
+                        <ChevronUp className="h-4 w-4 text-gray-900" />
+                        <span className="text-xs font-semibold text-gray-900">+{costInsightsMetrics.totalTrend}%</span>
+                      </>
+                    ) : costInsightsMetrics.totalTrend < 0 ? (
+                      <>
+                        <ChevronDown className="h-4 w-4" style={{ color: '#299a93' }} />
+                        <span className="text-xs font-semibold" style={{ color: '#299a93' }}>
+                          {costInsightsMetrics.totalTrend}%
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs font-semibold text-gray-600">0%</span>
+                    )}
+                    <span className="text-xs text-gray-600">vs prev month</span>
+                  </div>
+                </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Runtime (Edge) Cost - Placeholder */}
+                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                  <p className="text-xs text-gray-600 mb-1">Runtime (Edge) Cost</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    {runtimeFleetMetrics ? `$${(runtimeFleetMetrics.total_requests_served * 0.0001).toFixed(2)}` : '$0.00'}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">
+                    {runtimeFleetMetrics ? `~${runtimeFleetMetrics.total_requests_served.toLocaleString()} edge requests` : 'No data'}
+                  </p>
+                </div>
+
+                {/* Blended Total */}
+                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                  <p className="text-xs text-gray-600 mb-1">Blended Total Cost</p>
+                  <p className="text-lg font-bold text-gray-900">
+                    ${(costInsightsMetrics.totalSpend + (runtimeFleetMetrics ? runtimeFleetMetrics.total_requests_served * 0.0001 : 0)).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1">Cloud + Edge combined</p>
+                </div>
+              </div>
+
+              {/* Cost Comparison Bar */}
+              {runtimeFleetMetrics && (
+                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                  <p className="text-xs text-gray-600 mb-2">Cost Distribution (Cloud vs Edge)</p>
+                  <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
+                    <div
+                      style={{
+                        width: `${(costInsightsMetrics.totalSpend / (costInsightsMetrics.totalSpend + runtimeFleetMetrics.total_requests_served * 0.0001)) * 100}%`,
+                        backgroundImage: 'repeating-linear-gradient(45deg, #000000 0px, #000000 1px, transparent 1px, transparent 2px)',
+                        backgroundSize: '2px 2px',
+                      }}
+                    />
+                    <div
+                      style={{
+                        width: `${((runtimeFleetMetrics.total_requests_served * 0.0001) / (costInsightsMetrics.totalSpend + runtimeFleetMetrics.total_requests_served * 0.0001)) * 100}%`,
+                        backgroundImage: 'repeating-linear-gradient(-45deg, #666666 0px, #666666 1px, transparent 1px, transparent 2px)',
+                        backgroundSize: '2px 2px',
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between mt-2 text-xs text-gray-600">
+                    <span>{((costInsightsMetrics.totalSpend / (costInsightsMetrics.totalSpend + runtimeFleetMetrics.total_requests_served * 0.0001)) * 100).toFixed(0)}% Cloud</span>
+                    <span>{(((runtimeFleetMetrics.total_requests_served * 0.0001) / (costInsightsMetrics.totalSpend + runtimeFleetMetrics.total_requests_served * 0.0001)) * 100).toFixed(0)}% Edge</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* ENHANCEMENT 3 & 4: Real-time Cost Meter + Cost Forecasting */}
+            {overtureUsage && overtureCostTrend && (
+              <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {/* Real-time Cost Meter */}
+                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                      <Zap className="h-4 w-4" />
+                      Real-Time Cost (This Month)
+                    </h3>
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 rounded-full bg-green-600 animate-pulse"></div>
+                      <span className="text-xs text-gray-600">Live</span>
+                    </div>
+                  </div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-lg font-bold text-gray-900">${overtureUsage.total_spend_usd.toFixed(2)}</span>
+                    <span className="text-sm text-gray-600">/ ${overtureUsage.budget_limit_usd.toFixed(2)}</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <p className="text-gray-600">Today (est.)</p>
+                      <p className="font-semibold text-gray-900">${(overtureUsage.total_spend_usd / new Date().getDate()).toFixed(2)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">This Hour (est.)</p>
+                      <p className="font-semibold text-gray-900">${(overtureUsage.total_spend_usd / (new Date().getDate() * 24)).toFixed(4)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600">Burn Rate</p>
+                      <p className="font-semibold text-gray-900">${(overtureUsage.total_spend_usd / new Date().getDate()).toFixed(2)}/day</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Cost Forecasting */}
+                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                  <h3 className="text-sm font-medium text-gray-900 mb-3 flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Month-End Forecast
+                  </h3>
+                  {(() => {
+                    const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
+                    const currentDay = new Date().getDate();
+                    const dailyBurnRate = overtureUsage.total_spend_usd / currentDay;
+                    const projectedMonthEnd = dailyBurnRate * daysInMonth;
+                    const willExceedBudget = projectedMonthEnd > overtureUsage.budget_limit_usd;
+                    const percentOfBudget = (projectedMonthEnd / overtureUsage.budget_limit_usd) * 100;
+
+                    return (
+                      <>
+                        <div className="flex items-baseline gap-2 mb-3">
+                          <span className="text-lg font-bold text-gray-900">${projectedMonthEnd.toFixed(2)}</span>
+                          <span className="text-sm text-gray-600">projected</span>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">Projection Confidence</span>
+                            <span className="font-medium text-gray-900">{Math.min(95, 60 + (currentDay / daysInMonth) * 40).toFixed(0)}%</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">Days Remaining</span>
+                            <span className="font-medium text-gray-900">{daysInMonth - currentDay} days</span>
+                          </div>
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">Budget Status</span>
+                            {willExceedBudget ? (
+                              <span className="font-medium text-red-600 flex items-center gap-1">
+                                <AlertTriangle className="h-3 w-3" />
+                                Over by ${(projectedMonthEnd - overtureUsage.budget_limit_usd).toFixed(2)}
+                              </span>
+                            ) : (
+                              <span className="font-medium text-green-600 flex items-center gap-1">
+                                <CheckCircle className="h-3 w-3" />
+                                Within budget ({percentOfBudget.toFixed(0)}%)
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+            )}
+
+            {/* ENHANCEMENT 1: Historical Trend Line Chart (6-month view) */}
+            {overtureHistory && overtureHistory.history.length > 0 && (
+              <div className="mt-6 p-4 bg-beige-primary rounded-lg border border-border-light">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Cost Trend (Last 6 Months)</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={overtureHistory.history}>
+                    <defs>
+                      <pattern id="line-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                        <rect width="1" height="2" fill="#000000" />
+                      </pattern>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="year_month"
+                      stroke="#6b7280"
+                      style={{ fontSize: '10px' }}
+                      tickFormatter={(value) => {
+                        const [year, month] = value.split('-');
+                        return `${month}/${year.slice(2)}`;
+                      }}
+                    />
+                    <YAxis
+                      stroke="#6b7280"
+                      style={{ fontSize: '10px' }}
+                      tickFormatter={(value) => `$${value}`}
+                    />
+                    <Tooltip
+                      formatter={(value: any) => [`$${value.toFixed(2)}`, 'Spend']}
+                      labelFormatter={(label) => `Month: ${label}`}
+                      contentStyle={{
+                        backgroundColor: '#f2f1ed',
+                        border: '1px solid #e5e4e0',
+                        borderRadius: '8px',
+                        fontSize: '10px'
+                      }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="total_spend_usd"
+                      stroke="#000000"
+                      strokeWidth={0.5}
+                      dot={{ fill: '#000000', strokeWidth: 0.5, r: 2 }}
+                      activeDot={{ r: 4, fill: '#000000', stroke: '#f2f1ed', strokeWidth: 0.5 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="budget_limit_usd"
+                      stroke="#dc2626"
+                      strokeWidth={0.5}
+                      strokeDasharray="5 5"
+                      dot={false}
+                      name="Budget Limit"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="mt-4 flex items-center gap-6 text-xs">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-gray-900"></div>
+                    <span className="text-gray-600">Actual Spend</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-red-600 border-dashed"></div>
+                    <span className="text-gray-600">Budget Limit</span>
+                  </div>
+                  {overtureHistory.history.some(h => h.breached) && (
+                    <div className="flex items-center gap-2 ml-auto">
+                      <AlertTriangle className="h-4 w-4 text-orange-600" />
+                      <span className="text-orange-600 font-medium">Budget exceeded in {overtureHistory.history.filter(h => h.breached).length} month(s)</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Panel 1: Spend by Provider - Pie Chart */}
-              <div>
+              <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Provider</h3>
                 {costInsightsMetrics.spendByProvider.length > 0 ? (
                   <>
                     <ResponsiveContainer width="100%" height={180}>
                       <PieChart>
+                        <defs>
+                          {/* Super thin, compact diagonal stripe patterns */}
+                          <pattern id="stripe-0" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#000000" />
+                          </pattern>
+                          <pattern id="stripe-1" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#1a1a1a" />
+                          </pattern>
+                          <pattern id="stripe-2" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#333333" />
+                          </pattern>
+                          <pattern id="stripe-3" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#4d4d4d" />
+                          </pattern>
+                          <pattern id="stripe-4" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#666666" />
+                          </pattern>
+                          <pattern id="stripe-5" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#808080" />
+                          </pattern>
+                          <pattern id="stripe-6" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#999999" />
+                          </pattern>
+                        </defs>
                         <Pie
                           data={costInsightsMetrics.spendByProvider}
                           dataKey="spend"
@@ -1853,8 +2081,7 @@ export default function ObservabilityPage() {
                           label={(entry) => `${entry.percentage}%`}
                         >
                           {costInsightsMetrics.spendByProvider.map((entry, index) => {
-                            const gradientColors = ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999'];
-                            return <Cell key={`cell-${index}`} fill={gradientColors[index % gradientColors.length]} />;
+                            return <Cell key={`cell-${index}`} fill={`url(#stripe-${index % 7})`} stroke="#000" strokeWidth={1} />;
                           })}
                         </Pie>
                         <Tooltip
@@ -1863,25 +2090,24 @@ export default function ObservabilityPage() {
                             backgroundColor: '#f2f1ed',
                             border: '1px solid #e5e4e0',
                             borderRadius: '8px',
-                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                            fontSize: '10px'
                           }}
                         />
-                        <Legend />
                       </PieChart>
                     </ResponsiveContainer>
-                    <div className="mt-4 space-y-2">
+                    <div className="mt-12 space-y-1.5">
                       {costInsightsMetrics.spendByProvider.map((provider, index) => {
                         const gradientColors = ['#000000', '#1a1a1a', '#333333', '#4d4d4d', '#666666', '#808080', '#999999'];
                         return (
-                          <div key={index} className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
+                          <div key={index} className="flex items-center justify-between text-[0.65rem]">
+                            <div className="flex items-center gap-1.5">
                               <div
-                                className="w-3 h-3 rounded-full"
+                                className="w-1.5 h-1.5 rounded-full"
                                 style={{ backgroundColor: gradientColors[index % gradientColors.length] }}
                               />
                               <span className="text-gray-900 font-medium">{provider.provider}</span>
                             </div>
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <span className="text-gray-900 font-semibold">${provider.spend.toFixed(2)}</span>
                             <span className="text-gray-600">{provider.percentage}%</span>
                             {provider.trend !== 0 && (
@@ -1913,12 +2139,18 @@ export default function ObservabilityPage() {
               </div>
 
               {/* Panel 2: Spend by Model - Horizontal Bar Chart */}
-              <div>
+              <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Top 10 Models by Spend</h3>
                 {costInsightsMetrics.spendByModel.length > 0 ? (
                   <>
                     <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={costInsightsMetrics.spendByModel} layout="vertical" margin={{ left: 80 }}>
+                        <defs>
+                          {/* Super thin diagonal stripe pattern for bars */}
+                          <pattern id="bar-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#000000" />
+                          </pattern>
+                        </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis type="number" stroke="#6b7280" style={{ fontSize: '10px' }} />
                         <YAxis
@@ -1934,10 +2166,10 @@ export default function ObservabilityPage() {
                             backgroundColor: '#f2f1ed',
                             border: '1px solid #e5e4e0',
                             borderRadius: '8px',
-                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                            fontSize: '10px'
                           }}
                         />
-                        <Bar dataKey="spend" fill="#000000" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="spend" fill="url(#bar-stripe)" stroke="#000" strokeWidth={1} radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                     <div className="mt-4 space-y-2">
@@ -1978,6 +2210,216 @@ export default function ObservabilityPage() {
                 )}
               </div>
             </div>
+
+            {/* NEW: Routing Success & Savings Rate */}
+            {overtureRoutingStats && (
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Routing Performance & Savings</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Success Rate (24h)</p>
+                    <p className="text-lg font-bold text-gray-900">{overtureRoutingStats.usage.success_rate.toFixed(1)}%</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {overtureRoutingStats.usage.successful_requests.toLocaleString()} / {overtureRoutingStats.usage.total_requests.toLocaleString()} requests
+                    </p>
+                  </div>
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Failed Requests</p>
+                    <p className="text-lg font-bold text-gray-900">{overtureRoutingStats.usage.failed_requests.toLocaleString()}</p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {((overtureRoutingStats.usage.failed_requests / overtureRoutingStats.usage.total_requests) * 100).toFixed(2)}% error rate
+                    </p>
+                  </div>
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Circuit Breakers</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {Object.values(overtureRoutingStats.circuit_breakers).filter(cb => cb.status === 'closed').length}
+                    </p>
+                    <p className="text-xs text-gray-600 mt-1">
+                      {Object.keys(overtureRoutingStats.circuit_breakers).length} total providers
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* NEW: Quota Burn Rate & Risk Indicators */}
+            {overtureUsage && policy && (
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Budget & Quota Management</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Quota Burn Rate */}
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="text-xs text-gray-600">Monthly Budget Usage</p>
+                      <p className="text-sm font-bold text-gray-900">{overtureUsage.percentage_used.toFixed(1)}%</p>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+                      <div
+                        className="h-3 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.min(overtureUsage.percentage_used, 100)}%`,
+                          backgroundColor: overtureUsage.percentage_used >= 100 ? '#ef4444' : overtureUsage.percentage_used >= 80 ? '#f59e0b' : '#10b981',
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600">${overtureUsage.total_spend_usd.toFixed(2)} spent</span>
+                      <span className="text-gray-600">${overtureUsage.budget_limit_usd.toFixed(2)} limit</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-2">
+                      ${overtureUsage.remaining_usd.toFixed(2)} remaining
+                    </p>
+                  </div>
+
+                  {/* Risk Indicators */}
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-3">Budget Status</p>
+                    {overtureUsage.breached ? (
+                      <div className="flex items-center gap-2 text-red-600">
+                        <AlertTriangle className="h-5 w-5" />
+                                <span className="text-sm font-semibold">Budget Exceeded</span>
+                      </div>
+                    ) : overtureUsage.percentage_used >= 80 ? (
+                      <div className="flex items-center gap-2 text-orange-600">
+                        <AlertTriangle className="h-5 w-5" />
+                        <span className="text-sm font-semibold">Approaching Limit (80%+)</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle className="h-5 w-5" />
+                        <span className="text-sm font-semibold">Within Budget</span>
+                      </div>
+                    )}
+                    <div className="mt-3 space-y-1">
+                      <p className="text-xs text-gray-600">Request Count: {overtureUsage.request_count.toLocaleString()}</p>
+                      <p className="text-xs text-gray-600">Active Providers: {overtureUsage.provider_count}</p>
+                      <p className="text-xs text-gray-600">Models in Use: {overtureUsage.model_count}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* NEW: Runtime Fleet & Cost Insights */}
+            {runtimeFleetMetrics && (
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Runtime Fleet Performance (Edge Execution)</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Fleet Status</p>
+                    <p className="text-lg font-bold text-gray-900">{runtimeFleetMetrics.online_instances}/{runtimeFleetMetrics.total_instances}</p>
+                    <p className="text-xs text-gray-600 mt-1">instances online</p>
+                  </div>
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Total Requests</p>
+                    <p className="text-lg font-bold text-gray-900">{runtimeFleetMetrics.total_requests_served.toLocaleString()}</p>
+                    <p className="text-xs text-gray-600 mt-1">served</p>
+                  </div>
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Fleet Error Rate</p>
+                    <p className="text-lg font-bold text-gray-900">{runtimeFleetMetrics.fleet_error_rate.toFixed(2)}%</p>
+                    <p className="text-xs text-gray-600 mt-1">error rate</p>
+                  </div>
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Capacity Usage</p>
+                    <p className="text-lg font-bold text-gray-900">{((runtimeFleetMetrics.used_capacity / runtimeFleetMetrics.total_capacity) * 100).toFixed(0)}%</p>
+                    <p className="text-xs text-gray-600 mt-1">{runtimeFleetMetrics.used_capacity}/{runtimeFleetMetrics.total_capacity} used</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* NEW: GPU Utilization & Top Cost Drivers (from Runtime Fleet Instances) */}
+            {runtimeFleetInstances && runtimeFleetInstances.length > 0 && (
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">GPU Utilization & Top Cost Drivers</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* GPU/CPU Utilization Chart */}
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-700 mb-3">Fleet Resource Utilization</h4>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <BarChart data={runtimeFleetInstances.slice(0, 5)} layout="horizontal">
+                        <defs>
+                          {/* Super thin diagonal stripe patterns for CPU/Memory */}
+                          <pattern id="cpu-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill="#000000" />
+                          </pattern>
+                          <pattern id="memory-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+                            <rect width="1" height="2" fill="#666666" />
+                          </pattern>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis dataKey="name" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                        <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: '#f2f1ed',
+                            border: '1px solid #e5e4e0',
+                            borderRadius: '8px',
+                            fontSize: '10px'
+                          }}
+                        />
+                        <Bar dataKey="cpu_usage" name="CPU %" fill="url(#cpu-stripe)" stroke="#000" strokeWidth={1} />
+                        <Bar dataKey="memory_usage" name="Memory %" fill="url(#memory-stripe)" stroke="#666" strokeWidth={1} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Top Cost Drivers Table */}
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-700 mb-3">Top Cost Drivers (by Requests)</h4>
+                    <div className="space-y-2">
+                      {runtimeFleetInstances
+                        .sort((a, b) => b.requests_processed - a.requests_processed)
+                        .slice(0, 5)
+                        .map((instance, index) => (
+                          <div key={instance.id} className="flex items-center justify-between text-xs bg-beige-primary rounded-lg p-2 border border-border-light">
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-600 font-mono">{index + 1}.</span>
+                              <span className="text-gray-900 font-medium">{instance.name}</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-gray-600">{instance.requests_processed.toLocaleString()} req</span>
+                              <span className="text-gray-600">{instance.avg_latency}ms avg</span>
+                              <Badge variant={instance.error_rate < 1 ? 'default' : 'destructive'} className="text-[0.65rem]">
+                                {instance.error_rate.toFixed(1)}% err
+                              </Badge>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* NEW: Cost per 1M Tokens (calculated from Runtime data) */}
+            {runtimeFleetInstances && overtureUsage && (
+              <div className="mt-6 pt-6 border-t border-border-light">
+                <h3 className="text-sm font-medium text-gray-900 mb-4">Cost Efficiency Metrics</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Avg Cost per Request (Cloud)</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      ${(overtureUsage.total_spend_usd / overtureUsage.request_count).toFixed(4)}
+                    </p>
+                  </div>
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Total Input Tokens</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {(overtureUsage.by_provider.reduce((sum, p) => sum + p.input_tokens, 0) / 1000000).toFixed(2)}M
+                    </p>
+                  </div>
+                  <div className="bg-beige-primary rounded-lg p-4 border border-border-light">
+                    <p className="text-xs text-gray-600 mb-1">Total Output Tokens</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {(overtureUsage.by_provider.reduce((sum, p) => sum + p.output_tokens, 0) / 1000000).toFixed(2)}M
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Panel 3: Tenant Breakdown (Scale tier only) */}
             {tier === 'scale' && (
@@ -2036,6 +2478,8 @@ export default function ObservabilityPage() {
                   </div>
                 </div>
               </div>
+            )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -2126,10 +2570,10 @@ export default function ObservabilityPage() {
                       },
                     ].map((log) => {
                       const categoryColors = {
-                        configuration: 'bg-gray-50 text-gray-700 border-gray-200',
-                        infrastructure: 'bg-purple-50 text-purple-700 border-purple-200',
+                        configuration: 'bg-blue-50 text-blue-700 border-blue-200',
+                        infrastructure: 'bg-gray-50 text-gray-700 border-gray-200',
                         security: 'bg-red-50 text-red-700 border-red-200',
-                        agents: 'bg-gray-50 text-gray-700 border-gray-200',
+                        agents: 'bg-green-50 text-green-700 border-green-200',
                       };
 
                       return (
@@ -2197,7 +2641,7 @@ export default function ObservabilityPage() {
 
       {/* Request Detail Sheet - CONTINUED IN NEXT PART */}
       <Sheet open={!!selectedTrace} onOpenChange={(open) => !open && setSelectedTrace(null)}>
-        <SheetContent>
+        <SheetContent className="max-w-3xl">
           <SheetHeader>
             <SheetTitle>Request Trace Details</SheetTitle>
             <SheetClose onClick={() => setSelectedTrace(null)} />
@@ -2523,26 +2967,26 @@ export default function ObservabilityPage() {
                           if (status === 'winner') {
                             return `repeating-linear-gradient(
                               45deg,
-                              #e5e4e0,
-                              #e5e4e0 1px,
-                              #f2f1ed 1px,
-                              #f2f1ed 2px
+                              #a7f3d0,
+                              #a7f3d0 2px,
+                              #d1fae5 2px,
+                              #d1fae5 4px
                             )`;
                           } else if (status === 'fallback') {
                             return `repeating-linear-gradient(
                               45deg,
-                              #e5e4e0,
-                              #e5e4e0 1px,
-                              #f2f1ed 1px,
-                              #f2f1ed 2px
+                              #bfdbfe,
+                              #bfdbfe 2px,
+                              #dbeafe 2px,
+                              #dbeafe 4px
                             )`;
                           } else {
                             return `repeating-linear-gradient(
                               45deg,
-                              #e5e4e0,
-                              #e5e4e0 1px,
-                              #f2f1ed 1px,
-                              #f2f1ed 2px
+                              #fecaca,
+                              #fecaca 2px,
+                              #fee2e2 2px,
+                              #fee2e2 4px
                             )`;
                           }
                         };
@@ -2648,7 +3092,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'positive' && 'bg-beige-primary text-gray-900 border border-border-light')}
+                          className={cn(selectedTrace.human_feedback === 'positive' && 'bg-beige-primary text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'positive' ? null : 'positive' as const };
                             // Optimistic update would go here
@@ -2660,7 +3104,7 @@ export default function ObservabilityPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className={cn("flex-1", selectedTrace.human_feedback === 'negative' && 'bg-beige-primary text-gray-900 border border-border-light')}
+                          className={cn(selectedTrace.human_feedback === 'negative' && 'bg-beige-primary text-gray-900 border border-border-light')}
                           onClick={() => {
                             const updatedTrace = { ...selectedTrace, human_feedback: selectedTrace.human_feedback === 'negative' ? null : 'negative' as const };
                             // Optimistic update would go here
@@ -2675,9 +3119,10 @@ export default function ObservabilityPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex gap-2">
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => copyToClipboard(selectedTrace.curl_command || '')}
                   >
                     <Code className="h-4 w-4 mr-2" />
@@ -2685,6 +3130,7 @@ export default function ObservabilityPage() {
                   </Button>
                   <Button
                     variant="outline"
+                    size="sm"
                     onClick={() => handleShareTrace(selectedTrace)}
                   >
                     <Link2 className="h-4 w-4 mr-2" />
@@ -2751,13 +3197,13 @@ export default function ObservabilityPage() {
                         <div className="flex-1">
                           <p className="text-xs font-medium text-gray-900">Policy Constraints Evaluated</p>
                           <div className="mt-1 space-y-1">
-                            <div className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-border-light">
+                            <div className="text-xs text-gray-600 bg-beige-primary rounded px-2 py-1 border border-border-light">
                               ✓ Cost budget: Available
                             </div>
-                            <div className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-border-light">
+                            <div className="text-xs text-gray-600 bg-beige-primary rounded px-2 py-1 border border-border-light">
                               ✓ Model access: Allowed
                             </div>
-                            <div className="text-xs text-gray-600 bg-white rounded px-2 py-1 border border-border-light">
+                            <div className="text-xs text-gray-600 bg-beige-primary rounded px-2 py-1 border border-border-light">
                               ✓ Rate limit: Within threshold
                             </div>
                           </div>
