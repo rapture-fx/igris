@@ -195,7 +195,8 @@ const searchIndex = [
   { title: 'Council Mode', path: '/docs/core-features/council-mode', keywords: 'council mode feature core collaboration' },
   { title: 'Shadow Mode', path: '/docs/core-features/shadow-mode', keywords: 'shadow mode testing canary feature core rollout' },
   { title: 'SLO Enforcer', path: '/docs/core-features/slo-enforcer', keywords: 'slo enforcer service level objective guardrails monitoring' },
-  { title: 'Local Models', path: '/docs/local-models', keywords: 'models phi3 mistral llama gguf download' },
+  { title: 'Adaptive Optimization', path: '/docs/core-features/adaptive-optimization', keywords: 'adaptive optimization quality scoring performance tuning automatic' },
+  { title: 'Provider Health Checks', path: '/docs/core-features/provider-health', keywords: 'provider health checks monitoring failover resilient availability' },
 ];
 
 const dropdownItems = [
@@ -394,13 +395,13 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-screen w-64 transform transition-transform duration-200 ease-in-out md:translate-x-0',
+          'fixed top-0 left-0 z-50 h-screen w-72 transform transition-transform duration-200 ease-in-out md:translate-x-0 p-3',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-beige-primary border-r border-border-light">
+        <div className="flex h-full flex-col bg-beige-primary rounded-2xl shadow-md border border-border-light">
           {/* Logo Section */}
-          <div className="h-12 flex items-center px-7 border-b border-border-light">
+          <div className="h-20 flex items-center px-7 pt-6 pb-4">
             <a href={hubUrl} className="flex items-center">
               <img
                 src="/img/igris-logo-34.png"
@@ -411,7 +412,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Search Bar */}
-          <div className="px-3 py-5">
+          <div className="px-4 pb-3 pt-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
@@ -419,7 +420,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border-light rounded-lg outline-none bg-beige-primary focus:border-gray-300 transition-colors cursor-pointer"
+                className="w-full pl-9 pr-16 py-2 text-sm border border-border-light rounded-xl outline-none bg-beige-primary shadow-sm cursor-pointer"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                 <span className="text-xs font-medium text-gray-400">⌘ F</span>
@@ -428,11 +429,11 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Dropdown Menu */}
-          <div className="px-3 pb-4" ref={dropdownRef}>
+          <div className="px-4 pb-4" ref={dropdownRef}>
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-[0.75rem] font-medium text-gray-900 bg-beige-primary rounded-lg transition-colors border border-border-light"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-[0.8125rem] font-medium text-gray-900 bg-beige-primary rounded-xl transition-colors border border-border-light shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
                   <selectedItem.icon className="h-4 w-4" />
@@ -455,7 +456,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         setDropdownOpen(false);
                         onClose?.();
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.75rem] font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.8125rem] font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
@@ -467,7 +468,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-4 pt-4 pb-4 scrollbar-hide">
+          <nav className="flex-1 overflow-y-auto px-4 pt-8 pb-4 scrollbar-hide">
             {(selectedItem.label === 'Documentation' || selectedItem.label === 'API Reference') ? (
               // Show grouped sections for Documentation and API Reference
               <div className="space-y-6">
@@ -499,7 +500,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                               <button
                                 onClick={() => toggleExpanded(item.name)}
                                 className={cn(
-                                  'w-full flex items-center gap-2.5 px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors rounded-lg',
+                                  'w-full flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors rounded-lg',
                                   isParentActive
                                     ? 'text-primary font-semibold'
                                     : 'text-gray-700 hover:text-gray-900'
@@ -519,7 +520,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                               <Link
                                 href={item.href}
                                 className={cn(
-                                  'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
+                                  'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                                   isActive
                                     ? 'text-primary font-semibold'
                                     : 'text-gray-700 hover:text-gray-900'
@@ -541,7 +542,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                       <Link
                                         href={child.href}
                                         className={cn(
-                                          'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
+                                          'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                                           isChildActive
                                             ? 'text-primary font-semibold'
                                             : 'text-gray-700 hover:text-gray-900'
@@ -604,7 +605,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         <button
                           onClick={() => toggleExpanded(item.name)}
                           className={cn(
-                            'w-full flex items-center gap-2.5 px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors rounded-lg',
+                            'w-full flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors rounded-lg',
                             isParentActive
                               ? 'text-primary font-semibold'
                               : 'text-gray-700 hover:text-gray-900'
@@ -623,7 +624,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         <Link
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
+                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                             isActive
                               ? 'text-primary font-semibold'
                               : 'text-gray-700 hover:text-gray-900'
@@ -644,7 +645,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                 <Link
                                   href={child.href}
                                   className={cn(
-                                    'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
+                                    'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                                     isChildActive
                                       ? 'text-primary font-semibold'
                                       : 'text-gray-700 hover:text-gray-900'

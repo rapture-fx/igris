@@ -18,7 +18,7 @@ export function DocsLayout({ children }: DocsLayoutProps) {
         <DocsSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         {/* Main content area with better centering */}
-        <main className="flex-1 md:ml-72 overflow-x-hidden flex flex-col h-screen">
+        <main className="flex-1 md:ml-64 overflow-x-hidden flex flex-col h-screen">
           {/* Fixed Navbar with breadcrumbs */}
           <div className="flex-shrink-0">
             <DocsNavbar />
