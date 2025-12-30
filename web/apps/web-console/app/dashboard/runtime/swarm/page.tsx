@@ -41,7 +41,7 @@ export default function RuntimeSwarmPage() {
               <Radio className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{swarmMetrics.total_nodes}</div>
+              <div className="text-lg font-bold text-gray-900">{swarmMetrics.total_nodes}</div>
               <p className="text-xs text-gray-600 mt-1">{swarmMetrics.active_connections} active connections</p>
             </CardContent>
           </Card>
@@ -52,7 +52,7 @@ export default function RuntimeSwarmPage() {
               <Activity className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{swarmMetrics.consensus_health}%</div>
+              <div className="text-lg font-bold text-gray-900">{swarmMetrics.consensus_health}%</div>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp className="h-3 w-3 text-gray-600" />
                 <span className="text-xs text-gray-600">Excellent</span>
@@ -66,7 +66,7 @@ export default function RuntimeSwarmPage() {
               <Zap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{swarmMetrics.avg_sync_latency}ms</div>
+              <div className="text-lg font-bold text-gray-900">{swarmMetrics.avg_sync_latency}ms</div>
               <p className="text-xs text-gray-600 mt-1">Average across swarm</p>
             </CardContent>
           </Card>
@@ -75,7 +75,7 @@ export default function RuntimeSwarmPage() {
         <Card className="border-border-light shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Radio className="h-5 w-5 text-gray-900" />
+              <Radio className="h-4 w-4 text-gray-900" />
               <CardTitle className="text-sm">Swarm Nodes</CardTitle>
             </div>
             <CardDescription className="text-xs">Distributed consensus network</CardDescription>
@@ -118,7 +118,7 @@ export default function RuntimeSwarmPage() {
           <CardContent>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
-                <Activity className="h-5 w-5 text-gray-600" />
+                <Activity className="h-4 w-4 text-gray-600" />
                 <h4 className="text-sm font-medium text-gray-900">Healthy State</h4>
               </div>
               <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">

@@ -103,7 +103,7 @@ export default function AgentsQLoRAPage() {
               <GraduationCap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">24</div>
+              <div className="text-lg font-bold text-gray-900">24</div>
               <p className="text-xs text-gray-600 mt-1">Last 30 days</p>
             </CardContent>
           </Card>
@@ -113,7 +113,7 @@ export default function AgentsQLoRAPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Success Rate</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">91.7%</div>
+              <div className="text-lg font-bold text-gray-900">91.7%</div>
               <div className="flex items-center gap-1 mt-1">
                 <TrendingUp className="h-3 w-3 text-gray-600" />
                 <span className="text-xs text-gray-600">22/24 completed</span>
@@ -126,7 +126,7 @@ export default function AgentsQLoRAPage() {
               <CardTitle className="text-sm font-medium text-gray-600">Avg Training Time</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">3.2h</div>
+              <div className="text-lg font-bold text-gray-900">3.2h</div>
               <p className="text-xs text-gray-600 mt-1">Per job</p>
             </CardContent>
           </Card>
@@ -138,9 +138,9 @@ export default function AgentsQLoRAPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <GraduationCap className="h-5 w-5 text-gray-900" />
+                    <GraduationCap className="h-4 w-4 text-gray-900" />
                     <div>
-                      <CardTitle className="text-sm text-base">{job.model_name}</CardTitle>
+                      <CardTitle className="text-sm">{job.model_name}</CardTitle>
                       <CardDescription className="text-xs mt-1">
                         Base: {job.base_model} • Started {job.started_at}
                       </CardDescription>

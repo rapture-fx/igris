@@ -107,9 +107,9 @@ export default function AgentsToolsPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Wrench className="h-5 w-5 text-gray-900" />
+                    <Wrench className="h-4 w-4 text-gray-900" />
                     <div>
-                      <CardTitle className="text-sm text-base">{tool.name}</CardTitle>
+                      <CardTitle className="text-sm">{tool.name}</CardTitle>
                       <CardDescription className="text-xs mt-1">
                         {tool.category} • {tool.usage_count.toLocaleString()} uses
                       </CardDescription>
