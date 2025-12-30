@@ -31,10 +31,10 @@ export function DocsNavbar() {
 
   return (
     <>
-    <nav className="bg-beige-primary border-b border-transparent">
-      <div className="py-4">
-        <div className="max-w-[90rem] mx-auto px-8 sm:px-12 lg:px-16">
-          <div className="flex gap-12">
+    <nav className="bg-beige-primary border-b border-border-light h-12">
+      <div className="h-full">
+        <div className="h-full max-w-[90rem] mx-auto px-8 sm:px-12 lg:px-16">
+          <div className="h-full flex gap-12">
             {/* Left side: Breadcrumbs + spacer for content area */}
             <div className="flex-1 min-w-0 flex items-center">
               <div className="flex items-center space-x-2 text-sm">
@@ -65,7 +65,7 @@ export function DocsNavbar() {
               {/* Dashboard Button */}
               <Link
                 href="/dashboard"
-                className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-beige-primary hover:bg-beige-secondary rounded-lg transition-colors whitespace-nowrap shadow-md border border-gray-200"
+                className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-beige-primary hover:bg-beige-secondary rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200"
               >
                 Dashboard
               </Link>
@@ -73,7 +73,7 @@ export function DocsNavbar() {
               {/* Sign Up Button */}
               <Link
                 href="/signup"
-                className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-beige-primary hover:bg-beige-secondary rounded-lg transition-colors whitespace-nowrap shadow-md border border-gray-200"
+                className="px-3 py-1.5 text-xs font-medium text-gray-900 bg-beige-primary hover:bg-beige-secondary rounded-lg transition-colors whitespace-nowrap shadow-sm border border-gray-200"
               >
                 Sign Up
               </Link>

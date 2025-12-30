@@ -44,7 +44,7 @@ interface NavigationSection {
 
 const navigationSections: NavigationSection[] = [
   {
-    section: 'Documentation',
+    section: 'Getting Started',
     items: [
       {
         name: 'Introduction',
@@ -56,47 +56,70 @@ const navigationSections: NavigationSection[] = [
         href: '/docs/quickstart',
         icon: Zap,
       },
+      {
+        name: 'Architecture',
+        href: '/docs/architecture',
+        icon: Layers,
+      },
     ],
   },
   {
-    section: 'Guide',
+    section: 'Core Features',
     items: [
       {
-        name: 'Providers & Keys',
-        href: '/docs/providers-keys',
-        icon: Key,
+        name: 'Local LLM Fallback',
+        href: '/docs/core-features/local-fallback',
+        icon: Box,
       },
       {
-        name: 'Routing Policies',
-        href: '/docs/routing-policies',
+        name: 'Reflection Agents',
+        href: '/docs/core-features/reflection',
         icon: GitBranch,
       },
       {
-        name: 'Core Features',
-        href: '/docs/core-features',
-        icon: Box,
-        children: [
-          { name: 'Adaptive Optimization', href: '/docs/core-features/adaptive-optimization' },
-          { name: 'Provider Health Checks', href: '/docs/core-features/provider-health' },
-          { name: 'EscapeVector Mode', href: '/docs/core-features/escape-vector' },
-          { name: 'Gold Code Override', href: '/docs/core-features/gold-code' },
-          { name: 'Emergency Hotfix Blob', href: '/docs/core-features/hotfix-blob' },
-          { name: 'Speculative Execution', href: '/docs/core-features/speculative' },
-          { name: 'Council Mode', href: '/docs/core-features/council-mode' },
-          { name: 'Cognitive Advisor', href: '/docs/core-features/cognitive-advisor' },
-          { name: 'Shadow Mode', href: '/docs/core-features/shadow-mode' },
-          { name: 'SLO Enforcer', href: '/docs/core-features/slo-enforcer' },
-        ],
+        name: 'Planning Agents',
+        href: '/docs/core-features/planning',
+        icon: Layers,
       },
       {
-        name: 'Multi-Tenancy',
-        href: '/docs/multi-tenancy',
+        name: 'Tool Use',
+        href: '/docs/core-features/tools',
+        icon: Code,
+      },
+      {
+        name: 'Multi-Agent Swarms',
+        href: '/docs/core-features/swarm',
         icon: Users,
       },
       {
-        name: 'Observability',
-        href: '/docs/observability',
-        icon: BarChart3,
+        name: 'MCP Swarm Mode',
+        href: '/docs/core-features/mcp-swarm',
+        icon: GitBranch,
+      },
+      {
+        name: 'QLoRA Training',
+        href: '/docs/core-features/qlora',
+        icon: Zap,
+      },
+    ],
+  },
+  {
+    section: 'Deployment',
+    items: [
+      {
+        name: 'Local Models',
+        href: '/docs/local-models',
+        icon: Package,
+      },
+      {
+        name: 'Deployment Guide',
+        href: '/docs/deployment',
+        icon: Box,
+      },
+      {
+        name: 'Configuration',
+        href: '/docs/configuration',
+        icon: Key,
       },
     ],
   },
@@ -104,14 +127,9 @@ const navigationSections: NavigationSection[] = [
     section: 'Resources',
     items: [
       {
-        name: 'SDK Usage',
-        href: '/docs/sdk-usage',
-        icon: Package,
-      },
-      {
-        name: 'Architecture',
-        href: '/docs/architecture',
-        icon: Layers,
+        name: 'Observability',
+        href: '/docs/observability',
+        icon: BarChart3,
       },
       {
         name: 'FAQ',
@@ -140,13 +158,13 @@ const apiReferenceSections: NavigationSection[] = [
         icon: Code,
         children: [
           { name: 'Chat Completions', href: '/docs/api-reference/endpoints/chat-completions', badge: 'POST' },
-          { name: 'Models', href: '/docs/api-reference/endpoints/models', badge: 'GET' },
-          { name: 'Embeddings', href: '/docs/api-reference/endpoints/embeddings', badge: 'POST' },
-          { name: 'Status & Health', href: '/docs/api-reference/endpoints/status', badge: 'GET' },
+          { name: 'Health Check', href: '/docs/api-reference/endpoints/health', badge: 'GET' },
+          { name: 'Metrics', href: '/docs/api-reference/endpoints/metrics', badge: 'GET' },
+          { name: 'LoRA Status', href: '/docs/api-reference/endpoints/lora-status', badge: 'GET' },
         ]
       },
-      { name: 'Errors & Retries', href: '/docs/api-reference/errors-retries', icon: HelpCircle },
-      { name: 'Rate Limits & Budgets', href: '/docs/api-reference/rate-limits-budgets', icon: BarChart3 },
+      { name: 'Request Modes', href: '/docs/api-reference/modes', icon: GitBranch },
+      { name: 'Streaming', href: '/docs/api-reference/streaming', icon: Zap },
     ],
   },
   {
@@ -167,35 +185,32 @@ const navigation: NavigationItem[] = [
 
 // Search index for documentation
 const searchIndex = [
-  { title: 'Introduction', path: '/docs/introduction', keywords: 'intro getting started welcome overview' },
-  { title: 'Quickstart', path: '/docs/quickstart', keywords: 'quick start begin setup install' },
-  { title: 'SDK Usage', path: '/docs/sdk-usage', keywords: 'sdk usage how to use implementation' },
-  { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture design system structure' },
-  { title: 'API Reference', path: '/docs/api-reference/introduction', keywords: 'api reference endpoints methods' },
-  { title: 'API Quick Start', path: '/docs/api-reference/quick-start', keywords: 'api quick start curl first request' },
-  { title: 'Authentication', path: '/docs/api-reference/authentication', keywords: 'authentication auth api key jwt token bearer' },
-  { title: 'Chat Completions', path: '/docs/api-reference/endpoints/chat-completions', keywords: 'chat completions inference openai gpt claude' },
-  { title: 'Models', path: '/docs/api-reference/endpoints/models', keywords: 'models list available gpt claude' },
-  { title: 'Embeddings', path: '/docs/api-reference/endpoints/embeddings', keywords: 'embeddings vectors semantic search' },
-  { title: 'Status & Health', path: '/docs/api-reference/endpoints/status', keywords: 'status health check monitoring metrics' },
-  { title: 'Errors & Retries', path: '/docs/api-reference/errors-retries', keywords: 'errors retries error handling fallback' },
-  { title: 'Rate Limits & Budgets', path: '/docs/api-reference/rate-limits-budgets', keywords: 'rate limits budgets quota usage tiers' },
-  { title: 'SDKs', path: '/docs/api-reference/sdks', keywords: 'sdk client libraries typescript python go rust' },
-  { title: 'Providers & Keys', path: '/docs/providers-keys', keywords: 'providers keys configuration setup api keys' },
-  { title: 'Observability', path: '/docs/observability', keywords: 'observability monitoring logging metrics' },
-  { title: 'Routing Policies', path: '/docs/routing-policies', keywords: 'routing policies rules configuration' },
-  { title: 'Multi-Tenancy', path: '/docs/multi-tenancy', keywords: 'multi tenancy tenant isolation' },
+  { title: 'Introduction', path: '/docs', keywords: 'intro getting started welcome overview runtime offline' },
+  { title: 'Quickstart', path: '/docs/quickstart', keywords: 'quick start begin setup install model download' },
+  { title: 'Architecture', path: '/docs/architecture', keywords: 'architecture design system structure runtime' },
+  { title: 'Local Models', path: '/docs/local-models', keywords: 'models phi3 mistral llama gguf download' },
+  { title: 'Deployment', path: '/docs/deployment', keywords: 'deployment docker kubernetes k8s bare metal systemd' },
+  { title: 'Configuration', path: '/docs/configuration', keywords: 'configuration config json5 setup' },
+  { title: 'Observability', path: '/docs/observability', keywords: 'observability monitoring logging metrics prometheus' },
   { title: 'FAQ', path: '/docs/faq', keywords: 'faq questions answers help' },
   { title: 'Changelog', path: '/docs/changelog', keywords: 'changelog updates releases versions' },
-  { title: 'Escape Vector', path: '/docs/core-features/escape-vector', keywords: 'escape vector feature core' },
-  { title: 'Hotfix Blob', path: '/docs/core-features/hotfix-blob', keywords: 'hotfix blob feature core patch' },
-  { title: 'Cognitive Advisor', path: '/docs/core-features/cognitive-advisor', keywords: 'cognitive advisor ai feature core' },
-  { title: 'Gold Code', path: '/docs/core-features/gold-code', keywords: 'gold code quality feature core' },
-  { title: 'Speculative', path: '/docs/core-features/speculative', keywords: 'speculative feature core prediction' },
-  { title: 'Council Mode', path: '/docs/core-features/council-mode', keywords: 'council mode feature core collaboration' },
-  { title: 'Shadow Mode', path: '/docs/core-features/shadow-mode', keywords: 'shadow mode testing canary feature core rollout' },
-  { title: 'SLO Enforcer', path: '/docs/core-features/slo-enforcer', keywords: 'slo enforcer service level objective guardrails monitoring' },
-  { title: 'Local Models', path: '/docs/local-models', keywords: 'models phi3 mistral llama gguf download' },
+  { title: 'Local LLM Fallback', path: '/docs/core-features/local-fallback', keywords: 'local fallback offline llm phi3 automatic' },
+  { title: 'Reflection Agents', path: '/docs/core-features/reflection', keywords: 'reflection agents critique improve quality self-improvement' },
+  { title: 'Planning Agents', path: '/docs/core-features/planning', keywords: 'planning agents chain of thought reasoning cot' },
+  { title: 'Tool Use', path: '/docs/core-features/tools', keywords: 'tools http shell filesystem api calls' },
+  { title: 'Multi-Agent Swarms', path: '/docs/core-features/swarm', keywords: 'swarm multi agent collaboration consensus' },
+  { title: 'MCP Swarm Mode', path: '/docs/core-features/mcp-swarm', keywords: 'mcp swarm context sharing peer discovery mdns' },
+  { title: 'QLoRA Training', path: '/docs/core-features/qlora', keywords: 'qlora training fine-tune lora adapter on-device' },
+  { title: 'API Reference', path: '/docs/api-reference/introduction', keywords: 'api reference endpoints methods' },
+  { title: 'API Quick Start', path: '/docs/api-reference/quick-start', keywords: 'api quick start curl first request' },
+  { title: 'Authentication', path: '/docs/api-reference/authentication', keywords: 'authentication auth api key optional' },
+  { title: 'Chat Completions', path: '/docs/api-reference/endpoints/chat-completions', keywords: 'chat completions inference openai compatible' },
+  { title: 'Health Check', path: '/docs/api-reference/endpoints/health', keywords: 'health check status endpoint' },
+  { title: 'Metrics', path: '/docs/api-reference/endpoints/metrics', keywords: 'metrics prometheus endpoint monitoring' },
+  { title: 'LoRA Status', path: '/docs/api-reference/endpoints/lora-status', keywords: 'lora status training adapter' },
+  { title: 'Request Modes', path: '/docs/api-reference/modes', keywords: 'modes reflection planning tools swarm' },
+  { title: 'Streaming', path: '/docs/api-reference/streaming', keywords: 'streaming sse server-sent events' },
+  { title: 'SDKs', path: '/docs/api-reference/sdks', keywords: 'sdk client libraries openai python nodejs' },
 ];
 
 const dropdownItems = [
@@ -394,13 +409,13 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed top-0 left-0 z-50 h-screen w-64 transform transition-transform duration-200 ease-in-out md:translate-x-0',
+          'fixed top-0 left-0 z-50 h-screen w-72 transform transition-transform duration-200 ease-in-out md:translate-x-0 p-3',
           open ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-full flex-col bg-beige-primary border-r border-border-light">
+        <div className="flex h-full flex-col bg-beige-primary rounded-2xl shadow-md border border-border-light">
           {/* Logo Section */}
-          <div className="h-12 flex items-center px-7 border-b border-border-light">
+          <div className="h-20 flex items-center px-7 pt-6 pb-4">
             <a href={hubUrl} className="flex items-center">
               <img
                 src="/img/igris-logo-34.png"
@@ -411,7 +426,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Search Bar */}
-          <div className="px-3 py-5">
+          <div className="px-4 pb-3 pt-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
@@ -419,7 +434,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                 placeholder=""
                 readOnly
                 onClick={() => setIsSearchModalOpen(true)}
-                className="w-full pl-9 pr-16 py-2 text-[0.75rem] border border-border-light rounded-lg outline-none bg-beige-primary focus:border-gray-300 transition-colors cursor-pointer"
+                className="w-full pl-9 pr-16 py-2 text-sm border border-border-light rounded-xl outline-none bg-beige-primary shadow-sm cursor-pointer"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 pointer-events-none">
                 <span className="text-xs font-medium text-gray-400">⌘ F</span>
@@ -428,11 +443,11 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Dropdown Menu */}
-          <div className="px-3 pb-4" ref={dropdownRef}>
+          <div className="px-4 pb-4" ref={dropdownRef}>
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="w-full flex items-center justify-between px-3 py-2.5 text-[0.75rem] font-medium text-gray-900 bg-beige-primary rounded-lg transition-colors border border-border-light"
+                className="w-full flex items-center justify-between px-3 py-2.5 text-[0.8125rem] font-medium text-gray-900 bg-beige-primary rounded-xl transition-colors border border-border-light shadow-sm"
               >
                 <div className="flex items-center gap-2.5">
                   <selectedItem.icon className="h-4 w-4" />
@@ -455,7 +470,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         setDropdownOpen(false);
                         onClose?.();
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.75rem] font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.8125rem] font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
@@ -467,7 +482,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 overflow-y-auto px-4 pt-4 pb-4 scrollbar-hide">
+          <nav className="flex-1 overflow-y-auto px-4 pt-8 pb-4 scrollbar-hide">
             {(selectedItem.label === 'Documentation' || selectedItem.label === 'API Reference') ? (
               // Show grouped sections for Documentation and API Reference
               <div className="space-y-6">
@@ -499,7 +514,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                               <button
                                 onClick={() => toggleExpanded(item.name)}
                                 className={cn(
-                                  'w-full flex items-center gap-2.5 px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors rounded-lg',
+                                  'w-full flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors rounded-lg',
                                   isParentActive
                                     ? 'text-primary font-semibold'
                                     : 'text-gray-700 hover:text-gray-900'
@@ -519,7 +534,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                               <Link
                                 href={item.href}
                                 className={cn(
-                                  'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
+                                  'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                                   isActive
                                     ? 'text-primary font-semibold'
                                     : 'text-gray-700 hover:text-gray-900'
@@ -541,7 +556,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                       <Link
                                         href={child.href}
                                         className={cn(
-                                          'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
+                                          'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                                           isChildActive
                                             ? 'text-primary font-semibold'
                                             : 'text-gray-700 hover:text-gray-900'
@@ -604,7 +619,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         <button
                           onClick={() => toggleExpanded(item.name)}
                           className={cn(
-                            'w-full flex items-center gap-2.5 px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors rounded-lg',
+                            'w-full flex items-center gap-2.5 px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors rounded-lg',
                             isParentActive
                               ? 'text-primary font-semibold'
                               : 'text-gray-700 hover:text-gray-900'
@@ -623,7 +638,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         <Link
                           href={item.href}
                           className={cn(
-                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.75rem] font-medium font-inter transition-colors',
+                            'flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                             isActive
                               ? 'text-primary font-semibold'
                               : 'text-gray-700 hover:text-gray-900'
@@ -644,7 +659,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                                 <Link
                                   href={child.href}
                                   className={cn(
-                                    'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.7rem] font-medium font-inter transition-colors',
+                                    'flex items-start gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium font-inter transition-colors',
                                     isChildActive
                                       ? 'text-primary font-semibold'
                                       : 'text-gray-700 hover:text-gray-900'
