@@ -831,7 +831,7 @@ export default function ObservabilityPage() {
 
   const getStatusBadge = (status: number) => {
     if (status === 200) {
-      return <Badge className="bg-green-50 text-green-700 border-green-200">200 OK</Badge>;
+      return <Badge className="bg-gray-50 text-gray-700 border-gray-200">200 OK</Badge>;
     } else if (status === 429) {
       return <Badge style={{ backgroundColor: '#ffc2c2', color: '#991b1b', borderColor: '#ffc2c2' }}>429 Rate Limit</Badge>;
     } else if (status === 500) {
@@ -873,16 +873,16 @@ export default function ObservabilityPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-semibold text-gray-900 font-inter">
+                <h1 className="text-lg font-semibold text-gray-900 font-inter">
                   Observability
                 </h1>
                 {tier === 'growth' && (
-                  <Badge className="bg-blue-50 text-blue-700 border-blue-200 text-xs font-medium">
+                  <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs font-medium">
                     30 days retention
                   </Badge>
                 )}
                 {tier === 'scale' && (
-                  <Badge className="bg-green-50 text-green-700 border-green-200 text-xs font-medium">
+                  <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs font-medium">
                     90 days retention
                   </Badge>
                 )}
@@ -968,7 +968,7 @@ export default function ObservabilityPage() {
                     </div>
                     <Button
                       variant="outline"
-                      className="shadow-sm text-red-600 border-red-300 hover:bg-red-50"
+                      className="shadow-sm text-gray-900 border-red-300 hover:bg-red-50"
                       onClick={handleDeleteAllTraces}
                     >
                       Delete All Traces
@@ -1048,11 +1048,11 @@ export default function ObservabilityPage() {
                 <p className="text-xs font-medium text-gray-600">P50 / P95 Latency</p>
                 <div className="space-y-1">
                   <div className="flex items-baseline gap-2">
-                    <p className="text-2xl font-bold text-gray-900">{realTimeMetrics.p50Latency.toFixed(0)}ms</p>
+                    <p className="text-lg font-bold text-gray-900">{realTimeMetrics.p50Latency.toFixed(0)}ms</p>
                     <span className="text-xs text-gray-600">P50</span>
                   </div>
                   <div className="flex items-baseline gap-2">
-                    <p className="text-xl font-semibold text-gray-700">{realTimeMetrics.p95Latency.toFixed(0)}ms</p>
+                    <p className="text-base font-semibold text-gray-700">{realTimeMetrics.p95Latency.toFixed(0)}ms</p>
                     <span className="text-xs text-gray-600">P95</span>
                   </div>
                 </div>
@@ -1125,7 +1125,7 @@ export default function ObservabilityPage() {
               <BarChart3 className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatNumber(metrics.total)}</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(metrics.total)}</div>
               <p className="text-xs text-gray-600 mt-1">
                 Last {filters.timeRange === '1h' ? 'hour' : filters.timeRange === '24h' ? '24h' : filters.timeRange === '7d' ? '7 days' : '30 days'}
               </p>
@@ -1140,7 +1140,7 @@ export default function ObservabilityPage() {
               <Clock className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatLatency(metrics.avgLatency)}</div>
+              <div className="text-lg font-bold text-gray-900">{formatLatency(metrics.avgLatency)}</div>
               <p className="text-xs text-gray-600 mt-1">Response time</p>
             </CardContent>
           </Card>
@@ -1153,7 +1153,7 @@ export default function ObservabilityPage() {
               <Zap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatCurrency(metrics.totalCost)}</div>
+              <div className="text-lg font-bold text-gray-900">{formatCurrency(metrics.totalCost)}</div>
               <p className="text-xs text-gray-600 mt-1">This period</p>
             </CardContent>
           </Card>
@@ -1166,7 +1166,7 @@ export default function ObservabilityPage() {
               <AlertCircle className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{metrics.errorRate.toFixed(1)}%</div>
+              <div className="text-lg font-bold text-gray-900">{metrics.errorRate.toFixed(1)}%</div>
               <p className="text-xs text-gray-600 mt-1">
                 {tier === 'scale' ? '90-day' : tier === 'growth' ? '7-day' : 'Limited'}
               </p>
@@ -1181,7 +1181,7 @@ export default function ObservabilityPage() {
               <Zap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatNumber(metrics.speculativeCount)}</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(metrics.speculativeCount)}</div>
               <p className="text-xs text-gray-600 mt-1">Used parallel</p>
             </CardContent>
           </Card>
@@ -1194,7 +1194,7 @@ export default function ObservabilityPage() {
               <Activity className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">{formatNumber(metrics.retriedCount)}</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(metrics.retriedCount)}</div>
               <p className="text-xs text-gray-600 mt-1">Had retries</p>
             </CardContent>
           </Card>
@@ -1454,18 +1454,18 @@ export default function ObservabilityPage() {
                   <table className="w-full">
                     <thead className="sticky top-0 z-10" style={{ backgroundColor: '#f2f1ed' }}>
                       <tr className="border-b border-border-light">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Time</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Model</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Provider</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Status</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Latency</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cost</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tokens</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cache</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>User</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Chain</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tags</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Actions</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Time</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Model</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Provider</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Status</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Latency</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cost</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tokens</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Cache</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>User</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Chain</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Tags</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600" style={{ backgroundColor: '#f2f1ed' }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1475,47 +1475,47 @@ export default function ObservabilityPage() {
                         className="border-b border-border-light hover:bg-beige-primary cursor-pointer transition-colors"
                         onClick={() => setSelectedTrace(trace)}
                       >
-                        <td className="py-3 px-4 text-sm text-gray-900 font-inter">
+                        <td className="py-2 px-3 text-sm text-gray-900 font-inter">
                           {new Date(trace.timestamp).toLocaleTimeString()}
                         </td>
-                        <td className="py-3 px-4 text-sm font-medium text-gray-900">
+                        <td className="py-2 px-3 text-sm font-medium text-gray-900">
                           <div className="flex flex-col">
                             <span>{trace.model}</span>
                             {trace.model_version && <span className="text-xs text-gray-600">{trace.model_version}</span>}
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-900">
+                        <td className="py-2 px-3 text-sm text-gray-900">
                           {trace.provider}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-2 px-3">
                           <div className="flex items-center gap-2">
                             {getStatusBadge(trace.status)}
                             {trace.used_speculative && <Badge variant="outline" className="text-xs">Spec</Badge>}
                             {trace.retry_count && trace.retry_count > 0 && <Badge variant="outline" className="text-xs">{trace.retry_count}x</Badge>}
                           </div>
                         </td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-900">
+                        <td className="text-right py-2 px-3 text-sm text-gray-900">
                           {formatLatency(trace.latency)}
                         </td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-900">
+                        <td className="text-right py-2 px-3 text-sm text-gray-900">
                           {formatCurrency(trace.cost)}
                         </td>
-                        <td className="text-right py-3 px-4 text-sm text-gray-900">
+                        <td className="text-right py-2 px-3 text-sm text-gray-900">
                           {formatNumber(trace.tokens.total)}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-2 px-3">
                           {trace.cache_hit ? (
                             <div className="flex flex-col">
-                              <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">HIT</Badge>
+                              <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs">HIT</Badge>
                               {trace.cache_savings && trace.cache_savings > 0 && (
-                                <span className="text-xs text-green-600 mt-1">-{formatCurrency(trace.cache_savings)}</span>
+                                <span className="text-xs text-gray-600 mt-1">-{formatCurrency(trace.cache_savings)}</span>
                               )}
                             </div>
                           ) : (
                             <Badge variant="outline" className="text-xs text-gray-600">MISS</Badge>
                           )}
                         </td>
-                        <td className="py-3 px-4 text-sm text-gray-900">
+                        <td className="py-2 px-3 text-sm text-gray-900">
                           {trace.user_id && (
                             <div className="flex flex-col">
                               <span className="text-xs">{trace.user_id}</span>
@@ -1523,7 +1523,7 @@ export default function ObservabilityPage() {
                             </div>
                           )}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-2 px-3">
                           {(trace.parent_request_id || trace.child_request_ids) && (
                             <div className="flex items-center gap-1">
                               {trace.parent_request_id && <Badge variant="outline" className="text-xs">↑ Parent</Badge>}
@@ -1531,10 +1531,10 @@ export default function ObservabilityPage() {
                             </div>
                           )}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-2 px-3">
                           {getTagBadge(trace.tag)}
                         </td>
-                        <td className="text-right py-3 px-4">
+                        <td className="text-right py-2 px-3">
                           <div className="flex gap-2 justify-end">
                             <Button
                               variant="outline"
@@ -1588,14 +1588,14 @@ export default function ObservabilityPage() {
                     <div className="flex items-center gap-1">
                       {errorRateMetrics.trendDirection === 'up' && (
                         <>
-                          <ChevronUp className="h-5 w-5 text-red-600" />
-                          <span className="text-sm font-semibold text-red-600">+{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
+                          <ChevronUp className="h-5 w-5 text-gray-900" />
+                          <span className="text-sm font-semibold text-gray-900">+{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
                         </>
                       )}
                       {errorRateMetrics.trendDirection === 'down' && (
                         <>
-                          <ChevronDown className="h-5 w-5 text-green-600" />
-                          <span className="text-sm font-semibold text-green-600">-{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
+                          <ChevronDown className="h-5 w-5 text-gray-600" />
+                          <span className="text-sm font-semibold text-gray-600">-{Math.abs(errorRateMetrics.errorRateDelta).toFixed(2)}%</span>
                         </>
                       )}
                       {errorRateMetrics.trendDirection === 'flat' && (
@@ -1655,16 +1655,16 @@ export default function ObservabilityPage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-border-light bg-beige-primary">
-                        <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
-                        <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Reliability Score</th>
-                        <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Status</th>
+                        <th className="text-left py-2 px-3 text-xs font-medium text-gray-600">Provider</th>
+                        <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">Reliability Score</th>
+                        <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">Status</th>
                       </tr>
                     </thead>
                     <tbody>
                       {providerReliabilityMetrics.map((provider, index) => (
                         <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                          <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
-                          <td className="text-right py-3 px-4">
+                          <td className="py-2 px-3 text-sm font-medium text-gray-900">{provider.provider}</td>
+                          <td className="text-right py-2 px-3">
                             <div className="flex items-center justify-end gap-2">
                               <div className="w-32 h-2.5 bg-gray-200 rounded-full overflow-hidden">
                                 <div
@@ -1675,9 +1675,9 @@ export default function ObservabilityPage() {
                               <span className="text-sm font-semibold text-gray-900 min-w-[50px]">{provider.reliabilityScore}%</span>
                             </div>
                           </td>
-                          <td className="text-right py-3 px-4">
+                          <td className="text-right py-2 px-3">
                             <Badge className={cn(
-                              provider.badge === 'Excellent' ? "bg-green-50 text-green-700 border-green-200" :
+                              provider.badge === 'Excellent' ? "bg-gray-50 text-gray-700 border-gray-200" :
                               provider.badge === 'Good' ? "bg-yellow-50 text-yellow-700 border-yellow-200" :
                               "bg-red-50 text-red-700 border-red-200"
                             )}>
@@ -1707,25 +1707,25 @@ export default function ObservabilityPage() {
                     <table className="w-full">
                       <thead>
                         <tr className="border-b border-border-light bg-beige-primary">
-                          <th className="text-left py-3 px-4 text-xs font-medium text-gray-600">Provider</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P50</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P75</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P90</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P95</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">P99</th>
-                          <th className="text-right py-3 px-4 text-xs font-medium text-gray-600">Status</th>
+                          <th className="text-left py-2 px-3 text-xs font-medium text-gray-600">Provider</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">P50</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">P75</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">P90</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">P95</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">P99</th>
+                          <th className="text-right py-2 px-3 text-xs font-medium text-gray-600">Status</th>
                         </tr>
                       </thead>
                       <tbody>
                         {latencyCDFMetrics.percentileData.map((provider, index) => (
                           <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                            <td className="py-3 px-4 text-sm font-medium text-gray-900">{provider.provider}</td>
-                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p50}ms</td>
-                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p75}ms</td>
-                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p90}ms</td>
-                            <td className="text-right py-3 px-4 text-sm font-semibold text-gray-900">{provider.p95}ms</td>
-                            <td className="text-right py-3 px-4 text-sm text-gray-700">{provider.p99}ms</td>
-                            <td className="text-right py-3 px-4">
+                            <td className="py-2 px-3 text-sm font-medium text-gray-900">{provider.provider}</td>
+                            <td className="text-right py-2 px-3 text-sm text-gray-700">{provider.p50}ms</td>
+                            <td className="text-right py-2 px-3 text-sm text-gray-700">{provider.p75}ms</td>
+                            <td className="text-right py-2 px-3 text-sm text-gray-700">{provider.p90}ms</td>
+                            <td className="text-right py-2 px-3 text-sm font-semibold text-gray-900">{provider.p95}ms</td>
+                            <td className="text-right py-2 px-3 text-sm text-gray-700">{provider.p99}ms</td>
+                            <td className="text-right py-2 px-3">
                               {index === 0 && (
                                 <Badge style={{ backgroundColor: '#e6f7f6', color: '#299a93', borderColor: '#299a93' }}>
                                   Winner
@@ -1740,7 +1740,7 @@ export default function ObservabilityPage() {
 
                   {/* CDF Chart */}
                   <div className="mt-6">
-                    <ResponsiveContainer width="100%" height={350}>
+                    <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={latencyCDFMetrics.cdfChartData} margin={{ bottom: 30 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis
@@ -1816,8 +1816,8 @@ export default function ObservabilityPage() {
                 <div className="flex items-center gap-2">
                   {costInsightsMetrics.totalTrend > 0 ? (
                     <>
-                      <ChevronUp className="h-5 w-5 text-red-600" />
-                      <span className="text-sm font-semibold text-red-600">+{costInsightsMetrics.totalTrend}%</span>
+                      <ChevronUp className="h-5 w-5 text-gray-900" />
+                      <span className="text-sm font-semibold text-gray-900">+{costInsightsMetrics.totalTrend}%</span>
                     </>
                   ) : costInsightsMetrics.totalTrend < 0 ? (
                     <>
@@ -1840,7 +1840,7 @@ export default function ObservabilityPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Spend by Provider</h3>
                 {costInsightsMetrics.spendByProvider.length > 0 ? (
                   <>
-                    <ResponsiveContainer width="100%" height={320}>
+                    <ResponsiveContainer width="100%" height={180}>
                       <PieChart>
                         <Pie
                           data={costInsightsMetrics.spendByProvider}
@@ -1886,7 +1886,7 @@ export default function ObservabilityPage() {
                             {provider.trend !== 0 && (
                               <div className="flex items-center gap-1">
                                 {provider.trend > 0 ? (
-                                  <ChevronUp className="h-4 w-4 text-red-600" />
+                                  <ChevronUp className="h-4 w-4 text-gray-900" />
                                 ) : (
                                   <ChevronDown className="h-4 w-4" style={{ color: '#299a93' }} />
                                 )}
@@ -1916,7 +1916,7 @@ export default function ObservabilityPage() {
                 <h3 className="text-sm font-medium text-gray-900 mb-4">Top 10 Models by Spend</h3>
                 {costInsightsMetrics.spendByModel.length > 0 ? (
                   <>
-                    <ResponsiveContainer width="100%" height={320}>
+                    <ResponsiveContainer width="100%" height={180}>
                       <BarChart data={costInsightsMetrics.spendByModel} layout="vertical" margin={{ left: 80 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                         <XAxis type="number" stroke="#6b7280" fontSize={11} />
@@ -1953,7 +1953,7 @@ export default function ObservabilityPage() {
                             {model.trend !== 0 && (
                               <div className="flex items-center gap-1">
                                 {model.trend > 0 ? (
-                                  <ChevronUp className="h-3 w-3 text-red-600" />
+                                  <ChevronUp className="h-3 w-3 text-gray-900" />
                                 ) : (
                                   <ChevronDown className="h-3 w-3" style={{ color: '#299a93' }} />
                                 )}
@@ -2000,7 +2000,7 @@ export default function ObservabilityPage() {
                   <div className="grid grid-cols-3 gap-4">
                     <div>
                       <p className="text-xs text-gray-600 mb-1">Tenant Spend</p>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-base font-bold text-gray-900">
                         ${selectedTenant === 'all'
                           ? costInsightsMetrics.totalSpend.toFixed(2)
                           : (costInsightsMetrics.totalSpend * 0.35).toFixed(2)}
@@ -2008,7 +2008,7 @@ export default function ObservabilityPage() {
                     </div>
                     <div>
                       <p className="text-xs text-gray-600 mb-1">% of Total</p>
-                      <p className="text-xl font-bold text-gray-900">
+                      <p className="text-base font-bold text-gray-900">
                         {selectedTenant === 'all' ? '100' : '35'}%
                       </p>
                     </div>
@@ -2017,18 +2017,18 @@ export default function ObservabilityPage() {
                       <div className="flex items-center gap-1">
                         {costInsightsMetrics.totalTrend > 0 ? (
                           <>
-                            <ChevronUp className="h-5 w-5 text-red-600" />
-                            <span className="text-xl font-bold text-red-600">+{costInsightsMetrics.totalTrend}%</span>
+                            <ChevronUp className="h-5 w-5 text-gray-900" />
+                            <span className="text-base font-bold text-gray-900">+{costInsightsMetrics.totalTrend}%</span>
                           </>
                         ) : costInsightsMetrics.totalTrend < 0 ? (
                           <>
                             <ChevronDown className="h-5 w-5" style={{ color: '#299a93' }} />
-                            <span className="text-xl font-bold" style={{ color: '#299a93' }}>
+                            <span className="text-base font-bold" style={{ color: '#299a93' }}>
                               {costInsightsMetrics.totalTrend}%
                             </span>
                           </>
                         ) : (
-                          <span className="text-xl font-bold text-gray-600">0%</span>
+                          <span className="text-base font-bold text-gray-600">0%</span>
                         )}
                       </div>
                     </div>
@@ -2125,10 +2125,10 @@ export default function ObservabilityPage() {
                       },
                     ].map((log) => {
                       const categoryColors = {
-                        configuration: 'bg-blue-50 text-blue-700 border-blue-200',
+                        configuration: 'bg-gray-50 text-gray-700 border-gray-200',
                         infrastructure: 'bg-purple-50 text-purple-700 border-purple-200',
                         security: 'bg-red-50 text-red-700 border-red-200',
-                        agents: 'bg-green-50 text-green-700 border-green-200',
+                        agents: 'bg-gray-50 text-gray-700 border-gray-200',
                       };
 
                       return (
@@ -2146,9 +2146,9 @@ export default function ObservabilityPage() {
                                   {log.category}
                                 </Badge>
                                 {log.status === 'success' ? (
-                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                  <CheckCircle className="h-4 w-4 text-gray-600" />
                                 ) : (
-                                  <XCircle className="h-4 w-4 text-red-600" />
+                                  <XCircle className="h-4 w-4 text-gray-900" />
                                 )}
                               </div>
                               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-gray-600">
@@ -2245,7 +2245,7 @@ export default function ObservabilityPage() {
                       <p className="text-xs text-gray-600">Cost</p>
                       <p className="text-sm font-medium text-gray-900">{formatCurrency(selectedTrace.cost)}</p>
                       {selectedTrace.cache_hit && selectedTrace.cache_savings && selectedTrace.cache_savings > 0 && (
-                        <p className="text-xs text-green-600 mt-1">Saved: {formatCurrency(selectedTrace.cache_savings)}</p>
+                        <p className="text-xs text-gray-600 mt-1">Saved: {formatCurrency(selectedTrace.cache_savings)}</p>
                       )}
                     </div>
                     <div>
@@ -2258,7 +2258,7 @@ export default function ObservabilityPage() {
                       <p className="text-xs text-gray-600">Status</p>
                       <div className="mt-1 flex items-center gap-2">
                         {getStatusBadge(selectedTrace.status)}
-                        {selectedTrace.cache_hit && <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">CACHE HIT</Badge>}
+                        {selectedTrace.cache_hit && <Badge className="bg-gray-50 text-gray-700 border-gray-200 text-xs">CACHE HIT</Badge>}
                       </div>
                     </div>
                     {selectedTrace.user_id && (

@@ -86,22 +86,11 @@ export default function CognitiveAdvisorPage() {
   const appliedCount = proposals.filter(p => p.status === 'applied').length;
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'pending': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'approved': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'applied': return 'bg-green-50 text-green-700 border-green-200';
-      case 'rejected': return 'bg-red-50 text-red-700 border-red-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
+    return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
   const getImpactColor = (impact: string) => {
-    switch (impact) {
-      case 'high': return 'text-red-600';
-      case 'medium': return 'text-yellow-600';
-      case 'low': return 'text-green-600';
-      default: return 'text-gray-600';
-    }
+    return 'text-gray-600';
   };
 
   const getCategoryIcon = (category: string) => {
@@ -175,10 +164,10 @@ export default function CognitiveAdvisorPage() {
           {categories.map(category => (
             <Button
               key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
+              variant="outline"
               size="sm"
               onClick={() => setSelectedCategory(category)}
-              className="text-xs capitalize"
+              className={`text-xs capitalize ${selectedCategory === category ? 'bg-gray-100' : ''}`}
             >
               {category}
             </Button>
@@ -234,13 +223,13 @@ export default function CognitiveAdvisorPage() {
                   </div>
                   <div className="pt-2 border-t border-border-light">
                     <div className="text-xs text-gray-600 mb-1">Expected Improvement</div>
-                    <div className="text-sm font-medium text-green-600">{proposal.details.estimated_improvement}</div>
+                    <div className="text-sm font-medium text-gray-900">{proposal.details.estimated_improvement}</div>
                   </div>
                 </div>
 
                 {proposal.status === 'pending' && (
                   <div className="flex gap-2 mt-4">
-                    <Button variant="default" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1">
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Approve & Apply
                     </Button>
@@ -262,19 +251,19 @@ export default function CognitiveAdvisorPage() {
         </div>
 
         {/* Info Card */}
-        <Card className="border-border-light shadow-sm bg-blue-50">
+        <Card className="border-border-light shadow-sm bg-gray-50">
           <CardContent className="pt-6">
             <div className="flex gap-3">
               <div className="flex-shrink-0">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100">
-                  <Lightbulb className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100">
+                  <Lightbulb className="h-4 w-4 text-gray-600" />
                 </div>
               </div>
               <div>
-                <h3 className="font-medium text-blue-900 font-inter mb-1">
+                <h3 className="text-sm font-medium text-gray-900 font-inter mb-1">
                   How Cognitive Advisor Works
                 </h3>
-                <p className="text-sm text-blue-700 font-inter">
+                <p className="text-xs text-gray-800 font-inter">
                   The Cognitive Advisor analyzes provider performance, cost patterns, and usage trends every 6 hours.
                   It generates optimization proposals with confidence scores based on historical data.
                   All proposals require manual approval before being applied to your configuration.

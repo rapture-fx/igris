@@ -66,14 +66,14 @@ export default function AgentsQLoRAPage() {
 
   const getStatusBadge = (status: TrainingJob['status']) => {
     const config = {
-      running: { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: Clock },
-      completed: { bg: 'bg-green-50', text: 'text-green-700', icon: CheckCircle },
-      failed: { bg: 'bg-red-50', text: 'text-red-700', icon: XCircle },
-      queued: { bg: 'bg-blue-50', text: 'text-blue-700', icon: Clock },
+      running: { icon: Clock },
+      completed: { icon: CheckCircle },
+      failed: { icon: XCircle },
+      queued: { icon: Clock },
     };
-    const { bg, text, icon: Icon } = config[status];
+    const { icon: Icon } = config[status];
     return (
-      <Badge className={`${bg} ${text} border flex items-center gap-1`}>
+      <Badge className="bg-gray-50 text-gray-700 border flex items-center gap-1">
         <Icon className="h-3 w-3" />
         {status}
       </Badge>
@@ -90,9 +90,9 @@ export default function AgentsQLoRAPage() {
               Train and fine-tune models using Quantized Low-Rank Adaptation
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button variant="outline" className="shadow-sm flex items-center gap-2">
             <Play className="h-4 w-4" />
-            Start Training Job
+            Start Training
           </Button>
         </div>
 
@@ -115,8 +115,8 @@ export default function AgentsQLoRAPage() {
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">91.7%</div>
               <div className="flex items-center gap-1 mt-1">
-                <TrendingUp className="h-3 w-3 text-green-600" />
-                <span className="text-xs text-green-600">22/24 completed</span>
+                <TrendingUp className="h-3 w-3 text-gray-600" />
+                <span className="text-xs text-gray-600">22/24 completed</span>
               </div>
             </CardContent>
           </Card>
@@ -161,7 +161,7 @@ export default function AgentsQLoRAPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
                         <div
-                          className="bg-yellow-500 h-2 rounded-full"
+                          className="bg-gray-900 h-2 rounded-full"
                           style={{ width: `${job.progress}%` }}
                         />
                       </div>
@@ -175,8 +175,8 @@ export default function AgentsQLoRAPage() {
                     <div className="bg-beige-primary border border-border-light rounded-md p-3">
                       <div className="text-xs text-gray-600">Loss</div>
                       <div className={`text-sm font-medium ${
-                        job.loss < 0.2 ? 'text-green-600' :
-                        job.loss < 0.5 ? 'text-yellow-600' :
+                        job.loss < 0.2 ? 'text-gray-600' :
+                        job.loss < 0.5 ? 'text-gray-600' :
                         'text-gray-900'
                       }`}>
                         {job.loss.toFixed(3)}
@@ -202,23 +202,23 @@ export default function AgentsQLoRAPage() {
                         <Button variant="outline" size="sm" className="flex-1 text-xs">
                           View Logs
                         </Button>
-                        <Button variant="destructive" size="sm" className="flex-1 text-xs">
-                          Stop Job
+                        <Button variant="outline" size="sm" className="flex-1 text-xs">
+                          Stop
                         </Button>
                       </>
                     )}
                     {job.status === 'completed' && (
                       <>
                         <Button variant="outline" size="sm" className="flex-1 text-xs">
-                          Download Model
+                          Download
                         </Button>
-                        <Button size="sm" className="flex-1 text-xs">
+                        <Button variant="outline" size="sm" className="flex-1 text-xs">
                           Deploy
                         </Button>
                       </>
                     )}
                     {job.status === 'queued' && (
-                      <Button variant="destructive" size="sm" className="w-full text-xs">
+                      <Button variant="outline" size="sm" className="w-full text-xs">
                         Cancel
                       </Button>
                     )}

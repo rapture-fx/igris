@@ -208,7 +208,7 @@ export default function PolicyPage() {
             Your Global Routing Policy
           </h1>
           <p className="text-gray-600 mt-1 font-inter text-xs">
-            Overture runs Thompson Sampling Bayesian optimization under the hood — always.
+            EscapeVector Mode Active. Even if our control plane is down for 72+ hours, EscapeVector Mode keeps this exact policy running offline.
           </p>
         </div>
 
@@ -239,7 +239,7 @@ export default function PolicyPage() {
                 value="cost"
                 checked={selectedPolicy === 'cost'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-0.5 accent-gray-900"
+                className="w-3 h-3 accent-gray-900 self-center"
               />
               <div className="flex-1">
                 <Label className="text-xs font-medium text-gray-900 cursor-pointer">
@@ -266,7 +266,7 @@ export default function PolicyPage() {
                 value="balanced"
                 checked={selectedPolicy === 'balanced'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-0.5 accent-gray-900"
+                className="w-3 h-3 accent-gray-900 self-center"
               />
               <div className="flex-1">
                 <Label className="text-xs font-medium text-gray-900 cursor-pointer">
@@ -293,7 +293,7 @@ export default function PolicyPage() {
                 value="quality"
                 checked={selectedPolicy === 'quality'}
                 onChange={(e) => setSelectedPolicy(e.target.value)}
-                className="mt-0.5 accent-gray-900"
+                className="w-3 h-3 accent-gray-900 self-center"
               />
               <div className="flex-1">
                 <Label className="text-xs font-medium text-gray-900 cursor-pointer">
@@ -314,7 +314,7 @@ export default function PolicyPage() {
                 name="policy"
                 value="custom"
                 disabled
-                className="mt-0.5"
+                className="w-3 h-3 self-center"
               />
               <div className="flex-1">
                 <Label className="text-xs font-medium text-gray-600 cursor-not-allowed">
@@ -651,25 +651,6 @@ export default function PolicyPage() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
-
-        {/* EscapeVector Mode Notice */}
-        <Card className="border-border-light shadow-sm bg-green-50">
-          <CardContent className="pt-5">
-            <div className="flex gap-2.5">
-              <div className="flex-shrink-0">
-                <Shield className="h-4 w-4 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-medium text-xs text-green-900 font-inter mb-0.5">
-                  EscapeVector Mode Active
-                </h3>
-                <p className="text-[0.65rem] text-green-700 font-inter">
-                  Even if our control plane is down for 72+ hours, EscapeVector Mode keeps this exact policy running offline.
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
 
