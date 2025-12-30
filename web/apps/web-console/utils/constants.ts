@@ -30,6 +30,14 @@ export const API_ENDPOINTS = {
   // Inference
   INFER: '/v1/infer',
   MODELS: '/v1/models',
+
+  // EscapeVector
+  ESCAPEVECTOR_STATUS: '/v1/escapevector/status',
+  ESCAPEVECTOR_CONFIG: '/v1/escapevector/config',
+  ESCAPEVECTOR_HISTORY: '/v1/escapevector/history',
+  ESCAPEVECTOR_ANALYTICS: '/v1/escapevector/analytics',
+  ESCAPEVECTOR_REFRESH: '/v1/escapevector/refresh',
+  ESCAPEVECTOR_CACHE: '/v1/escapevector/cache',
 };
 
 export const COOKIE_KEYS = {
@@ -50,6 +58,10 @@ export const QUERY_KEYS = {
   POLICY: 'policy',
   AUDIT: 'audit',
   MODELS: 'models',
+  ESCAPEVECTOR_STATUS: 'escapevector_status',
+  ESCAPEVECTOR_CONFIG: 'escapevector_config',
+  ESCAPEVECTOR_HISTORY: 'escapevector_history',
+  ESCAPEVECTOR_ANALYTICS: 'escapevector_analytics',
 };
 
 export const ROUTES = {

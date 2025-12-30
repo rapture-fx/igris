@@ -71,8 +71,8 @@ export default function RuntimeDevicesPage() {
               Deep dive into individual runtime instance metrics and logs
             </p>
           </div>
-          <Button variant="outline" className="flex items-center gap-2">
-            <RefreshCw className="h-4 w-4" />
+          <Button variant="outline" size="sm" className="flex items-center gap-1 text-xs px-2 py-1">
+            <RefreshCw className="h-3 w-3" />
             Refresh
           </Button>
         </div>
@@ -83,9 +83,9 @@ export default function RuntimeDevicesPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Cpu className="h-5 w-5 text-gray-900" />
+                    <Cpu className="h-4 w-4 text-gray-900" />
                     <div>
-                      <CardTitle className="text-sm text-base">{device.name}</CardTitle>
+                      <CardTitle className="text-xs">{device.name}</CardTitle>
                       <CardDescription className="text-xs mt-1">{device.id}</CardDescription>
                     </div>
                   </div>
@@ -96,7 +96,7 @@ export default function RuntimeDevicesPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="grid grid-cols-2 gap-3 text-xs">
                     <div>
                       <span className="text-gray-600">Model:</span>
                       <div className="font-medium text-gray-900">{device.model}</div>
@@ -203,22 +203,22 @@ export default function RuntimeDevicesPage() {
 
                   <div className="bg-beige-primary border border-border-light rounded-lg p-3">
                     <div className="text-xs text-gray-600 mb-1">Network I/O</div>
-                    <div className="flex justify-between text-sm">
+                    <div className="flex justify-between text-xs">
                       <span className="text-gray-900">In: {device.network_in.toFixed(1)} MB/s</span>
                       <span className="text-gray-900">Out: {device.network_out.toFixed(1)} MB/s</span>
                     </div>
                   </div>
 
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1 text-xs" onClick={() => setSelectedDevice(device)}>
+                    <Button variant="outline" size="sm" className="text-xs px-2 py-1" onClick={() => setSelectedDevice(device)}>
                       <Eye className="h-3 w-3 mr-1" />
                       View Logs
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1 text-xs">
+                    <Button variant="outline" size="sm" className="text-xs px-2 py-1">
                       <Terminal className="h-3 w-3 mr-1" />
                       Shell
                     </Button>
-                    <Button variant="outline" size="sm" className="text-xs">
+                    <Button variant="outline" size="sm" className="text-xs px-2 py-1">
                       <Settings className="h-3 w-3" />
                     </Button>
                   </div>
