@@ -37,7 +37,7 @@ export default function RuntimeSwarmPage() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Nodes</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-600">Total Nodes</CardTitle>
               <Radio className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
@@ -48,7 +48,7 @@ export default function RuntimeSwarmPage() {
 
           <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Consensus Health</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-600">Consensus Health</CardTitle>
               <Activity className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
@@ -62,7 +62,7 @@ export default function RuntimeSwarmPage() {
 
           <Card className="border-border-light shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">Sync Latency</CardTitle>
+              <CardTitle className="text-xs font-medium text-gray-600">Sync Latency</CardTitle>
               <Zap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
@@ -76,7 +76,7 @@ export default function RuntimeSwarmPage() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Radio className="h-4 w-4 text-gray-900" />
-              <CardTitle className="text-sm">Swarm Nodes</CardTitle>
+              <CardTitle className="text-xs">Swarm Nodes</CardTitle>
             </div>
             <CardDescription className="text-xs">Distributed consensus network</CardDescription>
           </CardHeader>
@@ -86,15 +86,15 @@ export default function RuntimeSwarmPage() {
                 <div key={node.id} className="bg-beige-primary border border-border-light rounded-lg p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className="font-medium text-gray-900">{node.id}</div>
+                      <div className="font-medium text-gray-900 text-xs">{node.id}</div>
                       <Badge className={`${node.status === 'leader' ? 'bg-gray-50 text-gray-700' : 'bg-gray-50 text-gray-700'} border text-xs`}>
                         {node.status}
                       </Badge>
                     </div>
-                    <div className="text-sm text-gray-900 font-medium">{node.health}% healthy</div>
+                    <div className="text-xs text-gray-900 font-medium">{node.health}% healthy</div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-2 gap-4 text-xs">
                     <div>
                       <span className="text-gray-600">Region: </span>
                       <span className="text-gray-900">{node.region.toUpperCase()}</span>
@@ -112,14 +112,14 @@ export default function RuntimeSwarmPage() {
 
         <Card className="border-border-light shadow-sm">
           <CardHeader>
-            <CardTitle className="text-sm">Partition Tolerance</CardTitle>
+            <CardTitle className="text-xs">Partition Tolerance</CardTitle>
             <CardDescription className="text-xs">Network resilience and fault tolerance</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
                 <Activity className="h-4 w-4 text-gray-600" />
-                <h4 className="text-sm font-medium text-gray-900">Healthy State</h4>
+                <h4 className="text-xs font-medium text-gray-900">Healthy State</h4>
               </div>
               <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
                 <li>All nodes can reach consensus within 45ms</li>

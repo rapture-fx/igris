@@ -64,6 +64,12 @@ const navigation: NavigationItem[] = [
         icon: Home,
         modes: ['architect'] as ViewMode[],
       },
+      {
+        name: 'EscapeVector',
+        href: '/dashboard/overture/escapevector',
+        icon: Home,
+        modes: ['operator', 'architect'] as ViewMode[],
+      },
     ],
   },
   {
