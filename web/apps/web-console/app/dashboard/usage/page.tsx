@@ -252,6 +252,21 @@ export default function UsagePage() {
                 <CardContent>
                   <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
+                      <defs>
+                        {/* Super thin, compact diagonal stripe patterns */}
+                        <pattern id="stripe-0" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                          <rect width="1" height="2" fill="#000000" />
+                        </pattern>
+                        <pattern id="stripe-1" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                          <rect width="1" height="2" fill="#6b7280" />
+                        </pattern>
+                        <pattern id="stripe-2" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                          <rect width="1" height="2" fill="#374151" />
+                        </pattern>
+                        <pattern id="stripe-3" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                          <rect width="1" height="2" fill="#4b5563" />
+                        </pattern>
+                      </defs>
                       <Pie
                         data={displayUsage?.by_provider || []}
                         cx="50%"
@@ -264,7 +279,7 @@ export default function UsagePage() {
                         style={{ fontSize: '10px' }}
                       >
                         {(displayUsage?.by_provider || []).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#000000' : '#6b7280'} />
+                          <Cell key={`cell-${index}`} fill={`url(#stripe-${index % 4})`} stroke="#000" strokeWidth={1} />
                         ))}
                       </Pie>
                       <Tooltip contentStyle={{ fontSize: '11px' }} />
@@ -282,11 +297,17 @@ export default function UsagePage() {
                 <CardContent>
                   <ResponsiveContainer width="100%" height={180}>
                     <BarChart data={displayUsage?.by_provider || []}>
+                      <defs>
+                        {/* Super thin diagonal stripe pattern for bars */}
+                        <pattern id="usage-bar-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                          <rect width="1" height="2" fill="#000000" />
+                        </pattern>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
                       <XAxis dataKey="provider" stroke="#6b7280" style={{ fontSize: '10px' }} />
                       <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
                       <Tooltip contentStyle={{ fontSize: '11px' }} />
-                      <Bar dataKey="avg_latency" fill="#000000" radius={[8, 8, 0, 0]} />
+                      <Bar dataKey="avg_latency" fill="url(#usage-bar-stripe)" stroke="#000" strokeWidth={1} radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>

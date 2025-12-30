@@ -89,7 +89,7 @@ export default function PolicyPage() {
           setSelectedPolicy(data.mode);
         }
       } catch (error) {
-        console.error('Error fetching policy:', error);
+        // Silently fail - UI will use default/mock policy data
       }
     };
 

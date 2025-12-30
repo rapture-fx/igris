@@ -177,18 +177,27 @@ export default function FleetPage() {
                 {metrics.used_capacity}/{metrics.total_capacity}
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                <div
-                  className={`h-2 rounded-full ${
-                    (metrics.used_capacity / metrics.total_capacity) > 0.8
-                      ? 'bg-red-500'
-                      : (metrics.used_capacity / metrics.total_capacity) > 0.6
-                      ? 'bg-yellow-500'
-                      : 'bg-green-500'
-                  }`}
-                  style={{
-                    width: `${Math.min((metrics.used_capacity / metrics.total_capacity) * 100, 100)}%`
-                  }}
-                />
+                <svg width="100%" height="8" className="overflow-visible">
+                  <defs>
+                    <pattern id="fleet-capacity-stripe" width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                      <rect width="1" height="2" fill={
+                        (metrics.used_capacity / metrics.total_capacity) > 0.8
+                          ? '#ef4444'
+                          : (metrics.used_capacity / metrics.total_capacity) > 0.6
+                          ? '#eab308'
+                          : '#22c55e'
+                      } />
+                    </pattern>
+                  </defs>
+                  <rect
+                    x="0"
+                    y="0"
+                    width={`${Math.min((metrics.used_capacity / metrics.total_capacity) * 100, 100)}%`}
+                    height="8"
+                    fill="url(#fleet-capacity-stripe)"
+                    rx="4"
+                  />
+                </svg>
               </div>
             </div>
           </div>
@@ -271,14 +280,23 @@ export default function FleetPage() {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <div className="w-16 bg-gray-200 rounded-full h-1">
-                              <div
-                                className={`h-1 rounded-full ${
-                                  instance.cpu_usage > 80 ? 'bg-red-500' :
-                                  instance.cpu_usage > 60 ? 'bg-yellow-500' :
-                                  'bg-green-500'
-                                }`}
-                                style={{ width: `${instance.cpu_usage}%` }}
-                              />
+                              <svg width="64" height="4" className="overflow-visible">
+                                <defs>
+                                  <pattern id={`cpu-stripe-${instance.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                                    <rect width="1" height="2" fill={
+                                      instance.cpu_usage > 80 ? '#ef4444' : instance.cpu_usage > 60 ? '#eab308' : '#22c55e'
+                                    } />
+                                  </pattern>
+                                </defs>
+                                <rect
+                                  x="0"
+                                  y="0"
+                                  width={`${instance.cpu_usage * 0.64}`}
+                                  height="4"
+                                  fill={`url(#cpu-stripe-${instance.id})`}
+                                  rx="2"
+                                />
+                              </svg>
                             </div>
                             <span className="text-xs text-gray-600">
                               CPU {instance.cpu_usage.toFixed(0)}%
@@ -286,14 +304,23 @@ export default function FleetPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <div className="w-16 bg-gray-200 rounded-full h-1">
-                              <div
-                                className={`h-1 rounded-full ${
-                                  instance.memory_usage > 80 ? 'bg-red-500' :
-                                  instance.memory_usage > 60 ? 'bg-yellow-500' :
-                                  'bg-green-500'
-                                }`}
-                                style={{ width: `${instance.memory_usage}%` }}
-                              />
+                              <svg width="64" height="4" className="overflow-visible">
+                                <defs>
+                                  <pattern id={`memory-stripe-${instance.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                                    <rect width="1" height="2" fill={
+                                      instance.memory_usage > 80 ? '#ef4444' : instance.memory_usage > 60 ? '#eab308' : '#22c55e'
+                                    } />
+                                  </pattern>
+                                </defs>
+                                <rect
+                                  x="0"
+                                  y="0"
+                                  width={`${instance.memory_usage * 0.64}`}
+                                  height="4"
+                                  fill={`url(#memory-stripe-${instance.id})`}
+                                  rx="2"
+                                />
+                              </svg>
                             </div>
                             <span className="text-xs text-gray-600">
                               MEM {instance.memory_usage.toFixed(0)}%

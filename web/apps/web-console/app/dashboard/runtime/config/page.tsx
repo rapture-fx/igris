@@ -111,10 +111,23 @@ export default function RuntimeConfigPage() {
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div
-                        className="h-2 rounded-full bg-gray-900"
-                        style={{ width: `${(push.devices_completed / push.devices_targeted) * 100}%` }}
-                      />
+                      <svg width="100%" height="8" className="overflow-visible">
+                        <defs>
+                          <pattern id={`config-stripe-${push.id}`} width="2" height="2" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                            <rect width="1" height="2" fill={
+                              push.status === 'completed' ? '#22c55e' : push.status === 'in_progress' ? '#3b82f6' : '#6b7280'
+                            } />
+                          </pattern>
+                        </defs>
+                        <rect
+                          x="0"
+                          y="0"
+                          width={`${(push.devices_completed / push.devices_targeted) * 100}%`}
+                          height="8"
+                          fill={`url(#config-stripe-${push.id})`}
+                          rx="4"
+                        />
+                      </svg>
                     </div>
                   </div>
 

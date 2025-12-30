@@ -353,45 +353,60 @@ export default function DashboardPage() {
       setRuntimeFleetMetrics(mockInitialData.runtimeFleetMetrics);
       // Update summary if needed (the summary object is read-only, so we don't set it)
 
-      try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
-        const authHeaders = {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-        };
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8081';
+      const authHeaders = {
+        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+      };
 
-        // Try to fetch real data, but keep if fails
+      // Try to fetch real data, but keep mock data if any fails
+      try {
         const uptimeRes = await fetch(`${apiUrl}/internal/metrics/uptime`, { headers: authHeaders });
         if (uptimeRes.ok) {
           const data = await uptimeRes.json();
           if (data.providers) setProviderUptime(data.providers);
         }
+      } catch (error) {
+        // Silently fail and keep mock data
+      }
 
+      try {
         const requestsRes = await fetch(`${apiUrl}/v1/usage/requests-timeline`, { headers: authHeaders });
         if (requestsRes.ok) {
           const data = await requestsRes.json();
           if (data.timeline) setRequestsData(data.timeline);
         }
+      } catch (error) {
+        // Silently fail and keep mock data
+      }
 
+      try {
         const latencyRes = await fetch(`${apiUrl}/v1/usage/latency-timeline`, { headers: authHeaders });
         if (latencyRes.ok) {
           const data = await latencyRes.json();
           if (data.timeline) setLatencyData(data.timeline);
         }
+      } catch (error) {
+        // Silently fail and keep mock data
+      }
 
+      try {
         const costsRes = await fetch(`${apiUrl}/v1/usage/provider-costs`, { headers: authHeaders });
         if (costsRes.ok) {
           const data = await costsRes.json();
           if (data.providers) setProviderCostData(data.providers);
         }
+      } catch (error) {
+        // Silently fail and keep mock data
+      }
 
+      try {
         const healthRes = await fetch(`${apiUrl}/v1/health/system`, { headers: authHeaders });
         if (healthRes.ok) {
           const data = await healthRes.json();
           setSystemHealth(data);
         }
       } catch (error) {
-        console.error('Error fetching dashboard metrics:', error);
-        // Keep mock data if API fails
+        // Silently fail and keep mock data
       }
     };
 
