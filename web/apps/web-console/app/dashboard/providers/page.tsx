@@ -233,16 +233,14 @@ export default function ProvidersPage() {
         </div>
 
         {/* Providers Table */}
-        <Card className="border-border-light shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-sm">
-              Your Providers
-            </CardTitle>
-            <CardDescription className="text-xs">
+        <div>
+          <div className="pb-3">
+            <h2 className="text-sm font-medium text-gray-900">Your Providers</h2>
+            <p className="text-xs text-gray-600 mt-1">
               Manage API keys for all your LLM providers
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div>
             {isLoading ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-8 w-8 animate-spin text-gray-900" />
@@ -412,8 +410,8 @@ export default function ProvidersPage() {
                 </p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
 
       {/* Add Provider Dialog */}

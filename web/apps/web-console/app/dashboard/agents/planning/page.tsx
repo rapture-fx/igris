@@ -44,7 +44,7 @@ export default function AgentsPlanningPage() {
               Test agent reasoning, planning, and self-reflection capabilities
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button variant="outline" className="shadow-sm flex items-center gap-2">
             <Play className="h-4 w-4" />
             New Test
           </Button>
@@ -68,7 +68,7 @@ export default function AgentsPlanningPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">8.4/10</div>
-              <p className="text-xs text-green-600 mt-1">+0.3 from last week</p>
+              <p className="text-xs text-gray-600 mt-1">+0.3 from last week</p>
             </CardContent>
           </Card>
 
@@ -99,11 +99,11 @@ export default function AgentsPlanningPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {test.status === 'completed' ? (
-                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <CheckCircle className="h-5 w-5 text-gray-600" />
                     ) : test.status === 'in_progress' ? (
-                      <Clock className="h-5 w-5 text-yellow-600" />
+                      <Clock className="h-5 w-5 text-gray-600" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-red-600" />
+                      <XCircle className="h-5 w-5 text-gray-600" />
                     )}
                   </div>
                 </div>
@@ -145,7 +145,7 @@ export default function AgentsPlanningPage() {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div
-                          className="bg-yellow-500 h-2 rounded-full"
+                          className="bg-gray-900 h-2 rounded-full"
                           style={{ width: `${(test.steps_executed / test.steps_planned) * 100}%` }}
                         />
                       </div>

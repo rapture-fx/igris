@@ -131,7 +131,7 @@ export default function UsagePage() {
               <BarChart3 className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {formatNumber(displayUsage?.total_requests || 0)}
               </div>
               <p className="text-xs text-gray-600 mt-1">
@@ -148,7 +148,7 @@ export default function UsagePage() {
               <DollarSign className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {formatCurrency(displayUsage?.total_cost || 0)}
               </div>
               <p className="text-xs text-gray-600 mt-1">
@@ -165,7 +165,7 @@ export default function UsagePage() {
               <Clock className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {formatLatency(displayUsage?.avg_latency || 0)}
               </div>
               <p className="text-xs text-gray-600 mt-1">
@@ -182,7 +182,7 @@ export default function UsagePage() {
               <Zap className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-900">
+              <div className="text-lg font-bold text-gray-900">
                 {formatNumber(displayUsage?.total_tokens || 0)}
               </div>
               <p className="text-xs text-gray-600 mt-1">
@@ -208,29 +208,33 @@ export default function UsagePage() {
                 <CardDescription className="text-xs">Track your usage and spending</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={350}>
+                <ResponsiveContainer width="100%" height={200}>
                   <LineChart data={displayUsage?.timeline || []}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis dataKey="timestamp" stroke="#6b7280" />
-                    <YAxis yAxisId="left" stroke="#6b7280" />
-                    <YAxis yAxisId="right" orientation="right" stroke="#6b7280" />
-                    <Tooltip />
-                    <Legend />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
+                    <XAxis dataKey="timestamp" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                    <YAxis yAxisId="left" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                    <YAxis yAxisId="right" orientation="right" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                    <Tooltip contentStyle={{ fontSize: '11px' }} />
+                    <Legend 
+                    wrapperStyle={{ fontSize: '11px' }}
+                  />
                     <Line
                       yAxisId="left"
                       type="monotone"
                       dataKey="requests"
-                      stroke={CHART_COLORS.primary}
-                      strokeWidth={2}
-                      name="Requests"
+                      stroke="#000000"
+                      strokeWidth={0.5}
+                      strokeDasharray=""
+                      name="Requests (—)"
                     />
                     <Line
                       yAxisId="right"
                       type="monotone"
                       dataKey="cost"
-                      stroke={CHART_COLORS.secondary}
-                      strokeWidth={2}
-                      name="Cost ($)"
+                      stroke="#000000"
+                      strokeWidth={0.5}
+                      strokeDasharray="5,5"
+                      name="Cost - - ($)"
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -246,7 +250,7 @@ export default function UsagePage() {
                   <CardDescription className="text-xs">Spending distribution</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <PieChart>
                       <Pie
                         data={displayUsage?.by_provider || []}
@@ -254,15 +258,16 @@ export default function UsagePage() {
                         cy="50%"
                         labelLine={false}
                         label={(entry) => `${entry.provider}: $${entry.cost.toFixed(2)}`}
-                        outerRadius={80}
+                        outerRadius={60}
                         fill="#8884d8"
                         dataKey="cost"
+                        style={{ fontSize: '10px' }}
                       >
                         {(displayUsage?.by_provider || []).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                          <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#000000' : '#6b7280'} />
                         ))}
                       </Pie>
-                      <Tooltip />
+                      <Tooltip contentStyle={{ fontSize: '11px' }} />
                     </PieChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -275,13 +280,13 @@ export default function UsagePage() {
                   <CardDescription className="text-xs">Average response times</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                  <ResponsiveContainer width="100%" height={180}>
                     <BarChart data={displayUsage?.by_provider || []}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis dataKey="provider" stroke="#6b7280" />
-                      <YAxis stroke="#6b7280" />
-                      <Tooltip />
-                      <Bar dataKey="avg_latency" fill={CHART_COLORS.primary} radius={[8, 8, 0, 0]} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" strokeWidth={0.5} />
+                      <XAxis dataKey="provider" stroke="#6b7280" style={{ fontSize: '10px' }} />
+                      <YAxis stroke="#6b7280" style={{ fontSize: '10px' }} />
+                      <Tooltip contentStyle={{ fontSize: '11px' }} />
+                      <Bar dataKey="avg_latency" fill="#000000" radius={[8, 8, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -299,29 +304,29 @@ export default function UsagePage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-border-light">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Provider</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600">Requests</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600">Cost</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600">Tokens</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600">Avg Latency</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Provider</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Requests</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Cost</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Tokens</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Avg Latency</th>
                       </tr>
                     </thead>
                     <tbody>
                       {(displayUsage?.by_provider || []).map((provider) => (
                         <tr key={provider.provider} className="border-b border-border-light hover:bg-beige-primary">
-                          <td className="py-3 px-4 font-medium text-gray-900">
+                          <td className="py-2 px-3 font-medium text-xs text-gray-900">
                             {provider.provider.charAt(0).toUpperCase() + provider.provider.slice(1)}
                           </td>
-                          <td className="text-right py-3 px-4 text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-gray-900">
                             {formatNumber(provider.requests)}
                           </td>
-                          <td className="text-right py-3 px-4 text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-gray-900">
                             {formatCurrency(provider.cost)}
                           </td>
-                          <td className="text-right py-3 px-4 text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-gray-900">
                             {formatNumber(Math.floor(provider.cost * 100))} {/* Approximate token count */}
                           </td>
-                          <td className="text-right py-3 px-4 text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-gray-900">
                             {formatLatency(provider.cost * 10)} {/* Approximate latency */}
                           </td>
                         </tr>
@@ -343,25 +348,25 @@ export default function UsagePage() {
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-border-light">
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Model Name</th>
-                        <th className="text-left py-3 px-4 font-medium text-gray-600">Provider</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600">Total Requests</th>
-                        <th className="text-right py-3 px-4 font-medium text-gray-600">Total Spend</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Model Name</th>
+                        <th className="text-left py-2 px-3 font-medium text-xs text-gray-600">Provider</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Total Requests</th>
+                        <th className="text-right py-2 px-3 font-medium text-xs text-gray-600">Total Spend</th>
                       </tr>
                     </thead>
                     <tbody>
                       {((usage as any)?.top_models || []).map((model: any, index: number) => (
                         <tr key={index} className="border-b border-border-light hover:bg-beige-primary">
-                          <td className="py-3 px-4 font-medium text-gray-900">
+                          <td className="py-2 px-3 font-medium text-xs text-gray-900">
                             {model.model_name}
                           </td>
-                          <td className="py-3 px-4 text-gray-900">
+                          <td className="py-2 px-3 text-xs text-gray-900">
                             {model.provider.charAt(0).toUpperCase() + model.provider.slice(1)}
                           </td>
-                          <td className="text-right py-3 px-4 text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-gray-900">
                             {formatNumber(model.total_requests)}
                           </td>
-                          <td className="text-right py-3 px-4 text-gray-900">
+                          <td className="text-right py-2 px-3 text-xs text-gray-900">
                             {formatCurrency(model.total_spend)}
                           </td>
                         </tr>

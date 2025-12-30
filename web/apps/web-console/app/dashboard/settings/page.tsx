@@ -312,19 +312,19 @@ export default function SettingsPage() {
                         </p>
                         <div className="grid gap-2 text-sm text-gray-600 mb-4">
                           <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <CheckCircle className="h-4 w-4 text-gray-600" />
                             <span>AES-256 encrypted key storage per tenant</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <CheckCircle className="h-4 w-4 text-gray-600" />
                             <span>Database-level data isolation (RLS)</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <CheckCircle className="h-4 w-4 text-gray-600" />
                             <span>Independent budget caps & enforcement</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <CheckCircle className="h-4 w-4 text-gray-600" />
                             <span>Separate observability & audit logs</span>
                           </div>
                         </div>
@@ -339,11 +339,11 @@ export default function SettingsPage() {
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-lg bg-blue-50 border border-blue-200">
-                    <p className="text-sm text-blue-900 font-medium mb-1">
+                  <div className="p-4 rounded-lg bg-gray-50 border border-gray-200">
+                    <p className="text-sm text-gray-900 font-medium mb-1">
                       Available on Scale plan
                     </p>
-                    <p className="text-xs text-blue-800">
+                    <p className="text-xs text-gray-800">
                       Unlimited multi-tenancy with full data isolation, per-tenant budgets, and 90-day trace retention.
                     </p>
                   </div>
@@ -374,7 +374,7 @@ export default function SettingsPage() {
                           {tenant?.plan || 'Develop'} Plan
                         </h3>
                         {tenant?.metadata?.trial_active && (
-                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
+                          <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                             Trial Active
                           </span>
                         )}
@@ -402,11 +402,11 @@ export default function SettingsPage() {
                   </div>
 
                   {tenant?.metadata?.trial_active && (
-                    <div className="mt-4 p-4 rounded-lg bg-blue-50 border border-blue-200">
-                      <p className="text-sm text-blue-900 font-medium mb-2">
+                    <div className="mt-4 p-4 rounded-lg bg-gray-50 border border-gray-200">
+                      <p className="text-sm text-gray-900 font-medium mb-2">
                         Your trial includes full {tenant?.plan || 'Develop'} tier access
                       </p>
-                      <p className="text-xs text-blue-800">
+                      <p className="text-xs text-gray-800">
                         After your trial ends, you'll be automatically downgraded to Develop tier unless you add a payment method.
                       </p>
                     </div>
@@ -470,16 +470,9 @@ export default function SettingsPage() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
                     <div
-                      className={`h-full transition-all ${
-                        budgetPercentage >= 90
-                          ? 'bg-red-600'
-                          : budgetPercentage >= 70
-                          ? 'bg-yellow-500'
-                          : ''
-                      }`}
+                      className="h-full transition-all bg-gray-900"
                       style={{
-                        width: `${Math.min(budgetPercentage, 100)}%`,
-                        backgroundColor: budgetPercentage < 70 ? '#299a93' : undefined
+                        width: `${Math.min(budgetPercentage, 100)}%`
                       }}
                     />
                   </div>
@@ -586,7 +579,7 @@ export default function SettingsPage() {
                         Started {formatDate(new Date().toISOString())}
                       </p>
                     </div>
-                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                    <span className="px-3 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700">
                       Active
                     </span>
                   </div>
@@ -835,14 +828,14 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="p-4 rounded-lg border border-blue-200 bg-blue-50">
+                  <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
                     <div className="flex items-start gap-3">
-                      <Shield className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <Shield className="h-5 w-5 text-gray-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium text-blue-900 font-inter mb-1">
+                        <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
                           EscapeVector Cache Encryption
                         </h4>
-                        <p className="text-xs text-blue-800">
+                        <p className="text-xs text-gray-800">
                           All cached LLM responses in EscapeVector are encrypted using AES-256-GCM. You can provide your own encryption key or use system-managed keys.
                         </p>
                       </div>
@@ -859,7 +852,7 @@ export default function SettingsPage() {
                           System-managed key (rotated monthly)
                         </p>
                       </div>
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-200">
+                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
                         Active
                       </span>
                     </div>
@@ -889,17 +882,17 @@ export default function SettingsPage() {
                     </Button>
                   </div>
 
-                  <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50">
+                  <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
                     <div className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="h-5 w-5 text-gray-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium text-yellow-900 font-inter mb-1">
+                        <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
                           Important: Key Management
                         </h4>
-                        <p className="text-xs text-yellow-800 mb-2">
+                        <p className="text-xs text-gray-800 mb-2">
                           If you upload a custom encryption key:
                         </p>
-                        <ul className="text-xs text-yellow-800 space-y-1 list-disc list-inside">
+                        <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
                           <li>You are responsible for key backup and recovery</li>
                           <li>Lost keys mean permanent data loss - cached responses cannot be decrypted</li>
                           <li>Key rotation is manual and must be performed by you</li>
@@ -1056,7 +1049,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-700">
                         Decision Mode
                       </span>
                       <Switch defaultChecked />
@@ -1075,7 +1068,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-700">
                         Decision Mode
                       </span>
                       <Switch defaultChecked />
@@ -1094,7 +1087,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-gray-700">
                         Advisory Only
                       </span>
                       <Switch />
@@ -1113,7 +1106,7 @@ export default function SettingsPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-700">
+                      <span className="px-2 py-1 rounded text-xs font-medium bg-gray-50 text-gray-700">
                         Decision Mode
                       </span>
                       <Switch defaultChecked />
@@ -1151,13 +1144,13 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50">
+                <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h4 className="text-sm font-medium text-yellow-900 font-inter mb-1">
+                      <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
                         Disable Specific Provider
                       </h4>
-                      <p className="text-xs text-yellow-800">
+                      <p className="text-xs text-gray-800">
                         Temporarily block requests to a specific provider. Routes to alternatives.
                       </p>
                     </div>
@@ -1167,13 +1160,13 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border border-yellow-200 bg-yellow-50">
+                <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <h4 className="text-sm font-medium text-yellow-900 font-inter mb-1">
+                      <h4 className="text-sm font-medium text-gray-900 font-inter mb-1">
                         Force Manual Approval Mode
                       </h4>
-                      <p className="text-xs text-yellow-800">
+                      <p className="text-xs text-gray-800">
                         Require operator confirmation for all policy decisions. Disables autonomous optimization.
                       </p>
                     </div>
@@ -1184,41 +1177,41 @@ export default function SettingsPage() {
             </Card>
 
             {/* System Capabilities */}
-            <Card className="border-border-light bg-blue-50">
+            <Card className="border-border-light bg-gray-50">
               <CardHeader>
-                <CardTitle className="text-blue-900">What This System Cannot Do</CardTitle>
-                <CardDescription className="text-blue-800">
+                <CardTitle className="text-gray-900">What This System Cannot Do</CardTitle>
+                <CardDescription className="text-gray-800">
                   Architectural limitations and boundaries
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2 text-sm text-blue-900">
+                <div className="space-y-2 text-sm text-gray-900">
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-600 mt-1">•</span>
                     <span>Cannot read or modify data outside assigned tenant boundaries</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-600 mt-1">•</span>
                     <span>Cannot bypass authentication or authorization checks</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-600 mt-1">•</span>
                     <span>Cannot disable audit logging or tamper with historical records</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-600 mt-1">•</span>
                     <span>Cannot make billing changes or payment method modifications without confirmation</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-600 mt-1">•</span>
                     <span>Cannot share provider API keys between tenants</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-600 mt-1">•</span>
                     <span>Cannot execute arbitrary code or shell commands on infrastructure</span>
                   </div>
                   <div className="flex items-start gap-2">
-                    <span className="text-blue-600 mt-1">•</span>
+                    <span className="text-gray-600 mt-1">•</span>
                     <span>Cannot modify EscapeVector offline policy runtime without redeployment</span>
                   </div>
                 </div>

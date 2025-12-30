@@ -30,18 +30,19 @@ export default function OvertureShadowPage() {
             </p>
           </div>
           <Button
-            variant={shadowMode.enabled ? 'destructive' : 'default'}
+            variant="outline"
+            className="shadow-sm"
             onClick={() => setShadowMode({ ...shadowMode, enabled: !shadowMode.enabled })}
           >
             {shadowMode.enabled ? (
               <>
                 <Square className="h-4 w-4 mr-2" />
-                Stop Shadow Mode
+                Stop
               </>
             ) : (
               <>
                 <Play className="h-4 w-4 mr-2" />
-                Start Shadow Mode
+                Start
               </>
             )}
           </Button>
@@ -54,7 +55,7 @@ export default function OvertureShadowPage() {
               <Shield className="h-4 w-4 text-gray-900" />
             </CardHeader>
             <CardContent>
-              <Badge className={`${shadowMode.enabled ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-700'} border`}>
+              <Badge className="bg-gray-50 text-gray-700 border">
                 {shadowMode.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
                 {shadowMode.enabled ? 'Active' : 'Inactive'}
               </Badge>
@@ -102,9 +103,9 @@ export default function OvertureShadowPage() {
                 </div>
               </div>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-yellow-900 mb-2">How Shadow Mode Works</h4>
-                <ul className="text-xs text-yellow-800 space-y-1 list-disc list-inside">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">How Shadow Mode Works</h4>
+                <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
                   <li>Duplicate requests sent to shadow provider</li>
                   <li>Primary responses returned to users (no impact on production)</li>
                   <li>Responses compared for quality and consistency</li>

@@ -81,7 +81,7 @@ export default function AgentsToolsPage() {
               Manage agent tool access and monitor usage patterns
             </p>
           </div>
-          <Button className="flex items-center gap-2">
+          <Button variant="outline" className="shadow-sm flex items-center gap-2">
             <Plus className="h-4 w-4" />
             Add Tool
           </Button>
@@ -91,10 +91,10 @@ export default function AgentsToolsPage() {
           {categories.map(category => (
             <Button
               key={category}
-              variant={selectedCategory === category ? 'default' : 'outline'}
+              variant="outline"
               size="sm"
               onClick={() => setSelectedCategory(category)}
-              className="text-xs"
+              className={`text-xs ${selectedCategory === category ? 'bg-gray-100' : ''}`}
             >
               {category}
             </Button>
@@ -127,9 +127,9 @@ export default function AgentsToolsPage() {
                     <div className="bg-beige-primary border border-border-light rounded-md p-3">
                       <div className="text-xs text-gray-600">Success Rate</div>
                       <div className={`text-sm font-medium ${
-                        tool.success_rate > 95 ? 'text-green-600' :
-                        tool.success_rate > 85 ? 'text-yellow-600' :
-                        'text-red-600'
+                        tool.success_rate > 95 ? 'text-gray-600' :
+                        tool.success_rate > 85 ? 'text-gray-600' :
+                        'text-gray-600'
                       }`}>
                         {tool.success_rate.toFixed(1)}%
                       </div>
@@ -146,7 +146,7 @@ export default function AgentsToolsPage() {
 
                   <div className="flex gap-2">
                     <Button
-                      variant={tool.enabled ? 'destructive' : 'default'}
+                      variant="outline"
                       size="sm"
                       className="flex-1 text-xs"
                     >
@@ -168,12 +168,12 @@ export default function AgentsToolsPage() {
             <CardDescription className="text-xs">Last 30 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center gap-3 mb-2">
-                <TrendingUp className="h-5 w-5 text-blue-600" />
-                <h4 className="text-sm font-medium text-blue-900">Key Insights</h4>
+                <TrendingUp className="h-5 w-5 text-gray-600" />
+                <h4 className="text-sm font-medium text-gray-900">Key Insights</h4>
               </div>
-              <ul className="text-xs text-blue-800 space-y-1 list-disc list-inside">
+              <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
                 <li>File System Access is most frequently used (2847 calls)</li>
                 <li>Code Execution has lowest success rate (87.3%) - may need review</li>
                 <li>Database Query tool disabled but still showing high success rate when enabled</li>

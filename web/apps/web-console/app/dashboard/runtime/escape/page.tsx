@@ -41,7 +41,7 @@ export default function RuntimeEscapePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-gray-900">{cacheStats.hit_rate}%</div>
-              <p className="text-xs text-green-600 mt-1">Excellent performance</p>
+              <p className="text-xs text-gray-600 mt-1">Excellent performance</p>
             </CardContent>
           </Card>
 
@@ -111,9 +111,9 @@ export default function RuntimeEscapePage() {
                 </div>
               </div>
 
-              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-green-900 mb-2">Emergency Failover Impact</h4>
-                <ul className="text-xs text-green-800 space-y-1 list-disc list-inside">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-gray-900 mb-2">Emergency Failover Impact</h4>
+                <ul className="text-xs text-gray-800 space-y-1 list-disc list-inside">
                   <li>78.5% of requests can be served during edge outages</li>
                   <li>Prevents complete service disruption during failures</li>
                   <li>Encrypted cache ensures data security even during degraded mode</li>
