@@ -78,8 +78,8 @@ export default function RuntimeConfigPage() {
               Deploy configuration updates to runtime instances
             </p>
           </div>
-          <Button variant="outline" className="shadow-sm flex items-center gap-2">
-            <Send className="h-4 w-4" />
+          <Button variant="outline" size="sm" className="shadow-sm flex items-center gap-1 text-xs px-2 py-1">
+            <Send className="h-3 w-3" />
             New Config Push
           </Button>
         </div>
@@ -90,9 +90,9 @@ export default function RuntimeConfigPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <Sliders className="h-5 w-5 text-gray-900" />
+                    <Sliders className="h-4 w-4 text-gray-900" />
                     <div>
-                      <CardTitle className="text-sm text-base">{push.name}</CardTitle>
+                      <CardTitle className="text-xs">{push.name}</CardTitle>
                       <CardDescription className="text-xs mt-1">
                         Target: {push.target} • Created {push.created_at}
                       </CardDescription>
@@ -105,8 +105,8 @@ export default function RuntimeConfigPage() {
                 <div className="space-y-4">
                   <div className="bg-beige-primary border border-border-light rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-900">Progress</span>
-                      <span className="text-sm text-gray-600">
+                      <span className="text-xs font-medium text-gray-900">Progress</span>
+                      <span className="text-xs text-gray-600">
                         {push.devices_completed}/{push.devices_targeted} devices
                       </span>
                     </div>
@@ -140,22 +140,22 @@ export default function RuntimeConfigPage() {
                   <div className="flex gap-2">
                     {push.status === 'pending' && (
                       <>
-                        <Button variant="outline" size="sm" className="flex-1 text-xs">
+                        <Button variant="outline" size="sm" className="text-xs px-2 py-1">
                           Cancel
                         </Button>
-                        <Button variant="outline" size="sm" className="flex-1 text-xs">
+                        <Button variant="outline" size="sm" className="text-xs px-2 py-1">
                           <Send className="h-3 w-3 mr-1" />
                           Deploy Now
                         </Button>
                       </>
                     )}
                     {push.status === 'in_progress' && (
-                      <Button variant="outline" size="sm" className="flex-1 text-xs">
+                      <Button variant="outline" size="sm" className="text-xs px-2 py-1">
                         Stop Deploy
                       </Button>
                     )}
                     {(push.status === 'completed' || push.status === 'failed') && (
-                      <Button variant="outline" size="sm" className="flex-1 text-xs">
+                      <Button variant="outline" size="sm" className="text-xs px-2 py-1">
                         View Details
                       </Button>
                     )}
