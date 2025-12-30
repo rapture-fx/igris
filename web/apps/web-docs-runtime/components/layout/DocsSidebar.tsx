@@ -430,7 +430,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Search Bar - Original docs functionality */}
-          <div className="px-3 py-5">
+          <div className="px-6 py-5">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
               <input
@@ -447,7 +447,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
           </div>
 
           {/* Dropdown Menu - Original docs functionality */}
-          <div className="px-3 pb-4" ref={dropdownRef}>
+          <div className="px-6 pb-4" ref={dropdownRef}>
             <div className="relative">
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -474,7 +474,7 @@ export function DocsSidebar({ open = true, onClose }: DocsSidebarProps) {
                         setDropdownOpen(false);
                         onClose?.();
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.75rem] font-medium text-gray-700 hover:text-gray-900 transition-colors border-b border-gray-200 last:border-b-0"
+                      className="flex items-center gap-2.5 px-3 py-2.5 text-[0.75rem] font-medium text-gray-700 hover:text-gray-900 hover:bg-beige-secondary transition-colors"
                     >
                       <item.icon className="h-4 w-4" />
                       <span>{item.label}</span>
