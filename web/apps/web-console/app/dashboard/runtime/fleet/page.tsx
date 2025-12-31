@@ -216,6 +216,58 @@ export default function RuntimeFleetPage() {
           </Card>
         </div>
 
+        {/* EscapeVector Status Card */}
+        <Card className="border-border-light shadow-sm bg-beige-primary">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-xs">
+                  <Signal className="h-4 w-4 text-gray-900" />
+                  EscapeVector Status (Fleet-Wide)
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  Read-only cache synchronization status across all runtime instances
+                </CardDescription>
+              </div>
+              <a
+                href="/dashboard/overture/escapevector"
+                className="text-xs text-gray-900 hover:text-gray-700 underline flex items-center gap-1"
+              >
+                Manage cache →
+              </a>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                <div className="text-xs text-gray-600 mb-1">Last Sync</div>
+                <div className="text-sm font-semibold text-gray-900">2 mins ago</div>
+                <div className="text-xs text-gray-600 mt-1">All instances synced</div>
+              </div>
+              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                <div className="text-xs text-gray-600 mb-1">TTL Remaining</div>
+                <div className="text-sm font-semibold text-gray-900">4h 23m</div>
+                <div className="text-xs text-gray-600 mt-1">Next refresh: 6h</div>
+              </div>
+              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                <div className="text-xs text-gray-600 mb-1">Avg Hit Rate</div>
+                <div className="text-sm font-semibold text-gray-900">87.3%</div>
+                <div className="text-xs text-gray-600 mt-1">Across all instances</div>
+              </div>
+              <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                <div className="text-xs text-gray-600 mb-1">Fallback Events</div>
+                <div className="text-sm font-semibold text-gray-900">143</div>
+                <div className="text-xs text-gray-600 mt-1">Using cache (24h)</div>
+              </div>
+            </div>
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs text-blue-900">
+                <strong>Note:</strong> EscapeVector cache is synchronized from Overture cloud to all runtime instances. Cache entries are shared across the fleet for offline resilience.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="border-border-light shadow-sm">
           <CardHeader>
             <div className="flex items-center gap-2">

@@ -59,7 +59,7 @@ export default function RoiCalculator() {
 
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative py-16 px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -84,7 +84,7 @@ export default function RoiCalculator() {
             </h2>
           </div>
 
-          <div className="max-w-6xl mx-auto">
+          <div className="max-w-[1350px] mx-auto">
             {/* Input Section */}
             <div className="mb-12 rounded-lg p-8" style={{
               backgroundColor: '#f6f6f4',

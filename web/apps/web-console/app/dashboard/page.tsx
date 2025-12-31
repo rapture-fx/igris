@@ -15,6 +15,16 @@ import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, Cartesia
 import { CHART_COLORS } from '@/utils/constants';
 import { useRouter } from 'next/navigation';
 
+const hideScrollbarStyles = `
+  .hide-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+`;
+
 function MetricCard({
   title,
   value,
@@ -448,6 +458,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout>
+      <style>{hideScrollbarStyles}</style>
       <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
         <div className="pb-4 border-b border-border-light">
@@ -837,7 +848,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-4">
-            <div className="max-h-[400px] overflow-y-auto scrollbar-hide">
+            <div className="overflow-auto max-h-96 hide-scrollbar">
               <div className="space-y-3">
                 {recentActivity.slice(0, 5).map((activity) => {
                 const typeConfig = {
