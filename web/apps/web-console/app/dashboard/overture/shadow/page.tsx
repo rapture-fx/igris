@@ -301,7 +301,10 @@ export default function OvertureShadowPage() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                   <XAxis dataKey="timestamp" tick={{ fontSize: 8 }} tickFormatter={(value) => new Date(value).getHours() + ':00'} />
                   <YAxis tick={{ fontSize: 8 }} />
-                  <Tooltip contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }} />
+                  <Tooltip 
+                    contentStyle={{ fontSize: '9px', backgroundColor: '#faf9f7', borderRadius: '6px', border: '1px solid #e5e7eb' }}
+                    formatter={(value: any) => typeof value === 'number' ? value.toFixed(1) : value}
+                  />
                   <Line type="monotone" dataKey="primary_quality" stroke="#000000" strokeWidth={0.5} name="Primary" dot={false} />
                   <Line type="monotone" dataKey="shadow_quality" stroke="#114dcd" strokeWidth={0.5} strokeDasharray="5,5" name="Shadow" dot={false} />
                 </LineChart>
