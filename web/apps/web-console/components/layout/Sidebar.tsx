@@ -71,6 +71,12 @@ const navigation: NavigationItem[] = [
         modes: ['architect'] as ViewMode[],
       },
       {
+        name: 'Council Mode',
+        href: '/dashboard/overture/council',
+        icon: Home,
+        modes: ['architect'] as ViewMode[],
+      },
+      {
         name: 'EscapeVector (Cloud)',
         href: '/dashboard/overture/escapevector',
         icon: Home,
@@ -106,12 +112,6 @@ const navigation: NavigationItem[] = [
         href: '/dashboard/runtime/swarm',
         icon: Home,
         modes: ['operator', 'audit'] as ViewMode[],
-      },
-      {
-        name: 'EscapeVector (Edge)',
-        href: '/dashboard/runtime/escape',
-        icon: Home,
-        modes: ['architect', 'operator'] as ViewMode[],
       },
     ],
   },

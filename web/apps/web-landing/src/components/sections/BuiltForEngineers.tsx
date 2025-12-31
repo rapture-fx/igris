@@ -20,7 +20,7 @@ const features = [
 export default function BuiltForEngineers() {
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f7f7f3' }}>
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-[1450px]">
           <div className="relative p-8" style={{
             borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -42,7 +42,7 @@ export default function BuiltForEngineers() {
             </div>
 
             {/* Content Container with Original Width */}
-            <div className="max-w-[1300px] mx-auto">
+            <div className="max-w-[1250px] mx-auto">
               <div className="text-center mb-12">
                 <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
                   <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>

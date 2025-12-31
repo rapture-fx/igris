@@ -61,6 +61,13 @@ export const API_ENDPOINTS = {
   COGNITIVE_RECOMMENDATIONS: '/v1/cognitive/recommendations',
   COGNITIVE_HISTORY: '/v1/cognitive/history',
   COGNITIVE_CONFIG: '/v1/cognitive/config',
+
+  // Council Mode
+  COUNCIL_STATUS: '/v1/council/status',
+  COUNCIL_CONFIG: '/v1/council/config',
+  COUNCIL_ANALYTICS: '/v1/council/analytics',
+  COUNCIL_HISTORY: '/v1/council/history',
+  COUNCIL_TEST: '/v1/council/test',
 };
 
 export const COOKIE_KEYS = {
@@ -98,6 +105,10 @@ export const QUERY_KEYS = {
   COGNITIVE_RECOMMENDATIONS: 'cognitive_recommendations',
   COGNITIVE_HISTORY: 'cognitive_history',
   COGNITIVE_CONFIG: 'cognitive_config',
+  COUNCIL_STATUS: 'council_status',
+  COUNCIL_CONFIG: 'council_config',
+  COUNCIL_ANALYTICS: 'council_analytics',
+  COUNCIL_HISTORY: 'council_history',
 };
 
 export const ROUTES = {

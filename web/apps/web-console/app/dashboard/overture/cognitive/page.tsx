@@ -415,14 +415,14 @@ export default function CognitiveAdvisorPage() {
 
         {/* Configuration */}
         <Card className="border-border-light shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-sm">Configuration</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xs">Configuration</CardTitle>
             <CardDescription className="text-xs">Cognitive Advisor settings and thresholds</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="enabled" className="text-xs font-medium text-gray-900">Enable Cognitive Advisor</Label>
                     <Switch
@@ -432,10 +432,10 @@ export default function CognitiveAdvisorPage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.65rem] text-gray-600">Activate AI-powered recommendations</p>
+                  <p className="text-[0.6rem] text-gray-600">Activate AI-powered recommendations</p>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="learning_mode" className="text-xs font-medium text-gray-900">Learning Mode</Label>
                     <Switch
@@ -445,10 +445,10 @@ export default function CognitiveAdvisorPage() {
                       className="scale-50"
                     />
                   </div>
-                  <p className="text-[0.65rem] text-gray-600">Observe without applying changes</p>
+                  <p className="text-[0.6rem] text-gray-600">Observe without applying changes</p>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="aggressiveness" className="text-xs font-medium text-gray-900">
                     Aggressiveness ({editableConfig.aggressiveness}%)
                   </Label>
@@ -459,12 +459,12 @@ export default function CognitiveAdvisorPage() {
                     max="100"
                     value={editableConfig.aggressiveness}
                     onChange={(e) => handleConfigChange('aggressiveness', parseInt(e.target.value))}
-                    className="scale-75 origin-left dark-blue-slider"
+                    className="scale-[0.6] origin-left dark-blue-slider h-1"
                   />
-                  <p className="text-[0.65rem] text-gray-600">How aggressive optimization should be</p>
+                  <p className="text-[0.6rem] text-gray-600">How aggressive optimization should be</p>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="min_confidence" className="text-xs font-medium text-gray-900">
                     Min Confidence ({editableConfig.min_confidence_threshold}%)
                   </Label>
@@ -475,12 +475,12 @@ export default function CognitiveAdvisorPage() {
                     max="99"
                     value={editableConfig.min_confidence_threshold}
                     onChange={(e) => handleConfigChange('min_confidence_threshold', parseInt(e.target.value))}
-                    className="scale-75 origin-left dark-blue-slider"
+                    className="scale-[0.6] origin-left dark-blue-slider h-1"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Minimum confidence to show recommendation</p>
+                  <p className="text-[0.6rem] text-gray-600">Minimum confidence to show recommendation</p>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="auto_apply" className="text-xs font-medium text-gray-900">
                     Auto-Apply Threshold ({editableConfig.auto_apply_threshold}%)
                   </Label>
@@ -491,23 +491,23 @@ export default function CognitiveAdvisorPage() {
                     max="99"
                     value={editableConfig.auto_apply_threshold}
                     onChange={(e) => handleConfigChange('auto_apply_threshold', parseInt(e.target.value))}
-                    className="scale-75 origin-left dark-blue-slider"
+                    className="scale-[0.6] origin-left dark-blue-slider h-1"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Auto-apply recommendations above this confidence</p>
+                  <p className="text-[0.6rem] text-gray-600">Auto-apply recommendations above this confidence</p>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <Label htmlFor="observation_window" className="text-xs font-medium text-gray-900">Observation Window (hours)</Label>
                   <Input
                     id="observation_window"
                     type="number"
                     value={editableConfig.observation_window_hours}
                     onChange={(e) => handleConfigChange('observation_window_hours', parseInt(e.target.value))}
-                    className="text-xs"
+                    className="text-xs h-7"
                     min="1"
                     max="24"
                   />
-                  <p className="text-[0.65rem] text-gray-600">Time window for detecting trends</p>
+                  <p className="text-[0.6rem] text-gray-600">Time window for detecting trends</p>
                 </div>
               </div>
 
@@ -516,7 +516,7 @@ export default function CognitiveAdvisorPage() {
                   onClick={handleSaveConfig}
                   disabled={updateConfigMutation.isPending}
                   variant="outline"
-                  className="text-xs shadow-sm"
+                  className="text-xs shadow-sm h-7 px-3"
                   size="sm"
                 >
                   {updateConfigMutation.isPending ? 'Saving...' : 'Save Configuration'}

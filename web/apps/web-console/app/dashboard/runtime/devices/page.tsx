@@ -7,7 +7,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Cpu, RefreshCw, Eye, Settings, Terminal } from 'lucide-react';
+import { Cpu, RefreshCw, Eye, Settings, Terminal, Signal } from 'lucide-react';
 
 interface DeviceDetail {
   id: string;
@@ -227,6 +227,120 @@ export default function RuntimeDevicesPage() {
             </Card>
           ))}
         </div>
+
+        {/* EscapeVector Status Card for Selected Device */}
+        {selectedDevice && (
+          <Card className="border-border-light shadow-sm bg-beige-primary">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-xs">
+                    <Signal className="h-4 w-4 text-gray-900" />
+                    EscapeVector on {selectedDevice.name}
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Read-only cache status for this specific runtime instance
+                  </CardDescription>
+                </div>
+                <a
+                  href="/dashboard/overture/escapevector"
+                  className="text-xs text-gray-900 hover:text-gray-700 underline flex items-center gap-1"
+                >
+                  Manage cache →
+                </a>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                  <div className="text-xs text-gray-600 mb-1">Last Sync</div>
+                  <div className="text-sm font-semibold text-gray-900">45 secs ago</div>
+                  <div className="text-xs text-gray-600 mt-1">Sync active</div>
+                </div>
+                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                  <div className="text-xs text-gray-600 mb-1">TTL Remaining</div>
+                  <div className="text-sm font-semibold text-gray-900">5h 12m</div>
+                  <div className="text-xs text-gray-600 mt-1">Auto-refresh enabled</div>
+                </div>
+                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                  <div className="text-xs text-gray-600 mb-1">Local Hit Rate</div>
+                  <div className="text-sm font-semibold text-gray-900">91.2%</div>
+                  <div className="text-xs text-gray-600 mt-1">This device only</div>
+                </div>
+                <div className="p-3 bg-beige-primary rounded-lg border border-border-light">
+                  <div className="text-xs text-gray-600 mb-1">Fallback Events</div>
+                  <div className="text-sm font-semibold text-gray-900">23</div>
+                  <div className="text-xs text-gray-600 mt-1">Using cache (24h)</div>
+                </div>
+              </div>
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-900">
+                  <strong>Note:</strong> This device receives EscapeVector cache updates from Overture cloud. Cache enables offline operation and reduces latency for repeated queries.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Show EscapeVector status for all devices when no device is selected */}
+        {!selectedDevice && (
+          <Card className="border-border-light shadow-sm bg-beige-primary">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-xs">
+                    <Signal className="h-4 w-4 text-gray-900" />
+                    EscapeVector Status - All Devices
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Read-only cache synchronization status across displayed devices
+                  </CardDescription>
+                </div>
+                <a
+                  href="/dashboard/overture/escapevector"
+                  className="text-xs text-gray-900 hover:text-gray-700 underline flex items-center gap-1"
+                >
+                  Manage cache →
+                </a>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {devices.map((device) => (
+                  <div key={device.id} className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="font-medium text-gray-900 text-xs">{device.name}</div>
+                      <Badge className="bg-gray-50 text-gray-700 border text-xs">Synced</Badge>
+                    </div>
+                    <div className="grid grid-cols-4 gap-3">
+                      <div>
+                        <div className="text-xs text-gray-600">Last Sync</div>
+                        <div className="text-xs font-semibold text-gray-900 mt-1">2 mins ago</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-600">TTL Remaining</div>
+                        <div className="text-xs font-semibold text-gray-900 mt-1">4h 45m</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-600">Hit Rate</div>
+                        <div className="text-xs font-semibold text-gray-900 mt-1">89.5%</div>
+                      </div>
+                      <div>
+                        <div className="text-xs text-gray-600">Fallbacks</div>
+                        <div className="text-xs font-semibold text-gray-900 mt-1">12</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-xs text-blue-900">
+                  <strong>Tip:</strong> Select "View Logs" on a device card to see device-specific EscapeVector metrics and cache performance.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );

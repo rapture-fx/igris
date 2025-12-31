@@ -33,7 +33,7 @@ const features = [
 export default function Observability() {
   return (
     <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
         <div className="relative px-4 md:px-8 lg:px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -57,7 +57,7 @@ export default function Observability() {
 
           {/* Content Container */}
           <div className="w-full">
-            <div className="max-w-[1300px] mx-auto">
+            <div className="max-w-[1250px] mx-auto">
               {/* Section Title */}
               <div className="text-center mb-12">
                 <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
