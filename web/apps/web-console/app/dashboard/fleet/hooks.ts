@@ -34,6 +34,28 @@ export interface FleetMetrics {
   used_capacity: number;
 }
 
+export interface FleetAgent {
+  agent_id: string;
+  fleet_id: string;
+  hostname: string;
+  platform: string;
+  version: string;
+  status: string;
+  health: string;
+  last_seen: string;
+  registered_at: string;
+}
+
+export interface FleetHealth {
+  fleet_id: string;
+  total_agents: number;
+  active_agents: number;
+  healthy_agents: number;
+  degraded_agents: number;
+  unhealthy_agents: number;
+  offline_agents: number;
+}
+
 const API_BASE_URL = typeof window !== 'undefined'
   ? window.location.hostname === 'localhost'
     ? 'http://localhost:8080'
@@ -70,6 +92,40 @@ export function useFleetMetrics() {
       return response.json();
     },
     refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 20000,
+  });
+}
+
+export function useFleetAgents() {
+  return useQuery<{ agents: FleetAgent[]; total: number }>({
+    queryKey: ['fleet', 'agents'],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/api/fleet/agents`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch fleet agents');
+      }
+      return response.json();
+    },
+    refetchInterval: 30000,
+    staleTime: 20000,
+  });
+}
+
+export function useFleetHealth() {
+  return useQuery<{ fleets: FleetHealth[] }>({
+    queryKey: ['fleet', 'health'],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/api/fleet/health`, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch fleet health');
+      }
+      return response.json();
+    },
+    refetchInterval: 30000,
     staleTime: 20000,
   });
 }
