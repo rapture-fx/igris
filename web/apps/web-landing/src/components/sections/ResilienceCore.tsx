@@ -25,10 +25,10 @@ export default function ResilienceCore() {
           {/* Content Container */}
           <div className="max-w-[1250px] mx-auto w-full">
             <div className="text-center mb-12">
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                 Resilience Core
               </h3>
-              <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter max-w-3xl mx-auto">
                 Built-in reliability, fallback, and continuity mechanisms shared across Overture and Runtime.
               </p>
             </div>

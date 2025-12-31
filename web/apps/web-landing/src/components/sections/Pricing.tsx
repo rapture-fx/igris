@@ -92,10 +92,10 @@ export default function Pricing() {
           </div>
 
           <div className="text-center mb-16">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
               Pricing
             </h2>
-            <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
+            <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter max-w-2xl mx-auto">
               14-day free trial · Full tier access · No card required
             </p>
           </div>
@@ -112,13 +112,13 @@ export default function Pricing() {
               >
                 <div className="p-8 flex flex-col h-full">
                   <div className="flex-grow">
-                    <h3 className="text-2xl mb-2 font-inter" style={{ color: '#000000' }}>
+                    <h3 className="text-lg mb-2 font-inter" style={{ color: '#000000' }}>
                       {tier.name}
                     </h3>
 
                     <div className="mb-6">
                       <div className="flex items-baseline">
-                        <span className="text-2xl font-inter" style={{ color: '#000000' }}>
+                        <span className="text-lg font-inter" style={{ color: '#000000' }}>
                           {tier.price}
                         </span>
                         {tier.period && (

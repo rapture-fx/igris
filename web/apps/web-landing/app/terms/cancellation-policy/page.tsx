@@ -22,7 +22,7 @@ export default function CancellationPolicyPage() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_250px] gap-16">
               {/* Main Content */}
               <article className="prose prose-lg dark:prose-invert max-w-none">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Cancellation Policy</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Cancellation Policy</h1>
                 <p className="text-gray-600 dark:text-gray-400 mb-8">
                   <strong>Last updated: November 26, 2025</strong>
                 </p>
@@ -31,7 +31,7 @@ export default function CancellationPolicyPage() {
                   You can cancel your subscription at any time — no questions asked, no cancellation fees.
                 </p>
 
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">How to Cancel</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-4">How to Cancel</h2>
                 <ul className="list-decimal pl-6 text-gray-700 dark:text-gray-300 mb-6 space-y-2">
                   <li>Log in to your account</li>
                   <li>Go to Billing → Manage Subscription</li>
@@ -42,7 +42,7 @@ export default function CancellationPolicyPage() {
                   Your access continues until the end of your current billing period. No partial refunds for monthly plans.
                 </p>
 
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Downgrading</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-4">Downgrading</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
                   Want to switch to a lower tier? Just change your plan — it takes effect at the start of the next billing cycle.
                 </p>

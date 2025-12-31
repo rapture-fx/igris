@@ -47,10 +47,10 @@ export default function BuiltForEngineers() {
                 <div className="inline-block border border-gray-300 rounded-lg px-3 py-1.5">
                   <h2 className="text-sm leading-7 text-gray-500 dark:text-gray-400 font-inter text-center">Built for engineers shipping ML at speed.</h2>
                 </div>
-                <p className="mt-2 text-2xl font-medium tracking-tight text-gray-900 dark:text-white md:text-3xl text-center font-inter">
+                <p className="mt-2 text-lg font-medium tracking-tight text-gray-900 dark:text-white md:text-2xl text-center font-inter">
                   <span style={{ color: '#114dcd' }}>No infra. No setup. Just results.</span>
                 </p>
-                <p className="mt-6 text-lg leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
+                <p className="mt-6 text-base leading-8 text-gray-700 dark:text-gray-300 text-center font-inter">
                   Most ML projects stall on infrastructure.<br /> Igris Inertial removes that bottleneck with simple APIs <br /> that take you from messy data to working models fast.
                 </p>
               </div>
@@ -60,7 +60,7 @@ export default function BuiltForEngineers() {
                   {/* Left side - 2 rows */}
                   <div className="border-r border-gray-200 dark:border-gray-700">
                     <div className="p-16 text-left border-b border-gray-200 dark:border-gray-700" style={{ minHeight: '225px' }}>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-6">
                         {features[0].name}
                       </h3>
                       <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -68,7 +68,7 @@ export default function BuiltForEngineers() {
                       </p>
                     </div>
                     <div className="p-16 text-left" style={{ minHeight: '225px' }}>
-                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-6">
                         {features[1].name}
                       </h3>
                       <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -79,7 +79,7 @@ export default function BuiltForEngineers() {
 
                   {/* Right side - single tall column */}
                   <div className="p-16 text-left" style={{ minHeight: '450px' }}>
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-6">
                       {features[2].name}
                     </h3>
                     <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">

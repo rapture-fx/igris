@@ -35,10 +35,10 @@ export default function Products() {
 
             {/* Title Section - Shows first on mobile, last on desktop */}
             <div className="text-left mb-6 lg:mb-0 lg:hidden">
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                 Two products. One platform.
               </h3>
-              <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                 Deploy AI where you need it. Overture routes cloud requests intelligently. Runtime executes at the edge with guaranteed latency. Use them together or independently.
               </p>
             </div>
@@ -54,7 +54,7 @@ export default function Products() {
                     <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
                       <div className="flex-shrink-0 w-full">
                         <div>
-                          <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
+                          <h4 className="text-base md:text-lg lg:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Overture</h4>
                           <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
                             Control Plane
                           </p>
@@ -75,7 +75,7 @@ export default function Products() {
                     <div className="rounded-3xl p-4 md:p-6 lg:p-8 border border-gray-300/60 dark:border-gray-600/60 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col overflow-hidden group-hover:border-gray-400/80" style={{ backgroundColor: '#f6f6f4' }}>
                       <div className="flex-shrink-0 w-full">
                         <div>
-                          <h4 className="text-lg md:text-xl lg:text-2xl font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
+                          <h4 className="text-base md:text-lg lg:text-lg font-medium text-gray-900 dark:text-white mb-0.5 font-inter">Runtime</h4>
                           <p className="text-xs text-gray-600 dark:text-gray-400 font-inter">
                             Execution Plane
                           </p>
@@ -95,10 +95,10 @@ export default function Products() {
 
               {/* Right Column - Section Title (Desktop only) */}
               <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                   Two products. One platform.
                 </h3>
-                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                   Deploy AI where you need it. Overture routes cloud requests intelligently. Runtime executes at the edge with guaranteed latency. Use them together or independently.
                 </p>
               </div>

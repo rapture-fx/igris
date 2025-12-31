@@ -161,7 +161,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
                 <div className="text-center py-8">
                   <div className="mb-6">
                   </div>
-                  <h3 className="text-base md:text-2xl mb-2 md:mb-4 font-inter" style={{ color: '#000000' }}>
+                  <h3 className="text-base md:text-lg mb-2 md:mb-4 font-inter" style={{ color: '#000000' }}>
                     Thanks for joining early access!
                   </h3>
                   <p className="text-xs md:text-base text-gray-600 mb-6 font-inter max-w-sm mx-auto">
@@ -171,7 +171,7 @@ export default function EarlyAccessModal({ isOpen, onClose }: EarlyAccessModalPr
               ) : (
                 <>
                   <div className="mb-3 md:mb-8">
-                    <h2 className="text-lg md:text-2xl font-inter mb-1.5 md:mb-3" style={{ color: '#000000' }}>
+                    <h2 className="text-base md:text-lg font-inter mb-1.5 md:mb-3" style={{ color: '#000000' }}>
                       Get Early Access
                     </h2>
                     <p className="text-xs md:text-base text-gray-600 font-inter">

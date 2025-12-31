@@ -33,13 +33,13 @@ export default function BlankSection() {
 
               {/* Left Column - Text Content */}
               <div className="text-left lg:col-span-1 pr-0 md:pr-4 lg:pr-8 flex flex-col justify-center lg:min-h-[750px]">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                   Verified Providers, BYOK Safe
                 </h3>
-                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-4">
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-4">
                   Every connected provider is validated for uptime, latency, and output integrity before it joins your routing network.
                 </p>
-                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                   With the Open BYOK registry, you can onboard new providers while Igris Inertial automatically performs continuous trust checks, keeping your stack clean and stable.
                 </p>
               </div>

@@ -79,10 +79,10 @@ export default function UseCasesPage() {
                     </Link>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
                       <div className="text-left">
-                        <h1 className="text-2xl md:text-3xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
+                        <h1 className="text-lg md:text-2xl lg:text-2xl font-medium text-[#111111] leading-[1.2]">
                           Use Cases
                         </h1>
-                        <p className="text-sm md:text-lg text-gray-700 max-w-2xl leading-relaxed text-left mt-6">
+                        <p className="text-sm md:text-base text-gray-700 max-w-2xl leading-relaxed text-left mt-6">
                           How teams use Igris Inertial for AI workloads across cloud and edge environments.
                         </p>
                       </div>
@@ -121,7 +121,7 @@ export default function UseCasesPage() {
                     }}></div>
 
                     <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         {useCase.title}
                       </h3>
                     </div>
@@ -164,7 +164,7 @@ export default function UseCasesPage() {
                       </div>
 
                       <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                        <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                        <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                           {useCase.title}
                         </h3>
                       </div>
