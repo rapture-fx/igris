@@ -6,7 +6,7 @@ export default function Footer() {
 
   return (
     <footer className="dark:bg-gray-900 text-gray-900 dark:text-white font-inter" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="py-8 md:py-16">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-6">
             {/* Left side - Legal links and contact */}

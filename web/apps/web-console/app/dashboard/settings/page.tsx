@@ -236,8 +236,27 @@ export default function SettingsPage() {
         </div>
 
         {/* Tabs */}
+        <style jsx>{`
+          [data-state="active"],
+          [data-state="active"]:hover,
+          [data-radix-tabs-trigger][data-state="active"],
+          [data-radix-tabs-trigger][data-state="active"]:hover {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            outline: none !important;
+          }
+          
+          button[data-radix-tabs-trigger][data-state="active"],
+          button[data-radix-tabs-trigger][data-state="active"]:hover {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            outline: none !important;
+          }
+        `}</style>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="border border-border-light mb-6 text-xs">
+          <TabsList className="mb-4 text-xs">
             <TabsTrigger value="notifications" className="text-xs">Notifications</TabsTrigger>
             <TabsTrigger value="security" className="text-xs">Security</TabsTrigger>
             <TabsTrigger value="billing" className="text-xs">Billing</TabsTrigger>
@@ -444,7 +463,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+                <div className="flex items-center justify-between p-3">
                   <div className="space-y-0.5">
                     <Label htmlFor="hardCap" className="text-xs font-medium">
                       Hard cap — block all requests at 100%
@@ -548,7 +567,7 @@ export default function SettingsPage() {
                   Add an extra layer of security to your account
                 </p>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg border border-border-light">
+              <div className="flex items-center justify-between p-3">
                 <div className="space-y-0.5">
                   <Label htmlFor="twoFactor" className="text-xs font-medium">
                     Enable 2FA
@@ -579,7 +598,7 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="flex items-center justify-between p-4">
                   <div>
                     <h3 className="font-medium text-gray-900 font-inter text-xs">Current Session</h3>
                     <p className="text-xs text-gray-600 mt-1">
@@ -841,22 +860,22 @@ Delete Account
                 </p>
               </div>
               <div className="grid grid-cols-4 gap-4">
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                <div className="p-4">
                   <div className="text-xs text-gray-600 mb-1">Total Cloud Keys</div>
                   <div className="text-base font-bold text-gray-900">12</div>
                   <div className="text-xs text-gray-600 mt-1">Active: 10</div>
                 </div>
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                <div className="p-4">
                   <div className="text-xs text-gray-600 mb-1">Edge Models</div>
                   <div className="text-base font-bold text-gray-900">5</div>
                   <div className="text-xs text-gray-600 mt-1">Loaded: 3</div>
                 </div>
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                <div className="p-4">
                   <div className="text-xs text-gray-600 mb-1">Last Rotation</div>
                   <div className="text-base font-bold text-gray-900">7d</div>
                   <div className="text-xs text-gray-600 mt-1">Next: 23 days</div>
                 </div>
-                <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
+                <div className="p-4">
                   <div className="text-xs text-gray-600 mb-1">Security Status</div>
                   <div className="text-base font-bold text-green-700">Healthy</div>
                   <div className="text-xs text-gray-600 mt-1">AES-256-GCM</div>
