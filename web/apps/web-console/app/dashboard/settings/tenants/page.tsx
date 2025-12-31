@@ -119,250 +119,215 @@ export default function TenantsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="pb-4 border-b border-border-light">
-            <h1 className="text-base font-medium text-gray-900 font-inter">
-              Clients & Tenants
-            </h1>
-            <p className="text-gray-600 mt-1 font-inter text-xs">
-              Create isolated tenants for customers, environments, or teams
-            </p>
-          </div>
+        <div className="pb-4 border-b border-border-light">
+          <h1 className="text-base font-medium text-gray-900 font-inter">
+            Clients & Tenants
+          </h1>
+          <p className="text-gray-600 mt-1 font-inter text-xs">
+            Create isolated tenants for customers, environments, or teams
+          </p>
+        </div>
+
+        {/* New Tenant Button */}
+        <div className="flex justify-end">
           <Button
             variant="outline"
+            size="sm"
+            className="h-7 px-3 text-xs"
             onClick={() => setShowCreateDialog(true)}
           >
-            <Plus className="h-4 w-4 mr-2" />
+            <Plus className="h-3 w-3 mr-1" />
             New Tenant
           </Button>
         </div>
 
         {/* Tenants Table */}
-        <Card className="border-border-light shadow-sm">
-          <CardHeader>
-            <CardTitle>Tenants</CardTitle>
-            <CardDescription>
+        <div>
+          <div className="pb-4 border-b border-border-light">
+            <div className="flex items-center gap-2 text-xs font-semibold text-gray-900 font-inter">
+              <Building2 className="h-4 w-4 text-gray-900" />
+              Tenants
+            </div>
+            <p className="text-xs text-gray-600 mt-1">
               Manage your isolated tenant environments
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-beige-primary border-b border-border-light">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Tenant ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Created
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Spend (30d)
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Requests
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-beige-primary divide-y divide-border-light">
-                  {tenants.map((tenantItem) => (
-                    <tr key={tenantItem.id} className="hover:bg-beige-primary transition-colors">
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="font-medium text-gray-900 font-inter">
-                            {tenantItem.name}
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead className="bg-beige-secondary">
+                <tr className="border-b border-border-light">
+                  <th className="px-3 py-2 text-left font-medium text-gray-600">
+                    Name
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600">
+                    Tenant ID
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600">
+                    Created
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600">
+                    Spend (30d)
+                  </th>
+                  <th className="px-3 py-2 text-left font-medium text-gray-600">
+                    Requests
+                  </th>
+                  <th className="px-3 py-2 text-right font-medium text-gray-600">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {tenants.map((tenantItem) => (
+                  <tr key={tenantItem.id} className="hover:bg-beige-secondary transition-colors">
+                    <td className="px-3 py-2">
+                      <div>
+                        <div className="font-medium text-gray-900 font-inter text-xs">
+                          {tenantItem.name}
+                        </div>
+                        {tenantItem.description && (
+                          <div className="text-xs text-gray-600 mt-0.5">
+                            {tenantItem.description}
                           </div>
-                          {tenantItem.description && (
-                            <div className="text-sm text-gray-600 mt-0.5">
-                              {tenantItem.description}
-                            </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2">
+                      <code className="text-[0.65rem] bg-gray-100 px-2 py-1 rounded font-mono text-gray-700">
+                        {tenantItem.id}
+                      </code>
+                    </td>
+                    <td className="px-3 py-2 text-xs text-gray-600">
+                      {formatDate(tenantItem.created_at)}
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-gray-900">
+                            {formatCurrency(tenantItem.monthly_spend)}
+                          </span>
+                          {tenantItem.budget_limit && tier === 'scale' && (
+                            <span className="text-xs text-gray-600">
+                              / {formatCurrency(tenantItem.budget_limit)}
+                            </span>
                           )}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono text-gray-700">
-                          {tenantItem.id}
-                        </code>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-600">
-                        {formatDate(tenantItem.created_at)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-gray-900">
-                              {formatCurrency(tenantItem.monthly_spend)}
+                        {tenantItem.budget_limit && tier === 'scale' && (
+                          <>
+                            <div className="w-24 bg-gray-200 rounded-full h-1 overflow-hidden">
+                              <div
+                                className={`h-full transition-all ${
+                                  (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 >= 90
+                                    ? 'bg-red-600'
+                                    : (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 >= 70
+                                    ? 'bg-yellow-500'
+                                    : ''
+                                }`}
+                                style={{
+                                  width: `${Math.min((tenantItem.monthly_spend / tenantItem.budget_limit) * 100, 100)}%`,
+                                  backgroundColor: (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 < 70 ? '#299a93' : undefined
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-600">
+                              {((tenantItem.monthly_spend / tenantItem.budget_limit) * 100).toFixed(0)}% used
                             </span>
-                            {tenantItem.budget_limit && tier === 'scale' && (
-                              <span className="text-xs text-gray-600">
-                                / {formatCurrency(tenantItem.budget_limit)}
-                              </span>
-                            )}
-                          </div>
-                          {tenantItem.budget_limit && tier === 'scale' && (
+                          </>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-xs text-gray-900">
+                      {formatNumber(tenantItem.request_count)}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-6 w-6">
+                            <MoreVertical className="h-3 w-3" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40 text-xs">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedTenant(tenantItem);
+                              setNewTenantName(tenantItem.name);
+                              setNewTenantDescription(tenantItem.description || '');
+                              setShowEditDialog(true);
+                            }}
+                          >
+                            <Edit className="mr-2 h-3 w-3" />
+                            Edit
+                          </DropdownMenuItem>
+                          {tier === 'scale' && (
                             <>
-                              <div className="w-32 bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                <div
-                                  className={`h-full transition-all ${
-                                    (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 >= 90
-                                      ? 'bg-red-600'
-                                      : (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 >= 70
-                                      ? 'bg-yellow-500'
-                                      : ''
-                                  }`}
-                                  style={{
-                                    width: `${Math.min((tenantItem.monthly_spend / tenantItem.budget_limit) * 100, 100)}%`,
-                                    backgroundColor: (tenantItem.monthly_spend / tenantItem.budget_limit) * 100 < 70 ? '#299a93' : undefined
-                                  }}
-                                />
-                              </div>
-                              <span className="text-xs text-gray-600">
-                                {((tenantItem.monthly_spend / tenantItem.budget_limit) * 100).toFixed(0)}% used
-                              </span>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelectedTenant(tenantItem);
+                                  setBudgetAmount(tenantItem.budget_limit?.toString() || '');
+                                  setShowBudgetDialog(true);
+                                }}
+                              >
+                                <Budget className="mr-2 h-3 w-3" />
+                                Set Budget
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log('Set routing policy for:', tenantItem.id);
+                                }}
+                              >
+                                <GitBranch className="mr-2 h-3 w-3" />
+                                Routing Policy
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  console.log('Invite admin for:', tenantItem.id);
+                                }}
+                              >
+                                <UserPlus className="mr-2 h-3 w-3" />
+                                Invite Tenant Admin
+                              </DropdownMenuItem>
                             </>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {formatNumber(tenantItem.request_count)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem
-                              onClick={() => {
-                                setSelectedTenant(tenantItem);
-                                setNewTenantName(tenantItem.name);
-                                setNewTenantDescription(tenantItem.description || '');
-                                setShowEditDialog(true);
-                              }}
-                            >
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </DropdownMenuItem>
-                            {tier === 'scale' && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedTenant(tenantItem);
-                                    setBudgetAmount(tenantItem.budget_limit?.toString() || '');
-                                    setShowBudgetDialog(true);
-                                  }}
-                                >
-                                  <Budget className="mr-2 h-4 w-4" />
-                                  Set Budget
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    console.log('Set routing policy for:', tenantItem.id);
-                                  }}
-                                >
-                                  <GitBranch className="mr-2 h-4 w-4" />
-                                  Routing Policy
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    console.log('Invite admin for:', tenantItem.id);
-                                  }}
-                                >
-                                  <UserPlus className="mr-2 h-4 w-4" />
-                                  Invite Tenant Admin
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onClick={() => {
-                                setSelectedTenant(tenantItem);
-                                setShowDeleteDialog(true);
-                              }}
-                            >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          <DropdownMenuItem
+                            className="text-red-600"
+                            onClick={() => {
+                              setSelectedTenant(tenantItem);
+                              setShowDeleteDialog(true);
+                            }}
+                          >
+                            <Trash2 className="mr-2 h-3 w-3" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            {tenants.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 font-inter mb-4">
-                  No tenants yet
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowCreateDialog(true)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Tenant
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Info Card */}
-        <Card className="border-blue-200 bg-blue-50 shadow-sm">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <Building2 className="h-5 w-5 text-blue-700 flex-shrink-0 mt-0.5" />
-              <div>
-                <h3 className="font-medium text-blue-900 font-inter mb-1">
-                  Enterprise Multi-Tenancy
-                </h3>
-                <p className="text-sm text-blue-800">
-                  {tier === 'scale' ? (
-                    <>
-                      You have full access to enterprise multi-tenancy features:
-                      <br />
-                      • Per-tenant API keys and credentials
-                      <br />
-                      • Independent budget limits and enforcement
-                      <br />
-                      • Custom routing policies per tenant
-                      <br />
-                      • Tenant admin role management
-                      <br />
-                      • 90-day trace retention per tenant
-                    </>
-                  ) : (
-                    <>
-                      Create isolated tenants for customers or environments. Each tenant gets:
-                      <br />
-                      • Isolated API keys and credentials
-                      <br />
-                      • Separate usage tracking and billing
-                      <br />
-                      • Independent data isolation
-                      <br />
-                      <br />
-                      <span className="font-medium">Upgrade to Scale</span> for: Per-tenant budgets • Custom routing policies • Tenant admin roles
-                    </>
-                  )}
-                </p>
-              </div>
+          {tenants.length === 0 && (
+            <div className="text-center py-8">
+              <Users className="h-6 w-6 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600 font-inter mb-4 text-xs">
+                No tenants yet
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 px-3 text-xs"
+                onClick={() => setShowCreateDialog(true)}
+              >
+                <Plus className="h-3 w-3 mr-1" />
+                Create Your First Tenant
+              </Button>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </div>
+
+        
       </div>
 
       {/* Create Tenant Dialog */}
@@ -403,23 +368,27 @@ export default function TenantsPage() {
           <DialogFooter>
             <Button
               variant="outline"
+              size="sm"
+              className="h-7 px-3 text-xs"
               onClick={() => setShowCreateDialog(false)}
               disabled={isCreating}
             >
               Cancel
             </Button>
             <Button
+              size="sm"
+              className="h-7 px-3 text-xs"
               onClick={handleCreateTenant}
               disabled={!newTenantName.trim() || isCreating}
             >
               {isCreating ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
                   Creating...
                 </>
               ) : (
                 <>
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-1 h-3 w-3" />
                   Create Tenant
                 </>
               )}
@@ -460,10 +429,10 @@ export default function TenantsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+            <Button variant="outline" size="sm" className="h-7 px-3 text-xs" onClick={() => setShowEditDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={() => setShowEditDialog(false)}>
+            <Button size="sm" className="h-7 px-3 text-xs" onClick={() => setShowEditDialog(false)}>
               Save Changes
             </Button>
           </DialogFooter>
@@ -520,10 +489,10 @@ export default function TenantsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBudgetDialog(false)}>
+            <Button variant="outline" size="sm" className="h-7 px-3 text-xs" onClick={() => setShowBudgetDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleSetBudget} disabled={!budgetAmount}>
+            <Button size="sm" className="h-7 px-3 text-xs" onClick={handleSetBudget} disabled={!budgetAmount}>
               Set Budget
             </Button>
           </DialogFooter>
@@ -553,11 +522,11 @@ export default function TenantsPage() {
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button variant="outline" size="sm" className="h-7 px-3 text-xs" onClick={() => setShowDeleteDialog(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              <Trash2 className="mr-2 h-4 w-4" />
+            <Button variant="destructive" size="sm" className="h-7 px-3 text-xs" onClick={handleDelete}>
+              <Trash2 className="mr-1 h-3 w-3" />
               Delete Permanently
             </Button>
           </DialogFooter>

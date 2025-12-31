@@ -57,7 +57,7 @@ export default function BenchmarkResults() {
         }
       `}</style>
       <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-        <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="relative px-12 py-32" style={{
             borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -91,7 +91,7 @@ export default function BenchmarkResults() {
                 <div className="lg:col-span-1 text-left flex flex-col justify-center pr-8">
                   {/* Section Header */}
                   <div className="mb-12 opacity-0 animate-fadeIn" style={{ animationDelay: '200ms' }}>
-                    <h3 className="text-lg tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-2xl tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Measured in Production
                     </h3>
 
@@ -134,7 +134,7 @@ export default function BenchmarkResults() {
                 <div className="lg:col-span-2 flex items-center justify-center">
                   <div className="w-full max-w-4xl opacity-0 animate-fadeIn" style={{ animationDelay: '400ms' }}>
                     <div className="bg-[#f6f6f4] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-12">
-                      <h3 className="text-lg font-normal text-gray-900 dark:text-white mb-2 font-inter">
+                      <h3 className="text-2xl font-normal text-gray-900 dark:text-white mb-2 font-inter">
                         Cost Comparison Analysis
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 font-inter">

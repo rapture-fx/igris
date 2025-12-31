@@ -59,7 +59,7 @@ export default function RoiCalculator() {
 
   return (
     <section className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative py-16 px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -79,18 +79,18 @@ export default function RoiCalculator() {
           </div>
 
           <div className="text-center mb-16">
-            <h2 className="text-lg tracking-tight md:text-2xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
               See how much you can save
             </h2>
           </div>
 
-          <div className="max-w-[1350px] mx-auto">
+          <div className="max-w-[1200px] mx-auto">
             {/* Input Section */}
             <div className="mb-12 rounded-lg p-8" style={{
               backgroundColor: '#f6f6f4',
               border: '1px solid rgba(156, 163, 175, 0.3)'
             }}>
-              <h3 className="text-lg font-medium font-inter mb-6" style={{ color: '#000000' }}>
+              <h3 className="text-2xl font-medium font-inter mb-6" style={{ color: '#000000' }}>
                 Your Current Setup
               </h3>
 
@@ -124,7 +124,7 @@ export default function RoiCalculator() {
               backgroundColor: '#f6f6f4',
               border: '1px solid rgba(156, 163, 175, 0.3)'
             }}>
-              <h3 className="text-lg font-normal font-inter mb-6" style={{ color: '#000000' }}>
+              <h3 className="text-2xl font-normal font-inter mb-6" style={{ color: '#000000' }}>
                 Estimated monthly savings
               </h3>
 
@@ -171,7 +171,7 @@ export default function RoiCalculator() {
               backgroundColor: '#f6f6f4',
               border: '1px solid rgba(156, 163, 175, 0.3)'
             }}>
-              <h3 className="text-lg font-normal font-inter mb-6" style={{ color: '#000000' }}>
+              <h3 className="text-2xl font-normal font-inter mb-6" style={{ color: '#000000' }}>
                 How we calculate this
               </h3>
 

@@ -6,7 +6,7 @@ export default function CallToAction() {
   return (
     <div className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
       {/* First Frame - CTA Content */}
-      <div className="max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-left py-12 pt-12 md:py-16 md:pt-16 lg:py-24 lg:pt-24 px-4 md:px-8 lg:px-12 relative min-h-[500px] flex flex-col justify-center" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -35,9 +35,9 @@ export default function CallToAction() {
             <div className="absolute bottom-0 right-3.5 h-8" style={{ borderRight: '0.5px solid #1a1e21' }}></div>
           </div>
           {/* Content Container with Original Width */}
-          <div className="max-w-[1250px] mx-auto w-full">
+          <div className="max-w-[1100px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-lg md:text-2xl lg:text-2xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Choose your deployment</h2>
+              <h2 className="text-2xl md:text-2xl lg:text-3xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Choose your deployment</h2>
 
               <div className="inline-block">
                 <Link

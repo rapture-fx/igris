@@ -69,7 +69,7 @@ export default function OverturePage() {
         <main className="pt-[70px] space-y-1">
           {/* Hero Section */}
           <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               <div className="relative pt-16 px-8 md:px-12 lg:px-16 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -108,7 +108,7 @@ export default function OverturePage() {
                   }}
                 />
 
-                <div className="max-w-[1300px] mx-auto pt-8 px-0 md:px-8 lg:px-16 relative z-10">
+                <div className="max-w-[1100px] mx-auto pt-8 px-0 md:px-8 lg:px-16 relative z-10">
                   <div className="pt-8 mb-6">
                     <button
                       onClick={() => router.push('/')}
@@ -139,7 +139,7 @@ export default function OverturePage() {
 
           {/* Core Features */}
           <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -210,7 +210,7 @@ export default function OverturePage() {
 
           {/* Additional Features */}
           <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -287,7 +287,7 @@ export default function OverturePage() {
 
           {/* Integration with Runtime */}
           <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-            <div className="mx-auto max-w-[1400px] px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
               <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12" style={{
                 borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
                 borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',

@@ -30,7 +30,7 @@ export default function TechStack() {
   return (
     <>
       <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-        <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
           <div className="relative px-4 md:px-8 lg:px-12 py-8 lg:py-0 flex items-center lg:min-h-[750px]" style={{
             borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
             borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -50,11 +50,11 @@ export default function TechStack() {
             </div>
 
             {/* Content Container */}
-            <div className="max-w-[1250px] mx-auto w-full">
+            <div className="max-w-[1100px] mx-auto w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-16 lg:gap-24 items-center">
                 {/* Right Column - Title and Description (shows first on mobile) */}
                 <div className="lg:col-span-5 text-left order-1 lg:order-2">
-                  <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                  <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                     How It Works
                   </h3>
 

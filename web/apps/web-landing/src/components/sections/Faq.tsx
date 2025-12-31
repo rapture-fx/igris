@@ -96,7 +96,7 @@ export default function Faq() {
 
   return (
     <section id="faq" className="py-2 sm:py-3 lg:py-4 dark:bg-gray-900" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="max-w-[1350px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -116,7 +116,7 @@ export default function Faq() {
           </div>
 
           <div className="text-center mb-8 md:mb-12 lg:mb-16">
-            <h2 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
               Questions and answers
             </h2>
           </div>

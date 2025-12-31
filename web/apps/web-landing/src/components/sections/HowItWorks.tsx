@@ -3,7 +3,7 @@ import React from 'react'
 export default function HowItWorks() {
   return (
     <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -33,7 +33,7 @@ export default function HowItWorks() {
 
             {/* Title Section - Shows first on mobile, last on desktop */}
             <div className="text-left mb-6 lg:mb-0 lg:hidden">
-              <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 How Igris Inertial Works
               </h3>
               <div className="space-y-4 text-sm md:text-base text-gray-600 dark:text-gray-400">
@@ -64,7 +64,7 @@ export default function HowItWorks() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
               {/* Left Column - Section Title (Desktop only) */}
               <div className="hidden lg:flex text-left lg:col-span-1 pr-0 md:pr-4 lg:pr-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-6" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-6" style={{ color: '#000000' }}>
                   How Igris Inertial Works
                 </h3>
                 <div className="space-y-6 text-sm md:text-base text-gray-600 dark:text-gray-400">

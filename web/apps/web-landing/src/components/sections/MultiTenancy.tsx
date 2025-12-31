@@ -27,7 +27,7 @@ const features = [
 export default function MultiTenancy() {
   return (
     <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white overflow-hidden" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-8 md:py-12 lg:py-16 px-4 md:px-8 lg:px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -61,7 +61,7 @@ export default function MultiTenancy() {
 
               {/* Right Column - Section Title and Features */}
               <div className="text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Secure by default. Built to scale.
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-12">

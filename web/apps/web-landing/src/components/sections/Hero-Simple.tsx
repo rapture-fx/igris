@@ -8,7 +8,7 @@ export default function Hero() {
   const { openEarlyAccessModal } = useModal();
   return (
     <section className="py-0 bg-[#f6f6f4] text-gray-900 relative overflow-visible">
-      <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         {/* Main Content Box with Border */}
         <div className="relative pt-8 px-4 md:px-8 lg:px-12 pb-64 md:pb-80 lg:pb-[36rem] bg-transparent z-10" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -40,18 +40,18 @@ export default function Hero() {
           </div>
 
           {/* Content Container */}
-          <div className="max-w-[1250px] mx-auto pt-8 px-0 md:px-8 lg:px-16">
+          <div className="max-w-[1100px] mx-auto pt-8 px-0 md:px-8 lg:px-16">
             <div className="pt-8 mb-6">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6">
                 <div className="text-left">
-                  <h1 className="text-2xl md:text-2xl lg:text-2xl font-medium text-[#111111] leading-[1.2]">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2]">
                     Control and execution platform
                   </h1>
-                  <h1 className="text-2xl md:text-2xl lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2">
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-medium text-[#111111] leading-[1.2] mt-2">
                     for production LLM systems.
                   </h1>
                 </div>
-                <p className="text-sm md:text-base text-gray-700 max-w-md leading-relaxed text-left">
+                <p className="text-sm md:text-sm text-gray-700 max-w-md leading-relaxed text-left">
 
                 </p>
               </div>

@@ -5,7 +5,7 @@ import { ChevronRight } from 'lucide-react'
 export default function Products() {
   return (
     <section className="py-2 dark:bg-gray-900 text-gray-900 dark:text-white" style={{ backgroundColor: '#f6f6f4' }}>
-      <div className="mx-auto max-w-[1350px] px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8">
         <div className="relative py-12 md:py-16 lg:py-20 px-4 md:px-8 lg:px-12" style={{
           borderTop: '0.5px solid rgba(156, 163, 175, 0.3)',
           borderBottom: '0.5px solid rgba(156, 163, 175, 0.3)',
@@ -35,7 +35,7 @@ export default function Products() {
 
             {/* Title Section - Shows first on mobile, last on desktop */}
             <div className="text-left mb-6 lg:mb-0 lg:hidden">
-              <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                 Two products. One platform.
               </h3>
               <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
@@ -95,7 +95,7 @@ export default function Products() {
 
               {/* Right Column - Section Title (Desktop only) */}
               <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-2xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
                   Two products. One platform.
                 </h3>
                 <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
