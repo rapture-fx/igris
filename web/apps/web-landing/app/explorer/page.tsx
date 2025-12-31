@@ -243,7 +243,7 @@ export default function DataExplorer() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Data Explorer</h1>
+              <h1 className="text-lg font-bold text-white">Data Explorer</h1>
               <p className="text-gray-400 mt-1">Interactive data profiling and analysis</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -269,7 +269,7 @@ export default function DataExplorer() {
           <div className="lg:col-span-1">
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">Dataset Schema</h2>
+                <h2 className="text-base font-semibold text-white">Dataset Schema</h2>
                 <RefreshCw className="w-4 h-4 text-gray-400" />
               </div>
               
@@ -332,7 +332,7 @@ export default function DataExplorer() {
             {/* Data Quality Issues */}
             {showQualityPanel && (
               <div className="bg-[#161616] border border-gray-800 rounded-xl p-6 mt-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Quality Issues</h3>
+                <h3 className="text-base font-semibold text-white mb-4">Quality Issues</h3>
                 <div className="space-y-3">
                   {qualityIssues.map((issue, index) => (
                     <div key={index} className={`p-3 border rounded-lg ${getSeverityColor(issue.severity)}`}>
@@ -354,7 +354,7 @@ export default function DataExplorer() {
             <div className="bg-[#161616] border border-gray-800 rounded-xl">
               <div className="p-6 border-b border-gray-800">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-white">Data Preview</h2>
+                  <h2 className="text-base font-semibold text-white">Data Preview</h2>
                   <div className="flex items-center space-x-4">
                     <span className="text-sm text-gray-400">
                       Showing 8 of {preview?.total_count.toLocaleString()} rows
@@ -422,7 +422,7 @@ export default function DataExplorer() {
                 <div className="p-6">
                   <div className="text-center py-12">
                     <BarChart3 className="w-12 h-12 text-gray-600 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-white mb-2">Chart View</h3>
+                    <h3 className="text-base font-semibold text-white mb-2">Chart View</h3>
                     <p className="text-gray-400">Interactive charts and visualizations coming soon</p>
                   </div>
                 </div>

@@ -61,10 +61,10 @@ export default function CoreCapabilities() {
 
               {/* Title Section - Shows first on mobile, last on desktop */}
               <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                   Smarter routing. Predictable performance.
                 </h3>
-                <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
+                <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter">
                   Igris Inertial delivers adaptive, quality-aware routing across cloud and edge with real-time cost, quota, and performance governance, ensuring efficient, resilient, and consistent AI operations at any scale.
                 </p>
               </div>
@@ -127,10 +127,10 @@ export default function CoreCapabilities() {
 
                 {/* Right Column - Section Title (Desktop only) */}
                 <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                  <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                  <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                     Smarter routing. Predictable performance.
                   </h3>
-                  <p className="text-sm md:text-lg text-gray-700 dark:text-gray-300 font-inter">
+                  <p className="text-sm md:text-base text-gray-700 dark:text-gray-300 font-inter">
                     Igris Inertial optimizes every request across cloud and edge with adaptive quality scoring, real-time cost governance, and intelligent failover. Your workloads stay fast, consistent, and fully operational from connected data centers to offline edge devices.
                   </p>
                 </div>
@@ -162,9 +162,9 @@ export default function CoreCapabilities() {
             </div>
 
             <div className="w-full px-0">
-              <h4 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
+              <h4 className="text-lg md:text-lg lg:text-2xl tracking-tight font-inter mb-6 md:mb-8 text-center" style={{ color: '#000000' }}>Fail-safe by design.</h4>
 
-              <p className="text-base md:text-lg leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
+              <p className="text-base md:text-base leading-7 md:leading-8 text-gray-700 dark:text-gray-300 mb-6 md:mb-8 font-inter text-center max-w-3xl mx-auto">
                 Igris Inertial applies automated safeguards across cloud and edge deployments, verifies routing behavior in real time, and ensures continuous operation through provider outages, network failures, and offline scenarios.
               </p>
 
@@ -175,7 +175,7 @@ export default function CoreCapabilities() {
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
-                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">EscapeVector Mode</h5>
+                      <h5 className="text-base md:text-base font-medium text-gray-900 dark:text-white font-inter">EscapeVector Mode</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">
@@ -191,7 +191,7 @@ export default function CoreCapabilities() {
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
-                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">Local LLM Fallback</h5>
+                      <h5 className="text-base md:text-base font-medium text-gray-900 dark:text-white font-inter">Local LLM Fallback</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">
@@ -207,7 +207,7 @@ export default function CoreCapabilities() {
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
-                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">SLO Enforcer</h5>
+                      <h5 className="text-base md:text-base font-medium text-gray-900 dark:text-white font-inter">SLO Enforcer</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">
@@ -223,7 +223,7 @@ export default function CoreCapabilities() {
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 lg:p-10" style={{ height: '40%' }}>
                     {/* Title positioned at fixed distance from bottom - same for all cards */}
                     <div className="absolute left-6 md:left-8 lg:left-10" style={{ bottom: '110px', right: '24px' }}>
-                      <h5 className="text-base md:text-lg font-medium text-gray-900 dark:text-white font-inter">Gold Code Override</h5>
+                      <h5 className="text-base md:text-base font-medium text-gray-900 dark:text-white font-inter">Gold Code Override</h5>
                     </div>
                     {/* Description positioned at bottom */}
                     <div className="absolute bottom-6 md:bottom-8 lg:bottom-10 left-6 md:left-8 lg:left-10 right-6 md:right-8 lg:right-10">

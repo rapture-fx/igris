@@ -136,15 +136,15 @@ export default function RuntimePage() {
                     </button>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
                       <div className="text-left md:w-2/3">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2]">
+                        <h1 className="text-2xl md:text-2xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
                           Runtime
                         </h1>
-                        <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
+                        <h2 className="text-lg md:text-lg lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
                           Execution Plane
                         </h2>
                       </div>
                       <div className="text-left md:w-1/3">
-                        <p className="text-sm md:text-lg text-gray-700 max-w-3xl leading-relaxed text-left">
+                        <p className="text-sm md:text-base text-gray-700 max-w-3xl leading-relaxed text-left">
                           Deploy AI at the edge with guaranteed response times. Runs completely offline when needed. Train models on your data without sending it anywhere. Built for robotics, drones, and systems where reliability isn't optional.
                         </p>
                       </div>
@@ -184,7 +184,7 @@ export default function RuntimePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Execution plane capabilities
                     </h3>
                   </div>
@@ -216,7 +216,7 @@ export default function RuntimePage() {
 
                     {/* Right Column - Section Title (Desktop only) */}
                     <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Execution plane capabilities
                       </h3>
                     </div>
@@ -255,10 +255,10 @@ export default function RuntimePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Routing modes
                     </h3>
-                    <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                       Flexible routing strategies that adapt to your needs. Always has a local backup ready when cloud services are unavailable.
                     </p>
                   </div>
@@ -281,10 +281,10 @@ export default function RuntimePage() {
 
                     {/* Right Column - Section Title (Desktop only) */}
                     <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Routing modes
                       </h3>
-                      <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                         Flexible routing strategies that adapt to your needs. Always has a local backup ready when cloud services are unavailable.
                       </p>
                     </div>
@@ -323,10 +323,10 @@ export default function RuntimePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Deployment options
                     </h3>
-                    <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                       Flexible deployment options for any environment, from cloud servers to edge devices to completely offline facilities.
                     </p>
                   </div>
@@ -349,10 +349,10 @@ export default function RuntimePage() {
 
                     {/* Right Column - Section Title (Desktop only) */}
                     <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Deployment options
                       </h3>
-                      <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                         Flexible deployment options for any environment, from cloud servers to edge devices to completely offline facilities.
                       </p>
                     </div>
@@ -391,10 +391,10 @@ export default function RuntimePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Works with Overture
                     </h3>
-                    <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-6">
+                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-6">
                       Runtime provides local AI capabilities as backup for Overture's cloud routing. Together they ensure your AI applications stay online.
                     </p>
                     <div className="text-left">
@@ -413,10 +413,10 @@ export default function RuntimePage() {
 
                     {/* Right Column - Section Title (Desktop only) */}
                     <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Works with Overture
                       </h3>
-                      <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-6">
+                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-6">
                         Runtime provides local AI capabilities as backup for Overture's cloud routing. Together they ensure your AI applications stay online.
                       </p>
                       <div className="text-left">

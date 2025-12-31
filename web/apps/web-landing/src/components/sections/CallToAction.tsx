@@ -37,7 +37,7 @@ export default function CallToAction() {
           {/* Content Container with Original Width */}
           <div className="max-w-[1250px] mx-auto w-full">
             <div className="text-center">
-              <h2 className="text-2xl md:text-4xl lg:text-5xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Choose your deployment</h2>
+              <h2 className="text-lg md:text-2xl lg:text-2xl tracking-tight mb-6 md:mb-8 font-inter" style={{ color: '#000000' }}>Choose your deployment</h2>
 
               <div className="inline-block">
                 <Link

@@ -20,7 +20,7 @@ export default function CookiesPage() {
         <main className="pt-[70px]">
           <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-16">
             <article className="prose prose-lg dark:prose-invert max-w-none">
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Cookie Policy</h1>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Cookie Policy</h1>
               <p className="text-gray-600 dark:text-gray-400 mb-8">
                 <strong>Last updated: November 26, 2025</strong>
               </p>

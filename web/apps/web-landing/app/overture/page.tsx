@@ -118,15 +118,15 @@ export default function OverturePage() {
                     </button>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 mt-4">
                       <div className="text-left md:w-2/3">
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium text-[#111111] leading-[1.2]">
+                        <h1 className="text-2xl md:text-2xl lg:text-4xl font-medium text-[#111111] leading-[1.2]">
                           Overture
                         </h1>
-                        <h2 className="text-xl md:text-2xl lg:text-3xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
+                        <h2 className="text-lg md:text-lg lg:text-2xl font-medium text-[#111111] leading-[1.2] mt-2 text-gray-600">
                           Control Plane
                         </h2>
                       </div>
                       <div className="text-left md:w-1/3">
-                        <p className="text-sm md:text-lg text-gray-700 max-w-3xl leading-relaxed text-left">
+                        <p className="text-sm md:text-base text-gray-700 max-w-3xl leading-relaxed text-left">
                           Route requests to the best AI provider for each task. Test changes without risking production. Control costs with hard limits that actually enforce. Built for teams running AI at scale.
                         </p>
                       </div>
@@ -166,7 +166,7 @@ export default function OverturePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Control plane capabilities
                     </h3>
                   </div>
@@ -198,7 +198,7 @@ export default function OverturePage() {
 
                     {/* Right Column - Section Title (Desktop only) */}
                     <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Control plane capabilities
                       </h3>
                     </div>
@@ -237,10 +237,10 @@ export default function OverturePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Enterprise-grade infrastructure
                     </h3>
-                    <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                       Monitoring, provider management, and reliability features that keep your AI operations running smoothly.
                     </p>
                   </div>
@@ -263,10 +263,10 @@ export default function OverturePage() {
 
                     {/* Right Column - Section Title (Desktop only) */}
                     <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Enterprise-grade infrastructure
                       </h3>
-                      <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                         Monitoring, provider management, and reliability features that keep your AI operations running smoothly.
                       </p>
                     </div>
@@ -314,10 +314,10 @@ export default function OverturePage() {
 
                   {/* Title Section - Shows first on mobile, last on desktop */}
                   <div className="text-left mb-6 lg:mb-0 lg:hidden">
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Works with Runtime
                     </h3>
-                    <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                    <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                       Overture handles cloud routing while Runtime provides local backup when cloud providers fail. Together they keep your AI running without interruption.
                     </p>
                   </div>
@@ -336,10 +336,10 @@ export default function OverturePage() {
 
                     {/* Right Column - Section Title (Desktop only) */}
                     <div className="hidden lg:flex text-left lg:col-span-1 pl-0 md:pl-4 lg:pl-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                      <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                      <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                         Works with Runtime
                       </h3>
-                      <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+                      <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                         Overture handles cloud routing while Runtime provides local backup when cloud providers fail. Together they keep your AI running without interruption.
                       </p>
                     </div>

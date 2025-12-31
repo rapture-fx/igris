@@ -389,7 +389,7 @@ services:
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">SDK & CLI Tools</h1>
+              <h1 className="text-lg font-bold text-white">SDK & CLI Tools</h1>
               <p className="text-gray-400 mt-1">Developer tools and integrations for Igris Inertial</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -446,7 +446,7 @@ services:
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-white">{tool.name}</h3>
+                          <h3 className="text-base font-semibold text-white">{tool.name}</h3>
                           <span className="text-xs text-[#468BE6] bg-[#468BE6]/10 px-2 py-1 rounded">
                             v{tool.version}
                           </span>
@@ -552,7 +552,7 @@ services:
           {/* Tool Details Panel */}
           <div className="lg:col-span-1">
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-white mb-4">
+              <h3 className="text-base font-semibold text-white mb-4">
                 {selectedTool ? 'Code Example' : 'Select a Tool'}
               </h3>
 

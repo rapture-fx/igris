@@ -243,7 +243,7 @@ export default function JobsMonitoring() {
         <div className="max-w-7xl mx-auto px-6 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-white">Jobs & Monitoring</h1>
+              <h1 className="text-lg font-bold text-white">Jobs & Monitoring</h1>
               <p className="text-gray-400 mt-1">Monitor and manage your data processing jobs</p>
             </div>
             <div className="flex items-center space-x-4">
@@ -262,27 +262,27 @@ export default function JobsMonitoring() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-4">
               <div className="text-gray-400 text-sm mb-1">Total Jobs</div>
-              <div className="text-2xl font-bold text-white">{metrics.totalJobs}</div>
+              <div className="text-lg font-bold text-white">{metrics.totalJobs}</div>
             </div>
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-4">
               <div className="text-gray-400 text-sm mb-1">Running</div>
-              <div className="text-2xl font-bold text-blue-400">{metrics.runningJobs}</div>
+              <div className="text-lg font-bold text-blue-400">{metrics.runningJobs}</div>
             </div>
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-4">
               <div className="text-gray-400 text-sm mb-1">Completed</div>
-              <div className="text-2xl font-bold text-green-400">{metrics.completedJobs}</div>
+              <div className="text-lg font-bold text-green-400">{metrics.completedJobs}</div>
             </div>
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-4">
               <div className="text-gray-400 text-sm mb-1">Failed</div>
-              <div className="text-2xl font-bold text-red-400">{metrics.failedJobs}</div>
+              <div className="text-lg font-bold text-red-400">{metrics.failedJobs}</div>
             </div>
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-4">
               <div className="text-gray-400 text-sm mb-1">Avg Duration</div>
-              <div className="text-2xl font-bold text-white">{metrics.averageDuration}</div>
+              <div className="text-lg font-bold text-white">{metrics.averageDuration}</div>
             </div>
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-4">
               <div className="text-gray-400 text-sm mb-1">Success Rate</div>
-              <div className="text-2xl font-bold text-green-400">{metrics.successRate}%</div>
+              <div className="text-lg font-bold text-green-400">{metrics.successRate}%</div>
             </div>
           </div>
         )}
@@ -346,7 +346,7 @@ export default function JobsMonitoring() {
                       </div>
                       <div>
                         <div className="flex items-center space-x-3 mb-1">
-                          <h3 className="text-lg font-semibold text-white">{job.name}</h3>
+                          <h3 className="text-base font-semibold text-white">{job.name}</h3>
                           <span className={`px-2 py-1 text-xs font-medium rounded-full border ${getStatusColor(job.status)}`}>
                             {job.status}
                           </span>
@@ -402,7 +402,7 @@ export default function JobsMonitoring() {
           {/* Job Details Panel */}
           <div className="lg:col-span-1">
             <div className="bg-[#161616] border border-gray-800 rounded-xl p-6 sticky top-8">
-              <h3 className="text-lg font-semibold text-white mb-4">
+              <h3 className="text-base font-semibold text-white mb-4">
                 {selectedJob ? 'Job Details' : 'Select a Job'}
               </h3>
               

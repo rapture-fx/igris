@@ -266,9 +266,9 @@ export default function SettingsPage() {
                   placeholder="colleague@example.com"
                   value={inviteEmail}
                   onChange={(e) => setInviteEmail(e.target.value)}
-                  className="flex-1"
+                  className="flex-1 h-7"
                 />
-                <Button variant="outline">
+                <Button variant="outline" size="sm" className="h-7 px-3 text-xs">
                   Send Invite
                 </Button>
               </div>
@@ -286,7 +286,7 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-900 text-white font-semibold text-sm">
                       {tenant ? getInitials(tenant.name) : 'U'}
@@ -317,53 +317,39 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div className="space-y-4">
-                <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-primary border border-border-light">
-                  <div className="flex items-start gap-4">
-                    <Building2 className="h-8 w-8 text-gray-900 flex-shrink-0" />
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 font-inter mb-2 text-xs">
-                        Enterprise Multi-Tenancy
-                      </h3>
-                      <p className="text-xs text-gray-700 mb-4">
-                        Create isolated tenant environments with complete data separation, independent budgets, and dedicated observability.
-                      </p>
-                      <div className="grid gap-2 text-xs text-gray-600 mb-4">
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-gray-600" />
-                          <span>AES-256 encrypted key storage per tenant</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-gray-600" />
-                          <span>Database-level data isolation (RLS)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-gray-600" />
-                          <span>Independent budget caps & enforcement</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-gray-600" />
-                          <span>Separate observability & audit logs</span>
-                        </div>
+                <div className="p-6 rounded-lg bg-gradient-to-br from-beige-primary to-beige-primary">
+                  <div className="flex-1">
+                    <div className="grid gap-2 text-xs text-gray-600 mb-4">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <span>AES-256 encrypted key storage per tenant</span>
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => router.push('/dashboard/settings/tenants')}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Manage Tenants
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <span>Database-level data isolation (RLS)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <span>Independent budget caps & enforcement</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle className="h-4 w-4 text-gray-600" />
+                        <span>Separate observability & audit logs</span>
+                      </div>
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-3 text-xs"
+                      onClick={() => router.push('/dashboard/settings/tenants')}
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Manage Tenants
+                    </Button>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg bg-beige-primary border border-border-light">
-                  <p className="text-sm text-gray-900 font-medium mb-1">
-                    Available on Scale plan
-                  </p>
-                  <p className="text-xs text-gray-800">
-                    Unlimited multi-tenancy with full data isolation, per-tenant budgets, and 90-day trace retention.
-                  </p>
-                </div>
+                
               </div>
             </div>
           </TabsContent>
@@ -483,7 +469,7 @@ export default function SettingsPage() {
                       {formatCurrency(currentSpend)} / {formatCurrency(budgetNumber)}
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                     <div
                       className="h-full transition-all bg-gray-900"
                       style={{
@@ -519,8 +505,8 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div className="text-center py-8">
-                <CreditCard className="h-8 w-8 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 font-inter mb-4">
+                <CreditCard className="h-6 w-6 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 font-inter mb-4 text-xs">
                   No payment method added
                 </p>
                 <Button variant="outline" size="sm" className="h-7 px-3 text-xs">
@@ -541,8 +527,8 @@ export default function SettingsPage() {
                 </p>
               </div>
               <div className="text-center py-8">
-                <Receipt className="h-8 w-8 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600 font-inter">
+                <Receipt className="h-6 w-6 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 font-inter text-xs">
                   No invoices yet
                 </p>
               </div>
@@ -857,22 +843,22 @@ Delete Account
               <div className="grid grid-cols-4 gap-4">
                 <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                   <div className="text-xs text-gray-600 mb-1">Total Cloud Keys</div>
-                  <div className="text-lg font-bold text-gray-900">12</div>
+                  <div className="text-base font-bold text-gray-900">12</div>
                   <div className="text-xs text-gray-600 mt-1">Active: 10</div>
                 </div>
                 <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                   <div className="text-xs text-gray-600 mb-1">Edge Models</div>
-                  <div className="text-lg font-bold text-gray-900">5</div>
+                  <div className="text-base font-bold text-gray-900">5</div>
                   <div className="text-xs text-gray-600 mt-1">Loaded: 3</div>
                 </div>
                 <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                   <div className="text-xs text-gray-600 mb-1">Last Rotation</div>
-                  <div className="text-lg font-bold text-gray-900">7d</div>
+                  <div className="text-base font-bold text-gray-900">7d</div>
                   <div className="text-xs text-gray-600 mt-1">Next: 23 days</div>
                 </div>
                 <div className="p-4 bg-beige-primary rounded-lg border border-border-light">
                   <div className="text-xs text-gray-600 mb-1">Security Status</div>
-                  <div className="text-lg font-bold text-green-600">Healthy</div>
+                  <div className="text-base font-bold text-green-700">Healthy</div>
                   <div className="text-xs text-gray-600 mt-1">AES-256-GCM</div>
                 </div>
               </div>
@@ -1040,9 +1026,8 @@ Delete Account
               </div>
               <div>
                 <div className="grid gap-4">
-                  <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
-                    <div className="flex items-start gap-3">
-                      <Shield className="h-5 w-5 text-gray-600 flex-shrink-0 mt-0.5" />
+                  <div className="p-4">
+                    <div>
                       <div className="flex-1">
                         <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
                           Encryption Details
@@ -1050,7 +1035,7 @@ Delete Account
                         <p className="text-xs text-gray-800 mb-2">
                           All keys and models are encrypted at rest using AES-256-GCM. Cloud keys are encrypted in PostgreSQL, edge models use filesystem encryption.
                         </p>
-                        <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="space-y-2 text-xs">
                           <div>
                             <span className="text-gray-600">Algorithm:</span>
                             <span className="ml-2 font-medium text-gray-900">AES-256-GCM</span>
@@ -1064,9 +1049,8 @@ Delete Account
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
-                    <div className="flex items-start gap-3">
-                      <AlertCircle className="h-5 w-5 text-gray-600 flex-shrink-0 mt-0.5" />
+                  <div className="p-4">
+                    <div>
                       <div className="flex-1">
                         <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
                           Rotation Policy
@@ -1101,7 +1085,7 @@ Delete Account
                 </p>
               </div>
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 rounded-lg border border-border-light">
+                <div className="flex items-center justify-between p-4">
                   <div className="flex-1">
                     <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
                       Auto-Rotate Cloud Keys
@@ -1113,7 +1097,7 @@ Delete Account
                   <Switch defaultChecked className="scale-50" />
                 </div>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="p-4">
                   <h4 className="text-xs font-medium text-gray-900 font-inter mb-3">
                     Notification Settings
                   </h4>
@@ -1175,7 +1159,7 @@ Delete Account
               </div>
               <div>
                 <div className="space-y-3">
-                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                  <div className="p-4">
                     <div className="flex items-start gap-3">
                       <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
@@ -1189,7 +1173,7 @@ Delete Account
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                  <div className="p-4">
                     <div className="flex items-start gap-3">
                       <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
@@ -1203,7 +1187,7 @@ Delete Account
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                  <div className="p-4">
                     <div className="flex items-start gap-3">
                       <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
@@ -1217,7 +1201,7 @@ Delete Account
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                  <div className="p-4">
                     <div className="flex items-start gap-3">
                       <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
@@ -1246,7 +1230,7 @@ Delete Account
                 </p>
               </div>
               <div className="space-y-4">
-                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
                       <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
@@ -1265,7 +1249,7 @@ Delete Account
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
                       <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
@@ -1284,7 +1268,7 @@ Delete Account
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
                       <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
@@ -1303,7 +1287,7 @@ Delete Account
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex-1">
                       <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
@@ -1336,7 +1320,7 @@ Delete Account
                 </p>
               </div>
               <div className="space-y-4">
-                <div className="p-4 rounded-lg border border-red-200 bg-red-50">
+                <div className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h4 className="text-xs font-medium text-red-900 font-inter mb-1">
@@ -1346,13 +1330,13 @@ Delete Account
                         Immediately halt all outgoing provider requests. Existing in-flight requests will complete.
                       </p>
                     </div>
-                    <Button variant="destructive" size="sm">
+                    <Button variant="destructive" size="sm" className="bg-red-800 hover:bg-red-900 h-7 px-3 text-xs">
                       Activate
                     </Button>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">
@@ -1368,7 +1352,7 @@ Delete Account
                   </div>
                 </div>
 
-                <div className="p-4 rounded-lg border border-border-light bg-beige-primary">
+                <div className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h4 className="text-xs font-medium text-gray-900 font-inter mb-1">

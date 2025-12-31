@@ -22,7 +22,7 @@ export default function RefundPolicyPage() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_250px] gap-16">
               {/* Main Content */}
               <article className="prose prose-lg dark:prose-invert max-w-none">
-                <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">Refund Policy</h1>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Refund Policy</h1>
                 <p className="text-gray-600 dark:text-gray-400 mb-8">
                   <strong>Last updated: November 26, 2025</strong>
                 </p>
@@ -31,22 +31,22 @@ export default function RefundPolicyPage() {
                   At Igris Inertial, we want you to be completely satisfied. Here's our simple, no-surprises refund policy:
                 </p>
 
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Monthly Subscriptions</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-4">Monthly Subscriptions</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
                   No refunds on monthly subscriptions after the 14-day free trial ends. You may cancel anytime — no questions asked — and your access continues until the end of the current billing period.
                 </p>
 
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Annual Subscriptions</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-4">Annual Subscriptions</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
                   If you cancel within 30 days of purchase, we'll refund the full amount. After 30 days, no refunds, but you keep access until the end of the 12-month term.
                 </p>
 
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">Free Trial</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-4">Free Trial</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
                   The 14-day trial is completely free. No charges until you upgrade. You can cancel anytime during the trial with zero cost.
                 </p>
 
-                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mt-8 mb-4">How to Request a Refund</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mt-8 mb-4">How to Request a Refund</h2>
                 <p className="text-gray-700 dark:text-gray-300 mb-6">
                   Email <a href="mailto:support@igrisinertial.com" className="text-blue-600 dark:text-blue-400 hover:underline">support@igrisinertial.com</a> with your account details. Refunds are processed within 5–7 business days.
                 </p>

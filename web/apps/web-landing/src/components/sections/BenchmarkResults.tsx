@@ -91,11 +91,11 @@ export default function BenchmarkResults() {
                 <div className="lg:col-span-1 text-left flex flex-col justify-center pr-8">
                   {/* Section Header */}
                   <div className="mb-12 opacity-0 animate-fadeIn" style={{ animationDelay: '200ms' }}>
-                    <h3 className="text-2xl tracking-tight md:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                    <h3 className="text-lg tracking-tight md:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                       Measured in Production
                     </h3>
 
-                    <p className="text-lg leading-8 text-gray-700 dark:text-gray-300 font-inter">
+                    <p className="text-base leading-8 text-gray-700 dark:text-gray-300 font-inter">
                       Benchmarks using OpenAI and Anthropic APIs confirm measurable cost savings, improved latency, and fault-tolerant reliability in production.
                     </p>
                   </div>
@@ -107,21 +107,21 @@ export default function BenchmarkResults() {
                         {metric.title === 'Cost Savings' && (
                           <>
                             <h4 className="text-base font-normal text-gray-900 dark:text-white mb-2">Cost Savings</h4>
-                            <p className="text-3xl text-gray-900 dark:text-white mb-1">40–70% average</p>
+                            <p className="text-2xl text-gray-900 dark:text-white mb-1">40–70% average</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">up to 97% for compatible workloads</p>
                           </>
                         )}
                         {metric.title === 'Latency' && (
                           <>
                             <h4 className="text-base font-normal text-gray-900 dark:text-white mb-2">Latency</h4>
-                            <p className="text-3xl text-gray-900 dark:text-white mb-1">19.3% faster</p>
+                            <p className="text-2xl text-gray-900 dark:text-white mb-1">19.3% faster</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">average response (1,800ms → 1,452ms)</p>
                           </>
                         )}
                         {metric.title === 'Reliability' && (
                           <>
                             <h4 className="text-base font-normal text-gray-900 dark:text-white mb-2">Reliability</h4>
-                            <p className="text-3xl text-gray-900 dark:text-white mb-1">99.9% success rate</p>
+                            <p className="text-2xl text-gray-900 dark:text-white mb-1">99.9% success rate</p>
                             <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">observed in live benchmarks with zero rate-limit errors</p>
                           </>
                         )}
@@ -134,7 +134,7 @@ export default function BenchmarkResults() {
                 <div className="lg:col-span-2 flex items-center justify-center">
                   <div className="w-full max-w-4xl opacity-0 animate-fadeIn" style={{ animationDelay: '400ms' }}>
                     <div className="bg-[#f6f6f4] dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-12">
-                      <h3 className="text-xl font-normal text-gray-900 dark:text-white mb-2 font-inter">
+                      <h3 className="text-lg font-normal text-gray-900 dark:text-white mb-2 font-inter">
                         Cost Comparison Analysis
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-8 font-inter">
@@ -177,7 +177,7 @@ export default function BenchmarkResults() {
                                 {item.scenario}
                               </h4>
                               <div className="flex items-baseline gap-2">
-                                <span className="text-lg font-normal text-gray-900 dark:text-white font-inter">
+                                <span className="text-base font-normal text-gray-900 dark:text-white font-inter">
                                   {item.cost}
                                 </span>
                                 <span className="text-sm text-gray-500 dark:text-gray-400 font-inter">

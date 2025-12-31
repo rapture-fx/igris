@@ -116,7 +116,7 @@ export default function Faq() {
           </div>
 
           <div className="text-center mb-8 md:mb-12 lg:mb-16">
-            <h2 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
               Questions and answers
             </h2>
           </div>
@@ -135,7 +135,7 @@ export default function Faq() {
                 onClick={() => toggleFaq(index)}
                 className="w-full text-left px-4 md:px-6 py-4 md:py-5 flex items-center justify-between gap-4 hover:opacity-80 transition-opacity"
               >
-                <span className="text-base md:text-lg font-normal font-inter flex-1" style={{ color: '#000000' }}>
+                <span className="text-base md:text-base font-normal font-inter flex-1" style={{ color: '#000000' }}>
                   {faq.question}
                 </span>
                 <ChevronDown

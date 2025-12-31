@@ -79,7 +79,7 @@ export default function RoiCalculator() {
           </div>
 
           <div className="text-center mb-16">
-            <h2 className="text-2xl tracking-tight md:text-3xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
+            <h2 className="text-lg tracking-tight md:text-2xl font-normal font-inter mb-4" style={{ color: '#000000' }}>
               See how much you can save
             </h2>
           </div>
@@ -90,7 +90,7 @@ export default function RoiCalculator() {
               backgroundColor: '#f6f6f4',
               border: '1px solid rgba(156, 163, 175, 0.3)'
             }}>
-              <h3 className="text-xl font-medium font-inter mb-6" style={{ color: '#000000' }}>
+              <h3 className="text-lg font-medium font-inter mb-6" style={{ color: '#000000' }}>
                 Your Current Setup
               </h3>
 
@@ -102,7 +102,7 @@ export default function RoiCalculator() {
                   type="number"
                   value={currentSpend}
                   onChange={(e) => setCurrentSpend(Number(e.target.value))}
-                  className="w-full px-4 py-2 rounded-lg border text-lg"
+                  className="w-full px-4 py-2 rounded-lg border text-base"
                   style={{
                     backgroundColor: '#f6f6f4',
                     borderColor: 'rgba(156, 163, 175, 0.3)',
@@ -124,7 +124,7 @@ export default function RoiCalculator() {
               backgroundColor: '#f6f6f4',
               border: '1px solid rgba(156, 163, 175, 0.3)'
             }}>
-              <h3 className="text-xl font-normal font-inter mb-6" style={{ color: '#000000' }}>
+              <h3 className="text-lg font-normal font-inter mb-6" style={{ color: '#000000' }}>
                 Estimated monthly savings
               </h3>
 
@@ -132,7 +132,7 @@ export default function RoiCalculator() {
                 <div className="p-6 rounded-lg" style={{ backgroundColor: 'rgba(0, 0, 0, 0.02)' }}>
                   <div className="text-center mb-4">
                     <p className="text-sm text-gray-600 mb-2">Based on provider cost optimization</p>
-                    <p className="text-3xl" style={{ color: '#000000' }}>
+                    <p className="text-2xl" style={{ color: '#000000' }}>
                       {formatCurrency(results.minSavings)} - {formatCurrency(results.maxSavings)}
                     </p>
                     <p className="text-sm text-gray-600 mt-2">per month</p>
@@ -143,7 +143,7 @@ export default function RoiCalculator() {
                   <div className="flex items-center justify-between">
                     <span className="text-base text-gray-700">Igris Inertial cost:</span>
                     <div className="flex items-baseline space-x-1">
-                      <span className="text-lg" style={{ color: '#000000' }}>
+                      <span className="text-base" style={{ color: '#000000' }}>
                         {formatCurrency(IGRIS_INERTIAL_COST)}/month
                       </span>
                     </div>
@@ -151,14 +151,14 @@ export default function RoiCalculator() {
 
                   <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'rgba(156, 163, 175, 0.2)' }}>
                     <span className="text-base" style={{ color: '#000000' }}>Net monthly savings:</span>
-                    <span className="text-lg" style={{ color: '#000000' }}>
+                    <span className="text-base" style={{ color: '#000000' }}>
                       {formatCurrency(results.minNetSavings)} - {formatCurrency(results.maxNetSavings)}
                     </span>
                   </div>
 
                   <div className="flex items-center justify-between">
                     <span className="text-base text-gray-700">ROI:</span>
-                    <span className="text-lg" style={{ color: '#000000' }}>
+                    <span className="text-base" style={{ color: '#000000' }}>
                       {results.minROI.toFixed(0)}% - {results.maxROI.toFixed(0)}%
                     </span>
                   </div>
@@ -171,7 +171,7 @@ export default function RoiCalculator() {
               backgroundColor: '#f6f6f4',
               border: '1px solid rgba(156, 163, 175, 0.3)'
             }}>
-              <h3 className="text-xl font-normal font-inter mb-6" style={{ color: '#000000' }}>
+              <h3 className="text-lg font-normal font-inter mb-6" style={{ color: '#000000' }}>
                 How we calculate this
               </h3>
 

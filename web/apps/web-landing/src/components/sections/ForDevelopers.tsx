@@ -56,20 +56,20 @@ export default function ForDevelopers() {
             }}></div>
 
             <div className="text-left mb-6 lg:mb-0 lg:hidden">
-              <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+              <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                 For Developers & Engineers
               </h3>
-              <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter">
+              <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter">
                 Open standards. Full control. Deploy anywhere.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" style={{ minHeight: '750px' }}>
               <div className="hidden lg:flex text-left lg:col-span-1 pr-0 md:pr-4 lg:pr-8 flex-col justify-center" style={{ minHeight: '750px' }}>
-                <h3 className="text-xl md:text-2xl lg:text-3xl font-inter mb-4" style={{ color: '#000000' }}>
+                <h3 className="text-lg md:text-lg lg:text-2xl font-inter mb-4" style={{ color: '#000000' }}>
                   For Developers & Engineers
                 </h3>
-                <p className="text-sm md:text-lg text-gray-600 dark:text-gray-400 font-inter mb-6">
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 font-inter mb-6">
                   Open standards. Full control. Deploy anywhere.
                 </p>
                 <a href="https://docs.igrisinertial.com/docs/" target="_blank" rel="noopener noreferrer" className="inline-flex items-center text-gray-900 dark:text-white font-inter text-sm hover:opacity-70 transition-opacity">
