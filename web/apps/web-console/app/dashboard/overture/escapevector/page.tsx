@@ -389,29 +389,25 @@ export default function EscapeVectorPage() {
                 <h4 className="text-xs font-medium text-gray-900 mb-3">Key Features</h4>
                 <div className="grid grid-cols-2 gap-4 text-xs">
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Shield className="h-4 w-4 text-gray-900" />
+                    <div className="mb-1">
                       <span className="font-medium text-gray-900">Encrypted Storage</span>
                     </div>
                     <p className="text-xs text-gray-600">AES-256-GCM encryption with tamper detection</p>
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Database className="h-4 w-4 text-gray-900" />
+                    <div className="mb-1">
                       <span className="font-medium text-gray-900">72-Hour TTL</span>
                     </div>
                     <p className="text-xs text-gray-600">Cached routing decisions valid for 3 days</p>
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Zap className="h-4 w-4 text-gray-900" />
+                    <div className="mb-1">
                       <span className="font-medium text-gray-900">Fast Fallback</span>
                     </div>
                     <p className="text-xs text-gray-600">Instant routing when providers unavailable</p>
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <Activity className="h-4 w-4 text-gray-900" />
+                    <div className="mb-1">
                       <span className="font-medium text-gray-900">Quality Filtering</span>
                     </div>
                     <p className="text-xs text-gray-600">Only high-quality routes are cached</p>
