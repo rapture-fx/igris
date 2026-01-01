@@ -173,54 +173,37 @@ export default function CognitiveAdvisorPage() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Status</CardTitle>
-              <Brain className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
-              <Badge className="bg-gray-50 text-gray-700 border">
-                {getStatusIcon(status?.status)}
-                {status?.status === 'active' ? 'Active' : status?.status === 'paused' ? 'Paused' : 'Learning'}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Confidence Score</CardTitle>
-              <Zap className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+        <div className="bg-beige-primary">
+          <div className="grid grid-cols-2 divide-x divide-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Status</div>
+              <div className="pb-2">
+                <Badge className="bg-gray-50 text-gray-700 border">
+                  {getStatusIcon(status?.status)}
+                  {status?.status === 'active' ? 'Active' : status?.status === 'paused' ? 'Paused' : 'Learning'}
+                </Badge>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Confidence Score</div>
               <div className="text-lg font-bold text-gray-900">{status?.confidence_score.toFixed(1)}%</div>
-              <p className="text-xs text-gray-600 mt-1">current confidence</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Potential Savings</CardTitle>
-              <DollarSign className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">current confidence</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Potential Savings</div>
               <div className="text-lg font-bold text-gray-900">
                 ${status?.potential_savings_low}-${status?.potential_savings_high}
               </div>
-              <p className="text-xs text-gray-600 mt-1">estimated monthly</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Acceptance Rate</CardTitle>
-              <ThumbsUp className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">estimated monthly</p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Acceptance Rate</div>
               <div className="text-lg font-bold text-gray-900">{status?.acceptance_rate.toFixed(1)}%</div>
-              <p className="text-xs text-gray-600 mt-1">recommendations applied</p>
-            </CardContent>
-          </Card>
+              <p className="text-[0.65rem] text-gray-600 mt-1">recommendations applied</p>
+            </div>
+          </div>
         </div>
 
         {/* Current Observations */}
