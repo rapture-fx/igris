@@ -121,75 +121,40 @@ export default function UsagePage() {
           </div>
         </div>
 
-        {/* Metrics Summary */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total Requests
-              </CardTitle>
-              <BarChart3 className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-gray-900">
-                {formatNumber(displayUsage?.total_requests || 0)}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
+        {/* Metrics Grid Layout */}
+        <div className="bg-beige-primary">
+          <div className="grid grid-cols-2 divide-x divide-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Total Requests</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(displayUsage?.total_requests || 0)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
                 Across all providers
               </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total Cost
-              </CardTitle>
-              <DollarSign className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-gray-900">
-                {formatCurrency(displayUsage?.total_cost || 0)}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Total Cost</div>
+              <div className="text-lg font-bold text-gray-900">{formatCurrency(displayUsage?.total_cost || 0)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
                 This period
               </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Avg Latency
-              </CardTitle>
-              <Clock className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-gray-900">
-                {formatLatency(displayUsage?.avg_latency || 0)}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
+            </div>
+          </div>
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Avg Latency</div>
+              <div className="text-lg font-bold text-gray-900">{formatLatency(displayUsage?.avg_latency || 0)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
                 Response time
               </p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-600">
-                Total Tokens
-              </CardTitle>
-              <Zap className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold text-gray-900">
-                {formatNumber(displayUsage?.total_tokens || 0)}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Total Tokens</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(displayUsage?.total_tokens || 0)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
                 Input + output
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Time Range Tabs */}

@@ -25,40 +25,7 @@ const hideScrollbarStyles = `
   }
 `;
 
-function MetricCard({
-  title,
-  value,
-  description,
-  icon: Icon,
-  trend,
-}: {
-  title: string;
-  value: string;
-  description: string;
-  icon: any;
-  trend?: string;
-}) {
-  return (
-    <Card className="border-border-light shadow-sm hover:shadow-sm transition-shadow">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xs font-medium text-gray-600">
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-lg font-bold text-gray-900">{value}</div>
-        <p className="text-[0.65rem] text-gray-600 mt-1">
-          {description}
-          {trend && (
-            <span className="ml-2 text-green-600 font-medium">
-              {trend}
-            </span>
-          )}
-        </p>
-      </CardContent>
-    </Card>
-  );
-}
+
 
 // System health types
 interface ProviderHealth {
@@ -479,7 +446,7 @@ export default function DashboardPage() {
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
-              className="h-8 px-3"
+              className="h-7 px-2.5 rounded-md text-xs"
               onClick={() => router.push('/dashboard/runtime/fleet')}
             >
               Add Runtime Instance
@@ -487,7 +454,7 @@ export default function DashboardPage() {
 
             <Button
               variant="outline"
-              className="h-8 px-3"
+              className="h-7 px-2.5 rounded-md text-xs"
               onClick={() => router.push('/dashboard/agents/qlora')}
             >
               Start QLoRA Job
@@ -495,7 +462,7 @@ export default function DashboardPage() {
 
             <Button
               variant="outline"
-              className="h-8 px-3"
+              className="h-7 px-2.5 rounded-md text-xs"
               onClick={() => router.push('/dashboard/providers')}
             >
               Add Provider
@@ -503,7 +470,7 @@ export default function DashboardPage() {
 
             <Button
               variant="outline"
-              className="h-8 px-3"
+              className="h-7 px-2.5 rounded-md text-xs"
               onClick={() => router.push('/dashboard/observability')}
             >
               View Traces
@@ -512,46 +479,68 @@ export default function DashboardPage() {
         </div>
 
         {/* Six Metrics: Overture + Runtime */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          <MetricCard
-            title="Requests Today"
-            value={formatNumber(summary?.total_requests || 0)}
-            description="Last 24 hours (Overture)"
-            icon={Activity}
-            trend={(summary as any)?.requests_trend}
-          />
-          <MetricCard
-            title="Spend This Month"
-            value={formatCurrency(summary?.monthly_spend || 0)}
-            description="Current billing period"
-            icon={DollarSign}
-            trend={(summary as any)?.spend_trend}
-          />
-          <MetricCard
-            title="Avg Latency"
-            value={formatLatency(summary?.avg_latency || 0)}
-            description="P50 response time (Overture)"
-            icon={Zap}
-            trend={(summary as any)?.latency_trend}
-          />
-          <MetricCard
-            title="Runtime Instances"
-            value={`${runtimeFleetMetrics.online_instances}/${runtimeFleetMetrics.total_instances}`}
-            description="Online edge nodes"
-            icon={Server}
-          />
-          <MetricCard
-            title="Inference Requests"
-            value={formatNumber(runtimeFleetMetrics.total_inference_requests)}
-            description="Runtime edge processing"
-            icon={Cpu}
-          />
-          <MetricCard
-            title="Training Jobs"
-            value={String(runtimeFleetMetrics.active_training_jobs)}
-            description="Active QLoRA fine-tuning"
-            icon={Brain}
-          />
+        <div className="bg-beige-primary">
+          <div className="grid grid-cols-3 divide-x divide-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Requests Today</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(summary?.total_requests || 0)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
+                Last 24 hours (Overture)
+                {(summary as any)?.requests_trend && (
+                  <span className="ml-2 text-green-600 font-medium">
+                    {(summary as any)?.requests_trend}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Spend This Month</div>
+              <div className="text-lg font-bold text-gray-900">{formatCurrency(summary?.monthly_spend || 0)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
+                Current billing period
+                {(summary as any)?.spend_trend && (
+                  <span className="ml-2 text-green-600 font-medium">
+                    {(summary as any)?.spend_trend}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Avg Latency</div>
+              <div className="text-lg font-bold text-gray-900">{formatLatency(summary?.avg_latency || 0)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
+                P50 response time (Overture)
+                {(summary as any)?.latency_trend && (
+                  <span className="ml-2 text-green-600 font-medium">
+                    {(summary as any)?.latency_trend}
+                  </span>
+                )}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 divide-x divide-border-light border-t border-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Runtime Instances</div>
+              <div className="text-lg font-bold text-gray-900">{`${runtimeFleetMetrics.online_instances}/${runtimeFleetMetrics.total_instances}`}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
+                Online edge nodes
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Inference Requests</div>
+              <div className="text-lg font-bold text-gray-900">{formatNumber(runtimeFleetMetrics.total_inference_requests)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
+                Runtime edge processing
+              </p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Training Jobs</div>
+              <div className="text-lg font-bold text-gray-900">{String(runtimeFleetMetrics.active_training_jobs)}</div>
+              <p className="text-[0.65rem] text-gray-600 mt-1">
+                Active QLoRA fine-tuning
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Two Mini Charts: Requests/Cost last 7 days + Latency P95 last 24h */}

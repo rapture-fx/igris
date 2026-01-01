@@ -122,52 +122,35 @@ export default function OvertureShadowPage() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Status</CardTitle>
-              <Shield className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
-              <Badge className="bg-gray-50 text-gray-700 border">
-                {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                {status?.enabled ? 'Active' : 'Inactive'}
-              </Badge>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Shadow Traffic</CardTitle>
-              <TrendingUp className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+        <div className="bg-beige-primary">
+          <div className="grid grid-cols-2 divide-x divide-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Status</div>
+              <div className="pb-2">
+                <Badge className="bg-gray-50 text-gray-700 border">
+                  {status?.enabled ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                  {status?.enabled ? 'Active' : 'Inactive'}
+                </Badge>
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Shadow Traffic</div>
               <div className="text-lg font-bold text-gray-900">{status?.shadow_traffic_percent}%</div>
-              <p className="text-xs text-gray-600 mt-1">of requests shadowed</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Requests (24h)</CardTitle>
-              <Zap className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">of requests shadowed</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Requests (24h)</div>
               <div className="text-lg font-bold text-gray-900">{status?.requests_24h.toLocaleString()}</div>
-              <p className="text-xs text-gray-600 mt-1">shadowed today</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Quality Delta</CardTitle>
-              <DollarSign className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">shadowed today</p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Quality Delta</div>
               <div className="text-lg font-bold text-gray-900">{status?.quality_delta}%</div>
-              <p className="text-xs text-gray-600 mt-1">{status?.discrepancies_found} discrepancies</p>
-            </CardContent>
-          </Card>
+              <p className="text-[0.65rem] text-gray-600 mt-1">{status?.discrepancies_found} discrepancies</p>
+            </div>
+          </div>
         </div>
 
         {/* Configuration Form */}

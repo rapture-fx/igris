@@ -154,49 +154,32 @@ export default function EscapeVectorPage() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-border-light shadow-sm bg-beige-primary">
-            <CardHeader className="flex flex-row items-center justify-between pb-2 bg-transparent">
-              <CardTitle className="text-xs font-medium text-gray-600">Cache Status</CardTitle>
-              <Shield className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent className="bg-transparent">
-              {getStatusBadge()}
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Time Remaining</CardTitle>
-              <Clock className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+        <div className="bg-beige-primary">
+          <div className="grid grid-cols-2 divide-x divide-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Cache Status</div>
+              <div className="pb-2">
+                {getStatusBadge()}
+              </div>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Time Remaining</div>
               <div className="text-lg font-bold text-gray-900">{status?.time_remaining_hours.toFixed(1)}h</div>
-              <p className="text-xs text-gray-600 mt-1">Until cache expires</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Hit Rate (24h)</CardTitle>
-              <TrendingUp className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">Until cache expires</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 divide-x divide-border-light border-t border-border-light">
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Hit Rate (24h)</div>
               <div className="text-lg font-bold text-gray-900">{status?.hit_rate_24h.toFixed(1)}%</div>
-              <p className="text-xs text-gray-600 mt-1">Cache efficiency</p>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border-light shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-xs font-medium text-gray-600">Estimated Savings</CardTitle>
-              <DollarSign className="h-4 w-4 text-gray-900" />
-            </CardHeader>
-            <CardContent>
+              <p className="text-[0.65rem] text-gray-600 mt-1">Cache efficiency</p>
+            </div>
+            <div className="p-4">
+              <div className="text-xs font-medium text-gray-600 mb-1">Estimated Savings</div>
               <div className="text-lg font-bold text-gray-900">${status?.estimated_savings.toFixed(2)}</div>
-              <p className="text-xs text-gray-600 mt-1">Past 24 hours</p>
-            </CardContent>
-          </Card>
+              <p className="text-[0.65rem] text-gray-600 mt-1">Past 24 hours</p>
+            </div>
+          </div>
         </div>
 
         {/* Configuration Form */}

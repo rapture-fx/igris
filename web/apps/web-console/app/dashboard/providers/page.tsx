@@ -225,8 +225,8 @@ export default function ProvidersPage() {
                 ))}
               </Select>
             )}
-            <Button variant="outline" className="shadow-sm" onClick={() => setShowAddDialog(true)}>
-              <Plus className="mr-2 h-4 w-4" />
+            <Button variant="outline" size="sm" className="shadow-sm h-7 text-xs" onClick={() => setShowAddDialog(true)}>
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
               Add Provider
             </Button>
           </div>
